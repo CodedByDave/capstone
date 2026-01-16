@@ -12,16 +12,21 @@ class ShopService
         protected UserService $userService
     ) {}
 
+    /**
+     * Register shop and owner atomically
+     */
     public function registerShop(array $data)
     {
         return DB::transaction(function () use ($data) {
 
+            // Create owner
             $owner = $this->userService->createOwner([
                 'name' => $data['owner_name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
             ]);
 
+            // Create shop for owner
             return $this->shopRepo->createWithOwner(
                 ownerId: $owner->id,
                 shopData: [

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
@@ -17,6 +21,31 @@ defineProps<{
     canResetPassword: boolean;
     canRegister: boolean;
 }>();
+
+const page = usePage();
+
+onMounted(() => {
+    const toastData = page.props.toast as { type: string; message: string } | undefined;
+
+    if (toastData) {
+        switch (toastData.type) {
+            case 'success':
+                toast.success(toastData.message);
+                break;
+            case 'error':
+                toast.error(toastData.message);
+                break;
+            case 'warning':
+                toast.warning(toastData.message);
+                break;
+            case 'info':
+                toast.info(toastData.message);
+                break;
+            default:
+                toast(toastData.message);
+        }
+    }
+});
 </script>
 
 <template>

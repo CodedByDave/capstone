@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Laravel\Fortify\Contracts\RegisterResponse;
+use Laravel\Fortify\Contracts\LoginResponse; // Add this import
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -20,7 +23,11 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Override the default RegisterResponse
+        $this->app->singleton(RegisterResponse::class, \App\Http\Responses\RegisterResponse::class);
+
+        // Override the default LoginResponse (ADD THIS LINE)
+        $this->app->singleton(LoginResponse::class, \App\Http\Responses\LoginResponse::class);
     }
 
     /**
