@@ -27,7 +27,7 @@ class ShopService
             ]);
 
             // Create shop for owner
-            return $this->shopRepo->createWithOwner(
+            $shop = $this->shopRepo->createWithOwner(
                 ownerId: $owner->id,
                 shopData: [
                     'shop_name' => $data['shop_name'],
@@ -36,6 +36,12 @@ class ShopService
                     'business_license' => $data['business_license'],
                 ]
             );
+
+            // Return both owner and shop
+            return [
+                'owner' => $owner,
+                'shop' => $shop,
+            ];
         });
     }
 }

@@ -126,27 +126,6 @@ function openChat() {
                         <Link :href="login.url()"
                             class="inline-flex items-center rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]">
                             Log in</Link>
-
-                        <div class="relative" ref="dropdownRef">
-                            <button @click="showRegister = !showRegister"
-                                class="inline-flex items-center gap-1 rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b']">
-                                Register
-                                <ChevronDown class="w-4 h-4" />
-                            </button>
-
-                            <div v-if="showRegister"
-                                class="absolute right-0 top-full mt-2 w-44 rounded-md bg-white border border-slate-200 shadow-md z-50 dark:bg-[#0f0f0f] dark:border-[#3E3E3A]">
-                                <Link :href="register.url()" @click="showRegister = false"
-                                    class="block px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-[#1a1a1a]">
-                                    Register as User
-                                </Link>
-                                <Link href="/register/shop" @click="showRegister = false"
-                                    class="block px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-[#1a1a1a]">
-                                    Register as Shop
-                                </Link>
-
-                            </div>
-                        </div>
                     </div>
                 </template>
             </div>

@@ -27,7 +27,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'otp_code',
+        'otp_expires_at',
+        'is_verified',
     ];
 
     public function isOwner(): bool
@@ -44,7 +47,6 @@ class User extends Authenticatable
     {
         return $this->role === self::ROLE_USER;
     }
-
 
     public function shop()
     {
@@ -74,6 +76,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'otp_expires_at' => 'datetime',
+            'is_verified' => 'boolean'
         ];
     }
 }
