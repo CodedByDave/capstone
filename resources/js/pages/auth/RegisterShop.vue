@@ -1,303 +1,362 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
-import { Head, useForm } from '@inertiajs/vue3';
-import { Check, Eye, EyeOff } from 'lucide-vue-next';
+import InputError from '@/components/InputError.vue'
+import TextLink from '@/components/TextLink.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
+import AuthBase from '@/layouts/AuthLayout.vue'
+import { login } from '@/routes'
+import { Head, useForm } from '@inertiajs/vue3'
+import { ref, computed, watch } from 'vue'
+import { Eye, EyeOff } from 'lucide-vue-next'
 
-/* ---------------- STATE ---------------- */
-const currentStep = ref(1);
-const totalSteps = 3;
-
-const showPassword = ref(false);
-const showConfirmPassword = ref(false);
+/* ---------------- STEP ---------------- */
+const step = ref(1)
 
 /* ---------------- FORM ---------------- */
 const form = useForm({
-    shop_name: '',
-    phone: '',
-    address: '',
-    business_license: '',
-    owner_name: '',
+    name: '',
     email: '',
+    phone: '',
+
+    shop_name: '',
+    branch_name: '',
+    block_street: '',
+    municipality: '',
+    barangay: '',
+    postal_code: '',   // ← kept in sync by watchers below
+
+    valid_id: null as File | null,
+    agree: false,
+
     password: '',
     password_confirmation: '',
-});
+})
 
-/* ---------------- CLIENT VALIDATION ---------------- */
-const clientErrors = ref({
-    phone: '',
-    email: '',
-});
+/* ---------------- PASSWORD ---------------- */
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
-const phoneRegex = /^[0-9+ ]+$/;
-const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+const rules = {
+    length:       (v: string) => v.length >= 8,
+    alphaNumeric: (v: string) => /[A-Za-z]/.test(v) && /\d/.test(v),
+    special:      (v: string) => /[^A-Za-z0-9]/.test(v),
+}
 
-/* Phone validation */
-watch(() => form.phone, (value) => {
-    if (!value) {
-        clientErrors.value.phone = '';
-        return;
-    }
+const isPasswordValid = computed(() =>
+    rules.length(form.password) &&
+    rules.alphaNumeric(form.password) &&
+    rules.special(form.password)
+)
 
-    if (!phoneRegex.test(value)) {
-        clientErrors.value.phone = 'Phone number must contain numbers only';
-    } else {
-        clientErrors.value.phone = '';
-    }
-});
+const passwordsMatch = computed(() =>
+    form.password === form.password_confirmation &&
+    form.password_confirmation.length > 0
+)
 
-/* Email validation */
-watch(() => form.email, (value) => {
-    if (!value) {
-        clientErrors.value.email = '';
-        return;
-    }
+/* ---------------- MUNICIPALITIES / BARANGAYS ---------------- */
+const barangaysByMunicipality: Record<string, Array<{ name: string; postal: string }>> = {
+    'Cavite City': [
+        { name: 'Barangay 1 (Hen. M. Alvarez)', postal: '4100' },
+        { name: 'Barangay 2 (Hen. C. Tirona)',  postal: '4100' },
+        { name: 'Barangay 3 (M. Paterno)',       postal: '4100' },
+        { name: 'Barangay 4 (M. Roxas)',         postal: '4100' },
+    ],
+    'Dasmariñas': [
+        { name: 'Burol',          postal: '4114' },
+        { name: 'Burol II',       postal: '4114' },
+        { name: 'Dangcalan',      postal: '4114' },
+        { name: 'Langkaan I',     postal: '4114' },
+        { name: 'Langkaan II',    postal: '4114' },
+        { name: 'Langkaan III',   postal: '4114' },
+        { name: 'Langkaan IV',    postal: '4114' },
+        { name: 'Malagasang I',   postal: '4114' },
+        { name: 'Malagasang II',  postal: '4114' },
+        { name: 'Paliparan I',    postal: '4114' },
+        { name: 'Paliparan II',   postal: '4114' },
+        { name: 'Paliparan III',  postal: '4114' },
+        { name: 'Real',           postal: '4114' },
+        { name: 'Salawag',        postal: '4114' },
+        { name: 'San Agustin',    postal: '4114' },
+        { name: 'San Jose',       postal: '4114' },
+        { name: 'San Miguel',     postal: '4114' },
+        { name: 'Sampaloc',       postal: '4114' },
+        { name: 'Santo Niño',     postal: '4114' },
+        { name: 'Santo Tomas',    postal: '4114' },
+        { name: 'Sapang Malapit', postal: '4114' },
+    ],
+    'Bacoor': [
+        { name: 'Aniban',     postal: '4102' },
+        { name: 'Bayanan',    postal: '4102' },
+        { name: 'Burgos',     postal: '4102' },
+        { name: 'Zapote',     postal: '4102' },
+        { name: 'Niog',       postal: '4102' },
+        { name: 'Molino I',   postal: '4102' },
+        { name: 'Molino II',  postal: '4102' },
+        { name: 'Molino III', postal: '4102' },
+        { name: 'Molino IV',  postal: '4102' },
+    ],
+    'Imus': [
+        { name: 'Buhay na Tubig', postal: '4103' },
+        { name: 'Anabu I',        postal: '4103' },
+        { name: 'Anabu II',       postal: '4103' },
+        { name: 'Barangka',       postal: '4103' },
+        { name: 'Burgos',         postal: '4103' },
+        { name: 'Dela Paz',       postal: '4103' },
+    ],
+    'Trece Martires': [
+        { name: 'Centro I',   postal: '4109' },
+        { name: 'Centro II',  postal: '4109' },
+        { name: 'Buenavista', postal: '4109' },
+        { name: 'Palico',     postal: '4109' },
+    ],
+    'General Trias': [
+        { name: 'Pasong Camachile I',  postal: '4107' },
+        { name: 'Pasong Camachile II', postal: '4107' },
+        { name: 'Navarro',             postal: '4107' },
+        { name: 'Manggahan',           postal: '4107' },
+    ],
+}
 
-    if (!gmailRegex.test(value)) {
-        clientErrors.value.email = 'Email must be a valid @gmail.com address';
-    } else {
-        clientErrors.value.email = '';
-    }
-});
+const municipalities = Object.keys(barangaysByMunicipality)
 
-/* ---------------- STEPS ---------------- */
-const steps = [
-    { number: 1, title: 'Shop Information' },
-    { number: 2, title: 'Owner Information' },
-    { number: 3, title: 'Account Security' },
-];
+const selectedBarangays = computed(() =>
+    barangaysByMunicipality[form.municipality] ?? []
+)
 
-/* ---------------- STEP CONTROL ---------------- */
-const canProceed = computed(() => {
-    if (currentStep.value === 1) {
-        return (
-            form.shop_name &&
-            form.phone &&
-            !clientErrors.value.phone &&
-            form.address &&
-            form.business_license
-        );
-    }
+// ← Must be declared BEFORE the watchers that use it
+const autoPostalCode = computed(() => {
+    const found = selectedBarangays.value.find(b => b.name === form.barangay)
+    return found ? found.postal : ''
+})
 
-    if (currentStep.value === 2) {
-        return (
-            form.owner_name &&
-            form.email &&
-            !clientErrors.value.email
-        );
-    }
+// Sync computed postal code into form so it actually gets submitted
+watch(autoPostalCode, (val) => {
+    form.postal_code = val
+})
 
-    if (currentStep.value === 3) {
-        return form.password && form.password_confirmation;
-    }
+// Reset dependent fields when municipality changes
+watch(() => form.municipality, () => {
+    form.barangay    = ''
+    form.postal_code = ''
+})
 
-    return false;
-});
+/* ---------------- VALIDATIONS ---------------- */
+const step1Valid = computed(() =>
+    form.name.trim().length > 2 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
+    form.phone.length >= 10
+)
 
-const nextStep = () => {
-    if (currentStep.value < totalSteps && canProceed.value) {
-        currentStep.value++;
-    }
-};
+const step2Valid = computed(() =>
+    form.shop_name.trim().length > 2 &&
+    form.block_street.trim().length > 5 &&
+    form.municipality.trim().length > 0 &&
+    form.barangay.trim().length > 0 &&
+    autoPostalCode.value.length >= 4
+)
 
-const prevStep = () => {
-    if (currentStep.value > 1) currentStep.value--;
-};
+const step3Valid = computed(() =>
+    form.valid_id !== null
+)
 
+const step4Valid = computed(() =>
+    isPasswordValid.value &&
+    passwordsMatch.value &&
+    form.agree === true
+)
+
+/* ---------------- NAV ---------------- */
+const nextStep = () => step.value++
+const prevStep = () => step.value--
+
+/* ---------------- SUBMIT ---------------- */
 const submit = () => {
-    form.post('/register/shop', {
-        onSuccess: () => {
-            form.reset('password', 'password_confirmation');
-        },
-    });
-};
-
-/* ---------------- PASSWORD STRENGTH ---------------- */
-const passwordStrength = ref('');
-
-watch(() => form.password, (password) => {
-    passwordStrength.value = getPasswordStrength(password);
-});
-
-function getPasswordStrength(password: string) {
-    if (!password) return '';
-    const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-    const medium = /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/;
-
-    if (strong.test(password)) return 'Strong';
-    if (medium.test(password)) return 'Medium';
-    return 'Weak';
+    if (!step4Valid.value) return
+    form.post('/register/shop')
 }
 </script>
 
 <template>
-    <Head title="Register Shop" />
+    <AuthBase title="Register Laundry Shop" description="Create your shop account">
 
-    <div class="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-slate-50 dark:bg-[#0f0f0f]">
+        <Head title="Register" />
 
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold">Register Your Shop</h2>
-            <p class="text-sm text-muted-foreground">
-                Join LaundryHub as a laundry shop partner
-            </p>
-        </div>
+        <form @submit.prevent="submit" class="flex flex-col gap-6">
 
-        <!-- Step Indicators -->
-        <div class="flex gap-4 mb-8">
-            <div
-                v-for="step in steps"
-                :key="step.number"
-                class="w-8 h-8 rounded-full flex items-center justify-center border-2"
-                :class="[
-                    currentStep > step.number
-                        ? 'bg-green-500 border-green-500 text-white'
-                        : currentStep === step.number
-                            ? 'border-primary text-primary'
-                            : 'border-muted text-muted-foreground'
-                ]"
-            >
-                <Check v-if="currentStep > step.number" class="w-4 h-4" />
-                <span v-else class="text-sm">{{ step.number }}</span>
-            </div>
-        </div>
+            <!-- STEP 1: Owner Info -->
+            <div v-if="step === 1" class="grid gap-4">
+                <h2 class="font-semibold text-center">Owner Info</h2>
 
-        <!-- Form -->
-        <div class="w-full max-w-xl space-y-6">
-
-            <!-- STEP 1 -->
-            <div v-show="currentStep === 1" class="space-y-4">
-                <div class="grid gap-2 w-80 mx-auto">
-                    <Label>Shop Name</Label>
-                    <Input v-model="form.shop_name" placeholder="Laundry Express"/>
-                    <InputError :message="form.errors.shop_name" />
+                <div>
+                    <Label class="mb-2">Owner Name</Label>
+                    <Input v-model="form.name" placeholder="John Doe" />
                 </div>
 
-                <div class="grid gap-2 w-80 mx-auto">
-                    <Label>Phone Number</Label>
-                    <Input
-                        v-model="form.phone"
-                        placeholder="+63 912 345 6789"
-                        @input="form.phone = form.phone.replace(/[^0-9+ ]/g, '')"
-                    />
-                    <InputError :message="clientErrors.phone || form.errors.phone" />
+                <div>
+                    <Label class="mb-2">Email</Label>
+                    <Input v-model="form.email" type="email" placeholder="shop@email.com" />
                 </div>
 
-                <div class="grid gap-2 w-80 mx-auto">
-                    <Label>Shop Address</Label>
-                    <Input v-model="form.address" placeholder="123 main street"/>
-                    <InputError :message="form.errors.address" />
+                <div>
+                    <Label class="mb-2">Phone</Label>
+                    <Input v-model="form.phone" placeholder="09XX-XXX-XXXX" />
                 </div>
 
-                <div class="grid gap-2 w-80 mx-auto">
-                    <Label>Business License</Label>
-                    <Input v-model="form.business_license" placeholder="BL-123-456" />
-                    <InputError :message="form.errors.business_license" />
-                </div>
+                <Button type="button" @click="nextStep" :disabled="!step1Valid">Next</Button>
             </div>
 
-            <!-- STEP 2 -->
-            <div v-show="currentStep === 2" class="space-y-4">
-                <div class="grid gap-2 w-80 mx-auto">
-                    <Label>Owner Name</Label>
-                    <Input v-model="form.owner_name" placeholder="John Doe"/>
-                    <InputError :message="form.errors.owner_name" />
+            <!-- STEP 2: Shop Info -->
+            <div v-if="step === 2" class="grid gap-4">
+                <h2 class="font-semibold text-center">Shop Info</h2>
+
+                <div>
+                    <Label class="mb-2">Shop Name</Label>
+                    <Input v-model="form.shop_name" placeholder="Laundry Hub" />
                 </div>
 
-                <div class="grid gap-2 w-80 mx-auto">
-                    <Label>Email (Gmail only)</Label>
-                    <Input
-                        v-model="form.email"
-                        placeholder="shop@gmail.com"
-                    />
-                    <InputError :message="clientErrors.email || form.errors.email" />
+                <div>
+                    <Label class="mb-2">Branch Name (optional)</Label>
+                    <Input v-model="form.branch_name" placeholder="N/A" />
                 </div>
-            </div>
 
-            <!-- STEP 3 -->
-            <div v-show="currentStep === 3" class="space-y-4 w-80 mx-auto">
+                <div>
+                    <Label class="mb-2">Block / Street</Label>
+                    <Input v-model="form.block_street" placeholder="e.g. Block 5, St. 12" />
+                </div>
 
-                <div class="relative">
-                    <Input
-                        v-model="form.password"
-                        :type="showPassword ? 'text' : 'password'"
-                        placeholder="Password"
-                        class="pr-10"
-                    />
-                    <button
-                        type="button"
-                        class="absolute inset-y-0 right-3 flex items-center"
-                        @click="showPassword = !showPassword"
+                <div>
+                    <Label class="mb-2">Municipality</Label>
+                    <select v-model="form.municipality" class="border p-2 rounded w-full">
+                        <option value="">Select municipality</option>
+                        <option v-for="mun in municipalities" :key="mun" :value="mun">{{ mun }}</option>
+                    </select>
+                </div>
+
+                <div>
+                    <Label class="mb-2">Barangay</Label>
+                    <select
+                        v-model="form.barangay"
+                        class="border p-2 rounded w-full"
+                        :disabled="!form.municipality"
                     >
-                        <Eye v-if="!showPassword" class="w-4 h-4" />
-                        <EyeOff v-else class="w-4 h-4" />
-                    </button>
+                        <option value="">Select barangay</option>
+                        <option v-for="b in selectedBarangays" :key="b.name" :value="b.name">
+                            {{ b.name }}
+                        </option>
+                    </select>
                 </div>
 
-                <InputError :message="form.errors.password" />
-
-                <p v-if="passwordStrength" class="text-sm"
-                    :class="{
-                        'text-red-500': passwordStrength === 'Weak',
-                        'text-yellow-500': passwordStrength === 'Medium',
-                        'text-green-500': passwordStrength === 'Strong'
-                    }"
-                >
-                    Password strength: {{ passwordStrength }}
-                </p>
-
-                <div class="relative">
+                <!-- Shows autoPostalCode visually; form.postal_code is synced by watcher -->
+                <div>
+                    <Label class="mb-2">Postal Code</Label>
                     <Input
-                        v-model="form.password_confirmation"
-                        :type="showConfirmPassword ? 'text' : 'password'"
-                        placeholder="Confirm password"
-                        class="pr-10"
+                        :value="autoPostalCode"
+                        placeholder="Auto-filled on barangay select"
+                        readonly
+                        class="bg-muted/50 cursor-not-allowed"
                     />
-                    <button
-                        type="button"
-                        class="absolute inset-y-0 right-3 flex items-center"
-                        @click="showConfirmPassword = !showConfirmPassword"
-                    >
-                        <Eye v-if="!showConfirmPassword" class="w-4 h-4" />
-                        <EyeOff v-else class="w-4 h-4" />
-                    </button>
                 </div>
 
-                <InputError :message="form.errors.password_confirmation" />
+                <div class="flex gap-2">
+                    <Button type="button" @click="nextStep" :disabled="!step2Valid" class="w-full">Next</Button>
+                </div>
+
+                <div class="flex gap-2">
+                    <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
+                </div>
             </div>
-        </div>
 
-        <!-- Navigation -->
-        <div class="flex justify-between mt-6 w-80">
-            <Button v-if="currentStep > 1" variant="outline" @click="prevStep">
-                Previous
-            </Button>
-            <Button
-                v-if="currentStep < totalSteps"
-                @click="nextStep"
-                :disabled="!canProceed"
-            >
-                Next
-            </Button>
-            <Button
-                v-else
-                @click="submit"
-                :disabled="form.processing"
-            >
-                <Spinner v-if="form.processing" />
-                Register Shop
-            </Button>
-        </div>
+            <!-- STEP 3: Verification -->
+            <div v-if="step === 3" class="grid gap-4">
+                <h2 class="font-semibold text-center">Verification</h2>
 
-        <div class="text-sm text-muted-foreground mt-4">
-            Already have an account?
-            <TextLink :href="login()" class="underline">Log in</TextLink>
-        </div>
-    </div>
+                <div>
+                    <Label class="mb-2">Upload Valid ID</Label>
+                    <Input
+                        type="file"
+                        @change="(e: Event) => form.valid_id = (e.target as HTMLInputElement).files?.[0] ?? null"
+                    />
+                </div>
+
+                <div class="flex gap-2">
+                    <Button type="button" @click="nextStep" :disabled="!step3Valid" class="w-full">Next</Button>
+                </div>
+
+                <div class="flex gap-2">
+                    <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
+                </div>
+            </div>
+
+            <!-- STEP 4: Password -->
+            <div v-if="step === 4" class="grid gap-4">
+                <h2 class="font-semibold text-center">Set Password</h2>
+
+                <div>
+                    <Label class="mb-2">Password</Label>
+                    <div class="relative">
+                        <Input
+                            v-model="form.password"
+                            :type="showPassword ? 'text' : 'password'"
+                            class="pr-10"
+                        />
+                        <button
+                            type="button"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            @click="showPassword = !showPassword"
+                        >
+                            <Eye v-if="!showPassword" class="h-4 w-4" />
+                            <EyeOff v-else class="h-4 w-4" />
+                        </button>
+                    </div>
+                    <InputError :message="form.errors.password" />
+                </div>
+
+                <div>
+                    <Label class="mb-2">Confirm Password</Label>
+                    <div class="relative">
+                        <Input
+                            v-model="form.password_confirmation"
+                            :type="showConfirmPassword ? 'text' : 'password'"
+                            class="pr-10"
+                        />
+                        <button
+                            type="button"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            @click="showConfirmPassword = !showConfirmPassword"
+                        >
+                            <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
+                            <EyeOff v-else class="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <Button type="submit" :disabled="!step4Valid || form.processing" class="w-full">
+                        <Spinner v-if="form.processing" class="mr-2" />
+                        Register
+                    </Button>
+                </div>
+
+                <div class="flex gap-2">
+                    <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
+                </div>
+            </div>
+
+            <!-- TERMS (always visible) -->
+            <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" v-model="form.agree" />
+                I agree to Terms &amp; Conditions
+            </label>
+            <p v-if="!form.agree" class="text-red-500 text-sm">You must agree before registering</p>
+
+            <!-- LOGIN -->
+            <div class="text-center text-sm">
+                Already have an account?
+                <TextLink :href="login()" class="underline">Login</TextLink>
+            </div>
+
+        </form>
+    </AuthBase>
 </template>

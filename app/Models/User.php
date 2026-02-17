@@ -53,6 +53,7 @@ class User extends Authenticatable
         return $this->hasOne(Shop::class, 'owner_id');
     }
 
+
     /**
      * The attributes that should be hidden for serialization.
      *

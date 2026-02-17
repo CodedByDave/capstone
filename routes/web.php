@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\ShopController;
+use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\ShopDataController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -10,12 +13,13 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-
 //Routes for super admin
-Route::prefix('admin')->middleware(['auth', 'role:super_admin'])->group(function (){
+Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->group(function (){
 
     //Super admin dashboard
     Route::get('/dashboard', fn() => Inertia::render('admin/Dashboard'))->name('admin.dashboard');
+
+    Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 });
 
 //Routes for shops
@@ -23,6 +27,13 @@ Route::prefix('shop')->middleware(['auth', 'role:owner'])->group(function (){
 
     //Shop Dashboard
     Route::get('/dashboard', fn() => Inertia::render('shop/Dashboard'))->name('shop.dashboard');
+
+    // Route to get the authenticated owner's shop data
+    Route::get('/data', [ShopDataController::class, 'getShop'])->name('shop.data');
+
+    Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
+    Route::get('/payment/success', [CheckoutController::class, 'success'])->name('payment.success');
+    Route::get('/payment/cancel', [CheckoutController::class, 'cancel'])->name('payment.cancel');
 });
 
 //Routes for normal users

@@ -13,11 +13,17 @@ return new class extends Migration
     {
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('owner_id')->constrained('users');
+
+            $table->foreignId('owner_id')
+                ->unique()
+                ->constrained('users')
+                ->cascadeOnDelete();
+
             $table->string('shop_name');
             $table->string('phone');
-            $table->string('address');
-            $table->string('business_license');
+            $table->string('street');
+            $table->string('status')->default('pending');
+
             $table->timestamps();
         });
     }

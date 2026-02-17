@@ -17,7 +17,7 @@ class OtpVerificationMail extends Mailable
      */
     public function __construct(
         public string $otp,
-        public string $shopName
+        public string $name
     ) {}
 
     /**
@@ -26,7 +26,7 @@ class OtpVerificationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Verify Your {$this->shopName} Account",
+            subject: "Verify Your {$this->name} Account",
         );
     }
 
@@ -39,7 +39,7 @@ class OtpVerificationMail extends Mailable
             view: 'emails.otp',
             with: [
                 'otp' => $this->otp,
-                'shopName' => $this->shopName,
+                'shopName' => $this->name,
             ],
         );
     }

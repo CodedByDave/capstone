@@ -12,36 +12,30 @@ class ShopService
         protected UserService $userService
     ) {}
 
-    /**
-     * Register shop and owner atomically
-     */
     public function registerShop(array $data)
     {
         return DB::transaction(function () use ($data) {
 
-            // Create owner
             $owner = $this->userService->createOwner([
-                'name' => $data['owner_name'],
+                'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
             ]);
 
-            // Create shop for owner
             $shop = $this->shopRepo->createWithOwner(
-                ownerId: $owner->id,
-                shopData: [
-                    'shop_name' => $data['shop_name'],
-                    'phone' => $data['phone'],
-                    'address' => $data['address'],
-                    'business_license' => $data['business_license'],
+                $owner->id,
+                [
+                    'shop_name'    => $data['shop_name'],
+                    'phone'        => $data['phone'],
+                    'block_street' => $data['block_street'],
+                    'municipality' => $data['municipality'],
+                    'barangay'     => $data['barangay'],
+                    'postal_code'  => $data['postal_code'],
+                    'status'       => 'pending',
                 ]
             );
 
-            // Return both owner and shop
-            return [
-                'owner' => $owner,
-                'shop' => $shop,
-            ];
+            return compact('owner', 'shop');
         });
     }
 }

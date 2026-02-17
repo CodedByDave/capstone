@@ -29,7 +29,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Shop Management',
-        href: '#',
+        href: '/admin/shop',
         icon: Store,
     },
     {

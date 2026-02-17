@@ -7,7 +7,7 @@ use App\Http\Controllers\Auth\UserRegisterController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 
 /**
- * Guest Routes not authenticated
+ * Guest Routes - not authenticated
  */
 Route::middleware(['guest'])->group(function () {
 
@@ -18,12 +18,6 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/register/shop', [ShopRegisterController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('register.shop.store');
-});
-
-/**
- * Routes for authenticated user for otp
- */
-Route::middleware(['auth'])->group(function () {
 
     // OTP verification page
     Route::get('/verify-otp', [OtpVerificationController::class, 'show'])

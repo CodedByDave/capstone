@@ -16,7 +16,8 @@ class ShopRepository extends Repository
     {
         return $this->create([
             'owner_id' => $ownerId,
-            ...$shopData,
+            ...$shopData
         ]);
     }
 }
+

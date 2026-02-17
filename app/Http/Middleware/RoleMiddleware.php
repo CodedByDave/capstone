@@ -6,15 +6,11 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, $role): Response
     {
         $user = Auth::user();
 
@@ -22,12 +18,23 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        // Debugging line
-        // dd($role, $user->role);
+        // Log for debugging
+        Log::info('RoleMiddleware Check', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'user_role' => $user->role,
+            'required_role' => $role,
+            'match' => $user->role === $role,
+        ]);
 
         if ($user->role !== $role) {
-            // Return 404 not found
-            abort(404);
+            // Redirect based on actual role instead of 404
+            return match($user->role) {
+                'super_admin' => redirect()->route('admin.dashboard'),
+                'owner' => redirect()->route('shop.dashboard'),
+                'user' => redirect()->route('dashboard'),
+                default => abort(403, 'Unauthorized access'),
+            };
         }
 
         return $next($request);
