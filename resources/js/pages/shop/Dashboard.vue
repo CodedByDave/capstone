@@ -16,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 // -------------------- Logged-in user --------------------
-const { props } = usePage()
+const { props } = usePage<{ auth: { user: any }, modules: any[] }>()
 const user = props.auth.user
 
 // -------------------- Steps --------------------
@@ -24,15 +24,8 @@ const currentStep = ref(1)
 const totalSteps = 2
 const isSubmitting = ref(false)
 
-// -------------------- Modules --------------------
-const moduleOptions = [
-    { name: 'CRM', description: 'Manage customer relationships, track orders and communication efficiently.', price: 1500 },
-    { name: 'Supply Chain', description: 'Monitor inventory, suppliers, and streamline procurement for your shop.', price: 2000 },
-    { name: 'Billing / Invoicing', description: 'Generate invoices, manage payments and billing for your customers.', price: 1200 },
-    { name: 'Employee Management', description: 'Track employee schedules, payroll, and attendance easily.', price: 1800 },
-    { name: 'Analytics / Reporting', description: 'Get insights and reports on shop performance, sales, and operations.', price: 2200 },
-    { name: 'Marketing', description: 'Tools for promotions, campaigns, and customer engagement.', price: 1300 }
-]
+// -------------------- Modules from DB --------------------
+const moduleOptions = ref(props.modules) // Use DB modules
 
 // -------------------- Order Form --------------------
 const orderForm = ref({
@@ -45,7 +38,7 @@ const orderForm = ref({
     municipality: '',
     barangay: '',
     postal_code: '',
-    modules: [] as string[]
+    modules: [] as number[] // store module IDs
 })
 
 // -------------------- Validation errors --------------------
@@ -61,8 +54,8 @@ const errors = ref({
 
 // -------------------- Computed total price --------------------
 const totalPrice = computed(() => {
-    return orderForm.value.modules.reduce((sum, moduleName) => {
-        const module = moduleOptions.find(m => m.name === moduleName)
+    return orderForm.value.modules.reduce((sum, moduleId) => {
+        const module = moduleOptions.value.find(m => m.id === moduleId)
         return sum + (module?.price || 0)
     }, 0)
 })
@@ -111,15 +104,15 @@ function goNext() {
     if (currentStep.value === 2 && !Object.values(errors.value).some(e => e)) {
         isSubmitting.value = true
 
-        const modulesWithPrice = orderForm.value.modules.map(moduleName => {
-            const module = moduleOptions.find(m => m.name === moduleName)
-            return { name: moduleName, price: module?.price || 0 }
+        const modulesWithPrice = orderForm.value.modules.map(moduleId => {
+            const module = moduleOptions.value.find(m => m.id === moduleId)
+            return { id: module?.id, name: module?.name, price: module?.price || 0 }
         })
 
         axios.post('/shop/checkout', {
             ...orderForm.value,
             modules: modulesWithPrice,
-            payment_method: 'stripe',
+            payment_method: 'paymongo',
             amount: totalPrice.value
         })
             .then(res => {
@@ -139,9 +132,20 @@ function goNext() {
 }
 
 // -------------------- Remove module --------------------
-function removeModule(moduleName: string) {
-    orderForm.value.modules = orderForm.value.modules.filter(m => m !== moduleName)
+function removeModule(moduleId: number) {
+    orderForm.value.modules = orderForm.value.modules.filter(id => id !== moduleId)
 }
+
+// Toggle module selection by clicking card
+function toggleModule(moduleId: number) {
+    const idx = orderForm.value.modules.indexOf(moduleId)
+    if (idx >= 0) {
+        orderForm.value.modules.splice(idx, 1)
+    } else {
+        orderForm.value.modules.push(moduleId)
+    }
+}
+
 </script>
 
 <template>
@@ -235,20 +239,16 @@ function removeModule(moduleName: string) {
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <p class="text-gray-500 text-xs mt-1">Choose the modules your laundry shop needs.</p>
-                        <div class="grid grid-cols-1 gap-4">
-                            <div v-for="module in moduleOptions" :key="module.name"
-                                class="border rounded-lg p-3 flex items-start space-x-3 hover:border-blue-400 transition-colors"
-                                :class="{ 'border-blue-500 bg-blue-50 dark:bg-blue-950': orderForm.modules.includes(module.name) }">
-                                <input type="checkbox" :value="module.name" v-model="orderForm.modules"
-                                    class="mt-1 h-4 w-4" />
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-center">
-                                        <span class="font-semibold">{{ module.name }}</span>
-                                        <span class="text-green-600 font-medium">₱{{ module.price.toLocaleString()
-                                            }}</span>
-                                    </div>
-                                    <p class="text-gray-500 text-xs mt-1">{{ module.description }}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div v-for="module in moduleOptions" :key="module.id"
+                                class="border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md"
+                                :class="orderForm.modules.includes(module.id) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 shadow-md' : 'border-gray-200 dark:border-neutral-700'"
+                                @click="toggleModule(module.id)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-semibold">{{ module.name }}</span>
+                                    <span class="text-green-600 font-medium">₱{{ module.price.toLocaleString() }}</span>
                                 </div>
+                                <p class="text-gray-500 text-sm mt-1">{{ module.description }}</p>
                             </div>
                         </div>
                         <p v-if="errors.modules" class="text-red-500 text-xs mt-1">{{ errors.modules }}</p>
@@ -264,14 +264,15 @@ function removeModule(moduleName: string) {
                         <div v-if="orderForm.modules.length === 0" class="text-gray-500 text-sm">
                             No modules selected.
                         </div>
-                        <div v-for="moduleName in orderForm.modules" :key="moduleName"
+                        <div v-for="moduleId in orderForm.modules" :key="moduleId"
                             class="flex justify-between items-center p-2 border rounded">
-                            <span>{{ moduleName }}</span>
+                            <span>{{moduleOptions.find(m => m.id === moduleId)?.name}}</span>
                             <div class="flex items-center space-x-2">
-                                <span class="text-green-600 font-medium">₱{{(moduleOptions.find(m => m.name ===
-                                    moduleName)?.price || 0).toLocaleString() }}</span>
-                                <Button size="sm" variant="destructive"
-                                    @click="removeModule(moduleName)"><Trash2 class="h-4 w-4" /></Button>
+                                <span class="text-green-600 font-medium">₱{{(moduleOptions.find(m => m.id ===
+                                    moduleId)?.price || 0).toLocaleString() }}</span>
+                                <Button size="sm" variant="destructive" @click="removeModule(moduleId)">
+                                    <Trash2 class="h-4 w-4" />
+                                </Button>
                             </div>
                         </div>
 
@@ -279,9 +280,10 @@ function removeModule(moduleName: string) {
                             class="mt-3 p-3 bg-gray-100 dark:bg-neutral-800 rounded-lg">
                             <div class="flex justify-between items-center">
                                 <span class="font-semibold">Total Price:</span>
-                                <span class="text-lg font-bold text-green-600">₱{{ totalPrice.toLocaleString() }}</span>
+                                <span class="text-lg font-bold text-dark-600">₱{{ totalPrice.toLocaleString() }}</span>
                             </div>
                         </div>
+
                         <div>
                             <Button class="mt-3 w-full" @click="goNext" :disabled="isSubmitting">
                                 {{ isSubmitting ? 'Processing...' : 'Proceed to Payment' }}
@@ -289,7 +291,6 @@ function removeModule(moduleName: string) {
                         </div>
                     </CardContent>
                 </Card>
-
             </div>
 
         </div>

@@ -14,7 +14,9 @@ class Payment extends Model
         'payment_method',
         'amount',
         'status',
-        'stripe_payment_id',
+        'paymongo_session_id',
+        'paymongo_payment_id',
+        'transaction_id',
         'paid_at',
         'raw_response',
     ];

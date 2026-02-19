@@ -14,7 +14,7 @@ class PaymentRepository extends Repository
     public function markAsPaid(Payment $payment, array $extra = []): bool
     {
         return $this->update($payment, array_merge([
-            'status' => 'paid',
+            'status'  => 'paid',
             'paid_at' => now(),
         ], $extra));
     }

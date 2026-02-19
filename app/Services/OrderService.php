@@ -7,23 +7,18 @@ use App\Repositories\OrderRepository;
 
 class OrderService
 {
-    public function __construct(protected OrderRepository $orders) {}
+    public function __construct(
+        protected OrderRepository $orderRepository
+    ) {}
 
     public function create(array $data): Order
     {
-        $data['status'] = 'pending';
-        $data['branch_name'] = $data['branch_name'] ?: 'N/A';
-        $data['total_price'] = array_reduce(
-            $data['modules'] ?? [],
-            fn($sum, $module) => $sum + ($module['price'] ?? 0),
-            0
-        );
+        // Calculate total_price from the modules array
+        $total = collect($data['modules'])->sum('price');
 
-        return $this->orders->create($data);
-    }
-
-    public function markPaid(Order $order): bool
-    {
-        return $this->orders->markAsPaid($order);
+        return $this->orderRepository->create(array_merge($data, [
+            'total_price' => $total,
+            'status'      => 'pending',
+        ]));
     }
 }

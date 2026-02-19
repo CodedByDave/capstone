@@ -20,7 +20,7 @@ class SuperAdminSeeder extends Seeder
             ['email' => $superAdminEmail],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('password123'), // Change this to a strong password
+                'password' => Hash::make('password123'),
                 'role' => 'super_admin',
             ]
         );

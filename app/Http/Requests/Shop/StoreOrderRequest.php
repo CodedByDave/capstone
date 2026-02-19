@@ -14,20 +14,20 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_name' => 'nullable|string|max:255',
-            'shop_name' => 'required|string|max:255',
-            'owner_name' => 'required|string|max:255',
-            'email' => 'required|email',
-            'phone' => 'required|digits_between:10,11',
-            'neighborhood' => 'required|string|max:255',
-            'municipality' => 'required|string',
-            'barangay' => 'required|string',
-            'postal_code' => 'nullable|string',
-            'modules' => 'required|array|min:1',
+            'branch_name'    => 'nullable|string|max:255',
+            'shop_name'      => 'required|string|max:255',
+            'owner_name'     => 'required|string|max:255',
+            'email'          => 'required|email',
+            'phone'          => 'required|digits_between:10,11',
+            'block_street'   => 'required|string|max:255',  // removed 'neighborhood'
+            'municipality'   => 'required|string',
+            'barangay'       => 'required|string',
+            'postal_code'    => 'nullable|string',
+            'modules'        => 'required|array|min:1',
             'modules.*.name' => 'required|string',
-            'modules.*.price' => 'required|numeric|min:0',
+            'modules.*.price'=> 'required|numeric|min:0',
             'payment_method' => 'nullable|string',
-            'amount' => 'nullable|numeric|min:0',
+            'amount'         => 'nullable|numeric|min:0',
         ];
     }
 
@@ -35,7 +35,7 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'modules.required' => 'Please select at least one module.',
-            'modules.min' => 'Please select at least one module.',
+            'modules.min'      => 'Please select at least one module.',
         ];
     }
 }

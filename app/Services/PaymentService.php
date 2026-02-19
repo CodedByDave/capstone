@@ -8,20 +8,17 @@ use App\Repositories\PaymentRepository;
 
 class PaymentService
 {
-    public function __construct(protected PaymentRepository $payments) {}
+    public function __construct(
+        protected PaymentRepository $paymentRepository
+    ) {}
 
     public function createForOrder(Order $order, array $data): Payment
     {
-        return $this->payments->create([
-            'order_id' => $order->id,
+        return $this->paymentRepository->create([
+            'order_id'       => $order->id,
             'payment_method' => $data['payment_method'],
-            'amount' => $data['amount'],
-            'status' => 'pending'
+            'amount'         => $data['amount'],
+            'status'         => 'pending',
         ]);
-    }
-
-    public function markPaid(Payment $payment, array $extra = []): bool
-    {
-        return $this->payments->markAsPaid($payment, $extra);
     }
 }

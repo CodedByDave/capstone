@@ -17,12 +17,12 @@ class Order extends Model
         'owner_name',
         'email',
         'phone',
-        'neighborhood',
+        'block_street',    // fixed from 'neighborhood'
         'municipality',
         'barangay',
         'postal_code',
-        'modules', // store as JSON
-        'status', // pending, paid, cancelled
+        'modules',
+        'status',
         'total_price',
     ];
 

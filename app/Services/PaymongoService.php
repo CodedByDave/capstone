@@ -23,7 +23,6 @@ class PaymongoService
     {
         $amount = (int) round($order->total_price * 100);
 
-        // Ensure minimum amount (100 PHP)
         if ($amount < 10000) {
             throw new \Exception('Minimum order amount is ₱100.00');
         }
@@ -32,13 +31,13 @@ class PaymongoService
             'data' => [
                 'attributes' => [
                     'send_email_receipt' => true,
-                    'show_description' => true,
-                    'show_line_items' => true,
-                    'line_items' => [
+                    'show_description'   => true,
+                    'show_line_items'    => true,
+                    'line_items'         => [
                         [
                             'currency' => 'PHP',
-                            'amount' => $amount,
-                            'name' => "Laundry Modules for {$order->shop_name}",
+                            'amount'   => $amount,
+                            'name'     => "Laundry Modules for {$order->shop_name}",
                             'quantity' => 1,
                         ]
                     ],
@@ -48,12 +47,12 @@ class PaymongoService
                         'paymaya',
                         'grab_pay'
                     ],
-                    'success_url' => url('/payment/success'),
-                    'cancel_url' => url('/payment/cancel'),
+                    'success_url' => url('/shop/payment/success?order_id=' . $order->id),
+                    'cancel_url'  => url('/shop/payment/cancel'),
                     'description' => "Order #{$order->id} - {$order->shop_name}",
-                    'metadata' => [
-                        'order_id' => (string) $order->id,
-                        'shop_name' => $order->shop_name,
+                    'metadata'    => [
+                        'order_id'   => (string) $order->id,
+                        'shop_name'  => $order->shop_name,
                         'owner_name' => $order->owner_name,
                     ]
                 ]
@@ -61,17 +60,17 @@ class PaymongoService
         ];
 
         Log::info('PayMongo Checkout Request', [
-            'order_id' => $order->id,
-            'amount_php' => $order->total_price,
+            'order_id'        => $order->id,
+            'amount_php'      => $order->total_price,
             'amount_centavos' => $amount,
-            'payload' => $payload
+            'payload'         => $payload
         ]);
 
         $response = $this->client()->post('/checkout_sessions', $payload);
 
         Log::info('PayMongo Checkout Response', [
             'status' => $response->status(),
-            'body' => $response->json()
+            'body'   => $response->json()
         ]);
 
         if ($response->failed()) {
@@ -79,8 +78,8 @@ class PaymongoService
 
             Log::error('PayMongo Checkout Failed', [
                 'order_id' => $order->id,
-                'status' => $response->status(),
-                'error' => $error
+                'status'   => $response->status(),
+                'error'    => $error
             ]);
 
             $errorMessage = 'Failed to create checkout session';
@@ -107,7 +106,7 @@ class PaymongoService
             $error = $response->json();
             Log::error('Failed to retrieve checkout session', [
                 'session_id' => $checkoutSessionId,
-                'error' => $error
+                'error'      => $error
             ]);
 
             throw new \Exception('Failed to retrieve checkout session');

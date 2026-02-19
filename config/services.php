@@ -38,8 +38,4 @@ return [
         'secret_key' => env('PAYMONGO_SECRET_KEY'),
         'public_key' => env('PAYMONGO_PUBLIC_KEY'),
     ],
-    'stripe' => [
-        'secret_key' => env('STRIPE_SECRET_KEY'),
-        'public_key' => env('STRIPE_PUBLIC_KEY'),
-    ],
 ];
