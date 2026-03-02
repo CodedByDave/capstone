@@ -40,9 +40,10 @@ const { shops, stats } = defineProps<{
         id: number
         shop_name: string
         phone: string
-        address: string
-        business_license: string
-        created_at: string
+        block_street: string
+        municipality: string
+        barangay: string
+        postal_code: string
         status: string
         owner: { name: string; email: string }
     }>
@@ -67,8 +68,10 @@ const isEditOpen = ref(false)
 const editForm = ref({
     shop_name: '',
     phone: '',
-    address: '',
-    business_license: '',
+    block_street: '',
+    municipality: '',
+    barangay: '',
+    postal_code: '',
     status: '',
 })
 
@@ -182,14 +185,16 @@ function archiveShop(id: number | undefined) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Shop</TableHead>
+                            <TableHead>Shop Name</TableHead>
                             <TableHead>Owner</TableHead>
                             <TableHead>Phone</TableHead>
-                            <TableHead>Address</TableHead>
                             <TableHead>Email</TableHead>
-                            <TableHead>License</TableHead>
+                            <TableHead>Block/Street</TableHead>
+                            <TableHead>Municipality</TableHead>
+                            <TableHead>Barangay</TableHead>
+                            <TableHead>Postal Code</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead class="text-center">Actions</TableHead>
+                            <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -198,9 +203,11 @@ function archiveShop(id: number | undefined) {
                             <TableCell>{{ shop.shop_name }}</TableCell>
                             <TableCell>{{ shop.owner.name }}</TableCell>
                             <TableCell>{{ shop.phone }}</TableCell>
-                            <TableCell>{{ shop.address }}</TableCell>
                             <TableCell>{{ shop.owner.email }}</TableCell>
-                            <TableCell>{{ shop.business_license }}</TableCell>
+                            <TableCell>{{ shop.block_street }}</TableCell>
+                            <TableCell>{{ shop.municipality }}</TableCell>
+                            <TableCell>{{ shop.barangay }}</TableCell>
+                            <TableCell>{{ shop.postal_code }}</TableCell>
 
                             <TableCell>
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full text-white" :class="{
@@ -309,18 +316,6 @@ function archiveShop(id: number | undefined) {
                     <div class="space-y-1 md:col-span-2">
                         <label class="text-sm font-medium">Owner Name</label>
                         <Input :model-value="selectedShop?.owner?.name" disabled />
-                    </div>
-
-                    <!-- Business License (FULL WIDTH) -->
-                    <div class="space-y-1 md:col-span-2">
-                        <label class="text-sm font-medium">Business License</label>
-                        <Input v-model="editForm.business_license" />
-                    </div>
-
-                    <!-- Address (FULL WIDTH) -->
-                    <div class="space-y-1 md:col-span-2">
-                        <label class="text-sm font-medium">Address</label>
-                        <Input v-model="editForm.address" />
                     </div>
 
                     <!-- Phone (SHORT) -->

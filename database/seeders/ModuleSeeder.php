@@ -11,40 +11,35 @@ class ModuleSeeder extends Seeder
     {
         $modules = [
             [
-                'name' => 'CRM',
-                'description' => 'Manage customer relationships, track orders and communication efficiently.',
-                'price' => 1500,
-            ],
-            [
-                'name' => 'Supply Chain',
-                'description' => 'Monitor inventory, suppliers, and streamline procurement for your shop.',
-                'price' => 2000,
-            ],
-            [
-                'name' => 'Billing / Invoicing',
-                'description' => 'Generate invoices, manage payments and billing for your customers.',
-                'price' => 1200,
-            ],
-            [
                 'name' => 'Employee Management',
-                'description' => 'Track employee schedules, payroll, and attendance easily.',
+                'description' => 'Manage employee profiles, roles, attendance, and payroll tracking.',
                 'price' => 1800,
             ],
             [
-                'name' => 'Analytics / Reporting',
-                'description' => 'Get insights and reports on shop performance, sales, and operations.',
-                'price' => 2200,
+                'name' => 'Inventory Management',
+                'description' => 'Track supplies, stock levels, stock movements, and suppliers.',
+                'price' => 2000,
             ],
             [
-                'name' => 'Marketing',
-                'description' => 'Tools for promotions, campaigns, and customer engagement.',
-                'price' => 1300,
+                'name' => 'Order Management',
+                'description' => 'Create, track, and manage customer orders from processing to completion.',
+                'price' => 2500,
+            ],
+            [
+                'name' => 'Services & Pricing',
+                'description' => 'Configure laundry services, pricing rules, discounts, and promos.',
+                'price' => 1500,
+            ],
+            [
+                'name' => 'Reports & Analytics',
+                'description' => 'Generate sales reports, performance insights, and business analytics.',
+                'price' => 2200,
             ],
         ];
 
         foreach ($modules as $module) {
             DB::table('modules')->updateOrInsert(
-                ['name' => $module['name']], // unique key
+                ['name' => $module['name']],
                 [
                     'description' => $module['description'],
                     'price' => $module['price'],

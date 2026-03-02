@@ -21,7 +21,10 @@ return new class extends Migration
 
             $table->string('shop_name');
             $table->string('phone');
-            $table->string('street');
+            $table->string('block_street');
+            $table->string('municipality');
+            $table->string('barangay');
+            $table->string('postal_code');
             $table->string('status')->default('pending');
 
             $table->timestamps();

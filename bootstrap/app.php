@@ -23,10 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // Register your route middleware alias
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+
+        $middleware->redirectGuestsTo(fn () => route('login.user'));
     })
     ->withExceptions(fn($exceptions) => null)
     ->create();

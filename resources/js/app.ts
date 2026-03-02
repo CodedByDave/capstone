@@ -26,6 +26,7 @@ createInertiaApp({
             duration: 3000,
             showCloseButton: true,
         });
+        el.innerHTML = '';
 
         app.mount(el);
     },

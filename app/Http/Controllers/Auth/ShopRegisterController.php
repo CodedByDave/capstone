@@ -14,7 +14,7 @@ class ShopRegisterController extends Controller
     /**
      * Show shop registration page
      */
-    public function create()
+    public function show()
     {
         return Inertia::render('auth/RegisterShop');
     }

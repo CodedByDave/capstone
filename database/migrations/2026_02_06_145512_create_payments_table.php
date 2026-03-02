@@ -16,8 +16,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
 
             $table->string('payment_method');
-            $table->string('stripe_checkout_id')->nullable();
-            $table->string('stripe_payment_id')->nullable();
+            $table->string('paymongo_payment_id')->nullable();
             $table->string('transaction_id')->nullable();
 
             $table->decimal('amount', 10, 2);

@@ -12,20 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('shops', function (Blueprint $table) {
-            $table->dropColumn('street');   // remove old single column
-
-            $table->string('block_street');
-            $table->string('municipality');
-            $table->string('barangay');
-            $table->string('postal_code');
+            $table->string('branch_name')->nullable()->after('shop_name');
         });
     }
 
     public function down(): void
     {
         Schema::table('shops', function (Blueprint $table) {
-            $table->dropColumn(['block_street', 'municipality', 'barangay', 'postal_code']);
-            $table->string('street');
+            $table->dropColumn('branch_name');
         });
     }
 };

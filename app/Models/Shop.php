@@ -2,29 +2,47 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shop extends Model
 {
-    use HasFactory, Notifiable;
-
     protected $fillable = [
         'owner_id',
         'shop_name',
+        'branch_name',
         'phone',
+        'block_street',
         'municipality',
         'barangay',
-        'block_street',
         'postal_code',
         'status',
     ];
 
-    public function owner()
+    public function owner(): BelongsTo
     {
-        return $this->belongsTo(User::class,'owner_id');
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    public function getBranchNames(): array
+    {
+        $branches = $this->employees()
+            ->whereNotNull('branch_name')
+            ->distinct()
+            ->pluck('branch_name')
+            ->toArray();
+
+        // Include the shop's own branch name if set
+        if ($this->branch_name && !in_array($this->branch_name, $branches)) {
+            array_unshift($branches, $this->branch_name);
+        }
+
+        return $branches;
     }
 }
-

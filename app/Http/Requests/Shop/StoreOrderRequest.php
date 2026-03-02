@@ -19,7 +19,7 @@ class StoreOrderRequest extends FormRequest
             'owner_name'     => 'required|string|max:255',
             'email'          => 'required|email',
             'phone'          => 'required|digits_between:10,11',
-            'block_street'   => 'required|string|max:255',  // removed 'neighborhood'
+            'block_street'   => 'required|string|max:255',  
             'municipality'   => 'required|string',
             'barangay'       => 'required|string',
             'postal_code'    => 'nullable|string',

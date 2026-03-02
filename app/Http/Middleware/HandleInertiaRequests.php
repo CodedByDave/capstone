@@ -45,8 +45,16 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'order' => function () use ($request) {
+                if (!$request->user()) return null;
+
+                return \App\Models\Order::where('user_id', $request->user()->id)
+                    ->where('status', 'paid')
+                    ->latest()
+                    ->first();
+            },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'toast' => fn () => $request->session()->get('toast'),
+            'toast' => fn() => $request->session()->get('toast'),
         ];
     }
 }

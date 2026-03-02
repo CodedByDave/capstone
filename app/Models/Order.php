@@ -17,7 +17,7 @@ class Order extends Model
         'owner_name',
         'email',
         'phone',
-        'block_street',    // fixed from 'neighborhood'
+        'block_street',
         'municipality',
         'barangay',
         'postal_code',

@@ -6,8 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import AuthBase from '@/layouts/AuthLayout.vue'
-import { login } from '@/routes'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, watch } from 'vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
 
@@ -25,7 +24,7 @@ const form = useForm({
     block_street: '',
     municipality: '',
     barangay: '',
-    postal_code: '',   // ← kept in sync by watchers below
+    postal_code: '',
 
     valid_id: null as File | null,
     agree: false,
@@ -39,9 +38,9 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const rules = {
-    length:       (v: string) => v.length >= 8,
+    length: (v: string) => v.length >= 8,
     alphaNumeric: (v: string) => /[A-Za-z]/.test(v) && /\d/.test(v),
-    special:      (v: string) => /[^A-Za-z0-9]/.test(v),
+    special: (v: string) => /[^A-Za-z0-9]/.test(v),
 }
 
 const isPasswordValid = computed(() =>
@@ -59,63 +58,63 @@ const passwordsMatch = computed(() =>
 const barangaysByMunicipality: Record<string, Array<{ name: string; postal: string }>> = {
     'Cavite City': [
         { name: 'Barangay 1 (Hen. M. Alvarez)', postal: '4100' },
-        { name: 'Barangay 2 (Hen. C. Tirona)',  postal: '4100' },
-        { name: 'Barangay 3 (M. Paterno)',       postal: '4100' },
-        { name: 'Barangay 4 (M. Roxas)',         postal: '4100' },
+        { name: 'Barangay 2 (Hen. C. Tirona)', postal: '4100' },
+        { name: 'Barangay 3 (M. Paterno)', postal: '4100' },
+        { name: 'Barangay 4 (M. Roxas)', postal: '4100' },
     ],
     'Dasmariñas': [
-        { name: 'Burol',          postal: '4114' },
-        { name: 'Burol II',       postal: '4114' },
-        { name: 'Dangcalan',      postal: '4114' },
-        { name: 'Langkaan I',     postal: '4114' },
-        { name: 'Langkaan II',    postal: '4114' },
-        { name: 'Langkaan III',   postal: '4114' },
-        { name: 'Langkaan IV',    postal: '4114' },
-        { name: 'Malagasang I',   postal: '4114' },
-        { name: 'Malagasang II',  postal: '4114' },
-        { name: 'Paliparan I',    postal: '4114' },
-        { name: 'Paliparan II',   postal: '4114' },
-        { name: 'Paliparan III',  postal: '4114' },
-        { name: 'Real',           postal: '4114' },
-        { name: 'Salawag',        postal: '4114' },
-        { name: 'San Agustin',    postal: '4114' },
-        { name: 'San Jose',       postal: '4114' },
-        { name: 'San Miguel',     postal: '4114' },
-        { name: 'Sampaloc',       postal: '4114' },
-        { name: 'Santo Niño',     postal: '4114' },
-        { name: 'Santo Tomas',    postal: '4114' },
+        { name: 'Burol', postal: '4114' },
+        { name: 'Burol II', postal: '4114' },
+        { name: 'Dangcalan', postal: '4114' },
+        { name: 'Langkaan I', postal: '4114' },
+        { name: 'Langkaan II', postal: '4114' },
+        { name: 'Langkaan III', postal: '4114' },
+        { name: 'Langkaan IV', postal: '4114' },
+        { name: 'Malagasang I', postal: '4114' },
+        { name: 'Malagasang II', postal: '4114' },
+        { name: 'Paliparan I', postal: '4114' },
+        { name: 'Paliparan II', postal: '4114' },
+        { name: 'Paliparan III', postal: '4114' },
+        { name: 'Real', postal: '4114' },
+        { name: 'Salawag', postal: '4114' },
+        { name: 'San Agustin', postal: '4114' },
+        { name: 'San Jose', postal: '4114' },
+        { name: 'San Miguel', postal: '4114' },
+        { name: 'Sampaloc', postal: '4114' },
+        { name: 'Santo Niño', postal: '4114' },
+        { name: 'Santo Tomas', postal: '4114' },
         { name: 'Sapang Malapit', postal: '4114' },
     ],
     'Bacoor': [
-        { name: 'Aniban',     postal: '4102' },
-        { name: 'Bayanan',    postal: '4102' },
-        { name: 'Burgos',     postal: '4102' },
-        { name: 'Zapote',     postal: '4102' },
-        { name: 'Niog',       postal: '4102' },
-        { name: 'Molino I',   postal: '4102' },
-        { name: 'Molino II',  postal: '4102' },
+        { name: 'Aniban', postal: '4102' },
+        { name: 'Bayanan', postal: '4102' },
+        { name: 'Burgos', postal: '4102' },
+        { name: 'Zapote', postal: '4102' },
+        { name: 'Niog', postal: '4102' },
+        { name: 'Molino I', postal: '4102' },
+        { name: 'Molino II', postal: '4102' },
         { name: 'Molino III', postal: '4102' },
-        { name: 'Molino IV',  postal: '4102' },
+        { name: 'Molino IV', postal: '4102' },
     ],
     'Imus': [
         { name: 'Buhay na Tubig', postal: '4103' },
-        { name: 'Anabu I',        postal: '4103' },
-        { name: 'Anabu II',       postal: '4103' },
-        { name: 'Barangka',       postal: '4103' },
-        { name: 'Burgos',         postal: '4103' },
-        { name: 'Dela Paz',       postal: '4103' },
+        { name: 'Anabu I', postal: '4103' },
+        { name: 'Anabu II', postal: '4103' },
+        { name: 'Barangka', postal: '4103' },
+        { name: 'Burgos', postal: '4103' },
+        { name: 'Dela Paz', postal: '4103' },
     ],
     'Trece Martires': [
-        { name: 'Centro I',   postal: '4109' },
-        { name: 'Centro II',  postal: '4109' },
+        { name: 'Centro I', postal: '4109' },
+        { name: 'Centro II', postal: '4109' },
         { name: 'Buenavista', postal: '4109' },
-        { name: 'Palico',     postal: '4109' },
+        { name: 'Palico', postal: '4109' },
     ],
     'General Trias': [
-        { name: 'Pasong Camachile I',  postal: '4107' },
+        { name: 'Pasong Camachile I', postal: '4107' },
         { name: 'Pasong Camachile II', postal: '4107' },
-        { name: 'Navarro',             postal: '4107' },
-        { name: 'Manggahan',           postal: '4107' },
+        { name: 'Navarro', postal: '4107' },
+        { name: 'Manggahan', postal: '4107' },
     ],
 }
 
@@ -138,7 +137,7 @@ watch(autoPostalCode, (val) => {
 
 // Reset dependent fields when municipality changes
 watch(() => form.municipality, () => {
-    form.barangay    = ''
+    form.barangay = ''
     form.postal_code = ''
 })
 
@@ -236,11 +235,7 @@ const submit = () => {
 
                 <div>
                     <Label class="mb-2">Barangay</Label>
-                    <select
-                        v-model="form.barangay"
-                        class="border p-2 rounded w-full"
-                        :disabled="!form.municipality"
-                    >
+                    <select v-model="form.barangay" class="border p-2 rounded w-full" :disabled="!form.municipality">
                         <option value="">Select barangay</option>
                         <option v-for="b in selectedBarangays" :key="b.name" :value="b.name">
                             {{ b.name }}
@@ -251,12 +246,8 @@ const submit = () => {
                 <!-- Shows autoPostalCode visually; form.postal_code is synced by watcher -->
                 <div>
                     <Label class="mb-2">Postal Code</Label>
-                    <Input
-                        :value="autoPostalCode"
-                        placeholder="Auto-filled on barangay select"
-                        readonly
-                        class="bg-muted/50 cursor-not-allowed"
-                    />
+                    <Input :value="autoPostalCode" placeholder="Auto-filled on barangay select" readonly
+                        class="bg-muted/50 cursor-not-allowed" />
                 </div>
 
                 <div class="flex gap-2">
@@ -274,10 +265,8 @@ const submit = () => {
 
                 <div>
                     <Label class="mb-2">Upload Valid ID</Label>
-                    <Input
-                        type="file"
-                        @change="(e: Event) => form.valid_id = (e.target as HTMLInputElement).files?.[0] ?? null"
-                    />
+                    <Input type="file"
+                        @change="(e: Event) => form.valid_id = (e.target as HTMLInputElement).files?.[0] ?? null" />
                 </div>
 
                 <div class="flex gap-2">
@@ -296,16 +285,10 @@ const submit = () => {
                 <div>
                     <Label class="mb-2">Password</Label>
                     <div class="relative">
-                        <Input
-                            v-model="form.password"
-                            :type="showPassword ? 'text' : 'password'"
-                            class="pr-10"
-                        />
-                        <button
-                            type="button"
+                        <Input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="pr-10" />
+                        <button type="button"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            @click="showPassword = !showPassword"
-                        >
+                            @click="showPassword = !showPassword">
                             <Eye v-if="!showPassword" class="h-4 w-4" />
                             <EyeOff v-else class="h-4 w-4" />
                         </button>
@@ -316,16 +299,11 @@ const submit = () => {
                 <div>
                     <Label class="mb-2">Confirm Password</Label>
                     <div class="relative">
-                        <Input
-                            v-model="form.password_confirmation"
-                            :type="showConfirmPassword ? 'text' : 'password'"
-                            class="pr-10"
-                        />
-                        <button
-                            type="button"
+                        <Input v-model="form.password_confirmation" :type="showConfirmPassword ? 'text' : 'password'"
+                            class="pr-10" />
+                        <button type="button"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            @click="showConfirmPassword = !showConfirmPassword"
-                        >
+                            @click="showConfirmPassword = !showConfirmPassword">
                             <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
                             <EyeOff v-else class="h-4 w-4" />
                         </button>
@@ -354,7 +332,9 @@ const submit = () => {
             <!-- LOGIN -->
             <div class="text-center text-sm">
                 Already have an account?
-                <TextLink :href="login()" class="underline">Login</TextLink>
+                <button @click="router.visit('/login')" class="underline text-primary hover:text-primary/80">
+                    Login
+                </button>
             </div>
 
         </form>

@@ -33,6 +33,6 @@ class PasswordController extends Controller
             'password' => $validated['password'],
         ]);
 
-        return back();
+        return redirect()->route('login.user')->with('status', 'Password updated successfully.');
     }
 }
