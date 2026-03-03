@@ -13,18 +13,18 @@ return new class extends Migration
     public function up(): void
     {
         DB::statement("
-        ALTER TABLE users
-        MODIFY role ENUM('super_admin','owner','manager', 'staff', 'user')
-        DEFAULT 'user'
+        ALTER TABLE shop_user
+        MODIFY role ENUM('owner','manager', 'staff')
+        DEFAULT 'staff'
     ");
     }
 
     public function down(): void
     {
         DB::statement("
-        ALTER TABLE users
-        MODIFY role ENUM('super_admin','owner','user')
-        DEFAULT 'user'
+        ALTER TABLE shop_users
+        MODIFY role ENUM('owner','manager', 'staff')
+        DEFAULT 'staff'
     ");
     }
 };

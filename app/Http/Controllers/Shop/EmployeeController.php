@@ -11,7 +11,7 @@ use App\Models\EmployeeArchive;
 use App\Models\Shop;
 use App\Services\EmployeeService;
 use Inertia\Inertia;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Http\Request;
 class EmployeeController extends Controller
 {
     public function __construct(
@@ -23,7 +23,7 @@ class EmployeeController extends Controller
         return Shop::where('owner_id', auth()->id())->firstOrFail();
     }
 
-    // ── Index ──────────────────────────────────────────────────────────────────
+    // Index
 
     public function index()
     {
@@ -37,7 +37,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    // ── Create ─────────────────────────────────────────────────────────────────
+    // Create
 
     public function create()
     {
@@ -49,7 +49,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    // ── Store 
+    // Store
 
     public function store(StoreEmployeeRequest $request)
     {
@@ -64,7 +64,7 @@ class EmployeeController extends Controller
             ]);
     }
 
-    // ── Show ───────────────────────────────────────────────────────────────────
+    // Show
 
     public function show(Employee $employee)
     {
@@ -163,7 +163,7 @@ class EmployeeController extends Controller
         ];
 
         $columns = [
-            'employee_id', 'first_name', 'last_name', 'phone',
+            'employee_id', 'first_name', 'last_name', 'email', 'phone',
             'address', 'branch_name', 'position', 'hire_date', 'salary', 'status',
         ];
 
@@ -178,9 +178,9 @@ class EmployeeController extends Controller
 
     // ── Import ─────────────────────────────────────────────────────────────────
 
-    public function import(\Illuminate\Http\Request $request)
+    public function import(Request $request)
     {
-        $request->validated([
+        $request->validate([
             'csv_file' => ['required', 'file', 'mimes:csv,txt'],
         ]);
 

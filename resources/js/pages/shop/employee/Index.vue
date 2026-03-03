@@ -48,6 +48,7 @@ interface Employee {
     employee_id: string
     first_name: string
     last_name: string
+    email: string
     phone: string | null
     address: string | null
     position: string
@@ -359,6 +360,7 @@ async function submitImport() {
                                 <TableHead>Position</TableHead>
                                 <TableHead>Branch</TableHead>
                                 <TableHead>Phone</TableHead>
+                                <TableHead>Email</TableHead>
                                 <TableHead>Address</TableHead>
                                 <TableHead>Hire Date</TableHead>
                                 <TableHead>Salary</TableHead>
@@ -378,6 +380,7 @@ async function submitImport() {
                                 <TableCell class="whitespace-nowrap">{{ emp.position }}</TableCell>
                                 <TableCell class="whitespace-nowrap">{{ emp.branch_name ?? '—' }}</TableCell>
                                 <TableCell class="whitespace-nowrap">{{ emp.phone ?? '—' }}</TableCell>
+                                <TableCell class="whitespace-nowrap">{{ emp.email ?? '—' }}</TableCell>
                                 <TableCell class="max-w-[200px]">
                                     <span
                                         class="block truncate text-xs text-muted-foreground"

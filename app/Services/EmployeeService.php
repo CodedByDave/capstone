@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Models\Employee;
 use App\Models\Shop;
+use App\Models\User;
 use App\Repositories\EmployeeRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeService
 {
@@ -46,10 +49,20 @@ class EmployeeService
 
     public function createEmployee(Shop $shop, array $data): Employee
     {
-        return $this->employeeRepository->createForShop($shop, [
-            ...$data,
-            'user_id' => auth()->id(),
-        ]);
+        return DB::transaction(function () use ($shop, $data) {
+            $user = User::create([
+                'name'              => $data['first_name'] . ' ' . $data['last_name'],
+                'email'             => $data['email'],
+                'password'          => Hash::make($data['last_name']),
+                'role'              => strtolower($data['position']) === 'manager' ? 'manager' : 'staff',
+                'email_verified_at' => now(),
+            ]);
+
+            return $this->employeeRepository->createForShop($shop, [
+                ...$data,
+                'user_id' => $user->id,
+            ]);
+        });
     }
 
     // ── Update employee ────────────────────────────────────────────────────────
@@ -86,8 +99,16 @@ class EmployeeService
         $headers = fgetcsv($handle);
 
         $expectedHeaders = [
-            'employee_id', 'first_name', 'last_name', 'phone',
-            'address', 'branch_name', 'position', 'hire_date', 'salary', 'status',
+            'employee_id',
+            'first_name',
+            'last_name',
+            'phone',
+            'address',
+            'branch_name',
+            'position',
+            'hire_date',
+            'salary',
+            'status',
         ];
 
         // Validate headers

@@ -14,14 +14,14 @@ class EmployeeRepository extends Repository
         parent::__construct(new Employee());
     }
 
-    // ── Get all active employees scoped to shop ────────────────────────────────
+    // Get all active employees scoped to shop
 
     public function getAllByShop(Shop $shop): Collection
     {
         return $shop->employees()->latest()->get();
     }
 
-    // ── Stats scoped to shop ───────────────────────────────────────────────────
+    // Stats scoped to shop
 
     public function getStatsByShop(Shop $shop): array
     {
@@ -38,14 +38,14 @@ class EmployeeRepository extends Repository
         ];
     }
 
-    // ── Find active employee scoped to shop ────────────────────────────────────
+    // Find active employee scoped to shop
 
     public function findByShop(int $id, Shop $shop): Employee
     {
         return $shop->employees()->findOrFail($id);
     }
 
-    // ── Create employee under shop ─────────────────────────────────────────────
+    // Create employee under shop
 
     public function createForShop(Shop $shop, array $data): Employee
     {
@@ -54,7 +54,7 @@ class EmployeeRepository extends Repository
         });
     }
 
-    // ── Update employee ────────────────────────────────────────────────────────
+    // Update employee
 
     public function updateEmployee(Employee $employee, array $data): Employee
     {
@@ -65,7 +65,7 @@ class EmployeeRepository extends Repository
         return $employee->fresh();
     }
 
-    // ── Soft delete employee (triggers observer → copies to employee_archives) ─
+    // Soft delete employee
 
     public function deleteEmployee(Employee $employee): void
     {

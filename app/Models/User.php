@@ -23,6 +23,10 @@ class User extends Authenticatable
     public const ROLE_OWNER = 'owner';
     public const ROLE_SUPER_ADMIN = 'super_admin';
 
+    public const ROLE_MANAGER = 'manager';
+
+    public const ROLE_STAFF = 'staff';
+
     protected $fillable = [
         'name',
         'email',
@@ -38,6 +42,15 @@ class User extends Authenticatable
         return $this->role === self::ROLE_OWNER;
     }
 
+    public function isManager()
+    {
+        return $this->role === self::ROLE_MANAGER;
+    }
+
+    public function isStaff()
+    {
+        return $this->role === self::ROLE_STAFF;
+    }
     public function isSuperAdmin(): bool
     {
         return $this->role === self::ROLE_SUPER_ADMIN;

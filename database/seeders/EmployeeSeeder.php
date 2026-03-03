@@ -44,7 +44,8 @@ class EmployeeSeeder extends Seeder
                 [
                     'name' => $data['first_name'] . ' ' . $data['last_name'],
                     'password' => Hash::make('password123'), // default password
-                    'role' => 'employee',
+                    'role' => 'staff',
+                    'email_verified_at' => now(),
                 ]
             );
 

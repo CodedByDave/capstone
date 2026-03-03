@@ -17,6 +17,7 @@ class LoginResponse implements LoginResponseContract
         $home = match($user->role) {
             'super_admin' => route('admin.dashboard'),
             'owner' => route('shop.dashboard'),
+            'staff' => route('staff.dashboard'),
             'user' => route('dashboard'),
             default => route('home'),
         };

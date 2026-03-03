@@ -92,40 +92,6 @@ function archiveEmployee() {
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back to Employees
                 </Button>
-
-                <div class="flex items-center gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="router.visit(`/shop/employee/${employee.id}/edit`)"
-                    >
-                        <Pencil class="h-4 w-4 mr-2" />
-                        Edit
-                    </Button>
-
-                    <AlertDialog>
-                        <AlertDialogTrigger as-child>
-                            <Button type="button" variant="destructive">
-                                <Trash2 class="h-4 w-4 mr-2" />
-                                Remove
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Remove Employee</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Are you sure you want to remove
-                                    <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>?
-                                    This action cannot be undone.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <Button variant="outline">Cancel</Button>
-                                <Button variant="destructive" @click="archiveEmployee">Remove</Button>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
             </div>
 
             <!-- Profile header card -->

@@ -58,6 +58,8 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
 Route::prefix('user')->middleware(['auth', 'role:user'])->group(function () {
     Route::get('/dashboard', fn() => Inertia::render('Dashboard'))->name('dashboard');
 });
-
+Route::prefix('/staff')->middleware(['auth', 'role:staff'])->group(function () {
+    Route::get('/dashboard', fn() => Inertia::render('staff/Dashboard'))->name('staff.dashboard');
+});
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // icons
-import { RefreshCw, Loader2 } from 'lucide-vue-next'
+import { RefreshCw, Loader2, Calendar } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -204,8 +204,23 @@ function submit() {
                 <h2 class="text-lg font-semibold">Edit Employee</h2>
                 <p class="text-sm text-muted-foreground">
                     Update the details for
-                    <span class="font-medium text-foreground">{{ employee.first_name }} {{ employee.last_name }}</span>.
+                    <span class="font-medium text-foreground">
+                        {{ employee.first_name }} {{ employee.last_name }}
+                    </span>.
                 </p>
+
+                <!-- Header actions -->
+                <div class="flex justify-end mt-4">
+
+                    <!-- Schedule Button -->
+                    <Button type="button"
+                        class="!bg-blue-600 !text-white hover:!bg-blue-500 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
+                        @click="router.visit(`/shop/employee/${employee.id}/schedule`)">
+                        <Calendar class="h-4 w-4 mr-2" />
+                        Add Schedule
+                    </Button>
+
+                </div>
             </div>
 
             <!-- ── Section 1: Identity ─────────────────────────────────────── -->
@@ -282,8 +297,7 @@ function submit() {
 
                     <div class="col-span-12 sm:col-span-3 space-y-1">
                         <label class="text-sm font-medium">Hire Date <span class="text-red-500">*</span></label>
-                        <Input v-model="form.hire_date" type="date"
-                            :class="{ 'border-red-500': errors.hire_date }" />
+                        <Input v-model="form.hire_date" type="date" :class="{ 'border-red-500': errors.hire_date }" />
                         <p v-if="errors.hire_date" class="text-xs text-red-500">{{ errors.hire_date }}</p>
                     </div>
 
@@ -319,7 +333,9 @@ function submit() {
                 <div v-if="employee.address" class="mb-4 rounded-lg border bg-muted/40 px-4 py-3 text-sm">
                     <p class="text-xs text-muted-foreground mb-1">Current address</p>
                     <p class="font-medium">{{ employee.address }}</p>
-                    <p class="text-xs text-muted-foreground mt-1">Select new province below to update, or just edit the street field.</p>
+                    <p class="text-xs text-muted-foreground mt-1">Select new province below to update, or just edit the
+                        street
+                        field.</p>
                 </div>
 
                 <div class="grid grid-cols-12 gap-x-6 gap-y-5">
@@ -329,15 +345,18 @@ function submit() {
                         <Select v-model="selectedProvince" :disabled="loadingProvinces">
                             <SelectTrigger>
                                 <SelectValue>
-                                    <span v-if="loadingProvinces" class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingProvinces"
+                                        class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select province</span>
-                                    <span v-else>{{ provinces.find(p => p.code === selectedProvince)?.name }}</span>
+                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select
+                                        province</span>
+                                    <span v-else>{{provinces.find(p => p.code === selectedProvince)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</SelectItem>
+                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -350,8 +369,9 @@ function submit() {
                                     <span v-if="loadingCities" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select city/municipality</span>
-                                    <span v-else>{{ cities.find(c => c.code === selectedCity)?.name }}</span>
+                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select
+                                        city/municipality</span>
+                                    <span v-else>{{cities.find(c => c.code === selectedCity)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
@@ -365,15 +385,18 @@ function submit() {
                         <Select v-model="selectedBarangay" :disabled="!selectedCity || loadingBarangays">
                             <SelectTrigger>
                                 <SelectValue>
-                                    <span v-if="loadingBarangays" class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingBarangays"
+                                        class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select barangay</span>
-                                    <span v-else>{{ barangays.find(b => b.code === selectedBarangay)?.name }}</span>
+                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select
+                                        barangay</span>
+                                    <span v-else>{{barangays.find(b => b.code === selectedBarangay)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}</SelectItem>
+                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -394,12 +417,8 @@ function submit() {
             <!-- ── Actions ────────────────────────────────────────────────── -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t">
 
-                <Button
-                    type="button"
-                    variant="outline"
-                    :disabled="isSubmitting"
-                    @click="router.visit(`/shop/employee/${employee.id}`)"
-                >
+                <Button type="button" variant="outline" :disabled="isSubmitting"
+                    @click="router.visit(`/shop/employee`)">
                     Cancel
                 </Button>
 
