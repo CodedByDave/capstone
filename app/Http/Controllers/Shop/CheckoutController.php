@@ -70,7 +70,6 @@ class CheckoutController extends Controller
                 'success'      => true,
                 'checkout_url' => $session['data']['attributes']['checkout_url'],
             ]);
-
         } catch (\Exception $e) {
             Log::error('=== CHECKOUT FAILED ===', [
                 'error' => $e->getMessage(),
@@ -91,7 +90,7 @@ class CheckoutController extends Controller
         $orderId = $request->query('order_id');
 
         if ($orderId) {
-            $order   = Order::find($orderId);
+            $order   = Order::with('modules')->find($orderId);
             $payment = Payment::where('order_id', $orderId)->first();
 
             if ($payment && $payment->paymongo_session_id) {
@@ -99,12 +98,6 @@ class CheckoutController extends Controller
                     $session       = $this->paymongoService->getCheckoutSession($payment->paymongo_session_id);
                     $sessionStatus = $session['data']['attributes']['status'] ?? null;
                     $paymentStatus = $session['data']['attributes']['payment_intent']['attributes']['status'] ?? null;
-
-                    Log::info('PayMongo statuses on success', [
-                        'order_id'       => $orderId,
-                        'session_status' => $sessionStatus,
-                        'payment_status' => $paymentStatus,
-                    ]);
 
                     if (
                         in_array($sessionStatus, ['completed', 'paid']) ||
@@ -117,11 +110,9 @@ class CheckoutController extends Controller
 
                         $order?->update(['status' => 'paid']);
 
-                        // Re-fetch fresh data so Vue gets updated values
                         $payment = $payment->fresh();
-                        $order   = $order->fresh();
+                        $order   = $order->fresh()->load('modules');
                     }
-
                 } catch (\Exception $e) {
                     Log::error('Failed to verify PayMongo session on success', [
                         'order_id' => $orderId,
@@ -131,7 +122,25 @@ class CheckoutController extends Controller
             }
 
             return Inertia::render('shop/payment/PaymentSuccess', [
-                'order'   => $order,
+                'order'   => $order ? [
+                    'id'          => $order->id,
+                    'status'      => $order->status,
+                    'shop_name'   => $order->shop_name,
+                    'owner_name'  => $order->owner_name,
+                    'email'       => $order->email,
+                    'phone'       => $order->phone,
+                    'block_street' => $order->block_street,
+                    'municipality' => $order->municipality,
+                    'barangay'    => $order->barangay,
+                    'postal_code' => $order->postal_code,
+                    'branch_name' => $order->branch_name,
+                    'total_price' => $order->total_price,
+                    'created_at'  => $order->created_at,
+                    'modules'     => $order->modules->map(fn($m) => [
+                        'name'  => $m->name,
+                        'price' => $m->price,
+                    ]),
+                ] : null,
                 'payment' => $payment,
             ]);
         }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ShopRole;
 use App\Repositories\ShopRepository;
 use Illuminate\Support\Facades\DB;
 
@@ -9,7 +10,7 @@ class ShopService
 {
     public function __construct(
         protected ShopRepository $shopRepo,
-        protected UserService $userService
+        protected UserService    $userService
     ) {}
 
     public function registerShop(array $data)
@@ -17,8 +18,8 @@ class ShopService
         return DB::transaction(function () use ($data) {
 
             $owner = $this->userService->createOwner([
-                'name' => $data['name'],
-                'email' => $data['email'],
+                'name'     => $data['name'],
+                'email'    => $data['email'],
                 'password' => $data['password'],
             ]);
 
@@ -34,6 +35,16 @@ class ShopService
                     'status'       => 'pending',
                 ]
             );
+
+            // Seed default roles for this shop
+            $defaultRoles = ['owner', 'manager', 'cashier', 'washer', 'staff'];
+            foreach ($defaultRoles as $role) {
+                ShopRole::create([
+                    'shop_id'    => $shop->id,
+                    'name'       => $role,
+                    'is_default' => true,
+                ]);
+            }
 
             return compact('owner', 'shop');
         });

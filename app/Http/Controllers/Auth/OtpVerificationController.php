@@ -80,7 +80,7 @@ class OtpVerificationController extends Controller
 
             session()->forget('pending_registration');
 
-            return redirect()->route('login')->with('toast', [
+            return redirect()->route('login.user')->with('toast', [
                 'type'    => 'success',
                 'message' => 'Your account has been verified. You can now login.',
             ]);

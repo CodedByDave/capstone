@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Models\EmployeeSchedule;
+
 class Employee extends Model
 {
     use SoftDeletes;
@@ -27,16 +29,31 @@ class Employee extends Model
     ];
 
     protected $casts = [
-        'hire_date'  => 'date',
+        'hire_date' => 'date:Y-m-d',
         'salary'     => 'decimal:2',
         'deleted_at' => 'datetime',
     ];
 
     // ─── Relationships ────────────────────────────────────────────────────────
 
+    public function roles()
+    {
+        return $this->hasMany(EmployeeRole::class);
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->roles->pluck('role')->contains($role);
+    }
+
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    public function schedule()
+    {
+        return $this->hasOne(EmployeeSchedule::class, 'employee_id');
     }
 
     public function user(): BelongsTo

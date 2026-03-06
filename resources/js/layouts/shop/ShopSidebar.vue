@@ -11,7 +11,7 @@ import {
 
 import { dashboard } from '@/routes'
 import { type NavItem } from '@/types'
-import { Link, usePage } from '@inertiajs/vue3'
+import { Link, usePage, router } from '@inertiajs/vue3'
 import {
     LayoutGrid,
     UserCircle,
@@ -39,19 +39,24 @@ const { props } = usePage<{
     order?: {
         status: string
         modules: { name: string; price: number }[]
-    }
+    } | null
 }>()
 
 const isOwner = computed(() => props.auth.user.role === 'owner')
 const isStaff = computed(() => props.auth.user.role === 'staff')
 const isPaid  = computed(() => props.order?.status === 'paid')
 
+// move console.log AFTER all computed definitions
+console.log('order:', props.order)
+console.log('isPaid:', isPaid.value)
+console.log('modules:', props.order?.modules)
+
 const moduleIconMap: Record<string, { icon: any; href: string }> = {
-    'Employee Management':  { icon: UserCircle,    href: '/shop/employee' },
-    'Inventory Management': { icon: Package,       href: '/shop/inventory' },
-    'Order Management':     { icon: ClipboardList, href: '/shop/orders' },
-    'Services & Pricing':   { icon: Tags,          href: '/shop/services' },
-    'Reports & Analytics':  { icon: BarChart3,     href: '/shop/reports' },
+    'Employee Management': { icon: UserCircle, href: '/shop/employee' },
+    'Inventory Management': { icon: Package, href: '/shop/inventory' },
+    'Order Management': { icon: ClipboardList, href: '/shop/orders' },
+    'Services & Pricing': { icon: Tags, href: '/shop/services' },
+    'Reports & Analytics': { icon: BarChart3, href: '/shop/reports' },
 }
 
 const moduleNavItems = computed(() => {
@@ -60,8 +65,8 @@ const moduleNavItems = computed(() => {
     if (isOwner.value) {
         return props.order.modules.map((m) => ({
             title: m.name,
-            href:  moduleIconMap[m.name]?.href ?? `/shop/modules/${m.name.toLowerCase().replace(/\s+/g, '-')}`,
-            icon:  moduleIconMap[m.name]?.icon ?? Package,
+            href: moduleIconMap[m.name]?.href ?? `/shop/modules/${m.name.toLowerCase().replace(/\s+/g, '-')}`,
+            icon: moduleIconMap[m.name]?.icon ?? Package,
         }))
     }
 
@@ -71,8 +76,8 @@ const moduleNavItems = computed(() => {
             .filter((m) => permitted.includes(m.name))
             .map((m) => ({
                 title: m.name,
-                href:  moduleIconMap[m.name]?.href ?? `/shop/modules/${m.name.toLowerCase().replace(/\s+/g, '-')}`,
-                icon:  moduleIconMap[m.name]?.icon ?? Package,
+                href: moduleIconMap[m.name]?.href ?? `/shop/modules/${m.name.toLowerCase().replace(/\s+/g, '-')}`,
+                icon: moduleIconMap[m.name]?.icon ?? Package,
             }))
     }
 
@@ -83,8 +88,8 @@ const moduleNavItems = computed(() => {
 const allNavItems = computed<NavItem[]>(() => [
     {
         title: 'Dashboard',
-        href:  dashboard(),
-        icon:  LayoutGrid,
+        href: dashboard(),
+        icon: LayoutGrid,
     },
     ...moduleNavItems.value,
 ])
@@ -115,11 +120,10 @@ const allNavItems = computed<NavItem[]>(() => [
             </p>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton as-child>
-                        <Link href="/shop/permissions" class="flex items-center gap-2 w-full">
-                            <ShieldCheck class="w-4 h-4 text-primary" />
-                            <span>Module Permissions</span>
-                        </Link>
+                    <SidebarMenuButton @click="router.visit('/shop/permission')"
+                        class="flex items-center gap-2 w-full cursor-pointer">
+                        <ShieldCheck class="w-4 h-4 text-primary" />
+                        <span>Roles & Permission</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

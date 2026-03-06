@@ -15,4 +15,9 @@ class OrderRepository extends Repository
     {
         return $this->update($order, ['status' => 'paid']);
     }
+
+    public function create(array $data): Order
+    {
+        return Order::create(collect($data)->except('modules')->toArray());
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Repositories\OrderRepository;
+use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
@@ -13,12 +14,22 @@ class OrderService
 
     public function create(array $data): Order
     {
-        // Calculate total_price from the modules array
-        $total = collect($data['modules'])->sum('price');
+        return DB::transaction(function () use ($data) {
+            $total = collect($data['modules'])->sum('price');
 
-        return $this->orderRepository->create(array_merge($data, [
-            'total_price' => $total,
-            'status'      => 'pending',
-        ]));
+            $order = $this->orderRepository->create(array_merge($data, [
+                'total_price' => $total,
+                'status'      => 'pending',
+            ]));
+
+            foreach ($data['modules'] as $module) {
+                $order->modules()->create([
+                    'name'  => $module['name'],
+                    'price' => $module['price'],
+                ]);
+            }
+
+            return $order->load('modules');
+        });
     }
 }

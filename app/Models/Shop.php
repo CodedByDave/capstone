@@ -25,6 +25,11 @@ class Shop extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function order()
+    {
+        return $this->hasOne(Order::class, 'user_id', 'owner_id');
+    }
+
     public function employees(): HasMany
     {
         return $this->hasMany(Employee::class);

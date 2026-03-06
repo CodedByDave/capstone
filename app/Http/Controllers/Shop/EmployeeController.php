@@ -9,9 +9,11 @@ use App\Http\Requests\Shop\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Models\EmployeeArchive;
 use App\Models\Shop;
+use App\Models\ShopRole;
 use App\Services\EmployeeService;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+
 class EmployeeController extends Controller
 {
     public function __construct(
@@ -38,12 +40,17 @@ class EmployeeController extends Controller
     }
 
     // Create
-
     public function create()
     {
-        $shop = $this->getShop();
+        $shop  = $this->getShop();
+        $roles = ShopRole::where('shop_id', $shop->id)
+            ->where('name', '!=', 'owner')
+            ->pluck('name')
+            ->values()
+            ->toArray();
 
         return Inertia::render('shop/employee/Create', [
+            'roles'        => $roles,
             'branch_names' => $this->employeeService->getBranchNames($shop),
             'shop'         => $shop,
         ]);
@@ -73,24 +80,30 @@ class EmployeeController extends Controller
 
         return Inertia::render('shop/employee/Show', [
             'employee' => $employee,
+            'schedule' => $employee->schedule
         ]);
     }
 
-    // ── Edit ───────────────────────────────────────────────────────────────────
-
+    // Edit
     public function edit(Employee $employee)
     {
         $shop = $this->getShop();
         $this->employeeService->authorizeEmployee($employee, $shop);
 
+        $roles = ShopRole::where('shop_id', $shop->id)
+            ->where('name', '!=', 'owner')
+            ->pluck('name')
+            ->values()
+            ->toArray();
+
         return Inertia::render('shop/employee/Edit', [
             'employee'     => $employee,
             'branch_names' => $this->employeeService->getBranchNames($shop),
+            'roles'        => $roles,
         ]);
     }
 
-    // ── Update ─────────────────────────────────────────────────────────────────
-
+    // Update
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         $shop = $this->getShop();
@@ -163,8 +176,17 @@ class EmployeeController extends Controller
         ];
 
         $columns = [
-            'employee_id', 'first_name', 'last_name', 'email', 'phone',
-            'address', 'branch_name', 'position', 'hire_date', 'salary', 'status',
+            'employee_id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'address',
+            'branch_name',
+            'position',
+            'hire_date',
+            'salary',
+            'status',
         ];
 
         $callback = function () use ($columns) {
@@ -176,7 +198,7 @@ class EmployeeController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    // ── Import ─────────────────────────────────────────────────────────────────
+    // Import
 
     public function import(Request $request)
     {

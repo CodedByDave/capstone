@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Order;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -48,10 +49,21 @@ class HandleInertiaRequests extends Middleware
             'order' => function () use ($request) {
                 if (!$request->user()) return null;
 
-                return \App\Models\Order::where('user_id', $request->user()->id)
+                $order = Order::where('user_id', $request->user()->id)
                     ->where('status', 'paid')
+                    ->with('modules')
                     ->latest()
                     ->first();
+
+                if (!$order) return null;
+
+                return [
+                    'status'  => $order->status,
+                    'modules' => $order->modules->map(fn($m) => [
+                        'name'  => $m->name,
+                        'price' => $m->price,
+                    ]),
+                ];
             },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'toast' => fn() => $request->session()->get('toast'),

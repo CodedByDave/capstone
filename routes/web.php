@@ -5,6 +5,8 @@ use App\Http\Controllers\Shop\EmployeeController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ShopDataController;
 use App\Http\Controllers\Shop\ShopOrderController;
+use App\Http\Controllers\Shop\ScheduleController;
+use App\Http\Controllers\Shop\PermissionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -51,6 +53,22 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::delete('/employee/{employee}',     [EmployeeController::class, 'destroy'])->name('employee.destroy');
 
     Route::post('/employee/{id}/restore',     [EmployeeController::class, 'restore'])->name('employee.restore');
+
+    //Schedule Route
+    Route::get('/employee/{employee}/schedule/create', [ScheduleController::class, 'create'])->name('schedule.create');
+    Route::post('/employee/{employee}/schedule',       [ScheduleController::class, 'store'])->name('schedule.store');
+
+    //Roles & Permission
+    Route::get('/permission', [PermissionController::class, 'index'])->name('shop.permission');
+    Route::post('/permission/update', [PermissionController::class, 'updatePermission'])->name('shop.permission.update');
+    Route::post('/permission/roles', [PermissionController::class, 'storeRole'])->name('shop.permission.roles.store');
+    Route::delete('/permission/roles/{role}', [PermissionController::class, 'destroyRole'])->name('shop.permission.roles.destroy');
+    Route::post('/permission/employee/{employeeId}/toggle-role', [PermissionController::class, 'toggleEmployeeRole'])->name('shop.permission.employee.toggle');
+});
+
+// ── Staff routes ─────────────────────────────────────────────────────────
+Route::prefix('/staff')->middleware(['auth', 'role:staff'])->group(function () {
+    Route::get('/dashboard', fn() => Inertia::render('staff/Dashboard'))->name('staff.dashboard');
 });
 
 // ── Normal user routes ─────────────────────────────────────────────────────────
@@ -58,8 +76,6 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
 Route::prefix('user')->middleware(['auth', 'role:user'])->group(function () {
     Route::get('/dashboard', fn() => Inertia::render('Dashboard'))->name('dashboard');
 });
-Route::prefix('/staff')->middleware(['auth', 'role:staff'])->group(function () {
-    Route::get('/dashboard', fn() => Inertia::render('staff/Dashboard'))->name('staff.dashboard');
-});
+
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

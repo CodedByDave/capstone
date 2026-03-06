@@ -32,6 +32,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'shop_id',
         'otp_code',
         'otp_expires_at',
         'is_verified',

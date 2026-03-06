@@ -2,7 +2,7 @@
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { type BreadcrumbItem } from '@/types'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { toast } from 'vue-sonner'
 
 // shadcn components
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // icons
-import { RefreshCw, Loader2 } from 'lucide-vue-next'
+import { Loader2 } from 'lucide-vue-next'
 
 interface Shop {
     id: number
@@ -24,7 +24,8 @@ interface PsgcItem {
     name: string
 }
 
-const { branch_names, shop } = defineProps<{
+const { branch_names, shop, roles } = defineProps<{
+    roles: string[]
     branch_names: string[]
     shop: Shop
 }>()
@@ -37,30 +38,30 @@ const breadcrumbs: BreadcrumbItem[] = [
 const errors = computed(() => usePage().props.errors as Record<string, string>)
 
 function generateEmployeeId(): string {
-    const year = new Date().getFullYear()
+    const year   = new Date().getFullYear()
     const digits = String(Math.floor(10000 + Math.random() * 90000))
     return `${year}-${digits}`
 }
 
 const BASE = 'https://psgc.cloud/api'
 
-const provinces = ref<PsgcItem[]>([])
-const cities = ref<PsgcItem[]>([])
-const barangays = ref<PsgcItem[]>([])
+const provinces  = ref<PsgcItem[]>([])
+const cities     = ref<PsgcItem[]>([])
+const barangays  = ref<PsgcItem[]>([])
 
-const loadingProvinces = ref(false)
-const loadingCities = ref(false)
-const loadingBarangays = ref(false)
+const loadingProvinces  = ref(false)
+const loadingCities     = ref(false)
+const loadingBarangays  = ref(false)
 
-const selectedProvince = ref('')
-const selectedCity = ref('')
-const selectedBarangay = ref('')
-const streetInput = ref('')
+const selectedProvince  = ref('')
+const selectedCity      = ref('')
+const selectedBarangay  = ref('')
+const streetInput       = ref('')
 
 onMounted(async () => {
     loadingProvinces.value = true
     try {
-        const res = await fetch(`${BASE}/provinces`)
+        const res  = await fetch(`${BASE}/provinces`)
         const data = await res.json()
         provinces.value = data
             .map((p: any) => ({ code: p.code, name: p.name }))
@@ -72,10 +73,10 @@ onMounted(async () => {
 })
 
 watch(selectedProvince, async (code) => {
-    selectedCity.value = ''
+    selectedCity.value     = ''
     selectedBarangay.value = ''
-    cities.value = []
-    barangays.value = []
+    cities.value           = []
+    barangays.value        = []
     if (!code) return
     loadingCities.value = true
     try {
@@ -95,11 +96,11 @@ watch(selectedProvince, async (code) => {
 
 watch(selectedCity, async (code) => {
     selectedBarangay.value = ''
-    barangays.value = []
+    barangays.value        = []
     if (!code) return
     loadingBarangays.value = true
     try {
-        const res = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
+        const res  = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
         const data = await res.json()
         barangays.value = (data || [])
             .map((b: any) => ({ code: b.code, name: b.name }))
@@ -122,15 +123,15 @@ const fullAddress = computed(() => {
 const form = ref({
     employee_id: '',
     branch_name: shop.branch_name ?? '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    address: '',
-    position: '',
-    hire_date: '',
-    salary: '',
-    status: 'Active' as 'Active' | 'Inactive',
+    first_name:  '',
+    last_name:   '',
+    email:       '',
+    phone:       '',
+    address:     '',
+    position:    '',
+    hire_date:   '',
+    salary:      '',
+    status:      'Active' as 'Active' | 'Inactive',
 })
 
 const isSubmitting = ref(false)
@@ -152,7 +153,6 @@ function submit() {
             toast.success('Employee Added', {
                 description: `${form.value.first_name} ${form.value.last_name} has been registered successfully.`,
             })
-            router.visit('/shop/employee')
         },
         onError: () => {
             toast.error('Failed to add employee', {
@@ -167,7 +167,6 @@ function submit() {
 </script>
 
 <template>
-
     <Head title="Add New Employee" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Add New Employee">
@@ -181,51 +180,42 @@ function submit() {
                 </p>
             </div>
 
-            <!-- ── Section 1: Identity ─────────────────────────────────────── -->
+            <!-- ── Section 1: Identity ────────────────────────────────────── -->
             <div class="space-y-4">
                 <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Identity</p>
 
-                <!-- Row 1: Employee ID | First Name | Last Name -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Employee ID <span class="text-red-500">*</span></label>
                         <Input v-model="form.employee_id" class="font-mono bg-muted cursor-not-allowed"
                             :class="{ 'border-red-500': errors.employee_id }" disabled />
                         <p v-if="errors.employee_id" class="text-xs text-red-500">{{ errors.employee_id }}</p>
                     </div>
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">First Name <span class="text-red-500">*</span></label>
                         <Input v-model="form.first_name" :class="{ 'border-red-500': errors.first_name }" />
                         <p v-if="errors.first_name" class="text-xs text-red-500">{{ errors.first_name }}</p>
                     </div>
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Last Name <span class="text-red-500">*</span></label>
                         <Input v-model="form.last_name" :class="{ 'border-red-500': errors.last_name }" />
                         <p v-if="errors.last_name" class="text-xs text-red-500">{{ errors.last_name }}</p>
                     </div>
-
                 </div>
 
-                <!-- Row 2: Email | Phone -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Email Address <span class="text-red-500">*</span></label>
                         <Input v-model="form.email" type="email" placeholder="employee@example.com"
                             :class="{ 'border-red-500': errors.email }" />
                         <p v-if="errors.email" class="text-xs text-red-500">{{ errors.email }}</p>
                     </div>
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Phone</label>
                         <Input v-model="form.phone" placeholder="09XXXXXXXXX"
                             :class="{ 'border-red-500': errors.phone }" />
                         <p v-if="errors.phone" class="text-xs text-red-500">{{ errors.phone }}</p>
                     </div>
-
                 </div>
             </div>
 
@@ -233,9 +223,7 @@ function submit() {
             <div class="space-y-4">
                 <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Employment</p>
 
-                <!-- Row 1: Position | Branch | Hire Date -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Position <span class="text-red-500">*</span></label>
                         <Select v-model="form.position">
@@ -243,15 +231,9 @@ function submit() {
                                 <SelectValue placeholder="Select position" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Manager">Manager</SelectItem>
-                                <SelectItem value="Cashier">Cashier</SelectItem>
-                                <SelectItem value="Washer">Washer</SelectItem>
-                                <SelectItem value="Dryer Operator">Dryer Operator</SelectItem>
-                                <SelectItem value="Folder">Folder</SelectItem>
-                                <SelectItem value="Ironer">Ironer</SelectItem>
-                                <SelectItem value="Delivery Rider">Delivery Rider</SelectItem>
-                                <SelectItem value="Customer Service">Customer Service</SelectItem>
-                                <SelectItem value="Maintenance Staff">Maintenance Staff</SelectItem>
+                                <SelectItem v-for="role in roles" :key="role" :value="role" class="capitalize">
+                                    {{ role }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                         <p v-if="errors.position" class="text-xs text-red-500">{{ errors.position }}</p>
@@ -282,19 +264,15 @@ function submit() {
                         <Input v-model="form.hire_date" type="date" :class="{ 'border-red-500': errors.hire_date }" />
                         <p v-if="errors.hire_date" class="text-xs text-red-500">{{ errors.hire_date }}</p>
                     </div>
-
                 </div>
 
-                <!-- Row 2: Salary | Status -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Salary (₱)</label>
                         <Input v-model="form.salary" type="number" min="0" step="0.01"
                             :class="{ 'border-red-500': errors.salary }" />
                         <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
                     </div>
-
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Status <span class="text-red-500">*</span></label>
                         <Select v-model="form.status">
@@ -308,7 +286,6 @@ function submit() {
                         </Select>
                         <p v-if="errors.status" class="text-xs text-red-500">{{ errors.status }}</p>
                     </div>
-
                 </div>
             </div>
 
@@ -316,42 +293,35 @@ function submit() {
             <div class="space-y-4">
                 <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Address</p>
 
-                <!-- Row 1: Province | City | Barangay -->
-                <div class="grid grid-cols-5 sm:grid-cols-3 gap-4">
-
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Province <span class="text-red-500">*</span></label>
                         <Select v-model="selectedProvince" :disabled="loadingProvinces">
                             <SelectTrigger class="w-full">
                                 <SelectValue>
-                                    <span v-if="loadingProvinces"
-                                        class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingProvinces" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select
-                                        province</span>
-                                    <span v-else>{{provinces.find(p => p.code === selectedProvince)?.name}}</span>
+                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select province</span>
+                                    <span v-else>{{ provinces.find(p => p.code === selectedProvince)?.name }}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}
-                                </SelectItem>
+                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">City / Municipality <span
-                                class="text-red-500">*</span></label>
+                        <label class="text-sm font-medium">City / Municipality <span class="text-red-500">*</span></label>
                         <Select v-model="selectedCity" :disabled="!selectedProvince || loadingCities">
                             <SelectTrigger class="w-full">
                                 <SelectValue>
                                     <span v-if="loadingCities" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select
-                                        city/municipality</span>
-                                    <span v-else>{{cities.find(c => c.code === selectedCity)?.name}}</span>
+                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select city/municipality</span>
+                                    <span v-else>{{ cities.find(c => c.code === selectedCity)?.name }}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
@@ -365,25 +335,20 @@ function submit() {
                         <Select v-model="selectedBarangay" :disabled="!selectedCity || loadingBarangays">
                             <SelectTrigger class="w-full">
                                 <SelectValue>
-                                    <span v-if="loadingBarangays"
-                                        class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingBarangays" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select
-                                        barangay</span>
-                                    <span v-else>{{barangays.find(b => b.code === selectedBarangay)?.name}}</span>
+                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select barangay</span>
+                                    <span v-else>{{ barangays.find(b => b.code === selectedBarangay)?.name }}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}
-                                </SelectItem>
+                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-
                 </div>
 
-                <!-- Row 2: Street -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1 sm:col-span-3">
                         <label class="text-sm font-medium">Street / Block No.</label>

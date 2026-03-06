@@ -21,14 +21,14 @@ class Order extends Model
         'municipality',
         'barangay',
         'postal_code',
-        'modules',
         'status',
         'total_price',
     ];
 
-    protected $casts = [
-        'modules' => 'array',
-    ];
+    public function modules(): HasMany
+    {
+        return $this->hasMany(OrderModule::class);
+    }
 
     public function payments(): HasMany
     {

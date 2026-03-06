@@ -215,7 +215,7 @@ function submit() {
                     <!-- Schedule Button -->
                     <Button type="button"
                         class="!bg-blue-600 !text-white hover:!bg-blue-500 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
-                        @click="router.visit(`/shop/employee/${employee.id}/schedule`)">
+                        @click="router.visit(`/shop/employee/${employee.id}/schedule/create`)">
                         <Calendar class="h-4 w-4 mr-2" />
                         Add Schedule
                     </Button>
