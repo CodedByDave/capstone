@@ -26,6 +26,8 @@ class Employee extends Model
         'hire_date',
         'salary',
         'status',
+        'created_by',
+        'updated_by'
     ];
 
     protected $casts = [
@@ -34,7 +36,7 @@ class Employee extends Model
         'deleted_at' => 'datetime',
     ];
 
-    // ─── Relationships ────────────────────────────────────────────────────────
+    // Relationships 
 
     public function roles()
     {
@@ -79,5 +81,20 @@ class Employee extends Model
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(EmployeeActivityLog::class)->latest();
     }
 }

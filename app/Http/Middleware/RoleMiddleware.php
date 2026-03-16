@@ -32,6 +32,8 @@ class RoleMiddleware
             return match($user->role) {
                 'super_admin' => redirect()->route('admin.dashboard'),
                 'owner' => redirect()->route('shop.dashboard'),
+                'manager' => redirect()->route('manager.dashboard'),
+                'staff' => redirect()->route('staff.dashboard'),
                 'user' => redirect()->route('dashboard'),
                 default => abort(403, 'Unauthorized access'),
             };

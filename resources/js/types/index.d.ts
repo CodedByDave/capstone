@@ -17,14 +17,7 @@ export interface NavItem {
     isActive?: boolean;
 }
 
-export type AppPageProps<
-    T extends Record<string, unknown> = Record<string, unknown>,
-> = T & {
-    name: string;
-    quote: { message: string; author: string };
-    auth: Auth;
-    sidebarOpen: boolean;
-};
+export type Permissions = Record<string, string[]>
 
 export interface User {
     id: number;
@@ -34,6 +27,28 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
+    role: 'owner' | 'staff' | 'super_admin' | 'user';
+    permissions: Permissions;
 }
+
+export interface Order {
+    status: string;
+    modules: OrderModule[];
+}
+
+export interface OrderModule {
+    name: string;
+    price: number;
+}
+
+export type AppPageProps<
+    T extends Record<string, unknown> = Record<string, unknown>,
+> = T & {
+    name: string;
+    quote: { message: string; author: string };
+    auth: Auth;
+    sidebarOpen: boolean;
+    order: Order | null;
+};
 
 export type BreadcrumbItemType = BreadcrumbItem;

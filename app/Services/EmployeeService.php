@@ -6,96 +6,149 @@ use App\Models\Employee;
 use App\Models\Shop;
 use App\Models\User;
 use App\Repositories\EmployeeRepository;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EmployeeService
 {
+    // Fields that get tracked on update
+    private const TRACKED_FIELDS = [
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'address',
+        'position',
+        'branch_name',
+        'hire_date',
+        'salary',
+        'status',
+    ];
+
     public function __construct(
-        private readonly EmployeeRepository $employeeRepository
+        private readonly EmployeeRepository $employeeRepository,
+        private readonly ActivityLogService $activityLogService,
     ) {}
 
-    // ── Get all active employees for shop ──────────────────────────────────────
+    /* ─── READ ─────────────────────────────────────── */
 
-    public function getEmployees(Shop $shop): Collection
+    public function getEmployees(Shop $shop, int $perPage = 10): LengthAwarePaginator
     {
-        return $this->employeeRepository->getAllByShop($shop);
+        return $this->employeeRepository->getPaginatedByShop($shop, $perPage);
     }
-
-    // ── Get stats for shop ─────────────────────────────────────────────────────
 
     public function getStats(Shop $shop): array
     {
         return $this->employeeRepository->getStatsByShop($shop);
     }
 
-    // ── Get branch names for shop ──────────────────────────────────────────────
-
     public function getBranchNames(Shop $shop): array
     {
         return $this->employeeRepository->getBranchNames($shop);
     }
-
-    // ── Find employee scoped to shop ───────────────────────────────────────────
 
     public function findEmployee(int $id, Shop $shop): Employee
     {
         return $this->employeeRepository->findByShop($id, $shop);
     }
 
-    // ── Create employee ────────────────────────────────────────────────────────
+    public function authorizeEmployee(Employee $employee, Shop $shop): void
+    {
+        abort_if($employee->shop_id !== $shop->id, 403, 'Unauthorized.');
+    }
+
+    /* ─── WRITE ─────────────────────────────────────── */
 
     public function createEmployee(Shop $shop, array $data): Employee
     {
         return DB::transaction(function () use ($shop, $data) {
             $user = User::create([
-                'name'              => $data['first_name'] . ' ' . $data['last_name'],
+                'name'              => "{$data['first_name']} {$data['last_name']}",
                 'email'             => $data['email'],
                 'password'          => Hash::make($data['last_name']),
                 'role'              => strtolower($data['position']) === 'manager' ? 'manager' : 'staff',
                 'email_verified_at' => now(),
             ]);
 
-            return $this->employeeRepository->createForShop($shop, [
+            $employee = $this->employeeRepository->createForShop($shop, [
                 ...$data,
-                'user_id' => $user->id,
+                'user_id'    => $user->id,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
+
+            // Centralized log — no EmployeeActivityLog here
+            $this->activityLogService->log(
+                subject: $employee,
+                action: 'created',
+                shopId: $shop->id,
+            );
+
+            return $employee;
         });
     }
 
-    // ── Update employee ────────────────────────────────────────────────────────
-
     public function updateEmployee(Employee $employee, array $data): Employee
     {
-        return $this->employeeRepository->updateEmployee($employee, $data);
-    }
+        $changes = $this->diffChanges($employee, $data);
+        $shopId  = $employee->shop_id;
 
-    // ── Soft delete employee (observer copies to employee_archives) ────────────
+        $updated = $this->employeeRepository->updateEmployee($employee, [
+            ...$data,
+            'updated_by' => auth()->id(),
+        ]);
+
+        if (!empty($changes)) {
+            $action = match (true) {
+                isset($changes['status']) => 'status_changed',
+                isset($changes['salary']) => 'salary_changed',
+                default                   => 'updated',
+            };
+
+            $log = $this->activityLogService->log(
+                subject: $updated,
+                action: $action,
+                changes: $changes,
+                shopId: $shopId,
+            );
+        } else {
+            dd('changes was empty — nothing logged');
+        }
+
+        return $updated;
+    }
 
     public function archiveEmployee(Employee $employee): void
     {
+        // Log BEFORE delete so subject still exists
+        $this->activityLogService->log(
+            subject: $employee,
+            action: 'archived',
+            shopId: $employee->shop_id,
+        );
+
         $this->employeeRepository->deleteEmployee($employee);
     }
 
-    // ── Verify employee belongs to shop ───────────────────────────────────────
-
-    public function authorizeEmployee(Employee $employee, Shop $shop): void
+    public function restoreEmployee(Employee $employee): void
     {
-        if ($employee->shop_id !== $shop->id) {
-            abort(403, 'Unauthorized.');
-        }
+        $employee->restore();
+
+        $this->activityLogService->log(
+            subject: $employee,
+            action: 'restored',
+            shopId: $employee->shop_id,
+        );
     }
 
-    // ── Import employees from CSV ──────────────────────────────────────────────
+    /* ─── IMPORT ─────────────────────────────────────── */
 
     public function importFromCsv(Shop $shop, UploadedFile $file): array
     {
-        $errors = [];
-        $handle = fopen($file->getRealPath(), 'r');
-
-        // Skip header row
+        $errors  = [];
+        $handle  = fopen($file->getRealPath(), 'r');
         $headers = fgetcsv($handle);
 
         $expectedHeaders = [
@@ -111,7 +164,6 @@ class EmployeeService
             'status',
         ];
 
-        // Validate headers
         if (array_map('strtolower', array_map('trim', $headers)) !== $expectedHeaders) {
             fclose($handle);
             return ['Invalid CSV headers. Please use the provided template.'];
@@ -126,31 +178,40 @@ class EmployeeService
                 continue;
             }
 
-            [$employee_id, $first_name, $last_name, $phone, $address, $branch_name, $position, $hire_date, $salary, $status] = $data;
+            [
+                $employee_id,
+                $first_name,
+                $last_name,
+                $phone,
+                $address,
+                $branch_name,
+                $position,
+                $hire_date,
+                $salary,
+                $status
+            ] = $data;
 
-            // Basic validation
             if (empty($employee_id) || empty($first_name) || empty($last_name) || empty($position) || empty($hire_date)) {
                 $errors[] = "Row {$row}: employee_id, first_name, last_name, position, and hire_date are required.";
                 continue;
             }
 
-            if (! in_array($status, ['Active', 'Inactive'])) {
+            if (!in_array($status, ['Active', 'Inactive'])) {
                 $errors[] = "Row {$row}: status must be 'Active' or 'Inactive'.";
                 continue;
             }
 
-            if (! \Carbon\Carbon::createFromFormat('Y-m-d', $hire_date)) {
+            if (!\Carbon\Carbon::createFromFormat('Y-m-d', $hire_date)) {
                 $errors[] = "Row {$row}: hire_date must be in YYYY-MM-DD format.";
                 continue;
             }
 
-            // Check duplicate employee_id
             if (Employee::where('employee_id', $employee_id)->exists()) {
                 $errors[] = "Row {$row}: Employee ID '{$employee_id}' already exists.";
                 continue;
             }
 
-            $shop->employees()->create([
+            $employee = $shop->employees()->create([
                 'user_id'     => auth()->id(),
                 'employee_id' => $employee_id,
                 'first_name'  => $first_name,
@@ -162,10 +223,37 @@ class EmployeeService
                 'hire_date'   => $hire_date,
                 'salary'      => $salary ?: null,
                 'status'      => $status,
+                'created_by'  => auth()->id(),
+                'updated_by'  => auth()->id(),
             ]);
+
+            // Log each imported employee
+            $this->activityLogService->log(
+                subject: $employee,
+                action: 'created',
+                shopId: $shop->id,
+            );
         }
 
         fclose($handle);
         return $errors;
+    }
+
+    /* ─── PRIVATE HELPERS ────────────────────────────── */
+
+    private function diffChanges(Employee $employee, array $data): array
+    {
+        $changes = [];
+
+        foreach (self::TRACKED_FIELDS as $field) {
+            if (isset($data[$field]) && (string) $employee->$field !== (string) $data[$field]) {
+                $changes[$field] = [
+                    'old' => (string) $employee->$field,
+                    'new' => (string) $data[$field],
+                ];
+            }
+        }
+
+        return $changes;
     }
 }

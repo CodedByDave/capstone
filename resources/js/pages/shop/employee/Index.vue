@@ -1,46 +1,36 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
-import { type BreadcrumbItem } from '@/types'
+import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { ref, computed, onMounted } from 'vue'
-import { toast } from 'vue-sonner'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
-// shadcn components
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-// icons
 import {
     Eye, Pencil, Trash2,
     Users, UserCheck, UserPlus, BadgeCheck,
     Upload, Download, FileWarning, X, CheckCircle2, Loader2, Trash,
-    Building2, AlertCircle
+    Building2, ChevronLeft, ChevronRight,
 } from 'lucide-vue-next'
-
-// Dialog
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
-
-// AlertDialog
 import {
-    AlertDialog,
-    AlertDialogTrigger,
-    AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogDescription,
-    AlertDialogFooter,
+    AlertDialog, AlertDialogContent, AlertDialogHeader,
+    AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
 } from '@/components/ui/alert-dialog'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface AuditUser {
+    id: number
+    name: string
+}
 
 interface Employee {
     id: number
@@ -59,12 +49,24 @@ interface Employee {
     status: 'Active' | 'Inactive'
     created_at: string
     updated_at: string
+    creator: AuditUser | null
+    updater: AuditUser | null
+}
+
+interface PaginatedEmployees {
+    data: Employee[]
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number | null
+    to: number | null
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const { employees, stats } = defineProps<{
-    employees: Employee[]
+    employees: PaginatedEmployees
     stats: {
         total: number
         active: number
@@ -73,30 +75,52 @@ const { employees, stats } = defineProps<{
     }
 }>()
 
-// ─── Flash toast on mount ─────────────────────────────────────────────────────
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
 
-const page = usePage()
+const page = usePage<AppPageProps>()
+const user = computed(() => page.props.auth.user)
+const isOwner = computed(() => user.value.role === 'owner')
+const permissions = computed(() => user.value.permissions ?? {})
+
+function can(module: string, action: string): boolean {
+    if (isOwner.value) return true
+    return permissions.value[module]?.includes(action) ?? false
+}
+
+// Route helpers — staff uses /staff/* prefix
+const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+
+function employeeUrl(id: number, suffix = ''): string {
+    return `${baseRoute.value}/employee/${id}${suffix}`
+}
+
+// ─── Flash toast ──────────────────────────────────────────────────────────────
 
 onMounted(() => {
-    const flash = page.props.toast as { type: string; message: string } | null
-    if (!flash) return
-    if (flash.type === 'success') toast.success(flash.message)
-    else if (flash.type === 'error') toast.error(flash.message)
+    const flashToast = page.props.toast as { type: string; message: string } | undefined
+    if (!flashToast) return
+
+    switch (flashToast.type) {
+        case 'success': toast.success(flashToast.message); break
+        case 'error':   toast.error(flashToast.message);   break
+        case 'warning': toast.warning(flashToast.message); break
+        default:        toast(flashToast.message)
+    }
 })
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Employee Management', href: '/shop/employee' },
+    { title: 'Employee Management', href: `${baseRoute.value}/employee` },
 ]
 
-// ─── Filters ─────────────────────────────────────────────────────────────────
+// ─── Filters ──────────────────────────────────────────────────────────────────
 
 const searchQuery  = ref('')
 const statusFilter = ref('all')
 
 const filteredEmployees = computed(() =>
-    employees.filter((emp) => {
+    employees.data.filter((emp) => {
         const fullName = `${emp.first_name} ${emp.last_name}`.toLowerCase()
         const matchesSearch =
             fullName.includes(searchQuery.value.toLowerCase()) ||
@@ -112,9 +136,49 @@ const filteredEmployees = computed(() =>
     })
 )
 
-// ─── Archive state ────────────────────────────────────────────────────────────
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+function goToPage(p: number) {
+    router.get(`${baseRoute.value}/employee`, { page: p }, { preserveScroll: true, preserveState: true })
+}
+
+const visiblePages = computed(() => {
+    const total   = employees.last_page
+    const current = employees.current_page
+    const pages: number[] = []
+    for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+        pages.push(i)
+    }
+    return pages
+})
+
+// ─── Archive ──────────────────────────────────────────────────────────────────
 
 const employeeToArchive = ref<Employee | null>(null)
+const isArchiveOpen     = ref(false)
+
+function openArchiveDialog(emp: Employee) {
+    employeeToArchive.value = emp
+    isArchiveOpen.value     = true
+}
+
+function cancelArchive() {
+    isArchiveOpen.value = false
+    setTimeout(() => { employeeToArchive.value = null }, 200)
+}
+
+function confirmArchive() {
+    if (!employeeToArchive.value) return
+    router.delete(`/shop/employee/${employeeToArchive.value.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            employeeToArchive.value = null
+            toast.success('Employee archived successfully.')
+        },
+        onError: () => toast.error('Failed to archive employee.'),
+    })
+    isArchiveOpen.value = false
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -124,53 +188,30 @@ const formatSalary = (val: string | null) =>
 const formatDate = (val: string) =>
     new Date(val).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })
 
-// ─── Archive action ───────────────────────────────────────────────────────────
-
-function archiveEmployee(id: number | undefined) {
-    if (!id) return
-    router.delete(`/shop/employee/${id}`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            employeeToArchive.value = null
-            toast.success('Employee archived successfully.')
-        },
-        onError: () => {
-            toast.error('Failed to archive employee.')
-        },
-    })
-}
-
 // ─── CSV Export ───────────────────────────────────────────────────────────────
 
 function exportCSV() {
     const headers = [
         'employee_id', 'first_name', 'last_name', 'phone',
         'address', 'branch_name', 'position', 'hire_date', 'salary', 'status',
+        'added_by', 'last_modified_by',
     ]
 
     const rows = filteredEmployees.value.map((emp) => [
-        emp.employee_id,
-        emp.first_name,
-        emp.last_name,
-        emp.phone ?? '',
-        emp.address ?? '',
-        emp.branch_name ?? '',
-        emp.position,
-        emp.hire_date,
-        emp.salary ?? '',
-        emp.status,
+        emp.employee_id, emp.first_name, emp.last_name,
+        emp.phone ?? '', emp.address ?? '', emp.branch_name ?? '',
+        emp.position, emp.hire_date, emp.salary ?? '', emp.status,
+        emp.creator?.name ?? '', emp.updater?.name ?? '',
     ])
 
     const csvContent = [headers, ...rows]
-        .map((row) =>
-            row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-        )
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
         .join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url  = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href     = url
+    link.href  = url
     link.download = `employees_${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
     URL.revokeObjectURL(url)
@@ -178,13 +219,13 @@ function exportCSV() {
 
 // ─── CSV Import ───────────────────────────────────────────────────────────────
 
-const isImportOpen  = ref(false)
-const importFile    = ref<File | null>(null)
-const importErrors  = ref<string[]>([])
-const importSuccess = ref(false)
-const importing     = ref(false)
-const isDragging    = ref(false)
-const fileInputRef  = ref<HTMLInputElement | null>(null)
+const isImportOpen   = ref(false)
+const importFile     = ref<File | null>(null)
+const importErrors   = ref<string[]>([])
+const importSuccess  = ref(false)
+const importing      = ref(false)
+const isDragging     = ref(false)
+const fileInputRef   = ref<HTMLInputElement | null>(null)
 
 function openImport() {
     importFile.value    = null
@@ -268,11 +309,12 @@ async function submitImport() {
 </script>
 
 <template>
+
     <Head title="Employee Management" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Employee Management">
 
-        <!-- ── Stats ────────────────────────────────────────────────────── -->
+        <!-- Stats -->
         <div class="grid gap-4 md:grid-cols-4 mb-6">
             <Card>
                 <CardHeader class="flex flex-row justify-between items-center pb-2">
@@ -312,7 +354,7 @@ async function submitImport() {
             </Card>
         </div>
 
-        <!-- ── Table ────────────────────────────────────────────────────── -->
+        <!-- Table -->
         <Card>
             <CardHeader class="flex flex-row justify-between items-center gap-2 flex-wrap">
                 <CardTitle>Employee List</CardTitle>
@@ -328,22 +370,52 @@ async function submitImport() {
                             <SelectItem value="Inactive">Inactive</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" @click="exportCSV"
-                        class="bg-blue-500 text-white hover:bg-blue-600 hover:text-white hover:shadow-md transition duration-200">
+
+                    <!-- Export — view permission -->
+                    <Button
+                        v-if="can('Employee Management', 'view')"
+                        variant="outline"
+                        class="bg-blue-500 text-white hover:bg-blue-600 hover:text-white hover:shadow-md transition duration-200"
+                        @click="exportCSV"
+                    >
                         <Download class="h-4 w-4 mr-1.5" /> Export CSV
                     </Button>
-                    <Button variant="outline" @click="openImport"
-                        class="bg-green-500 text-white hover:bg-green-600 hover:shadow-md hover:text-white transition duration-200">
+
+                    <!-- Import — owner only -->
+                    <Button
+                        v-if="isOwner"
+                        variant="outline"
+                        class="bg-green-500 text-white hover:bg-green-600 hover:shadow-md hover:text-white transition duration-200"
+                        @click="openImport"
+                    >
                         <Upload class="h-4 w-4 mr-1.5" /> Import CSV
                     </Button>
-                    <Button @click="router.visit('/shop/employee/archive')" variant="outline"
-                        class="bg-red-500 text-white hover:bg-red-600 hover:shadow-md hover:text-white transition duration-200">
+
+                    <!-- Archive list — owner only -->
+                    <Button
+                        v-if="isOwner"
+                        variant="outline"
+                        class="bg-red-500 text-white hover:bg-red-600 hover:shadow-md hover:text-white transition duration-200"
+                        @click="router.visit('/shop/employee/archive')"
+                    >
                         <Trash class="h-4 w-4 mr-1.5" /> Archive
                     </Button>
-                    <Button @click="router.visit('/shop/employee/create')">
+
+                    <!-- Add Employee — create permission -->
+                    <Button
+                        v-if="can('Employee Management', 'create')"
+                        class="bg-gray-900 text-white hover:bg-gray-800 transition"
+                        @click="router.visit(`${baseRoute}/employee/create`)"
+                    >
                         <UserPlus class="h-4 w-4 mr-1.5" /> Add Employee
                     </Button>
-                    <Button @click="router.visit('/shop/employee/create')" class="bg-blue-500 hover:bg-blue-700">
+
+                    <!-- Add Branch — owner only -->
+                    <Button
+                        v-if="isOwner"
+                        class="bg-blue-500 hover:bg-blue-700"
+                        @click="router.visit('/shop/branch/create')"
+                    >
                         <Building2 class="h-4 w-4 mr-1.5" /> Add Branch
                     </Button>
                 </div>
@@ -364,15 +436,18 @@ async function submitImport() {
                                 <TableHead>Hire Date</TableHead>
                                 <TableHead>Salary</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead>Added By</TableHead>
+                                <TableHead>Modified By</TableHead>
                                 <TableHead class="text-center">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="filteredEmployees.length === 0">
-                                <TableCell colspan="11" class="text-center text-muted-foreground py-10">
+                                <TableCell colspan="13" class="text-center text-muted-foreground py-10">
                                     No employees found.
                                 </TableCell>
                             </TableRow>
+
                             <TableRow v-for="emp in filteredEmployees" :key="emp.id">
                                 <TableCell class="font-mono text-xs whitespace-nowrap">{{ emp.employee_id }}</TableCell>
                                 <TableCell class="font-medium whitespace-nowrap">{{ emp.first_name }} {{ emp.last_name }}</TableCell>
@@ -388,45 +463,67 @@ async function submitImport() {
                                 <TableCell class="whitespace-nowrap">{{ formatDate(emp.hire_date) }}</TableCell>
                                 <TableCell class="whitespace-nowrap">{{ formatSalary(emp.salary) }}</TableCell>
                                 <TableCell>
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full text-white whitespace-nowrap"
+                                    <span
+                                        class="px-2 py-1 text-xs font-semibold rounded-full text-white whitespace-nowrap"
                                         :class="{
                                             'bg-green-500': emp.status === 'Active',
                                             'bg-red-500':   emp.status === 'Inactive',
-                                        }">
+                                        }"
+                                    >
                                         {{ emp.status }}
                                     </span>
                                 </TableCell>
+                                <TableCell class="whitespace-nowrap">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-medium">{{ emp.creator?.name ?? '—' }}</span>
+                                        <span class="text-xs text-muted-foreground">{{ formatDate(emp.created_at) }}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell class="whitespace-nowrap">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-medium">{{ emp.updater?.name ?? '—' }}</span>
+                                        <span class="text-xs text-muted-foreground">{{ formatDate(emp.updated_at) }}</span>
+                                    </div>
+                                </TableCell>
+
+                                <!-- Row actions — each gated by RBAC key matching moduleActionMap exactly -->
                                 <TableCell class="text-center">
                                     <div class="flex items-center justify-center gap-1">
-                                        <Button size="icon" variant="ghost" @click="router.visit(`/shop/employee/${emp.id}`)">
+
+                                        <!-- View — key: 'view' -->
+                                        <Button
+                                            v-if="can('Employee Management', 'view')"
+                                            size="icon" variant="ghost"
+                                            @click="router.visit(employeeUrl(emp.id))"
+                                        >
                                             <Eye class="h-4 w-4 text-blue-500" />
                                         </Button>
-                                        <Button size="icon" variant="ghost" @click="router.visit(`/shop/employee/${emp.id}/edit`)">
+
+                                        <!-- Edit — key: 'update' (matches moduleActionMap) -->
+                                        <Button
+                                            v-if="can('Employee Management', 'update')"
+                                            size="icon" variant="ghost"
+                                            @click="router.visit(employeeUrl(emp.id, '/edit'))"
+                                        >
                                             <Pencil class="h-4 w-4 text-green-500" />
                                         </Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger as-child>
-                                                <Button size="icon" variant="ghost" @click="employeeToArchive = emp">
-                                                    <Trash2 class="h-4 w-4 text-red-500" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Remove Employee</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Are you sure you want to remove
-                                                        <strong>{{ employeeToArchive?.first_name }} {{ employeeToArchive?.last_name }}</strong>?
-                                                        This action cannot be undone.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <Button variant="outline" @click="employeeToArchive = null">Cancel</Button>
-                                                    <Button variant="destructive" @click="archiveEmployee(employeeToArchive?.id)">
-                                                        Remove
-                                                    </Button>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+
+                                        <!-- Archive — key: 'archive' (matches moduleActionMap) -->
+                                        <Button
+                                            v-if="can('Employee Management', 'archive')"
+                                            size="icon" variant="ghost"
+                                            @click="openArchiveDialog(emp)"
+                                        >
+                                            <Trash2 class="h-4 w-4 text-red-500" />
+                                        </Button>
+
+                                        <!-- No actions fallback -->
+                                        <span
+                                            v-if="!can('Employee Management', 'view') && !can('Employee Management', 'update') && !can('Employee Management', 'archive')"
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            —
+                                        </span>
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -436,7 +533,50 @@ async function submitImport() {
             </CardContent>
         </Card>
 
-        <!-- ── Import Dialog ─────────────────────────────────────────────── -->
+        <!-- Pagination -->
+        <div class="flex items-center justify-between px-4 py-3 border-t">
+            <p class="text-xs text-muted-foreground">
+                Showing {{ employees.from ?? 0 }}–{{ employees.to ?? 0 }} of {{ employees.total }} employees
+            </p>
+            <div class="flex items-center gap-1">
+                <Button
+                    size="icon" variant="outline"
+                    :disabled="employees.current_page === 1"
+                    @click="goToPage(employees.current_page - 1)"
+                >
+                    <ChevronLeft class="h-4 w-4" />
+                </Button>
+                <Button v-if="employees.current_page > 3" size="icon" variant="outline" @click="goToPage(1)">
+                    1
+                </Button>
+                <span v-if="employees.current_page > 3" class="text-xs text-muted-foreground px-1">…</span>
+                <Button
+                    v-for="p in visiblePages" :key="p"
+                    size="icon"
+                    :variant="p === employees.current_page ? 'default' : 'outline'"
+                    @click="goToPage(p)"
+                >
+                    {{ p }}
+                </Button>
+                <span v-if="employees.current_page < employees.last_page - 2" class="text-xs text-muted-foreground px-1">…</span>
+                <Button
+                    v-if="employees.current_page < employees.last_page - 2"
+                    size="icon" variant="outline"
+                    @click="goToPage(employees.last_page)"
+                >
+                    {{ employees.last_page }}
+                </Button>
+                <Button
+                    size="icon" variant="outline"
+                    :disabled="employees.current_page === employees.last_page"
+                    @click="goToPage(employees.current_page + 1)"
+                >
+                    <ChevronRight class="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+
+        <!-- Import Dialog -->
         <Dialog v-model:open="isImportOpen">
             <DialogContent class="max-w-lg">
                 <DialogHeader>
@@ -459,13 +599,14 @@ async function submitImport() {
                         </a>
                     </div>
 
-                    <!-- Drop zone -->
-                    <div class="relative border-2 border-dashed rounded-xl transition-colors cursor-pointer"
+                    <div
+                        class="relative border-2 border-dashed rounded-xl transition-colors cursor-pointer"
                         :class="isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/30 hover:border-primary/50'"
                         @dragover.prevent="isDragging = true"
                         @dragleave="isDragging = false"
                         @drop.prevent="onDrop"
-                        @click="fileInputRef?.click()">
+                        @click="fileInputRef?.click()"
+                    >
                         <input ref="fileInputRef" type="file" accept=".csv" class="hidden" @change="onFileChange" />
                         <div class="flex flex-col items-center justify-center py-8 px-4 text-center select-none">
                             <template v-if="!importFile">
@@ -478,27 +619,21 @@ async function submitImport() {
                                     <CheckCircle2 class="w-5 h-5" />
                                     <span class="font-medium">{{ importFile.name }}</span>
                                 </div>
-                                <p class="text-xs text-muted-foreground mt-1">
-                                    {{ (importFile.size / 1024).toFixed(1) }} KB
-                                </p>
-                                <button class="mt-2 flex items-center gap-1 text-xs text-red-500 hover:underline"
-                                    @click.stop="clearFile">
+                                <p class="text-xs text-muted-foreground mt-1">{{ (importFile.size / 1024).toFixed(1) }} KB</p>
+                                <button class="mt-2 flex items-center gap-1 text-xs text-red-500 hover:underline" @click.stop="clearFile">
                                     <X class="w-3 h-3" /> Remove file
                                 </button>
                             </template>
                         </div>
                     </div>
 
-                    <!-- Import errors -->
-                    <div v-if="importErrors.length"
-                        class="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                    <div v-if="importErrors.length" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
                         <div class="flex items-center gap-2 text-red-700 font-semibold mb-2">
                             <FileWarning class="w-4 h-4 flex-shrink-0" />
                             Import failed — please fix the following:
                         </div>
                         <ul class="space-y-1">
-                            <li v-for="(error, i) in importErrors" :key="i"
-                                class="text-xs text-red-600 flex items-start gap-1.5">
+                            <li v-for="(error, i) in importErrors" :key="i" class="text-xs text-red-600 flex items-start gap-1.5">
                                 <span class="mt-0.5 flex-shrink-0">•</span>{{ error }}
                             </li>
                         </ul>
@@ -515,6 +650,24 @@ async function submitImport() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <!-- Archive Confirm Dialog -->
+        <AlertDialog v-model:open="isArchiveOpen">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Remove Employee</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to remove
+                        <strong>{{ employeeToArchive?.first_name }} {{ employeeToArchive?.last_name }}</strong>?
+                        This will move them to the archive.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <Button variant="outline" @click="cancelArchive">Cancel</Button>
+                    <Button variant="destructive" @click="confirmArchive">Remove</Button>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
     </ShopLayout>
 </template>

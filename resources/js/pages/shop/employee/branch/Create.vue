@@ -2,61 +2,43 @@
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { type BreadcrumbItem } from '@/types'
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
-import { toast } from 'vue-sonner'
+import { ref, computed, onMounted, watch } from 'vue'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
-// shadcn components
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-// icons
 import { Loader2 } from 'lucide-vue-next'
 
-interface Shop {
-    id: number
-    shop_name: string
-    branch_name: string | null
-}
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface PsgcItem {
-    code: string
-    name: string
-}
+interface PsgcItem { code: string; name: string }
 
-const { branch_names, shop, roles } = defineProps<{
-    roles: string[]
-    branch_names: string[]
-    shop: Shop
-}>()
+// ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Employee Management', href: '/shop/employee' },
-    { title: 'Add Employee', href: '/shop/employee/create' },
+    { title: 'Branch Management', href: '/shop/branch' },
+    { title: 'Add Branch', href: '/shop/branch/create' },
 ]
 
 const errors = computed(() => usePage().props.errors as Record<string, string>)
 
-function generateEmployeeId(): string {
-    const year   = new Date().getFullYear()
-    const digits = String(Math.floor(10000 + Math.random() * 90000))
-    return `${year}-${digits}`
-}
+// ─── PSGC cascading address ───────────────────────────────────────────────────
 
 const BASE = 'https://psgc.cloud/api'
 
-const provinces  = ref<PsgcItem[]>([])
-const cities     = ref<PsgcItem[]>([])
-const barangays  = ref<PsgcItem[]>([])
-
-const loadingProvinces  = ref(false)
-const loadingCities     = ref(false)
-const loadingBarangays  = ref(false)
-
-const selectedProvince  = ref('')
-const selectedCity      = ref('')
-const selectedBarangay  = ref('')
-const streetInput       = ref('')
+const provinces        = ref<PsgcItem[]>([])
+const cities           = ref<PsgcItem[]>([])
+const barangays        = ref<PsgcItem[]>([])
+const loadingProvinces = ref(false)
+const loadingCities    = ref(false)
+const loadingBarangays = ref(false)
+const selectedProvince = ref('')
+const selectedCity     = ref('')
+const selectedBarangay = ref('')
+const streetInput      = ref('')
 
 onMounted(async () => {
     loadingProvinces.value = true
@@ -69,7 +51,6 @@ onMounted(async () => {
     } finally {
         loadingProvinces.value = false
     }
-    form.value.employee_id = generateEmployeeId()
 })
 
 watch(selectedProvince, async (code) => {
@@ -120,153 +101,94 @@ const fullAddress = computed(() => {
     return parts.join(', ')
 })
 
+// ─── Form ─────────────────────────────────────────────────────────────────────
+
 const form = ref({
-    employee_id: generateEmployeeId(),
-    branch_name: shop.branch_name ?? '',
-    first_name:  '',
-    last_name:   '',
-    email:       '',
-    phone:       '',
-    address:     '',
-    position:    '',
-    hire_date:   '',
-    salary:      '',
-    status:      'Active' as 'Active' | 'Inactive',
+    branch_code:  '',
+    name:         '',
+    phone:        '',
+    email:        '',
+    manager_name: '',
+    opened_at:    '',
+    status:       'Active' as 'Active' | 'Inactive',
 })
 
 const isSubmitting = ref(false)
 
-function cancel() {
-    router.visit('/shop/employee')
-}
-
 function submit() {
-    form.value.address = fullAddress.value
     isSubmitting.value = true
-    const payload = {
+    router.post('/shop/branch', {
         ...form.value,
-        branch_name: form.value.branch_name === '__none__' ? '' : form.value.branch_name,
-    }
-    router.post('/shop/employee', payload, {
+        address: fullAddress.value || null,
+    }, {
         preserveScroll: true,
         onError: () => {
-            toast.error('Failed to add employee', {
+            toast.error('Failed to create branch', {
                 description: 'Please check the form for errors and try again.',
             })
         },
-        onFinish: () => {
-            isSubmitting.value = false
-        },
+        onFinish: () => { isSubmitting.value = false },
     })
 }
 </script>
 
 <template>
-    <Head title="Add New Employee" />
+    <Head title="Add Branch" />
 
-    <ShopLayout :breadcrumbs="breadcrumbs" title="Add New Employee">
+    <ShopLayout :breadcrumbs="breadcrumbs" title="Add Branch">
         <div class="px-6 space-y-8">
 
             <div>
-                <h2 class="text-lg font-semibold">New Employee</h2>
-                <p class="text-sm text-muted-foreground">
-                    Fill in the details below to register a new employee under
-                    <span class="font-medium text-foreground">{{ shop.shop_name }}</span>.
-                </p>
+                <h2 class="text-lg font-semibold">New Branch</h2>
+                <p class="text-sm text-muted-foreground">Fill in the details below to register a new branch location.</p>
             </div>
 
-            <!-- ── Section 1: Identity ────────────────────────────────────── -->
+            <!-- ── Branch Info ───────────────────────────────────────────── -->
             <div class="space-y-4">
-                <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Identity</p>
+                <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Branch Info</p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Employee ID <span class="text-red-500">*</span></label>
-                        <Input v-model="form.employee_id" class="font-mono bg-muted cursor-not-allowed"
-                            :class="{ 'border-red-500': errors.employee_id }" disabled />
-                        <p v-if="errors.employee_id" class="text-xs text-red-500">{{ errors.employee_id }}</p>
+                        <label class="text-sm font-medium">Branch Code <span class="text-red-500">*</span></label>
+                        <Input v-model="form.branch_code" placeholder="e.g. BR-001"
+                            class="font-mono uppercase" :class="{ 'border-red-500': errors.branch_code }" />
+                        <p v-if="errors.branch_code" class="text-xs text-red-500">{{ errors.branch_code }}</p>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-sm font-medium">First Name <span class="text-red-500">*</span></label>
-                        <Input v-model="form.first_name" :class="{ 'border-red-500': errors.first_name }" />
-                        <p v-if="errors.first_name" class="text-xs text-red-500">{{ errors.first_name }}</p>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-sm font-medium">Last Name <span class="text-red-500">*</span></label>
-                        <Input v-model="form.last_name" :class="{ 'border-red-500': errors.last_name }" />
-                        <p v-if="errors.last_name" class="text-xs text-red-500">{{ errors.last_name }}</p>
+                    <div class="space-y-1 sm:col-span-2">
+                        <label class="text-sm font-medium">Branch Name <span class="text-red-500">*</span></label>
+                        <Input v-model="form.name" placeholder="e.g. Makati Branch"
+                            :class="{ 'border-red-500': errors.name }" />
+                        <p v-if="errors.name" class="text-xs text-red-500">{{ errors.name }}</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Email Address <span class="text-red-500">*</span></label>
-                        <Input v-model="form.email" type="email" placeholder="employee@example.com"
-                            :class="{ 'border-red-500': errors.email }" />
-                        <p v-if="errors.email" class="text-xs text-red-500">{{ errors.email }}</p>
+                        <label class="text-sm font-medium">Manager Name</label>
+                        <Input v-model="form.manager_name" placeholder="e.g. Juan dela Cruz"
+                            :class="{ 'border-red-500': errors.manager_name }" />
+                        <p v-if="errors.manager_name" class="text-xs text-red-500">{{ errors.manager_name }}</p>
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Phone</label>
-                        <Input v-model="form.phone" placeholder="09XXXXXXXXX"
+                        <Input v-model="form.phone" placeholder="02-XXXX-XXXX or 09XX"
                             :class="{ 'border-red-500': errors.phone }" />
                         <p v-if="errors.phone" class="text-xs text-red-500">{{ errors.phone }}</p>
                     </div>
-                </div>
-            </div>
-
-            <!-- ── Section 2: Employment ──────────────────────────────────── -->
-            <div class="space-y-4">
-                <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Employment</p>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Position <span class="text-red-500">*</span></label>
-                        <Select v-model="form.position">
-                            <SelectTrigger class="w-full" :class="{ 'border-red-500': errors.position }">
-                                <SelectValue placeholder="Select position" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="role in roles" :key="role" :value="role" class="capitalize">
-                                    {{ role }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p v-if="errors.position" class="text-xs text-red-500">{{ errors.position }}</p>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-sm font-medium">Branch</label>
-                        <template v-if="branch_names.length > 0">
-                            <Select v-model="form.branch_name">
-                                <SelectTrigger class="w-full" :class="{ 'border-red-500': errors.branch_name }">
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__none__">— No Branch —</SelectItem>
-                                    <SelectItem v-for="b in branch_names" :key="b" :value="b">{{ b }}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </template>
-                        <template v-else>
-                            <Input v-model="form.branch_name" placeholder="e.g. Main Branch"
-                                :class="{ 'border-red-500': errors.branch_name }" />
-                        </template>
-                        <p v-if="errors.branch_name" class="text-xs text-red-500">{{ errors.branch_name }}</p>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-sm font-medium">Hire Date <span class="text-red-500">*</span></label>
-                        <Input v-model="form.hire_date" type="date" :class="{ 'border-red-500': errors.hire_date }" />
-                        <p v-if="errors.hire_date" class="text-xs text-red-500">{{ errors.hire_date }}</p>
+                        <label class="text-sm font-medium">Email</label>
+                        <Input v-model="form.email" type="email" placeholder="branch@example.com"
+                            :class="{ 'border-red-500': errors.email }" />
+                        <p v-if="errors.email" class="text-xs text-red-500">{{ errors.email }}</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Salary (Monthly)</label>
-                        <Input v-model="form.salary" type="number" min="0" step="0.01"
-                            :class="{ 'border-red-500': errors.salary }" />
-                        <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
+                        <label class="text-sm font-medium">Date Opened</label>
+                        <Input v-model="form.opened_at" type="date"
+                            :class="{ 'border-red-500': errors.opened_at }" />
+                        <p v-if="errors.opened_at" class="text-xs text-red-500">{{ errors.opened_at }}</p>
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Status <span class="text-red-500">*</span></label>
@@ -284,7 +206,7 @@ function submit() {
                 </div>
             </div>
 
-            <!-- ── Section 3: Address ─────────────────────────────────────── -->
+            <!-- ── Address ───────────────────────────────────────────────── -->
             <div class="space-y-4">
                 <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Address</p>
 
@@ -346,8 +268,8 @@ function submit() {
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">Street / Block No.</label>
-                        <Input v-model="streetInput" placeholder="e.g. 123 Rizal St." />
+                        <label class="text-sm font-medium">Street / Building / Unit No.</label>
+                        <Input v-model="streetInput" placeholder="e.g. 3F Ayala Tower, Ayala Ave." />
                     </div>
                 </div>
 
@@ -357,14 +279,15 @@ function submit() {
                 <p v-if="errors.address" class="text-xs text-red-500">{{ errors.address }}</p>
             </div>
 
-            <!-- Actions -->
+            <!-- ── Actions ───────────────────────────────────────────────── -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t">
-                <Button type="button" variant="outline" :disabled="isSubmitting" @click="cancel">
+                <Button type="button" variant="outline" :disabled="isSubmitting"
+                    @click="router.visit('/shop/branch')">
                     Cancel
                 </Button>
                 <Button type="button" :disabled="isSubmitting" @click="submit">
                     <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
-                    {{ isSubmitting ? 'Saving...' : 'Add Employee' }}
+                    {{ isSubmitting ? 'Saving...' : 'Add Branch' }}
                 </Button>
             </div>
 

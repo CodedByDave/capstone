@@ -2,7 +2,6 @@
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import ShopSidebar from './ShopSidebar.vue'
 import ShopNavbar from './ShopNavbar.vue'
-import { Toaster } from 'vue-sonner'
 import { type BreadcrumbItem } from '@/types'
 
 defineProps<{
@@ -24,7 +23,4 @@ defineProps<{
             </div>
         </SidebarInset>
     </SidebarProvider>
-
-    <!-- Global toast notifications -->
-    <Toaster position="top-right" rich-colors close-button />
 </template>

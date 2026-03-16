@@ -2,30 +2,21 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes; // ← add SoftDeletes
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-
-    public const ROLE_USER = 'user';
-    public const ROLE_OWNER = 'owner';
+    public const ROLE_USER        = 'user';
+    public const ROLE_OWNER       = 'owner';
     public const ROLE_SUPER_ADMIN = 'super_admin';
-
-    public const ROLE_MANAGER = 'manager';
-
-    public const ROLE_STAFF = 'staff';
+    public const ROLE_MANAGER     = 'manager';
+    public const ROLE_STAFF       = 'staff';
 
     protected $fillable = [
         'name',
@@ -43,15 +34,16 @@ class User extends Authenticatable
         return $this->role === self::ROLE_OWNER;
     }
 
-    public function isManager()
+    public function isManager(): bool
     {
         return $this->role === self::ROLE_MANAGER;
     }
 
-    public function isStaff()
+    public function isStaff(): bool
     {
         return $this->role === self::ROLE_STAFF;
     }
+
     public function isSuperAdmin(): bool
     {
         return $this->role === self::ROLE_SUPER_ADMIN;
@@ -67,12 +59,6 @@ class User extends Authenticatable
         return $this->hasOne(Shop::class, 'owner_id');
     }
 
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'two_factor_secret',
@@ -80,19 +66,14 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'two_factor_confirmed_at' => 'datetime',
-            'otp_expires_at' => 'datetime',
-            'is_verified' => 'boolean'
+            'email_verified_at'        => 'datetime',
+            'password'                 => 'hashed',
+            'two_factor_confirmed_at'  => 'datetime',
+            'otp_expires_at'           => 'datetime',
+            'is_verified'              => 'boolean',
         ];
     }
 }

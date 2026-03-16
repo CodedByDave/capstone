@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
-import { type BreadcrumbItem } from '@/types'
+import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { ref, computed, onMounted, watch } from 'vue'
 
 // shadcn components
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // icons
-import { RefreshCw, Loader2, Calendar } from 'lucide-vue-next'
+import { Loader2, Calendar } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,41 +40,45 @@ const { employee, branch_names } = defineProps<{
     branch_names: string[]
 }>()
 
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+const page     = usePage<AppPageProps>()
+const user     = computed(() => page.props.auth.user)
+const isOwner  = computed(() => user.value.role === 'owner')
+const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Employee Management', href: '/shop/employee' },
-    { title: `${employee.first_name} ${employee.last_name}`, href: `/shop/employee/${employee.id}` },
-    { title: 'Edit', href: `/shop/employee/${employee.id}/edit` },
-]
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
+    { title: 'Employee Management', href: `${baseRoute.value}/employee` },
+    { title: `${employee.first_name} ${employee.last_name}`, href: `${baseRoute.value}/employee/${employee.id}` },
+    { title: 'Edit', href: `${baseRoute.value}/employee/${employee.id}/edit` },
+])
 
 // ─── Validation errors ────────────────────────────────────────────────────────
 
-const errors = computed(() => usePage().props.errors as Record<string, string>)
+const errors = computed(() => page.props.errors as Record<string, string>)
 
 // ─── PSGC Address State ───────────────────────────────────────────────────────
 
 const BASE = 'https://psgc.cloud/api'
 
-const provinces = ref<PsgcItem[]>([])
-const cities = ref<PsgcItem[]>([])
-const barangays = ref<PsgcItem[]>([])
+const provinces  = ref<PsgcItem[]>([])
+const cities     = ref<PsgcItem[]>([])
+const barangays  = ref<PsgcItem[]>([])
 
-const loadingProvinces = ref(false)
-const loadingCities = ref(false)
-const loadingBarangays = ref(false)
+const loadingProvinces  = ref(false)
+const loadingCities     = ref(false)
+const loadingBarangays  = ref(false)
 
-const selectedProvince = ref('')
-const selectedCity = ref('')
-const selectedBarangay = ref('')
-const streetInput = ref('')
+const selectedProvince  = ref('')
+const selectedCity      = ref('')
+const selectedBarangay  = ref('')
+const streetInput       = ref('')
 
-// Parse existing address back into street field (street is the first part before first comma)
 function parseExistingAddress(address: string | null) {
     if (!address) return
     const parts = address.split(',').map(s => s.trim())
-    // Street is first part if it doesn't match a known barangay/city/province pattern
-    // We store it in streetInput and let PSGC dropdowns default to unselected
     streetInput.value = parts[0] ?? ''
 }
 
@@ -83,7 +87,7 @@ onMounted(async () => {
 
     loadingProvinces.value = true
     try {
-        const res = await fetch(`${BASE}/provinces`)
+        const res  = await fetch(`${BASE}/provinces`)
         const data = await res.json()
         provinces.value = data
             .map((p: any) => ({ code: p.code, name: p.name }))
@@ -94,11 +98,12 @@ onMounted(async () => {
 })
 
 watch(selectedProvince, async (code) => {
-    selectedCity.value = ''
+    selectedCity.value     = ''
     selectedBarangay.value = ''
-    cities.value = []
-    barangays.value = []
+    cities.value           = []
+    barangays.value        = []
     if (!code) return
+
     loadingCities.value = true
     try {
         const [citRes, munRes] = await Promise.all([
@@ -117,11 +122,12 @@ watch(selectedProvince, async (code) => {
 
 watch(selectedCity, async (code) => {
     selectedBarangay.value = ''
-    barangays.value = []
+    barangays.value        = []
     if (!code) return
+
     loadingBarangays.value = true
     try {
-        const res = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
+        const res  = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
         const data = await res.json()
         barangays.value = (data || [])
             .map((b: any) => ({ code: b.code, name: b.name }))
@@ -131,11 +137,9 @@ watch(selectedCity, async (code) => {
     }
 })
 
-// If PSGC dropdowns are selected, build new address; otherwise keep original
 const fullAddress = computed(() => {
     const hasNewSelection = selectedBarangay.value || selectedCity.value || selectedProvince.value
     if (!hasNewSelection) {
-        // No new PSGC selection — just update the street part in the original address
         if (!employee.address) return streetInput.value.trim()
         const parts = employee.address.split(',').map(s => s.trim())
         parts[0] = streetInput.value.trim()
@@ -153,36 +157,34 @@ const fullAddress = computed(() => {
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
 const form = ref({
-    employee_id: employee.employee_id,
-    branch_name: employee.branch_name ?? '',
-    first_name: employee.first_name,
-    last_name: employee.last_name,
-    phone: employee.phone ?? '',
-    address: employee.address ?? '',
-    position: employee.position,
-    hire_date: employee.hire_date,
-    salary: employee.salary ?? '',
-    status: employee.status,
+    employee_id:  employee.employee_id,
+    branch_name:  employee.branch_name ?? '',
+    first_name:   employee.first_name,
+    last_name:    employee.last_name,
+    phone:        employee.phone ?? '',
+    address:      employee.address ?? '',
+    position:     employee.position,
+    hire_date:    employee.hire_date,
+    salary:       employee.salary ?? '',
+    status:       employee.status,
 })
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 
 const isSubmitting = ref(false)
 
-function generateEmployeeId(): string {
-    const year = new Date().getFullYear()
-    const digits = String(Math.floor(10000 + Math.random() * 90000))
-    return `${year}-${digits}`
-}
-
 function submit() {
     form.value.address = fullAddress.value
     isSubmitting.value = true
+
     const payload = {
         ...form.value,
         branch_name: form.value.branch_name === '__none__' ? '' : form.value.branch_name,
     }
-    router.put(`/shop/employee/${employee.id}`, payload, {
+
+    // ✅ Use dynamic baseRoute so staff posts to /staff/employee/{id}
+    //    and owner posts to /shop/employee/{id}
+    router.put(`${baseRoute.value}/employee/${employee.id}`, payload, {
         preserveScroll: true,
         onFinish: () => {
             isSubmitting.value = false
@@ -211,15 +213,16 @@ function submit() {
 
                 <!-- Header actions -->
                 <div class="flex justify-end mt-4">
-
-                    <!-- Schedule Button -->
-                    <Button type="button"
+                    <!-- Schedule Button — owner only -->
+                    <Button
+                        v-if="isOwner"
+                        type="button"
                         class="!bg-blue-600 !text-white hover:!bg-blue-500 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
-                        @click="router.visit(`/shop/employee/${employee.id}/schedule/create`)">
+                        @click="router.visit(`/shop/employee/${employee.id}/schedule/create`)"
+                    >
                         <Calendar class="h-4 w-4 mr-2" />
                         Add Schedule
                     </Button>
-
                 </div>
             </div>
 
@@ -229,16 +232,8 @@ function submit() {
                 <div class="grid grid-cols-12 gap-x-6 gap-y-5">
 
                     <div class="col-span-12 sm:col-span-3 space-y-1">
-                        <label class="text-sm font-medium">Employee ID <span class="text-red-500">*</span></label>
-                        <div class="flex gap-2">
-                            <Input v-model="form.employee_id" class="font-mono"
-                                :class="{ 'border-red-500': errors.employee_id }" />
-                            <Button type="button" variant="outline" size="icon"
-                                @click="form.employee_id = generateEmployeeId()" title="Regenerate">
-                                <RefreshCw class="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <p v-if="errors.employee_id" class="text-xs text-red-500">{{ errors.employee_id }}</p>
+                        <label class="text-sm font-medium">Employee ID</label>
+                        <Input v-model="form.employee_id" class="font-mono" disabled />
                     </div>
 
                     <div class="col-span-12 sm:col-span-3 space-y-1">
@@ -297,7 +292,8 @@ function submit() {
 
                     <div class="col-span-12 sm:col-span-3 space-y-1">
                         <label class="text-sm font-medium">Hire Date <span class="text-red-500">*</span></label>
-                        <Input v-model="form.hire_date" type="date" :class="{ 'border-red-500': errors.hire_date }" />
+                        <Input v-model="form.hire_date" type="date"
+                            :class="{ 'border-red-500': errors.hire_date }" />
                         <p v-if="errors.hire_date" class="text-xs text-red-500">{{ errors.hire_date }}</p>
                     </div>
 
@@ -329,13 +325,12 @@ function submit() {
             <div>
                 <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Address</p>
 
-                <!-- Current address display -->
                 <div v-if="employee.address" class="mb-4 rounded-lg border bg-muted/40 px-4 py-3 text-sm">
                     <p class="text-xs text-muted-foreground mb-1">Current address</p>
                     <p class="font-medium">{{ employee.address }}</p>
-                    <p class="text-xs text-muted-foreground mt-1">Select new province below to update, or just edit the
-                        street
-                        field.</p>
+                    <p class="text-xs text-muted-foreground mt-1">
+                        Select a new province below to update, or just edit the street field.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-12 gap-x-6 gap-y-5">
@@ -345,18 +340,15 @@ function submit() {
                         <Select v-model="selectedProvince" :disabled="loadingProvinces">
                             <SelectTrigger>
                                 <SelectValue>
-                                    <span v-if="loadingProvinces"
-                                        class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingProvinces" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select
-                                        province</span>
-                                    <span v-else>{{provinces.find(p => p.code === selectedProvince)?.name}}</span>
+                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select province</span>
+                                    <span v-else>{{ provinces.find(p => p.code === selectedProvince)?.name }}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}
-                                </SelectItem>
+                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -369,9 +361,8 @@ function submit() {
                                     <span v-if="loadingCities" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select
-                                        city/municipality</span>
-                                    <span v-else>{{cities.find(c => c.code === selectedCity)?.name}}</span>
+                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select city/municipality</span>
+                                    <span v-else>{{ cities.find(c => c.code === selectedCity)?.name }}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
@@ -385,18 +376,15 @@ function submit() {
                         <Select v-model="selectedBarangay" :disabled="!selectedCity || loadingBarangays">
                             <SelectTrigger>
                                 <SelectValue>
-                                    <span v-if="loadingBarangays"
-                                        class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingBarangays" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select
-                                        barangay</span>
-                                    <span v-else>{{barangays.find(b => b.code === selectedBarangay)?.name}}</span>
+                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select barangay</span>
+                                    <span v-else>{{ barangays.find(b => b.code === selectedBarangay)?.name }}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}
-                                </SelectItem>
+                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -416,9 +404,12 @@ function submit() {
 
             <!-- ── Actions ────────────────────────────────────────────────── -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t">
-
-                <Button type="button" variant="outline" :disabled="isSubmitting"
-                    @click="router.visit(`/shop/employee`)">
+                <Button
+                    type="button"
+                    variant="outline"
+                    :disabled="isSubmitting"
+                    @click="router.visit(`${baseRoute}/employee`)"
+                >
                     Cancel
                 </Button>
 
@@ -426,7 +417,6 @@ function submit() {
                     <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
                     {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                 </Button>
-
             </div>
 
         </div>

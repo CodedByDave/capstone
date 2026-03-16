@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue'
-import TextLink from '@/components/TextLink.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import AuthBase from '@/layouts/AuthLayout.vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
-import { ref, computed, watch } from 'vue'
-import { Eye, EyeOff } from 'lucide-vue-next'
+import { ref, computed, watch, nextTick } from 'vue'
+import { Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-vue-next'
 
 /* ---------------- STEP ---------------- */
 const step = ref(1)
+const TOTAL_STEPS = 3
 
 /* ---------------- FORM ---------------- */
 const form = useForm({
@@ -26,33 +26,40 @@ const form = useForm({
     barangay: '',
     postal_code: '',
 
-    valid_id: null as File | null,
     agree: false,
 
     password: '',
     password_confirmation: '',
 })
 
+/* ---------------- FIELD ERRORS (client-side) ---------------- */
+const errors = ref<Record<string, string>>({})
+
 /* ---------------- PASSWORD ---------------- */
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-const rules = {
-    length: (v: string) => v.length >= 8,
-    alphaNumeric: (v: string) => /[A-Za-z]/.test(v) && /\d/.test(v),
-    special: (v: string) => /[^A-Za-z0-9]/.test(v),
-}
+const passwordRules = computed(() => [
+    { label: 'At least 8 characters',       pass: form.password.length >= 8 },
+    { label: 'Contains a letter',            pass: /[A-Za-z]/.test(form.password) },
+    { label: 'Contains a number',            pass: /\d/.test(form.password) },
+    { label: 'Contains a special character', pass: /[^A-Za-z0-9]/.test(form.password) },
+])
 
-const isPasswordValid = computed(() =>
-    rules.length(form.password) &&
-    rules.alphaNumeric(form.password) &&
-    rules.special(form.password)
-)
+const isPasswordValid = computed(() => passwordRules.value.every(r => r.pass))
 
 const passwordsMatch = computed(() =>
     form.password === form.password_confirmation &&
     form.password_confirmation.length > 0
 )
+
+const passwordStrength = computed(() => {
+    const passed = passwordRules.value.filter(r => r.pass).length
+    if (passed <= 1) return { label: 'Weak',   color: 'bg-red-500',    width: 'w-1/4' }
+    if (passed === 2) return { label: 'Fair',   color: 'bg-orange-400', width: 'w-2/4' }
+    if (passed === 3) return { label: 'Good',   color: 'bg-yellow-400', width: 'w-3/4' }
+    return               { label: 'Strong', color: 'bg-green-500',  width: 'w-full' }
+})
 
 /* ---------------- MUNICIPALITIES / BARANGAYS ---------------- */
 const barangaysByMunicipality: Record<string, Array<{ name: string; postal: string }>> = {
@@ -124,215 +131,352 @@ const selectedBarangays = computed(() =>
     barangaysByMunicipality[form.municipality] ?? []
 )
 
-// ← Must be declared BEFORE the watchers that use it
 const autoPostalCode = computed(() => {
     const found = selectedBarangays.value.find(b => b.name === form.barangay)
     return found ? found.postal : ''
 })
 
-// Sync computed postal code into form so it actually gets submitted
-watch(autoPostalCode, (val) => {
-    form.postal_code = val
-})
+watch(autoPostalCode, (val) => { form.postal_code = val })
 
-// Reset dependent fields when municipality changes
 watch(() => form.municipality, () => {
     form.barangay = ''
     form.postal_code = ''
 })
 
-/* ---------------- VALIDATIONS ---------------- */
-const step1Valid = computed(() =>
-    form.name.trim().length > 2 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
-    form.phone.length >= 10
-)
+/* ---------------- VALIDATION per step ---------------- */
+const validateStep1 = (): boolean => {
+    const errs: Record<string, string> = {}
+    if (form.name.trim().length <= 2)
+        errs.name = 'Owner name must be more than 2 characters.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+        errs.email = 'Please enter a valid email address.'
+    if (form.phone.replace(/\D/g, '').length < 10)
+        errs.phone = 'Phone number must be at least 10 digits.'
+    errors.value = errs
+    return Object.keys(errs).length === 0
+}
 
-const step2Valid = computed(() =>
-    form.shop_name.trim().length > 2 &&
-    form.block_street.trim().length > 5 &&
-    form.municipality.trim().length > 0 &&
-    form.barangay.trim().length > 0 &&
-    autoPostalCode.value.length >= 4
-)
+const validateStep2 = (): boolean => {
+    const errs: Record<string, string> = {}
+    if (form.shop_name.trim().length <= 2)
+        errs.shop_name = 'Shop name must be more than 2 characters.'
+    if (form.block_street.trim().length <= 5)
+        errs.block_street = 'Please enter a complete block/street address.'
+    if (!form.municipality)
+        errs.municipality = 'Please select a municipality.'
+    if (!form.barangay)
+        errs.barangay = 'Please select a barangay.'
+    errors.value = errs
+    return Object.keys(errs).length === 0
+}
 
-const step3Valid = computed(() =>
-    form.valid_id !== null
-)
-
-const step4Valid = computed(() =>
-    isPasswordValid.value &&
-    passwordsMatch.value &&
-    form.agree === true
-)
+const validateStep3 = (): boolean => {
+    const errs: Record<string, string> = {}
+    if (!isPasswordValid.value)
+        errs.password = 'Password does not meet all requirements.'
+    if (!passwordsMatch.value)
+        errs.password_confirmation = 'Passwords do not match.'
+    if (!form.agree)
+        errs.agree = 'You must agree to the Terms & Conditions before registering.'
+    errors.value = errs
+    return Object.keys(errs).length === 0
+}
 
 /* ---------------- NAV ---------------- */
-const nextStep = () => step.value++
-const prevStep = () => step.value--
+const focusFirstError = () => {
+    nextTick(() => {
+        const el = document.querySelector('[data-error]') as HTMLElement | null
+        el?.focus()
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+}
+
+const nextStep = () => {
+    let valid = false
+    if (step.value === 1) valid = validateStep1()
+    if (step.value === 2) valid = validateStep2()
+    if (valid) {
+        errors.value = {}
+        step.value++
+    } else {
+        focusFirstError()
+    }
+}
+
+const prevStep = () => {
+    errors.value = {}
+    step.value--
+}
 
 /* ---------------- SUBMIT ---------------- */
 const submit = () => {
-    if (!step4Valid.value) return
+    if (!validateStep3()) {
+        focusFirstError()
+        return
+    }
     form.post('/register/shop')
 }
 </script>
 
 <template>
     <AuthBase title="Register Laundry Shop" description="Create your shop account">
-
         <Head title="Register" />
+
+        <!-- Step progress dots -->
+        <div class="flex items-center justify-center gap-2 mb-4">
+            <template v-for="s in TOTAL_STEPS" :key="s">
+                <div :class="[
+                    'h-2 rounded-full transition-all duration-300',
+                    s === step ? 'w-8 bg-primary' : s < step ? 'w-4 bg-primary/50' : 'w-4 bg-muted'
+                ]" />
+            </template>
+        </div>
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">
 
             <!-- STEP 1: Owner Info -->
             <div v-if="step === 1" class="grid gap-4">
-                <h2 class="font-semibold text-center">Owner Info</h2>
+                <h2 class="font-semibold text-center">Step 1 — Owner Info</h2>
 
                 <div>
                     <Label class="mb-2">Owner Name</Label>
-                    <Input v-model="form.name" placeholder="John Doe" />
+                    <Input
+                        v-model="form.name"
+                        placeholder="John Doe"
+                        :class="errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''"
+                        :data-error="errors.name ? '' : undefined"
+                    />
+                    <p v-if="errors.name" class="text-red-500 text-xs mt-1">{{ errors.name }}</p>
                 </div>
 
                 <div>
                     <Label class="mb-2">Email</Label>
-                    <Input v-model="form.email" type="email" placeholder="shop@email.com" />
+                    <Input
+                        v-model="form.email"
+                        type="email"
+                        placeholder="shop@email.com"
+                        :class="errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''"
+                        :data-error="errors.email ? '' : undefined"
+                    />
+                    <p v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</p>
                 </div>
 
                 <div>
                     <Label class="mb-2">Phone</Label>
-                    <Input v-model="form.phone" placeholder="09XX-XXX-XXXX" />
+                    <Input
+                        v-model="form.phone"
+                        placeholder="09XX-XXX-XXXX"
+                        :class="errors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''"
+                        :data-error="errors.phone ? '' : undefined"
+                    />
+                    <p v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</p>
                 </div>
 
-                <Button type="button" @click="nextStep" :disabled="!step1Valid">Next</Button>
+                <Button type="button" @click="nextStep" class="w-full">Next</Button>
             </div>
 
             <!-- STEP 2: Shop Info -->
             <div v-if="step === 2" class="grid gap-4">
-                <h2 class="font-semibold text-center">Shop Info</h2>
+                <h2 class="font-semibold text-center">Step 2 — Shop Info</h2>
 
                 <div>
                     <Label class="mb-2">Shop Name</Label>
-                    <Input v-model="form.shop_name" placeholder="Laundry Hub" />
+                    <Input
+                        v-model="form.shop_name"
+                        placeholder="Laundry Hub"
+                        :class="errors.shop_name ? 'border-red-500 focus-visible:ring-red-500' : ''"
+                        :data-error="errors.shop_name ? '' : undefined"
+                    />
+                    <p v-if="errors.shop_name" class="text-red-500 text-xs mt-1">{{ errors.shop_name }}</p>
                 </div>
 
                 <div>
-                    <Label class="mb-2">Branch Name (optional)</Label>
-                    <Input v-model="form.branch_name" placeholder="N/A" />
+                    <Label class="mb-2">
+                        Branch Name
+                        <span class="text-muted-foreground text-xs ml-1">(optional)</span>
+                    </Label>
+                    <Input v-model="form.branch_name" placeholder="e.g. Main Branch" />
                 </div>
 
                 <div>
                     <Label class="mb-2">Block / Street</Label>
-                    <Input v-model="form.block_street" placeholder="e.g. Block 5, St. 12" />
+                    <Input
+                        v-model="form.block_street"
+                        placeholder="e.g. Block 5, St. 12"
+                        :class="errors.block_street ? 'border-red-500 focus-visible:ring-red-500' : ''"
+                        :data-error="errors.block_street ? '' : undefined"
+                    />
+                    <p v-if="errors.block_street" class="text-red-500 text-xs mt-1">{{ errors.block_street }}</p>
                 </div>
 
                 <div>
                     <Label class="mb-2">Municipality</Label>
-                    <select v-model="form.municipality" class="border p-2 rounded w-full">
+                    <select
+                        v-model="form.municipality"
+                        class="border p-2 rounded w-full text-sm"
+                        :class="errors.municipality ? 'border-red-500' : ''"
+                        :data-error="errors.municipality ? '' : undefined"
+                    >
                         <option value="">Select municipality</option>
                         <option v-for="mun in municipalities" :key="mun" :value="mun">{{ mun }}</option>
                     </select>
+                    <p v-if="errors.municipality" class="text-red-500 text-xs mt-1">{{ errors.municipality }}</p>
                 </div>
 
                 <div>
                     <Label class="mb-2">Barangay</Label>
-                    <select v-model="form.barangay" class="border p-2 rounded w-full" :disabled="!form.municipality">
+                    <select
+                        v-model="form.barangay"
+                        class="border p-2 rounded w-full text-sm"
+                        :class="errors.barangay ? 'border-red-500' : ''"
+                        :disabled="!form.municipality"
+                        :data-error="errors.barangay ? '' : undefined"
+                    >
                         <option value="">Select barangay</option>
-                        <option v-for="b in selectedBarangays" :key="b.name" :value="b.name">
-                            {{ b.name }}
-                        </option>
+                        <option v-for="b in selectedBarangays" :key="b.name" :value="b.name">{{ b.name }}</option>
                     </select>
+                    <p v-if="errors.barangay" class="text-red-500 text-xs mt-1">{{ errors.barangay }}</p>
                 </div>
 
-                <!-- Shows autoPostalCode visually; form.postal_code is synced by watcher -->
                 <div>
                     <Label class="mb-2">Postal Code</Label>
-                    <Input :value="autoPostalCode" placeholder="Auto-filled on barangay select" readonly
-                        class="bg-muted/50 cursor-not-allowed" />
+                    <Input
+                        :value="autoPostalCode"
+                        placeholder="Auto-filled on barangay select"
+                        readonly
+                        class="bg-muted/50 cursor-not-allowed"
+                    />
                 </div>
 
-                <div class="flex gap-2">
-                    <Button type="button" @click="nextStep" :disabled="!step2Valid" class="w-full">Next</Button>
-                </div>
-
-                <div class="flex gap-2">
-                    <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
-                </div>
+                <Button type="button" @click="nextStep" class="w-full">Next</Button>
+                <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
             </div>
 
-            <!-- STEP 3: Verification -->
+            <!-- STEP 3: Password + Terms -->
             <div v-if="step === 3" class="grid gap-4">
-                <h2 class="font-semibold text-center">Verification</h2>
+                <h2 class="font-semibold text-center">Step 3 — Set Password</h2>
 
-                <div>
-                    <Label class="mb-2">Upload Valid ID</Label>
-                    <Input type="file"
-                        @change="(e: Event) => form.valid_id = (e.target as HTMLInputElement).files?.[0] ?? null" />
-                </div>
-
-                <div class="flex gap-2">
-                    <Button type="button" @click="nextStep" :disabled="!step3Valid" class="w-full">Next</Button>
-                </div>
-
-                <div class="flex gap-2">
-                    <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
-                </div>
-            </div>
-
-            <!-- STEP 4: Password -->
-            <div v-if="step === 4" class="grid gap-4">
-                <h2 class="font-semibold text-center">Set Password</h2>
-
+                <!-- Password -->
                 <div>
                     <Label class="mb-2">Password</Label>
                     <div class="relative">
-                        <Input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="pr-10" />
-                        <button type="button"
+                        <Input
+                            v-model="form.password"
+                            :type="showPassword ? 'text' : 'password'"
+                            class="pr-10"
+                            :class="errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''"
+                            :data-error="errors.password ? '' : undefined"
+                            placeholder="Create a strong password"
+                        />
+                        <button
+                            type="button"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            @click="showPassword = !showPassword">
+                            @click="showPassword = !showPassword"
+                        >
                             <Eye v-if="!showPassword" class="h-4 w-4" />
                             <EyeOff v-else class="h-4 w-4" />
                         </button>
                     </div>
+
+                    <!-- Strength bar -->
+                    <div v-if="form.password.length > 0" class="mt-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs text-muted-foreground">Password strength</span>
+                            <span class="text-xs font-medium" :class="{
+                                'text-red-500':    passwordStrength.label === 'Weak',
+                                'text-orange-400': passwordStrength.label === 'Fair',
+                                'text-yellow-500': passwordStrength.label === 'Good',
+                                'text-green-500':  passwordStrength.label === 'Strong',
+                            }">{{ passwordStrength.label }}</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                            <div :class="['h-full rounded-full transition-all duration-300', passwordStrength.color, passwordStrength.width]" />
+                        </div>
+                    </div>
+
+                    <!-- Requirements checklist -->
+                    <ul class="mt-2 space-y-1">
+                        <li
+                            v-for="rule in passwordRules"
+                            :key="rule.label"
+                            class="flex items-center gap-1.5 text-xs"
+                            :class="rule.pass ? 'text-green-600' : 'text-muted-foreground'"
+                        >
+                            <CheckCircle2 v-if="rule.pass" class="h-3.5 w-3.5 shrink-0 text-green-500" />
+                            <XCircle v-else class="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
+                            {{ rule.label }}
+                        </li>
+                    </ul>
+
+                    <p v-if="errors.password" class="text-red-500 text-xs mt-1">{{ errors.password }}</p>
                     <InputError :message="form.errors.password" />
                 </div>
 
+                <!-- Confirm Password -->
                 <div>
                     <Label class="mb-2">Confirm Password</Label>
                     <div class="relative">
-                        <Input v-model="form.password_confirmation" :type="showConfirmPassword ? 'text' : 'password'"
-                            class="pr-10" />
-                        <button type="button"
+                        <Input
+                            v-model="form.password_confirmation"
+                            :type="showConfirmPassword ? 'text' : 'password'"
+                            class="pr-10"
+                            :class="errors.password_confirmation ? 'border-red-500 focus-visible:ring-red-500' : ''"
+                            :data-error="errors.password_confirmation ? '' : undefined"
+                            placeholder="Re-enter your password"
+                        />
+                        <button
+                            type="button"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            @click="showConfirmPassword = !showConfirmPassword">
+                            @click="showConfirmPassword = !showConfirmPassword"
+                        >
                             <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
                             <EyeOff v-else class="h-4 w-4" />
                         </button>
                     </div>
+
+                    <!-- Match indicator -->
+                    <p
+                        v-if="form.password_confirmation.length > 0"
+                        class="text-xs mt-1 flex items-center gap-1"
+                        :class="passwordsMatch ? 'text-green-600' : 'text-red-500'"
+                    >
+                        <CheckCircle2 v-if="passwordsMatch" class="h-3.5 w-3.5" />
+                        <XCircle v-else class="h-3.5 w-3.5" />
+                        {{ passwordsMatch ? 'Passwords match' : 'Passwords do not match' }}
+                    </p>
+                    <p v-if="errors.password_confirmation" class="text-red-500 text-xs mt-1">{{ errors.password_confirmation }}</p>
                 </div>
 
-                <div class="flex gap-2">
-                    <Button type="submit" :disabled="!step4Valid || form.processing" class="w-full">
-                        <Spinner v-if="form.processing" class="mr-2" />
-                        Register
-                    </Button>
+                <!-- Terms & Conditions -->
+                <div
+                    class="rounded-lg border p-3 transition-colors"
+                    :class="errors.agree ? 'border-red-400 bg-red-50' : 'border-muted'"
+                    :data-error="errors.agree ? '' : undefined"
+                >
+                    <label class="flex items-start gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" v-model="form.agree" class="mt-0.5 accent-primary" />
+                        <span>
+                            I have read and agree to the
+                            <a href="#" class="underline text-primary hover:text-primary/80 font-medium">Terms &amp; Conditions</a>
+                            and
+                            <a href="#" class="underline text-primary hover:text-primary/80 font-medium">Privacy Policy</a>.
+                        </span>
+                    </label>
+                    <p v-if="errors.agree" class="text-red-500 text-xs mt-1.5 ml-5">{{ errors.agree }}</p>
                 </div>
 
-                <div class="flex gap-2">
-                    <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
-                </div>
+                <Button type="submit" :disabled="form.processing" class="w-full">
+                    <Spinner v-if="form.processing" class="mr-2" />
+                    Create Account
+                </Button>
+
+                <Button type="button" variant="outline" @click="prevStep" class="w-full">Back</Button>
             </div>
 
-            <!-- TERMS (always visible) -->
-            <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" v-model="form.agree" />
-                I agree to Terms &amp; Conditions
-            </label>
-            <p v-if="!form.agree" class="text-red-500 text-sm">You must agree before registering</p>
-
-            <!-- LOGIN -->
+            <!-- Login link -->
             <div class="text-center text-sm">
                 Already have an account?
-                <button @click="router.visit('/login')" class="underline text-primary hover:text-primary/80">
+                <button type="button" @click="router.visit('/login')" class="underline text-primary hover:text-primary/80">
                     Login
                 </button>
             </div>

@@ -12,14 +12,14 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('shop_id')
-                ->constrained()
+                ->constrained('shops')
                 ->cascadeOnDelete();
 
             $table->foreignId('user_id')
-                ->constrained()
+                ->constrained('users')
                 ->cascadeOnDelete();
 
-            // Original employee primary key — kept for reference/joining
+            // Original employee primary key
             $table->unsignedBigInteger('employee_id_ref');
 
             $table->string('employee_id');

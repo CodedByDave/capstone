@@ -84,13 +84,6 @@ onMounted(() => {
                     <p class="mt-2 text-sm leading-relaxed text-muted-foreground">{{ mod.description }}</p>
                 </div>
             </div>
-
-            <div class="mt-12 text-center">
-                <Button variant="outline" size="lg" class="border-border text-foreground hover:bg-secondary group">
-                    See Full Module Details
-                    <ArrowRight class="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
-            </div>
         </div>
     </section>
 </template>

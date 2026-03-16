@@ -2,107 +2,308 @@
 import BaseSidebar from '@/components/navigation/BaseSidebar.vue'
 import NavMain from '@/components/NavMain.vue'
 import NavUser from '@/components/NavUser.vue'
-
 import {
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
+    SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+    SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
-
-import { dashboard } from '@/routes'
-import { type NavItem } from '@/types'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Link, usePage, router } from '@inertiajs/vue3'
 import {
-    LayoutGrid,
-    UserCircle,
-    Package,
-    ClipboardList,
-    Tags,
-    BarChart3,
-    ShieldCheck,
+    LayoutGrid, UserCircle, Package, ClipboardList,
+    Tags, BarChart3, ShieldCheck, ChevronRight,
+    Clock, Building2, List, Layers, AlertTriangle,
+    ShoppingCart, CheckCircle2, XCircle, Truck,
+    DollarSign, Scissors, PieChart, FileText,
+    TrendingUp, Tag
 } from 'lucide-vue-next'
-
 import AppLogo from '@/components/AppLogo.vue'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { usePermissions } from '@/composables/usePermissions'
 
-const { props } = usePage<{
-    auth: {
-        user: {
-            id: number
-            role: 'owner' | 'staff'
-            permitted_modules?: {
-                name: string
-                actions: string[]
-            }[]
-        }
+const page = usePage()
+const { props } = page
+const { can, canAccessModule, isOwner, isStaff } = usePermissions()
+
+const currentUrl = computed(() => page.url)
+const isPaid = computed(() => props.order?.status === 'paid')
+
+/* ─────────────────────────────────────────
+   SUB-ACTIONS PER MODULE
+───────────────────────────────────────── */
+
+/* Employee Management */
+const allEmployeeSubActions = [
+    {
+        title: 'Employee List',
+        icon: List,
+        href: isOwner.value ? '/shop/employee' : '/staff/employee',
+        show: () => isOwner.value || can('Employee Management', 'view'),
+    },
+    {
+        title: 'Branch List',
+        icon: Building2,
+        href: isOwner.value ? '/shop/branch' : '/staff/branch',
+        show: () => isOwner.value || can('Employee Management', 'view'),
+    },
+    {
+        title: 'Activity Logs',
+        icon: Clock,
+        href: '/shop/logs',
+        show: () => isOwner.value,
+    },
+]
+
+/* Inventory Management */
+const allInventorySubActions = [
+    {
+        title: 'Product List',
+        icon: Package,
+        href: isOwner.value ? '/shop/inventory' : '/staff/inventory',
+        show: () => isOwner.value || can('Inventory Management', 'view'),
+    },
+    {
+        title: 'Categories',
+        icon: Layers,
+        href: isOwner.value ? '/shop/inventory/categories' : '/staff/inventory/categories',
+        show: () => isOwner.value || can('Inventory Management', 'view'),
+    },
+    {
+        title: 'Stock Alerts',
+        icon: AlertTriangle,
+        href: isOwner.value ? '/shop/inventory/alerts' : '/staff/inventory/alerts',
+        show: () => isOwner.value || can('Inventory Management', 'view'),
+    },
+    {
+        title: 'Supplier',
+        icon: Truck,
+        href: isOwner.value ? '/shop/inventory/supplier' : '/staff/inventory/supplier',
+        show: () => isOwner.value || can('Inventory Management', 'view'),
+    },
+]
+
+/* Order Management */
+const allOrderSubActions = [
+    {
+        title: 'All Orders',
+        icon: ShoppingCart,
+        href: isOwner.value ? '/shop/orders' : '/staff/orders',
+        show: () => isOwner.value || can('Order Management', 'view'),
+    },
+    {
+        title: 'Pending',
+        icon: ClipboardList,
+        href: isOwner.value ? '/shop/orders/pending' : '/staff/orders/pending',
+        show: () => isOwner.value || can('Order Management', 'view'),
+    },
+    {
+        title: 'In Progress',
+        icon: Truck,
+        href: isOwner.value ? '/shop/orders/progress' : '/staff/orders/progress',
+        show: () => isOwner.value || can('Order Management', 'view'),
+    },
+    {
+        title: 'Completed',
+        icon: CheckCircle2,
+        href: isOwner.value ? '/shop/orders/completed' : '/staff/orders/completed',
+        show: () => isOwner.value || can('Order Management', 'view'),
+    },
+    {
+        title: 'Cancelled',
+        icon: XCircle,
+        href: isOwner.value ? '/shop/orders/cancelled' : '/staff/orders/cancelled',
+        show: () => isOwner.value || can('Order Management', 'view'),
+    },
+]
+
+/* Services & Pricing */
+const allServicesSubActions = [
+    {
+        title: 'Service List',
+        icon: Scissors,
+        href: isOwner.value ? '/shop/services' : '/staff/services',
+        show: () => isOwner.value || can('Services & Pricing', 'view'),
+    },
+    {
+        title: 'Pricing',
+        icon: DollarSign,
+        href: isOwner.value ? '/shop/services/pricing' : '/staff/services/pricing',
+        show: () => isOwner.value || can('Services & Pricing', 'view'),
+    },
+    {
+        title: 'Promotions',
+        icon: Tag,
+        href: isOwner.value ? '/shop/services/promos' : '/staff/services/promos',
+        show: () => isOwner.value || can('Services & Pricing', 'view'),
+    },
+]
+
+/* Reports & Analytics */
+const allReportsSubActions = [
+    {
+        title: 'Overview',
+        icon: PieChart,
+        href: isOwner.value ? '/shop/reports' : '/staff/reports',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
+        title: 'Sales Report',
+        icon: TrendingUp,
+        href: isOwner.value ? '/shop/reports/sales' : '/staff/reports/sales',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
+        title: 'Inventory Report',
+        icon: FileText,
+        href: isOwner.value ? '/shop/reports/inventory' : '/staff/reports/inventory',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
+        title: 'Payroll Report',
+        icon: DollarSign,
+        href: isOwner.value ? '/shop/reports/payroll' : '/staff/reports/payroll',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+]
+
+/* Filtered computed lists */
+const employeeSubActions = computed(() => allEmployeeSubActions.filter(i => i.show()))
+const inventorySubActions = computed(() => allInventorySubActions.filter(i => i.show()))
+const orderSubActions = computed(() => allOrderSubActions.filter(i => i.show()))
+const servicesSubActions = computed(() => allServicesSubActions.filter(i => i.show()))
+const reportsSubActions = computed(() => allReportsSubActions.filter(i => i.show()))
+
+function getSubActions(moduleName: string) {
+    const map: Record<string, any[]> = {
+        'Employee Management': employeeSubActions.value,
+        'Inventory Management': inventorySubActions.value,
+        'Order Management': orderSubActions.value,
+        'Services & Pricing': servicesSubActions.value,
+        'Reports & Analytics': reportsSubActions.value,
     }
-    order?: {
-        status: string
-        modules: { name: string; price: number }[]
-    } | null
-}>()
-
-const isOwner = computed(() => props.auth.user.role === 'owner')
-const isStaff = computed(() => props.auth.user.role === 'staff')
-const isPaid  = computed(() => props.order?.status === 'paid')
-
-// move console.log AFTER all computed definitions
-console.log('order:', props.order)
-console.log('isPaid:', isPaid.value)
-console.log('modules:', props.order?.modules)
-
-const moduleIconMap: Record<string, { icon: any; href: string }> = {
-    'Employee Management': { icon: UserCircle, href: '/shop/employee' },
-    'Inventory Management': { icon: Package, href: '/shop/inventory' },
-    'Order Management': { icon: ClipboardList, href: '/shop/orders' },
-    'Services & Pricing': { icon: Tags, href: '/shop/services' },
-    'Reports & Analytics': { icon: BarChart3, href: '/shop/reports' },
+    return map[moduleName] ?? []
 }
 
-const moduleNavItems = computed(() => {
-    if (!isPaid.value || !props.order?.modules) return []
+/* ─────────────────────────────────────────
+   MODULE CONFIG
+───────────────────────────────────────── */
 
-    if (isOwner.value) {
-        return props.order.modules.map((m) => ({
-            title: m.name,
-            href: moduleIconMap[m.name]?.href ?? `/shop/modules/${m.name.toLowerCase().replace(/\s+/g, '-')}`,
-            icon: moduleIconMap[m.name]?.icon ?? Package,
-        }))
-    }
+const moduleIconMap: Record<string, { icon: any; ownerHref: string; staffHref: string }> = {
+    'Employee Management': { icon: UserCircle, ownerHref: '/shop/employee', staffHref: '/staff/employee' },
+    'Inventory Management': { icon: Package, ownerHref: '/shop/inventory', staffHref: '/staff/inventory' },
+    'Order Management': { icon: ClipboardList, ownerHref: '/shop/orders', staffHref: '/staff/orders' },
+    'Services & Pricing': { icon: Tags, ownerHref: '/shop/services', staffHref: '/staff/services' },
+    'Reports & Analytics': { icon: BarChart3, ownerHref: '/shop/reports', staffHref: '/staff/reports' },
+}
 
-    if (isStaff.value) {
-        const permitted = props.auth.user.permitted_modules?.map((p) => p.name) ?? []
-        return props.order.modules
-            .filter((m) => permitted.includes(m.name))
-            .map((m) => ({
-                title: m.name,
-                href: moduleIconMap[m.name]?.href ?? `/shop/modules/${m.name.toLowerCase().replace(/\s+/g, '-')}`,
-                icon: moduleIconMap[m.name]?.icon ?? Package,
-            }))
-    }
+function getHref(name: string): string {
+    const map = moduleIconMap[name]
+    if (!map) return '#'
+    return isOwner.value ? map.ownerHref : map.staffHref
+}
 
-    return []
+/* ─────────────────────────────────────────
+   AREA DETECTION
+───────────────────────────────────────── */
+
+const areaChecks: Record<string, (url: string) => boolean> = {
+    'Employee Management': (url) =>
+        url.startsWith('/shop/employee') || url.startsWith('/staff/employee') ||
+        url.startsWith('/shop/branch') || url.startsWith('/staff/branch') ||
+        url.startsWith('/shop/logs'),
+    'Inventory Management': (url) =>
+        url.startsWith('/shop/inventory') || url.startsWith('/staff/inventory'),
+    'Order Management': (url) =>
+        url.startsWith('/shop/orders') || url.startsWith('/staff/orders'),
+    'Services & Pricing': (url) =>
+        url.startsWith('/shop/services') || url.startsWith('/staff/services'),
+    'Reports & Analytics': (url) =>
+        url.startsWith('/shop/reports') || url.startsWith('/staff/reports'),
+}
+
+/* ─────────────────────────────────────────
+   OPEN STATE
+───────────────────────────────────────── */
+
+const openModules = ref<Record<string, boolean>>(
+    Object.fromEntries(
+        Object.keys(areaChecks).map(name => [name, areaChecks[name](page.url)])
+    )
+)
+
+watch(currentUrl, (url) => {
+    Object.keys(areaChecks).forEach(name => {
+        if (areaChecks[name](url)) openModules.value[name] = true
+    })
 })
 
-// Merge Dashboard + modules into one nav list
-const allNavItems = computed<NavItem[]>(() => [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    ...moduleNavItems.value,
-])
+function toggleCollapsible(name: string) {
+    openModules.value[name] = !openModules.value[name]
+}
+
+/* ─────────────────────────────────────────
+   SUB-ITEM ACTIVE STATE
+───────────────────────────────────────── */
+
+const exactRoutes = [
+    '/shop/employee', '/shop/branch', '/staff/employee', '/staff/branch', '/shop/logs',
+    '/shop/inventory', '/shop/inventory/categories', '/shop/inventory/alerts',
+    '/staff/inventory', '/staff/inventory/categories', '/staff/inventory/alerts',
+    '/shop/orders', '/shop/orders/pending', '/shop/orders/progress', '/shop/orders/completed', '/shop/orders/cancelled',
+    '/staff/orders', '/staff/orders/pending', '/staff/orders/progress', '/staff/orders/completed', '/staff/orders/cancelled',
+    '/shop/services', '/shop/services/pricing', '/shop/services/promos',
+    '/staff/services', '/staff/services/pricing', '/staff/services/promos',
+    '/shop/reports', '/shop/reports/sales', '/shop/reports/inventory', '/shop/reports/payroll',
+    '/staff/reports', '/staff/reports/sales', '/staff/reports/inventory', '/staff/reports/payroll',
+]
+
+function isSubActive(href: string): boolean {
+    if (exactRoutes.includes(href)) {
+        return currentUrl.value === href || currentUrl.value === `${href}/`
+    }
+    return currentUrl.value.startsWith(href)
+}
+
+/* ─────────────────────────────────────────
+   NAV ITEMS
+───────────────────────────────────────── */
+
+interface ModuleNavItem {
+    title: string
+    href: string
+    icon: any
+    active: boolean
+    hasSubMenu: boolean
+}
+
+const moduleNavItems = computed<ModuleNavItem[]>(() => {
+    if (!isPaid.value || !props.order?.modules) return []
+
+    return props.order.modules
+        .filter((m: any) => isOwner.value || canAccessModule(m.name))
+        .map((m: any): ModuleNavItem => ({
+            title: m.name,
+            href: getHref(m.name),
+            icon: moduleIconMap[m.name]?.icon ?? Package,
+            active: areaChecks[m.name]?.(currentUrl.value) ?? false,
+            hasSubMenu: getSubActions(m.name).length > 0,
+        }))
+})
+
+const dashboardItem = computed(() => [{
+    title: 'Dashboard',
+    href: isOwner.value ? '/shop/dashboard' : '/staff/dashboard',
+    icon: LayoutGrid,
+    active: currentUrl.value.includes('dashboard'),
+}])
 </script>
 
 <template>
     <BaseSidebar>
-        <!-- HEADER -->
         <template #header>
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link :href="isOwner ? '/shop/dashboard' : '/staff/dashboard'">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
@@ -110,26 +311,81 @@ const allNavItems = computed<NavItem[]>(() => [
             </SidebarMenu>
         </template>
 
-        <!-- MAIN NAV: Dashboard + all module items in one list, no gap -->
-        <NavMain :items="allNavItems" />
+        <NavMain :items="dashboardItem" />
 
-        <!-- OWNER-ONLY: Administration -->
+        <SidebarMenu class="px-2 mt-1">
+            <template v-for="mod in moduleNavItems" :key="mod.title">
+
+                <!-- Collapsible module -->
+                <template v-if="mod.hasSubMenu">
+                    <Collapsible :open="openModules[mod.title] ?? false">
+                        <SidebarMenuItem>
+                            <SidebarMenuButton class="flex items-center justify-between w-full cursor-pointer"
+                                :class="mod.active ? 'bg-muted/60 text-foreground' : 'hover:bg-muted/40'"
+                                @click="toggleCollapsible(mod.title)">
+                                <span class="flex items-center gap-2">
+                                    <component :is="mod.icon" class="w-4 h-4 shrink-0" />
+                                    <span>{{ mod.title }}</span>
+                                </span>
+                                <CollapsibleTrigger as-child>
+                                    <span @click.stop="toggleCollapsible(mod.title)">
+                                        <ChevronRight class="w-4 h-4 transition-transform duration-200"
+                                            :class="(openModules[mod.title] ?? false) ? 'rotate-90' : ''" />
+                                    </span>
+                                </CollapsibleTrigger>
+                            </SidebarMenuButton>
+
+                            <CollapsibleContent>
+                                <SidebarMenuSub class="ml-4 mt-0.5 border-l border-muted/50">
+                                    <SidebarMenuSubItem v-for="sub in getSubActions(mod.title)" :key="sub.title">
+                                        <SidebarMenuSubButton
+                                            class="flex items-center gap-2 text-xs cursor-pointer rounded-md px-2 py-1.5 w-full transition-colors"
+                                            :class="isSubActive(sub.href)
+                                                ? 'bg-muted/70 text-foreground font-medium'
+                                                : 'text-muted-foreground hover:bg-muted/50'"
+                                            @click="router.visit(sub.href)">
+                                            <component :is="sub.icon" class="w-3.5 h-3.5" />
+                                            {{ sub.title }}
+                                        </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                </SidebarMenuSub>
+                            </CollapsibleContent>
+                        </SidebarMenuItem>
+                    </Collapsible>
+                </template>
+
+                <!-- Regular item (no sub-menu) -->
+                <template v-else>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton class="flex items-center gap-2 w-full cursor-pointer transition-colors"
+                            :class="mod.active ? 'bg-muted/60 text-foreground' : 'hover:bg-muted/40'"
+                            @click="router.visit(mod.href)">
+                            <component :is="mod.icon" class="w-4 h-4 shrink-0" />
+                            <span>{{ mod.title }}</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </template>
+
+            </template>
+        </SidebarMenu>
+
+        <!-- Owner-only admin section -->
         <div v-if="isOwner && isPaid" class="px-2 mt-2">
             <p class="text-xs font-semibold text-muted-foreground px-2 mb-1 uppercase tracking-wide">
                 Administration
             </p>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton @click="router.visit('/shop/permission')"
-                        class="flex items-center gap-2 w-full cursor-pointer">
-                        <ShieldCheck class="w-4 h-4 text-primary" />
+                    <SidebarMenuButton class="flex items-center gap-2 w-full cursor-pointer transition-colors" :class="currentUrl.startsWith('/shop/permission')
+                        ? 'bg-muted/60 text-foreground'
+                        : 'hover:bg-muted/40'" @click="router.visit('/shop/permission')">
+                        <ShieldCheck class="w-4 h-4" />
                         <span>Roles & Permission</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </div>
 
-        <!-- FOOTER -->
         <template #footer>
             <NavUser />
         </template>

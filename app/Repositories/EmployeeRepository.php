@@ -4,8 +4,10 @@ namespace App\Repositories;
 
 use App\Models\Employee;
 use App\Models\Shop;
+use App\Models\Branch;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EmployeeRepository extends Repository
 {
@@ -18,7 +20,10 @@ class EmployeeRepository extends Repository
 
     public function getAllByShop(Shop $shop): Collection
     {
-        return $shop->employees()->latest()->get();
+        return $shop->employees()
+            ->with(['creator:id,name', 'updater:id,name'])
+            ->latest()
+            ->get();
     }
 
     // Stats scoped to shop
@@ -76,16 +81,19 @@ class EmployeeRepository extends Repository
 
     public function getBranchNames(Shop $shop): array
     {
-        $branches = $shop->employees()
-            ->whereNotNull('branch_name')
-            ->distinct()
-            ->pluck('branch_name')
+        return Branch::where('shop_id', $shop->id)
+            ->where('status', 'Active')
+            ->orderBy('name')
+            ->pluck('name')
             ->toArray();
+    }
 
-        if ($shop->branch_name && ! in_array($shop->branch_name, $branches)) {
-            array_unshift($branches, $shop->branch_name);
-        }
-
-        return $branches;
+    //Pagination
+    public function getPaginatedByShop(Shop $shop, int $perPage = 10): LengthAwarePaginator
+    {
+        return $shop->employees()
+            ->with(['creator:id,name', 'updater:id,name'])
+            ->latest()
+            ->paginate($perPage);
     }
 }

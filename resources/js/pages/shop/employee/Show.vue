@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import {
     Pencil, Trash2, ArrowLeft,
     User, Briefcase, MapPin, Phone,
-    Calendar, Banknote, BadgeCheck, Building2, Hash, Plus
+    Calendar, Banknote, BadgeCheck, Building2, Hash, Clock,
 } from 'lucide-vue-next'
 
 // AlertDialog
@@ -27,6 +27,11 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface AuditUser {
+    id: number
+    name: string
+}
+
 interface Employee {
     id: number
     employee_id: string
@@ -41,6 +46,8 @@ interface Employee {
     status: 'Active' | 'Inactive'
     created_at: string
     updated_at: string
+    creator: AuditUser | null
+    updater: AuditUser | null
 }
 
 interface Schedule {
@@ -86,48 +93,38 @@ function archiveEmployee() {
 </script>
 
 <template>
-
     <Head :title="`${employee.first_name} ${employee.last_name}`" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" :title="`${employee.first_name} ${employee.last_name}`">
 
         <div class="px-6 space-y-6">
 
+            <!-- ── Actions bar ─────────────────────────────────────────── -->
             <div class="flex items-center justify-between">
                 <Button type="button" variant="outline" @click="router.visit('/shop/employee')">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Employees
-                </Button>
-
-                <Button class="bg-blue-500 hover:bg-blue-700" type="button"
-                    @click="router.visit(`/shop/employee/${employee.id}/schedule/create`)">
-                    <Plus class="h-4 w-4 mr-2" />
-                    Add Schedule
+                    <ArrowLeft class="h-4 w-4 mr-2" /> Back to Employees
                 </Button>
             </div>
 
-            <!-- Profile header card -->
+            <!-- ── Profile header ──────────────────────────────────────── -->
             <Card>
                 <CardContent class="pt-6">
                     <div class="flex items-center gap-5">
-                        <!-- Avatar -->
-                        <div
-                            class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <span class="text-2xl font-bold text-primary">
                                 {{ employee.first_name[0] }}{{ employee.last_name[0] }}
                             </span>
                         </div>
-
-                        <!-- Name + meta -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-3 flex-wrap">
                                 <h2 class="text-xl font-bold">
                                     {{ employee.first_name }} {{ employee.last_name }}
                                 </h2>
-                                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full text-white" :class="{
-                                    'bg-green-500': employee.status === 'Active',
-                                    'bg-red-500': employee.status === 'Inactive',
-                                }">
+                                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full text-white"
+                                    :class="{
+                                        'bg-green-500': employee.status === 'Active',
+                                        'bg-red-500':   employee.status === 'Inactive',
+                                    }">
                                     {{ employee.status }}
                                 </span>
                             </div>
@@ -140,16 +137,14 @@ function archiveEmployee() {
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <!-- ── Identity ───────────────────────────────────────────── -->
+                <!-- ── Identity ───────────────────────────────────────── -->
                 <Card>
                     <CardHeader class="pb-3">
-                        <CardTitle
-                            class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                             <User class="h-4 w-4" /> Identity
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
-
                         <div class="flex items-start gap-3">
                             <Hash class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -157,7 +152,6 @@ function archiveEmployee() {
                                 <p class="text-sm font-mono font-medium">{{ employee.employee_id }}</p>
                             </div>
                         </div>
-
                         <div class="flex items-start gap-3">
                             <User class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -165,7 +159,6 @@ function archiveEmployee() {
                                 <p class="text-sm font-medium">{{ employee.first_name }} {{ employee.last_name }}</p>
                             </div>
                         </div>
-
                         <div class="flex items-start gap-3">
                             <Phone class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -173,7 +166,6 @@ function archiveEmployee() {
                                 <p class="text-sm font-medium">{{ employee.phone ?? '—' }}</p>
                             </div>
                         </div>
-
                         <div class="flex items-start gap-3">
                             <MapPin class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -181,20 +173,17 @@ function archiveEmployee() {
                                 <p class="text-sm font-medium leading-relaxed">{{ employee.address ?? '—' }}</p>
                             </div>
                         </div>
-
                     </CardContent>
                 </Card>
 
-                <!-- ── Employment ─────────────────────────────────────────── -->
+                <!-- ── Employment ─────────────────────────────────────── -->
                 <Card>
                     <CardHeader class="pb-3">
-                        <CardTitle
-                            class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                             <Briefcase class="h-4 w-4" /> Employment
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
-
                         <div class="flex items-start gap-3">
                             <Briefcase class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -202,7 +191,6 @@ function archiveEmployee() {
                                 <p class="text-sm font-medium">{{ employee.position }}</p>
                             </div>
                         </div>
-
                         <div class="flex items-start gap-3">
                             <Building2 class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -210,7 +198,6 @@ function archiveEmployee() {
                                 <p class="text-sm font-medium">{{ employee.branch_name ?? '—' }}</p>
                             </div>
                         </div>
-
                         <div class="flex items-start gap-3">
                             <Calendar class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -218,7 +205,6 @@ function archiveEmployee() {
                                 <p class="text-sm font-medium">{{ formatDate(employee.hire_date) }}</p>
                             </div>
                         </div>
-
                         <div class="flex items-start gap-3">
                             <Banknote class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
@@ -226,32 +212,28 @@ function archiveEmployee() {
                                 <p class="text-sm font-medium">{{ formatSalary(employee.salary) }}</p>
                             </div>
                         </div>
-
                         <div class="flex items-start gap-3">
                             <BadgeCheck class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
                                 <p class="text-xs text-muted-foreground">Status</p>
-                                <span
-                                    class="inline-block mt-0.5 px-2.5 py-0.5 text-xs font-semibold rounded-full text-white"
+                                <span class="inline-block mt-0.5 px-2.5 py-0.5 text-xs font-semibold rounded-full text-white"
                                     :class="{
                                         'bg-green-500': employee.status === 'Active',
-                                        'bg-red-500': employee.status === 'Inactive',
+                                        'bg-red-500':   employee.status === 'Inactive',
                                     }">
                                     {{ employee.status }}
                                 </span>
                             </div>
                         </div>
-
                     </CardContent>
                 </Card>
 
             </div>
 
-            <!-- ── Schedule ───────────────────────────────────────────────── -->
+            <!-- ── Schedule ───────────────────────────────────────────── -->
             <Card>
                 <CardHeader class="pb-3">
-                    <CardTitle
-                        class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                         <Calendar class="h-4 w-4" /> Schedule
                     </CardTitle>
                 </CardHeader>
@@ -276,13 +258,32 @@ function archiveEmployee() {
                 </CardContent>
             </Card>
 
-            <!-- Record metadata -->
-            <p class="text-xs text-muted-foreground text-right pb-4">
-                Created {{ formatDateTime(employee.created_at) }}
-                <span v-if="employee.updated_at !== employee.created_at">
-                    · Updated {{ formatDateTime(employee.updated_at) }}
-                </span>
-            </p>
+            <!-- ── Audit info ──────────────────────────────────────────── -->
+            <Card>
+                <CardHeader class="pb-3">
+                    <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Clock class="h-4 w-4" /> Record Info
+                    </CardTitle>
+                </CardHeader>
+                <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-start gap-3">
+                        <User class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p class="text-xs text-muted-foreground">Added By</p>
+                            <p class="text-sm font-medium">{{ employee.creator?.name ?? '—' }}</p>
+                            <p class="text-xs text-muted-foreground">{{ formatDateTime(employee.created_at) }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <Pencil class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p class="text-xs text-muted-foreground">Last Modified By</p>
+                            <p class="text-sm font-medium">{{ employee.updater?.name ?? '—' }}</p>
+                            <p class="text-xs text-muted-foreground">{{ formatDateTime(employee.updated_at) }}</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
         </div>
 
