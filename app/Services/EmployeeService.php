@@ -68,7 +68,7 @@ class EmployeeService
                 'name'              => "{$data['first_name']} {$data['last_name']}",
                 'email'             => $data['email'],
                 'password'          => Hash::make($data['last_name']),
-                'role'              => strtolower($data['position']) === 'manager' ? 'manager' : 'staff',
+                'role'              => 'staff',
                 'email_verified_at' => now(),
             ]);
 

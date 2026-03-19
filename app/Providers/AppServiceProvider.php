@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Employee;
 use App\Observers\EmployeeObserver;
+use App\Models\Order;
+use App\Observers\OrderObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        
+
     }
 
     /**
@@ -22,5 +24,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Employee::observe(EmployeeObserver::class);
+        Order::observe(OrderObserver::class);
     }
 }

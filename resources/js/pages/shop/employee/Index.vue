@@ -97,6 +97,10 @@ function employeeUrl(id: number, suffix = ''): string {
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
 onMounted(() => {
+
+    console.log('user role:', user.value.role)
+    console.log('isOwner:', isOwner.value)
+    console.log('permissions:', permissions.value)
     const flashToast = page.props.toast as { type: string; message: string } | undefined
     if (!flashToast) return
 

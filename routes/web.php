@@ -24,8 +24,14 @@ Route::get('/', function () {
 
 Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
     Route::get('/dashboard', fn() => Inertia::render('admin/Dashboard'))->name('admin.dashboard');
-    Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
     Route::get('/settings/profile', fn() => Inertia::render('Admin/Settings'))->name('admin.settings');
+
+    // Shop Management
+    Route::get('/shop',             [ShopController::class, 'index'])->name('shop.index');
+    Route::get('/shop/{shop}',      [ShopController::class, 'show'])->name('shop.show');
+    Route::get('/shop/{shop}/edit', [ShopController::class, 'edit'])->name('shop.edit');
+    Route::put('/shop/{shop}',      [ShopController::class, 'update'])->name('shop.update');
+    Route::delete('/shop/{shop}',   [ShopController::class, 'destroy'])->name('shop.destroy');
 });
 
 // ── Shop owner routes ──────────────────────────────────────────────────────────

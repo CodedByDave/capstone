@@ -12,100 +12,128 @@ const { props } = usePage<{ auth: { user: any }, modules: any[] }>()
 const user = props.auth.user
 
 // -------------------- Steps --------------------
-const currentStep = ref(1)
-const totalSteps = 2
+const currentStep  = ref(1)
+const totalSteps   = 2
 const isSubmitting = ref(false)
 
 // -------------------- Modules from DB --------------------
 const moduleOptions = ref(props.modules)
 
-// -------------------- Order Form --------------------
-const orderForm = ref({
-    branch_name: '',
-    shop_name: '',
-    owner_name: '',
-    email: user.email,
-    phone: '',
-    block_street: '',
-    municipality: '',
-    barangay: '',
-    postal_code: '',
-    modules: [] as number[]
-})
+// -------------------- Subscription plan --------------------
+const subscriptionPlan = ref<'monthly' | 'annually'>('monthly')
+const ANNUAL_DISCOUNT   = 0.10
+
+function selectPlan(plan: 'monthly' | 'annually') {
+    subscriptionPlan.value = plan
+}
+
+// -------------------- Form fields (individual refs — no spread issues) --------------------
+const branch_name  = ref('')
+const shop_name    = ref('')
+const owner_name   = ref('')
+const email        = ref(user.email)
+const phone        = ref('')
+const block_street = ref('')
+const municipality = ref('')
+const barangay     = ref('')
+const postal_code  = ref('')
+const selectedModules = ref<number[]>([])
 
 // -------------------- Validation errors --------------------
 const errors = ref({
-    branch_name: '',
-    shop_name: '',
-    owner_name: '',
-    email: '',
-    phone: '',
+    shop_name:    '',
+    owner_name:   '',
+    phone:        '',
     block_street: '',
-    modules: ''
+    modules:      '',
 })
 
-// -------------------- Computed total price --------------------
-const totalPrice = computed(() => {
-    return orderForm.value.modules.reduce((sum, moduleId) => {
-        const module = moduleOptions.value.find(m => m.id === moduleId)
-        return sum + parseFloat(module?.price || 0)
+// -------------------- Computed prices --------------------
+const baseTotal = computed(() =>
+    selectedModules.value.reduce((sum, moduleId) => {
+        const mod = moduleOptions.value.find(m => m.id === moduleId)
+        return sum + parseFloat(mod?.price || 0)
     }, 0)
-})
+)
 
-// -------------------- Load shop data from backend --------------------
+const discountAmount = computed(() =>
+    subscriptionPlan.value === 'annually' ? baseTotal.value * ANNUAL_DISCOUNT : 0
+)
+
+const totalPrice = computed(() =>
+    subscriptionPlan.value === 'annually'
+        ? baseTotal.value * (1 - ANNUAL_DISCOUNT) * 12
+        : baseTotal.value
+)
+
+// -------------------- Load shop data --------------------
 onMounted(async () => {
     try {
-        const res = await axios.get('/shop/data')
+        const res  = await axios.get('/shop/data')
         const shop = res.data
 
-        orderForm.value.branch_name = shop.branch_name || ''
-        orderForm.value.shop_name = shop.shop_name
-        orderForm.value.owner_name = user.name
-        orderForm.value.phone = shop.phone
-        orderForm.value.block_street = shop.block_street
-        orderForm.value.municipality = shop.municipality
-        orderForm.value.barangay = shop.barangay
-        orderForm.value.postal_code = shop.postal_code
+        branch_name.value  = shop.branch_name  || ''
+        shop_name.value    = shop.shop_name
+        owner_name.value   = user.name
+        phone.value        = shop.phone
+        block_street.value = shop.block_street
+        municipality.value = shop.municipality
+        barangay.value     = shop.barangay
+        postal_code.value  = shop.postal_code
     } catch (err) {
         console.error('Failed to load shop info:', err)
     }
 })
 
-// -------------------- Step validation --------------------
-function validateCurrentStep() {
-    if (currentStep.value === 1) {
-        errors.value.shop_name = orderForm.value.shop_name ? '' : 'Shop Name is required.'
-        errors.value.owner_name = orderForm.value.owner_name ? '' : 'Owner Name is required.'
-        errors.value.phone = /^\d{10,11}$/.test(orderForm.value.phone) ? '' : 'Phone must be 10-11 digits.'
-        errors.value.block_street = orderForm.value.block_street ? '' : 'Block/Street is required.'
-    }
-    if (currentStep.value === 2) {
-        errors.value.modules = orderForm.value.modules.length > 0 ? '' : 'Select at least one module.'
-    }
+// -------------------- Validation --------------------
+function validateStep1(): boolean {
+    errors.value.shop_name    = shop_name.value    ? '' : 'Shop name is required.'
+    errors.value.owner_name   = owner_name.value   ? '' : 'Owner name is required.'
+    errors.value.phone        = /^\d{10,11}$/.test(phone.value) ? '' : 'Phone must be 10–11 digits.'
+    errors.value.block_street = block_street.value ? '' : 'Block/Street is required.'
+    return !Object.values(errors.value).some(e => e)
 }
 
-// -------------------- Go next / submit --------------------
-function goNext() {
-    validateCurrentStep()
+function validateStep2(): boolean {
+    errors.value.modules = selectedModules.value.length > 0 ? '' : 'Select at least one module.'
+    return !errors.value.modules
+}
 
-    if (currentStep.value === 1 && !Object.values(errors.value).some(e => e)) {
-        currentStep.value++
+// -------------------- Navigation --------------------
+function goNext() {
+    if (currentStep.value === 1) {
+        if (validateStep1()) currentStep.value = 2
         return
     }
 
-    if (currentStep.value === 2 && !Object.values(errors.value).some(e => e)) {
+    if (currentStep.value === 2) {
+        if (!validateStep2()) return
+
         isSubmitting.value = true
 
-        const modulesWithPrice = orderForm.value.modules.map(moduleId => {
-            const module = moduleOptions.value.find(m => m.id === moduleId)
-            return { id: module?.id, name: module?.name, price: parseFloat(module?.price || 0) }
+        // Capture synchronously before async — prevents any reactivity timing issue
+        const plan  = subscriptionPlan.value
+        const total = totalPrice.value
+
+        const modulesWithPrice = selectedModules.value.map(moduleId => {
+            const mod = moduleOptions.value.find(m => m.id === moduleId)
+            return { id: mod?.id, name: mod?.name, price: parseFloat(mod?.price || 0) }
         })
 
         axios.post('/shop/checkout', {
-            ...orderForm.value,
-            modules: modulesWithPrice,
-            payment_method: 'paymongo',
-            amount: totalPrice.value
+            branch_name:       branch_name.value,
+            shop_name:         shop_name.value,
+            owner_name:        owner_name.value,
+            email:             email.value,
+            phone:             phone.value,
+            block_street:      block_street.value,
+            municipality:      municipality.value,
+            barangay:          barangay.value,
+            postal_code:       postal_code.value,
+            modules:           modulesWithPrice,
+            subscription_plan: plan,
+            payment_method:    'paymongo',
+            amount:            total,
         })
             .then(res => {
                 if (res.data.success && res.data.checkout_url) {
@@ -118,154 +146,253 @@ function goNext() {
             .catch(err => {
                 isSubmitting.value = false
                 console.error('Checkout error:', err)
-                alert('Failed to create checkout. Please try again.')
+                alert('An error occurred. Please try again.')
             })
     }
 }
 
-// -------------------- Remove module --------------------
-function removeModule(moduleId: number) {
-    orderForm.value.modules = orderForm.value.modules.filter(id => id !== moduleId)
+function goBack() {
+    currentStep.value = 1
 }
 
-// -------------------- Toggle module --------------------
+// -------------------- Module helpers --------------------
 function toggleModule(moduleId: number) {
-    const idx = orderForm.value.modules.indexOf(moduleId)
+    const idx = selectedModules.value.indexOf(moduleId)
     if (idx >= 0) {
-        orderForm.value.modules.splice(idx, 1)
+        selectedModules.value.splice(idx, 1)
     } else {
-        orderForm.value.modules.push(moduleId)
+        selectedModules.value.push(moduleId)
     }
+}
+
+function removeModule(moduleId: number) {
+    selectedModules.value = selectedModules.value.filter(id => id !== moduleId)
 }
 </script>
 
 <template>
     <div class="flex flex-col gap-6">
 
-        <!-- Step 1: Shop Info -->
+        <!-- ======== STEP 1: Shop Info ======== -->
         <Card v-if="currentStep === 1">
             <CardHeader>
                 <CardTitle>Shop Info – Step 1 of {{ totalSteps }}</CardTitle>
             </CardHeader>
-            <CardContent class="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                <div class="md:col-span-2">
-                    <label class="text-sm font-medium">Branch Name <span
-                            class="text-gray-400 text-xs">(Optional)</span></label>
-                    <Input v-model="orderForm.branch_name" placeholder="e.g., Main Branch" />
+            <CardContent class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div class="md:col-span-2 space-y-1">
+                    <label class="text-sm font-medium">
+                        Branch Name <span class="text-gray-400 text-xs">(Optional)</span>
+                    </label>
+                    <Input v-model="branch_name" placeholder="e.g., Main Branch" />
                 </div>
 
-                <div class="md:col-span-2">
+                <div class="md:col-span-2 space-y-1">
                     <label class="text-sm font-medium">Shop Name</label>
-                    <Input v-model="orderForm.shop_name" placeholder="e.g., Sparkle Laundry" />
-                    <p v-if="errors.shop_name" class="text-red-500 text-xs mt-1">{{ errors.shop_name }}</p>
+                    <Input v-model="shop_name" placeholder="e.g., Sparkle Laundry" />
+                    <p v-if="errors.shop_name" class="text-red-500 text-xs">{{ errors.shop_name }}</p>
                 </div>
 
-                <div class="md:col-span-2">
+                <div class="md:col-span-2 space-y-1">
                     <label class="text-sm font-medium">Owner Name</label>
-                    <Input v-model="orderForm.owner_name" placeholder="Owner full name" />
-                    <p v-if="errors.owner_name" class="text-red-500 text-xs mt-1">{{ errors.owner_name }}</p>
+                    <Input v-model="owner_name" placeholder="Owner full name" />
+                    <p v-if="errors.owner_name" class="text-red-500 text-xs">{{ errors.owner_name }}</p>
                 </div>
 
-                <div>
+                <div class="space-y-1">
                     <label class="text-sm font-medium">Email</label>
-                    <Input v-model="orderForm.email" disabled />
+                    <Input v-model="email" disabled />
                 </div>
 
-                <div>
+                <div class="space-y-1">
                     <label class="text-sm font-medium">Phone</label>
-                    <Input v-model="orderForm.phone" placeholder="09XXXXXXXXX" />
-                    <p v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</p>
+                    <Input v-model="phone" placeholder="09XXXXXXXXX" />
+                    <p v-if="errors.phone" class="text-red-500 text-xs">{{ errors.phone }}</p>
                 </div>
 
-                <div class="md:col-span-2">
+                <div class="md:col-span-2 space-y-1">
                     <label class="text-sm font-medium">Block / Street</label>
-                    <Input v-model="orderForm.block_street" placeholder="e.g., Block 5" />
-                    <p v-if="errors.block_street" class="text-red-500 text-xs mt-1">{{ errors.block_street }}</p>
+                    <Input v-model="block_street" placeholder="e.g., Block 5" />
+                    <p v-if="errors.block_street" class="text-red-500 text-xs">{{ errors.block_street }}</p>
                 </div>
 
-                <div>
+                <div class="space-y-1">
                     <label class="text-sm font-medium">Municipality</label>
-                    <Input v-model="orderForm.municipality" disabled />
+                    <Input v-model="municipality" disabled />
                 </div>
 
-                <div>
+                <div class="space-y-1">
                     <label class="text-sm font-medium">Barangay</label>
-                    <Input v-model="orderForm.barangay" disabled />
+                    <Input v-model="barangay" disabled />
                 </div>
 
-                <div class="md:col-span-2">
+                <div class="md:col-span-2 space-y-1">
                     <label class="text-sm font-medium">Postal Code</label>
-                    <Input v-model="orderForm.postal_code" disabled />
+                    <Input v-model="postal_code" disabled />
                 </div>
 
             </CardContent>
+
             <div class="flex justify-end p-4">
-                <Button @click="goNext" :disabled="isSubmitting">Next</Button>
+                <Button type="button" @click="goNext">Next</Button>
             </div>
         </Card>
 
-        <!-- Step 2: Modules + Billing -->
+        <!-- ======== STEP 2: Plan + Modules + Billing ======== -->
         <div v-if="currentStep === 2" class="flex flex-col md:flex-row gap-6">
 
-            <!-- Modules Selection -->
-            <Card class="flex-1">
-                <CardHeader>
-                    <CardTitle>Select Modules – Step 2 of {{ totalSteps }}</CardTitle>
-                </CardHeader>
-                <CardContent class="space-y-4">
-                    <p class="text-gray-500 text-xs mt-1">Choose the modules your laundry shop needs.</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div v-for="module in moduleOptions" :key="module.id"
-                            class="border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md"
-                            :class="orderForm.modules.includes(module.id) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 shadow-md' : 'border-gray-200 dark:border-neutral-700'"
-                            @click="toggleModule(module.id)">
-                            <div class="flex justify-between items-center">
-                                <span class="font-semibold">{{ module.name }}</span>
-                                <span class="text-green-600 font-medium">₱{{ parseFloat(module.price).toLocaleString() }}</span>
-                            </div>
-                            <p class="text-gray-500 text-sm mt-1">{{ module.description }}</p>
-                        </div>
-                    </div>
-                    <p v-if="errors.modules" class="text-red-500 text-xs mt-1">{{ errors.modules }}</p>
-                </CardContent>
-            </Card>
+            <!-- Left column -->
+            <div class="flex-1 flex flex-col gap-4">
 
-            <!-- Billing Summary -->
-            <Card class="w-full md:w-1/3">
+                <!-- Subscription Plan Toggle -->
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Subscription Plan – Step 2 of {{ totalSteps }}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex items-center gap-3">
+
+                            <button
+                                type="button"
+                                class="flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all text-left"
+                                :class="subscriptionPlan === 'monthly'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                                    : 'border-gray-200 dark:border-neutral-700 text-gray-500 hover:border-gray-300'"
+                                @click="selectPlan('monthly')"
+                            >
+                                Monthly
+                                <p class="text-xs font-normal mt-0.5 opacity-70">Full price / month</p>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all relative text-left"
+                                :class="subscriptionPlan === 'annually'
+                                    ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
+                                    : 'border-gray-200 dark:border-neutral-700 text-gray-500 hover:border-gray-300'"
+                                @click="selectPlan('annually')"
+                            >
+                                <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    Save 10%
+                                </span>
+                                Annually
+                                <p class="text-xs font-normal mt-0.5 opacity-70">10% off · billed yearly</p>
+                            </button>
+
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Modules Selection -->
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Select Modules</CardTitle>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        <p class="text-gray-500 text-xs">Choose the modules your laundry shop needs.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div
+                                v-for="mod in moduleOptions"
+                                :key="mod.id"
+                                class="border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md"
+                                :class="selectedModules.includes(mod.id)
+                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 shadow-md'
+                                    : 'border-gray-200 dark:border-neutral-700'"
+                                @click="toggleModule(mod.id)"
+                            >
+                                <div class="flex justify-between items-center">
+                                    <span class="font-semibold text-sm">{{ mod.name }}</span>
+                                    <span class="text-green-600 font-medium text-sm">
+                                        ₱{{ parseFloat(mod.price).toLocaleString() }}
+                                    </span>
+                                </div>
+                                <p class="text-gray-500 text-xs mt-1">{{ mod.description }}</p>
+                            </div>
+                        </div>
+                        <p v-if="errors.modules" class="text-red-500 text-xs">{{ errors.modules }}</p>
+                    </CardContent>
+                </Card>
+
+            </div>
+
+            <!-- Right: Billing Summary -->
+            <Card class="w-full md:w-1/3 h-fit sticky top-6">
                 <CardHeader>
                     <CardTitle>Billing Summary</CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-3">
-                    <div v-if="orderForm.modules.length === 0" class="text-gray-500 text-sm">
+
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-muted-foreground">Plan</span>
+                        <span
+                            class="px-2 py-0.5 rounded-full text-xs font-semibold"
+                            :class="subscriptionPlan === 'annually'
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'"
+                        >
+                            {{ subscriptionPlan === 'annually' ? 'Annual' : 'Monthly' }}
+                        </span>
+                    </div>
+
+                    <div v-if="selectedModules.length === 0" class="text-gray-500 text-sm">
                         No modules selected.
                     </div>
-                    <div v-for="moduleId in orderForm.modules" :key="moduleId"
-                        class="flex justify-between items-center p-2 border rounded">
-                        <span>{{ moduleOptions.find(m => m.id === moduleId)?.name }}</span>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-green-600 font-medium">
+
+                    <div
+                        v-for="moduleId in selectedModules"
+                        :key="moduleId"
+                        class="flex justify-between items-center p-2 border rounded"
+                    >
+                        <span class="text-sm">{{ moduleOptions.find(m => m.id === moduleId)?.name }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-600 font-medium text-sm">
                                 ₱{{ parseFloat(moduleOptions.find(m => m.id === moduleId)?.price || 0).toLocaleString() }}
                             </span>
-                            <Button size="sm" variant="destructive" @click="removeModule(moduleId)">
+                            <Button type="button" size="sm" variant="destructive" @click="removeModule(moduleId)">
                                 <Trash2 class="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
 
-                    <div v-if="orderForm.modules.length > 0"
-                        class="mt-3 p-3 bg-gray-100 dark:bg-neutral-800 rounded-lg">
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold">Total Price:</span>
-                            <span class="text-lg font-bold text-dark-600">₱{{ totalPrice.toLocaleString() }}</span>
+                    <div v-if="selectedModules.length > 0" class="space-y-2 border-t pt-3">
+
+                        <div class="flex justify-between text-sm text-muted-foreground">
+                            <span>Subtotal / month</span>
+                            <span>₱{{ baseTotal.toLocaleString() }}</span>
                         </div>
+
+                        <div v-if="subscriptionPlan === 'annually'" class="flex justify-between text-sm text-green-600">
+                            <span>Discount (10%)</span>
+                            <span>− ₱{{ discountAmount.toLocaleString() }}</span>
+                        </div>
+
+                        <div v-if="subscriptionPlan === 'annually'" class="flex justify-between text-sm text-muted-foreground">
+                            <span>Billed for</span>
+                            <span>12 months</span>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-2 border-t">
+                            <span class="font-semibold">Total</span>
+                            <span class="text-lg font-bold">
+                                ₱{{ totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-muted-foreground text-center">
+                            {{ subscriptionPlan === 'annually' ? 'Billed once per year' : 'Billed every 30 days' }}
+                        </p>
                     </div>
 
-                    <div>
-                        <Button class="mt-3 w-full" @click="goNext" :disabled="isSubmitting">
+                    <div class="flex flex-col gap-2 pt-2">
+                        <Button type="button" class="w-full" @click="goNext" :disabled="isSubmitting">
                             {{ isSubmitting ? 'Processing...' : 'Proceed to Payment' }}
                         </Button>
+                        <Button type="button" variant="outline" class="w-full" @click="goBack" :disabled="isSubmitting">
+                            Back
+                        </Button>
                     </div>
+
                 </CardContent>
             </Card>
         </div>

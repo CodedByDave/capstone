@@ -16,6 +16,8 @@ use Inertia\Inertia;
 
 class PermissionController extends Controller
 {
+    private const RESERVED_ROLES = ['owner', 'super_admin'];
+
     private function getShop(): Shop
     {
         return Shop::where('owner_id', auth()->id())->firstOrFail();
@@ -24,41 +26,52 @@ class PermissionController extends Controller
     public function index()
     {
         $shop  = $this->getShop();
+
         $order = Order::where('user_id', $shop->owner_id)
             ->where('status', 'paid')
             ->with('modules')
             ->latest()
             ->first();
 
-        $purchasedModules = $order ? $order->modules->map(fn($m) => [
-            'name'  => $m->name,
-            'price' => $m->price,
-        ])->values() : [];
+        $purchasedModules = $order
+            ? $order->modules
+                ->map(fn ($m) => [
+                    'name'  => $m->name,
+                    'price' => $m->price,
+                ])
+                ->values()
+                ->toArray()
+            : [];
 
         $staff = Employee::where('shop_id', $shop->id)
             ->with('roles')
             ->get()
-            ->map(fn($e) => [
+            ->map(fn ($e) => [
                 'id'    => $e->id,
-                'name'  => $e->first_name . ' ' . $e->last_name,
+                'name'  => "{$e->first_name} {$e->last_name}",
                 'email' => $e->email,
-                'roles' => $e->roles->pluck('role')->values(),
-            ]);
+                'roles' => $e->roles->pluck('role')->values()->toArray(),
+            ])
+            ->toArray();
 
         $permissions = RolePermission::where('shop_id', $shop->id)
             ->get()
             ->groupBy('role')
-            ->map(fn($items) => $items->groupBy('module')
-                ->map(fn($actions) => $actions->pluck('action')->values())
-            );
+            ->map(
+                fn ($items) => $items
+                    ->groupBy('module')
+                    ->map(fn ($actions) => $actions->pluck('action')->unique()->values()->toArray())
+                    ->toArray()
+            )
+            ->toArray();
 
-        // Load roles from DB
         $roles = ShopRole::where('shop_id', $shop->id)
             ->get()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'name'      => $r->name,
-                'deletable' => !$r->is_default,
-            ]);
+                'deletable' => ! $r->is_default,
+            ])
+            ->toArray();
 
         return Inertia::render('shop/permission/Index', [
             'purchasedModules' => $purchasedModules,
@@ -105,6 +118,11 @@ class PermissionController extends Controller
         $shop = $this->getShop();
         $name = strtolower(trim($request->name));
 
+        // Block reserved system role names
+        if (in_array($name, self::RESERVED_ROLES)) {
+            return response()->json(['error' => 'That role name is reserved.'], 422);
+        }
+
         if (ShopRole::where('shop_id', $shop->id)->where('name', $name)->exists()) {
             return response()->json(['error' => 'Role already exists.'], 422);
         }
@@ -118,7 +136,7 @@ class PermissionController extends Controller
         return response()->json([
             'name'      => $role->name,
             'deletable' => true,
-        ]);
+        ], 201);
     }
 
     public function destroyRole(Request $request, string $roleName)
@@ -130,8 +148,13 @@ class PermissionController extends Controller
             ->where('is_default', false)
             ->firstOrFail();
 
-        // Remove from role_permissions
+        // Clean up role permissions for this role
         RolePermission::where('shop_id', $shop->id)
+            ->where('role', $roleName)
+            ->delete();
+
+        // Clean up employee role assignments for this role
+        EmployeeRole::whereHas('employee', fn ($q) => $q->where('shop_id', $shop->id))
             ->where('role', $roleName)
             ->delete();
 
@@ -140,7 +163,7 @@ class PermissionController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function toggleEmployeeRole(ToggleEmployeeRoleRequest $request, $employeeId)
+    public function toggleEmployeeRole(ToggleEmployeeRoleRequest $request, int $employeeId)
     {
         $shop     = $this->getShop();
         $data     = $request->validated();
@@ -155,22 +178,40 @@ class PermissionController extends Controller
         ])->first();
 
         if ($existing) {
+            // Prevent removing the last role
             if ($employee->roles()->count() <= 1) {
-                return response()->json(['error' => 'Employee must have at least one role.'], 422);
+                return response()->json(
+                    ['error' => 'Employee must have at least one role.'],
+                    422
+                );
             }
+
             $existing->delete();
             $has = false;
         } else {
+            // Ensure the role actually belongs to this shop before assigning
+            $roleExists = ShopRole::where('shop_id', $shop->id)
+                ->where('name', $data['role'])
+                ->exists();
+
+            if (! $roleExists) {
+                return response()->json(
+                    ['error' => 'Role does not exist for this shop.'],
+                    422
+                );
+            }
+
             EmployeeRole::create([
                 'employee_id' => $employee->id,
                 'role'        => $data['role'],
             ]);
+
             $has = true;
         }
 
         return response()->json([
             'has'   => $has,
-            'roles' => $employee->roles()->pluck('role')->values(),
+            'roles' => $employee->roles()->pluck('role')->values()->toArray(),
         ]);
     }
 }

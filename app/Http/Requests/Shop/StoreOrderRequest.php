@@ -14,27 +14,30 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'shop_name'       => ['required', 'string'],
-            'owner_name'      => ['required', 'string'],
-            'email'           => ['required', 'email'],
-            'phone'           => ['required', 'string'],
-            'block_street'    => ['required', 'string'],
-            'municipality'    => ['required', 'string'],
-            'barangay'        => ['required', 'string'],
-            'postal_code'     => ['required', 'string'],
-            'branch_name'     => ['nullable', 'string'],
-            'amount'          => ['required', 'numeric'],
-            'modules'         => ['required', 'array', 'min:1'],
-            'modules.*.name'  => ['required', 'string'],
-            'modules.*.price' => ['required', 'numeric'],
+            'shop_name'         => ['required', 'string'],
+            'owner_name'        => ['required', 'string'],
+            'email'             => ['required', 'email'],
+            'phone'             => ['required', 'string'],
+            'block_street'      => ['required', 'string'],
+            'municipality'      => ['required', 'string'],
+            'barangay'          => ['required', 'string'],
+            'postal_code'       => ['required', 'string'],
+            'branch_name'       => ['nullable', 'string'],
+            'amount'            => ['required', 'numeric'],
+            'subscription_plan' => ['required', 'in:monthly,annually'],
+            'modules'           => ['required', 'array', 'min:1'],
+            'modules.*.name'    => ['required', 'string'],
+            'modules.*.price'   => ['required', 'numeric'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'modules.required' => 'Please select at least one module.',
-            'modules.min'      => 'Please select at least one module.',
+            'modules.required'         => 'Please select at least one module.',
+            'modules.min'              => 'Please select at least one module.',
+            'subscription_plan.required' => 'Please select a subscription plan.',
+            'subscription_plan.in'       => 'Subscription plan must be monthly or annually.',
         ];
     }
 }

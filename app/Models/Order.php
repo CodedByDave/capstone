@@ -23,6 +23,8 @@ class Order extends Model
         'postal_code',
         'status',
         'total_price',
+        'expires_at',
+        'subscription_plan'
     ];
 
     public function modules(): HasMany

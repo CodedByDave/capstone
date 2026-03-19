@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Shop;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\PaymongoService;
@@ -110,6 +111,15 @@ class CheckoutController extends Controller
 
                         $order?->update(['status' => 'paid']);
 
+                        // Activate the shop once payment is confirmed
+                        Shop::where('owner_id', $order->user_id)
+                            ->update(['status' => 'active']);
+
+                        Log::info('Shop activated after payment', [
+                            'order_id' => $orderId,
+                            'user_id'  => $order->user_id,
+                        ]);
+
                         $payment = $payment->fresh();
                         $order   = $order->fresh()->load('modules');
                     }
@@ -123,20 +133,20 @@ class CheckoutController extends Controller
 
             return Inertia::render('shop/payment/PaymentSuccess', [
                 'order'   => $order ? [
-                    'id'          => $order->id,
-                    'status'      => $order->status,
-                    'shop_name'   => $order->shop_name,
-                    'owner_name'  => $order->owner_name,
-                    'email'       => $order->email,
-                    'phone'       => $order->phone,
+                    'id'           => $order->id,
+                    'status'       => $order->status,
+                    'shop_name'    => $order->shop_name,
+                    'owner_name'   => $order->owner_name,
+                    'email'        => $order->email,
+                    'phone'        => $order->phone,
                     'block_street' => $order->block_street,
                     'municipality' => $order->municipality,
-                    'barangay'    => $order->barangay,
-                    'postal_code' => $order->postal_code,
-                    'branch_name' => $order->branch_name,
-                    'total_price' => $order->total_price,
-                    'created_at'  => $order->created_at,
-                    'modules'     => $order->modules->map(fn($m) => [
+                    'barangay'     => $order->barangay,
+                    'postal_code'  => $order->postal_code,
+                    'branch_name'  => $order->branch_name,
+                    'total_price'  => $order->total_price,
+                    'created_at'   => $order->created_at,
+                    'modules'      => $order->modules->map(fn($m) => [
                         'name'  => $m->name,
                         'price' => $m->price,
                     ]),

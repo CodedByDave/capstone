@@ -15,7 +15,12 @@ class OrderService
     public function create(array $data): Order
     {
         return DB::transaction(function () use ($data) {
-            $total = collect($data['modules'])->sum('price');
+            $baseTotal = collect($data['modules'])->sum('price');
+
+            $total = match ($data['subscription_plan'] ?? 'monthly') {
+                'annually' => $baseTotal * 0.90 * 12,
+                default    => $baseTotal,
+            };
 
             $order = $this->orderRepository->create(array_merge($data, [
                 'total_price' => $total,
