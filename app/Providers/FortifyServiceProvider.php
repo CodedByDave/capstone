@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\Fortify\AttemptToAuthenticate;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -10,29 +11,26 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Fortify\Actions\EnsureLoginIsNotThrottled;
+use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
+use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
+use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\RegisterResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
-use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Laravel\Fortify\Contracts\RegisterResponse;
-use Laravel\Fortify\Contracts\LoginResponse; // Add this import
 
 class FortifyServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
+    // ── Register ──────────────────────────────────────────────────────────────
+
     public function register(): void
     {
-        // Override the default RegisterResponse
         $this->app->singleton(RegisterResponse::class, \App\Http\Responses\RegisterResponse::class);
-
-        // Override the default LoginResponse (ADD THIS LINE)
-        $this->app->singleton(LoginResponse::class, \App\Http\Responses\LoginResponse::class);
+        $this->app->singleton(LoginResponse::class,    \App\Http\Responses\LoginResponse::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    // ── Boot ──────────────────────────────────────────────────────────────────
+
     public function boot(): void
     {
         $this->configureActions();
@@ -40,24 +38,38 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
     }
 
-    /**
-     * Configure Fortify actions.
-     */
+    // ── Actions ───────────────────────────────────────────────────────────────
+
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        // Custom pipeline — replaces Fortify's default AttemptToAuthenticate
+        // so we can log failed attempts without listeners
+        Fortify::authenticateThrough(function () {
+            return array_filter([
+                EnsureLoginIsNotThrottled::class,
+
+                // Only include 2FA redirect if the feature is enabled
+                Features::enabled(Features::twoFactorAuthentication())
+                    ? RedirectIfTwoFactorAuthenticatable::class
+                    : null,
+
+                AttemptToAuthenticate::class,   // ← our custom one
+                PrepareAuthenticatedSession::class,
+            ]);
+        });
     }
 
-    /**
-     * Configure Fortify views.
-     */
+    // ── Views ─────────────────────────────────────────────────────────────────
+
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
+            'canRegister'      => Features::enabled(Features::registration()),
+            'status'           => $request->session()->get('status'),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/ResetPassword', [
@@ -74,15 +86,12 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::registerView(fn () => Inertia::render('auth/Register'));
-
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
-
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/ConfirmPassword'));
     }
 
-    /**
-     * Configure rate limiting.
-     */
+    // ── Rate Limiting ─────────────────────────────────────────────────────────
+
     private function configureRateLimiting(): void
     {
         RateLimiter::for('two-factor', function (Request $request) {
@@ -90,8 +99,9 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-
+            $throttleKey = Str::transliterate(
+                Str::lower($request->input(Fortify::username())) . '|' . $request->ip()
+            );
             return Limit::perMinute(5)->by($throttleKey);
         });
     }

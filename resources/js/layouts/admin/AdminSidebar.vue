@@ -13,19 +13,34 @@ import {
 import { dashboard } from '@/routes'
 import { type NavItem } from '@/types'
 import { Link } from '@inertiajs/vue3'
-import { LayoutGrid, Store, User, ListOrdered, ChartNoAxesCombined } from 'lucide-vue-next'
+import {
+    LayoutGrid, Store, User, ListOrdered,
+    ChartNoAxesCombined, Users, ShieldCheck,
+} from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: dashboard.url(),
         icon: LayoutGrid,
     },
     {
         title: 'User Management',
         href: '#',
         icon: User,
+        children: [
+            {
+                title: 'User List',
+                href: '/admin/users',
+                icon: Users,
+            },
+            {
+                title: 'Login Logs',
+                href: '/admin/login-logs',
+                icon: ShieldCheck,
+            },
+        ],
     },
     {
         title: 'Shop Management',
@@ -34,7 +49,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Order Management',
-        href: '#',
+        href: '/admin/orders',
         icon: ListOrdered,
     },
     {
@@ -43,7 +58,6 @@ const mainNavItems: NavItem[] = [
         icon: ChartNoAxesCombined,
     },
 ]
-
 </script>
 
 <template>

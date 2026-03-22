@@ -74,7 +74,10 @@ class OtpVerificationController extends Controller
             $user = $result['owner'];
 
             // Mark email verified since OTP confirmed it
-            $user->update(['email_verified_at' => now()]);
+            $user->update([
+                'email_verified_at' => now(),
+                'is_verified'       => true,
+            ]);
 
             DB::commit();
 

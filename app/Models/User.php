@@ -58,7 +58,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Shop::class, 'owner_id');
     }
-
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
     protected $hidden = [
         'password',
         'two_factor_secret',

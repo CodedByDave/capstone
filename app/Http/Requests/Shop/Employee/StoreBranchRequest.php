@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Shop;
+namespace App\Http\Requests\Shop\Employee;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateBranchRequest extends FormRequest
+class StoreBranchRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -13,10 +13,8 @@ class UpdateBranchRequest extends FormRequest
 
     public function rules(): array
     {
-        $branchId = $this->route('branch')?->id;
-
         return [
-            'branch_code'  => ['required', 'string', 'max:20', "unique:branches,branch_code,{$branchId}"],
+            'branch_code'  => ['required', 'string', 'max:20', 'unique:branches,branch_code'],
             'name'         => ['required', 'string', 'max:255'],
             'phone'        => ['nullable', 'string', 'max:20'],
             'email'        => ['nullable', 'email', 'max:255'],

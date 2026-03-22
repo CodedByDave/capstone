@@ -18,8 +18,15 @@ class Shop extends Model
         'barangay',
         'postal_code',
         'status',
+        'disable_reason'
     ];
 
+    public function latestOrder()
+    {
+        return $this->hasOne(Order::class, 'user_id', 'user_id')
+            ->where('status', 'paid')
+            ->latestOfMany();
+    }
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');

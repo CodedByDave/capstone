@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Requests\Shop;
+namespace App\Http\Requests\Shop\Employee;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\Shop;
 
 class StoreEmployeeRequest extends FormRequest
 {
@@ -49,3 +48,4 @@ class StoreEmployeeRequest extends FormRequest
         ];
     }
 }
+

@@ -11,6 +11,7 @@ import { ArrowLeft, Pencil, ShieldOff, ShieldCheck } from 'lucide-vue-next'
 
 import {
     AlertDialog,
+    AlertDialogTrigger,
     AlertDialogContent,
     AlertDialogHeader,
     AlertDialogTitle,
@@ -18,8 +19,15 @@ import {
     AlertDialogFooter,
     AlertDialogCancel,
     AlertDialogAction,
-    AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+
+type LatestOrder = {
+    subscription_plan: string | null
+    expires_at: string | null
+    total_price: string | null
+    status: string | null
+    created_at: string | null
+} | null
 
 const { shop } = defineProps<{
     shop: {
@@ -32,11 +40,11 @@ const { shop } = defineProps<{
         barangay: string
         postal_code: string
         status: string
-        plan: string | null
         disable_reason: string | null
         created_at: string
         updated_at: string
         owner: { name: string; email: string }
+        latest_order: LatestOrder
     }
 }>()
 
@@ -45,25 +53,43 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: shop.shop_name, href: `/admin/shop/${shop.id}` },
 ]
 
-const planLabel: Record<string, { label: string; class: string }> = {
-    basic:      { label: 'Basic',      class: 'bg-slate-100 text-slate-700' },
-    standard:   { label: 'Standard',   class: 'bg-blue-100 text-blue-700' },
-    premium:    { label: 'Premium',    class: 'bg-purple-100 text-purple-700' },
-    enterprise: { label: 'Enterprise', class: 'bg-amber-100 text-amber-700' },
+const planStyles: Record<string, { label: string; class: string }> = {
+    monthly:       { label: 'Monthly',      class: 'bg-blue-100 text-blue-700' },
+    quarterly:     { label: 'Quarterly',    class: 'bg-purple-100 text-purple-700' },
+    semi_annually: { label: 'Semi-Annual',  class: 'bg-green-100 text-green-700' },
+    annually:      { label: 'Annually',     class: 'bg-amber-100 text-amber-700' },
 }
 
-function getPlan(plan: string | null) {
-    if (!plan) return { label: 'No Plan', class: 'bg-gray-100 text-gray-400' }
-    return planLabel[plan] ?? { label: plan, class: 'bg-gray-100 text-gray-500' }
+function getPlanBadge(order: LatestOrder) {
+    if (!order?.subscription_plan || order.status !== 'paid') {
+        return { label: 'No Active Plan', class: 'bg-gray-100 text-gray-400' }
+    }
+    return planStyles[order.subscription_plan] ?? { label: order.subscription_plan, class: 'bg-gray-100 text-gray-500' }
+}
+
+function isExpired(expiresAt: string | null) {
+    if (!expiresAt) return false
+    return new Date(expiresAt) < new Date()
+}
+
+function formatDate(date: string | null) {
+    if (!date) return '—'
+    return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+function formatDateTime(date: string | null) {
+    if (!date) return '—'
+    return new Date(date).toLocaleString('en-PH', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+    })
 }
 
 const disableDialogOpen = ref(false)
 const disableReason = ref('')
 
 function confirmDisable() {
-    router.post(`/admin/shop/${shop.id}/disable`, {
-        reason: disableReason.value,
-    }, {
+    router.post(`/admin/shop/${shop.id}/disable`, { reason: disableReason.value }, {
         onSuccess: () => {
             disableDialogOpen.value = false
             disableReason.value = ''
@@ -88,7 +114,7 @@ function enableShop() {
             </Button>
 
             <div class="flex gap-2">
-                <!-- Disable / Enable -->
+                <!-- Disable -->
                 <template v-if="shop.status !== 'disabled'">
                     <Button
                         variant="outline"
@@ -99,6 +125,8 @@ function enableShop() {
                         Disable Shop
                     </Button>
                 </template>
+
+                <!-- Enable -->
                 <template v-else>
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -111,7 +139,8 @@ function enableShop() {
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Enable Shop</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Re-enable <strong>{{ shop.shop_name }}</strong>? They will regain full access to the system.
+                                    Re-enable <strong>{{ shop.shop_name }}</strong>?
+                                    They will regain full access to the system.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -129,7 +158,7 @@ function enableShop() {
             </div>
         </div>
 
-        <!-- Disabled Warning Banner -->
+        <!-- Disabled Banner -->
         <div
             v-if="shop.status === 'disabled'"
             class="mb-4 flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800"
@@ -143,9 +172,10 @@ function enableShop() {
             </div>
         </div>
 
-        <Card>
+        <!-- Shop Details -->
+        <Card class="mb-6">
             <CardHeader>
-                <CardTitle>{{ shop.shop_name }}</CardTitle>
+                <CardTitle>Shop Information</CardTitle>
             </CardHeader>
             <CardContent>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
@@ -175,18 +205,6 @@ function enableShop() {
                         <p class="font-medium">{{ shop.phone }}</p>
                     </div>
 
-                    <!-- Plan -->
-                    <div class="space-y-1">
-                        <p class="text-xs font-semibold uppercase text-muted-foreground">Subscribed Plan</p>
-                        <span
-                            class="inline-block px-2 py-1 text-xs font-semibold rounded-full"
-                            :class="getPlan(shop.plan).class"
-                        >
-                            {{ getPlan(shop.plan).label }}
-                        </span>
-                    </div>
-
-                    <!-- Status -->
                     <div class="space-y-1">
                         <p class="text-xs font-semibold uppercase text-muted-foreground">Status</p>
                         <span
@@ -224,15 +242,15 @@ function enableShop() {
 
                     <div class="space-y-1">
                         <p class="text-xs font-semibold uppercase text-muted-foreground">Registered</p>
-                        <p class="font-medium">{{ shop.created_at }}</p>
+                        <p class="font-medium">{{ formatDateTime(shop.created_at) }}</p>
                     </div>
 
                     <div class="space-y-1">
                         <p class="text-xs font-semibold uppercase text-muted-foreground">Last Updated</p>
-                        <p class="font-medium">{{ shop.updated_at }}</p>
+                        <p class="font-medium">{{ formatDateTime(shop.updated_at) }}</p>
                     </div>
 
-                    <!-- Disable Reason (only shown if disabled) -->
+                    <!-- Disable Reason -->
                     <div v-if="shop.disable_reason" class="space-y-1 md:col-span-2">
                         <p class="text-xs font-semibold uppercase text-muted-foreground">Disable Reason</p>
                         <p class="font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded px-3 py-2">
@@ -241,6 +259,65 @@ function enableShop() {
                     </div>
 
                 </div>
+            </CardContent>
+        </Card>
+
+        <!-- Subscription Card -->
+        <Card>
+            <CardHeader>
+                <CardTitle>Subscription</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <template v-if="shop.latest_order && shop.latest_order.status === 'paid'">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold uppercase text-muted-foreground">Plan</p>
+                            <span
+                                class="inline-block px-2 py-1 text-xs font-semibold rounded-full"
+                                :class="getPlanBadge(shop.latest_order).class"
+                            >
+                                {{ getPlanBadge(shop.latest_order).label }}
+                            </span>
+                        </div>
+
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold uppercase text-muted-foreground">Amount Paid</p>
+                            <p class="font-medium">
+                                ₱{{ Number(shop.latest_order.total_price).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold uppercase text-muted-foreground">Subscribed On</p>
+                            <p class="font-medium">{{ formatDateTime(shop.latest_order.created_at) }}</p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold uppercase text-muted-foreground">Expires On</p>
+                            <p
+                                class="font-medium"
+                                :class="isExpired(shop.latest_order.expires_at) ? 'text-red-600' : 'text-gray-900'"
+                            >
+                                {{ formatDate(shop.latest_order.expires_at) }}
+                                <span
+                                    v-if="isExpired(shop.latest_order.expires_at)"
+                                    class="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold"
+                                >
+                                    Expired
+                                </span>
+                            </p>
+                        </div>
+
+                    </div>
+                </template>
+
+                <template v-else>
+                    <div class="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                        <p class="text-sm font-medium">No active subscription found.</p>
+                        <p class="text-xs mt-1">This shop has not completed a paid order yet.</p>
+                    </div>
+                </template>
             </CardContent>
         </Card>
 
@@ -254,10 +331,9 @@ function enableShop() {
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                         You are about to disable <strong>{{ shop.shop_name }}</strong>.
-                        The owner will lose access. Please provide a reason.
+                        The owner will lose access to the system. Please provide a reason.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-
                 <div class="mt-2">
                     <label class="text-sm font-medium">Reason for disabling</label>
                     <Textarea
@@ -267,7 +343,6 @@ function enableShop() {
                         rows="3"
                     />
                 </div>
-
                 <AlertDialogFooter class="mt-4">
                     <AlertDialogCancel @click="disableDialogOpen = false">Cancel</AlertDialogCancel>
                     <AlertDialogAction

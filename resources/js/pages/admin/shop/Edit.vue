@@ -21,7 +21,6 @@ const { shop } = defineProps<{
         barangay: string
         postal_code: string
         status: string
-        plan: string | null
         owner: { name: string; email: string }
     }
 }>()
@@ -33,15 +32,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 const form = useForm({
-    shop_name:   shop.shop_name,
-    branch_name: shop.branch_name ?? '',
-    phone:       shop.phone,
+    shop_name:    shop.shop_name,
+    branch_name:  shop.branch_name ?? '',
+    phone:        shop.phone,
     block_street: shop.block_street,
     municipality: shop.municipality,
-    barangay:    shop.barangay,
-    postal_code: shop.postal_code,
-    status:      shop.status,
-    plan:        shop.plan ?? '',
+    barangay:     shop.barangay,
+    postal_code:  shop.postal_code,
+    status:       shop.status,
 })
 
 function submit() {
@@ -96,6 +94,7 @@ function submit() {
             <div class="space-y-1 md:col-span-2">
                 <label class="text-sm font-medium">Owner Name</label>
                 <Input :model-value="shop.owner.name" disabled />
+                <p class="text-xs text-muted-foreground mt-0.5">Owner info is managed via user accounts.</p>
             </div>
 
             <!-- Phone -->
@@ -120,24 +119,6 @@ function submit() {
                     </SelectContent>
                 </Select>
                 <p v-if="form.errors.status" class="text-xs text-red-500">{{ form.errors.status }}</p>
-            </div>
-
-            <!-- Plan -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium">Subscribed Plan</label>
-                <Select v-model="form.plan">
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="">No Plan</SelectItem>
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="standard">Standard</SelectItem>
-                        <SelectItem value="premium">Premium</SelectItem>
-                        <SelectItem value="enterprise">Enterprise</SelectItem>
-                    </SelectContent>
-                </Select>
-                <p v-if="form.errors.plan" class="text-xs text-red-500">{{ form.errors.plan }}</p>
             </div>
 
             <!-- Block / Street -->
@@ -168,6 +149,11 @@ function submit() {
                 <p v-if="form.errors.postal_code" class="text-xs text-red-500">{{ form.errors.postal_code }}</p>
             </div>
 
+        </div>
+
+        <!-- Note about subscription -->
+        <div class="mt-6 rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            Subscription plan is managed through the Orders system and cannot be edited here.
         </div>
 
         <!-- Footer Buttons -->

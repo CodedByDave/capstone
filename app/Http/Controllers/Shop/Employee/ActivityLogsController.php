@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Shop\ActivityLogRequest;
+use App\Http\Requests\Shop\Employee\ActivityLogRequest;
 use App\Services\ActivityLogService;
 use App\Models\Shop;
 use Illuminate\Http\Request;

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Shop\BulkEmployeeRequest;
-use App\Http\Requests\Shop\StoreEmployeeRequest;
-use App\Http\Requests\Shop\UpdateEmployeeRequest;
+use App\Http\Requests\Shop\Employee\BulkEmployeeRequest;
+use App\Http\Requests\Shop\Employee\StoreEmployeeRequest;
+use App\Http\Requests\Shop\Employee\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Models\EmployeeArchive;
 use App\Models\Shop;
@@ -32,7 +32,7 @@ class EmployeeController extends Controller
             return Shop::where('owner_id', $user->id)->firstOrFail();
         }
 
-        // Staff — resolve shop via their employee record
+        // Staff
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
         return Shop::findOrFail($employee->shop_id);
     }

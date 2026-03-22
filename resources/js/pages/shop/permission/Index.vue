@@ -161,15 +161,35 @@ async function toggleAction(moduleName: string, actionKey: string) {
     if (isOwnerRole.value) return
 
     const role = selectedRole.value
-    const key  = `${role}-${moduleName}-${actionKey}`
 
     if (!permissionsState.value[role])             permissionsState.value[role] = {}
     if (!permissionsState.value[role][moduleName]) permissionsState.value[role][moduleName] = []
 
     const actions = permissionsState.value[role][moduleName]
+    const isRemoving = actions.includes(actionKey)
+
+    // If adding a non-view action, auto-add 'view' too
+    if (!isRemoving && actionKey !== 'view' && !actions.includes('view')) {
+        await saveAction(moduleName, 'view')
+    }
+
+    await saveAction(moduleName, actionKey)
+
+    // If removing an action and no non-view actions remain, auto-remove 'view'
+    if (isRemoving && actionKey !== 'view') {
+        const remaining = actions.filter(a => a !== actionKey && a !== 'view')
+        if (remaining.length === 0) {
+            await saveAction(moduleName, 'view')
+        }
+    }
+}
+
+async function saveAction(moduleName: string, actionKey: string) {
+    const role    = selectedRole.value
+    const key     = `${role}-${moduleName}-${actionKey}`
+    const actions = permissionsState.value[role][moduleName]
     const idx     = actions.indexOf(actionKey)
 
-    // Optimistic update
     if (idx >= 0) actions.splice(idx, 1)
     else actions.push(actionKey)
 

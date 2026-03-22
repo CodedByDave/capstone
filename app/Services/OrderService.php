@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Repositories\OrderRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
@@ -11,6 +12,8 @@ class OrderService
     public function __construct(
         protected OrderRepository $orderRepository
     ) {}
+
+    // ── Existing ──────────────────────────────────────────────────────────────
 
     public function create(array $data): Order
     {
@@ -36,5 +39,22 @@ class OrderService
 
             return $order->load('modules');
         });
+    }
+
+    // ── Admin
+
+    public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    {
+        return $this->orderRepository->getPaginated($filters, $perPage);
+    }
+
+    public function getStats(): array
+    {
+        return $this->orderRepository->getStats();
+    }
+
+    public function find(int $id): Order
+    {
+        return $this->orderRepository->findWithRelations($id);
     }
 }

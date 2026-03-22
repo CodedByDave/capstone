@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Shop\StoreBranchRequest;
-use App\Http\Requests\Shop\UpdateBranchRequest;
+use App\Http\Requests\Shop\Employee\StoreBranchRequest;
+use App\Http\Requests\Shop\Employee\UpdateBranchRequest;
 use App\Models\Branch;
 use App\Services\BranchService;
 use Illuminate\Http\RedirectResponse;

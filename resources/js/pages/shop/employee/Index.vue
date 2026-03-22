@@ -413,15 +413,6 @@ async function submitImport() {
                     >
                         <UserPlus class="h-4 w-4 mr-1.5" /> Add Employee
                     </Button>
-
-                    <!-- Add Branch — owner only -->
-                    <Button
-                        v-if="isOwner"
-                        class="bg-blue-500 hover:bg-blue-700"
-                        @click="router.visit('/shop/branch/create')"
-                    >
-                        <Building2 class="h-4 w-4 mr-1.5" /> Add Branch
-                    </Button>
                 </div>
             </CardHeader>
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use App\Models\EmployeeSchedule;
 
@@ -36,7 +37,7 @@ class Employee extends Model
         'deleted_at' => 'datetime',
     ];
 
-    // Relationships 
+    // Relationships
 
     public function roles()
     {
@@ -58,6 +59,10 @@ class Employee extends Model
         return $this->hasOne(EmployeeSchedule::class, 'employee_id');
     }
 
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(EmployeeSchedule::class);
+    }
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

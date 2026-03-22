@@ -8,46 +8,53 @@ use App\Http\Controllers\Auth\OtpVerificationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Services\LoginLogService;
+use Illuminate\Support\Facades\Auth;
 
-/**
- * Guest Routes - not authenticated
- */
+// Logout
+Route::post('/logout', function (LoginLogService $loginLogService) {
+    $user = Auth::user();
+
+    if ($user) {
+        $loginLogService->logLogout(
+            userId:    $user->id,
+            email:     $user->email,
+            name:      $user->name,
+            role:      $user->role,
+            ip:        request()->ip(),
+            userAgent: request()->userAgent() ?? '',
+        );
+    }
+
+    Auth::guard('web')->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+
+    return redirect('/');
+})->middleware('auth')->name('logout');
+
+// Guest Routes
 Route::middleware(['guest'])->group(function () {
 
-    //Login
     Route::get('/login', [AuthController::class, 'show'])->name('login.user');
 
-    // Shop registration
-    Route::get('/register/shop', [ShopRegisterController::class, 'show'])
-        ->name('register.shop');
-
+    Route::get('/register/shop', [ShopRegisterController::class, 'show'])->name('register.shop');
     Route::post('/register/shop', [ShopRegisterController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('register.shop.store');
 
-    //Forgot password
     Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'send'])
         ->middleware('throttle:5,1')
         ->name('password.email');
 
-    // Password Reset
-    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])
-        ->name('password.reset');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'update'])->name('password.update');
 
-    Route::post('/reset-password', [ResetPasswordController::class, 'update'])
-        ->name('password.update');
-
-    // OTP verification page
-    Route::get('/verify-otp', [OtpVerificationController::class, 'show'])
-        ->name('otp.verify.page');
-
-    // Verify OTP
+    Route::get('/verify-otp', [OtpVerificationController::class, 'show'])->name('otp.verify.page');
     Route::post('/verify-otp', [OtpVerificationController::class, 'verify'])
         ->middleware('throttle:5,1')
         ->name('otp.verify');
-
-    // Resend OTP
     Route::post('/resend-otp', [OtpVerificationController::class, 'resend'])
         ->middleware('throttle:3,1')
         ->name('otp.resend');

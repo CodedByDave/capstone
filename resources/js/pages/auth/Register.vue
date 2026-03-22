@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { login, register} from '@/routes';
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { watch, ref, computed } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
@@ -166,12 +165,12 @@ const passwordError = computed(() => {
 
             <div class="text-center text-sm text-muted-foreground">
                 Already have an account?
-                <TextLink
+                <!-- <TextLink
                     :href="login()"
                     class="underline underline-offset-4"
                 >
                     Log in
-                </TextLink>
+                </TextLink> -->
             </div>
         </Form>
     </AuthBase>

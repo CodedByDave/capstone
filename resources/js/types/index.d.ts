@@ -11,10 +11,10 @@ export interface BreadcrumbItem {
 }
 
 export interface NavItem {
-    title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
-    icon?: LucideIcon;
-    isActive?: boolean;
+    title: string
+    href: string
+    icon?: any
+    children?: NavItem[]
 }
 
 export type Permissions = Record<string, string[]>

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Shop\UpdatePermissionRequest;
-use App\Http\Requests\Shop\ToggleEmployeeRoleRequest;
+use App\Http\Requests\Shop\Employee\UpdatePermissionRequest;
+use App\Http\Requests\Shop\Employee\ToggleEmployeeRoleRequest;
 use App\Models\Employee;
 use App\Models\EmployeeRole;
 use App\Models\Order;

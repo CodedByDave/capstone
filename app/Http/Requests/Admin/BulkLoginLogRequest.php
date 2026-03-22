@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Shop;
+namespace App\Http\Requests\Admin\LoginLog;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ToggleEmployeeRoleRequest extends FormRequest
+class BulkLoginLogRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,8 @@ class ToggleEmployeeRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role' => ['required', 'string'],
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:login_logs,id',
         ];
     }
 }

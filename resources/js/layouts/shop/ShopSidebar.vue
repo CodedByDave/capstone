@@ -64,7 +64,7 @@ const allInventorySubActions = [
     {
         title: 'Categories',
         icon: Layers,
-        href: isOwner.value ? '/shop/inventory/categories' : '/staff/inventory/categories',
+        href: isOwner.value ? '/shop/inventory/category' : '/staff/inventory/category',
         show: () => isOwner.value || can('Inventory Management', 'view'),
     },
     {
@@ -74,9 +74,9 @@ const allInventorySubActions = [
         show: () => isOwner.value || can('Inventory Management', 'view'),
     },
     {
-        title: 'Supplier',
+        title: 'Suppliers',
         icon: Truck,
-        href: isOwner.value ? '/shop/inventory/supplier' : '/staff/inventory/supplier',
+        href: isOwner.value ? '/shop/supplier' : '/staff/supplier',
         show: () => isOwner.value || can('Inventory Management', 'view'),
     },
 ]
@@ -211,7 +211,8 @@ const areaChecks: Record<string, (url: string) => boolean> = {
         url.startsWith('/shop/branch') || url.startsWith('/staff/branch') ||
         url.startsWith('/shop/logs'),
     'Inventory Management': (url) =>
-        url.startsWith('/shop/inventory') || url.startsWith('/staff/inventory'),
+        url.startsWith('/shop/inventory') || url.startsWith('/staff/inventory')||
+        url.startsWith('/shop/supplier') || url.startsWith('/staff/supplier'),
     'Order Management': (url) =>
         url.startsWith('/shop/orders') || url.startsWith('/staff/orders'),
     'Services & Pricing': (url) =>
@@ -248,6 +249,7 @@ const exactRoutes = [
     '/shop/employee', '/shop/branch', '/staff/employee', '/staff/branch', '/shop/logs',
     '/shop/inventory', '/shop/inventory/categories', '/shop/inventory/alerts',
     '/staff/inventory', '/staff/inventory/categories', '/staff/inventory/alerts',
+    '/shop/supplier', '/staff/supplier',
     '/shop/orders', '/shop/orders/pending', '/shop/orders/progress', '/shop/orders/completed', '/shop/orders/cancelled',
     '/staff/orders', '/staff/orders/pending', '/staff/orders/progress', '/staff/orders/completed', '/staff/orders/cancelled',
     '/shop/services', '/shop/services/pricing', '/shop/services/promos',
