@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\User\BulkUserRequest;
+use App\Http\Requests\Admin\BulkUserRequest;
 use App\Models\User;
 use App\Services\UserManagementService;
 use Illuminate\Http\Request;
