@@ -10,6 +10,7 @@ use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ShopDataController;
 use App\Http\Controllers\Shop\ShopDashboardController;
 use App\Http\Controllers\Shop\ShopOrderController;
+use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\Employee\EmployeeController;
 use App\Http\Controllers\Shop\Employee\ScheduleController;
 use App\Http\Controllers\Shop\Employee\PermissionController;
@@ -83,7 +84,6 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
-
 });
 // ── Shop owner routes ──────────────────────────────────────────────────────────
 
@@ -171,6 +171,14 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::delete('/supplier/{supplier}',   [SupplierController::class, 'destroy'])->name('supplier.destroy');
     Route::get('/supplier/archive',         [SupplierController::class, 'archive'])->name('supplier.archive');
     Route::post('/supplier/{id}/restore',   [SupplierController::class, 'restore'])->name('supplier.restore');
+
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/',          [ReportsController::class, 'overview'])->name('overview');
+        Route::get('/inventory', [ReportsController::class, 'inventory'])->name('inventory');
+        Route::get('/employee',  [ReportsController::class, 'employee'])->name('employee');
+    });
+
 });
 
 // ── Staff routes ───────────────────────────────────────────────────────────────
@@ -179,40 +187,142 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff'])->group(fu
 
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
 
-    // view
+    // ── Employee ──────────────────────────────────────────────────────────────
     Route::middleware('permission:Employee Management,view')->group(function () {
-        Route::get('/employee',            [EmployeeController::class, 'index'])->name('staff.employee.index');
-        Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
-        Route::get('/branch',              [BranchController::class, 'index'])->name('staff.branch.index');
+        Route::get('/employee', [EmployeeController::class, 'index'])->name('staff.employee.index');
     });
-
-    // create
     Route::middleware('permission:Employee Management,create')->group(function () {
         Route::get('/employee/create', [EmployeeController::class, 'create'])->name('staff.employee.create');
         Route::post('/employee',       [EmployeeController::class, 'store'])->name('staff.employee.store');
     });
-
-    // update
-    Route::middleware('permission:Employee Management,update')->group(function () {
-        Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('staff.employee.edit');
-        Route::put('/employee/{employee}',      [EmployeeController::class, 'update'])->name('staff.employee.update');
-    });
-
-    // archive — static routes before wildcard
     Route::middleware('permission:Employee Management,archive')->group(function () {
         Route::get('/employee/archive',       [EmployeeController::class, 'archive'])->name('staff.employee.archive');
         Route::post('/employee/bulk-restore', [EmployeeController::class, 'bulkRestore'])->name('staff.employee.bulk-restore');
-        Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('staff.employee.destroy');
-        Route::post('/employee/{id}/restore', [EmployeeController::class, 'restore'])->name('staff.employee.restore');
     });
-
-    // import
     Route::middleware('permission:Employee Management,import')->group(function () {
         Route::get('/employee/import-template', [EmployeeController::class, 'importTemplate'])->name('staff.employee.import.template');
         Route::post('/employee/import',         [EmployeeController::class, 'import'])->name('staff.employee.import');
     });
-});
 
+    Route::middleware('permission:Employee Management,view')->group(function () {
+        Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
+    });
+    Route::middleware('permission:Employee Management,update')->group(function () {
+        Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('staff.employee.edit');
+        Route::put('/employee/{employee}',      [EmployeeController::class, 'update'])->name('staff.employee.update');
+    });
+    Route::middleware('permission:Employee Management,archive')->group(function () {
+        Route::delete('/employee/{employee}',   [EmployeeController::class, 'destroy'])->name('staff.employee.destroy');
+        Route::post('/employee/{id}/restore',   [EmployeeController::class, 'restore'])->name('staff.employee.restore');
+    });
+
+    // ── Schedule ──────────────────────────────────────────────────────────────
+    Route::middleware('permission:Employee Management,update')->group(function () {
+        Route::post('/employee/{employee}/schedule',              [ScheduleController::class, 'store'])->name('staff.schedule.store');
+        Route::put('/employee/{employee}/schedule/{schedule}',    [ScheduleController::class, 'update'])->name('staff.schedule.update');
+        Route::delete('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('staff.schedule.destroy');
+    });
+
+    // ── Branch ────────────────────────────────────────────────────────────────
+    Route::middleware('permission:Branch Management,view')->group(function () {
+        Route::get('/branch', [BranchController::class, 'index'])->name('staff.branch.index');
+    });
+    Route::middleware('permission:Branch Management,create')->group(function () {
+        Route::get('/branch/create', [BranchController::class, 'create'])->name('staff.branch.create');
+        Route::post('/branch',       [BranchController::class, 'store'])->name('staff.branch.store');
+    });
+    Route::middleware('permission:Branch Management,archive')->group(function () {
+        Route::get('/branch/archive',       [BranchController::class, 'archive'])->name('staff.branch.archive');
+        Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('staff.branch.restore');
+    });
+
+    Route::middleware('permission:Branch Management,update')->group(function () {
+        Route::get('/branch/{branch}/edit', [BranchController::class, 'edit'])->name('staff.branch.edit');
+        Route::put('/branch/{branch}',      [BranchController::class, 'update'])->name('staff.branch.update');
+    });
+    Route::middleware('permission:Branch Management,archive')->group(function () {
+        Route::delete('/branch/{branch}', [BranchController::class, 'destroy'])->name('staff.branch.destroy');
+    });
+
+    // ── Inventory Categories ──────────────────────────────────────────────────
+    Route::middleware('permission:Inventory Management,view')->group(function () {
+        Route::get('/inventory/category',         [InventoryCategoryController::class, 'index'])->name('staff.inventory.category.index');
+        Route::get('/inventory/category/archive', [InventoryCategoryController::class, 'archive'])->name('staff.inventory.category.archive');
+    });
+    Route::middleware('permission:Inventory Management,create')->group(function () {
+        Route::post('/inventory/category', [InventoryCategoryController::class, 'store'])->name('staff.inventory.category.store');
+    });
+    Route::middleware('permission:Inventory Management,archive')->group(function () {
+        Route::post('/inventory/category/{id}/restore',          [InventoryCategoryController::class, 'restore'])->name('staff.inventory.category.restore');
+        Route::delete('/inventory/category/{inventoryCategory}', [InventoryCategoryController::class, 'destroy'])->name('staff.inventory.category.destroy');
+    });
+
+    Route::middleware('permission:Inventory Management,update')->group(function () {
+        Route::get('/inventory/category/{inventoryCategory}/edit', [InventoryCategoryController::class, 'edit'])->name('staff.inventory.category.edit');
+        Route::put('/inventory/category/{inventoryCategory}',      [InventoryCategoryController::class, 'update'])->name('staff.inventory.category.update');
+    });
+
+    // ── Inventory ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:Inventory Management,view')->group(function () {
+        Route::get('/inventory', [InventoryController::class, 'index'])->name('staff.inventory.index');
+    });
+    Route::middleware('permission:Inventory Management,create')->group(function () {
+        Route::get('/inventory/create', [InventoryController::class, 'create'])->name('staff.inventory.create');
+        Route::post('/inventory',       [InventoryController::class, 'store'])->name('staff.inventory.store');
+    });
+
+    Route::middleware('permission:Inventory Management,update')->group(function () {
+        Route::get('/inventory/{inventory}/edit',    [InventoryController::class, 'edit'])->name('staff.inventory.edit');
+        Route::put('/inventory/{inventory}',         [InventoryController::class, 'update'])->name('staff.inventory.update');
+        Route::post('/inventory/{inventory}/adjust', [InventoryController::class, 'adjustStock'])->name('staff.inventory.adjust');
+    });
+
+    Route::middleware('permission:Inventory Management,archive')->group(function () {
+        Route::delete('/inventory/{inventory}', [InventoryController::class, 'destroy'])->name('staff.inventory.destroy');
+    });
+
+    // ── Low Stock Alerts ──────────────────────────────────────────────────────
+    Route::middleware('permission:Inventory Management,view')->group(function () {
+        Route::get('/inventory/alerts',                   [LowStockAlertController::class, 'index'])->name('staff.inventory.alerts.index');
+        Route::post('/inventory/alerts/mark-all-read',    [LowStockAlertController::class, 'markAllRead'])->name('staff.inventory.alerts.mark-all-read');
+        Route::patch('/inventory/alerts/{lowStockAlert}', [LowStockAlertController::class, 'update'])->name('staff.inventory.alerts.update');
+    });
+
+    Route::middleware('permission:Inventory Management,view')->group(function () {
+        Route::get('/inventory/{inventory}', [InventoryController::class, 'show'])->name('staff.inventory.show');
+    });
+
+    // ── Suppliers ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:Inventory Management,view')->group(function () {
+        Route::get('/supplier', [SupplierController::class, 'index'])->name('staff.supplier.index');
+    });
+    Route::middleware('permission:Inventory Management,create')->group(function () {
+        Route::get('/supplier/create', [SupplierController::class, 'create'])->name('staff.supplier.create');
+        Route::post('/supplier',       [SupplierController::class, 'store'])->name('staff.supplier.store');
+    });
+    Route::middleware('permission:Inventory Management,update')->group(function () {
+        Route::get('/supplier/{supplier}/edit', [SupplierController::class, 'edit'])->name('staff.supplier.edit');
+        Route::put('/supplier/{supplier}',      [SupplierController::class, 'update'])->name('staff.supplier.update');
+    });
+    Route::middleware('permission:Inventory Management,archive')->group(function () {
+        Route::get('/supplier/archive',       [SupplierController::class, 'archive'])->name('staff.supplier.archive');
+        Route::post('/supplier/{id}/restore', [SupplierController::class, 'restore'])->name('staff.supplier.restore');
+        Route::delete('/supplier/{supplier}', [SupplierController::class, 'destroy'])->name('staff.supplier.destroy');
+    });
+
+    // ── Activity Logs ─────────────────────────────────────────────────────────
+    Route::middleware('permission:Activity Logs,view')->group(function () {
+        Route::get('/logs', [ActivityLogsController::class, 'index'])->name('staff.logs.index');
+    });
+
+    Route::prefix('reports')->name('staff.reports.')->group(function () {
+        Route::middleware('permission:Reports & Analytics,view')->group(function () {
+            Route::get('/',          [ReportsController::class, 'overview'])->name('overview');
+            Route::get('/inventory', [ReportsController::class, 'inventory'])->name('inventory');
+            Route::get('/employee',  [ReportsController::class, 'employee'])->name('employee');
+        });
+    });
+});
 // ── Normal user routes ─────────────────────────────────────────────────────────
 
 Route::prefix('user')->middleware(['auth', 'role:user'])->group(function () {

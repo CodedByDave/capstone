@@ -24,7 +24,7 @@ class CheckPermission
         $roles = $employee->roles->pluck('role')->toArray();
 
         // ← ADD THIS TEMPORARILY
-        \Log::info('CheckPermission debug', [
+        Log::info('CheckPermission debug', [
             'user_id'  => $user->id,
             'module'   => $module,
             'action'   => $action,

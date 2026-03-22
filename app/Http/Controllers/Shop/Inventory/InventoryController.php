@@ -8,6 +8,7 @@ use App\Http\Requests\Shop\Inventory\UpdateInventoryRequest;
 use App\Http\Requests\Shop\Inventory\AdjustStockRequest;
 use App\Models\Inventory;
 use App\Models\Shop;
+use App\Models\Employee;
 use App\Services\InventoryService;
 use App\Services\InventoryCategoryService;
 use App\Services\SupplierService;
@@ -23,9 +24,16 @@ class InventoryController extends Controller
 
     private function getShop(): Shop
     {
-        return Shop::where('owner_id', auth()->id())->firstOrFail();
-    }
+        $user = auth()->user();
 
+        if ($user->role === 'owner') {
+            return Shop::where('owner_id', $user->id)->firstOrFail();
+        }
+
+        // Staff: get shop via employee record
+        $employee = Employee::where('user_id', $user->id)->firstOrFail();
+        return Shop::findOrFail($employee->shop_id);
+    }
     public function index()
     {
         $shop    = $this->getShop();
@@ -56,7 +64,9 @@ class InventoryController extends Controller
 
         $this->inventoryService->create($shop->id, $request->validated());
 
-        return redirect()->route('inventory.index')
+        $route = auth()->user()->role === 'owner' ? 'inventory.index' : 'staff.inventory.index';
+
+        return redirect()->route($route)
             ->with('toast', ['type' => 'success', 'message' => 'Item added to inventory.']);
     }
 

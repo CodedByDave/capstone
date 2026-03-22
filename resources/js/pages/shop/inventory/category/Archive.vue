@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { usePermissions } from '@/composables/usePermissions'
 import { type BreadcrumbItem } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,9 @@ interface Category {
     deleted_at: string
 }
 
+const { isOwner } = usePermissions()
+const base = computed(() => isOwner.value ? '/shop/inventory' : '/staff/inventory')
+
 const props = defineProps<{ archived: Category[] }>()
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -26,7 +30,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 const archivedList = ref<Category[]>([...props.archived])
-const restoringId  = ref<number | null>(null)
+const restoringId = ref<number | null>(null)
 
 function formatDate(dt: string) {
     return new Date(dt).toLocaleDateString('en-PH', {
@@ -37,7 +41,7 @@ function formatDate(dt: string) {
 async function restoreCategory(id: number) {
     restoringId.value = id
     try {
-        await axios.post(`/shop/inventory/category/${id}/restore`)
+        await axios.post(`${base.value}/category/${id}/restore`)
         archivedList.value = archivedList.value.filter(c => c.id !== id)
         toast.success('Category restored successfully.', { autoClose: 3000 })
     } catch {
@@ -49,6 +53,7 @@ async function restoreCategory(id: number) {
 </script>
 
 <template>
+
     <Head title="Archived Categories" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Archived Categories">
         <div class="px-6 space-y-6">
@@ -58,7 +63,7 @@ async function restoreCategory(id: number) {
                     <h2 class="text-lg font-semibold">Archived Categories</h2>
                     <p class="text-sm text-muted-foreground">Restore categories to make them available again.</p>
                 </div>
-                <Button variant="outline" @click="router.visit('/shop/inventory/category')">
+                <Button variant="outline" @click="router.visit(`${base}/category`)">
                     <ArrowLeft class="h-4 w-4 mr-2" /> Back to Categories
                 </Button>
             </div>
@@ -85,11 +90,8 @@ async function restoreCategory(id: number) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr
-                                    v-for="cat in archivedList"
-                                    :key="cat.id"
-                                    class="border-b last:border-0 hover:bg-muted/20 transition-colors opacity-70 hover:opacity-100"
-                                >
+                                <tr v-for="cat in archivedList" :key="cat.id"
+                                    class="border-b last:border-0 hover:bg-muted/20 transition-colors opacity-70 hover:opacity-100">
                                     <td class="px-4 py-3 font-medium text-muted-foreground line-through">
                                         {{ cat.name }}
                                     </td>
@@ -100,13 +102,8 @@ async function restoreCategory(id: number) {
                                         {{ formatDate(cat.deleted_at) }}
                                     </td>
                                     <td class="px-4 py-3 text-right">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            :disabled="restoringId === cat.id"
-                                            class="h-7 gap-1.5 text-xs"
-                                            @click="restoreCategory(cat.id)"
-                                        >
+                                        <Button size="sm" variant="outline" :disabled="restoringId === cat.id"
+                                            class="h-7 gap-1.5 text-xs" @click="restoreCategory(cat.id)">
                                             <Loader2 v-if="restoringId === cat.id" class="h-3 w-3 animate-spin" />
                                             <ArchiveRestore v-else class="h-3 w-3" />
                                             Restore

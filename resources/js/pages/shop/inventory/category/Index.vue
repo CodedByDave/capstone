@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { type BreadcrumbItem } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Layers, Plus, Pencil, Trash2, Check, X, Loader2 } from 'lucide-vue-next
 import axios from 'axios'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface Category {
     id: number
@@ -19,22 +20,25 @@ interface Category {
 
 const { categories: initialCategories } = defineProps<{ categories: Category[] }>()
 
+const { isOwner, can } = usePermissions()
+const base = computed(() => isOwner.value ? '/shop/inventory' : '/staff/inventory')
+
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Inventory', href: '/shop/inventory' },
-    { title: 'Categories', href: '/shop/inventory/category' },
+    { title: 'Inventory',   href: base.value },
+    { title: 'Categories',  href: `${base.value}/category` },
 ]
 
-const categories = ref<Category[]>([...initialCategories])
-const showNewRow = ref(false)
-const saveError = ref<string | null>(null)
+const categories  = ref<Category[]>([...initialCategories])
+const showNewRow  = ref(false)
+const saveError   = ref<string | null>(null)
 
 // New row
-const newForm = ref({ name: '', description: '' })
+const newForm   = ref({ name: '', description: '' })
 const savingNew = ref(false)
 
 // Edit row
-const editingId = ref<number | null>(null)
-const editForm = ref({ name: '', description: '' })
+const editingId  = ref<number | null>(null)
+const editForm   = ref({ name: '', description: '' })
 const savingEdit = ref(false)
 const deletingId = ref<number | null>(null)
 
@@ -48,9 +52,9 @@ async function addCategory() {
     saveError.value = null
 
     try {
-        const res = await axios.post('/shop/inventory/category', newForm.value)
+        const res = await axios.post(`${base.value}/category`, newForm.value)
         categories.value.push(res.data)
-        newForm.value = { name: '', description: '' }
+        newForm.value    = { name: '', description: '' }
         showNewRow.value = false
         toast.success('Category added successfully.', { autoClose: 3000 })
     } catch (err: any) {
@@ -66,7 +70,7 @@ async function addCategory() {
 
 function startEdit(cat: Category) {
     editingId.value = cat.id
-    editForm.value = { name: cat.name, description: cat.description ?? '' }
+    editForm.value  = { name: cat.name, description: cat.description ?? '' }
     saveError.value = null
 }
 
@@ -77,10 +81,10 @@ async function saveEdit(id: number) {
     }
 
     savingEdit.value = true
-    saveError.value = null
+    saveError.value  = null
 
     try {
-        const res = await axios.put(`/shop/inventory/category/${id}`, editForm.value)
+        const res = await axios.put(`${base.value}/category/${id}`, editForm.value)
         const idx = categories.value.findIndex(c => c.id === id)
         if (idx !== -1) categories.value[idx] = res.data
         editingId.value = null
@@ -96,10 +100,10 @@ async function saveEdit(id: number) {
 
 async function deleteCategory(id: number) {
     deletingId.value = id
-    saveError.value = null
+    saveError.value  = null
 
     try {
-        await axios.delete(`/shop/inventory/category/${id}`)
+        await axios.delete(`${base.value}/category/${id}`)
         categories.value = categories.value.filter(c => c.id !== id)
         toast.success('Category deleted.', { autoClose: 3000 })
     } catch {
@@ -112,7 +116,6 @@ async function deleteCategory(id: number) {
 </script>
 
 <template>
-
     <Head title="Inventory Categories" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Inventory Categories">
         <div class="px-6 space-y-6">
@@ -124,11 +127,14 @@ async function deleteCategory(id: number) {
                             <Layers class="h-4 w-4 text-muted-foreground" /> Categories
                         </CardTitle>
                         <div class="flex gap-2">
-                            <Button size="sm" variant="outline" class="bg-red-500 text-white hover:bg-red-700 hover:text-white"
-                                @click="router.visit('/shop/inventory/category/archive')">
+                            <Button v-if="isOwner || can('Inventory Management', 'archive')"
+                                size="sm" variant="outline"
+                                class="bg-red-500 text-white hover:bg-red-700 hover:text-white"
+                                @click="router.visit(`${base}/category/archive`)">
                                 <Trash2 class="h-4 w-4 mr-1.5" /> Archive
                             </Button>
-                            <Button v-if="!showNewRow" size="sm" @click="showNewRow = true; saveError = null">
+                            <Button v-if="(isOwner || can('Inventory Management', 'create')) && !showNewRow"
+                                size="sm" @click="showNewRow = true; saveError = null">
                                 <Plus class="h-4 w-4 mr-1.5" /> Add Category
                             </Button>
                         </div>
@@ -159,8 +165,8 @@ async function deleteCategory(id: number) {
                                 <!-- New row -->
                                 <tr v-if="showNewRow" class="border-b bg-blue-50/50">
                                     <td class="px-3 py-2">
-                                        <Input v-model="newForm.name" placeholder="Category name" class="h-8 text-sm"
-                                            @keyup.enter="addCategory" />
+                                        <Input v-model="newForm.name" placeholder="Category name"
+                                            class="h-8 text-sm" @keyup.enter="addCategory" />
                                     </td>
                                     <td class="px-3 py-2">
                                         <Input v-model="newForm.description" placeholder="Optional description"
@@ -194,10 +200,13 @@ async function deleteCategory(id: number) {
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <div class="flex items-center justify-end gap-1">
-                                                <Button size="icon" variant="ghost" @click="startEdit(cat)">
+                                                <Button v-if="isOwner || can('Inventory Management', 'update')"
+                                                    size="icon" variant="ghost" @click="startEdit(cat)">
                                                     <Pencil class="h-3.5 w-3.5 text-blue-500" />
                                                 </Button>
-                                                <Button size="icon" variant="ghost" :disabled="deletingId === cat.id"
+                                                <Button v-if="isOwner || can('Inventory Management', 'archive')"
+                                                    size="icon" variant="ghost"
+                                                    :disabled="deletingId === cat.id"
                                                     @click="deleteCategory(cat.id)">
                                                     <Loader2 v-if="deletingId === cat.id"
                                                         class="h-3.5 w-3.5 animate-spin" />

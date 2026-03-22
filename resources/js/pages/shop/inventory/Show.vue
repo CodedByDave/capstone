@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { type BreadcrumbItem } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, Pencil, AlertTriangle, ArrowUpDown, Loader2, X, Check } from 'lucide-vue-next'
+import { ArrowLeft, Pencil, AlertTriangle, ArrowUpDown, Loader2, X } from 'lucide-vue-next'
 import axios from 'axios'
+import { usePermissions } from '@/composables/usePermissions'
 
 interface Movement {
     id: number
@@ -42,16 +43,19 @@ interface InventoryItem {
 
 const { inventory } = defineProps<{ inventory: InventoryItem }>()
 
+const { isOwner, can } = usePermissions()
+const base = computed(() => isOwner.value ? '/shop/inventory' : '/staff/inventory')
+
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Inventory', href: '/shop/inventory' },
-    { title: inventory.name, href: `/shop/inventory/${inventory.id}` },
+    { title: 'Inventory',    href: base.value },
+    { title: inventory.name, href: `${base.value}/${inventory.id}` },
 ]
 
 // ─── Stock Adjust ─────────────────────────────────────────────────────────────
 
-const showAdjust   = ref(false)
-const adjustError  = ref<string | null>(null)
-const adjusting    = ref(false)
+const showAdjust  = ref(false)
+const adjustError = ref<string | null>(null)
+const adjusting   = ref(false)
 
 const adjustForm = ref({
     type:             'restock',
@@ -59,9 +63,6 @@ const adjustForm = ref({
     reference_number: '',
     notes:            '',
 })
-
-const currentQuantity = ref(inventory.quantity)
-const movements       = ref<Movement[]>(inventory.movements ?? [])
 
 async function submitAdjust() {
     if (!adjustForm.value.quantity || adjustForm.value.quantity === 0) {
@@ -73,11 +74,10 @@ async function submitAdjust() {
     adjustError.value = null
 
     try {
-        await axios.post(`/shop/inventory/${inventory.id}/adjust`, adjustForm.value)
-        // Reload the page to get fresh data
+        await axios.post(`${base.value}/${inventory.id}/adjust`, adjustForm.value)
         router.reload({ only: ['inventory'] })
-        showAdjust.value  = false
-        adjustForm.value  = { type: 'restock', quantity: 1, reference_number: '', notes: '' }
+        showAdjust.value = false
+        adjustForm.value = { type: 'restock', quantity: 1, reference_number: '', notes: '' }
     } catch (err: any) {
         adjustError.value = err.response?.data?.errors?.quantity?.[0]
             ?? err.response?.data?.message
@@ -115,24 +115,24 @@ const movementTypeStyle: Record<string, string> = {
 
             <!-- Header -->
             <div class="flex items-center justify-between">
-                <Button variant="outline" @click="router.visit('/shop/inventory')">
+                <Button variant="outline" @click="router.visit(base)">
                     <ArrowLeft class="h-4 w-4 mr-2" /> Back
                 </Button>
                 <div class="flex gap-2">
-                    <Button variant="outline" @click="showAdjust = !showAdjust">
+                    <Button v-if="isOwner || can('Inventory Management', 'update')"
+                        variant="outline" @click="showAdjust = !showAdjust">
                         <ArrowUpDown class="h-4 w-4 mr-2" /> Adjust Stock
                     </Button>
-                    <Button @click="router.visit(`/shop/inventory/${inventory.id}/edit`)">
+                    <Button v-if="isOwner || can('Inventory Management', 'update')"
+                        @click="router.visit(`${base}/${inventory.id}/edit`)">
                         <Pencil class="h-4 w-4 mr-2" /> Edit
                     </Button>
                 </div>
             </div>
 
             <!-- Low stock warning -->
-            <div
-                v-if="inventory.quantity <= inventory.min_stock"
-                class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
-            >
+            <div v-if="inventory.quantity <= inventory.min_stock"
+                class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 <AlertTriangle class="h-4 w-4 shrink-0" />
                 <span>
                     Stock is {{ inventory.quantity === 0 ? 'out' : 'low' }}.
@@ -154,7 +154,8 @@ const movementTypeStyle: Record<string, string> = {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="adjustError" class="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+                    <div v-if="adjustError"
+                        class="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
                         {{ adjustError }}
                     </div>
                     <div class="grid grid-cols-12 gap-4">
@@ -195,7 +196,6 @@ const movementTypeStyle: Record<string, string> = {
             </Card>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
                 <!-- Details -->
                 <Card class="md:col-span-2">
                     <CardHeader><CardTitle>Item Details</CardTitle></CardHeader>
@@ -273,9 +273,7 @@ const movementTypeStyle: Record<string, string> = {
 
             <!-- Movement history -->
             <Card>
-                <CardHeader>
-                    <CardTitle>Stock Movement History</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Stock Movement History</CardTitle></CardHeader>
                 <CardContent>
                     <div class="rounded-lg border overflow-hidden">
                         <table class="w-full text-sm">

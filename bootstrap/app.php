@@ -29,7 +29,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn () => route('login.user'));
+        $middleware->redirectGuestsTo(fn() => route('login.user'));
     })
-    ->withExceptions(fn($exceptions) => null)
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
+            if ($response->getStatusCode() === 403 && request()->header('X-Inertia')) {
+                return redirect(request()->user()?->role === 'staff' ? '/staff/dashboard' : '/shop/dashboard')
+                    ->with('toast', ['type' => 'error', 'message' => 'You do not have permission to access this page.']);
+            }
+            return $response;
+        });
+    })
     ->create();

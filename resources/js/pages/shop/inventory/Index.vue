@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+import { usePermissions } from '@/composables/usePermissions'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,14 @@ const props = defineProps<{
     filters: Record<string, string>
 }>()
 
+// ─── Permissions & base path ──────────────────────────────────────────────────
+
+const { isOwner, can } = usePermissions()
+const base = computed(() => isOwner.value ? '/shop/inventory' : '/staff/inventory')
+const supplierBase = computed(() => isOwner.value ? '/shop/supplier' : '/staff/supplier')
+const categoryBase = computed(() => isOwner.value ? '/shop/inventory/category' : '/staff/inventory/category')
+const alertsBase = computed(() => isOwner.value ? '/shop/inventory/alerts' : '/staff/inventory/alerts')
+
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
 const page = usePage<AppPageProps>()
@@ -64,46 +73,45 @@ const page = usePage<AppPageProps>()
 onMounted(() => {
     const flashToast = page.props.toast as { type: string; message: string } | undefined
     if (!flashToast) return
-
     switch (flashToast.type) {
         case 'success': toast.success(flashToast.message); break
-        case 'error': toast.error(flashToast.message); break
+        case 'error':   toast.error(flashToast.message);   break
         case 'warning': toast.warning(flashToast.message); break
-        default: toast(flashToast.message)
+        default:        toast(flashToast.message)
     }
 })
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Inventory', href: '/shop/inventory' },
+    { title: 'Inventory', href: base.value },
 ]
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
-const search = ref(props.filters.search ?? '')
+const search     = ref(props.filters.search      ?? '')
 const categoryId = ref(props.filters.category_id ?? 'all')
 const supplierId = ref(props.filters.supplier_id ?? 'all')
-const status = ref(props.filters.status ?? 'all')
-const stock = ref(props.filters.stock ?? 'all')
+const status     = ref(props.filters.status      ?? 'all')
+const stock      = ref(props.filters.stock       ?? 'all')
 
 function applyFilters() {
-    router.get('/shop/inventory', {
-        search: search.value || undefined,
+    router.get(base.value, {
+        search:      search.value      || undefined,
         category_id: categoryId.value !== 'all' ? categoryId.value : undefined,
         supplier_id: supplierId.value !== 'all' ? supplierId.value : undefined,
-        status: status.value !== 'all' ? status.value : undefined,
-        stock: stock.value !== 'all' ? stock.value : undefined,
+        status:      status.value     !== 'all' ? status.value     : undefined,
+        stock:       stock.value      !== 'all' ? stock.value      : undefined,
     }, { preserveState: true, replace: true })
 }
 
 function resetFilters() {
-    search.value = ''
+    search.value     = ''
     categoryId.value = 'all'
     supplierId.value = 'all'
-    status.value = 'all'
-    stock.value = 'all'
-    router.get('/shop/inventory', {}, { preserveState: true, replace: true })
+    status.value     = 'all'
+    stock.value      = 'all'
+    router.get(base.value, {}, { preserveState: true, replace: true })
 }
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
@@ -123,7 +131,7 @@ function cancelDelete() {
 
 function confirmDelete() {
     if (!itemToDelete.value) return
-    router.delete(`/shop/inventory/${itemToDelete.value.id}`, {
+    router.delete(`${base.value}/${itemToDelete.value.id}`, {
         preserveScroll: true,
         onSuccess: () => {
             itemToDelete.value = null
@@ -136,12 +144,12 @@ function confirmDelete() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function isLowStock(item: InventoryItem) { return item.quantity <= item.min_stock }
+function isLowStock(item: InventoryItem)  { return item.quantity <= item.min_stock }
 function isOutOfStock(item: InventoryItem) { return item.quantity === 0 }
 
 function stockBadge(item: InventoryItem) {
     if (isOutOfStock(item)) return { label: 'Out of stock', class: 'bg-red-100 text-red-700' }
-    if (isLowStock(item)) return { label: 'Low stock', class: 'bg-amber-100 text-amber-700' }
+    if (isLowStock(item))   return { label: 'Low stock',    class: 'bg-amber-100 text-amber-700' }
     return { label: 'In stock', class: 'bg-green-100 text-green-700' }
 }
 
@@ -152,7 +160,6 @@ function formatPrice(price: string | null) {
 </script>
 
 <template>
-
     <Head title="Inventory" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Inventory Management">
         <div class="px-6 space-y-6">
@@ -162,8 +169,7 @@ function formatPrice(price: string | null) {
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total Items
-                            </p>
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total Items</p>
                             <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                                 <Package class="h-4 w-4 text-blue-600" />
                             </div>
@@ -171,7 +177,6 @@ function formatPrice(price: string | null) {
                         <p class="text-3xl font-bold">{{ inventory.total }}</p>
                     </CardContent>
                 </Card>
-
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
@@ -183,12 +188,10 @@ function formatPrice(price: string | null) {
                         <p class="text-3xl font-bold text-amber-600">{{ lowStock.length }}</p>
                     </CardContent>
                 </Card>
-
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Categories
-                            </p>
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Categories</p>
                             <div class="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                                 <Layers class="h-4 w-4 text-purple-600" />
                             </div>
@@ -196,7 +199,6 @@ function formatPrice(price: string | null) {
                         <p class="text-3xl font-bold">{{ categories.length }}</p>
                     </CardContent>
                 </Card>
-
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
@@ -228,8 +230,9 @@ function formatPrice(price: string | null) {
                         </span>
                     </div>
                 </div>
-                <Button size="sm" variant="outline" class="border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0"
-                    @click="router.visit('/shop/inventory/alerts')">
+                <Button size="sm" variant="outline"
+                    class="border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0"
+                    @click="router.visit(alertsBase)">
                     View Alerts
                 </Button>
             </div>
@@ -243,14 +246,16 @@ function formatPrice(price: string | null) {
                             Inventory List
                         </CardTitle>
                         <div class="flex gap-2">
-                            <Button size="sm" variant="outline" @click="router.visit('/shop/inventory/category')">
+                            <Button size="sm" variant="outline" @click="router.visit(categoryBase)">
                                 <Layers class="h-4 w-4 mr-1.5" /> Categories
                             </Button>
-                            <Button size="sm" variant="outline" @click="router.visit('/shop/supplier')"
-                                class="bg-yellow-500 text-white hover:bg-yellow-600 hover:text-white">
+                            <Button size="sm" variant="outline"
+                                class="bg-yellow-500 text-white hover:bg-yellow-600 hover:text-white"
+                                @click="router.visit(supplierBase)">
                                 <Truck class="h-4 w-4 mr-1.5" /> Suppliers
                             </Button>
-                            <Button size="sm" @click="router.visit('/shop/inventory/create')">
+                            <Button v-if="isOwner || can('Inventory Management', 'create')"
+                                size="sm" @click="router.visit(`${base}/create`)">
                                 <Plus class="h-4 w-4 mr-1.5" /> Add Item
                             </Button>
                         </div>
@@ -265,52 +270,35 @@ function formatPrice(price: string | null) {
                             <Input v-model="search" placeholder="Search name or SKU..." class="pl-8"
                                 @keyup.enter="applyFilters" />
                         </div>
-
                         <Select v-model="categoryId" @update:model-value="applyFilters">
-                            <SelectTrigger class="w-40">
-                                <SelectValue placeholder="Category" />
-                            </SelectTrigger>
+                            <SelectTrigger class="w-40"><SelectValue placeholder="Category" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Categories</SelectItem>
-                                <SelectItem v-for="c in categories" :key="c.id" :value="String(c.id)">
-                                    {{ c.name }}
-                                </SelectItem>
+                                <SelectItem v-for="c in categories" :key="c.id" :value="String(c.id)">{{ c.name }}</SelectItem>
                             </SelectContent>
                         </Select>
-
                         <Select v-model="supplierId" @update:model-value="applyFilters">
-                            <SelectTrigger class="w-40">
-                                <SelectValue placeholder="Supplier" />
-                            </SelectTrigger>
+                            <SelectTrigger class="w-40"><SelectValue placeholder="Supplier" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Suppliers</SelectItem>
-                                <SelectItem v-for="s in suppliers" :key="s.id" :value="String(s.id)">
-                                    {{ s.name }}
-                                </SelectItem>
+                                <SelectItem v-for="s in suppliers" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
                             </SelectContent>
                         </Select>
-
                         <Select v-model="status" @update:model-value="applyFilters">
-                            <SelectTrigger class="w-32">
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
+                            <SelectTrigger class="w-32"><SelectValue placeholder="Status" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Status</SelectItem>
                                 <SelectItem value="active">Active</SelectItem>
                                 <SelectItem value="inactive">Inactive</SelectItem>
                             </SelectContent>
                         </Select>
-
                         <Select v-model="stock" @update:model-value="applyFilters">
-                            <SelectTrigger class="w-32">
-                                <SelectValue placeholder="Stock" />
-                            </SelectTrigger>
+                            <SelectTrigger class="w-32"><SelectValue placeholder="Stock" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Stock</SelectItem>
                                 <SelectItem value="low">Low Stock</SelectItem>
                             </SelectContent>
                         </Select>
-
                         <Button variant="ghost" size="sm" @click="resetFilters">Reset</Button>
                     </div>
 
@@ -337,10 +325,8 @@ function formatPrice(price: string | null) {
                                         <p class="text-xs text-muted-foreground">{{ item.unit }}</p>
                                     </td>
                                     <td class="px-4 py-3 font-mono text-xs text-muted-foreground">{{ item.sku }}</td>
-                                    <td class="px-4 py-3 text-muted-foreground text-xs">{{ item.category?.name ?? '—' }}
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground text-xs">{{ item.supplier?.name ?? '—' }}
-                                    </td>
+                                    <td class="px-4 py-3 text-muted-foreground text-xs">{{ item.category?.name ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-muted-foreground text-xs">{{ item.supplier?.name ?? '—' }}</td>
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <span class="font-medium">{{ item.quantity }}</span>
@@ -361,20 +347,22 @@ function formatPrice(price: string | null) {
                                     <td class="px-4 py-3">
                                         <div class="flex items-center justify-center gap-1">
                                             <Button size="icon" variant="ghost"
-                                                @click="router.visit(`/shop/inventory/${item.id}`)">
+                                                @click="router.visit(`${base}/${item.id}`)">
                                                 <Eye class="h-4 w-4 text-blue-500" />
                                             </Button>
-                                            <Button size="icon" variant="ghost"
-                                                @click="router.visit(`/shop/inventory/${item.id}/edit`)">
+                                            <Button v-if="isOwner || can('Inventory Management', 'update')"
+                                                size="icon" variant="ghost"
+                                                @click="router.visit(`${base}/${item.id}/edit`)">
                                                 <Pencil class="h-4 w-4 text-green-500" />
                                             </Button>
-                                            <Button size="icon" variant="ghost" @click="openDeleteDialog(item)">
+                                            <Button v-if="isOwner || can('Inventory Management', 'archive')"
+                                                size="icon" variant="ghost"
+                                                @click="openDeleteDialog(item)">
                                                 <Trash2 class="h-4 w-4 text-red-400" />
                                             </Button>
                                         </div>
                                     </td>
                                 </tr>
-
                                 <tr v-if="inventory.data.length === 0">
                                     <td colspan="8" class="px-4 py-12 text-center text-sm text-muted-foreground">
                                         <Package class="h-10 w-10 mx-auto mb-2 opacity-20" />
@@ -393,7 +381,8 @@ function formatPrice(price: string | null) {
                         <div class="flex gap-1">
                             <Button v-for="link in inventory.links" :key="link.label" size="sm"
                                 :variant="link.active ? 'default' : 'outline'" :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs" @click="link.url && router.visit(link.url)"
+                                class="h-7 min-w-7 text-xs"
+                                @click="link.url && router.visit(link.url)"
                                 v-html="link.label" />
                         </div>
                     </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Inventory\UpdateLowStockAlertRequest;
 use App\Models\LowStockAlert;
 use App\Models\Shop;
+use App\Models\Employee;
 use App\Services\LowStockAlertService;
 use Inertia\Inertia;
 
@@ -17,7 +18,14 @@ class LowStockAlertController extends Controller
 
     private function getShop(): Shop
     {
-        return Shop::where('owner_id', auth()->id())->firstOrFail();
+        $user = auth()->user();
+
+        if ($user->role === 'owner') {
+            return Shop::where('owner_id', $user->id)->firstOrFail();
+        }
+
+        $employee = Employee::where('user_id', $user->id)->firstOrFail();
+        return Shop::findOrFail($employee->shop_id);
     }
 
     public function index()

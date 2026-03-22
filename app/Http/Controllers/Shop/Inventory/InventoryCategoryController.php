@@ -18,7 +18,15 @@ class InventoryCategoryController extends Controller
 
     private function getShop(): Shop
     {
-        return Shop::where('owner_id', auth()->id())->firstOrFail();
+        $user = auth()->user();
+
+        if ($user->role === 'owner') {
+            return Shop::where('owner_id', $user->id)->firstOrFail();
+        }
+
+        // Staff: get shop via employee record
+        $employee = \App\Models\Employee::where('user_id', $user->id)->firstOrFail();
+        return Shop::findOrFail($employee->shop_id);
     }
 
     public function index()

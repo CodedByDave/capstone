@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateShopRequest;
 use Inertia\Inertia;
 use App\Models\Shop;
+use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -101,18 +102,20 @@ class ShopController extends Controller
     {
         $shop->load('owner');
 
-        $latestOrder = \App\Models\Order::where('user_id', $shop->owner_id)
+        $latestOrder = Order::where('user_id', $shop->owner_id)
             ->where('status', 'paid')
             ->latest()
             ->first();
 
         return Inertia::render('admin/shop/Show', [
             'shop' => array_merge($shop->toArray(), [
-                'subscription_plan' => $latestOrder?->subscription_plan ?? null,
-                'expires_at'        => $latestOrder?->expires_at ?? null,
-                'is_expired'        => $latestOrder?->expires_at
-                    ? \Carbon\Carbon::parse($latestOrder->expires_at)->isPast()
-                    : true,
+                'latest_order' => $latestOrder ? [
+                    'subscription_plan' => $latestOrder->subscription_plan,
+                    'expires_at'        => $latestOrder->expires_at,
+                    'total_price'       => $latestOrder->total_price,
+                    'status'            => $latestOrder->status,
+                    'created_at'        => $latestOrder->created_at,
+                ] : null,
             ]),
         ]);
     }

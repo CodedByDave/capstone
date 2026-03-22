@@ -18,7 +18,15 @@ class SupplierController extends Controller
 
     private function getShop(): Shop
     {
-        return Shop::where('owner_id', auth()->id())->firstOrFail();
+        $user = auth()->user();
+
+        if ($user->role === 'owner') {
+            return Shop::where('owner_id', $user->id)->firstOrFail();
+        }
+
+        // Staff: get shop via employee record
+        $employee = \App\Models\Employee::where('user_id', $user->id)->firstOrFail();
+        return Shop::findOrFail($employee->shop_id);
     }
 
     public function index()
@@ -64,8 +72,12 @@ class SupplierController extends Controller
     {
         $this->supplierService->delete($supplier);
 
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return redirect()->route('supplier.index')
-            ->with('toast', ['type' => 'success', 'message' => 'Supplier deleted successfully.']);
+            ->with('toast', ['type' => 'success', 'message' => 'Supplier archived successfully.']);
     }
 
     public function archive()
@@ -79,6 +91,11 @@ class SupplierController extends Controller
     public function restore(int $id)
     {
         $this->supplierService->restore($id);
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return redirect()->route('supplier.index')
             ->with('toast', ['type' => 'success', 'message' => 'Supplier restored successfully.']);
     }

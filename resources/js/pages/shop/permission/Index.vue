@@ -60,10 +60,10 @@ const moduleActionMap: Record<string, Action[]> = {
         { key: 'archive', label: 'Archive' },
     ],
     'Inventory Management': [
-        { key: 'view',   label: 'View'   },
-        { key: 'create', label: 'Create' },
-        { key: 'update', label: 'Update' },
-        { key: 'delete', label: 'Delete' },
+        { key: 'view',    label: 'View'    },
+        { key: 'create',  label: 'Create'  },
+        { key: 'update',  label: 'Update'  },
+        { key: 'archive', label: 'Archive' },
     ],
     'Order Management': [
         { key: 'view',   label: 'View'   },
@@ -71,10 +71,10 @@ const moduleActionMap: Record<string, Action[]> = {
         { key: 'manage', label: 'Manage' },
     ],
     'Services & Pricing': [
-        { key: 'view',   label: 'View'   },
-        { key: 'create', label: 'Create' },
-        { key: 'update', label: 'Update' },
-        { key: 'delete', label: 'Delete' },
+        { key: 'view',    label: 'View'    },
+        { key: 'create',  label: 'Create'  },
+        { key: 'update',  label: 'Update'  },
+        { key: 'archive', label: 'Archive' },
     ],
     'Reports & Analytics': [
         { key: 'view',   label: 'View'   },

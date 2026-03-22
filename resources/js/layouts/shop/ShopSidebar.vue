@@ -48,8 +48,8 @@ const allEmployeeSubActions = [
     {
         title: 'Activity Logs',
         icon: Clock,
-        href: '/shop/logs',
-        show: () => isOwner.value,
+        href: isOwner.value ? '/shop/logs' : '/staff/logs',
+        show: () => isOwner.value || can('Activity Logs', 'view'),
     },
 ]
 
@@ -77,7 +77,7 @@ const allInventorySubActions = [
         title: 'Suppliers',
         icon: Truck,
         href: isOwner.value ? '/shop/supplier' : '/staff/supplier',
-        show: () => isOwner.value || can('Inventory Management', 'view'),
+        show: () => isOwner.value || can('Inventory Management', 'view')
     },
 ]
 
@@ -146,39 +146,33 @@ const allReportsSubActions = [
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
-        title: 'Sales Report',
-        icon: TrendingUp,
-        href: isOwner.value ? '/shop/reports/sales' : '/staff/reports/sales',
-        show: () => isOwner.value || can('Reports & Analytics', 'view'),
-    },
-    {
         title: 'Inventory Report',
-        icon: FileText,
+        icon: Package,
         href: isOwner.value ? '/shop/reports/inventory' : '/staff/reports/inventory',
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
-        title: 'Payroll Report',
-        icon: DollarSign,
-        href: isOwner.value ? '/shop/reports/payroll' : '/staff/reports/payroll',
+        title: 'Employee Report',
+        icon: UserCircle,
+        href: isOwner.value ? '/shop/reports/employee' : '/staff/reports/employee',
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
 ]
 
 /* Filtered computed lists */
-const employeeSubActions = computed(() => allEmployeeSubActions.filter(i => i.show()))
+const employeeSubActions  = computed(() => allEmployeeSubActions.filter(i => i.show()))
 const inventorySubActions = computed(() => allInventorySubActions.filter(i => i.show()))
-const orderSubActions = computed(() => allOrderSubActions.filter(i => i.show()))
-const servicesSubActions = computed(() => allServicesSubActions.filter(i => i.show()))
-const reportsSubActions = computed(() => allReportsSubActions.filter(i => i.show()))
+const orderSubActions     = computed(() => allOrderSubActions.filter(i => i.show()))
+const servicesSubActions  = computed(() => allServicesSubActions.filter(i => i.show()))
+const reportsSubActions   = computed(() => allReportsSubActions.filter(i => i.show()))
 
 function getSubActions(moduleName: string) {
     const map: Record<string, any[]> = {
-        'Employee Management': employeeSubActions.value,
+        'Employee Management':  employeeSubActions.value,
         'Inventory Management': inventorySubActions.value,
-        'Order Management': orderSubActions.value,
-        'Services & Pricing': servicesSubActions.value,
-        'Reports & Analytics': reportsSubActions.value,
+        'Order Management':     orderSubActions.value,
+        'Services & Pricing':   servicesSubActions.value,
+        'Reports & Analytics':  reportsSubActions.value,
     }
     return map[moduleName] ?? []
 }
@@ -188,11 +182,11 @@ function getSubActions(moduleName: string) {
 ───────────────────────────────────────── */
 
 const moduleIconMap: Record<string, { icon: any; ownerHref: string; staffHref: string }> = {
-    'Employee Management': { icon: UserCircle, ownerHref: '/shop/employee', staffHref: '/staff/employee' },
-    'Inventory Management': { icon: Package, ownerHref: '/shop/inventory', staffHref: '/staff/inventory' },
-    'Order Management': { icon: ClipboardList, ownerHref: '/shop/orders', staffHref: '/staff/orders' },
-    'Services & Pricing': { icon: Tags, ownerHref: '/shop/services', staffHref: '/staff/services' },
-    'Reports & Analytics': { icon: BarChart3, ownerHref: '/shop/reports', staffHref: '/staff/reports' },
+    'Employee Management':  { icon: UserCircle,    ownerHref: '/shop/employee',  staffHref: '/staff/employee'  },
+    'Inventory Management': { icon: Package,       ownerHref: '/shop/inventory', staffHref: '/staff/inventory' },
+    'Order Management':     { icon: ClipboardList, ownerHref: '/shop/orders',    staffHref: '/staff/orders'    },
+    'Services & Pricing':   { icon: Tags,          ownerHref: '/shop/services',  staffHref: '/staff/services'  },
+    'Reports & Analytics':  { icon: BarChart3,     ownerHref: '/shop/reports',   staffHref: '/staff/reports'   },
 }
 
 function getHref(name: string): string {
@@ -207,18 +201,18 @@ function getHref(name: string): string {
 
 const areaChecks: Record<string, (url: string) => boolean> = {
     'Employee Management': (url) =>
-        url.startsWith('/shop/employee') || url.startsWith('/staff/employee') ||
-        url.startsWith('/shop/branch') || url.startsWith('/staff/branch') ||
-        url.startsWith('/shop/logs'),
+        url.startsWith('/shop/employee')  || url.startsWith('/staff/employee')  ||
+        url.startsWith('/shop/branch')    || url.startsWith('/staff/branch')    ||
+        url.startsWith('/shop/logs')      || url.startsWith('/staff/logs'),
     'Inventory Management': (url) =>
-        url.startsWith('/shop/inventory') || url.startsWith('/staff/inventory')||
-        url.startsWith('/shop/supplier') || url.startsWith('/staff/supplier'),
+        url.startsWith('/shop/inventory') || url.startsWith('/staff/inventory') ||
+        url.startsWith('/shop/supplier')  || url.startsWith('/staff/supplier'),
     'Order Management': (url) =>
-        url.startsWith('/shop/orders') || url.startsWith('/staff/orders'),
+        url.startsWith('/shop/orders')    || url.startsWith('/staff/orders'),
     'Services & Pricing': (url) =>
-        url.startsWith('/shop/services') || url.startsWith('/staff/services'),
+        url.startsWith('/shop/services')  || url.startsWith('/staff/services'),
     'Reports & Analytics': (url) =>
-        url.startsWith('/shop/reports') || url.startsWith('/staff/reports'),
+        url.startsWith('/shop/reports')   || url.startsWith('/staff/reports'),
 }
 
 /* ─────────────────────────────────────────
@@ -246,16 +240,25 @@ function toggleCollapsible(name: string) {
 ───────────────────────────────────────── */
 
 const exactRoutes = [
-    '/shop/employee', '/shop/branch', '/staff/employee', '/staff/branch', '/shop/logs',
-    '/shop/inventory', '/shop/inventory/categories', '/shop/inventory/alerts',
-    '/staff/inventory', '/staff/inventory/categories', '/staff/inventory/alerts',
-    '/shop/supplier', '/staff/supplier',
-    '/shop/orders', '/shop/orders/pending', '/shop/orders/progress', '/shop/orders/completed', '/shop/orders/cancelled',
-    '/staff/orders', '/staff/orders/pending', '/staff/orders/progress', '/staff/orders/completed', '/staff/orders/cancelled',
-    '/shop/services', '/shop/services/pricing', '/shop/services/promos',
-    '/staff/services', '/staff/services/pricing', '/staff/services/promos',
-    '/shop/reports', '/shop/reports/sales', '/shop/reports/inventory', '/shop/reports/payroll',
-    '/staff/reports', '/staff/reports/sales', '/staff/reports/inventory', '/staff/reports/payroll',
+    '/shop/employee',  '/staff/employee',
+    '/shop/branch',    '/staff/branch',
+    '/shop/logs',      '/staff/logs',
+    '/shop/inventory', '/staff/inventory',
+    '/shop/inventory/category', '/staff/inventory/category',
+    '/shop/inventory/alerts',   '/staff/inventory/alerts',
+    '/shop/supplier',  '/staff/supplier',
+    '/shop/orders',          '/staff/orders',
+    '/shop/orders/pending',  '/staff/orders/pending',
+    '/shop/orders/progress', '/staff/orders/progress',
+    '/shop/orders/completed','/staff/orders/completed',
+    '/shop/orders/cancelled','/staff/orders/cancelled',
+    '/shop/services',          '/staff/services',
+    '/shop/services/pricing',  '/staff/services/pricing',
+    '/shop/services/promos',   '/staff/services/promos',
+    '/shop/reports',           '/staff/reports',
+    '/shop/reports/sales',     '/staff/reports/sales',
+    '/shop/reports/inventory', '/staff/reports/inventory',
+    '/shop/reports/payroll',   '/staff/reports/payroll',
 ]
 
 function isSubActive(href: string): boolean {
@@ -283,18 +286,18 @@ const moduleNavItems = computed<ModuleNavItem[]>(() => {
     return props.order.modules
         .filter((m: any) => isOwner.value || canAccessModule(m.name))
         .map((m: any): ModuleNavItem => ({
-            title: m.name,
-            href: getHref(m.name),
-            icon: moduleIconMap[m.name]?.icon ?? Package,
-            active: areaChecks[m.name]?.(currentUrl.value) ?? false,
+            title:      m.name,
+            href:       getHref(m.name),
+            icon:       moduleIconMap[m.name]?.icon ?? Package,
+            active:     areaChecks[m.name]?.(currentUrl.value) ?? false,
             hasSubMenu: getSubActions(m.name).length > 0,
         }))
 })
 
 const dashboardItem = computed(() => [{
-    title: 'Dashboard',
-    href: isOwner.value ? '/shop/dashboard' : '/staff/dashboard',
-    icon: LayoutGrid,
+    title:  'Dashboard',
+    href:   isOwner.value ? '/shop/dashboard' : '/staff/dashboard',
+    icon:   LayoutGrid,
     active: currentUrl.value.includes('dashboard'),
 }])
 </script>
@@ -322,30 +325,38 @@ const dashboardItem = computed(() => [{
                 <template v-if="mod.hasSubMenu">
                     <Collapsible :open="openModules[mod.title] ?? false">
                         <SidebarMenuItem>
-                            <SidebarMenuButton class="flex items-center justify-between w-full cursor-pointer"
+                            <SidebarMenuButton
+                                class="flex items-center justify-between w-full cursor-pointer"
                                 :class="mod.active ? 'bg-muted/60 text-foreground' : 'hover:bg-muted/40'"
-                                @click="toggleCollapsible(mod.title)">
+                                @click="toggleCollapsible(mod.title)"
+                            >
                                 <span class="flex items-center gap-2">
                                     <component :is="mod.icon" class="w-4 h-4 shrink-0" />
                                     <span>{{ mod.title }}</span>
                                 </span>
                                 <CollapsibleTrigger as-child>
                                     <span @click.stop="toggleCollapsible(mod.title)">
-                                        <ChevronRight class="w-4 h-4 transition-transform duration-200"
-                                            :class="(openModules[mod.title] ?? false) ? 'rotate-90' : ''" />
+                                        <ChevronRight
+                                            class="w-4 h-4 transition-transform duration-200"
+                                            :class="(openModules[mod.title] ?? false) ? 'rotate-90' : ''"
+                                        />
                                     </span>
                                 </CollapsibleTrigger>
                             </SidebarMenuButton>
 
                             <CollapsibleContent>
                                 <SidebarMenuSub class="ml-4 mt-0.5 border-l border-muted/50">
-                                    <SidebarMenuSubItem v-for="sub in getSubActions(mod.title)" :key="sub.title">
+                                    <SidebarMenuSubItem
+                                        v-for="sub in getSubActions(mod.title)"
+                                        :key="sub.title"
+                                    >
                                         <SidebarMenuSubButton
                                             class="flex items-center gap-2 text-xs cursor-pointer rounded-md px-2 py-1.5 w-full transition-colors"
                                             :class="isSubActive(sub.href)
                                                 ? 'bg-muted/70 text-foreground font-medium'
                                                 : 'text-muted-foreground hover:bg-muted/50'"
-                                            @click="router.visit(sub.href)">
+                                            @click="router.visit(sub.href)"
+                                        >
                                             <component :is="sub.icon" class="w-3.5 h-3.5" />
                                             {{ sub.title }}
                                         </SidebarMenuSubButton>
@@ -359,9 +370,11 @@ const dashboardItem = computed(() => [{
                 <!-- Regular item (no sub-menu) -->
                 <template v-else>
                     <SidebarMenuItem>
-                        <SidebarMenuButton class="flex items-center gap-2 w-full cursor-pointer transition-colors"
+                        <SidebarMenuButton
+                            class="flex items-center gap-2 w-full cursor-pointer transition-colors"
                             :class="mod.active ? 'bg-muted/60 text-foreground' : 'hover:bg-muted/40'"
-                            @click="router.visit(mod.href)">
+                            @click="router.visit(mod.href)"
+                        >
                             <component :is="mod.icon" class="w-4 h-4 shrink-0" />
                             <span>{{ mod.title }}</span>
                         </SidebarMenuButton>
@@ -378,9 +391,13 @@ const dashboardItem = computed(() => [{
             </p>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton class="flex items-center gap-2 w-full cursor-pointer transition-colors" :class="currentUrl.startsWith('/shop/permission')
-                        ? 'bg-muted/60 text-foreground'
-                        : 'hover:bg-muted/40'" @click="router.visit('/shop/permission')">
+                    <SidebarMenuButton
+                        class="flex items-center gap-2 w-full cursor-pointer transition-colors"
+                        :class="currentUrl.startsWith('/shop/permission')
+                            ? 'bg-muted/60 text-foreground'
+                            : 'hover:bg-muted/40'"
+                        @click="router.visit('/shop/permission')"
+                    >
                         <ShieldCheck class="w-4 h-4" />
                         <span>Roles & Permission</span>
                     </SidebarMenuButton>
