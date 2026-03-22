@@ -69,7 +69,7 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
                     <Button size="sm" variant="default"
                         class="!bg-blue-600 !text-white hover:!bg-blue-500 !shadow-none transition-colors duration-300"
                         @click="router.visit('/register/shop')">
-                        Register Your Shop
+                        Register Shop
                     </Button>
 
                 </template>
@@ -99,11 +99,11 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
                         </Link>
                     </template>
                     <template v-else>
-                        <Button variant="outline" size="sm" class="w-full" @click="router.visit('/guest/login')">
+                        <Button variant="outline" size="sm" class="w-full" @click="router.visit('/login')">
                             Log in
                         </Button>
                         <Button size="sm" class="w-full bg-primary text-primary-foreground hover:bg-accent"
-                            @click="router.visit('/guest/register/shop')">
+                            @click="router.visit('register/shop')">
                             Register Shop
                         </Button>
                     </template>
