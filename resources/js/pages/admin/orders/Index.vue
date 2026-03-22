@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AdminLayout from '@/layouts/admin/AdminLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { type BreadcrumbItem } from '@/types'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
     ListOrdered, BadgeDollarSign, Clock, CheckCircle2,
-    AlertTriangle, Search, RefreshCcw, Eye,
+    AlertTriangle, Search, RefreshCcw, Eye, ChevronDown,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -116,6 +116,21 @@ function resetFilters() {
     router.get('/admin/orders', {}, { preserveState: true, replace: true })
 }
 
+// ─── Module Dropdown ──────────────────────────────────────────────────────────
+
+const expandedOrder = ref<number | null>(null)
+
+function toggleModules(orderId: number) {
+    expandedOrder.value = expandedOrder.value === orderId ? null : orderId
+}
+
+function handleClickOutside() {
+    expandedOrder.value = null
+}
+
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onUnmounted(() => document.removeEventListener('click', handleClickOutside))
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string | null) {
@@ -135,8 +150,8 @@ function isExpired(expiresAt: string | null) {
 }
 
 const planStyles: Record<string, { label: string; cls: string }> = {
-    monthly:       { label: 'Monthly',     cls: 'bg-blue-100 text-blue-700'     },
-    annually:      { label: 'Annually',    cls: 'bg-amber-100 text-amber-700'   },
+    monthly:  { label: 'Monthly',  cls: 'bg-blue-100 text-blue-700'   },
+    annually: { label: 'Annually', cls: 'bg-amber-100 text-amber-700' },
 }
 
 function getPlanBadge(p: string | null) {
@@ -274,7 +289,7 @@ const statusBadge: Record<string, string> = {
                     </div>
 
                     <!-- Table -->
-                    <div class="rounded-lg border overflow-hidden">
+                    <div class="rounded-lg border overflow-visible">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="bg-muted/40 text-xs text-muted-foreground border-b">
@@ -314,16 +329,40 @@ const statusBadge: Record<string, string> = {
                                             {{ getPlanBadge(order.subscription_plan).label }}
                                         </span>
                                     </td>
+
+                                    <!-- Modules dropdown -->
                                     <td class="px-4 py-3">
-                                        <div class="flex flex-wrap gap-1">
-                                            <span
-                                                v-for="mod in order.modules" :key="mod.id"
-                                                class="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+                                        <div class="relative" @click.stop>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md bg-muted hover:bg-muted/70 transition-colors font-medium whitespace-nowrap"
+                                                @click="toggleModules(order.id)"
                                             >
-                                                {{ mod.name }}
-                                            </span>
+                                                {{ order.modules.length }} module{{ order.modules.length !== 1 ? 's' : '' }}
+                                                <ChevronDown
+                                                    class="h-3 w-3 transition-transform duration-200"
+                                                    :class="expandedOrder === order.id ? 'rotate-180' : ''"
+                                                />
+                                            </button>
+
+                                            <div
+                                                v-if="expandedOrder === order.id"
+                                                class="absolute z-20 mt-1 left-0 min-w-44 rounded-lg border border-border bg-card shadow-lg py-1"
+                                            >
+                                                <div
+                                                    v-for="mod in order.modules" :key="mod.id"
+                                                    class="px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors flex items-center justify-between gap-6"
+                                                >
+                                                    <span class="font-medium text-foreground">{{ mod.name }}</span>
+                                                    <span class="text-muted-foreground shrink-0">{{ formatPrice(mod.price) }}</span>
+                                                </div>
+                                                <div v-if="order.modules.length === 0" class="px-3 py-2 text-xs text-muted-foreground">
+                                                    No modules
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
+
                                     <td class="px-4 py-3 font-medium whitespace-nowrap">
                                         {{ formatPrice(order.total_price) }}
                                     </td>
@@ -339,9 +378,7 @@ const statusBadge: Record<string, string> = {
                                         <span
                                             v-if="order.expires_at"
                                             class="text-xs font-medium"
-                                            :class="isExpired(order.expires_at)
-                                                ? 'text-red-500'
-                                                : 'text-muted-foreground'"
+                                            :class="isExpired(order.expires_at) ? 'text-red-500' : 'text-muted-foreground'"
                                         >
                                             {{ formatDate(order.expires_at) }}
                                             <span v-if="isExpired(order.expires_at)" class="block">Expired</span>

@@ -67,7 +67,7 @@ class UserController extends Controller
     {
         $filters = $request->only(['search', 'role']);
 
-        return Inertia::render('admin/Users/Archive', [
+        return Inertia::render('admin/users/Archive', [
             'users'   => $this->userManagementService->getArchivedPaginated($filters),
             'total'   => $this->userManagementService->getArchivedTotal(),
             'filters' => $filters,

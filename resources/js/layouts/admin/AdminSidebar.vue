@@ -54,7 +54,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Analytics Report',
-        href: '#',
+        href: '/admin/analytics',
         icon: ChartNoAxesCombined,
     },
 ]

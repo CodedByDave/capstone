@@ -58,8 +58,8 @@ function submit() {
                     <h2 class="text-lg font-semibold">Edit Item</h2>
                     <p class="text-sm text-muted-foreground">Update details for <span class="font-medium text-foreground">{{ inventory.name }}</span>.</p>
                 </div>
-                <Button variant="outline" @click="router.visit(`/shop/inventory/${inventory.id}`)">
-                    <ArrowLeft class="h-4 w-4 mr-2" /> Back
+                <Button variant="outline" @click="router.visit(`/shop/inventory`)">
+                    <ArrowLeft class="h-4 w-4 mr-2" /> Back to inventory
                 </Button>
             </div>
 

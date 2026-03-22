@@ -69,8 +69,8 @@ onMounted(() => {
     if (!flash) return
     switch (flash.type) {
         case 'success': toast.success(flash.message); break
-        case 'error':   toast.error(flash.message);   break
-        default:        toast(flash.message)
+        case 'error': toast.error(flash.message); break
+        default: toast(flash.message)
     }
 })
 
@@ -78,33 +78,33 @@ onMounted(() => {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/admin/dashboard' },
-    { title: 'Users',     href: '/admin/users' },
+    { title: 'Users', href: '/admin/users' },
 ]
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
-const search   = ref(props.filters.search   ?? '')
-const role     = ref(props.filters.role     ?? 'all')
+const search = ref(props.filters.search ?? '')
+const role = ref(props.filters.role ?? 'all')
 const verified = ref(props.filters.verified ?? 'all')
 
 function applyFilters() {
     router.get('/admin/users', {
-        search:   search.value   || undefined,
-        role:     role.value     !== 'all' ? role.value     : undefined,
+        search: search.value || undefined,
+        role: role.value !== 'all' ? role.value : undefined,
         verified: verified.value !== 'all' ? verified.value : undefined,
     }, { preserveState: true, replace: true })
 }
 
 function resetFilters() {
-    search.value   = ''
-    role.value     = 'all'
+    search.value = ''
+    role.value = 'all'
     verified.value = 'all'
     router.get('/admin/users', {}, { preserveState: true, replace: true })
 }
 
 // ─── Selection ────────────────────────────────────────────────────────────────
 
-const selected    = ref<number[]>([])
+const selected = ref<number[]>([])
 const allSelected = computed(() =>
     props.users.data.length > 0 &&
     props.users.data.every(u => selected.value.includes(u.id))
@@ -124,12 +124,12 @@ function toggleOne(id: number) {
 
 // ─── Archive single ───────────────────────────────────────────────────────────
 
-const archiveId   = ref<number | null>(null)
+const archiveId = ref<number | null>(null)
 const archiveName = ref('')
 const archiveOpen = ref(false)
 
 function openArchive(user: UserItem) {
-    archiveId.value   = user.id
+    archiveId.value = user.id
     archiveName.value = user.name
     archiveOpen.value = true
 }
@@ -144,7 +144,7 @@ function confirmArchive() {
     router.delete(`/admin/users/${archiveId.value}`, {
         preserveScroll: true,
         onSuccess: () => { toast.success('User archived.'); archiveOpen.value = false },
-        onError:   () => toast.error('Failed to archive user.'),
+        onError: () => toast.error('Failed to archive user.'),
     })
 }
 
@@ -172,14 +172,15 @@ function formatDate(d: string) {
 
 const roleBadge: Record<string, string> = {
     super_admin: 'bg-purple-100 text-purple-700',
-    owner:       'bg-blue-100 text-blue-700',
-    manager:     'bg-sky-100 text-sky-700',
-    staff:       'bg-orange-100 text-orange-700',
-    user:        'bg-gray-100 text-gray-600',
+    owner: 'bg-blue-100 text-blue-700',
+    manager: 'bg-sky-100 text-sky-700',
+    staff: 'bg-orange-100 text-orange-700',
+    user: 'bg-gray-100 text-gray-600',
 }
 </script>
 
 <template>
+
     <Head title="Users" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="User Management">
         <div class="px-6 space-y-6">
@@ -252,13 +253,8 @@ const roleBadge: Record<string, string> = {
                             All Users
                         </CardTitle>
                         <div class="flex gap-2 flex-wrap">
-                            <Button
-                                v-if="selected.length > 0"
-                                size="sm"
-                                variant="outline"
-                                class="border-amber-300 text-amber-700 hover:bg-amber-50"
-                                @click="bulkArchive"
-                            >
+                            <Button v-if="selected.length > 0" size="sm" variant="outline"
+                                class="border-amber-300 text-amber-700 hover:bg-amber-50" @click="bulkArchive">
                                 <Archive class="h-4 w-4 mr-1.5" />
                                 Archive ({{ selected.length }})
                             </Button>
@@ -277,12 +273,8 @@ const roleBadge: Record<string, string> = {
                     <div class="flex flex-wrap gap-2">
                         <div class="relative flex-1 min-w-48">
                             <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                v-model="search"
-                                placeholder="Search name or email..."
-                                class="pl-8"
-                                @keyup.enter="applyFilters"
-                            />
+                            <Input v-model="search" placeholder="Search name or email..." class="pl-8"
+                                @keyup.enter="applyFilters" />
                         </div>
 
                         <Select v-model="role" @update:model-value="applyFilters">
@@ -316,12 +308,8 @@ const roleBadge: Record<string, string> = {
                             <thead>
                                 <tr class="bg-muted/40 text-xs text-muted-foreground border-b">
                                     <th class="px-4 py-3 w-8">
-                                        <input
-                                            type="checkbox"
-                                            :checked="allSelected"
-                                            @change="toggleAll"
-                                            class="rounded"
-                                        />
+                                        <input type="checkbox" :checked="allSelected" @change="toggleAll"
+                                            class="rounded" />
                                     </th>
                                     <th class="text-left px-4 py-3 font-medium">Name</th>
                                     <th class="text-left px-4 py-3 font-medium">Email</th>
@@ -333,26 +321,18 @@ const roleBadge: Record<string, string> = {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr
-                                    v-for="u in users.data" :key="u.id"
+                                <tr v-for="u in users.data" :key="u.id"
                                     class="border-b last:border-0 hover:bg-muted/20 transition-colors"
-                                    :class="{ 'bg-muted/10': selected.includes(u.id) }"
-                                >
+                                    :class="{ 'bg-muted/10': selected.includes(u.id) }">
                                     <td class="px-4 py-3">
-                                        <input
-                                            type="checkbox"
-                                            :checked="selected.includes(u.id)"
-                                            @change="toggleOne(u.id)"
-                                            class="rounded"
-                                        />
+                                        <input type="checkbox" :checked="selected.includes(u.id)"
+                                            @change="toggleOne(u.id)" class="rounded" />
                                     </td>
                                     <td class="px-4 py-3 font-medium whitespace-nowrap">{{ u.name }}</td>
                                     <td class="px-4 py-3 text-muted-foreground text-xs">{{ u.email }}</td>
                                     <td class="px-4 py-3">
-                                        <span
-                                            class="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
-                                            :class="roleBadge[u.role] ?? 'bg-gray-100 text-gray-600'"
-                                        >
+                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
+                                            :class="roleBadge[u.role] ?? 'bg-gray-100 text-gray-600'">
                                             {{ u.role.replace('_', ' ') }}
                                         </span>
                                     </td>
@@ -362,12 +342,9 @@ const roleBadge: Record<string, string> = {
 
                                     <!-- Account — verified for all roles since all go through OTP -->
                                     <td class="px-4 py-3">
-                                        <span
-                                            class="text-xs px-2 py-0.5 rounded-full font-medium"
-                                            :class="u.is_verified
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-600'"
-                                        >
+                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium" :class="u.is_verified
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-600'">
                                             {{ u.is_verified ? 'Verified' : 'Unverified' }}
                                         </span>
                                     </td>
@@ -377,16 +354,11 @@ const roleBadge: Record<string, string> = {
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex items-center justify-center gap-1">
-                                            <Button
-                                                size="icon" variant="ghost"
-                                                @click="router.visit(`/admin/users/${u.id}`)"
-                                            >
+                                            <Button size="icon" variant="ghost"
+                                                @click="router.visit(`/admin/users/${u.id}`)">
                                                 <Eye class="h-4 w-4 text-blue-500" />
                                             </Button>
-                                            <Button
-                                                size="icon" variant="ghost"
-                                                @click="openArchive(u)"
-                                            >
+                                            <Button size="icon" variant="ghost" @click="openArchive(u)">
                                                 <Trash2 class="h-4 w-4 text-amber-500" />
                                             </Button>
                                         </div>
@@ -408,15 +380,10 @@ const roleBadge: Record<string, string> = {
                             Showing {{ users.data.length }} of {{ users.total }} users
                         </p>
                         <div class="flex gap-1">
-                            <Button
-                                v-for="link in users.links" :key="link.label"
-                                size="sm"
-                                :variant="link.active ? 'default' : 'outline'"
-                                :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs"
-                                @click="link.url && router.visit(link.url)"
-                                v-html="link.label"
-                            />
+                            <Button v-for="link in users.links" :key="link.label" size="sm"
+                                :variant="link.active ? 'default' : 'outline'" :disabled="!link.url"
+                                class="h-7 min-w-7 text-xs" @click="link.url && router.visit(link.url)"
+                                v-html="link.label" />
                         </div>
                     </div>
                 </CardContent>

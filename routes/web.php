@@ -5,8 +5,10 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ShopDataController;
+use App\Http\Controllers\Shop\ShopDashboardController;
 use App\Http\Controllers\Shop\ShopOrderController;
 use App\Http\Controllers\Shop\Employee\EmployeeController;
 use App\Http\Controllers\Shop\Employee\ScheduleController;
@@ -47,8 +49,6 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
     // ── Users ─────────────────────────────────────────────────────────────────────
     Route::prefix('users')->name('admin.users.')->group(function () {
         Route::get('/',              [UserController::class, 'index'])->name('index');
-        Route::get('/{user}',        [UserController::class, 'show'])->name('show');
-        Route::delete('/{user}',     [UserController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-archive', [UserController::class, 'bulkArchive'])->name('bulk-archive');
 
         Route::prefix('archive')->name('archive.')->group(function () {
@@ -57,6 +57,9 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
             Route::post('/bulk-restore', [UserController::class, 'bulkRestore'])->name('bulk-restore');
             Route::delete('/{id}',       [UserController::class, 'forceDelete'])->name('force-delete');
         });
+
+        Route::get('/{user}',        [UserController::class, 'show'])->name('show');
+        Route::delete('/{user}',     [UserController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('login-logs')->name('admin.login-logs.')->group(function () {
@@ -77,12 +80,16 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
         Route::get('/',       [OrderController::class, 'index'])->name('index');
         Route::get('/{id}',   [OrderController::class, 'show'])->name('show');
     });
+
+    // Analytics
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
+
 });
 // ── Shop owner routes ──────────────────────────────────────────────────────────
 
 Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(function () {
 
-    Route::get('/dashboard', [ShopOrderController::class, 'displayModules'])->name('shop.dashboard');
+    Route::get('/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
     Route::get('/data',      [ShopDataController::class, 'getShop'])->name('shop.data');
 
     Route::post('/checkout',       [CheckoutController::class, 'checkout'])->name('checkout');
