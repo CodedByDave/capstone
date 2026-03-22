@@ -362,8 +362,7 @@ const recommendations = computed(() => [
             <div class="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white shadow-lg">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <p>PAKYU RAMUEL</p>
-                        <h2 class="text-2xl font-bold">Platform Overview — Welcome, {{ user.name }}</h2>
+                        <h2 class="text-2xl font-bold">TALAGA Overview — Welcome, {{ user.name }}</h2>
                         <p class="text-indigo-200 mt-1 text-sm">Laundry SaaS · Super Admin · Decision Support System</p>
                     </div>
                     <div class="flex items-center gap-3 flex-wrap">
