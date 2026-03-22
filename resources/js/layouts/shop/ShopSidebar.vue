@@ -137,34 +137,12 @@ const allServicesSubActions = [
     },
 ]
 
-/* Reports & Analytics */
-const allReportsSubActions = [
-    {
-        title: 'Overview',
-        icon: PieChart,
-        href: isOwner.value ? '/shop/reports' : '/staff/reports',
-        show: () => isOwner.value || can('Reports & Analytics', 'view'),
-    },
-    {
-        title: 'Inventory Report',
-        icon: Package,
-        href: isOwner.value ? '/shop/reports/inventory' : '/staff/reports/inventory',
-        show: () => isOwner.value || can('Reports & Analytics', 'view'),
-    },
-    {
-        title: 'Employee Report',
-        icon: UserCircle,
-        href: isOwner.value ? '/shop/reports/employee' : '/staff/reports/employee',
-        show: () => isOwner.value || can('Reports & Analytics', 'view'),
-    },
-]
-
 /* Filtered computed lists */
 const employeeSubActions  = computed(() => allEmployeeSubActions.filter(i => i.show()))
 const inventorySubActions = computed(() => allInventorySubActions.filter(i => i.show()))
 const orderSubActions     = computed(() => allOrderSubActions.filter(i => i.show()))
 const servicesSubActions  = computed(() => allServicesSubActions.filter(i => i.show()))
-const reportsSubActions   = computed(() => allReportsSubActions.filter(i => i.show()))
+
 
 function getSubActions(moduleName: string) {
     const map: Record<string, any[]> = {
@@ -172,7 +150,6 @@ function getSubActions(moduleName: string) {
         'Inventory Management': inventorySubActions.value,
         'Order Management':     orderSubActions.value,
         'Services & Pricing':   servicesSubActions.value,
-        'Reports & Analytics':  reportsSubActions.value,
     }
     return map[moduleName] ?? []
 }
