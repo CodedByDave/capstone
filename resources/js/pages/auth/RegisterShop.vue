@@ -213,22 +213,9 @@ watch(() => form.errors, (serverErrors) => {
     if (!serverErrors || Object.keys(serverErrors).length === 0) return
 
     if (serverErrors.name || serverErrors.email || serverErrors.phone) {
-        errors.value = {
-            ...errors.value,
-            ...(serverErrors.name  ? { name:  serverErrors.name }  : {}),
-            ...(serverErrors.email ? { email: serverErrors.email } : {}),
-            ...(serverErrors.phone ? { phone: serverErrors.phone } : {}),
-        }
         step.value = 1
         focusFirstError()
     } else if (serverErrors.shop_name || serverErrors.block_street || serverErrors.municipality || serverErrors.barangay) {
-        errors.value = {
-            ...errors.value,
-            ...(serverErrors.shop_name   ? { shop_name:   serverErrors.shop_name }   : {}),
-            ...(serverErrors.block_street ? { block_street: serverErrors.block_street } : {}),
-            ...(serverErrors.municipality ? { municipality: serverErrors.municipality } : {}),
-            ...(serverErrors.barangay    ? { barangay:    serverErrors.barangay }    : {}),
-        }
         step.value = 2
         focusFirstError()
     }
