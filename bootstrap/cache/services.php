@@ -24,21 +24,26 @@
     20 => 'Illuminate\\Translation\\TranslationServiceProvider',
     21 => 'Illuminate\\Validation\\ValidationServiceProvider',
     22 => 'Illuminate\\View\\ViewServiceProvider',
-    23 => 'Inertia\\ServiceProvider',
-    24 => 'Laravel\\Boost\\BoostServiceProvider',
-    25 => 'Laravel\\Fortify\\FortifyServiceProvider',
-    26 => 'Laravel\\Mcp\\Server\\McpServiceProvider',
-    27 => 'Laravel\\Pail\\PailServiceProvider',
-    28 => 'Laravel\\Roster\\RosterServiceProvider',
-    29 => 'Laravel\\Sail\\SailServiceProvider',
-    30 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    31 => 'Laravel\\Wayfinder\\WayfinderServiceProvider',
-    32 => 'Carbon\\Laravel\\ServiceProvider',
-    33 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    34 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    35 => 'Pest\\Laravel\\PestServiceProvider',
-    36 => 'App\\Providers\\AppServiceProvider',
-    37 => 'App\\Providers\\FortifyServiceProvider',
+    23 => 'Barryvdh\\LaravelIdeHelper\\IdeHelperServiceProvider',
+    24 => 'Inertia\\ServiceProvider',
+    25 => 'Laravel\\Boost\\BoostServiceProvider',
+    26 => 'Laravel\\Fortify\\FortifyServiceProvider',
+    27 => 'Laravel\\Mcp\\Server\\McpServiceProvider',
+    28 => 'Laravel\\Pail\\PailServiceProvider',
+    29 => 'Laravel\\Roster\\RosterServiceProvider',
+    30 => 'Laravel\\Sail\\SailServiceProvider',
+    31 => 'Laravel\\Socialite\\SocialiteServiceProvider',
+    32 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    33 => 'Laravel\\Wayfinder\\WayfinderServiceProvider',
+    34 => 'Carbon\\Laravel\\ServiceProvider',
+    35 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    36 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    37 => 'Pest\\Laravel\\PestServiceProvider',
+    38 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
+    39 => 'App\\Providers\\AuthServiceProvider',
+    40 => 'App\\Providers\\AppServiceProvider',
+    41 => 'App\\Providers\\AuthServiceProvider',
+    42 => 'App\\Providers\\FortifyServiceProvider',
   ),
   'eager' => 
   array (
@@ -63,8 +68,11 @@
     18 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     19 => 'Termwind\\Laravel\\TermwindServiceProvider',
     20 => 'Pest\\Laravel\\PestServiceProvider',
-    21 => 'App\\Providers\\AppServiceProvider',
-    22 => 'App\\Providers\\FortifyServiceProvider',
+    21 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
+    22 => 'App\\Providers\\AuthServiceProvider',
+    23 => 'App\\Providers\\AppServiceProvider',
+    24 => 'App\\Providers\\AuthServiceProvider',
+    25 => 'App\\Providers\\FortifyServiceProvider',
   ),
   'deferred' => 
   array (
@@ -222,8 +230,13 @@
     'validator' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'validation.presence' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
+    'Barryvdh\\LaravelIdeHelper\\Console\\GeneratorCommand' => 'Barryvdh\\LaravelIdeHelper\\IdeHelperServiceProvider',
+    'Barryvdh\\LaravelIdeHelper\\Console\\ModelsCommand' => 'Barryvdh\\LaravelIdeHelper\\IdeHelperServiceProvider',
+    'Barryvdh\\LaravelIdeHelper\\Console\\MetaCommand' => 'Barryvdh\\LaravelIdeHelper\\IdeHelperServiceProvider',
+    'Barryvdh\\LaravelIdeHelper\\Console\\EloquentCommand' => 'Barryvdh\\LaravelIdeHelper\\IdeHelperServiceProvider',
     'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
     'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'Laravel\\Socialite\\Contracts\\Factory' => 'Laravel\\Socialite\\SocialiteServiceProvider',
     'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
@@ -267,7 +280,13 @@
     'Illuminate\\Validation\\ValidationServiceProvider' => 
     array (
     ),
+    'Barryvdh\\LaravelIdeHelper\\IdeHelperServiceProvider' => 
+    array (
+    ),
     'Laravel\\Sail\\SailServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Socialite\\SocialiteServiceProvider' => 
     array (
     ),
     'Laravel\\Tinker\\TinkerServiceProvider' => 

@@ -10,7 +10,7 @@ use App\Models\Shop;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\PaymongoService;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,28 +25,125 @@ class CheckoutController extends Controller
         protected PaymongoService $paymongoService
     ) {}
 
-    public function checkout(StoreOrderRequest $request): JsonResponse
+    // ── Plan selection page ────────────────────────────────────────────────────
+
+    public function show(string $plan): Response|RedirectResponse
     {
+        return Inertia::render('shop/Checkout', [
+            'planName' => $plan,
+            'vatPct'   => 12,
+            'user'     => auth()->user() ? [
+                'name'  => auth()->user()->name,
+                'email' => auth()->user()->email,
+            ] : null,
+        ]);
+    }
+
+    // ── Store selected plan + billing period in session ────────────────────────
+
+    public function select(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'plan_name'      => 'required|string|in:Basic,Standard,Premium',
+            'billing_months' => 'required|integer|in:1,12,24,48',
+            'discount_pct'   => 'required|integer',
+            'monthly_price'  => 'required|integer',
+            'total_amount'   => 'required|integer',
+        ]);
+
+        session([
+            'checkout' => [
+                'plan_name'      => $request->plan_name,
+                'billing_months' => $request->billing_months,
+                'discount_pct'   => $request->discount_pct,
+                'monthly_price'  => $request->monthly_price,
+                'total_amount'   => $request->total_amount,
+            ]
+        ]);
+
+        if (auth()->check()) {
+            return redirect()->route('checkout.confirm');
+        }
+
+        return redirect()->route('login')->with('toast', [
+            'type'    => 'info',
+            'message' => 'Please log in or create an account to continue.',
+        ]);
+    }
+
+    // ── Confirm page (authenticated) ───────────────────────────────────────────
+
+    public function confirm(): Response|RedirectResponse
+    {
+        $checkout = session('checkout');
+
+        if (!$checkout && !session('checkout_url')) {
+            return redirect()->route('landing')->with('toast', [
+                'type'    => 'error',
+                'message' => 'No plan selected. Please pick a plan first.',
+            ]);
+        }
+
+        return Inertia::render('shop/CheckoutConfirm', [
+            'planName' => $checkout['plan_name'] ?? 'Standard',
+            'vatPct'   => 12,
+            'user'     => [
+                'name'  => auth()->user()->name,
+                'email' => auth()->user()->email,
+            ],
+        ]);
+    }
+
+    // ── Process order ──────────────────────────────────────────────────────────
+
+    public function checkout(StoreOrderRequest $request): RedirectResponse
+    {
+        Log::info('CHECKOUT HIT', $request->all());
+
         try {
-            Log::info('=== CHECKOUT START ===', $request->all());
+            Log::info('=== CHECKOUT START ===', $request->validated());
 
             $user = auth()->user();
 
-            [$order, $payment] = DB::transaction(function () use ($request, $user) {
+            $planName      = $request->validated()['plan_name'];
+            $billingMonths = (int) $request->validated()['billing_months'];
+
+            $planPrices = ['Basic' => 3800, 'Standard' => 6300, 'Premium' => 8000];
+            $discounts  = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
+
+            $basePrice    = $planPrices[$planName];
+            $discountPct  = $discounts[$billingMonths] ?? 0;
+            $monthlyPrice = $basePrice * (1 - $discountPct / 100);
+            $subtotal     = $monthlyPrice * $billingMonths;
+            $vatAmount    = round($subtotal * 0.12);
+            $grandTotal   = $subtotal + $vatAmount;
+
+            [$order, $payment] = DB::transaction(function () use ($request, $user, $planName, $billingMonths, $grandTotal) {
+
                 $order = $this->orderService->create([
-                    ...$request->validated(),
-                    'user_id' => $user->id,
+                    'shop_name'      => $request->validated()['shop_name'],
+                    'phone'          => $request->validated()['phone'],
+                    'block_street'   => $request->validated()['block_street'],
+                    'municipality'   => $request->validated()['municipality'],
+                    'barangay'       => $request->validated()['barangay'],
+                    'postal_code'    => $request->validated()['postal_code'],
+                    'owner_name'     => $user->name,
+                    'email'          => $user->email,
+                    'user_id'        => $user->id,
+                    'plan_name'      => $planName,
+                    'billing_months' => $billingMonths,
+                    'total_price'    => $grandTotal,
+                    'payment_method' => $request->validated()['payment_method'],
                 ]);
 
                 Log::info('Order created', [
                     'order_id'    => $order->id,
                     'total_price' => $order->total_price,
-                    'modules'     => $order->modules,
                 ]);
 
                 $payment = $this->paymentService->createForOrder($order, [
-                    'payment_method' => 'paymongo',
-                    'amount'         => $order->total_price,
+                    'payment_method' => $request->validated()['payment_method'],
+                    'amount'         => $grandTotal,
                 ]);
 
                 Log::info('Payment record created', ['payment_id' => $payment->id]);
@@ -54,23 +151,39 @@ class CheckoutController extends Controller
                 return [$order, $payment];
             });
 
+            $kycPaths = [];
+            foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {
+                if ($request->hasFile($key)) {
+                    $kycPaths[$key] = $request->file($key)->store(
+                        "kyc/{$order->id}",
+                        'private'
+                    );
+                }
+            }
+
+            if (!empty($kycPaths)) {
+                Order::where('id', $order->id)->update($kycPaths);
+                Log::info('KYC files stored', ['order_id' => $order->id, 'files' => $kycPaths]);
+            }
+
+            $order = Order::findOrFail($order->id);
+
             $session = $this->paymongoService->createCheckoutSession($order);
 
-            // Save the PayMongo session ID for later verification
             Payment::where('order_id', $order->id)->update([
                 'paymongo_session_id' => $session['data']['id'],
             ]);
 
-            Log::info('Checkout session created successfully', [
-                'session_id'          => $session['data']['id'],
-                'checkout_url'        => $session['data']['attributes']['checkout_url'],
-                'paymongo_session_id' => Payment::where('order_id', $order->id)->value('paymongo_session_id'),
-            ]);
-
-            return response()->json([
-                'success'      => true,
+            Log::info('Checkout session created', [
+                'session_id'   => $session['data']['id'],
                 'checkout_url' => $session['data']['attributes']['checkout_url'],
             ]);
+
+            session()->forget('checkout');
+            session(['checkout_url' => $session['data']['attributes']['checkout_url']]);
+
+            return redirect()->route('checkout.confirm');
+
         } catch (\Exception $e) {
             Log::error('=== CHECKOUT FAILED ===', [
                 'error' => $e->getMessage(),
@@ -79,12 +192,14 @@ class CheckoutController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return response()->json([
-                'success' => false,
-                'error'   => $e->getMessage(),
-            ], 422);
+            return back()->with('toast', [
+                'type'    => 'error',
+                'message' => 'Something went wrong. Please try again.',
+            ]);
         }
     }
+
+    // ── Payment success ────────────────────────────────────────────────────────
 
     public function success(Request $request): Response
     {
@@ -111,15 +226,6 @@ class CheckoutController extends Controller
 
                         $order?->update(['status' => 'paid']);
 
-                        // Activate the shop once payment is confirmed
-                        Shop::where('owner_id', $order->user_id)
-                            ->update(['status' => 'active']);
-
-                        Log::info('Shop activated after payment', [
-                            'order_id' => $orderId,
-                            'user_id'  => $order->user_id,
-                        ]);
-
                         $payment = $payment->fresh();
                         $order   = $order->fresh()->load('modules');
                     }
@@ -143,7 +249,6 @@ class CheckoutController extends Controller
                     'municipality' => $order->municipality,
                     'barangay'     => $order->barangay,
                     'postal_code'  => $order->postal_code,
-                    'branch_name'  => $order->branch_name,
                     'total_price'  => $order->total_price,
                     'created_at'   => $order->created_at,
                     'modules'      => $order->modules->map(fn($m) => [
@@ -157,6 +262,8 @@ class CheckoutController extends Controller
 
         return Inertia::render('shop/payment/PaymentSuccess');
     }
+
+    // ── Payment cancel ─────────────────────────────────────────────────────────
 
     public function cancel(): Response
     {

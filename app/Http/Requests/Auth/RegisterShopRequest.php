@@ -25,6 +25,7 @@ class RegisterShopRequest extends FormRequest
             'municipality' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
             'postal_code' => 'required|string|max:10',
+            'google_id' => 'nullable|string'
         ];
     }
 }

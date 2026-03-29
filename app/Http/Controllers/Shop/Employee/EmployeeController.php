@@ -12,8 +12,9 @@ use App\Models\Shop;
 use App\Models\ShopRole;
 use App\Repositories\BranchRepository;
 use App\Services\EmployeeService;
-use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
 
 class EmployeeController extends Controller
 {
@@ -32,7 +33,6 @@ class EmployeeController extends Controller
             return Shop::where('owner_id', $user->id)->firstOrFail();
         }
 
-        // Staff
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
         return Shop::findOrFail($employee->shop_id);
     }
@@ -58,7 +58,7 @@ class EmployeeController extends Controller
             ->toArray();
     }
 
-    /* ─── READ ───────────────────────────────────────────────── */
+    // Index of employee table
 
     public function index(Request $request)
     {
@@ -74,6 +74,8 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee)
     {
+        Gate::authorize('view', $employee);
+
         $shop = $this->getShop();
         $this->employeeService->authorizeEmployee($employee, $shop);
 
@@ -96,6 +98,8 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
+        Gate::authorize('update', $employee);
+
         $shop = $this->getShop();
         $this->employeeService->authorizeEmployee($employee, $shop);
 
@@ -134,6 +138,8 @@ class EmployeeController extends Controller
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
+        Gate::authorize('update', $employee);
+
         $shop = $this->getShop();
         $this->employeeService->authorizeEmployee($employee, $shop);
         $this->employeeService->updateEmployee($employee, $request->validated());
@@ -144,6 +150,8 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
+        Gate::authorize('delete', $employee);
+
         $shop = $this->getShop();
         $this->employeeService->authorizeEmployee($employee, $shop);
         $this->employeeService->archiveEmployee($employee);
@@ -156,6 +164,9 @@ class EmployeeController extends Controller
     {
         $shop     = $this->getShop();
         $employee = $shop->employees()->onlyTrashed()->findOrFail($id);
+
+        Gate::authorize('restore', $employee);
+
         $this->employeeService->restoreEmployee($employee);
 
         return redirect()->route('employee.archive')
@@ -168,6 +179,7 @@ class EmployeeController extends Controller
         $employees = $shop->employees()->onlyTrashed()->whereIn('id', $request->ids)->get();
 
         foreach ($employees as $employee) {
+            Gate::authorize('restore', $employee);
             $this->employeeService->restoreEmployee($employee);
         }
 

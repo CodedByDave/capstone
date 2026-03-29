@@ -59,12 +59,12 @@ class AdminDashboardController extends Controller
             ? round((($ordersThisMonth - $ordersLastMonth) / $ordersLastMonth) * 100, 1)
             : 0;
 
-        // Plan breakdown
         $planBreakdown = Order::where('status', 'paid')
-            ->where('expires_at', '>', $now)
-            ->selectRaw('subscription_plan, COUNT(*) as total')
-            ->groupBy('subscription_plan')
-            ->pluck('total', 'subscription_plan');
+            ->where('expires_at', '>', now())
+            ->selectRaw('billing_months, COUNT(*) as total')
+            ->groupBy('billing_months')
+            ->pluck('total', 'billing_months');
+
 
         // ── Payments / Revenue ────────────────────────────────────────────────
         $revenueThisMonth = Payment::where('status', 'paid')

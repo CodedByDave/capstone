@@ -27,6 +27,7 @@ class User extends Authenticatable
         'otp_code',
         'otp_expires_at',
         'is_verified',
+        'google_id'
     ];
 
     public function isOwner(): bool

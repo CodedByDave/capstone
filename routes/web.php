@@ -29,7 +29,15 @@ Route::get('/', function () {
     return Inertia::render('Landing', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
-})->name('home');
+})->name('landing');
+
+Route::get('/shop/checkout/{plan}',  [CheckoutController::class, 'show']);
+Route::post('/checkout/select',      [CheckoutController::class, 'select']);
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout/confirm',  [CheckoutController::class, 'confirm'])->name('checkout.confirm');
+    Route::post('/checkout/process', [CheckoutController::class, 'checkout'])->name('checkout.process');
+});
 
 // ── Super admin routes ─────────────────────────────────────────────────────────
 
@@ -82,6 +90,11 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
         Route::get('/{id}',   [OrderController::class, 'show'])->name('show');
     });
 
+    Route::get('/admin/kyc-file', [OrderController::class, 'serveKyc'])->name('admin.kyc-file');
+
+    Route::post('/orders/{id}/approve', [OrderController::class, 'approve'])->name('admin.orders.approve');
+    Route::post('/orders/{id}/reject',  [OrderController::class, 'reject'])->name('admin.orders.reject');
+
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
 });
@@ -99,7 +112,6 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::get('/logs', [ActivityLogsController::class, 'index'])->name('logs.index');
 
     // ── Employee ──────────────────────────────────────────────────────────────
-    // Static routes BEFORE {employee} wildcard
     Route::get('/employee/create',          [EmployeeController::class, 'create'])->name('employee.create');
     Route::get('/employee/archive',         [EmployeeController::class, 'archive'])->name('employee.archive');
     Route::get('/employee/import-template', [EmployeeController::class, 'importTemplate'])->name('employee.import.template');

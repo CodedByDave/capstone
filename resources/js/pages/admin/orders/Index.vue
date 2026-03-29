@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
     ListOrdered, BadgeDollarSign, Clock, CheckCircle2,
     AlertTriangle, Search, RefreshCcw, Eye, ChevronDown,
+    XCircle, FileText, X, ShieldCheck, ShieldX
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,11 +40,16 @@ interface OrderItem {
     phone: string
     municipality: string
     barangay: string
-    subscription_plan: string | null
+    plan_name: string | null
+    billing_months: number | null
     total_price: string
     status: string
     expires_at: string | null
     created_at: string
+    kyc_bir: string | null
+    kyc_dti: string | null
+    kyc_mayors: string | null
+    kyc_sanitary: string | null
     modules: Module[]
     payments: Payment[]
 }
@@ -62,11 +68,13 @@ interface Paginator {
 const props = defineProps<{
     orders:  Paginator
     stats:   {
-        total: number
-        paid: number
-        pending: number
-        expired: number
-        revenue: number
+        total:    number
+        paid:     number
+        approved: number
+        rejected: number
+        pending:  number
+        expired:  number
+        revenue:  number
     }
     filters: Record<string, string>
 }>()
@@ -131,6 +139,61 @@ function handleClickOutside() {
 onMounted(() => document.addEventListener('click', handleClickOutside))
 onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
+// ─── KYC Modal ────────────────────────────────────────────────────────────────
+
+const kycModal = ref<{ open: boolean; order: OrderItem | null }>({
+    open: false,
+    order: null,
+})
+
+function openKyc(order: OrderItem) {
+    kycModal.value = { open: true, order }
+}
+
+function closeKyc() {
+    kycModal.value = { open: false, order: null }
+}
+
+const kycDocs = (order: OrderItem) => [
+    { label: 'BIR Certificate',      key: 'kyc_bir',      path: order.kyc_bir      },
+    { label: 'DTI Registration',     key: 'kyc_dti',      path: order.kyc_dti      },
+    { label: "Mayor's Permit",       key: 'kyc_mayors',   path: order.kyc_mayors   },
+    { label: 'Sanitary Permit',      key: 'kyc_sanitary', path: order.kyc_sanitary },
+]
+
+function kycUrl(path: string) {
+    return `/admin/kyc-file?path=${encodeURIComponent(path)}`
+}
+
+function isImage(path: string) {
+    return /\.(jpg|jpeg|png)$/i.test(path)
+}
+
+// ─── Approve / Reject ─────────────────────────────────────────────────────────
+
+const confirmModal = ref<{
+    open: boolean
+    action: 'approve' | 'reject' | null
+    orderId: number | null
+    shopName: string
+}>({ open: false, action: null, orderId: null, shopName: '' })
+
+function openConfirm(action: 'approve' | 'reject', order: OrderItem) {
+    confirmModal.value = { open: true, action, orderId: order.id, shopName: order.shop_name }
+}
+
+function closeConfirm() {
+    confirmModal.value = { open: false, action: null, orderId: null, shopName: '' }
+}
+
+function submitAction() {
+    if (!confirmModal.value.orderId || !confirmModal.value.action) return
+    const url = `/admin/orders/${confirmModal.value.orderId}/${confirmModal.value.action}`
+    router.post(url, {}, {
+        onSuccess: () => closeConfirm(),
+    })
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string | null) {
@@ -149,20 +212,12 @@ function isExpired(expiresAt: string | null) {
     return new Date(expiresAt) < new Date()
 }
 
-const planStyles: Record<string, { label: string; cls: string }> = {
-    monthly:  { label: 'Monthly',  cls: 'bg-blue-100 text-blue-700'   },
-    annually: { label: 'Annually', cls: 'bg-amber-100 text-amber-700' },
-}
-
-function getPlanBadge(p: string | null) {
-    if (!p) return { label: 'None', cls: 'bg-gray-100 text-gray-400' }
-    return planStyles[p] ?? { label: p, cls: 'bg-gray-100 text-gray-500' }
-}
-
 const statusBadge: Record<string, string> = {
-    paid:    'bg-green-100 text-green-700',
-    pending: 'bg-amber-100 text-amber-700',
-    failed:  'bg-red-100 text-red-600',
+    paid:     'bg-green-100 text-green-700',
+    approved: 'bg-emerald-100 text-emerald-700',
+    rejected: 'bg-red-100 text-red-600',
+    pending:  'bg-amber-100 text-amber-700',
+    failed:   'bg-red-100 text-red-600',
 }
 </script>
 
@@ -176,7 +231,7 @@ const statusBadge: Record<string, string> = {
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total Orders</p>
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total</p>
                             <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <ListOrdered class="h-4 w-4 text-blue-600" />
                             </div>
@@ -187,12 +242,12 @@ const statusBadge: Record<string, string> = {
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Paid</p>
-                            <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
-                                <CheckCircle2 class="h-4 w-4 text-green-600" />
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Approved</p>
+                            <div class="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                <ShieldCheck class="h-4 w-4 text-emerald-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-green-600">{{ stats.paid.toLocaleString() }}</p>
+                        <p class="text-3xl font-bold text-emerald-600">{{ stats.approved.toLocaleString() }}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -209,23 +264,23 @@ const statusBadge: Record<string, string> = {
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Expired</p>
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Rejected</p>
                             <div class="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center">
-                                <AlertTriangle class="h-4 w-4 text-red-600" />
+                                <ShieldX class="h-4 w-4 text-red-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-red-600">{{ stats.expired.toLocaleString() }}</p>
+                        <p class="text-3xl font-bold text-red-600">{{ stats.rejected.toLocaleString() }}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total Revenue</p>
-                            <div class="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                <BadgeDollarSign class="h-4 w-4 text-emerald-600" />
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Revenue</p>
+                            <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+                                <BadgeDollarSign class="h-4 w-4 text-green-600" />
                             </div>
                         </div>
-                        <p class="text-2xl font-bold text-emerald-600">{{ formatPrice(stats.revenue) }}</p>
+                        <p class="text-2xl font-bold text-green-600">{{ formatPrice(stats.revenue) }}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -264,8 +319,9 @@ const statusBadge: Record<string, string> = {
                             <SelectContent>
                                 <SelectItem value="all">All Status</SelectItem>
                                 <SelectItem value="paid">Paid</SelectItem>
+                                <SelectItem value="approved">Approved</SelectItem>
+                                <SelectItem value="rejected">Rejected</SelectItem>
                                 <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="failed">Failed</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -275,17 +331,13 @@ const statusBadge: Record<string, string> = {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Plans</SelectItem>
-                                <SelectItem value="monthly">Monthly</SelectItem>
-                                <SelectItem value="annually">Annually</SelectItem>
+                                <SelectItem value="Basic">Basic</SelectItem>
+                                <SelectItem value="Standard">Standard</SelectItem>
+                                <SelectItem value="Premium">Premium</SelectItem>
                             </SelectContent>
                         </Select>
 
-                        <Input
-                            v-model="date"
-                            type="date"
-                            class="w-40"
-                            @change="applyFilters"
-                        />
+                        <Input v-model="date" type="date" class="w-40" @change="applyFilters" />
                     </div>
 
                     <!-- Table -->
@@ -310,9 +362,7 @@ const statusBadge: Record<string, string> = {
                                     v-for="order in orders.data" :key="order.id"
                                     class="border-b last:border-0 hover:bg-muted/20 transition-colors"
                                 >
-                                    <td class="px-4 py-3 font-mono text-xs text-muted-foreground">
-                                        #{{ order.id }}
-                                    </td>
+                                    <td class="px-4 py-3 font-mono text-xs text-muted-foreground">#{{ order.id }}</td>
                                     <td class="px-4 py-3">
                                         <p class="font-medium whitespace-nowrap">{{ order.shop_name }}</p>
                                         <p class="text-xs text-muted-foreground">{{ order.municipality }}, {{ order.barangay }}</p>
@@ -322,12 +372,8 @@ const statusBadge: Record<string, string> = {
                                         <p class="text-xs text-muted-foreground">{{ order.email }}</p>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <span
-                                            class="text-xs px-2 py-0.5 rounded-full font-medium"
-                                            :class="getPlanBadge(order.subscription_plan).cls"
-                                        >
-                                            {{ getPlanBadge(order.subscription_plan).label }}
-                                        </span>
+                                        <p class="text-xs font-medium">{{ order.plan_name ?? '—' }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ order.billing_months ? `${order.billing_months} mo` : '—' }}</p>
                                     </td>
 
                                     <!-- Modules dropdown -->
@@ -339,33 +385,25 @@ const statusBadge: Record<string, string> = {
                                                 @click="toggleModules(order.id)"
                                             >
                                                 {{ order.modules.length }} module{{ order.modules.length !== 1 ? 's' : '' }}
-                                                <ChevronDown
-                                                    class="h-3 w-3 transition-transform duration-200"
-                                                    :class="expandedOrder === order.id ? 'rotate-180' : ''"
-                                                />
+                                                <ChevronDown class="h-3 w-3 transition-transform duration-200" :class="expandedOrder === order.id ? 'rotate-180' : ''" />
                                             </button>
-
                                             <div
                                                 v-if="expandedOrder === order.id"
                                                 class="absolute z-20 mt-1 left-0 min-w-44 rounded-lg border border-border bg-card shadow-lg py-1"
                                             >
                                                 <div
                                                     v-for="mod in order.modules" :key="mod.id"
-                                                    class="px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors flex items-center justify-between gap-6"
+                                                    class="px-3 py-1.5 text-xs hover:bg-muted/50 flex items-center justify-between gap-6"
                                                 >
-                                                    <span class="font-medium text-foreground">{{ mod.name }}</span>
-                                                    <span class="text-muted-foreground shrink-0">{{ formatPrice(mod.price) }}</span>
+                                                    <span class="font-medium">{{ mod.name }}</span>
                                                 </div>
-                                                <div v-if="order.modules.length === 0" class="px-3 py-2 text-xs text-muted-foreground">
-                                                    No modules
-                                                </div>
+                                                <div v-if="order.modules.length === 0" class="px-3 py-2 text-xs text-muted-foreground">No modules</div>
                                             </div>
                                         </div>
                                     </td>
 
-                                    <td class="px-4 py-3 font-medium whitespace-nowrap">
-                                        {{ formatPrice(order.total_price) }}
-                                    </td>
+                                    <td class="px-4 py-3 font-medium whitespace-nowrap">{{ formatPrice(order.total_price) }}</td>
+
                                     <td class="px-4 py-3">
                                         <span
                                             class="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
@@ -374,6 +412,7 @@ const statusBadge: Record<string, string> = {
                                             {{ order.status }}
                                         </span>
                                     </td>
+
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <span
                                             v-if="order.expires_at"
@@ -385,16 +424,42 @@ const statusBadge: Record<string, string> = {
                                         </span>
                                         <span v-else class="text-xs text-muted-foreground">—</span>
                                     </td>
-                                    <td class="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
-                                        {{ formatDate(order.created_at) }}
-                                    </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <Button
-                                            size="icon" variant="ghost"
-                                            @click="router.visit(`/admin/orders/${order.id}`)"
-                                        >
-                                            <Eye class="h-4 w-4 text-blue-500" />
-                                        </Button>
+
+                                    <td class="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{{ formatDate(order.created_at) }}</td>
+
+                                    <!-- Actions -->
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center justify-center gap-1">
+                                            <!-- View order detail -->
+                                            <Button size="icon" variant="ghost" @click="router.visit(`/admin/orders/${order.id}`)">
+                                                <Eye class="h-4 w-4 text-blue-500" />
+                                            </Button>
+
+                                            <!-- View KYC files -->
+                                            <Button size="icon" variant="ghost" title="View KYC Documents" @click="openKyc(order)">
+                                                <FileText class="h-4 w-4 text-violet-500" />
+                                            </Button>
+
+                                            <!-- Approve (only for paid orders) -->
+                                            <Button
+                                                v-if="order.status === 'paid'"
+                                                size="icon" variant="ghost"
+                                                title="Approve"
+                                                @click="openConfirm('approve', order)"
+                                            >
+                                                <ShieldCheck class="h-4 w-4 text-emerald-500" />
+                                            </Button>
+
+                                            <!-- Reject (only for paid orders) -->
+                                            <Button
+                                                v-if="order.status === 'paid'"
+                                                size="icon" variant="ghost"
+                                                title="Reject"
+                                                @click="openConfirm('reject', order)"
+                                            >
+                                                <ShieldX class="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
 
@@ -429,5 +494,112 @@ const statusBadge: Record<string, string> = {
             </Card>
 
         </div>
+
+        <!-- ── KYC Modal ──────────────────────────────────────────────────────── -->
+        <Teleport to="body">
+            <div
+                v-if="kycModal.open"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+                @click.self="closeKyc"
+            >
+                <div class="w-full max-w-2xl rounded-2xl bg-white dark:bg-zinc-900 shadow-xl p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-semibold">KYC Documents</h2>
+                            <p class="text-xs text-muted-foreground mt-0.5">{{ kycModal.order?.shop_name }} — {{ kycModal.order?.owner_name }}</p>
+                        </div>
+                        <button type="button" class="h-7 w-7 flex items-center justify-center rounded-full hover:bg-muted" @click="closeKyc">
+                            <X class="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div
+                            v-for="doc in kycDocs(kycModal.order!)" :key="doc.key"
+                            class="rounded-xl border border-border overflow-hidden"
+                        >
+                            <div class="px-3 py-2 bg-muted/40 border-b border-border flex items-center justify-between">
+                                <span class="text-xs font-medium">{{ doc.label }}</span>
+                                <span v-if="!doc.path" class="text-xs text-muted-foreground">Not uploaded</span>
+                                <a
+                                    v-else
+                                    :href="kycUrl(doc.path)"
+                                    target="_blank"
+                                    class="text-xs text-blue-500 hover:underline"
+                                >
+                                    Open
+                                </a>
+                            </div>
+
+                            <div class="h-40 flex items-center justify-center bg-muted/20">
+                                <template v-if="!doc.path">
+                                    <p class="text-xs text-muted-foreground">No file</p>
+                                </template>
+                                <template v-else-if="isImage(doc.path)">
+                                    <img
+                                        :src="kycUrl(doc.path)"
+                                        class="h-full w-full object-contain"
+                                        alt="KYC document"
+                                    />
+                                </template>
+                                <template v-else>
+                                    <div class="flex flex-col items-center gap-2 text-muted-foreground">
+                                        <FileText class="h-10 w-10 opacity-30" />
+                                        <span class="text-xs">PDF Document</span>
+                                        <a :href="kycUrl(doc.path)" target="_blank" class="text-xs text-blue-500 hover:underline">View PDF</a>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- ── Confirm Modal ──────────────────────────────────────────────────── -->
+        <Teleport to="body">
+            <div
+                v-if="confirmModal.open"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+                @click.self="closeConfirm"
+            >
+                <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 shadow-xl p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div
+                            class="h-10 w-10 rounded-full flex items-center justify-center shrink-0"
+                            :class="confirmModal.action === 'approve' ? 'bg-emerald-100' : 'bg-red-100'"
+                        >
+                            <ShieldCheck v-if="confirmModal.action === 'approve'" class="h-5 w-5 text-emerald-600" />
+                            <ShieldX v-else class="h-5 w-5 text-red-600" />
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-semibold capitalize">{{ confirmModal.action }} Order</h2>
+                            <p class="text-xs text-muted-foreground">{{ confirmModal.shopName }}</p>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-muted-foreground mb-6">
+                        <template v-if="confirmModal.action === 'approve'">
+                            This will activate the shop and make modules available to the owner.
+                        </template>
+                        <template v-else>
+                            This will reject the order. The shop will not be activated.
+                        </template>
+                    </p>
+
+                    <div class="flex gap-2 justify-end">
+                        <Button variant="outline" size="sm" @click="closeConfirm">Cancel</Button>
+                        <Button
+                            size="sm"
+                            :class="confirmModal.action === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'"
+                            @click="submitAction"
+                        >
+                            {{ confirmModal.action === 'approve' ? 'Approve' : 'Reject' }}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
     </AdminLayout>
 </template>

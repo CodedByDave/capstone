@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue"
 import { Link, router, usePage } from "@inertiajs/vue3"
 import { Button } from "@/components/ui/button"
 import { Menu, X, WashingMachine } from "lucide-vue-next"
-import { dashboard} from '@/routes'
+import { dashboard } from '@/routes'
 
 const page = usePage()
 
@@ -38,11 +38,14 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
 
             <!-- Logo -->
             <a href="#" class="flex items-center gap-2 group">
-                <div
-                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform duration-300 group-hover:scale-110">
-                    <WashingMachine class="h-5 w-5" />
-                </div>
-                <span class="text-xl font-bold tracking-tight text-foreground font-serif">LaundryHub</span>
+                <!-- Logo image -->
+                <img src="/laundryhub.png" alt="LaundryHub Logo"
+                    class="h-9 w-9 object-contain shrink-0 transition-transform duration-300 group-hover:scale-110" />
+
+                <!-- Brand name -->
+                <span class="text-xl font-bold tracking-tight text-foreground font-serif">
+                    LaundryHub
+                </span>
             </a>
 
             <!-- Desktop nav links -->
@@ -63,7 +66,8 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
                     </Link>
                 </template>
                 <template v-else>
-                    <Button @click="router.visit('/login')" variant="ghost" size="sm" class="text-muted-foreground hover:text-foreground">
+                    <Button @click="router.visit('/login')" variant="ghost" size="sm"
+                        class="text-muted-foreground hover:text-foreground">
                         Log in
                     </Button>
                     <Button size="sm" variant="default"

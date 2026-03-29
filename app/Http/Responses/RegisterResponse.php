@@ -17,18 +17,22 @@ class RegisterResponse implements RegisterResponseContract
      */
     public function toResponse($request): Response
     {
-        // Log out the user that Fortify just logged in
-        Auth::guard('web')->logout();
+        // Preserve checkout data before session invalidation
+        $checkout = session('checkout');
 
-        // Invalidate the session
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Redirect to login with toast message
+        // Restore checkout data so it survives the redirect to login
+        if ($checkout) {
+            session(['checkout' => $checkout]);
+        }
+
         return $request->wantsJson()
             ? new JsonResponse('', 201)
             : redirect()->route('login')->with('toast', [
-                'type' => 'success',
+                'type'    => 'success',
                 'message' => 'Your account has been created. Please login.',
             ]);
     }

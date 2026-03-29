@@ -3,6 +3,7 @@
 use App\Http\Middleware\CheckShopSubscription;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Providers\AuthServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -29,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn() => route('login.user'));
+        $middleware->redirectGuestsTo(fn() => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
@@ -40,4 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return $response;
         });
     })
+    ->withProviders([
+        AuthServiceProvider::class,
+    ])
     ->create();

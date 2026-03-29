@@ -11,29 +11,29 @@ class ModuleSeeder extends Seeder
     {
         $modules = [
             [
-                'name' => 'Employee Management',
-                'description' => 'Manage employee profiles, roles, attendance, and payroll tracking.',
+                'name' => 'HRM',
+                'description' => 'Manage employee profiles, branches, attendance, roles & positions, and activity logs.',
                 'price' => 1800,
             ],
             [
                 'name' => 'Inventory Management',
-                'description' => 'Track supplies, stock levels, stock movements, and suppliers.',
+                'description' => 'Track supplies, stock levels, stock movements, categories, and suppliers.',
                 'price' => 2000,
             ],
             [
-                'name' => 'Order Management',
-                'description' => 'Create, track, and manage customer orders from processing to completion.',
+                'name' => 'Operations',
+                'description' => 'Handle end-to-end order processing, service management, pricing rules, and promotions.',
                 'price' => 2500,
             ],
             [
-                'name' => 'Services & Pricing',
-                'description' => 'Configure laundry services, pricing rules, discounts, and promos.',
-                'price' => 1500,
+                'name' => 'Finance Management',
+                'description' => 'Monitor income, expenses, payroll, and transactions with a full financial overview.',
+                'price' => 2200,
             ],
             [
                 'name' => 'Reports & Analytics',
-                'description' => 'Generate sales reports, performance insights, and business analytics.',
-                'price' => 2200,
+                'description' => 'Generate sales, inventory, and finance reports with business insights and audit logs.',
+                'price' => 1500,
             ],
         ];
 
@@ -42,9 +42,9 @@ class ModuleSeeder extends Seeder
                 ['name' => $module['name']],
                 [
                     'description' => $module['description'],
-                    'price' => $module['price'],
-                    'updated_at' => now(),
-                    'created_at' => now(),
+                    'price'       => $module['price'],
+                    'updated_at'  => now(),
+                    'created_at'  => now(),
                 ]
             );
         }

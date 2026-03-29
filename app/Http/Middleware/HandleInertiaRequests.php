@@ -25,6 +25,9 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'flash' => [
+                'checkout_url' => session('checkout_url'),
+            ],
 
             'name'  => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
@@ -67,7 +70,7 @@ class HandleInertiaRequests extends Middleware
                     if (!$shop) return null;
 
                     $order = Order::where('user_id', $shop->owner_id)
-                        ->where('status', 'paid')
+                        ->where('status', 'approved')
                         ->with('modules')
                         ->latest()
                         ->first();

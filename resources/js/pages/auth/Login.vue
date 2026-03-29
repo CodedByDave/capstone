@@ -4,7 +4,6 @@ import { usePage } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 import { Form, Head, router } from '@inertiajs/vue3';
 
 defineProps<{
@@ -28,23 +26,18 @@ onMounted(() => {
 
     if (toastData) {
         switch (toastData.type) {
-            case 'success':
-                toast.success(toastData.message);
-                break;
-            case 'error':
-                toast.error(toastData.message);
-                break;
-            case 'warning':
-                toast.warning(toastData.message);
-                break;
-            case 'info':
-                toast.info(toastData.message);
-                break;
-            default:
-                toast(toastData.message);
+            case 'success': toast.success(toastData.message); break;
+            case 'error': toast.error(toastData.message); break;
+            case 'warning': toast.warning(toastData.message); break;
+            case 'info': toast.info(toastData.message); break;
+            default: toast(toastData.message);
         }
     }
 });
+
+function goToGoogle() {
+    window.location.href = '/auth/google'
+}
 </script>
 
 <template>
@@ -102,8 +95,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- Google Button -->
-            <Button type="button" variant="outline" class="w-full gap-2">
+            <Button type="button" variant="outline" class="w-full gap-2" @click="goToGoogle">
                 <svg class="h-4 w-4" viewBox="0 0 24 24">
                     <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

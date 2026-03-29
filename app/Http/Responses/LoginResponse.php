@@ -16,22 +16,26 @@ class LoginResponse implements LoginResponseContract
     {
         $user = Auth::user();
 
-        // Log successful login here
         $this->loginLogService->logSuccess(
-            userId:    $user->id,
-            email:     $user->email,
-            name:      $user->name,
-            role:      $user->role,
-            ip:        $request->ip(),
+            userId: $user->id,
+            email: $user->email,
+            name: $user->name,
+            role: $user->role,
+            ip: $request->ip(),
             userAgent: $request->userAgent() ?? '',
         );
 
-        // Redirect based on role
+        // Redirect to checkout flow if there's a pending plan selection
+        if (session()->has('checkout')) {
+            return redirect()->route('checkout.confirm');
+        }
+
+
         $url = match ($user->role) {
             'super_admin' => route('admin.dashboard'),
             'owner'       => route('shop.dashboard'),
-            'staff',      => route('staff.dashboard'),
-            default       => route('home')
+            'staff'       => route('staff.dashboard'),
+            default       => route('landing')
         };
 
         return $request->wantsJson()

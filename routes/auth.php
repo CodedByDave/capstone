@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\OtpVerificationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Services\LoginLogService;
 use Illuminate\Support\Facades\Auth;
 
@@ -33,10 +34,13 @@ Route::post('/logout', function (LoginLogService $loginLogService) {
     return redirect('/');
 })->middleware('auth')->name('logout');
 
+Route::get('/auth/google',          [GoogleAuthController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
 // Guest Routes
 Route::middleware(['guest'])->group(function () {
 
-    Route::get('/login', [AuthController::class, 'show'])->name('login.user');
+    Route::get('/login', [AuthController::class, 'show'])->name('login');
 
     Route::get('/register/shop', [ShopRegisterController::class, 'show'])->name('register.shop');
     Route::post('/register/shop', [ShopRegisterController::class, 'store'])

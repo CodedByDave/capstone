@@ -33,8 +33,8 @@ class OrderRepository extends Repository
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('shop_name',  'like', "%{$filters['search']}%")
-                  ->orWhere('owner_name','like', "%{$filters['search']}%")
-                  ->orWhere('email',     'like', "%{$filters['search']}%");
+                    ->orWhere('owner_name', 'like', "%{$filters['search']}%")
+                    ->orWhere('email',     'like', "%{$filters['search']}%");
             });
         }
 
@@ -56,13 +56,15 @@ class OrderRepository extends Repository
     public function getStats(): array
     {
         return [
-            'total'   => Order::count(),
-            'paid'    => Order::where('status', 'paid')->count(),
-            'pending' => Order::where('status', 'pending')->count(),
-            'expired' => Order::where('status', 'paid')
+            'total'    => Order::count(),
+            'paid'     => Order::where('status', 'paid')->count(),
+            'approved' => Order::where('status', 'approved')->count(),
+            'rejected' => Order::where('status', 'rejected')->count(),
+            'pending'  => Order::where('status', 'pending')->count(),
+            'expired'  => Order::where('status', 'approved')
                 ->where('expires_at', '<', now())
                 ->count(),
-            'revenue' => (float) Order::where('status', 'paid')->sum('total_price'),
+            'revenue'  => (float) Order::where('status', 'approved')->sum('total_price'),
         ];
     }
 

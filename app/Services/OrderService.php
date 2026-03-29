@@ -9,39 +9,63 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
+    private const PLAN_MODULES = [
+        'Basic' => [
+            'HRM',
+            'Operations',
+        ],
+        'Standard' => [
+            'HRM',
+            'Operations',
+            'Inventory Management',
+            'Finance Management',
+        ],
+        'Premium' => [
+            'HRM',
+            'Operations',
+            'Inventory Management',
+            'Finance Management',
+            'Reports & Analytics',
+        ],
+    ];
+
     public function __construct(
         protected OrderRepository $orderRepository
     ) {}
 
-    // ── Existing ──────────────────────────────────────────────────────────────
-
     public function create(array $data): Order
     {
-        return DB::transaction(function () use ($data) {
-            $baseTotal = collect($data['modules'])->sum('price');
+        $planName         = $data['plan_name'];
+        $billingMonths    = (int) $data['billing_months'];
+        $subscriptionPlan = $billingMonths === 1 ? 'monthly' : 'annually';
+        $expiresAt        = now()->addMonths($billingMonths);
 
-            $total = match ($data['subscription_plan'] ?? 'monthly') {
-                'annually' => $baseTotal * 0.90 * 12,
-                default    => $baseTotal,
-            };
+        $order = $this->orderRepository->create([
+            'user_id'           => $data['user_id'],
+            'shop_name'         => $data['shop_name'],
+            'owner_name'        => $data['owner_name'],
+            'email'             => $data['email'],
+            'phone'             => $data['phone'],
+            'block_street'      => $data['block_street'],
+            'municipality'      => $data['municipality'],
+            'barangay'          => $data['barangay'],
+            'postal_code'       => $data['postal_code'],
+            'total_price'       => $data['total_price'],
+            'status'            => 'pending',
+            'subscription_plan' => $subscriptionPlan,
+            'expires_at'        => $expiresAt,
+        ]);
 
-            $order = $this->orderRepository->create(array_merge($data, [
-                'total_price' => $total,
-                'status'      => 'pending',
-            ]));
+        $modules = self::PLAN_MODULES[$planName] ?? [];
+        foreach ($modules as $moduleName) {
+            $order->modules()->create([
+                'name'  => $moduleName,
+                'price' => 0,
+            ]);
+        }
 
-            foreach ($data['modules'] as $module) {
-                $order->modules()->create([
-                    'name'  => $module['name'],
-                    'price' => $module['price'],
-                ]);
-            }
-
-            return $order->load('modules');
-        });
+        return $order->load('modules');
     }
-
-    // ── Admin
 
     public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {

@@ -14,7 +14,9 @@ import {
     Clock, Building2, List, Layers, AlertTriangle,
     ShoppingCart, CheckCircle2, XCircle, Truck,
     DollarSign, Scissors, PieChart, FileText,
-    TrendingUp, Tag
+    TrendingUp, Tag, Users, Briefcase, CalendarClock,
+    Banknote, CreditCard, Receipt, Wallet,
+    BadgeDollarSign, LineChart, BookOpen,
 } from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
 import { computed, ref, watch } from 'vue'
@@ -27,23 +29,34 @@ const { can, canAccessModule, isOwner, isStaff } = usePermissions()
 const currentUrl = computed(() => page.url)
 const isPaid = computed(() => props.order?.status === 'paid')
 
-/* ─────────────────────────────────────────
-   SUB-ACTIONS PER MODULE
-───────────────────────────────────────── */
 
-/* Employee Management */
-const allEmployeeSubActions = [
+/* ─────────────────────────────────────────
+   HRM SUB-ACTIONS
+───────────────────────────────────────── */
+const allHrmSubActions = [
     {
         title: 'Employee List',
         icon: List,
         href: isOwner.value ? '/shop/employee' : '/staff/employee',
-        show: () => isOwner.value || can('Employee Management', 'view'),
+        show: () => isOwner.value || can('HRM', 'view'),
     },
     {
         title: 'Branch List',
         icon: Building2,
         href: isOwner.value ? '/shop/branch' : '/staff/branch',
-        show: () => isOwner.value || can('Employee Management', 'view'),
+        show: () => isOwner.value || can('HRM', 'view'),
+    },
+    {
+        title: 'Attendance',
+        icon: CalendarClock,
+        href: isOwner.value ? '/shop/attendance' : '/staff/attendance',
+        show: () => isOwner.value || can('HRM', 'view'),
+    },
+    {
+        title: 'Roles & Positions',
+        icon: Briefcase,
+        href: isOwner.value ? '/shop/positions' : '/staff/positions',
+        show: () => isOwner.value || can('HRM', 'view'),
     },
     {
         title: 'Activity Logs',
@@ -53,7 +66,9 @@ const allEmployeeSubActions = [
     },
 ]
 
-/* Inventory Management */
+/* ─────────────────────────────────────────
+   INVENTORY SUB-ACTIONS
+───────────────────────────────────────── */
 const allInventorySubActions = [
     {
         title: 'Product List',
@@ -77,67 +92,103 @@ const allInventorySubActions = [
         title: 'Suppliers',
         icon: Truck,
         href: isOwner.value ? '/shop/supplier' : '/staff/supplier',
-        show: () => isOwner.value || can('Inventory Management', 'view')
+        show: () => isOwner.value || can('Inventory Management', 'view'),
     },
 ]
 
-/* Order Management */
-const allOrderSubActions = [
+/* ─────────────────────────────────────────
+   OPERATIONS SUB-ACTIONS
+───────────────────────────────────────── */
+const allOperationsSubActions = [
     {
         title: 'All Orders',
         icon: ShoppingCart,
         href: isOwner.value ? '/shop/orders' : '/staff/orders',
-        show: () => isOwner.value || can('Order Management', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
     {
         title: 'Pending',
         icon: ClipboardList,
         href: isOwner.value ? '/shop/orders/pending' : '/staff/orders/pending',
-        show: () => isOwner.value || can('Order Management', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
     {
         title: 'In Progress',
         icon: Truck,
         href: isOwner.value ? '/shop/orders/progress' : '/staff/orders/progress',
-        show: () => isOwner.value || can('Order Management', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
     {
         title: 'Completed',
         icon: CheckCircle2,
         href: isOwner.value ? '/shop/orders/completed' : '/staff/orders/completed',
-        show: () => isOwner.value || can('Order Management', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
     {
         title: 'Cancelled',
         icon: XCircle,
         href: isOwner.value ? '/shop/orders/cancelled' : '/staff/orders/cancelled',
-        show: () => isOwner.value || can('Order Management', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
-]
-
-/* Services & Pricing */
-const allServicesSubActions = [
     {
         title: 'Service List',
         icon: Scissors,
         href: isOwner.value ? '/shop/services' : '/staff/services',
-        show: () => isOwner.value || can('Services & Pricing', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
     {
         title: 'Pricing',
         icon: DollarSign,
         href: isOwner.value ? '/shop/services/pricing' : '/staff/services/pricing',
-        show: () => isOwner.value || can('Services & Pricing', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
     {
         title: 'Promotions',
         icon: Tag,
         href: isOwner.value ? '/shop/services/promos' : '/staff/services/promos',
-        show: () => isOwner.value || can('Services & Pricing', 'view'),
+        show: () => isOwner.value || can('Operations', 'view'),
     },
 ]
 
-/* Reports & Analytics */
+/* ─────────────────────────────────────────
+   FINANCE MANAGEMENT SUB-ACTIONS
+───────────────────────────────────────── */
+const allFinanceSubActions = [
+    {
+        title: 'Overview',
+        icon: Wallet,
+        href: isOwner.value ? '/shop/finance' : '/staff/finance',
+        show: () => isOwner.value || can('Finance Management', 'view'),
+    },
+    {
+        title: 'Income',
+        icon: BadgeDollarSign,
+        href: isOwner.value ? '/shop/finance/income' : '/staff/finance/income',
+        show: () => isOwner.value || can('Finance Management', 'view'),
+    },
+    {
+        title: 'Expenses',
+        icon: Receipt,
+        href: isOwner.value ? '/shop/finance/expenses' : '/staff/finance/expenses',
+        show: () => isOwner.value || can('Finance Management', 'view'),
+    },
+    {
+        title: 'Payroll',
+        icon: Banknote,
+        href: isOwner.value ? '/shop/finance/payroll' : '/staff/finance/payroll',
+        show: () => isOwner.value || can('Finance Management', 'view'),
+    },
+    {
+        title: 'Transactions',
+        icon: CreditCard,
+        href: isOwner.value ? '/shop/finance/transactions' : '/staff/finance/transactions',
+        show: () => isOwner.value || can('Finance Management', 'view'),
+    },
+]
+
+/* ─────────────────────────────────────────
+   REPORTS & ANALYTICS SUB-ACTIONS
+───────────────────────────────────────── */
 const allReportsSubActions = [
     {
         title: 'Overview',
@@ -146,32 +197,46 @@ const allReportsSubActions = [
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
+        title: 'Sales Report',
+        icon: TrendingUp,
+        href: isOwner.value ? '/shop/reports/sales' : '/staff/reports/sales',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
         title: 'Inventory Report',
-        icon: Package,
+        icon: FileText,
         href: isOwner.value ? '/shop/reports/inventory' : '/staff/reports/inventory',
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
-        title: 'Employee Report',
-        icon: UserCircle,
-        href: isOwner.value ? '/shop/reports/employee' : '/staff/reports/employee',
+        title: 'Finance Report',
+        icon: LineChart,
+        href: isOwner.value ? '/shop/reports/finance' : '/staff/reports/finance',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
+        title: 'Audit Log',
+        icon: BookOpen,
+        href: isOwner.value ? '/shop/reports/audit' : '/staff/reports/audit',
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
 ]
 
-/* Filtered computed lists */
-const employeeSubActions  = computed(() => allEmployeeSubActions.filter(i => i.show()))
+/* ─────────────────────────────────────────
+   FILTERED COMPUTED LISTS
+───────────────────────────────────────── */
+const hrmSubActions       = computed(() => allHrmSubActions.filter(i => i.show()))
 const inventorySubActions = computed(() => allInventorySubActions.filter(i => i.show()))
-const orderSubActions     = computed(() => allOrderSubActions.filter(i => i.show()))
-const servicesSubActions  = computed(() => allServicesSubActions.filter(i => i.show()))
+const operationsSubActions= computed(() => allOperationsSubActions.filter(i => i.show()))
+const financeSubActions   = computed(() => allFinanceSubActions.filter(i => i.show()))
 const reportsSubActions   = computed(() => allReportsSubActions.filter(i => i.show()))
 
 function getSubActions(moduleName: string) {
     const map: Record<string, any[]> = {
-        'Employee Management':  employeeSubActions.value,
+        'HRM':                  hrmSubActions.value,
         'Inventory Management': inventorySubActions.value,
-        'Order Management':     orderSubActions.value,
-        'Services & Pricing':   servicesSubActions.value,
+        'Operations':           operationsSubActions.value,
+        'Finance Management':   financeSubActions.value,
         'Reports & Analytics':  reportsSubActions.value,
     }
     return map[moduleName] ?? []
@@ -180,12 +245,11 @@ function getSubActions(moduleName: string) {
 /* ─────────────────────────────────────────
    MODULE CONFIG
 ───────────────────────────────────────── */
-
 const moduleIconMap: Record<string, { icon: any; ownerHref: string; staffHref: string }> = {
-    'Employee Management':  { icon: UserCircle,    ownerHref: '/shop/employee',  staffHref: '/staff/employee'  },
+    'HRM':                  { icon: Users,         ownerHref: '/shop/employee',  staffHref: '/staff/employee'  },
     'Inventory Management': { icon: Package,       ownerHref: '/shop/inventory', staffHref: '/staff/inventory' },
-    'Order Management':     { icon: ClipboardList, ownerHref: '/shop/orders',    staffHref: '/staff/orders'    },
-    'Services & Pricing':   { icon: Tags,          ownerHref: '/shop/services',  staffHref: '/staff/services'  },
+    'Operations':           { icon: ClipboardList, ownerHref: '/shop/orders',    staffHref: '/staff/orders'    },
+    'Finance Management':   { icon: Banknote,      ownerHref: '/shop/finance',   staffHref: '/staff/finance'   },
     'Reports & Analytics':  { icon: BarChart3,     ownerHref: '/shop/reports',   staffHref: '/staff/reports'   },
 }
 
@@ -198,27 +262,28 @@ function getHref(name: string): string {
 /* ─────────────────────────────────────────
    AREA DETECTION
 ───────────────────────────────────────── */
-
 const areaChecks: Record<string, (url: string) => boolean> = {
-    'Employee Management': (url) =>
-        url.startsWith('/shop/employee')  || url.startsWith('/staff/employee')  ||
-        url.startsWith('/shop/branch')    || url.startsWith('/staff/branch')    ||
-        url.startsWith('/shop/logs')      || url.startsWith('/staff/logs'),
+    'HRM': (url) =>
+        url.startsWith('/shop/employee')   || url.startsWith('/staff/employee')   ||
+        url.startsWith('/shop/branch')     || url.startsWith('/staff/branch')     ||
+        url.startsWith('/shop/attendance') || url.startsWith('/staff/attendance') ||
+        url.startsWith('/shop/positions')  || url.startsWith('/staff/positions')  ||
+        url.startsWith('/shop/logs')       || url.startsWith('/staff/logs'),
     'Inventory Management': (url) =>
-        url.startsWith('/shop/inventory') || url.startsWith('/staff/inventory') ||
-        url.startsWith('/shop/supplier')  || url.startsWith('/staff/supplier'),
-    'Order Management': (url) =>
-        url.startsWith('/shop/orders')    || url.startsWith('/staff/orders'),
-    'Services & Pricing': (url) =>
-        url.startsWith('/shop/services')  || url.startsWith('/staff/services'),
+        url.startsWith('/shop/inventory')  || url.startsWith('/staff/inventory')  ||
+        url.startsWith('/shop/supplier')   || url.startsWith('/staff/supplier'),
+    'Operations': (url) =>
+        url.startsWith('/shop/orders')     || url.startsWith('/staff/orders')     ||
+        url.startsWith('/shop/services')   || url.startsWith('/staff/services'),
+    'Finance Management': (url) =>
+        url.startsWith('/shop/finance')    || url.startsWith('/staff/finance'),
     'Reports & Analytics': (url) =>
-        url.startsWith('/shop/reports')   || url.startsWith('/staff/reports'),
+        url.startsWith('/shop/reports')    || url.startsWith('/staff/reports'),
 }
 
 /* ─────────────────────────────────────────
    OPEN STATE
 ───────────────────────────────────────── */
-
 const openModules = ref<Record<string, boolean>>(
     Object.fromEntries(
         Object.keys(areaChecks).map(name => [name, areaChecks[name](page.url)])
@@ -238,10 +303,11 @@ function toggleCollapsible(name: string) {
 /* ─────────────────────────────────────────
    SUB-ITEM ACTIVE STATE
 ───────────────────────────────────────── */
-
 const exactRoutes = [
     '/shop/employee',  '/staff/employee',
     '/shop/branch',    '/staff/branch',
+    '/shop/attendance','/staff/attendance',
+    '/shop/positions', '/staff/positions',
     '/shop/logs',      '/staff/logs',
     '/shop/inventory', '/staff/inventory',
     '/shop/inventory/category', '/staff/inventory/category',
@@ -255,10 +321,16 @@ const exactRoutes = [
     '/shop/services',          '/staff/services',
     '/shop/services/pricing',  '/staff/services/pricing',
     '/shop/services/promos',   '/staff/services/promos',
+    '/shop/finance',             '/staff/finance',
+    '/shop/finance/income',      '/staff/finance/income',
+    '/shop/finance/expenses',    '/staff/finance/expenses',
+    '/shop/finance/payroll',     '/staff/finance/payroll',
+    '/shop/finance/transactions','/staff/finance/transactions',
     '/shop/reports',           '/staff/reports',
     '/shop/reports/sales',     '/staff/reports/sales',
     '/shop/reports/inventory', '/staff/reports/inventory',
-    '/shop/reports/payroll',   '/staff/reports/payroll',
+    '/shop/reports/finance',   '/staff/reports/finance',
+    '/shop/reports/audit',     '/staff/reports/audit',
 ]
 
 function isSubActive(href: string): boolean {
@@ -271,7 +343,6 @@ function isSubActive(href: string): boolean {
 /* ─────────────────────────────────────────
    NAV ITEMS
 ───────────────────────────────────────── */
-
 interface ModuleNavItem {
     title: string
     href: string

@@ -23,20 +23,16 @@ class ShopService
                 'password' => $data['password'],
             ]);
 
-            $shop = $this->shopRepo->createWithOwner(
-                $owner->id,
-                [
-                    'shop_name'    => $data['shop_name'],
-                    'phone'        => $data['phone'],
-                    'block_street' => $data['block_street'],
-                    'municipality' => $data['municipality'],
-                    'barangay'     => $data['barangay'],
-                    'postal_code'  => $data['postal_code'],
-                    'status'       => 'pending',
-                ]
-            );
+            $shop = $this->shopRepo->createWithOwner($owner->id, [
+                'shop_name'    => $data['shop_name'],
+                'phone'        => $data['phone'],
+                'block_street' => $data['block_street'],
+                'municipality' => $data['municipality'],
+                'barangay'     => $data['barangay'],
+                'postal_code'  => $data['postal_code'],
+                'status'       => 'pending',
+            ]);
 
-            // Seed default roles for this shop
             $defaultRoles = ['owner', 'manager', 'cashier', 'washer', 'staff'];
             foreach ($defaultRoles as $role) {
                 ShopRole::create([

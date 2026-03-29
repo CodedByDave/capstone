@@ -36,8 +36,36 @@ class EmployeeService
 
     public function getEmployees(Shop $shop, int $perPage = 10): LengthAwarePaginator
     {
-        return $this->employeeRepository->getPaginatedByShop($shop, $perPage);
+        $user = auth()->user();
+
+        $query = Employee::query()
+            ->where('shop_id', $shop->id);
+
+        // OWNER → all
+        if ($user->role === 'owner') {
+            // no restriction
+        }
+
+        // MANAGER
+        elseif ($user->role === 'manager') {
+            $query->where('branch_name', $user->employee->branch_name)
+            ->where('user_id', '!=', $user->id);
+        }
+
+        // HR
+        elseif ($user->role === 'hr') {
+            $query->where('branch_name', $user->employee->branch_name)
+                ->where('user_id', '!=', $user->id);
+        }
+
+        // STAFF
+        else {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query->latest()->paginate($perPage);
     }
+
 
     public function getStats(Shop $shop): array
     {

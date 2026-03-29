@@ -12,7 +12,7 @@ class PaymongoService
 
     protected function client()
     {
-        return Http::withBasicAuth(env('PAYMONGO_SECRET_KEY'), '')
+        return Http::withBasicAuth(config('services.paymongo.secret_key'), '')
             ->accept('application/json')
             ->contentType('application/json')
             ->baseUrl($this->baseUrl)
@@ -27,13 +27,32 @@ class PaymongoService
             throw new \Exception('Minimum order amount is ₱100.00');
         }
 
+        $methodMap = [
+            'gcash'    => 'gcash',
+            'maya'     => 'paymaya',
+            'card'     => 'card',
+            'grab_pay' => 'grab_pay',
+            'dob'      => 'dob',
+            'billease' => 'billease',
+        ];
+
+        $selectedMethod = $methodMap[$order->payment_method] ?? null;
+        $paymentMethods = $selectedMethod
+            ? [$selectedMethod]
+            : ['card', 'gcash', 'paymaya', 'grab_pay'];
+
         $payload = [
             'data' => [
                 'attributes' => [
                     'send_email_receipt' => true,
                     'show_description'   => true,
                     'show_line_items'    => true,
-                    'line_items'         => [
+                    'billing'            => [
+                        'name'  => $order->owner_name,
+                        'email' => $order->email,
+                        'phone' => $order->phone,
+                    ],
+                    'line_items' => [
                         [
                             'currency' => 'PHP',
                             'amount'   => $amount,
@@ -41,20 +60,15 @@ class PaymongoService
                             'quantity' => 1,
                         ]
                     ],
-                    'payment_method_types' => [
-                        'card',
-                        'gcash',
-                        'paymaya',
-                        'grab_pay'
-                    ],
-                    'success_url' => url('/shop/payment/success?order_id=' . $order->id),
-                    'cancel_url'  => url('/shop/payment/cancel'),
-                    'description' => "Order #{$order->id} - {$order->shop_name}",
-                    'metadata'    => [
+                    'payment_method_types' => $paymentMethods,
+                    'success_url'          => url('/shop/payment/success?order_id=' . $order->id),
+                    'cancel_url'           => url('/shop/payment/cancel'),
+                    'description'          => "Order #{$order->id} - {$order->shop_name}",
+                    'metadata'             => [
                         'order_id'   => (string) $order->id,
                         'shop_name'  => $order->shop_name,
                         'owner_name' => $order->owner_name,
-                    ]
+                    ],
                 ]
             ]
         ];
@@ -63,14 +77,15 @@ class PaymongoService
             'order_id'        => $order->id,
             'amount_php'      => $order->total_price,
             'amount_centavos' => $amount,
-            'payload'         => $payload
+            'payment_method'  => $order->payment_method,
+            'payload'         => $payload,
         ]);
 
         $response = $this->client()->post('/checkout_sessions', $payload);
 
         Log::info('PayMongo Checkout Response', [
             'status' => $response->status(),
-            'body'   => $response->json()
+            'body'   => $response->json(),
         ]);
 
         if ($response->failed()) {
@@ -79,7 +94,7 @@ class PaymongoService
             Log::error('PayMongo Checkout Failed', [
                 'order_id' => $order->id,
                 'status'   => $response->status(),
-                'error'    => $error
+                'error'    => $error,
             ]);
 
             $errorMessage = 'Failed to create checkout session';
@@ -104,9 +119,10 @@ class PaymongoService
 
         if ($response->failed()) {
             $error = $response->json();
+
             Log::error('Failed to retrieve checkout session', [
                 'session_id' => $checkoutSessionId,
-                'error'      => $error
+                'error'      => $error,
             ]);
 
             throw new \Exception('Failed to retrieve checkout session');

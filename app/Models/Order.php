@@ -12,7 +12,6 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'branch_name',
         'shop_name',
         'owner_name',
         'email',
@@ -21,10 +20,16 @@ class Order extends Model
         'municipality',
         'barangay',
         'postal_code',
+        'kyc_bir',
+        'kyc_dti',
+        'kyc_mayors',
+        'kyc_sanitary',
         'status',
         'total_price',
         'expires_at',
-        'subscription_plan'
+        'plan_name',
+        'billing_months',
+        'payment_method'
     ];
 
     public function modules(): HasMany
