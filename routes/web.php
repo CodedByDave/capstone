@@ -31,9 +31,6 @@ Route::get('/', function () {
     ]);
 })->name('landing');
 
-Route::get('/shop/checkout/{plan}',  [CheckoutController::class, 'show']);
-Route::post('/checkout/select',      [CheckoutController::class, 'select']);
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout/confirm',  [CheckoutController::class, 'confirm'])->name('checkout.confirm');
     Route::post('/checkout/process', [CheckoutController::class, 'checkout'])->name('checkout.process');
