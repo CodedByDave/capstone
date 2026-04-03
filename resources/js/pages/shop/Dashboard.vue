@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import ShopOrder from '@/pages/shop/ShopOrder.vue'
 import { dashboard } from '@/routes'
 import { type BreadcrumbItem } from '@/types'
 import { Head, usePage } from '@inertiajs/vue3'
