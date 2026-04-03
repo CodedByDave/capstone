@@ -28,7 +28,7 @@ class PermissionController extends Controller
         $shop  = $this->getShop();
 
         $order = Order::where('user_id', $shop->owner_id)
-            ->where('status', 'paid')
+            ->where('status', 'approved')
             ->with('modules')
             ->latest()
             ->first();

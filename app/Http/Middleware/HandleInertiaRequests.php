@@ -48,11 +48,10 @@ class HandleInertiaRequests extends Middleware
 
                 if ($user->role === 'owner') {
                     $order = Order::where('user_id', $user->id)
-                        ->where('status', 'paid')
+                        ->whereIn('status', ['paid', 'approved'])
                         ->with('modules')
                         ->latest()
                         ->first();
-
                     return $order ? [
                         'status'  => $order->status,
                         'modules' => $order->modules->map(fn($m) => [

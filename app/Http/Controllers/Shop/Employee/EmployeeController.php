@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\EmployeeArchive;
 use App\Models\Shop;
 use App\Models\ShopRole;
+use App\Models\EmployeeRole;
 use App\Repositories\BranchRepository;
 use App\Services\EmployeeService;
 use Illuminate\Http\Request;
@@ -81,7 +82,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('shop/employee/Show', [
             'employee' => $employee->load(['creator:id,name', 'updater:id,name']),
-            'schedule' => $employee->schedule,
+            'schedules' => $employee->schedules()->orderBy('work_date')->get(),
         ]);
     }
 
@@ -130,11 +131,13 @@ class EmployeeController extends Controller
     public function store(StoreEmployeeRequest $request)
     {
         $shop = $this->getShop();
-        $this->employeeService->createEmployee($shop, $request->validated());
+
+        $employee = $this->employeeService->createEmployee($shop, $request->validated());
 
         return $this->redirectIndex()
             ->with('toast', ['type' => 'success', 'message' => 'Employee added successfully.']);
     }
+
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
@@ -195,9 +198,17 @@ class EmployeeController extends Controller
     public function importTemplate()
     {
         $columns = [
-            'employee_id', 'first_name', 'last_name', 'email',
-            'phone', 'address', 'branch_name', 'position',
-            'hire_date', 'salary', 'status',
+            'employee_id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'address',
+            'branch_name',
+            'position',
+            'hire_date',
+            'salary',
+            'status',
         ];
 
         $callback = function () use ($columns) {

@@ -7,14 +7,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
 {
     public function redirect()
     {
-        // Encode checkout into the OAuth 'state' param so it survives stateless()
         $state = null;
 
         if (session()->has('checkout')) {
@@ -75,53 +73,49 @@ class GoogleAuthController extends Controller
 
             Log::info('Existing Google user logged in', ['email' => $user->email]);
 
+            // Block checkout if already has active plan
+            $hasActivePlan = $user->orders()
+                ->whereIn('status', ['approved', 'paid', 'pending'])
+                ->exists();
+
+            if ($hasActivePlan) {
+                session()->forget('checkout');
+
+                return redirect()->route('shop.dashboard')->with('toast', [
+                    'type'    => 'error',
+                    'message' => 'You already have an active plan.',
+                ]);
+            }
+
             if (session()->has('checkout')) {
                 return redirect()->route('checkout.confirm');
             }
 
             return redirect()->intended(match ($user->role) {
                 'super_admin' => route('admin.dashboard'),
-                'owner'       => route('shop.dashboard'),
+                'owner'       => route('plans'),
                 'staff'       => route('staff.dashboard'),
                 default       => route('landing'),
             });
         }
 
         // ── New user ───────────────────────────────────────────────────────────
-        try {
-            $user = User::create([
-                'name'              => $googleUser->getName(),
-                'email'             => $googleUser->getEmail(),
-                'google_id'         => $googleUser->getId(),
-                'password'          => bcrypt(Str::random(32)),
-                'email_verified_at' => now(),
-                'is_verified'       => true,
-                'role'              => 'owner',
-            ]);
+        session()->put('google_user', [
+            'google_id' => $googleUser->getId(),
+            'name'      => $googleUser->getName(),
+            'email'     => $googleUser->getEmail(),
+            'avatar'    => $googleUser->getAvatar(),
+        ]);
 
-            Auth::login($user);
+        session()->save(); // force save before redirect
 
-            Log::info('New Google user registered', ['email' => $user->email]);
+        Log::info('New Google user — redirecting to register', [
+            'email' => $googleUser->getEmail(),
+        ]);
 
-            if (session()->has('checkout')) {
-                return redirect()->route('checkout.confirm');
-            }
-
-            return redirect()->route('landing')->with('toast', [
-                'type'    => 'success',
-                'message' => 'Welcome! Please select a plan to get started.',
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Failed to create Google user', [
-                'email'  => $googleUser->getEmail(),
-                'error'  => $e->getMessage(),
-            ]);
-
-            return redirect()->route('login')->with('toast', [
-                'type'    => 'error',
-                'message' => 'Failed to create account. Please try again.',
-            ]);
-        }
+        return redirect()->route('register.shop')->with('toast', [
+            'type'    => 'info',
+            'message' => 'Please complete your registration to continue.',
+        ]);
     }
 }

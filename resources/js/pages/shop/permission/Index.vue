@@ -53,34 +53,35 @@ const breadcrumbs: BreadcrumbItem[] = [
 // ─── Action map ───────────────────────────────────────────────────────────────
 
 const moduleActionMap: Record<string, Action[]> = {
-    'Employee Management': [
-        { key: 'view',    label: 'View'    },
-        { key: 'create',  label: 'Create'  },
-        { key: 'update',  label: 'Update'  },
+    'HRM': [
+        { key: 'view', label: 'View' },
+        { key: 'create', label: 'Create' },
+        { key: 'update', label: 'Update' },
         { key: 'archive', label: 'Archive' },
     ],
-    'Inventory Management': [
-        { key: 'view',    label: 'View'    },
-        { key: 'create',  label: 'Create'  },
-        { key: 'update',  label: 'Update'  },
-        { key: 'archive', label: 'Archive' },
-    ],
-    'Order Management': [
-        { key: 'view',   label: 'View'   },
+    'Operations': [
+        { key: 'view', label: 'View' },
         { key: 'create', label: 'Create' },
         { key: 'manage', label: 'Manage' },
     ],
-    'Services & Pricing': [
-        { key: 'view',    label: 'View'    },
-        { key: 'create',  label: 'Create'  },
-        { key: 'update',  label: 'Update'  },
+    'Inventory Management': [
+        { key: 'view', label: 'View' },
+        { key: 'create', label: 'Create' },
+        { key: 'update', label: 'Update' },
+        { key: 'archive', label: 'Archive' },
+    ],
+    'Finance Management': [
+        { key: 'view', label: 'View' },
+        { key: 'create', label: 'Create' },
+        { key: 'update', label: 'Update' },
         { key: 'archive', label: 'Archive' },
     ],
     'Reports & Analytics': [
-        { key: 'view',   label: 'View'   },
+        { key: 'view', label: 'View' },
         { key: 'export', label: 'Export' },
     ],
 }
+
 
 // ─── Modules ──────────────────────────────────────────────────────────────────
 

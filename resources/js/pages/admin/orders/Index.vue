@@ -190,7 +190,17 @@ function submitAction() {
     if (!confirmModal.value.orderId || !confirmModal.value.action) return
     const url = `/admin/orders/${confirmModal.value.orderId}/${confirmModal.value.action}`
     router.post(url, {}, {
-        onSuccess: () => closeConfirm(),
+        onSuccess: () => {
+            closeConfirm()
+            const flash = page.props.toast as { type: string; message: string } | undefined
+            if (flash) {
+                switch (flash.type) {
+                    case 'success': toast.success(flash.message); break
+                    case 'error':   toast.error(flash.message);   break
+                    default:        toast(flash.message)
+                }
+            }
+        },
     })
 }
 

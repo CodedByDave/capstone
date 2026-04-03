@@ -7,8 +7,8 @@ use App\Http\Requests\Admin\UpdateShopRequest;
 use Inertia\Inertia;
 use App\Models\Shop;
 use App\Models\Order;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ShopController extends Controller
 {
@@ -19,12 +19,10 @@ class ShopController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('shop_name', 'like', "%{$request->search}%")
-                    ->orWhereHas(
-                        'owner',
-                        fn($o) => $o
-                            ->where('name',  'like', "%{$request->search}%")
-                            ->orWhere('email', 'like', "%{$request->search}%")
-                    )
+                    ->orWhereHas('owner', function ($o) use ($request) {
+                        $o->where('name', 'like', "%{$request->search}%")
+                          ->orWhere('email', 'like', "%{$request->search}%");
+                    })
                     ->orWhere('phone', 'like', "%{$request->search}%");
             });
         }
@@ -35,58 +33,58 @@ class ShopController extends Controller
 
         if ($request->filled('plan')) {
             if ($request->plan === 'none') {
-                $query->whereDoesntHave('owner', function ($q) {
-                    $q->whereHas('orders', fn($o) => $o->where('status', 'paid'));
+                $query->whereDoesntHave('owner.orders', function ($q) {
+                    $q->where('status', 'paid');
                 });
             } else {
-                $query->whereHas(
-                    'owner.orders',
-                    fn($o) => $o
-                        ->where('status', 'paid')
-                        ->where('subscription_plan', $request->plan)
-                        ->latest()
-                        ->limit(1)
-                );
+                $query->whereHas('owner.orders', function ($o) use ($request) {
+                    $o->where('status', 'paid')
+                      ->where('subscription_plan', $request->plan);
+                });
             }
         }
 
-        $paginated = $query->paginate(15)->withQueryString();
+        $shops = $query->paginate(15)->withQueryString()
+            ->through(function ($shop) {
 
-        $shops = $paginated->through(function ($shop) {
-            $latestOrder = \App\Models\Order::where('user_id', $shop->owner_id)
-                ->where('status', 'paid')
-                ->latest()
-                ->first();
+                $latestOrder = Order::where('user_id', $shop->owner_id)
+                    ->whereIn('status', ['paid', 'approved'])
+                    ->latest()
+                    ->first();
 
-            return [
-                'id'               => $shop->id,
-                'shop_name'        => $shop->shop_name,
-                'branch_name'      => $shop->branch_name,
-                'phone'            => $shop->phone,
-                'municipality'     => $shop->municipality,
-                'barangay'         => $shop->barangay,
-                'status'           => $shop->status,
-                'disable_reason'   => $shop->disable_reason,
-                'created_at'       => $shop->created_at,
-                'owner'            => $shop->owner ? [
-                    'id'    => $shop->owner->id,
-                    'name'  => $shop->owner->name,
-                    'email' => $shop->owner->email,
-                    'phone' => $shop->owner->phone ?? null,
-                ] : null,
-                'subscription_plan' => $latestOrder?->subscription_plan ?? null,
-                'expires_at'        => $latestOrder?->expires_at ?? null,
-                'is_expired'        => $latestOrder?->expires_at
-                    ? \Carbon\Carbon::parse($latestOrder->expires_at)->isPast()
-                    : true,
-                'is_expiring_soon'  => $latestOrder?->expires_at
-                    ? \Carbon\Carbon::parse($latestOrder->expires_at)->between(now(), now()->addDays(7))
-                    : false,
-            ];
-        });
+                return [
+                    'id'               => $shop->id,
+                    'shop_name'        => $shop->shop_name,
+                    'branch_name'      => $shop->branch_name,
+                    'phone'            => $shop->phone,
+                    'municipality'     => $shop->municipality,
+                    'barangay'         => $shop->barangay,
+                    'status'           => $shop->status,
+                    'disable_reason'   => $shop->disable_reason,
+                    'created_at'       => $shop->created_at,
+
+                    'owner' => $shop->owner ? [
+                        'id'    => $shop->owner->id,
+                        'name'  => $shop->owner->name,
+                        'email' => $shop->owner->email,
+                        'phone' => $shop->owner->phone ?? null,
+                    ] : null,
+
+                    'subscription_plan' => $latestOrder?->subscription_plan,
+                    'expires_at'        => $latestOrder?->expires_at,
+
+                    'is_expired' => $latestOrder?->expires_at
+                        ? Carbon::parse($latestOrder->expires_at)->isPast()
+                        : true,
+
+                    'is_expiring_soon' => $latestOrder?->expires_at
+                        ? Carbon::parse($latestOrder->expires_at)->between(now(), now()->addDays(7))
+                        : false,
+                ];
+            });
 
         $stats = [
-            'today'  => Shop::whereDate('created_at', \Carbon\Carbon::today())->count(),
+            'today'  => Shop::whereDate('created_at', Carbon::today())->count(),
             'total'  => Shop::count(),
             'active' => Shop::where('status', 'active')->count(),
         ];
@@ -103,7 +101,7 @@ class ShopController extends Controller
         $shop->load('owner');
 
         $latestOrder = Order::where('user_id', $shop->owner_id)
-            ->where('status', 'paid')
+            ->whereIn('status', ['paid', 'approved'])
             ->latest()
             ->first();
 
@@ -143,6 +141,24 @@ class ShopController extends Controller
 
         return redirect()->route('shop.index')
             ->with('success', 'Shop archived successfully.');
+    }
+
+    public function approveOrder(Shop $shop)
+    {
+        $order = Order::where('user_id', $shop->owner_id)
+            ->where('status', 'paid')
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            return redirect()->back()
+                ->with('toast', ['type' => 'error', 'message' => 'No paid order found.']);
+        }
+
+        $order->update(['status' => 'approved']);
+
+        return redirect()->back()
+            ->with('toast', ['type' => 'success', 'message' => 'Order approved. Shop now has dashboard access.']);
     }
 
     public function disable(Request $request, Shop $shop)

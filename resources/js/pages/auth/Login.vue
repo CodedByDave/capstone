@@ -56,7 +56,7 @@ function goToGoogle() {
                     <Label for="email">Email address</Label>
                     <Input id="email" type="email" name="email" required autofocus :tabindex="1" autocomplete="email"
                         placeholder="email@example.com" />
-                    <InputError :message="errors.email" />
+                    <InputError :message="errors.email ? 'Email or password is invalid.' : ''" />
                 </div>
 
                 <div class="grid gap-2">

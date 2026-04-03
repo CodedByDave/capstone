@@ -188,12 +188,12 @@ function submit() {
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">First Name <span class="text-red-500">*</span></label>
-                        <Input v-model="form.first_name" :class="{ 'border-red-500': errors.first_name }" />
+                        <Input v-model="form.first_name" :class="{ 'border-red-500': errors.first_name }" placeholder="Prince Juan"/>
                         <p v-if="errors.first_name" class="text-xs text-red-500">{{ errors.first_name }}</p>
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Last Name <span class="text-red-500">*</span></label>
-                        <Input v-model="form.last_name" :class="{ 'border-red-500': errors.last_name }" />
+                        <Input v-model="form.last_name" :class="{ 'border-red-500': errors.last_name }" placeholder="Delacruz"/>
                         <p v-if="errors.last_name" class="text-xs text-red-500">{{ errors.last_name }}</p>
                     </div>
                 </div>
@@ -263,11 +263,20 @@ function submit() {
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Salary (Monthly)</label>
-                        <Input v-model="form.salary" type="number" min="0" step="0.01"
-                            :class="{ 'border-red-500': errors.salary }" />
-                        <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
-                    </div>
+    <label class="text-sm font-medium">Salary (Monthly) <span class="text-muted-foreground text-xs">(₱10,000 - ₱50,000)</span></label>
+    <Input
+        v-model.number="form.salary"
+        type="number"
+        min="1000"
+        max="50000"
+        step="0.01"
+        :class="{ 'border-red-500': errors.salary }"
+        @input="validateSalary"
+    />
+    <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
+    <p v-if="salaryError" class="text-xs text-red-500">{{ salaryError }}</p>
+</div>
+
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Status <span class="text-red-500">*</span></label>
                         <Select v-model="form.status">

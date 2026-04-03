@@ -39,6 +39,22 @@ class CheckoutController extends Controller
         ]);
     }
 
+    public function plans(): Response|RedirectResponse
+    {
+        $hasActiveOrder = Order::where('user_id', auth()->id())
+            ->whereIn('status', ['approved', 'paid', 'pending'])
+            ->exists();
+
+        if ($hasActiveOrder) {
+            return redirect()->route('shop.dashboard')->with('toast', [
+                'type'    => 'error',
+                'message' => 'You already have an active plan.',
+            ]);
+        }
+
+        return Inertia::render('Landing');
+    }
+
     // ── Store selected plan + billing period in session ────────────────────────
 
     public function select(Request $request): RedirectResponse
@@ -50,6 +66,19 @@ class CheckoutController extends Controller
             'monthly_price'  => 'required|integer',
             'total_amount'   => 'required|integer',
         ]);
+
+        if (auth()->check()) {
+            $hasActiveOrder = Order::where('user_id', auth()->id())
+                ->whereIn('status', ['approved', 'paid', 'pending'])
+                ->exists();
+
+            if ($hasActiveOrder) {
+                return redirect()->route('shop.dashboard')->with('toast', [
+                    'type'    => 'error',
+                    'message' => 'You already have an active plan.',
+                ]);
+            }
+        }
 
         session([
             'checkout' => [
@@ -71,8 +100,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    // ── Confirm page (authenticated) ───────────────────────────────────────────
-
+    // Confirm page (Authenticated Users)
     public function confirm(): Response|RedirectResponse
     {
         $checkout = session('checkout');
@@ -84,12 +112,36 @@ class CheckoutController extends Controller
             ]);
         }
 
+        $user = auth()->user();
+        $shop = Shop::where('owner_id', $user->id)->first();
+
+        $billingMonths = (int) ($checkout['billing_months'] ?? 12);
+
+        $municipalityMap = [
+            'Cavite City'    => 'City of Cavite',
+            'Dasmariñas'     => 'City of Dasmariñas',
+            'Bacoor'         => 'City of Bacoor',
+            'Imus'           => 'City of Imus',
+            'Trece Martires' => 'City of Trece Martires',
+            'General Trias'  => 'City of General Trias',
+        ];
+
+        $savedMunicipality = $shop?->municipality ?? '';
+        $mappedMunicipality = $municipalityMap[$savedMunicipality] ?? $savedMunicipality;
+
         return Inertia::render('shop/CheckoutConfirm', [
-            'planName' => $checkout['plan_name'] ?? 'Standard',
-            'vatPct'   => 12,
-            'user'     => [
-                'name'  => auth()->user()->name,
-                'email' => auth()->user()->email,
+            'planName'      => $checkout['plan_name'] ?? 'Standard',
+            'billingMonths' => $billingMonths,
+            'vatPct'        => 12,
+            'user'          => [
+                'name'         => $user->name,
+                'email'        => $user->email,
+                'phone'        => $shop?->phone        ?? '',
+                'shop_name'    => $shop?->shop_name    ?? '',
+                'block_street' => $shop?->block_street ?? '',
+                'municipality' => $mappedMunicipality,
+                'barangay'     => $shop?->barangay     ?? '',
+                'postal_code'  => $shop?->postal_code  ?? '',
             ],
         ]);
     }
@@ -104,6 +156,20 @@ class CheckoutController extends Controller
             Log::info('=== CHECKOUT START ===', $request->validated());
 
             $user = auth()->user();
+
+            //Block duplicate orders
+            $hasActiveOrder = Order::where('user_id', $user->id)
+                ->whereIn('status', ['approved', 'paid', 'pending'])
+                ->exists();
+
+            if ($hasActiveOrder) {
+                Log::warning('Duplicate order attempt blocked', ['user_id' => $user->id]);
+
+                return back()->with('toast', [
+                    'type'    => 'error',
+                    'message' => 'You already have an active plan or pending order.',
+                ]);
+            }
 
             $planName      = $request->validated()['plan_name'];
             $billingMonths = (int) $request->validated()['billing_months'];
@@ -183,7 +249,6 @@ class CheckoutController extends Controller
             session(['checkout_url' => $session['data']['attributes']['checkout_url']]);
 
             return redirect()->route('checkout.confirm');
-
         } catch (\Exception $e) {
             Log::error('=== CHECKOUT FAILED ===', [
                 'error' => $e->getMessage(),
@@ -263,8 +328,7 @@ class CheckoutController extends Controller
         return Inertia::render('shop/payment/PaymentSuccess');
     }
 
-    // ── Payment cancel ─────────────────────────────────────────────────────────
-
+    // ── Payment cancel
     public function cancel(): Response
     {
         return Inertia::render('shop/payment/PaymentCancel');

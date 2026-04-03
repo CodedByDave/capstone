@@ -13,8 +13,12 @@ class ShopRegisterController extends Controller
 {
     public function show()
     {
+        $googleUser = session('google_user');
+
+        Log::info('RegisterShop show — googleUser session', ['data' => $googleUser]);
+
         return Inertia::render('auth/RegisterShop', [
-            'googleUser' => session('google_user'),
+            'googleUser' => $googleUser,
         ]);
     }
 
@@ -97,7 +101,6 @@ class ShopRegisterController extends Controller
                     'type'    => 'success',
                     'message' => 'OTP has been sent to your email. Please verify your account.',
                 ]);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error during shop registration', ['errors' => $e->errors()]);
             throw $e;

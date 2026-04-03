@@ -14,25 +14,26 @@ class CheckPermission
     {
         $user = $request->user();
 
-        if (!$user) abort(403);
+        if (!$user) return redirect()->route('login');
         if ($user->role === 'owner') return $next($request);
 
         $employee = Employee::where('user_id', $user->id)->with('roles')->first();
 
-        abort_if(!$employee, 403, 'No employee record found.');
+        if (!$employee) {
+            return redirect()->route('staff.dashboard')->with('toast', [
+                'type'    => 'error',
+                'message' => 'No employee record found.',
+            ]);
+        }
 
         $roles = $employee->roles->pluck('role')->toArray();
 
-        // ← ADD THIS TEMPORARILY
-        Log::info('CheckPermission debug', [
-            'user_id'  => $user->id,
-            'module'   => $module,
-            'action'   => $action,
-            'roles'    => $roles,
-            'shop_id'  => $employee->shop_id,
-        ]);
-
-        abort_if(empty($roles), 403, 'No roles assigned.');
+        if (empty($roles)) {
+            return redirect()->route('staff.dashboard')->with('toast', [
+                'type'    => 'error',
+                'message' => 'No roles assigned to your account.',
+            ]);
+        }
 
         $hasPermission = RolePermission::where('shop_id', $employee->shop_id)
             ->whereIn('role', $roles)
@@ -40,7 +41,21 @@ class CheckPermission
             ->where('action', $action)
             ->exists();
 
-        abort_if(!$hasPermission, 403, 'You do not have permission to perform this action.');
+        Log::info('CheckPermission debug', [
+            'user_id'        => $user->id,
+            'module'         => $module,
+            'action'         => $action,
+            'roles'          => $roles,
+            'shop_id'        => $employee->shop_id,
+            'has_permission' => $hasPermission,
+        ]);
+
+        if (!$hasPermission) {
+            return redirect()->route('staff.dashboard')->with('toast', [
+                'type'    => 'error',
+                'message' => 'You do not have permission to access this page.',
+            ]);
+        }
 
         return $next($request);
     }

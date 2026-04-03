@@ -34,16 +34,16 @@ class AttemptToAuthenticate
         $user = User::where(Fortify::username(), $request->input(Fortify::username()))->first();
 
         $this->loginLogService->logFailed(
-            userId:    $user?->id,
-            email:     $request->input(Fortify::username()),
-            name:      $user?->name,
-            role:      $user?->role,
-            ip:        $request->ip(),
+            userId: $user?->id,
+            email: $request->input(Fortify::username()),
+            name: $user?->name,
+            role: $user?->role,
+            ip: $request->ip(),
             userAgent: $request->userAgent() ?? '',
         );
 
         throw ValidationException::withMessages([
-            Fortify::username() => [trans('auth.failed')],
+            Fortify::username() => ['Email or password is invalid.'],
         ]);
     }
 }

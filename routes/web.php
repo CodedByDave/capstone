@@ -33,6 +33,7 @@ Route::get('/', function () {
 
 Route::get('/shop/checkout/{plan}',  [CheckoutController::class, 'show']);
 Route::post('/checkout/select',      [CheckoutController::class, 'select']);
+Route::get('/plans', [CheckoutController::class, 'plans'])->name('plans');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout/confirm',  [CheckoutController::class, 'confirm'])->name('checkout.confirm');
@@ -86,18 +87,18 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     // Orders
     Route::prefix('orders')->name('admin.orders.')->group(function () {
-        Route::get('/',       [OrderController::class, 'index'])->name('index');
-        Route::get('/{id}',   [OrderController::class, 'show'])->name('show');
+        Route::get('/',              [OrderController::class, 'index'])->name('index');
+        Route::get('/{id}',          [OrderController::class, 'show'])->name('show');
+        Route::post('/{id}/approve', [OrderController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject',  [OrderController::class, 'reject'])->name('reject');
     });
 
-    Route::get('/admin/kyc-file', [OrderController::class, 'serveKyc'])->name('admin.kyc-file');
-
-    Route::post('/orders/{id}/approve', [OrderController::class, 'approve'])->name('admin.orders.approve');
-    Route::post('/orders/{id}/reject',  [OrderController::class, 'reject'])->name('admin.orders.reject');
+    Route::get('/kyc-file', [OrderController::class, 'serveKyc'])->name('admin.kyc-file');
 
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
 });
+
 // ── Shop owner routes ──────────────────────────────────────────────────────────
 
 Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(function () {
@@ -190,7 +191,6 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
         Route::get('/inventory', [ReportsController::class, 'inventory'])->name('inventory');
         Route::get('/employee',  [ReportsController::class, 'employee'])->name('employee');
     });
-
 });
 
 // ── Staff routes ───────────────────────────────────────────────────────────────
@@ -200,60 +200,52 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff'])->group(fu
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
 
     // ── Employee ──────────────────────────────────────────────────────────────
-    Route::middleware('permission:Employee Management,view')->group(function () {
+    Route::middleware('permission:HRM,view')->group(function () {
         Route::get('/employee', [EmployeeController::class, 'index'])->name('staff.employee.index');
+        Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
     });
-    Route::middleware('permission:Employee Management,create')->group(function () {
+    Route::middleware('permission:HRM,create')->group(function () {
         Route::get('/employee/create', [EmployeeController::class, 'create'])->name('staff.employee.create');
         Route::post('/employee',       [EmployeeController::class, 'store'])->name('staff.employee.store');
     });
-    Route::middleware('permission:Employee Management,archive')->group(function () {
+    Route::middleware('permission:HRM,archive')->group(function () {
         Route::get('/employee/archive',       [EmployeeController::class, 'archive'])->name('staff.employee.archive');
         Route::post('/employee/bulk-restore', [EmployeeController::class, 'bulkRestore'])->name('staff.employee.bulk-restore');
+        Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('staff.employee.destroy');
+        Route::post('/employee/{id}/restore', [EmployeeController::class, 'restore'])->name('staff.employee.restore');
     });
-    Route::middleware('permission:Employee Management,import')->group(function () {
+    Route::middleware('permission:HRM,import')->group(function () {
         Route::get('/employee/import-template', [EmployeeController::class, 'importTemplate'])->name('staff.employee.import.template');
         Route::post('/employee/import',         [EmployeeController::class, 'import'])->name('staff.employee.import');
     });
-
-    Route::middleware('permission:Employee Management,view')->group(function () {
-        Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
-    });
-    Route::middleware('permission:Employee Management,update')->group(function () {
+    Route::middleware('permission:HRM,update')->group(function () {
         Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('staff.employee.edit');
         Route::put('/employee/{employee}',      [EmployeeController::class, 'update'])->name('staff.employee.update');
     });
-    Route::middleware('permission:Employee Management,archive')->group(function () {
-        Route::delete('/employee/{employee}',   [EmployeeController::class, 'destroy'])->name('staff.employee.destroy');
-        Route::post('/employee/{id}/restore',   [EmployeeController::class, 'restore'])->name('staff.employee.restore');
-    });
 
     // ── Schedule ──────────────────────────────────────────────────────────────
-    Route::middleware('permission:Employee Management,update')->group(function () {
+    Route::middleware('permission:HRM,update')->group(function () {
         Route::post('/employee/{employee}/schedule',              [ScheduleController::class, 'store'])->name('staff.schedule.store');
         Route::put('/employee/{employee}/schedule/{schedule}',    [ScheduleController::class, 'update'])->name('staff.schedule.update');
         Route::delete('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('staff.schedule.destroy');
     });
 
     // ── Branch ────────────────────────────────────────────────────────────────
-    Route::middleware('permission:Branch Management,view')->group(function () {
+    Route::middleware('permission:HRM,view')->group(function () {
         Route::get('/branch', [BranchController::class, 'index'])->name('staff.branch.index');
     });
-    Route::middleware('permission:Branch Management,create')->group(function () {
+    Route::middleware('permission:HRM,create')->group(function () {
         Route::get('/branch/create', [BranchController::class, 'create'])->name('staff.branch.create');
         Route::post('/branch',       [BranchController::class, 'store'])->name('staff.branch.store');
     });
-    Route::middleware('permission:Branch Management,archive')->group(function () {
+    Route::middleware('permission:HRM,archive')->group(function () {
         Route::get('/branch/archive',       [BranchController::class, 'archive'])->name('staff.branch.archive');
         Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('staff.branch.restore');
+        Route::delete('/branch/{branch}',   [BranchController::class, 'destroy'])->name('staff.branch.destroy');
     });
-
-    Route::middleware('permission:Branch Management,update')->group(function () {
+    Route::middleware('permission:HRM,update')->group(function () {
         Route::get('/branch/{branch}/edit', [BranchController::class, 'edit'])->name('staff.branch.edit');
         Route::put('/branch/{branch}',      [BranchController::class, 'update'])->name('staff.branch.update');
-    });
-    Route::middleware('permission:Branch Management,archive')->group(function () {
-        Route::delete('/branch/{branch}', [BranchController::class, 'destroy'])->name('staff.branch.destroy');
     });
 
     // ── Inventory Categories ──────────────────────────────────────────────────

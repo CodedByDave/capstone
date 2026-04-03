@@ -19,7 +19,11 @@ class ShopDashboardController extends Controller
     {
         $user  = Auth::user();
         $shop  = $user->shop;
-        $order = $user->orders()->with('modules')->where('status', 'paid')->latest()->first();
+        $order = $user->orders()
+            ->with('modules')
+            ->whereIn('status', ['paid', 'approved'])
+            ->latest()
+            ->first();
 
         // If not paid, render basic dashboard with order form
         if (! $order) {

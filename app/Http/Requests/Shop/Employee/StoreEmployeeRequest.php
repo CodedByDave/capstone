@@ -23,7 +23,7 @@ class StoreEmployeeRequest extends FormRequest
             'address'     => 'required|string|max:500',
             'position'    => 'required|string|max:255',
             'hire_date'   => 'required|date|before_or_equal:today',
-            'salary'      => 'required|numeric|min:0|max:9999999.99',
+            'salary'      => 'required|numeric|min:1000|max:50000',
             'status'      => 'required|in:Active,Inactive',
         ];
     }
@@ -43,8 +43,8 @@ class StoreEmployeeRequest extends FormRequest
             'hire_date.required'   => 'Hire date is required.',
             'hire_date.before_or_equal' => 'Hire date cannot be a future date.',
             'status.in'            => 'Status must be Active or Inactive.',
-            'salary.numeric'       => 'Salary must be a valid number.',
-            'salary.min'           => 'Salary cannot be negative.',
+            'salary.numeric'       => 'Salary cannot exceed ₱50,000 per month.',
+            'salary.min'           => 'Salary must be at least ₱10,000 per month.',
         ];
     }
 }

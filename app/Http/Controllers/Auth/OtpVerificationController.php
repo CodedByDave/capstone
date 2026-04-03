@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Services\ShopService;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Mail\OtpVerificationMail;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class OtpVerificationController extends Controller
@@ -111,6 +113,42 @@ class OtpVerificationController extends Controller
         try {
             DB::beginTransaction();
 
+            // ── Guard: block duplicate email at creation time ──────────────────
+            $existing = User::where('email', $pendingData['email'])->first();
+
+            if ($existing) {
+                DB::rollBack();
+                session()->forget('pending_registration');
+
+                // If Google user, just link the google_id and log them in
+                if (!empty($pendingData['google_id']) && !$existing->google_id) {
+                    $existing->update(['google_id' => $pendingData['google_id']]);
+                }
+
+                if (!empty($pendingData['google_id'])) {
+                    Auth::login($existing);
+
+                    Log::info('Google OAuth — email already exists, logged in instead', [
+                        'email' => $existing->email,
+                    ]);
+
+                    return redirect()->intended(match ($existing->role) {
+                        'super_admin' => route('admin.dashboard'),
+                        'owner'       => $existing->orders()->where('status', 'approved')->exists()
+                            ? route('shop.dashboard')
+                            : route('plans'),
+                        'staff'       => route('staff.dashboard'),
+                        default       => route('landing'),
+                    });
+                }
+
+                return redirect()->route('login')->with('toast', [
+                    'type'    => 'error',
+                    'message' => 'An account with this email already exists. Please log in.',
+                ]);
+            }
+
+            // ── Create account ─────────────────────────────────────────────────
             $result = $this->shopService->registerShop([
                 'name'         => $pendingData['name'],
                 'email'        => $pendingData['email'],
@@ -141,11 +179,10 @@ class OtpVerificationController extends Controller
                 'via_google' => !empty($pendingData['google_id']),
             ]);
 
-            return redirect()->route('login.user')->with('toast', [
+            return redirect()->route('login')->with('toast', [
                 'type'    => 'success',
-                'message' => 'Your account has been verified. You can now login.',
+                'message' => 'Your account has been created. You can now login.',
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
 

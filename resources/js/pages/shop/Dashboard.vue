@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     Users, GitBranch, Package, AlertTriangle,
-    TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
-    Activity, BoxSelect, RefreshCcw,
+    ArrowUpRight, ArrowDownRight, Activity, BoxSelect,
+    RefreshCcw, Clock, Lightbulb, TrendingUp, TrendingDown,
+    ShieldAlert, CheckCircle2, Info
 } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 
@@ -20,6 +21,12 @@ interface CategoryPoint   { label: string; count: number }
 interface BranchEmployee  { branch: string; count: number; status: string }
 interface LowStockItem    { name: string; sku: string; quantity: number; min_stock: number; status: string; category: string }
 interface RecentMovement  { item: string; sku: string; type: string; quantity: number; before: number; after: number; by: string; notes: string | null; date: string }
+
+interface DSSInsight {
+    type: 'success' | 'warning' | 'danger' | 'info'
+    title: string
+    message: string
+}
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -48,15 +55,154 @@ const { props } = usePage<{
     recent_movements?:     RecentMovement[]
 }>()
 
-const user    = props.auth.user
-const isPaid  = computed(() => props.order?.status === 'paid')
-const showOrder = ref(false)
+const user       = props.auth.user
+const isPaid     = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
+const isApproved = computed(() => props.order?.status === 'approved')
+const showOrder  = ref(false)
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard().url }
 ]
+
+// ─── DSS Insights ─────────────────────────────────────────────────────────────
+
+const dssInsights = computed<DSSInsight[]>(() => {
+    const insights: DSSInsight[] = []
+    const stats    = props.stats
+    const movChart = props.movement_chart ?? []
+    const catData  = props.category_breakdown ?? []
+    const branches = props.employees_per_branch ?? []
+
+    if (!stats) return insights
+
+    // --- Stock alerts ---
+    if (stats.inventory.out_of_stock > 0) {
+        insights.push({
+            type: 'danger',
+            title: 'Out-of-Stock Items Detected',
+            message: `${stats.inventory.out_of_stock} item(s) have zero stock remaining. Initiate emergency reorders immediately — delayed restocking risks lost sales and poor customer experience.`,
+        })
+    }
+
+    if (stats.inventory.low_stock > 0 && stats.inventory.out_of_stock === 0) {
+        insights.push({
+            type: 'warning',
+            title: 'Low Stock Warning',
+            message: `${stats.inventory.low_stock} item(s) are below their minimum stock level. Review your reorder points and contact suppliers before these items run out.`,
+        })
+    }
+
+    // --- Movement trend ---
+    const change = stats.movements.change
+    if (change >= 20) {
+        insights.push({
+            type: 'info',
+            title: 'High Movement Spike This Month',
+            message: `Inventory movements surged by ${change}% compared to last month. Verify that this is demand-driven and not caused by data entry errors or unauthorized transfers.`,
+        })
+    } else if (change <= -20) {
+        insights.push({
+            type: 'warning',
+            title: 'Movement Activity Drop',
+            message: `Inventory movements dropped by ${Math.abs(change)}% this month. This could indicate slowed operations, understaffing, or potential supply chain delays — worth investigating.`,
+        })
+    } else if (change > 0) {
+        insights.push({
+            type: 'success',
+            title: 'Steady Inventory Activity',
+            message: `Movements are up ${change}% vs last month. Operations appear consistent. Keep monitoring reorder frequency to maintain this balance.`,
+        })
+    }
+
+    // --- Overstock vs inflow check ---
+    if (movChart.length >= 3) {
+        const last3  = movChart.slice(-3)
+        const inGt   = last3.every(m => m.stock_in > m.stock_out)
+        if (inGt) {
+            insights.push({
+                type: 'info',
+                title: 'Consistent Inflow Surplus',
+                message: `Stock-in has exceeded stock-out for 3+ consecutive months. Review storage capacity and reorder triggers — accumulated inventory may increase holding costs.`,
+            })
+        }
+    }
+
+    // --- Category concentration ---
+    if (catData.length > 0) {
+        const total   = catData.reduce((s, c) => s + c.count, 0)
+        const top     = [...catData].sort((a, b) => b.count - a.count)[0]
+        const topPct  = total > 0 ? Math.round((top.count / total) * 100) : 0
+        if (topPct >= 40) {
+            insights.push({
+                type: 'warning',
+                title: 'Category Concentration Risk',
+                message: `"${top.label}" makes up ${topPct}% of your inventory. Heavy concentration in one category increases risk if demand or supply shifts. Consider diversifying your stock mix.`,
+            })
+        }
+    }
+
+    // --- Branch imbalance ---
+    if (branches.length >= 2) {
+        const counts = branches.map(b => b.count)
+        const maxC   = Math.max(...counts)
+        const minC   = Math.min(...counts)
+        if (maxC > 0 && minC / maxC < 0.5) {
+            const heavy = branches.find(b => b.count === maxC)
+            const light = branches.find(b => b.count === minC)
+            insights.push({
+                type: 'info',
+                title: 'Branch Staffing Imbalance',
+                message: `${heavy?.branch} has ${maxC} employees while ${light?.branch} has only ${minC}. Consider redistributing staff or reviewing workload per branch to improve efficiency.`,
+            })
+        }
+    }
+
+    // --- All good ---
+    if (stats.inventory.out_of_stock === 0 && stats.inventory.low_stock === 0) {
+        insights.push({
+            type: 'success',
+            title: 'Inventory Fully Stocked',
+            message: `All items are at or above their minimum stock levels. Great job maintaining healthy inventory — keep your reorder schedule consistent to sustain this.`,
+        })
+    }
+
+    return insights
+})
+
+// ─── Insight config ───────────────────────────────────────────────────────────
+
+const insightConfig = {
+    success: {
+        border:  'border-l-emerald-500',
+        bg:      'bg-emerald-50 dark:bg-emerald-950/30',
+        icon:    CheckCircle2,
+        iconCls: 'text-emerald-600',
+        title:   'text-emerald-700 dark:text-emerald-400',
+    },
+    warning: {
+        border:  'border-l-amber-500',
+        bg:      'bg-amber-50 dark:bg-amber-950/30',
+        icon:    AlertTriangle,
+        iconCls: 'text-amber-600',
+        title:   'text-amber-700 dark:text-amber-400',
+    },
+    danger: {
+        border:  'border-l-red-500',
+        bg:      'bg-red-50 dark:bg-red-950/30',
+        icon:    ShieldAlert,
+        iconCls: 'text-red-600',
+        title:   'text-red-700 dark:text-red-400',
+    },
+    info: {
+        border:  'border-l-blue-500',
+        bg:      'bg-blue-50 dark:bg-blue-950/30',
+        icon:    Info,
+        iconCls: 'text-blue-600',
+        title:   'text-blue-700 dark:text-blue-400',
+    },
+}
 
 // ─── Charts ───────────────────────────────────────────────────────────────────
 
@@ -81,9 +227,9 @@ onMounted(async () => {
     // @ts-ignore
     const Chart = window.Chart
 
-    const movData   = props.movement_chart       ?? []
-    const catData   = props.category_breakdown   ?? []
-    const branchData= props.employees_per_branch ?? []
+    const movData    = props.movement_chart       ?? []
+    const catData    = props.category_breakdown   ?? []
+    const branchData = props.employees_per_branch ?? []
 
     /* ── Movement Bar Chart ── */
     if (movementChartRef.value && movData.length) {
@@ -95,23 +241,26 @@ onMounted(async () => {
                     {
                         label: 'Stock In',
                         data: movData.map(d => d.stock_in),
-                        backgroundColor: 'rgba(16,185,129,0.7)',
+                        backgroundColor: 'rgba(16,185,129,0.75)',
                         borderRadius: 4,
                     },
                     {
                         label: 'Stock Out',
                         data: movData.map(d => d.stock_out),
-                        backgroundColor: 'rgba(239,68,68,0.7)',
+                        backgroundColor: 'rgba(239,68,68,0.75)',
                         borderRadius: 4,
                     },
                 ],
             },
             options: {
                 responsive: true,
-                plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, boxHeight: 12 } },
+                },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
                 },
             },
         })
@@ -133,8 +282,9 @@ onMounted(async () => {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } },
+                    legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, boxWidth: 12, boxHeight: 12 } },
                 },
                 cutout: '60%',
             },
@@ -158,10 +308,11 @@ onMounted(async () => {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
-                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
                 },
             },
         })
@@ -171,17 +322,17 @@ onMounted(async () => {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const stockStatusConfig: Record<string, { label: string; cls: string }> = {
-    low:         { label: 'Low Stock',    cls: 'bg-amber-100 text-amber-700'  },
-    out_of_stock:{ label: 'Out of Stock', cls: 'bg-red-100 text-red-700'      },
-    normal:      { label: 'Normal',       cls: 'bg-green-100 text-green-700'  },
-    overstock:   { label: 'Overstock',    cls: 'bg-blue-100 text-blue-700'    },
+    low:          { label: 'Low Stock',    cls: 'bg-amber-100 text-amber-700'  },
+    out_of_stock: { label: 'Out of Stock', cls: 'bg-red-100 text-red-700'      },
+    normal:       { label: 'Normal',       cls: 'bg-green-100 text-green-700'  },
+    overstock:    { label: 'Overstock',    cls: 'bg-blue-100 text-blue-700'    },
 }
 
 const movementTypeConfig: Record<string, { label: string; cls: string }> = {
-    in:       { label: 'Stock In',    cls: 'bg-emerald-100 text-emerald-700' },
-    out:      { label: 'Stock Out',   cls: 'bg-red-100 text-red-700'         },
-    adjust:   { label: 'Adjustment',  cls: 'bg-blue-100 text-blue-700'       },
-    transfer: { label: 'Transfer',    cls: 'bg-violet-100 text-violet-700'   },
+    in:       { label: 'Stock In',   cls: 'bg-emerald-100 text-emerald-700' },
+    out:      { label: 'Stock Out',  cls: 'bg-red-100 text-red-700'         },
+    adjust:   { label: 'Adjustment', cls: 'bg-blue-100 text-blue-700'       },
+    transfer: { label: 'Transfer',   cls: 'bg-violet-100 text-violet-700'   },
 }
 </script>
 
@@ -191,8 +342,8 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
     <ShopLayout :breadcrumbs="breadcrumbs" title="Dashboard">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
 
-            <!-- ══════════════ PAID: Live Dashboard ══════════════ -->
-            <template v-if="isPaid">
+            <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
+            <template v-if="isApproved">
 
                 <!-- Welcome Banner -->
                 <div class="rounded-xl bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 border border-border p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -215,7 +366,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     </div>
                 </div>
 
-                <!-- ── STAT CARDS ── -->
+                <!-- ── KPI STAT CARDS ── -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
                     <!-- Employees -->
@@ -268,7 +419,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         </CardContent>
                     </Card>
 
-                    <!-- Low Stock Alerts -->
+                    <!-- Alerts + Movement -->
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
@@ -307,10 +458,13 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div v-if="(props.movement_chart?.length ?? 0) === 0" class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                            <div v-if="(props.movement_chart?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
                                 No movement data yet.
                             </div>
-                            <canvas v-else ref="movementChartRef" height="130"></canvas>
+                            <div v-else class="relative h-[200px]">
+                                <canvas ref="movementChartRef"></canvas>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -323,16 +477,19 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="flex items-center justify-center">
-                            <div v-if="(props.category_breakdown?.length ?? 0) === 0" class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                            <div v-if="(props.category_breakdown?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
                                 No categories yet.
                             </div>
-                            <canvas v-else ref="categoryChartRef" height="200"></canvas>
+                            <div v-else class="relative w-full h-[200px]">
+                                <canvas ref="categoryChartRef"></canvas>
+                            </div>
                         </CardContent>
                     </Card>
 
                 </div>
 
-                <!-- ── CHARTS ROW 2 + TABLES ── -->
+                <!-- ── CHARTS ROW 2 + LOW STOCK TABLE ── -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                     <!-- Employees per Branch -->
@@ -344,14 +501,17 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div v-if="(props.employees_per_branch?.length ?? 0) === 0" class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                            <div v-if="(props.employees_per_branch?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
                                 No branches yet.
                             </div>
-                            <canvas v-else ref="branchChartRef" height="180"></canvas>
+                            <div v-else class="relative h-[180px]">
+                                <canvas ref="branchChartRef"></canvas>
+                            </div>
                         </CardContent>
                     </Card>
 
-                    <!-- Low Stock Items -->
+                    <!-- Low Stock Items Table -->
                     <Card class="md:col-span-2">
                         <CardHeader class="pb-2">
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
@@ -364,7 +524,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                 class="flex items-center justify-center h-20 text-sm text-muted-foreground">
                                 All items are sufficiently stocked. ✅
                             </div>
-                            <div v-else class="rounded-lg border overflow-visible">
+                            <div v-else class="rounded-lg border overflow-hidden">
                                 <table class="w-full text-xs">
                                     <thead>
                                         <tr class="bg-muted/40 text-muted-foreground border-b">
@@ -380,7 +540,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                             class="border-b last:border-0 hover:bg-muted/20 transition-colors">
                                             <td class="px-3 py-2">
                                                 <p class="font-medium text-foreground">{{ item.name }}</p>
-                                                <p class="text-muted-foreground font-mono">{{ item.sku }}</p>
+                                                <p class="text-muted-foreground font-mono text-[10px]">{{ item.sku }}</p>
                                             </td>
                                             <td class="px-3 py-2 text-muted-foreground">{{ item.category }}</td>
                                             <td class="px-3 py-2 text-right font-bold"
@@ -403,7 +563,43 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
 
                 </div>
 
-                <!-- ── RECENT MOVEMENTS TABLE ── -->
+                <!-- ══════════════ DSS INSIGHTS PANEL ══════════════ -->
+                <div v-if="dssInsights.length > 0">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                            <Lightbulb class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <h3 class="text-sm font-semibold text-foreground">Decision Support Insights</h3>
+                        <span class="text-xs text-muted-foreground">— recommendations based on your current data</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        <div
+                            v-for="(insight, i) in dssInsights"
+                            :key="i"
+                            class="rounded-xl border-l-4 p-4 flex gap-3"
+                            :class="[insightConfig[insight.type].bg, insightConfig[insight.type].border]"
+                        >
+                            <div class="mt-0.5 shrink-0">
+                                <component
+                                    :is="insightConfig[insight.type].icon"
+                                    class="h-4 w-4"
+                                    :class="insightConfig[insight.type].iconCls"
+                                />
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold mb-1" :class="insightConfig[insight.type].title">
+                                    {{ insight.title }}
+                                </p>
+                                <p class="text-xs text-muted-foreground leading-relaxed">
+                                    {{ insight.message }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── RECENT MOVEMENTS ── -->
                 <Card>
                     <CardHeader class="pb-2">
                         <CardTitle class="text-sm font-semibold flex items-center gap-2">
@@ -417,7 +613,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             No movements recorded yet.
                         </div>
                         <div v-else class="overflow-x-auto">
-                            <div class="rounded-lg border overflow-visible">
+                            <div class="rounded-lg border overflow-hidden">
                                 <table class="w-full text-xs">
                                     <thead>
                                         <tr class="bg-muted/40 text-muted-foreground border-b">
@@ -436,7 +632,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                             class="border-b last:border-0 hover:bg-muted/20 transition-colors">
                                             <td class="px-3 py-2">
                                                 <p class="font-medium text-foreground">{{ mov.item }}</p>
-                                                <p class="text-muted-foreground font-mono">{{ mov.sku }}</p>
+                                                <p class="text-muted-foreground font-mono text-[10px]">{{ mov.sku }}</p>
                                             </td>
                                             <td class="px-3 py-2">
                                                 <span class="px-2 py-0.5 rounded-full font-medium capitalize"
@@ -461,6 +657,24 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     </CardContent>
                 </Card>
 
+            </template>
+
+            <!-- ══════════════ PAID BUT NOT APPROVED: Waiting ══════════════ -->
+            <template v-else-if="isPaid && !isApproved">
+                <div class="flex flex-1 items-center justify-center min-h-[60vh]">
+                    <div class="text-center max-w-md">
+                        <div class="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+                            <Clock class="h-8 w-8 text-yellow-500" />
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                            Awaiting Admin Approval
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            Your payment has been received. Please wait while our admin reviews and approves your account.
+                            You'll have full access once approved.
+                        </p>
+                    </div>
+                </div>
             </template>
 
             <!-- ══════════════ NOT PAID: Order Form ══════════════ -->

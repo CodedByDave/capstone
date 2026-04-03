@@ -106,9 +106,9 @@ onMounted(() => {
 
     switch (flashToast.type) {
         case 'success': toast.success(flashToast.message); break
-        case 'error':   toast.error(flashToast.message);   break
+        case 'error': toast.error(flashToast.message); break
         case 'warning': toast.warning(flashToast.message); break
-        default:        toast(flashToast.message)
+        default: toast(flashToast.message)
     }
 })
 
@@ -120,7 +120,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
-const searchQuery  = ref('')
+const searchQuery = ref('')
 const statusFilter = ref('all')
 
 const filteredEmployees = computed(() =>
@@ -147,7 +147,7 @@ function goToPage(p: number) {
 }
 
 const visiblePages = computed(() => {
-    const total   = employees.last_page
+    const total = employees.last_page
     const current = employees.current_page
     const pages: number[] = []
     for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
@@ -159,11 +159,11 @@ const visiblePages = computed(() => {
 // ─── Archive ──────────────────────────────────────────────────────────────────
 
 const employeeToArchive = ref<Employee | null>(null)
-const isArchiveOpen     = ref(false)
+const isArchiveOpen = ref(false)
 
 function openArchiveDialog(emp: Employee) {
     employeeToArchive.value = emp
-    isArchiveOpen.value     = true
+    isArchiveOpen.value = true
 }
 
 function cancelArchive() {
@@ -213,9 +213,9 @@ function exportCSV() {
         .join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url  = URL.createObjectURL(blob)
+    const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href  = url
+    link.href = url
     link.download = `employees_${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
     URL.revokeObjectURL(url)
@@ -223,29 +223,29 @@ function exportCSV() {
 
 // ─── CSV Import ───────────────────────────────────────────────────────────────
 
-const isImportOpen   = ref(false)
-const importFile     = ref<File | null>(null)
-const importErrors   = ref<string[]>([])
-const importSuccess  = ref(false)
-const importing      = ref(false)
-const isDragging     = ref(false)
-const fileInputRef   = ref<HTMLInputElement | null>(null)
+const isImportOpen = ref(false)
+const importFile = ref<File | null>(null)
+const importErrors = ref<string[]>([])
+const importSuccess = ref(false)
+const importing = ref(false)
+const isDragging = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 function openImport() {
-    importFile.value    = null
-    importErrors.value  = []
+    importFile.value = null
+    importErrors.value = []
     importSuccess.value = false
-    isImportOpen.value  = true
+    isImportOpen.value = true
 }
 
 function onFileChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (file?.name.endsWith('.csv')) {
-        importFile.value   = file
+        importFile.value = file
         importErrors.value = []
     } else {
         importErrors.value = ['Please select a valid .csv file.']
-        importFile.value   = null
+        importFile.value = null
     }
 }
 
@@ -253,7 +253,7 @@ function onDrop(e: DragEvent) {
     isDragging.value = false
     const file = e.dataTransfer?.files?.[0]
     if (file?.name.endsWith('.csv')) {
-        importFile.value   = file
+        importFile.value = file
         importErrors.value = []
     } else {
         importErrors.value = ['Please drop a valid .csv file.']
@@ -261,7 +261,7 @@ function onDrop(e: DragEvent) {
 }
 
 function clearFile() {
-    importFile.value   = null
+    importFile.value = null
     importErrors.value = []
     if (fileInputRef.value) fileInputRef.value.value = ''
 }
@@ -269,8 +269,8 @@ function clearFile() {
 async function submitImport() {
     if (!importFile.value) return
 
-    importing.value     = true
-    importErrors.value  = []
+    importing.value = true
+    importErrors.value = []
     importSuccess.value = false
 
     const formData = new FormData()
@@ -295,11 +295,11 @@ async function submitImport() {
             toast.error('Import failed. Please fix the errors and try again.')
         } else {
             importSuccess.value = true
-            importFile.value    = null
+            importFile.value = null
             toast.success('Employees imported successfully!')
             setTimeout(() => {
                 router.reload({ only: ['employees', 'stats'] })
-                isImportOpen.value  = false
+                isImportOpen.value = false
                 importSuccess.value = false
             }, 1500)
         }
@@ -316,7 +316,7 @@ async function submitImport() {
 
     <Head title="Employee Management" />
 
-    <ShopLayout :breadcrumbs="breadcrumbs" title="Employee Management">
+    <ShopLayout :breadcrumbs="breadcrumbs" title="Employee List">
 
         <!-- Stats -->
         <div class="grid gap-4 md:grid-cols-4 mb-6">
@@ -376,41 +376,29 @@ async function submitImport() {
                     </Select>
 
                     <!-- Export — view permission -->
-                    <Button
-                        v-if="can('Employee Management', 'view')"
-                        variant="outline"
+                    <Button v-if="can('HRM', 'view')" variant="outline"
                         class="bg-blue-500 text-white hover:bg-blue-600 hover:text-white hover:shadow-md transition duration-200"
-                        @click="exportCSV"
-                    >
+                        @click="exportCSV">
                         <Download class="h-4 w-4 mr-1.5" /> Export CSV
                     </Button>
 
                     <!-- Import — owner only -->
-                    <Button
-                        v-if="isOwner"
-                        variant="outline"
+                    <Button v-if="isOwner" variant="outline"
                         class="bg-green-500 text-white hover:bg-green-600 hover:shadow-md hover:text-white transition duration-200"
-                        @click="openImport"
-                    >
+                        @click="openImport">
                         <Upload class="h-4 w-4 mr-1.5" /> Import CSV
                     </Button>
 
                     <!-- Archive list — owner only -->
-                    <Button
-                        v-if="isOwner"
-                        variant="outline"
+                    <Button v-if="isOwner" variant="outline"
                         class="bg-red-500 text-white hover:bg-red-600 hover:shadow-md hover:text-white transition duration-200"
-                        @click="router.visit('/shop/employee/archive')"
-                    >
+                        @click="router.visit('/shop/employee/archive')">
                         <Trash class="h-4 w-4 mr-1.5" /> Archive
                     </Button>
 
                     <!-- Add Employee — create permission -->
-                    <Button
-                        v-if="can('Employee Management', 'create')"
-                        class="bg-gray-900 text-white hover:bg-gray-800 transition"
-                        @click="router.visit(`${baseRoute}/employee/create`)"
-                    >
+                    <Button v-if="can('HRM', 'create')" class="bg-gray-900 text-white hover:bg-gray-800 transition"
+                        @click="router.visit(`${baseRoute}/employee/create`)">
                         <UserPlus class="h-4 w-4 mr-1.5" /> Add Employee
                     </Button>
                 </div>
@@ -445,13 +433,15 @@ async function submitImport() {
 
                             <TableRow v-for="emp in filteredEmployees" :key="emp.id">
                                 <TableCell class="font-mono text-xs whitespace-nowrap">{{ emp.employee_id }}</TableCell>
-                                <TableCell class="font-medium whitespace-nowrap">{{ emp.first_name }} {{ emp.last_name }}</TableCell>
+                                <TableCell class="font-medium whitespace-nowrap">{{ emp.first_name }} {{ emp.last_name
+                                    }}</TableCell>
                                 <TableCell class="whitespace-nowrap">{{ emp.position }}</TableCell>
                                 <TableCell class="whitespace-nowrap">{{ emp.branch_name ?? '—' }}</TableCell>
                                 <TableCell class="whitespace-nowrap">{{ emp.phone ?? '—' }}</TableCell>
                                 <TableCell class="whitespace-nowrap">{{ emp.email ?? '—' }}</TableCell>
                                 <TableCell class="max-w-[200px]">
-                                    <span class="block truncate text-xs text-muted-foreground" :title="emp.address ?? ''">
+                                    <span class="block truncate text-xs text-muted-foreground"
+                                        :title="emp.address ?? ''">
                                         {{ emp.address ?? '—' }}
                                     </span>
                                 </TableCell>
@@ -462,22 +452,23 @@ async function submitImport() {
                                         class="px-2 py-1 text-xs font-semibold rounded-full text-white whitespace-nowrap"
                                         :class="{
                                             'bg-green-500': emp.status === 'Active',
-                                            'bg-red-500':   emp.status === 'Inactive',
-                                        }"
-                                    >
+                                            'bg-red-500': emp.status === 'Inactive',
+                                        }">
                                         {{ emp.status }}
                                     </span>
                                 </TableCell>
                                 <TableCell class="whitespace-nowrap">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-medium">{{ emp.creator?.name ?? '—' }}</span>
-                                        <span class="text-xs text-muted-foreground">{{ formatDate(emp.created_at) }}</span>
+                                        <span class="text-xs text-muted-foreground">{{ formatDate(emp.created_at)
+                                            }}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell class="whitespace-nowrap">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-medium">{{ emp.updater?.name ?? '—' }}</span>
-                                        <span class="text-xs text-muted-foreground">{{ formatDate(emp.updated_at) }}</span>
+                                        <span class="text-xs text-muted-foreground">{{ formatDate(emp.updated_at)
+                                            }}</span>
                                     </div>
                                 </TableCell>
 
@@ -486,37 +477,27 @@ async function submitImport() {
                                     <div class="flex items-center justify-center gap-1">
 
                                         <!-- View — key: 'view' -->
-                                        <Button
-                                            v-if="can('Employee Management', 'view')"
-                                            size="icon" variant="ghost"
-                                            @click="router.visit(employeeUrl(emp.id))"
-                                        >
+                                        <Button v-if="can('HRM', 'view')" size="icon" variant="ghost"
+                                            @click="router.visit(employeeUrl(emp.id))">
                                             <Eye class="h-4 w-4 text-blue-500" />
                                         </Button>
 
                                         <!-- Edit — key: 'update' (matches moduleActionMap) -->
-                                        <Button
-                                            v-if="can('Employee Management', 'update')"
-                                            size="icon" variant="ghost"
-                                            @click="router.visit(employeeUrl(emp.id, '/edit'))"
-                                        >
+                                        <Button v-if="can('HRM', 'update')" size="icon" variant="ghost"
+                                            @click="router.visit(employeeUrl(emp.id, '/edit'))">
                                             <Pencil class="h-4 w-4 text-green-500" />
                                         </Button>
 
                                         <!-- Archive — key: 'archive' (matches moduleActionMap) -->
-                                        <Button
-                                            v-if="can('Employee Management', 'archive')"
-                                            size="icon" variant="ghost"
-                                            @click="openArchiveDialog(emp)"
-                                        >
+                                        <Button v-if="can('HRM', 'archive')" size="icon" variant="ghost"
+                                            @click="openArchiveDialog(emp)">
                                             <Trash2 class="h-4 w-4 text-red-500" />
                                         </Button>
 
                                         <!-- No actions fallback -->
                                         <span
-                                            v-if="!can('Employee Management', 'view') && !can('Employee Management', 'update') && !can('Employee Management', 'archive')"
-                                            class="text-xs text-muted-foreground"
-                                        >
+                                            v-if="!can('HRM', 'view') && !can('HRM', 'update') && !can('HRM', 'archive')"
+                                            class="text-xs text-muted-foreground">
                                             —
                                         </span>
                                     </div>
@@ -534,38 +515,26 @@ async function submitImport() {
                 Showing {{ employees.from ?? 0 }}–{{ employees.to ?? 0 }} of {{ employees.total }} employees
             </p>
             <div class="flex items-center gap-1">
-                <Button
-                    size="icon" variant="outline"
-                    :disabled="employees.current_page === 1"
-                    @click="goToPage(employees.current_page - 1)"
-                >
+                <Button size="icon" variant="outline" :disabled="employees.current_page === 1"
+                    @click="goToPage(employees.current_page - 1)">
                     <ChevronLeft class="h-4 w-4" />
                 </Button>
                 <Button v-if="employees.current_page > 3" size="icon" variant="outline" @click="goToPage(1)">
                     1
                 </Button>
                 <span v-if="employees.current_page > 3" class="text-xs text-muted-foreground px-1">…</span>
-                <Button
-                    v-for="p in visiblePages" :key="p"
-                    size="icon"
-                    :variant="p === employees.current_page ? 'default' : 'outline'"
-                    @click="goToPage(p)"
-                >
+                <Button v-for="p in visiblePages" :key="p" size="icon"
+                    :variant="p === employees.current_page ? 'default' : 'outline'" @click="goToPage(p)">
                     {{ p }}
                 </Button>
-                <span v-if="employees.current_page < employees.last_page - 2" class="text-xs text-muted-foreground px-1">…</span>
-                <Button
-                    v-if="employees.current_page < employees.last_page - 2"
-                    size="icon" variant="outline"
-                    @click="goToPage(employees.last_page)"
-                >
+                <span v-if="employees.current_page < employees.last_page - 2"
+                    class="text-xs text-muted-foreground px-1">…</span>
+                <Button v-if="employees.current_page < employees.last_page - 2" size="icon" variant="outline"
+                    @click="goToPage(employees.last_page)">
                     {{ employees.last_page }}
                 </Button>
-                <Button
-                    size="icon" variant="outline"
-                    :disabled="employees.current_page === employees.last_page"
-                    @click="goToPage(employees.current_page + 1)"
-                >
+                <Button size="icon" variant="outline" :disabled="employees.current_page === employees.last_page"
+                    @click="goToPage(employees.current_page + 1)">
                     <ChevronRight class="h-4 w-4" />
                 </Button>
             </div>
@@ -594,14 +563,10 @@ async function submitImport() {
                         </a>
                     </div>
 
-                    <div
-                        class="relative border-2 border-dashed rounded-xl transition-colors cursor-pointer"
+                    <div class="relative border-2 border-dashed rounded-xl transition-colors cursor-pointer"
                         :class="isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/30 hover:border-primary/50'"
-                        @dragover.prevent="isDragging = true"
-                        @dragleave="isDragging = false"
-                        @drop.prevent="onDrop"
-                        @click="fileInputRef?.click()"
-                    >
+                        @dragover.prevent="isDragging = true" @dragleave="isDragging = false" @drop.prevent="onDrop"
+                        @click="fileInputRef?.click()">
                         <input ref="fileInputRef" type="file" accept=".csv" class="hidden" @change="onFileChange" />
                         <div class="flex flex-col items-center justify-center py-8 px-4 text-center select-none">
                             <template v-if="!importFile">
@@ -614,8 +579,10 @@ async function submitImport() {
                                     <CheckCircle2 class="w-5 h-5" />
                                     <span class="font-medium">{{ importFile.name }}</span>
                                 </div>
-                                <p class="text-xs text-muted-foreground mt-1">{{ (importFile.size / 1024).toFixed(1) }} KB</p>
-                                <button class="mt-2 flex items-center gap-1 text-xs text-red-500 hover:underline" @click.stop="clearFile">
+                                <p class="text-xs text-muted-foreground mt-1">{{ (importFile.size / 1024).toFixed(1) }}
+                                    KB</p>
+                                <button class="mt-2 flex items-center gap-1 text-xs text-red-500 hover:underline"
+                                    @click.stop="clearFile">
                                     <X class="w-3 h-3" /> Remove file
                                 </button>
                             </template>
@@ -628,7 +595,8 @@ async function submitImport() {
                             Import failed — please fix the following:
                         </div>
                         <ul class="space-y-1">
-                            <li v-for="(error, i) in importErrors" :key="i" class="text-xs text-red-600 flex items-start gap-1.5">
+                            <li v-for="(error, i) in importErrors" :key="i"
+                                class="text-xs text-red-600 flex items-start gap-1.5">
                                 <span class="mt-0.5 flex-shrink-0">•</span>{{ error }}
                             </li>
                         </ul>

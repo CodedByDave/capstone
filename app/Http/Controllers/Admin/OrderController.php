@@ -36,39 +36,22 @@ class OrderController extends Controller
         ]);
     }
 
-    // Admin/OrderController.php
-    public function approve(int $id): RedirectResponse
+    public function approve($id)
     {
         $order = Order::findOrFail($id);
         $order->update(['status' => 'approved']);
 
-        Shop::where('owner_id', $order->user_id)->update(['status' => 'active']);
-
-        \Log::info('Order approved by admin', [
-            'order_id' => $id,
-            'admin_id' => auth()->id(),
-        ]);
-
-        return back()->with('toast', [
-            'type'    => 'success',
-            'message' => 'Order approved and shop activated.',
-        ]);
+        return redirect()->back()
+            ->with('toast', ['type' => 'success', 'message' => "Order #{$id} approved. Shop now has dashboard access."]);
     }
 
-    public function reject(int $id): RedirectResponse
+    public function reject($id)
     {
         $order = Order::findOrFail($id);
         $order->update(['status' => 'rejected']);
 
-        \Log::info('Order rejected by admin', [
-            'order_id' => $id,
-            'admin_id' => auth()->id(),
-        ]);
-
-        return back()->with('toast', [
-            'type'    => 'error',
-            'message' => 'Order has been rejected.',
-        ]);
+        return redirect()->back()
+            ->with('toast', ['type' => 'error', 'message' => "Order #{$id} has been rejected."]);
     }
 
     public function serveKyc(Request $request): StreamedResponse

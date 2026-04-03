@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmployeeSchedule extends Model
 {
@@ -10,11 +11,20 @@ class EmployeeSchedule extends Model
         'employee_id',
         'work_date',
         'start_time',
-        'end_time'
+        'end_time',
     ];
 
-    public function employee()
+    protected $casts = [
+        'work_date'  => 'date:Y-m-d',
+        'start_time' => 'datetime:H:i',
+        'end_time'   => 'datetime:H:i',
+    ];
+
+    /**
+     * The employee this schedule belongs to
+     */
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'employee_id');
+        return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
 }
