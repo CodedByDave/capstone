@@ -20,10 +20,12 @@ use Inertia\Response;
 class CheckoutController extends Controller
 {
     public function __construct(
-        protected OrderService    $orderService,
-        protected PaymentService  $paymentService,
+        protected OrderService $orderService,
+        protected PaymentService $paymentService,
         protected PaymongoService $paymongoService
-    ) {}
+    ) {
+
+    }
 
     // ── Plan selection page ────────────────────────────────────────────────────
 
@@ -133,16 +135,20 @@ class CheckoutController extends Controller
             'planName'      => $checkout['plan_name'] ?? 'Standard',
             'billingMonths' => $billingMonths,
             'vatPct'        => 12,
-            'user'          => [
-                'name'         => $user->name,
-                'email'        => $user->email,
-                'phone'        => $shop?->phone        ?? '',
-                'shop_name'    => $shop?->shop_name    ?? '',
+            'user' => [
+                'name'  => $user->name,
+                'email' => $user->email,
+            ],
+
+            'shop' => [
+                'phone'        => $shop?->phone ?? '',
+                'shop_name'    => $shop?->shop_name ?? '',
                 'block_street' => $shop?->block_street ?? '',
                 'municipality' => $mappedMunicipality,
-                'barangay'     => $shop?->barangay     ?? '',
-                'postal_code'  => $shop?->postal_code  ?? '',
+                'barangay'     => $shop?->barangay ?? '',
+                'postal_code'  => $shop?->postal_code ?? '',
             ],
+
         ]);
     }
 

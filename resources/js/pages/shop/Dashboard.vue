@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
+import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue'
 import { dashboard } from '@/routes'
 import { type BreadcrumbItem } from '@/types'
 import { Head, usePage } from '@inertiajs/vue3'
@@ -15,11 +16,11 @@ import { ref, computed, onMounted } from 'vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface MovementPoint   { month: string; stock_in: number; stock_out: number }
-interface CategoryPoint   { label: string; count: number }
-interface BranchEmployee  { branch: string; count: number; status: string }
-interface LowStockItem    { name: string; sku: string; quantity: number; min_stock: number; status: string; category: string }
-interface RecentMovement  { item: string; sku: string; type: string; quantity: number; before: number; after: number; by: string; notes: string | null; date: string }
+interface MovementPoint { month: string; stock_in: number; stock_out: number }
+interface CategoryPoint { label: string; count: number }
+interface BranchEmployee { branch: string; count: number; status: string }
+interface LowStockItem { name: string; sku: string; quantity: number; min_stock: number; status: string; category: string }
+interface RecentMovement { item: string; sku: string; type: string; quantity: number; before: number; after: number; by: string; notes: string | null; date: string }
 
 interface DSSInsight {
     type: 'success' | 'warning' | 'danger' | 'info'
@@ -41,23 +42,31 @@ const { props } = usePage<{
         total_price: number
     }
     stats?: {
-        employees:        { total: number; active: number; inactive: number }
-        branches:         { total: number; active: number }
-        inventory:        { total: number; low_stock: number; out_of_stock: number }
+        employees: { total: number; active: number; inactive: number }
+        branches: { total: number; active: number }
+        inventory: { total: number; low_stock: number; out_of_stock: number }
         low_stock_alerts: number
-        movements:        { this_month: number; change: number }
+        movements: { this_month: number; change: number }
     }
-    movement_chart?:       MovementPoint[]
-    category_breakdown?:   CategoryPoint[]
+    shop?: {
+        shop_name?: string
+        phone?: string
+        block_street?: string
+        municipality?: string
+        barangay?: string
+        postal_code?: string
+    } | null
+    movement_chart?: MovementPoint[]
+    category_breakdown?: CategoryPoint[]
     employees_per_branch?: BranchEmployee[]
-    low_stock_items?:      LowStockItem[]
-    recent_movements?:     RecentMovement[]
+    low_stock_items?: LowStockItem[]
+    recent_movements?: RecentMovement[]
 }>()
 
-const user       = props.auth.user
-const isPaid     = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
+const user = props.auth.user
+const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
 const isApproved = computed(() => props.order?.status === 'approved')
-const showOrder  = ref(false)
+const showOrder = ref(false)
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
@@ -69,9 +78,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const dssInsights = computed<DSSInsight[]>(() => {
     const insights: DSSInsight[] = []
-    const stats    = props.stats
+    const stats = props.stats
     const movChart = props.movement_chart ?? []
-    const catData  = props.category_breakdown ?? []
+    const catData = props.category_breakdown ?? []
     const branches = props.employees_per_branch ?? []
 
     if (!stats) return insights
@@ -117,8 +126,8 @@ const dssInsights = computed<DSSInsight[]>(() => {
 
     // --- Overstock vs inflow check ---
     if (movChart.length >= 3) {
-        const last3  = movChart.slice(-3)
-        const inGt   = last3.every(m => m.stock_in > m.stock_out)
+        const last3 = movChart.slice(-3)
+        const inGt = last3.every(m => m.stock_in > m.stock_out)
         if (inGt) {
             insights.push({
                 type: 'info',
@@ -130,9 +139,9 @@ const dssInsights = computed<DSSInsight[]>(() => {
 
     // --- Category concentration ---
     if (catData.length > 0) {
-        const total   = catData.reduce((s, c) => s + c.count, 0)
-        const top     = [...catData].sort((a, b) => b.count - a.count)[0]
-        const topPct  = total > 0 ? Math.round((top.count / total) * 100) : 0
+        const total = catData.reduce((s, c) => s + c.count, 0)
+        const top = [...catData].sort((a, b) => b.count - a.count)[0]
+        const topPct = total > 0 ? Math.round((top.count / total) * 100) : 0
         if (topPct >= 40) {
             insights.push({
                 type: 'warning',
@@ -145,8 +154,8 @@ const dssInsights = computed<DSSInsight[]>(() => {
     // --- Branch imbalance ---
     if (branches.length >= 2) {
         const counts = branches.map(b => b.count)
-        const maxC   = Math.max(...counts)
-        const minC   = Math.min(...counts)
+        const maxC = Math.max(...counts)
+        const minC = Math.min(...counts)
         if (maxC > 0 && minC / maxC < 0.5) {
             const heavy = branches.find(b => b.count === maxC)
             const light = branches.find(b => b.count === minC)
@@ -174,32 +183,32 @@ const dssInsights = computed<DSSInsight[]>(() => {
 
 const insightConfig = {
     success: {
-        border:  'border-l-emerald-500',
-        bg:      'bg-emerald-50 dark:bg-emerald-950/30',
-        icon:    CheckCircle2,
+        border: 'border-l-emerald-500',
+        bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+        icon: CheckCircle2,
         iconCls: 'text-emerald-600',
-        title:   'text-emerald-700 dark:text-emerald-400',
+        title: 'text-emerald-700 dark:text-emerald-400',
     },
     warning: {
-        border:  'border-l-amber-500',
-        bg:      'bg-amber-50 dark:bg-amber-950/30',
-        icon:    AlertTriangle,
+        border: 'border-l-amber-500',
+        bg: 'bg-amber-50 dark:bg-amber-950/30',
+        icon: AlertTriangle,
         iconCls: 'text-amber-600',
-        title:   'text-amber-700 dark:text-amber-400',
+        title: 'text-amber-700 dark:text-amber-400',
     },
     danger: {
-        border:  'border-l-red-500',
-        bg:      'bg-red-50 dark:bg-red-950/30',
-        icon:    ShieldAlert,
+        border: 'border-l-red-500',
+        bg: 'bg-red-50 dark:bg-red-950/30',
+        icon: ShieldAlert,
         iconCls: 'text-red-600',
-        title:   'text-red-700 dark:text-red-400',
+        title: 'text-red-700 dark:text-red-400',
     },
     info: {
-        border:  'border-l-blue-500',
-        bg:      'bg-blue-50 dark:bg-blue-950/30',
-        icon:    Info,
+        border: 'border-l-blue-500',
+        bg: 'bg-blue-50 dark:bg-blue-950/30',
+        icon: Info,
         iconCls: 'text-blue-600',
-        title:   'text-blue-700 dark:text-blue-400',
+        title: 'text-blue-700 dark:text-blue-400',
     },
 }
 
@@ -207,7 +216,7 @@ const insightConfig = {
 
 const movementChartRef = ref<HTMLCanvasElement | null>(null)
 const categoryChartRef = ref<HTMLCanvasElement | null>(null)
-const branchChartRef   = ref<HTMLCanvasElement | null>(null)
+const branchChartRef = ref<HTMLCanvasElement | null>(null)
 
 function loadScript(src: string): Promise<void> {
     return new Promise((resolve) => {
@@ -226,8 +235,8 @@ onMounted(async () => {
     // @ts-ignore
     const Chart = window.Chart
 
-    const movData    = props.movement_chart       ?? []
-    const catData    = props.category_breakdown   ?? []
+    const movData = props.movement_chart ?? []
+    const catData = props.category_breakdown ?? []
     const branchData = props.employees_per_branch ?? []
 
     /* ── Movement Bar Chart ── */
@@ -267,7 +276,7 @@ onMounted(async () => {
 
     /* ── Category Doughnut ── */
     if (categoryChartRef.value && catData.length) {
-        const colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6']
+        const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6']
         new Chart(categoryChartRef.value, {
             type: 'doughnut',
             data: {
@@ -321,21 +330,22 @@ onMounted(async () => {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const stockStatusConfig: Record<string, { label: string; cls: string }> = {
-    low:          { label: 'Low Stock',    cls: 'bg-amber-100 text-amber-700'  },
-    out_of_stock: { label: 'Out of Stock', cls: 'bg-red-100 text-red-700'      },
-    normal:       { label: 'Normal',       cls: 'bg-green-100 text-green-700'  },
-    overstock:    { label: 'Overstock',    cls: 'bg-blue-100 text-blue-700'    },
+    low: { label: 'Low Stock', cls: 'bg-amber-100 text-amber-700' },
+    out_of_stock: { label: 'Out of Stock', cls: 'bg-red-100 text-red-700' },
+    normal: { label: 'Normal', cls: 'bg-green-100 text-green-700' },
+    overstock: { label: 'Overstock', cls: 'bg-blue-100 text-blue-700' },
 }
 
 const movementTypeConfig: Record<string, { label: string; cls: string }> = {
-    in:       { label: 'Stock In',   cls: 'bg-emerald-100 text-emerald-700' },
-    out:      { label: 'Stock Out',  cls: 'bg-red-100 text-red-700'         },
-    adjust:   { label: 'Adjustment', cls: 'bg-blue-100 text-blue-700'       },
-    transfer: { label: 'Transfer',   cls: 'bg-violet-100 text-violet-700'   },
+    in: { label: 'Stock In', cls: 'bg-emerald-100 text-emerald-700' },
+    out: { label: 'Stock Out', cls: 'bg-red-100 text-red-700' },
+    adjust: { label: 'Adjustment', cls: 'bg-blue-100 text-blue-700' },
+    transfer: { label: 'Transfer', cls: 'bg-violet-100 text-violet-700' },
 }
 </script>
 
 <template>
+
     <Head title="Shop Dashboard" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Dashboard">
@@ -345,14 +355,16 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
             <template v-if="isApproved">
 
                 <!-- Welcome Banner -->
-                <div class="rounded-xl bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 border border-border p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div
+                    class="rounded-xl bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 border border-border p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                             Welcome back, {{ user.name }} 👋
                         </h2>
                         <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">
                             Here's a live overview of
-                            <span class="font-semibold text-gray-800 dark:text-white">{{ props.order?.shop_name }}</span>
+                            <span class="font-semibold text-gray-800 dark:text-white">{{ props.order?.shop_name
+                                }}</span>
                         </p>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-muted-foreground">
@@ -360,7 +372,10 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             {{ props.order?.subscription_plan ?? 'Active' }}
                         </span>
                         <span v-if="props.order?.expires_at" class="text-muted-foreground">
-                            Expires {{ new Date(props.order.expires_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) }}
+                            Expires {{ new Date(props.order.expires_at).toLocaleDateString('en-PH', {
+                                month: 'short',
+                                day: 'numeric', year: 'numeric'
+                            }) }}
                         </span>
                     </div>
                 </div>
@@ -372,16 +387,19 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
-                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Employees</p>
+                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Employees
+                                </p>
                                 <div class="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
                                     <Users class="h-4 w-4 text-indigo-600" />
                                 </div>
                             </div>
                             <p class="text-3xl font-bold">{{ props.stats?.employees.total ?? 0 }}</p>
                             <div class="flex gap-2 mt-1.5">
-                                <span class="text-xs text-emerald-600 font-medium">{{ props.stats?.employees.active ?? 0 }} active</span>
+                                <span class="text-xs text-emerald-600 font-medium">{{ props.stats?.employees.active ?? 0
+                                    }} active</span>
                                 <span class="text-xs text-muted-foreground">·</span>
-                                <span class="text-xs text-muted-foreground">{{ props.stats?.employees.inactive ?? 0 }} inactive</span>
+                                <span class="text-xs text-muted-foreground">{{ props.stats?.employees.inactive ?? 0 }}
+                                    inactive</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -390,13 +408,15 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
-                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Branches</p>
+                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Branches
+                                </p>
                                 <div class="h-8 w-8 rounded-lg bg-violet-100 flex items-center justify-center">
                                     <GitBranch class="h-4 w-4 text-violet-600" />
                                 </div>
                             </div>
                             <p class="text-3xl font-bold">{{ props.stats?.branches.total ?? 0 }}</p>
-                            <p class="text-xs text-emerald-600 font-medium mt-1.5">{{ props.stats?.branches.active ?? 0 }} active</p>
+                            <p class="text-xs text-emerald-600 font-medium mt-1.5">{{ props.stats?.branches.active ?? 0
+                                }} active</p>
                         </CardContent>
                     </Card>
 
@@ -404,16 +424,19 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
-                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Inventory</p>
+                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Inventory
+                                </p>
                                 <div class="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center">
                                     <Package class="h-4 w-4 text-amber-600" />
                                 </div>
                             </div>
                             <p class="text-3xl font-bold">{{ props.stats?.inventory.total ?? 0 }}</p>
                             <div class="flex gap-2 mt-1.5">
-                                <span class="text-xs text-amber-600 font-medium">{{ props.stats?.inventory.low_stock ?? 0 }} low</span>
+                                <span class="text-xs text-amber-600 font-medium">{{ props.stats?.inventory.low_stock ??
+                                    0 }} low</span>
                                 <span class="text-xs text-muted-foreground">·</span>
-                                <span class="text-xs text-red-500 font-medium">{{ props.stats?.inventory.out_of_stock ?? 0 }} out</span>
+                                <span class="text-xs text-red-500 font-medium">{{ props.stats?.inventory.out_of_stock ??
+                                    0 }} out</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -427,14 +450,18 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                     <AlertTriangle class="h-4 w-4 text-red-600" />
                                 </div>
                             </div>
-                            <p class="text-3xl font-bold" :class="(props.stats?.low_stock_alerts ?? 0) > 0 ? 'text-red-600' : ''">
+                            <p class="text-3xl font-bold"
+                                :class="(props.stats?.low_stock_alerts ?? 0) > 0 ? 'text-red-600' : ''">
                                 {{ props.stats?.low_stock_alerts ?? 0 }}
                             </p>
                             <div class="flex items-center gap-1 mt-1.5">
-                                <ArrowUpRight v-if="(props.stats?.movements.change ?? 0) >= 0" class="h-3.5 w-3.5 text-emerald-500" />
+                                <ArrowUpRight v-if="(props.stats?.movements.change ?? 0) >= 0"
+                                    class="h-3.5 w-3.5 text-emerald-500" />
                                 <ArrowDownRight v-else class="h-3.5 w-3.5 text-red-500" />
                                 <p class="text-xs text-muted-foreground">
-                                    <span :class="(props.stats?.movements.change ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'" class="font-medium">
+                                    <span
+                                        :class="(props.stats?.movements.change ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'"
+                                        class="font-medium">
                                         {{ Math.abs(props.stats?.movements.change ?? 0) }}%
                                     </span>
                                     movements vs last month
@@ -539,14 +566,16 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                             class="border-b last:border-0 hover:bg-muted/20 transition-colors">
                                             <td class="px-3 py-2">
                                                 <p class="font-medium text-foreground">{{ item.name }}</p>
-                                                <p class="text-muted-foreground font-mono text-[10px]">{{ item.sku }}</p>
+                                                <p class="text-muted-foreground font-mono text-[10px]">{{ item.sku }}
+                                                </p>
                                             </td>
                                             <td class="px-3 py-2 text-muted-foreground">{{ item.category }}</td>
                                             <td class="px-3 py-2 text-right font-bold"
                                                 :class="item.quantity === 0 ? 'text-red-600' : 'text-amber-600'">
                                                 {{ item.quantity }}
                                             </td>
-                                            <td class="px-3 py-2 text-right text-muted-foreground">{{ item.min_stock }}</td>
+                                            <td class="px-3 py-2 text-right text-muted-foreground">{{ item.min_stock }}
+                                            </td>
                                             <td class="px-3 py-2">
                                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium"
                                                     :class="stockStatusConfig[item.status]?.cls ?? 'bg-gray-100 text-gray-500'">
@@ -565,7 +594,8 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                 <!-- ══════════════ DSS INSIGHTS PANEL ══════════════ -->
                 <div v-if="dssInsights.length > 0">
                     <div class="flex items-center gap-2 mb-3">
-                        <div class="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                        <div
+                            class="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
                             <Lightbulb class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <h3 class="text-sm font-semibold text-foreground">Decision Support Insights</h3>
@@ -573,18 +603,11 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                        <div
-                            v-for="(insight, i) in dssInsights"
-                            :key="i"
-                            class="rounded-xl border-l-4 p-4 flex gap-3"
-                            :class="[insightConfig[insight.type].bg, insightConfig[insight.type].border]"
-                        >
+                        <div v-for="(insight, i) in dssInsights" :key="i" class="rounded-xl border-l-4 p-4 flex gap-3"
+                            :class="[insightConfig[insight.type].bg, insightConfig[insight.type].border]">
                             <div class="mt-0.5 shrink-0">
-                                <component
-                                    :is="insightConfig[insight.type].icon"
-                                    class="h-4 w-4"
-                                    :class="insightConfig[insight.type].iconCls"
-                                />
+                                <component :is="insightConfig[insight.type].icon" class="h-4 w-4"
+                                    :class="insightConfig[insight.type].iconCls" />
                             </div>
                             <div>
                                 <p class="text-xs font-semibold mb-1" :class="insightConfig[insight.type].title">
@@ -646,8 +669,10 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                             <td class="px-3 py-2 text-right text-muted-foreground">{{ mov.before }}</td>
                                             <td class="px-3 py-2 text-right font-medium">{{ mov.after }}</td>
                                             <td class="px-3 py-2 text-muted-foreground">{{ mov.by }}</td>
-                                            <td class="px-3 py-2 text-muted-foreground max-w-32 truncate">{{ mov.notes ?? '—' }}</td>
-                                            <td class="px-3 py-2 text-muted-foreground whitespace-nowrap">{{ mov.date }}</td>
+                                            <td class="px-3 py-2 text-muted-foreground max-w-32 truncate">{{ mov.notes
+                                                ?? '—' }}</td>
+                                            <td class="px-3 py-2 text-muted-foreground whitespace-nowrap">{{ mov.date }}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -669,25 +694,35 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             Awaiting Admin Approval
                         </h2>
                         <p class="text-sm text-muted-foreground">
-                            Your payment has been received. Please wait while our admin reviews and approves your account.
+                            Your payment has been received. Please wait while our admin reviews and approves your
+                            account.
                             You'll have full access once approved.
                         </p>
                     </div>
                 </div>
             </template>
 
-            <!-- ══════════════ NOT PAID: Order Form ══════════════ -->
+            <!-- NOT PAID: Order Form -->
             <template v-else>
                 <div v-if="!showOrder" class="rounded-xl bg-gray-100 dark:bg-neutral-800 p-6">
                     <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
                         Welcome {{ user.name }} 👋
                     </h2>
                     <p class="text-gray-600 dark:text-gray-400 mt-2 max-w-2xl">
-                        Complete your shop details and select the modules you need. You will be redirected to PayMongo for payment.
+                        Complete your shop details and select the plans you need.
                     </p>
                     <Button class="mt-4" @click="showOrder = true">Get Started</Button>
                 </div>
-                <ShopOrder v-if="showOrder" />
+                <CheckoutConfirm v-if="showOrder" plan-name="Standard" :vat-pct="12" :billing-months="1" :user="{
+                    name: user.name,
+                    email: user.email,
+                    phone: props.shop?.phone ?? '',
+                    shop_name: props.shop?.shop_name ?? '',
+                    block_street: props.shop?.block_street ?? '',
+                    municipality: props.shop?.municipality ?? '',
+                    barangay: props.shop?.barangay ?? '',
+                    postal_code: props.shop?.postal_code ?? '',
+                }" />
             </template>
 
         </div>

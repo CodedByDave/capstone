@@ -163,9 +163,18 @@ class ShopDashboardController extends Controller
             ],
             'movement_chart'      => $movementChart,
             'category_breakdown'  => $categoryBreakdown,
-            'employees_per_branch'=> $employeesPerBranch,
+            'employees_per_branch' => $employeesPerBranch,
             'low_stock_items'     => $lowStockItems,
             'recent_movements'    => $recentMovements,
+
+            'shop' => $shop ? [
+                'shop_name'    => $shop->shop_name,
+                'phone'        => $shop->phone,
+                'block_street' => $shop->block_street,
+                'municipality' => $shop->municipality,
+                'barangay'     => $shop->barangay,
+                'postal_code'  => $shop->postal_code,
+            ] : null,
         ]);
     }
 }
