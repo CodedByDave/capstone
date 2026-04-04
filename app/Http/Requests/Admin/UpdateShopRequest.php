@@ -17,7 +17,7 @@ class UpdateShopRequest extends FormRequest
             'shop_name'    => ['required', 'string', 'max:255'],
             'branch_name'  => ['nullable', 'string', 'max:255'],
             'phone'        => ['required', 'string', 'max:255'],
-            'block_street' => ['required', 'string', 'max:255'],
+            'block_street' => ['nullable', 'string', 'max:255'],
             'municipality' => ['required', 'string', 'max:255'],
             'barangay'     => ['required', 'string', 'max:255'],
             'postal_code'  => ['required', 'string', 'max:255'],
@@ -30,7 +30,6 @@ class UpdateShopRequest extends FormRequest
         return [
             'shop_name.required'    => 'Shop name is required.',
             'phone.required'        => 'Phone number is required.',
-            'block_street.required' => 'Block/Street is required.',
             'municipality.required' => 'Municipality is required.',
             'barangay.required'     => 'Barangay is required.',
             'postal_code.required'  => 'Postal code is required.',

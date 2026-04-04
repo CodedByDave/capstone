@@ -55,6 +55,7 @@ const { props } = usePage<{
         municipality?: string
         barangay?: string
         postal_code?: string
+        status?: string
     } | null
     movement_chart?: MovementPoint[]
     category_breakdown?: CategoryPoint[]
@@ -65,7 +66,9 @@ const { props } = usePage<{
 
 const user = props.auth.user
 const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
-const isApproved = computed(() => props.order?.status === 'approved')
+const isApproved = computed(() =>
+    props.order?.status === 'approved' && props.shop?.status !== 'disabled'
+)
 const showOrder = ref(false)
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
@@ -350,9 +353,25 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Dashboard">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
+            <!-- ══════════════ DISABLED ══════════════ -->
+            <template v-if="props.shop?.status === 'disabled'">
+                <div class="flex flex-1 items-center justify-center min-h-[60vh]">
+                    <div class="text-center max-w-md">
+                        <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                            <ShieldAlert class="h-8 w-8 text-red-500" />
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                            Shop Disabled
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            Your shop has been disabled. Please contact support for assistance.
+                        </p>
+                    </div>
+                </div>
+            </template>
 
             <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
-            <template v-if="isApproved">
+            <template v-else-if="isApproved">
 
                 <!-- Welcome Banner -->
                 <div
@@ -548,7 +567,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         <CardContent>
                             <div v-if="(props.low_stock_items?.length ?? 0) === 0"
                                 class="flex items-center justify-center h-20 text-sm text-muted-foreground">
-                                All items are sufficiently stocked. ✅
+                                All items are sufficiently stocked.
                             </div>
                             <div v-else class="rounded-lg border overflow-hidden">
                                 <table class="w-full text-xs">
@@ -684,7 +703,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
             </template>
 
             <!-- ══════════════ PAID BUT NOT APPROVED: Waiting ══════════════ -->
-            <template v-else-if="isPaid && !isApproved">
+            <template  v-else-if="isPaid && !isApproved">
                 <div class="flex flex-1 items-center justify-center min-h-[60vh]">
                     <div class="text-center max-w-md">
                         <div class="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
@@ -713,16 +732,8 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     </p>
                     <Button class="mt-4" @click="showOrder = true">Get Started</Button>
                 </div>
-                <CheckoutConfirm v-if="showOrder" plan-name="Standard" :vat-pct="12" :billing-months="1" :user="{
-                    name: user.name,
-                    email: user.email,
-                    phone: props.shop?.phone ?? '',
-                    shop_name: props.shop?.shop_name ?? '',
-                    block_street: props.shop?.block_street ?? '',
-                    municipality: props.shop?.municipality ?? '',
-                    barangay: props.shop?.barangay ?? '',
-                    postal_code: props.shop?.postal_code ?? '',
-                }" />
+                <CheckoutConfirm v-if="showOrder" plan-name="Standard" :vat-pct="12" :billing-months="1"
+                    :user="{ name: user.name, email: user.email }" :shop="props.shop ?? undefined" />
             </template>
 
         </div>

@@ -22,6 +22,8 @@ const props = defineProps<{
     user: {
         name: string
         email: string
+    }
+    shop?: {
         phone?: string
         shop_name?: string
         block_street?: string
@@ -148,23 +150,22 @@ function normalizeMunicipality(raw: string | undefined): string {
     if (!raw) return ''
     // Try exact match first
     if (municipalities.includes(raw)) return raw
-    // Normalize unicode: replace common mojibake variants and try matching by
-    // converting both sides to NFD then stripping diacritics for comparison
+
     const normalize = (s: string) =>
         s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
     const normalized = normalize(raw)
     return municipalities.find(m => normalize(m) === normalized) ?? ''
 }
 
-// ── Shop form ──────────────────────────────────────────────────────────────
+// Shop form
 const shopForm = ref({
-    shop_name: props.user.shop_name ?? '',
-    email: props.user.email,
-    phone: props.user.phone ?? '',
-    block_street: props.user.block_street ?? '',
-    municipality: normalizeMunicipality(props.user.municipality),
-    barangay: props.user.barangay ?? '',
-    postal_code: props.user.postal_code ?? '',
+    shop_name:    props.shop?.shop_name    ?? '',
+    email:        props.user.email,
+    phone:        props.shop?.phone        ?? '',
+    block_street: props.shop?.block_street ?? '',
+    municipality: normalizeMunicipality(props.shop?.municipality),
+    barangay:     props.shop?.barangay     ?? '',
+    postal_code:  props.shop?.postal_code  ?? '',
 })
 
 // ── Derived location state ─────────────────────────────────────────────────
@@ -228,7 +229,6 @@ const canProceed = computed(() =>
     !!selectedPayment.value &&
     !!shopForm.value.shop_name &&
     !!shopForm.value.phone &&
-    !!shopForm.value.block_street &&
     !!shopForm.value.municipality &&
     !!shopForm.value.barangay &&
     !!shopForm.value.postal_code

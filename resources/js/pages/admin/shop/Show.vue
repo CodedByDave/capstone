@@ -54,14 +54,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 const planStyles: Record<string, { label: string; class: string }> = {
-    monthly:       { label: 'Monthly',      class: 'bg-blue-100 text-blue-700' },
-    quarterly:     { label: 'Quarterly',    class: 'bg-purple-100 text-purple-700' },
-    semi_annually: { label: 'Semi-Annual',  class: 'bg-green-100 text-green-700' },
-    annually:      { label: 'Annually',     class: 'bg-amber-100 text-amber-700' },
+    Basic:    { label: 'Basic',    class: 'bg-blue-100 text-blue-700'    },
+    Standard: { label: 'Standard', class: 'bg-purple-100 text-purple-700' },
+    Premium:  { label: 'Premium',  class: 'bg-amber-100 text-amber-700'  },
 }
 
 function getPlanBadge(order: LatestOrder) {
-    if (!order?.subscription_plan || order.status !== 'paid') {
+    if (!order?.subscription_plan) {
         return { label: 'No Active Plan', class: 'bg-gray-100 text-gray-400' }
     }
     return planStyles[order.subscription_plan] ?? { label: order.subscription_plan, class: 'bg-gray-100 text-gray-500' }
@@ -268,7 +267,7 @@ function enableShop() {
                 <CardTitle>Subscription</CardTitle>
             </CardHeader>
             <CardContent>
-                <template v-if="shop.latest_order && shop.latest_order.status === 'paid'">
+                <template v-if="shop.latest_order && ['paid', 'approved'].includes(shop.latest_order.status ?? '')">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
 
                         <div class="space-y-1">

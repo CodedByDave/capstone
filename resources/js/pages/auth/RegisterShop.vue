@@ -190,8 +190,6 @@ const validateStep2 = (): boolean => {
     const errs: Record<string, string> = {}
     if (form.shop_name.trim().length <= 2)
         errs.shop_name = 'Shop name must be more than 2 characters.'
-    if (form.block_street.trim().length <= 5)
-        errs.block_street = 'Please enter a complete block/street address.'
     if (!form.municipality)
         errs.municipality = 'Please select a municipality.'
     if (!form.barangay)
@@ -238,6 +236,7 @@ const prevStep = () => {
     step.value--
 }
 
+
 /* ---------------- SERVER ERROR → STEP REDIRECT ---------------- */
 watch(() => form.errors, (serverErrors) => {
     if (!serverErrors || Object.keys(serverErrors).length === 0) return
@@ -245,7 +244,7 @@ watch(() => form.errors, (serverErrors) => {
     if (serverErrors.name || serverErrors.email || serverErrors.phone) {
         step.value = 1
         focusFirstError()
-    } else if (serverErrors.shop_name || serverErrors.block_street || serverErrors.municipality || serverErrors.barangay) {
+    } else if (serverErrors.shop_name || serverErrors.municipality || serverErrors.barangay) {
         step.value = 2
         focusFirstError()
     }
@@ -253,11 +252,18 @@ watch(() => form.errors, (serverErrors) => {
 
 /* ---------------- SUBMIT ---------------- */
 const submit = () => {
+    console.log('agree:', form.agree)
+    console.log('isPasswordValid:', isPasswordValid.value)
+    console.log('passwordsMatch:', passwordsMatch.value)
+
     if (!validateStep3()) {
         focusFirstError()
         return
     }
+
+    console.log('About to post, form data:', form.data()) // ← add this
     form.post('/register/shop')
+    console.log('Post called') // ← and this
 }
 
 /* ---------------- GOOGLE OAuth ---------------- */
@@ -495,7 +501,9 @@ const goToGoogle = () => {
                     :class="errors.agree ? 'border-red-400 bg-red-50' : 'border-muted'"
                     :data-error="errors.agree ? '' : undefined">
                     <label class="flex items-start gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" v-model="form.agree" class="mt-0.5 accent-primary" />
+                        <input type="checkbox" :checked="form.agree"
+                            @change="form.agree = ($event.target as HTMLInputElement).checked"
+                            class="mt-0.5 accent-primary" />
                         <span>
                             I have read and agree to the
                             <a href="#" class="underline text-primary hover:text-primary/80 font-medium">Terms &amp;

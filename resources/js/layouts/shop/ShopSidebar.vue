@@ -28,8 +28,12 @@ const { can, canAccessModule, isOwner, isStaff } = usePermissions()
 
 const currentUrl = computed(() => page.url)
 const isPaid     = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
-const isApproved = computed(() => props.order?.status === 'approved')
 
+const shopStatus = computed(() => (props as any).shop?.status)
+
+const isApproved = computed(() =>
+    props.order?.status === 'approved' && shopStatus.value !== 'disabled'
+)
 /* ─────────────────────────────────────────
    HRM SUB-ACTIONS
 ───────────────────────────────────────── */

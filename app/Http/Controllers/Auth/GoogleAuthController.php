@@ -93,7 +93,7 @@ class GoogleAuthController extends Controller
 
             return redirect()->intended(match ($user->role) {
                 'super_admin' => route('admin.dashboard'),
-                'owner'       => route('plans'),
+                'owner'       => route('shop.dashboard'),
                 'staff'       => route('staff.dashboard'),
                 default       => route('landing'),
             });

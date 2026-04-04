@@ -21,7 +21,7 @@ class ShopController extends Controller
                 $q->where('shop_name', 'like', "%{$request->search}%")
                     ->orWhereHas('owner', function ($o) use ($request) {
                         $o->where('name', 'like', "%{$request->search}%")
-                          ->orWhere('email', 'like', "%{$request->search}%");
+                            ->orWhere('email', 'like', "%{$request->search}%");
                     })
                     ->orWhere('phone', 'like', "%{$request->search}%");
             });
@@ -39,7 +39,7 @@ class ShopController extends Controller
             } else {
                 $query->whereHas('owner.orders', function ($o) use ($request) {
                     $o->where('status', 'paid')
-                      ->where('subscription_plan', $request->plan);
+                        ->where('plan_name', $request->plan);
                 });
             }
         }
@@ -70,7 +70,7 @@ class ShopController extends Controller
                         'phone' => $shop->owner->phone ?? null,
                     ] : null,
 
-                    'subscription_plan' => $latestOrder?->subscription_plan,
+                    'subscription_plan' => $latestOrder?->plan_name,
                     'expires_at'        => $latestOrder?->expires_at,
 
                     'is_expired' => $latestOrder?->expires_at
@@ -108,7 +108,7 @@ class ShopController extends Controller
         return Inertia::render('admin/shop/Show', [
             'shop' => array_merge($shop->toArray(), [
                 'latest_order' => $latestOrder ? [
-                    'subscription_plan' => $latestOrder->subscription_plan,
+                    'subscription_plan' => $latestOrder?->plan_name,
                     'expires_at'        => $latestOrder->expires_at,
                     'total_price'       => $latestOrder->total_price,
                     'status'            => $latestOrder->status,
@@ -156,6 +156,7 @@ class ShopController extends Controller
         }
 
         $order->update(['status' => 'approved']);
+        $shop->update(['status' => 'active']);
 
         return redirect()->back()
             ->with('toast', ['type' => 'success', 'message' => 'Order approved. Shop now has dashboard access.']);

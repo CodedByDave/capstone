@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Inventory;
+use App\Models\Module;
 use App\Models\InventoryMovement;
 use App\Models\LowStockAlert;
 use Illuminate\Support\Facades\Auth;
@@ -28,11 +29,19 @@ class ShopDashboardController extends Controller
         // If not paid, render basic dashboard with order form
         if (! $order) {
             return Inertia::render('shop/Dashboard', [
-                'modules' => \App\Models\Module::all(),
+                'modules' => Module::all(),
                 'order'   => null,
+                'shop' => $shop ? [
+                    'shop_name'    => $shop->shop_name,
+                    'phone'        => $shop->phone,
+                    'block_street' => $shop->block_street,
+                    'municipality' => $shop->municipality,
+                    'barangay'     => $shop->barangay,
+                    'postal_code'  => $shop->postal_code,
+                    'status'       => $shop->status,
+                ] : null,
             ]);
         }
-
         $shopId = $shop->id;
         $now    = Carbon::now();
         $today  = $now->copy()->startOfDay();
@@ -149,8 +158,7 @@ class ShopDashboardController extends Controller
             'order'   => [
                 'status'            => $order->status,
                 'shop_name'         => $order->shop_name,
-                'subscription_plan' => $order->subscription_plan,
-                'expires_at'        => $order->expires_at,
+                'subscription_plan' => $order->plan_name,
                 'modules'           => $order->modules->map(fn($m) => ['name' => $m->name, 'price' => $m->price]),
                 'total_price'       => $order->total_price,
             ],
@@ -174,6 +182,7 @@ class ShopDashboardController extends Controller
                 'municipality' => $shop->municipality,
                 'barangay'     => $shop->barangay,
                 'postal_code'  => $shop->postal_code,
+                'status'       =>$shop->status,
             ] : null,
         ]);
     }

@@ -59,8 +59,8 @@ interface Paginator {
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const { shops, stats, filters } = defineProps<{
-    shops:   Paginator
-    stats:   { today: number; total: number; active: number }
+    shops: Paginator
+    stats: { today: number; total: number; active: number }
     filters: Record<string, string>
 }>()
 
@@ -73,48 +73,48 @@ onMounted(() => {
     if (!flash) return
     switch (flash.type) {
         case 'success': toast.success(flash.message); break
-        case 'error':   toast.error(flash.message);   break
-        default:        toast(flash.message)
+        case 'error': toast.error(flash.message); break
+        default: toast(flash.message)
     }
 })
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard',       href: '/admin/dashboard' },
+    { title: 'Dashboard', href: '/admin/dashboard' },
     { title: 'Shop Management', href: '/admin/shop' },
 ]
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
-const search       = ref(filters.search ?? '')
+const search = ref(filters.search ?? '')
 const statusFilter = ref(filters.status ?? 'all')
-const planFilter   = ref(filters.plan   ?? 'all')
+const planFilter = ref(filters.plan ?? 'all')
 
 function applyFilters() {
     router.get('/admin/shop', {
-        search: search.value       || undefined,
+        search: search.value || undefined,
         status: statusFilter.value !== 'all' ? statusFilter.value : undefined,
-        plan:   planFilter.value   !== 'all' ? planFilter.value   : undefined,
+        plan: planFilter.value !== 'all' ? planFilter.value : undefined,
     }, { preserveState: true, replace: true })
 }
 
 function resetFilters() {
-    search.value       = ''
+    search.value = ''
     statusFilter.value = 'all'
-    planFilter.value   = 'all'
+    planFilter.value = 'all'
     router.get('/admin/shop', {}, { preserveState: true, replace: true })
 }
 
 // ─── Disable dialog ───────────────────────────────────────────────────────────
 
 const disableDialogOpen = ref(false)
-const selectedShop      = ref<ShopItem | null>(null)
-const disableReason     = ref('')
+const selectedShop = ref<ShopItem | null>(null)
+const disableReason = ref('')
 
 function openDisableDialog(shop: ShopItem) {
-    selectedShop.value      = shop
-    disableReason.value     = ''
+    selectedShop.value = shop
+    disableReason.value = ''
     disableDialogOpen.value = true
 }
 
@@ -124,8 +124,8 @@ function confirmDisable() {
         preserveScroll: true,
         onSuccess: () => {
             disableDialogOpen.value = false
-            selectedShop.value      = null
-            disableReason.value     = ''
+            selectedShop.value = null
+            disableReason.value = ''
             toast.success('Shop has been disabled.')
         },
         onError: () => toast.error('Failed to disable shop.'),
@@ -136,18 +136,18 @@ function enableShop(id: number) {
     router.post(`/admin/shop/${id}/enable`, {}, {
         preserveScroll: true,
         onSuccess: () => toast.success('Shop has been enabled.'),
-        onError:   () => toast.error('Failed to enable shop.'),
+        onError: () => toast.error('Failed to enable shop.'),
     })
 }
 
 // ─── Archive ──────────────────────────────────────────────────────────────────
 
-const archiveId   = ref<number | null>(null)
+const archiveId = ref<number | null>(null)
 const archiveName = ref('')
 const archiveOpen = ref(false)
 
 function openArchive(shop: ShopItem) {
-    archiveId.value   = shop.id
+    archiveId.value = shop.id
     archiveName.value = shop.shop_name
     archiveOpen.value = true
 }
@@ -162,17 +162,16 @@ function confirmArchive() {
     router.delete(`/admin/shop/${archiveId.value}`, {
         preserveScroll: true,
         onSuccess: () => { toast.success('Shop archived.'); archiveOpen.value = false },
-        onError:   () => toast.error('Failed to archive shop.'),
+        onError: () => toast.error('Failed to archive shop.'),
     })
 }
 
 // ─── Plan badge ───────────────────────────────────────────────────────────────
 
 const planStyles: Record<string, { label: string; cls: string }> = {
-    monthly:       { label: 'Monthly',     cls: 'bg-blue-100 text-blue-700'     },
-    quarterly:     { label: 'Quarterly',   cls: 'bg-purple-100 text-purple-700' },
-    semi_annually: { label: 'Semi-Annual', cls: 'bg-green-100 text-green-700'   },
-    annually:      { label: 'Annually',    cls: 'bg-amber-100 text-amber-700'   },
+    Basic: { label: 'Basic', cls: 'bg-blue-100 text-blue-700' },
+    Standard: { label: 'Standard', cls: 'bg-purple-100 text-purple-700' },
+    Premium: { label: 'Premium', cls: 'bg-amber-100 text-amber-700' },
 }
 
 function getPlanBadge(plan: string | null): { label: string; cls: string } {
@@ -191,6 +190,7 @@ function formatDate(date: string | null) {
 </script>
 
 <template>
+
     <Head title="Shop Management" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="Shop Management">
         <div class="px-6 space-y-6">
@@ -200,7 +200,8 @@ function formatDate(date: string | null) {
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Registered Today</p>
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Registered
+                                Today</p>
                             <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <Store class="h-4 w-4 text-blue-600" />
                             </div>
@@ -211,7 +212,8 @@ function formatDate(date: string | null) {
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total Shops</p>
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total Shops
+                            </p>
                             <div class="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
                                 <User class="h-4 w-4 text-purple-600" />
                             </div>
@@ -222,7 +224,8 @@ function formatDate(date: string | null) {
                 <Card>
                     <CardContent class="pt-5">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Active Shops</p>
+                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Active Shops
+                            </p>
                             <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
                                 <CheckCircle class="h-4 w-4 text-green-600" />
                             </div>
@@ -240,9 +243,19 @@ function formatDate(date: string | null) {
                             <Store class="h-4 w-4 text-muted-foreground" />
                             Shop List
                         </CardTitle>
-                        <Button size="sm" variant="ghost" @click="resetFilters">
-                            <RefreshCcw class="h-4 w-4 mr-1.5" /> Reset
-                        </Button>
+
+                        <div class="flex items-center gap-2">
+                            <Button class="bg-red-500 text-white hover:bg-red-700 hover:text-white"size="sm" :variant="filters.trashed ? 'default' : 'outline'" @click="router.visit('/admin/shop', {
+                                data: { trashed: filters.trashed ? undefined : '1' },
+                                preserveState: true
+                            })">
+                                <Trash2 class="h-4 w-4 mr-1.5" />
+                                {{ filters.trashed ? 'View Active' : 'View Archived' }}
+                            </Button>
+                            <Button size="sm" variant="ghost" @click="resetFilters">
+                                <RefreshCcw class="h-4 w-4 mr-1.5" /> Reset
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
 
@@ -251,12 +264,8 @@ function formatDate(date: string | null) {
                     <div class="flex flex-wrap gap-2">
                         <div class="relative flex-1 min-w-48">
                             <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                v-model="search"
-                                placeholder="Search shop, owner, email..."
-                                class="pl-8"
-                                @keyup.enter="applyFilters"
-                            />
+                            <Input v-model="search" placeholder="Search shop, owner, email..." class="pl-8"
+                                @keyup.enter="applyFilters" />
                         </div>
 
                         <Select v-model="statusFilter" @update:model-value="applyFilters">
@@ -278,10 +287,9 @@ function formatDate(date: string | null) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Plans</SelectItem>
-                                <SelectItem value="monthly">Monthly</SelectItem>
-                                <SelectItem value="quarterly">Quarterly</SelectItem>
-                                <SelectItem value="semi_annually">Semi-Annual</SelectItem>
-                                <SelectItem value="annually">Annually</SelectItem>
+                                <SelectItem value="Basic">Basic</SelectItem>
+                                <SelectItem value="Standard">Standard</SelectItem>
+                                <SelectItem value="Premium">Premium</SelectItem>
                                 <SelectItem value="none">No Plan</SelectItem>
                             </SelectContent>
                         </Select>
@@ -303,14 +311,13 @@ function formatDate(date: string | null) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr
-                                    v-for="shop in shops.data" :key="shop.id"
+                                <tr v-for="shop in shops.data" :key="shop.id"
                                     class="border-b last:border-0 hover:bg-muted/20 transition-colors"
-                                    :class="{ 'bg-red-50/50 dark:bg-red-900/10': shop.status === 'disabled' }"
-                                >
+                                    :class="{ 'bg-red-50/50 dark:bg-red-900/10': shop.status === 'disabled' }">
                                     <td class="px-4 py-3">
                                         <p class="font-medium whitespace-nowrap">{{ shop.shop_name }}</p>
-                                        <p v-if="shop.branch_name" class="text-xs text-muted-foreground">{{ shop.branch_name }}</p>
+                                        <p v-if="shop.branch_name" class="text-xs text-muted-foreground">{{
+                                            shop.branch_name }}</p>
                                     </td>
                                     <td class="px-4 py-3">
                                         <p class="font-medium whitespace-nowrap">{{ shop.owner?.name ?? '—' }}</p>
@@ -324,67 +331,53 @@ function formatDate(date: string | null) {
                                         <p class="text-muted-foreground/70">{{ shop.barangay }}</p>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <span
-                                            class="text-xs px-2 py-0.5 rounded-full font-medium"
-                                            :class="getPlanBadge(shop.subscription_plan).cls"
-                                        >
+                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                            :class="getPlanBadge(shop.subscription_plan).cls">
                                             {{ getPlanBadge(shop.subscription_plan).label }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        <span
-                                            v-if="shop.expires_at"
-                                            class="text-xs font-medium"
-                                            :class="{
-                                                'text-red-500':          shop.is_expired,
-                                                'text-amber-500':        shop.is_expiring_soon && !shop.is_expired,
-                                                'text-muted-foreground': !shop.is_expired && !shop.is_expiring_soon,
-                                            }"
-                                        >
+                                        <span v-if="shop.expires_at" class="text-xs font-medium" :class="{
+                                            'text-red-500': shop.is_expired,
+                                            'text-amber-500': shop.is_expiring_soon && !shop.is_expired,
+                                            'text-muted-foreground': !shop.is_expired && !shop.is_expiring_soon,
+                                        }">
                                             {{ formatDate(shop.expires_at) }}
                                             <span v-if="shop.is_expired" class="block text-xs">Expired</span>
-                                            <span v-else-if="shop.is_expiring_soon" class="block text-xs">Expiring soon</span>
+                                            <span v-else-if="shop.is_expiring_soon" class="block text-xs">Expiring
+                                                soon</span>
                                         </span>
                                         <span v-else class="text-xs text-muted-foreground">—</span>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <span
-                                            class="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
-                                            :class="{
-                                                'bg-green-100 text-green-700':   shop.status === 'active',
-                                                'bg-red-100 text-red-600':       shop.status === 'inactive',
-                                                'bg-yellow-100 text-yellow-700': shop.status === 'pending',
-                                                'bg-gray-100 text-gray-500':     shop.status === 'disabled',
-                                            }"
-                                        >
+                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium capitalize" :class="{
+                                            'bg-green-100 text-green-700': shop.status === 'active',
+                                            'bg-red-100 text-red-600': shop.status === 'inactive',
+                                            'bg-yellow-100 text-yellow-700': shop.status === 'pending',
+                                            'bg-gray-100 text-gray-500': shop.status === 'disabled',
+                                        }">
                                             {{ shop.status }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex items-center justify-center gap-1">
-                                            <Button size="icon" variant="ghost" @click="router.visit(`/admin/shop/${shop.id}`)">
+                                            <Button size="icon" variant="ghost"
+                                                @click="router.visit(`/admin/shop/${shop.id}`)">
                                                 <Eye class="h-4 w-4 text-blue-500" />
                                             </Button>
-                                            <Button size="icon" variant="ghost" @click="router.visit(`/admin/shop/${shop.id}/edit`)">
+                                            <Button size="icon" variant="ghost"
+                                                @click="router.visit(`/admin/shop/${shop.id}/edit`)">
                                                 <Pencil class="h-4 w-4 text-green-500" />
                                             </Button>
                                             <Button size="icon" variant="ghost" @click="openArchive(shop)">
                                                 <Trash2 class="h-4 w-4 text-amber-500" />
                                             </Button>
-                                            <Button
-                                                v-if="shop.status !== 'disabled'"
-                                                size="icon" variant="ghost"
-                                                title="Disable Shop"
-                                                @click="openDisableDialog(shop)"
-                                            >
+                                            <Button v-if="shop.status !== 'disabled'" size="icon" variant="ghost"
+                                                title="Disable Shop" @click="openDisableDialog(shop)">
                                                 <ShieldOff class="h-4 w-4 text-orange-500" />
                                             </Button>
-                                            <Button
-                                                v-else
-                                                size="icon" variant="ghost"
-                                                title="Enable Shop"
-                                                @click="enableShop(shop.id)"
-                                            >
+                                            <Button v-else size="icon" variant="ghost" title="Enable Shop"
+                                                @click="enableShop(shop.id)">
                                                 <ShieldCheck class="h-4 w-4 text-green-600" />
                                             </Button>
                                         </div>
@@ -407,15 +400,10 @@ function formatDate(date: string | null) {
                             Showing {{ shops.data.length }} of {{ shops.total }} shops
                         </p>
                         <div class="flex gap-1">
-                            <Button
-                                v-for="link in shops.links" :key="link.label"
-                                size="sm"
-                                :variant="link.active ? 'default' : 'outline'"
-                                :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs"
-                                @click="link.url && router.visit(link.url)"
-                                v-html="link.label"
-                            />
+                            <Button v-for="link in shops.links" :key="link.label" size="sm"
+                                :variant="link.active ? 'default' : 'outline'" :disabled="!link.url"
+                                class="h-7 min-w-7 text-xs" @click="link.url && router.visit(link.url)"
+                                v-html="link.label" />
                         </div>
                     </div>
                 </CardContent>
@@ -456,19 +444,12 @@ function formatDate(date: string | null) {
                 </AlertDialogHeader>
                 <div class="mt-2 space-y-1">
                     <label class="text-sm font-medium">Reason for disabling</label>
-                    <Textarea
-                        v-model="disableReason"
-                        placeholder="e.g. Violation of terms of service..."
-                        rows="3"
-                    />
+                    <Textarea v-model="disableReason" placeholder="e.g. Violation of terms of service..." rows="3" />
                 </div>
                 <AlertDialogFooter class="mt-4">
                     <AlertDialogCancel @click="disableDialogOpen = false">Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        class="bg-orange-600 text-white hover:bg-orange-700"
-                        :disabled="!disableReason.trim()"
-                        @click="confirmDisable"
-                    >
+                    <AlertDialogAction class="bg-orange-600 text-white hover:bg-orange-700"
+                        :disabled="!disableReason.trim()" @click="confirmDisable">
                         Disable Shop
                     </AlertDialogAction>
                 </AlertDialogFooter>

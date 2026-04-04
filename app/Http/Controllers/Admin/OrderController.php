@@ -41,6 +41,9 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->update(['status' => 'approved']);
 
+        Shop::where('owner_id', $order->user_id)
+            ->update(['status' => 'active']);
+
         return redirect()->back()
             ->with('toast', ['type' => 'success', 'message' => "Order #{$id} approved. Shop now has dashboard access."]);
     }

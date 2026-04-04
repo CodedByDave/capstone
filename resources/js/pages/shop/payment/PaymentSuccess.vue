@@ -484,30 +484,12 @@ const downloadReceipt = async () => {
                         </CardHeader>
                         <CardContent class="space-y-3">
                             <div class="flex items-start space-x-3">
-                                <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Mail class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <div>
-                                    <p class="font-medium text-sm">Check Your Email</p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">Confirmation sent to {{ order.email }}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
                                 <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <Clock class="w-4 h-4 text-orange-600 dark:text-orange-400" />
                                 </div>
                                 <div>
-                                    <p class="font-medium text-sm">Setup Process</p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">We'll contact you within 24-48 hours</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Rocket class="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                </div>
-                                <div>
-                                    <p class="font-medium text-sm">Get Started</p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">You'll receive login credentials soon</p>
+                                    <p class="font-medium text-sm">Wait for admin approval</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Your plan will be automatically activated when admin approve your order. thank you</p>
                                 </div>
                             </div>
                         </CardContent>

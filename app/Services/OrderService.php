@@ -46,7 +46,7 @@ class OrderService
             'owner_name'        => $data['owner_name'],
             'email'             => $data['email'],
             'phone'             => $data['phone'],
-            'block_street'      => $data['block_street'],
+            'block_street'      => $data['block_street'] ?? null,
             'municipality'      => $data['municipality'],
             'barangay'          => $data['barangay'],
             'postal_code'       => $data['postal_code'],

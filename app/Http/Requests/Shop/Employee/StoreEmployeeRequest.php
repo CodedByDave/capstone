@@ -23,7 +23,7 @@ class StoreEmployeeRequest extends FormRequest
             'address'     => 'required|string|max:500',
             'position'    => 'required|string|max:255',
             'hire_date'   => 'required|date|before_or_equal:today',
-            'salary'      => 'required|numeric|min:1000|max:50000',
+            'salary'      => 'required|numeric|min:10000|max:50000',
             'status'      => 'required|in:Active,Inactive',
         ];
     }
