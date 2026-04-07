@@ -153,12 +153,6 @@ const allFinanceSubActions = [
         show: () => isOwner.value || can('Finance Management', 'view'),
     },
     {
-        title: 'Payroll',
-        icon: Banknote,
-        href: isOwner.value ? '/shop/finance/payroll' : '/staff/finance/payroll',
-        show: () => isOwner.value || can('Finance Management', 'view'),
-    },
-    {
         title: 'Transactions',
         icon: CreditCard,
         href: isOwner.value ? '/shop/finance/transactions' : '/staff/finance/transactions',
