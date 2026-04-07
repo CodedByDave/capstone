@@ -16,7 +16,7 @@ import {
     DollarSign, Scissors, PieChart, FileText,
     TrendingUp, Tag, Users, Briefcase, CalendarClock,
     Banknote, CreditCard, Receipt, Wallet,
-    BadgeDollarSign, LineChart, BookOpen,
+    BadgeDollarSign, LineChart, BookOpen, CreditCardIcon
 } from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
 import { computed, ref, watch } from 'vue'
@@ -27,7 +27,7 @@ const { props } = page
 const { can, canAccessModule, isOwner, isStaff } = usePermissions()
 
 const currentUrl = computed(() => page.url)
-const isPaid     = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
+const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
 
 const shopStatus = computed(() => (props as any).shop?.status)
 
@@ -54,6 +54,12 @@ const allHrmSubActions = [
         title: 'Attendance',
         icon: CalendarClock,
         href: isOwner.value ? '/shop/attendance' : '/staff/attendance',
+        show: () => isOwner.value || can('HRM', 'view'),
+    },
+    {
+        title: 'Payroll',
+        icon: Banknote,
+        href: isOwner.value ? '/shop/payroll' : '/staff/payroll',
         show: () => isOwner.value || can('HRM', 'view'),
     },
     {
@@ -102,30 +108,6 @@ const allOperationsSubActions = [
         title: 'All Orders',
         icon: ShoppingCart,
         href: isOwner.value ? '/shop/orders' : '/staff/orders',
-        show: () => isOwner.value || can('Operations', 'view'),
-    },
-    {
-        title: 'Pending',
-        icon: ClipboardList,
-        href: isOwner.value ? '/shop/orders/pending' : '/staff/orders/pending',
-        show: () => isOwner.value || can('Operations', 'view'),
-    },
-    {
-        title: 'In Progress',
-        icon: Truck,
-        href: isOwner.value ? '/shop/orders/progress' : '/staff/orders/progress',
-        show: () => isOwner.value || can('Operations', 'view'),
-    },
-    {
-        title: 'Completed',
-        icon: CheckCircle2,
-        href: isOwner.value ? '/shop/orders/completed' : '/staff/orders/completed',
-        show: () => isOwner.value || can('Operations', 'view'),
-    },
-    {
-        title: 'Cancelled',
-        icon: XCircle,
-        href: isOwner.value ? '/shop/orders/cancelled' : '/staff/orders/cancelled',
         show: () => isOwner.value || can('Operations', 'view'),
     },
     {

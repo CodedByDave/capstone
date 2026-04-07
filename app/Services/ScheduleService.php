@@ -13,27 +13,21 @@ class ScheduleService
         private readonly ScheduleRepository $scheduleRepository
     ) {}
 
-    public function createSchedule(Employee $employee, array $data): EmployeeSchedule
+    public function syncSchedules(Employee $employee, array $schedules): array
     {
-        return DB::transaction(function () use ($employee, $data) {
-            return $this->scheduleRepository->createForEmployee($employee, [
-                ...$data,
-                'employee_id' => $employee->id,
-            ]);
-        });
-    }
+        return DB::transaction(function () use ($employee, $schedules) {
+            $this->scheduleRepository->deleteAllForEmployee($employee);
 
-    public function updateSchedule(EmployeeSchedule $schedule, array $data): EmployeeSchedule
-    {
-        return DB::transaction(function () use ($schedule, $data) {
-            return $this->scheduleRepository->update($schedule, $data);
-        });
-    }
+            $created = [];
+            foreach ($schedules as $schedule) {
+                $created[] = $this->scheduleRepository->createForEmployee($employee, [
+                    'day'        => $schedule['day'],
+                    'start_time' => $schedule['start_time'],
+                    'end_time'   => $schedule['end_time'],
+                ]);
+            }
 
-    public function deleteSchedule(EmployeeSchedule $schedule): void
-    {
-        DB::transaction(function () use ($schedule) {
-            $this->scheduleRepository->delete($schedule);
+            return $created;
         });
     }
 }

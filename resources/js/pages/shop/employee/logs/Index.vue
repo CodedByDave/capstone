@@ -139,6 +139,7 @@ function subjectMeta(log: ActivityLog): string | null {
 const MODULE_ROUTES: Record<string, string> = {
     Employee: '/shop/employee',
     Product:  '/shop/product',
+    Attendance: '/shop/attendance',
 }
 
 function subjectUrl(log: ActivityLog): string | null {
@@ -157,6 +158,10 @@ const actionConfig: Record<string, { label: string; color: string; icon: any }> 
     archived:       { label: 'Archived',       color: 'bg-red-100 text-red-700 border-red-200',          icon: Archive    },
     restored:       { label: 'Restored',       color: 'bg-teal-100 text-teal-700 border-teal-200',       icon: RefreshCw  },
     imported:       { label: 'Imported',       color: 'bg-orange-100 text-orange-700 border-orange-200', icon: FileUp     },
+    clocked_in:     { label: 'Clocked In',  color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: Clock },
+    clocked_out:    { label: 'Clocked Out', color: 'bg-slate-100 text-slate-700 border-slate-200',       icon: Clock },
+    marked_present: { label: 'Marked Present', color: 'bg-green-100 text-green-700 border-green-200', icon: UserPlus },
+    marked_absent:  { label: 'Marked Absent',  color: 'bg-red-100 text-red-700 border-red-200',       icon: X },
 }
 
 function getConfig(a: string) {

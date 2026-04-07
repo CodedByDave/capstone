@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
+import { Checkbox } from '@/components/ui/checkbox'
 import { type BreadcrumbItem } from '@/types'
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { toast } from 'vue-sonner'
@@ -38,30 +39,30 @@ const breadcrumbs: BreadcrumbItem[] = [
 const errors = computed(() => usePage().props.errors as Record<string, string>)
 
 function generateEmployeeId(): string {
-    const year   = new Date().getFullYear()
+    const year = new Date().getFullYear()
     const digits = String(Math.floor(10000 + Math.random() * 90000))
     return `${year}-${digits}`
 }
 
 const BASE = 'https://psgc.cloud/api'
 
-const provinces  = ref<PsgcItem[]>([])
-const cities     = ref<PsgcItem[]>([])
-const barangays  = ref<PsgcItem[]>([])
+const provinces = ref<PsgcItem[]>([])
+const cities = ref<PsgcItem[]>([])
+const barangays = ref<PsgcItem[]>([])
 
-const loadingProvinces  = ref(false)
-const loadingCities     = ref(false)
-const loadingBarangays  = ref(false)
+const loadingProvinces = ref(false)
+const loadingCities = ref(false)
+const loadingBarangays = ref(false)
 
-const selectedProvince  = ref('')
-const selectedCity      = ref('')
-const selectedBarangay  = ref('')
-const streetInput       = ref('')
+const selectedProvince = ref('')
+const selectedCity = ref('')
+const selectedBarangay = ref('')
+const streetInput = ref('')
 
 onMounted(async () => {
     loadingProvinces.value = true
     try {
-        const res  = await fetch(`${BASE}/provinces`)
+        const res = await fetch(`${BASE}/provinces`)
         const data = await res.json()
         provinces.value = data
             .map((p: any) => ({ code: p.code, name: p.name }))
@@ -73,10 +74,10 @@ onMounted(async () => {
 })
 
 watch(selectedProvince, async (code) => {
-    selectedCity.value     = ''
+    selectedCity.value = ''
     selectedBarangay.value = ''
-    cities.value           = []
-    barangays.value        = []
+    cities.value = []
+    barangays.value = []
     if (!code) return
     loadingCities.value = true
     try {
@@ -96,11 +97,11 @@ watch(selectedProvince, async (code) => {
 
 watch(selectedCity, async (code) => {
     selectedBarangay.value = ''
-    barangays.value        = []
+    barangays.value = []
     if (!code) return
     loadingBarangays.value = true
     try {
-        const res  = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
+        const res = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
         const data = await res.json()
         barangays.value = (data || [])
             .map((b: any) => ({ code: b.code, name: b.name }))
@@ -123,15 +124,16 @@ const fullAddress = computed(() => {
 const form = ref({
     employee_id: generateEmployeeId(),
     branch_name: shop.branch_name ?? '',
-    first_name:  '',
-    last_name:   '',
-    email:       '',
-    phone:       '',
-    address:     '',
-    position:    '',
-    hire_date:   '',
-    salary:      '',
-    status:      'Active' as 'Active' | 'Inactive',
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    position: '',
+    hire_date: '',
+    salary: '',
+    status: 'Active' as 'Active' | 'Inactive',
+    create_account: false,
 })
 
 const isSubmitting = ref(false)
@@ -162,6 +164,7 @@ function submit() {
 </script>
 
 <template>
+
     <Head title="Add New Employee" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Add New Employee">
@@ -188,12 +191,14 @@ function submit() {
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">First Name <span class="text-red-500">*</span></label>
-                        <Input v-model="form.first_name" :class="{ 'border-red-500': errors.first_name }" placeholder="Prince Juan"/>
+                        <Input v-model="form.first_name" :class="{ 'border-red-500': errors.first_name }"
+                            placeholder="Prince Juan" />
                         <p v-if="errors.first_name" class="text-xs text-red-500">{{ errors.first_name }}</p>
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Last Name <span class="text-red-500">*</span></label>
-                        <Input v-model="form.last_name" :class="{ 'border-red-500': errors.last_name }" placeholder="Delacruz"/>
+                        <Input v-model="form.last_name" :class="{ 'border-red-500': errors.last_name }"
+                            placeholder="Delacruz" />
                         <p v-if="errors.last_name" class="text-xs text-red-500">{{ errors.last_name }}</p>
                     </div>
                 </div>
@@ -263,19 +268,14 @@ function submit() {
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
-    <label class="text-sm font-medium">Salary (Monthly) <span class="text-muted-foreground text-xs">(₱10,000 - ₱50,000)</span></label>
-    <Input
-        v-model.number="form.salary"
-        type="number"
-        min="1000"
-        max="50000"
-        step="0.01"
-        :class="{ 'border-red-500': errors.salary }"
-        @input="validateSalary"
-    />
-    <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
-    <p v-if="salaryError" class="text-xs text-red-500">{{ salaryError }}</p>
-</div>
+                        <label class="text-sm font-medium">Salary (Monthly) <span
+                                class="text-muted-foreground text-xs">(₱10,000 -
+                                ₱50,000)</span></label>
+                        <Input v-model.number="form.salary" type="number" min="1000" max="50000" step="0.01"
+                            :class="{ 'border-red-500': errors.salary }" @input="validateSalary" />
+                        <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
+                        <p v-if="salaryError" class="text-xs text-red-500">{{ salaryError }}</p>
+                    </div>
 
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Status <span class="text-red-500">*</span></label>
@@ -303,29 +303,34 @@ function submit() {
                         <Select v-model="selectedProvince" :disabled="loadingProvinces">
                             <SelectTrigger class="w-full">
                                 <SelectValue>
-                                    <span v-if="loadingProvinces" class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingProvinces"
+                                        class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select province</span>
-                                    <span v-else>{{ provinces.find(p => p.code === selectedProvince)?.name }}</span>
+                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select
+                                        province</span>
+                                    <span v-else>{{provinces.find(p => p.code === selectedProvince)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</SelectItem>
+                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">City / Municipality <span class="text-red-500">*</span></label>
+                        <label class="text-sm font-medium">City / Municipality <span
+                                class="text-red-500">*</span></label>
                         <Select v-model="selectedCity" :disabled="!selectedProvince || loadingCities">
                             <SelectTrigger class="w-full">
                                 <SelectValue>
                                     <span v-if="loadingCities" class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select city/municipality</span>
-                                    <span v-else>{{ cities.find(c => c.code === selectedCity)?.name }}</span>
+                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select
+                                        city/municipality</span>
+                                    <span v-else>{{cities.find(c => c.code === selectedCity)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
@@ -339,15 +344,18 @@ function submit() {
                         <Select v-model="selectedBarangay" :disabled="!selectedCity || loadingBarangays">
                             <SelectTrigger class="w-full">
                                 <SelectValue>
-                                    <span v-if="loadingBarangays" class="flex items-center gap-1.5 text-muted-foreground">
+                                    <span v-if="loadingBarangays"
+                                        class="flex items-center gap-1.5 text-muted-foreground">
                                         <Loader2 class="h-3 w-3 animate-spin" /> Loading...
                                     </span>
-                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select barangay</span>
-                                    <span v-else>{{ barangays.find(b => b.code === selectedBarangay)?.name }}</span>
+                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select
+                                        barangay</span>
+                                    <span v-else>{{barangays.find(b => b.code === selectedBarangay)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}</SelectItem>
+                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -365,7 +373,26 @@ function submit() {
                 </p>
                 <p v-if="errors.address" class="text-xs text-red-500">{{ errors.address }}</p>
             </div>
+            <!-- Section 4: System Access-->
+            <div class="space-y-4">
+                <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">System Access</p>
 
+                <div class="flex items-start gap-3">
+                    <Checkbox id="create_account" :checked="form.create_account"
+                        @update:checked="form.create_account = $event" />
+                    <div class="space-y-1">
+                        <label for="create_account" class="text-sm font-medium cursor-pointer">
+                            Create a system account for this employee
+                        </label>
+                        <p class="text-xs text-muted-foreground">
+                            A login account will be created using the employee's email and a temporary password will be
+                            generated.
+                            Only enable this for employees who need access to the system.
+                        </p>
+                    </div>
+                </div>
+                <p v-if="errors.create_account" class="text-xs text-red-500">{{ errors.create_account }}</p>
+            </div>
             <!-- Actions -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t">
                 <Button type="button" variant="outline" :disabled="isSubmitting" @click="cancel">

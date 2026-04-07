@@ -180,8 +180,8 @@ const validateStep1 = (): boolean => {
         errs.name = 'Owner name must be more than 2 characters.'
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
         errs.email = 'Please enter a valid email address.'
-    if (form.phone.replace(/\D/g, '').length < 10)
-        errs.phone = 'Phone number must be at least 10 digits.'
+    if (!/^09\d{9}$/.test(form.phone))
+        errs.phone = 'Please enter a valid PH mobile number (e.g. 09XXXXXXXXX).'
     errors.value = errs
     return Object.keys(errs).length === 0
 }
@@ -328,7 +328,8 @@ const goToGoogle = () => {
 
                 <div>
                     <Label class="mb-2">Phone</Label>
-                    <Input v-model="form.phone" placeholder="09XX-XXX-XXXX"
+                    <Input v-model="form.phone" placeholder="09XXXXXXXXX" maxlength="11"
+                        @input="form.phone = form.phone.replace(/\D/g, '')"
                         :class="errors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''"
                         :data-error="errors.phone ? '' : undefined" />
                     <p v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</p>

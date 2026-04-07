@@ -16,4 +16,9 @@ class ScheduleRepository extends Repository
     {
         return $employee->schedules()->create($data);
     }
+
+    public function deleteAllForEmployee(Employee $employee): void
+    {
+        $employee->schedules()->delete();
+    }
 }

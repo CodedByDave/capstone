@@ -51,9 +51,12 @@ class OrderService
             'barangay'          => $data['barangay'],
             'postal_code'       => $data['postal_code'],
             'total_price'       => $data['total_price'],
+            'plan_name'         => $data['plan_name'],
+            'billing_months'    => $data['billing_months'],
             'status'            => 'pending',
             'subscription_plan' => $subscriptionPlan,
             'expires_at'        => $expiresAt,
+            'payment_method'    => $data['payment_method'] ?? null,
         ]);
 
         $modules = self::PLAN_MODULES[$planName] ?? [];

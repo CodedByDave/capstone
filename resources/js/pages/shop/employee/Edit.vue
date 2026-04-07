@@ -7,7 +7,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Calendar, Plus, Trash2, Pencil, Check, X } from 'lucide-vue-next'
+import { Loader2, X } from 'lucide-vue-next'
 import axios from 'axios'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ interface Employee {
 
 interface Schedule {
     id: number
-    work_date: string
+    day: string
     start_time: string
     end_time: string
 }
@@ -41,17 +41,18 @@ interface PsgcItem {
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const { employee, branch_names, schedules: initialSchedules } = defineProps<{
-    employee:     Employee
+    employee: Employee
     branch_names: string[]
-    schedules:    Schedule[]
+    schedules: Schedule[]
+    roles: string[]
 }>()
 
 // ─── RBAC ─────────────────────────────────────────────────────────────────────
 
-const page      = usePage<AppPageProps>()
-const user      = computed(() => page.props.auth.user)
-const isOwner   = computed(() => user.value.role === 'owner')
-const isStaff   = computed(() => !isOwner.value)
+const page = usePage<AppPageProps>()
+const user = computed(() => page.props.auth.user)
+const isOwner = computed(() => user.value.role === 'owner')
+const isStaff = computed(() => !isOwner.value)
 const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
@@ -69,17 +70,17 @@ const errors = computed(() => page.props.errors as Record<string, string>)
 const BASE = 'https://psgc.cloud/api'
 
 const provinces = ref<PsgcItem[]>([])
-const cities    = ref<PsgcItem[]>([])
+const cities = ref<PsgcItem[]>([])
 const barangays = ref<PsgcItem[]>([])
 
 const loadingProvinces = ref(false)
-const loadingCities    = ref(false)
+const loadingCities = ref(false)
 const loadingBarangays = ref(false)
 
 const selectedProvince = ref('')
-const selectedCity     = ref('')
+const selectedCity = ref('')
 const selectedBarangay = ref('')
-const streetInput      = ref('')
+const streetInput = ref('')
 
 function parseExistingAddress(address: string | null) {
     if (!address) return
@@ -90,7 +91,7 @@ onMounted(async () => {
     parseExistingAddress(employee.address)
     loadingProvinces.value = true
     try {
-        const res  = await fetch(`${BASE}/provinces`)
+        const res = await fetch(`${BASE}/provinces`)
         const data = await res.json()
         provinces.value = data
             .map((p: any) => ({ code: p.code, name: p.name }))
@@ -123,7 +124,7 @@ watch(selectedCity, async (code) => {
     if (!code) return
     loadingBarangays.value = true
     try {
-        const res  = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
+        const res = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
         barangays.value = (await res.json() || [])
             .map((b: any) => ({ code: b.code, name: b.name }))
             .sort((a: PsgcItem, b: PsgcItem) => a.name.localeCompare(b.name))
@@ -153,14 +154,14 @@ const fullAddress = computed(() => {
 const form = ref({
     employee_id: employee.employee_id,
     branch_name: employee.branch_name ?? '',
-    first_name:  employee.first_name,
-    last_name:   employee.last_name,
-    phone:       employee.phone ?? '',
-    address:     employee.address ?? '',
-    position:    employee.position,
-    hire_date:   employee.hire_date,
-    salary:      employee.salary ?? '',
-    status:      employee.status,
+    first_name: employee.first_name,
+    last_name: employee.last_name,
+    phone: employee.phone ?? '',
+    address: employee.address ?? '',
+    position: employee.position,
+    hire_date: employee.hire_date,
+    salary: employee.salary ?? '',
+    status: employee.status,
 })
 
 const isSubmitting = ref(false)
@@ -179,94 +180,60 @@ function submit() {
 
 // ─── Schedule ─────────────────────────────────────────────────────────────────
 
-const scheduleList  = ref<Schedule[]>([...(initialSchedules ?? [])])
+const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
+
+interface DaySchedule {
+    id?: number
+    day: string
+    start_time: string
+    end_time: string
+    enabled: boolean
+}
+
+const scheduleMap = ref<DaySchedule[]>(
+    weekdays.map(day => {
+        const existing = initialSchedules?.find(s => s.day === day)
+        return {
+            id: existing?.id,
+            day,
+            start_time: existing?.start_time?.slice(0, 5) ?? '08:00',
+            end_time: existing?.end_time?.slice(0, 5) ?? '17:00',
+            enabled: !!existing,
+        }
+    })
+)
+
+const savingSchedule = ref(false)
 const scheduleError = ref<string | null>(null)
 
-const showNewRow  = ref(false)
-const newRow      = ref({ work_date: '', start_time: '', end_time: '' })
-const savingNew   = ref(false)
-
-const editingId  = ref<number | null>(null)
-const editRow    = ref({ work_date: '', start_time: '', end_time: '' })
-const savingEdit = ref(false)
-const deletingId = ref<number | null>(null)
-
-function fmt(time: string): string {
-    if (!time) return ''
-    const [h, m] = time.slice(0, 5).split(':').map(Number)
-    const period = h >= 12 ? 'PM' : 'AM'
-    const hour   = h % 12 || 12
-    return `${hour}:${m.toString().padStart(2, '0')} ${period}`
-}
-
-function fmtDate(date: string) {
-    return new Date(date + 'T00:00:00').toLocaleDateString('en-PH', {
-        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-    })
-}
-
-async function addSchedule() {
-    if (!newRow.value.work_date || !newRow.value.start_time || !newRow.value.end_time) {
-        scheduleError.value = 'All fields are required.'
+async function saveSchedule() {
+    const active = scheduleMap.value.filter(d => d.enabled)
+    const invalid = active.find(d => d.start_time >= d.end_time)
+    if (invalid) {
+        scheduleError.value = `${invalid.day}: end time must be after start time.`
         return
     }
-    if (newRow.value.start_time >= newRow.value.end_time) {
-        scheduleError.value = 'End time must be after start time.'
-        return
-    }
-    savingNew.value = true
+
+    savingSchedule.value = true
     scheduleError.value = null
     try {
-        const res = await axios.post(`/shop/employee/${employee.id}/schedule`, newRow.value)
-        scheduleList.value.push(res.data)
-        newRow.value  = { work_date: '', start_time: '', end_time: '' }
-        showNewRow.value = false
+        await axios.put(`/shop/employee/${employee.id}/schedule`, {
+            schedules: active.map(d => ({
+                day: d.day,
+                start_time: d.start_time,
+                end_time: d.end_time,
+            })),
+        })
     } catch (err: any) {
-        scheduleError.value = err.response?.data?.message ?? 'Failed to add schedule.'
+        scheduleError.value = err.response?.data?.message ?? 'Failed to save schedule.'
     } finally {
-        savingNew.value = false
-    }
-}
-
-function startEdit(s: Schedule) {
-    editingId.value = s.id
-    editRow.value   = { work_date: s.work_date, start_time: fmt(s.start_time), end_time: fmt(s.end_time) }
-}
-
-async function saveEdit(id: number) {
-    if (editRow.value.start_time >= editRow.value.end_time) {
-        scheduleError.value = 'End time must be after start time.'
-        return
-    }
-    savingEdit.value = true
-    scheduleError.value = null
-    try {
-        const res = await axios.put(`/shop/employee/${employee.id}/schedule/${id}`, editRow.value)
-        const idx = scheduleList.value.findIndex(s => s.id === id)
-        if (idx !== -1) scheduleList.value[idx] = res.data
-        editingId.value = null
-    } catch (err: any) {
-        scheduleError.value = err.response?.data?.message ?? 'Failed to update schedule.'
-    } finally {
-        savingEdit.value = false
-    }
-}
-
-async function deleteSchedule(id: number) {
-    deletingId.value = id
-    scheduleError.value = null
-    try {
-        await axios.delete(`/shop/employee/${employee.id}/schedule/${id}`)
-        scheduleList.value = scheduleList.value.filter(s => s.id !== id)
-    } catch {
-        scheduleError.value = 'Failed to delete schedule.'
-    } finally {
-        deletingId.value = null
+        savingSchedule.value = false
     }
 }
 </script>
 
 <template>
+
     <Head :title="`Edit — ${employee.first_name} ${employee.last_name}`" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Edit Employee">
@@ -301,7 +268,8 @@ async function deleteSchedule(id: number) {
                     </div>
                     <div class="col-span-12 sm:col-span-3 space-y-1">
                         <label class="text-sm font-medium">Phone</label>
-                        <Input v-model="form.phone" placeholder="09XXXXXXXXX" :class="{ 'border-red-500': errors.phone }" />
+                        <Input v-model="form.phone" placeholder="09XXXXXXXXX"
+                            :class="{ 'border-red-500': errors.phone }" />
                         <p v-if="errors.phone" class="text-xs text-red-500">{{ errors.phone }}</p>
                     </div>
                 </div>
@@ -313,7 +281,16 @@ async function deleteSchedule(id: number) {
                 <div class="grid grid-cols-12 gap-x-6 gap-y-5">
                     <div class="col-span-12 sm:col-span-3 space-y-1">
                         <label class="text-sm font-medium">Position <span class="text-red-500">*</span></label>
-                        <Input v-model="form.position" placeholder="e.g. Cashier" :class="{ 'border-red-500': errors.position }" />
+                        <Select v-model="form.position">
+                            <SelectTrigger class="w-full" :class="{ 'border-red-500': errors.position }">
+                                <SelectValue placeholder="Select position" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="role in roles" :key="role" :value="role" class="capitalize">
+                                    {{ role }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                         <p v-if="errors.position" class="text-xs text-red-500">{{ errors.position }}</p>
                     </div>
                     <div class="col-span-12 sm:col-span-3 space-y-1">
@@ -330,7 +307,8 @@ async function deleteSchedule(id: number) {
                             </Select>
                         </template>
                         <template v-else>
-                            <Input v-model="form.branch_name" placeholder="e.g. Main Branch" :class="{ 'border-red-500': errors.branch_name }" />
+                            <Input v-model="form.branch_name" placeholder="e.g. Main Branch"
+                                :class="{ 'border-red-500': errors.branch_name }" />
                         </template>
                         <p v-if="errors.branch_name" class="text-xs text-red-500">{{ errors.branch_name }}</p>
                     </div>
@@ -341,10 +319,12 @@ async function deleteSchedule(id: number) {
                             Hire Date <span class="text-red-500">*</span>
                             <span v-if="isStaff" class="ml-1 text-xs text-amber-500">(view only)</span>
                         </label>
-                        <div v-if="isStaff" class="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
+                        <div v-if="isStaff"
+                            class="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
                             {{ form.hire_date }}
                         </div>
-                        <Input v-else v-model="form.hire_date" type="date" :class="{ 'border-red-500': errors.hire_date }" />
+                        <Input v-else v-model="form.hire_date" type="date"
+                            :class="{ 'border-red-500': errors.hire_date }" />
                         <p v-if="errors.hire_date" class="text-xs text-red-500">{{ errors.hire_date }}</p>
                     </div>
 
@@ -354,10 +334,14 @@ async function deleteSchedule(id: number) {
                             Salary (₱)
                             <span v-if="isStaff" class="ml-1 text-xs text-amber-500">(view only)</span>
                         </label>
-                        <div v-if="isStaff" class="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
-                            {{ form.salary ? `₱${Number(form.salary).toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—' }}
+                        <div v-if="isStaff"
+                            class="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
+                            {{ form.salary ? `₱${Number(form.salary).toLocaleString('en-PH', {
+                                minimumFractionDigits: 2
+                            })}` : '—' }}
                         </div>
-                        <Input v-else v-model="form.salary" type="number" min="0" step="0.01" :class="{ 'border-red-500': errors.salary }" />
+                        <Input v-else v-model="form.salary" type="number" min="0" step="0.01"
+                            :class="{ 'border-red-500': errors.salary }" />
                         <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
                     </div>
 
@@ -367,14 +351,10 @@ async function deleteSchedule(id: number) {
                             Status <span class="text-red-500">*</span>
                             <span v-if="isStaff" class="ml-1 text-xs text-amber-500">(view only)</span>
                         </label>
-                        <div
-                            v-if="isStaff"
-                            class="flex h-9 w-full items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm cursor-not-allowed select-none"
-                        >
-                            <span
-                                class="px-2 py-0.5 text-xs font-semibold rounded-full text-white"
-                                :class="form.status === 'Active' ? 'bg-green-500' : 'bg-red-500'"
-                            >
+                        <div v-if="isStaff"
+                            class="flex h-9 w-full items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm cursor-not-allowed select-none">
+                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full text-white"
+                                :class="form.status === 'Active' ? 'bg-green-500' : 'bg-red-500'">
                                 {{ form.status }}
                             </span>
                         </div>
@@ -398,7 +378,9 @@ async function deleteSchedule(id: number) {
                 <div v-if="employee.address" class="mb-4 rounded-lg border bg-muted/40 px-4 py-3 text-sm">
                     <p class="text-xs text-muted-foreground mb-1">Current address</p>
                     <p class="font-medium">{{ employee.address }}</p>
-                    <p class="text-xs text-muted-foreground mt-1">Select a new province below to update, or just edit the street field.</p>
+                    <p class="text-xs text-muted-foreground mt-1">Select a new province below to update, or just edit
+                        the street
+                        field.</p>
                 </div>
                 <div class="grid grid-cols-12 gap-x-6 gap-y-5">
                     <div class="col-span-12 sm:col-span-3 space-y-1">
@@ -406,13 +388,18 @@ async function deleteSchedule(id: number) {
                         <Select v-model="selectedProvince" :disabled="loadingProvinces">
                             <SelectTrigger>
                                 <SelectValue>
-                                    <span v-if="loadingProvinces" class="flex items-center gap-1.5 text-muted-foreground"><Loader2 class="h-3 w-3 animate-spin" /> Loading...</span>
-                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select province</span>
-                                    <span v-else>{{ provinces.find(p => p.code === selectedProvince)?.name }}</span>
+                                    <span v-if="loadingProvinces"
+                                        class="flex items-center gap-1.5 text-muted-foreground">
+                                        <Loader2 class="h-3 w-3 animate-spin" /> Loading...
+                                    </span>
+                                    <span v-else-if="!selectedProvince" class="text-muted-foreground">Select
+                                        province</span>
+                                    <span v-else>{{provinces.find(p => p.code === selectedProvince)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</SelectItem>
+                                <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -421,9 +408,12 @@ async function deleteSchedule(id: number) {
                         <Select v-model="selectedCity" :disabled="!selectedProvince || loadingCities">
                             <SelectTrigger>
                                 <SelectValue>
-                                    <span v-if="loadingCities" class="flex items-center gap-1.5 text-muted-foreground"><Loader2 class="h-3 w-3 animate-spin" /> Loading...</span>
-                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select city/municipality</span>
-                                    <span v-else>{{ cities.find(c => c.code === selectedCity)?.name }}</span>
+                                    <span v-if="loadingCities" class="flex items-center gap-1.5 text-muted-foreground">
+                                        <Loader2 class="h-3 w-3 animate-spin" /> Loading...
+                                    </span>
+                                    <span v-else-if="!selectedCity" class="text-muted-foreground">Select
+                                        city/municipality</span>
+                                    <span v-else>{{cities.find(c => c.code === selectedCity)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
@@ -436,13 +426,18 @@ async function deleteSchedule(id: number) {
                         <Select v-model="selectedBarangay" :disabled="!selectedCity || loadingBarangays">
                             <SelectTrigger>
                                 <SelectValue>
-                                    <span v-if="loadingBarangays" class="flex items-center gap-1.5 text-muted-foreground"><Loader2 class="h-3 w-3 animate-spin" /> Loading...</span>
-                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select barangay</span>
-                                    <span v-else>{{ barangays.find(b => b.code === selectedBarangay)?.name }}</span>
+                                    <span v-if="loadingBarangays"
+                                        class="flex items-center gap-1.5 text-muted-foreground">
+                                        <Loader2 class="h-3 w-3 animate-spin" /> Loading...
+                                    </span>
+                                    <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select
+                                        barangay</span>
+                                    <span v-else>{{barangays.find(b => b.code === selectedBarangay)?.name}}</span>
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent class="max-h-60">
-                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}</SelectItem>
+                                <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -461,125 +456,52 @@ async function deleteSchedule(id: number) {
             <div v-if="isOwner">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Schedule</p>
-                        <p class="text-xs text-muted-foreground mt-0.5">Manage work shifts for this employee.</p>
+                        <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Weekly Schedule
+                        </p>
+                        <p class="text-xs text-muted-foreground mt-0.5">Toggle workdays and set shift times.</p>
                     </div>
-                    <Button
-                        v-if="!showNewRow"
-                        size="sm"
-                        variant="outline"
-                        class="gap-1.5"
-                        @click="showNewRow = true; scheduleError = null"
-                    >
-                        <Plus class="h-3.5 w-3.5" />
-                        Add Shift
+                    <Button size="sm" :disabled="savingSchedule" @click="saveSchedule">
+                        <Loader2 v-if="savingSchedule" class="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                        {{ savingSchedule ? 'Saving...' : 'Save Schedule' }}
                     </Button>
                 </div>
 
-                <div
-                    v-if="scheduleError"
-                    class="mb-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700"
-                >
+                <div v-if="scheduleError"
+                    class="mb-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
                     <span>{{ scheduleError }}</span>
                     <button @click="scheduleError = null">
                         <X class="h-3.5 w-3.5 ml-3 text-red-400 hover:text-red-600" />
                     </button>
                 </div>
 
-                <div class="rounded-xl border overflow-hidden">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="bg-muted/40 text-xs text-muted-foreground border-b">
-                                <th class="text-left px-4 py-3 font-medium w-2/5">Work Date</th>
-                                <th class="text-left px-4 py-3 font-medium">Start</th>
-                                <th class="text-left px-4 py-3 font-medium">End</th>
-                                <th class="text-right px-4 py-3 font-medium">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-if="showNewRow" class="border-b bg-blue-50/60">
-                                <td class="px-3 py-2">
-                                    <Input v-model="newRow.work_date" type="date" class="h-8 text-sm" />
-                                </td>
-                                <td class="px-3 py-2">
-                                    <Input v-model="newRow.start_time" type="time" class="h-8 text-sm" />
-                                </td>
-                                <td class="px-3 py-2">
-                                    <Input v-model="newRow.end_time" type="time" class="h-8 text-sm" />
-                                </td>
-                                <td class="px-3 py-2 text-right">
-                                    <div class="flex items-center justify-end gap-1">
-                                        <Button size="sm" class="h-7 w-7 p-0 bg-green-500 hover:bg-green-600 text-white" :disabled="savingNew" @click="addSchedule">
-                                            <Loader2 v-if="savingNew" class="h-3 w-3 animate-spin" />
-                                            <Check v-else class="h-3 w-3" />
-                                        </Button>
-                                        <Button size="sm" variant="ghost" class="h-7 w-7 p-0" @click="showNewRow = false; scheduleError = null">
-                                            <X class="h-3 w-3" />
-                                        </Button>
-                                    </div>
-                                </td>
-                            </tr>
+                <div class="rounded-xl border divide-y">
+                    <div v-for="d in scheduleMap" :key="d.day"
+                        class="flex items-center gap-4 px-4 py-3 transition-colors"
+                        :class="d.enabled ? 'bg-background' : 'bg-muted/30'">
+                        <label class="flex items-center gap-3 w-32 cursor-pointer select-none">
+                            <input type="checkbox" v-model="d.enabled"
+                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                            <span class="text-sm font-medium" :class="{ 'text-muted-foreground': !d.enabled }">
+                                {{ d.day }}
+                            </span>
+                        </label>
 
-                            <template v-for="s in scheduleList" :key="s.id">
-                                <tr v-if="editingId !== s.id" class="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                                    <td class="px-4 py-3 font-medium">
-                                        <div class="flex items-center gap-2">
-                                            <Calendar class="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                            {{ fmtDate(s.work_date) }}
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground">{{ fmt(s.start_time) }}</td>
-                                    <td class="px-4 py-3 text-muted-foreground">{{ fmt(s.end_time) }}</td>
-                                    <td class="px-4 py-3 text-right">
-                                        <div class="flex items-center justify-end gap-1">
-                                            <Button size="sm" variant="ghost" class="h-7 w-7 p-0 text-blue-500 hover:text-blue-700 hover:bg-blue-50" @click="startEdit(s)">
-                                                <Pencil class="h-3.5 w-3.5" />
-                                            </Button>
-                                            <Button size="sm" variant="ghost" class="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" :disabled="deletingId === s.id" @click="deleteSchedule(s.id)">
-                                                <Loader2 v-if="deletingId === s.id" class="h-3.5 w-3.5 animate-spin" />
-                                                <Trash2 v-else class="h-3.5 w-3.5" />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-else class="border-b last:border-0 bg-amber-50/60">
-                                    <td class="px-3 py-2">
-                                        <Input v-model="editRow.work_date" type="date" class="h-8 text-sm" />
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <Input v-model="editRow.start_time" type="time" class="h-8 text-sm" />
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <Input v-model="editRow.end_time" type="time" class="h-8 text-sm" />
-                                    </td>
-                                    <td class="px-3 py-2 text-right">
-                                        <div class="flex items-center justify-end gap-1">
-                                            <Button size="sm" class="h-7 w-7 p-0 bg-green-500 hover:bg-green-600 text-white" :disabled="savingEdit" @click="saveEdit(s.id)">
-                                                <Loader2 v-if="savingEdit" class="h-3 w-3 animate-spin" />
-                                                <Check v-else class="h-3 w-3" />
-                                            </Button>
-                                            <Button size="sm" variant="ghost" class="h-7 w-7 p-0" @click="editingId = null">
-                                                <X class="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
-
-                            <tr v-if="scheduleList.length === 0 && !showNewRow">
-                                <td colspan="4" class="px-4 py-10 text-center text-sm text-muted-foreground">
-                                    <Calendar class="h-8 w-8 mx-auto mb-2 opacity-30" />
-                                    No schedules yet. Click "Add Shift" to create one.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <template v-if="d.enabled">
+                            <div class="flex items-center gap-2">
+                                <Input v-model="d.start_time" type="time" class="h-8 w-32 text-sm" />
+                                <span class="text-xs text-muted-foreground">to</span>
+                                <Input v-model="d.end_time" type="time" class="h-8 w-32 text-sm" />
+                            </div>
+                        </template>
+                        <span v-else class="text-sm text-muted-foreground">Day off</span>
+                    </div>
                 </div>
             </div>
 
             <!-- ── Actions ─────────────────────────────────────────────────────── -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t">
-                <Button type="button" variant="outline" :disabled="isSubmitting" @click="router.visit(`${baseRoute}/employee`)">
+                <Button type="button" variant="outline" :disabled="isSubmitting"
+                    @click="router.visit(`${baseRoute}/employee`)">
                     Cancel
                 </Button>
                 <Button type="button" :disabled="isSubmitting" @click="submit">

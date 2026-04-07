@@ -43,7 +43,7 @@ class OrderRepository extends Repository
         }
 
         if (!empty($filters['plan'])) {
-            $query->where('subscription_plan', $filters['plan']);
+            $query->where('plan_name', $filters['plan']);
         }
 
         if (!empty($filters['date'])) {

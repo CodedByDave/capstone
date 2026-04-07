@@ -22,16 +22,17 @@ class ScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'work_date'   => ['required', 'date'],
-            'start_time'  => ['required', 'date_format:H:i'],
-            'end_time'    => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'schedules'              => ['required', 'array'],
+            'schedules.*.day'        => ['required', 'string', 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'],
+            'schedules.*.start_time' => ['required', 'date_format:H:i'],
+            'schedules.*.end_time'   => ['required', 'date_format:H:i', 'after:schedules.*.start_time'],
         ];
     }
 
     public function messages()
     {
         return [
-            'work_date.required'   => 'Work date is required.',
+            'day.required'   => 'day is required.',
             'start_time.required'  => 'Start time is required.',
             'end_time.after'       => 'End time must be after start time.',
         ];

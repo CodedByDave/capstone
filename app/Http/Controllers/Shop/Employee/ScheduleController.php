@@ -22,14 +22,11 @@ class ScheduleController extends Controller
         ]);
     }
 
-    public function store(ScheduleRequest $request, Employee $employee)
+    public function sync(ScheduleRequest $request, Employee $employee)
     {
-        $schedule = $this->scheduleService->createSchedule($employee, $request->validated());
+        $schedules = $this->scheduleService->syncSchedules($employee, $request->validated('schedules'));
 
-        return response()->json(
-            $schedule->only(['id', 'work_date', 'start_time', 'end_time']),
-            201
-        );
+        return response()->json($schedules, 200);
     }
 
     public function update(ScheduleRequest $request, Employee $employee, EmployeeSchedule $schedule)

@@ -12,19 +12,18 @@ use Illuminate\Support\Collection;
 class ActivityLogService
 {
     public function log(
-        Model   $subject,
-        string  $action,
-        ?array  $changes     = null,
-        ?int    $shopId      = null,
-        ?int    $performedBy = null,
-        ?string $module      = null,
-    ): ActivityLog {
-        return ActivityLog::create([
-            'module'       => $module ?? class_basename($subject),  // 'Employee', 'Product', etc.
+        Model $subject,
+        string $action,
+        ?array $changes = null,
+        ?int $shopId = null,
+        ?string $module = null,
+    ): void {
+        ActivityLog::create([
+            'module'       => $module ?? class_basename($subject),
             'action'       => $action,
-            'subject_type' => get_class($subject),
+            'subject_type' => $subject->getMorphClass(),
             'subject_id'   => $subject->getKey(),
-            'performed_by' => $performedBy ?? auth()->id(),
+            'performed_by' => auth()->id(),
             'shop_id'      => $shopId,
             'changes'      => $changes,
         ]);

@@ -14,7 +14,9 @@ use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\Employee\EmployeeController;
 use App\Http\Controllers\Shop\Employee\ScheduleController;
 use App\Http\Controllers\Shop\Employee\PermissionController;
+use App\Http\Controllers\Shop\Employee\PayrollController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
+use App\Http\Controllers\Shop\Employee\AttendanceController;
 use App\Http\Controllers\Shop\Employee\BranchController;
 use App\Http\Controllers\Staff\StaffDashboardController;
 use App\Http\Controllers\Shop\Inventory\InventoryController;
@@ -128,12 +130,24 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::post('/employee/{id}/restore',   [EmployeeController::class, 'restore'])->name('employee.restore');
 
     // Schedule
-    Route::post('/employee/{employee}/schedule',              [ScheduleController::class, 'store'])->name('schedule.store');
-    Route::put('/employee/{employee}/schedule/{schedule}',    [ScheduleController::class, 'update'])->name('schedule.update');
+    Route::put('/employee/{employee}/schedule', [ScheduleController::class, 'sync']);
     Route::delete('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('schedule.destroy');
 
+    // Attendance
+    Route::get('/attendance',              [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('/attendance',             [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::put('/attendance/{attendance}', [AttendanceController::class, 'update'])->name('attendance.update');
+
+    // Payroll
+    Route::get('/payroll',                          [PayrollController::class, 'index'])->name('payroll.index');
+    Route::post('/payroll',                         [PayrollController::class, 'store'])->name('payroll.store');
+    Route::get('/payroll/{payroll}',                [PayrollController::class, 'show'])->name('payroll.show');
+    Route::put('/payroll/{payrollItem}/item',       [PayrollController::class, 'updateItem'])->name('payroll.item.update');
+    Route::post('/payroll/{payroll}/recalculate', [PayrollController::class, 'recalculate'])->name('payroll.recalculate');
+    Route::post('/payroll/{payroll}/finalize',      [PayrollController::class, 'finalize'])->name('payroll.finalize');
+    Route::delete('/payroll/{payroll}',             [PayrollController::class, 'destroy'])->name('payroll.destroy');
+
     // ── Branch ────────────────────────────────────────────────────────────────
-    // Static routes BEFORE {branch} wildcard
     Route::get('/branch/create',        [BranchController::class, 'create'])->name('branch.create');
     Route::get('/branch/archive',       [BranchController::class, 'archive'])->name('branch.archive');
     Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('branch.restore');

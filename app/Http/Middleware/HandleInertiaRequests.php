@@ -21,6 +21,19 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
+
+        if ($request->user() && $request->user()->role === 'owner') {
+            $archivedShop = Shop::withTrashed()
+                ->where('owner_id', $request->user()->id)
+                ->first();
+
+            if ($archivedShop && $archivedShop->trashed()) {
+                auth()->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
+
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         return [

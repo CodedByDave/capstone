@@ -87,26 +87,33 @@ class EmployeeService
     {
         return DB::transaction(function () use ($shop, $data) {
 
-            $defaultPassword = $data['last_name']; // surname as default password
+            $userId = null;
+            $createAccount = !empty($data['create_account']);
+
+            if ($createAccount) {
+                $defaultPassword = $data['last_name'];
+
+                $user = User::create([
+                    'name'              => $data['first_name'] . ' ' . $data['last_name'],
+                    'email'             => $data['email'],
+                    'password'          => Hash::make($defaultPassword),
+                    'role'              => 'staff',
+                    'email_verified_at' => now(),
+                ]);
+
+                $userId = $user->id;
+            }
 
             $role = strtolower($data['position']);
 
-            $user = User::create([
-                'name'              => $data['first_name'] . ' ' . $data['last_name'],
-                'email'             => $data['email'],
-                'password'          => Hash::make($defaultPassword),
-                'role'              => 'staff',
-                'email_verified_at' => now(),
-            ]);
-
             $employee = $this->employeeRepository->createForShop($shop, [
                 ...$data,
-                'user_id'    => $user->id,
+                'user_id'    => $userId,
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
 
-            $shopRole = ShopRole::firstOrCreate(
+            ShopRole::firstOrCreate(
                 ['shop_id' => $shop->id, 'name' => $role],
                 ['is_default' => true]
             );
@@ -116,19 +123,21 @@ class EmployeeService
                 'role'        => $role,
             ]);
 
-            // Send credentials email
-            try {
-                Mail::to($user->email)->send(new EmployeeCredentialsMail(
-                    name: $user->name,
-                    email: $user->email,
-                    password: $defaultPassword,
-                    shopName: $shop->shop_name,
-                ));
-            } catch (\Exception $e) {
-                Log::warning('Failed to send employee credentials email', [
-                    'email' => $user->email,
-                    'error' => $e->getMessage(),
-                ]);
+            // Only send credentials if account was created
+            if ($createAccount) {
+                try {
+                    Mail::to($user->email)->send(new EmployeeCredentialsMail(
+                        name: $user->name,
+                        email: $user->email,
+                        password: $defaultPassword,
+                        shopName: $shop->shop_name,
+                    ));
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to send employee credentials email', [
+                        'email' => $user->email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
 
             $this->activityLogService->log(

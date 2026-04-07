@@ -25,6 +25,7 @@ class StoreEmployeeRequest extends FormRequest
             'hire_date'   => 'required|date|before_or_equal:today',
             'salary'      => 'required|numeric|min:10000|max:50000',
             'status'      => 'required|in:Active,Inactive',
+            'create_account' => 'sometimes|boolean',
         ];
     }
 

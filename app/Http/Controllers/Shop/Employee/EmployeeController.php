@@ -82,7 +82,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('shop/employee/Show', [
             'employee' => $employee->load(['creator:id,name', 'updater:id,name']),
-            'schedules' => $employee->schedules()->orderBy('work_date')->get(),
+            'schedules' => $employee->schedules()->get(),
         ]);
     }
 
@@ -193,7 +193,7 @@ class EmployeeController extends Controller
             ]);
     }
 
-    /* ─── IMPORT ─────────────────────────────────────────────── */
+    /* Import CSV Template */
 
     public function importTemplate()
     {
@@ -223,6 +223,7 @@ class EmployeeController extends Controller
         ]);
     }
 
+    // Import CSV
     public function import(Request $request)
     {
         $request->validate(['csv_file' => ['required', 'file', 'mimes:csv,txt']]);

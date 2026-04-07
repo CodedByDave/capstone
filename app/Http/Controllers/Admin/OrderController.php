@@ -45,7 +45,7 @@ class OrderController extends Controller
             ->update(['status' => 'active']);
 
         return redirect()->back()
-            ->with('toast', ['type' => 'success', 'message' => "Order #{$id} approved. Shop now has dashboard access."]);
+            ->with('toast', ['type' => 'success', 'message' => "{$order->shop_name} has been approved. Shop now has dashboard access."]);
     }
 
     public function reject($id)
@@ -54,7 +54,7 @@ class OrderController extends Controller
         $order->update(['status' => 'rejected']);
 
         return redirect()->back()
-            ->with('toast', ['type' => 'error', 'message' => "Order #{$id} has been rejected."]);
+            ->with('toast', ['type' => 'error', 'message' => "{$order->shop_name} has been rejected."]);
     }
 
     public function serveKyc(Request $request): StreamedResponse

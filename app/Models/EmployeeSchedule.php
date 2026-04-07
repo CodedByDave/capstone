@@ -9,13 +9,12 @@ class EmployeeSchedule extends Model
 {
     protected $fillable = [
         'employee_id',
-        'work_date',
+        'day',
         'start_time',
         'end_time',
     ];
 
     protected $casts = [
-        'work_date'  => 'date:Y-m-d',
         'start_time' => 'datetime:H:i',
         'end_time'   => 'datetime:H:i',
     ];

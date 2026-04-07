@@ -52,14 +52,25 @@ interface Employee {
 
 interface Schedule {
     id: number
-    work_date: string
+    day: string
     start_time: string
     end_time: string
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { employee, schedule } = defineProps<{ employee: Employee, schedule: Schedule | null }>()
+const { employee, schedules } = defineProps<{ employee: Employee; schedules: Schedule[] }>()
+
+const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+const getScheduleForDay = (day: string) => schedules?.find(s => s.day === day)
+
+function fmtTime(time: string): string {
+    const [h, m] = time.slice(0, 5).split(':').map(Number)
+    const period = h >= 12 ? 'PM' : 'AM'
+    const hour = h % 12 || 12
+    return `${hour}:${m.toString().padStart(2, '0')} ${period}`
+}
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
@@ -93,6 +104,7 @@ function archiveEmployee() {
 </script>
 
 <template>
+
     <Head :title="`${employee.first_name} ${employee.last_name}`" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" :title="`${employee.first_name} ${employee.last_name}`">
@@ -110,7 +122,8 @@ function archiveEmployee() {
             <Card>
                 <CardContent class="pt-6">
                     <div class="flex items-center gap-5">
-                        <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div
+                            class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <span class="text-2xl font-bold text-primary">
                                 {{ employee.first_name[0] }}{{ employee.last_name[0] }}
                             </span>
@@ -120,11 +133,10 @@ function archiveEmployee() {
                                 <h2 class="text-xl font-bold">
                                     {{ employee.first_name }} {{ employee.last_name }}
                                 </h2>
-                                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full text-white"
-                                    :class="{
-                                        'bg-green-500': employee.status === 'Active',
-                                        'bg-red-500':   employee.status === 'Inactive',
-                                    }">
+                                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full text-white" :class="{
+                                    'bg-green-500': employee.status === 'Active',
+                                    'bg-red-500': employee.status === 'Inactive',
+                                }">
                                     {{ employee.status }}
                                 </span>
                             </div>
@@ -140,7 +152,8 @@ function archiveEmployee() {
                 <!-- ── Identity ───────────────────────────────────────── -->
                 <Card>
                     <CardHeader class="pb-3">
-                        <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <CardTitle
+                            class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                             <User class="h-4 w-4" /> Identity
                         </CardTitle>
                     </CardHeader>
@@ -179,7 +192,8 @@ function archiveEmployee() {
                 <!-- ── Employment ─────────────────────────────────────── -->
                 <Card>
                     <CardHeader class="pb-3">
-                        <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <CardTitle
+                            class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                             <Briefcase class="h-4 w-4" /> Employment
                         </CardTitle>
                     </CardHeader>
@@ -216,10 +230,11 @@ function archiveEmployee() {
                             <BadgeCheck class="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                             <div>
                                 <p class="text-xs text-muted-foreground">Status</p>
-                                <span class="inline-block mt-0.5 px-2.5 py-0.5 text-xs font-semibold rounded-full text-white"
+                                <span
+                                    class="inline-block mt-0.5 px-2.5 py-0.5 text-xs font-semibold rounded-full text-white"
                                     :class="{
                                         'bg-green-500': employee.status === 'Active',
-                                        'bg-red-500':   employee.status === 'Inactive',
+                                        'bg-red-500': employee.status === 'Inactive',
                                     }">
                                     {{ employee.status }}
                                 </span>
@@ -233,26 +248,31 @@ function archiveEmployee() {
             <!-- ── Schedule ───────────────────────────────────────────── -->
             <Card>
                 <CardHeader class="pb-3">
-                    <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <Calendar class="h-4 w-4" /> Schedule
+                    <CardTitle
+                        class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Calendar class="h-4 w-4" /> Weekly Schedule
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="!schedule" class="text-sm text-muted-foreground text-center py-6">
+                    <div v-if="!schedules || schedules.length === 0"
+                        class="text-sm text-muted-foreground text-center py-6">
                         No schedule assigned yet.
                     </div>
-                    <div v-else class="grid grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-xs text-muted-foreground">Work Date</p>
-                            <p class="text-sm font-medium">{{ formatDate(schedule.work_date) }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-muted-foreground">Start Time</p>
-                            <p class="text-sm font-medium">{{ schedule.start_time }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-muted-foreground">End Time</p>
-                            <p class="text-sm font-medium">{{ schedule.end_time ?? '—' }}</p>
+                    <div v-else class="divide-y">
+                        <div v-for="day in weekdays" :key="day" class="flex items-center gap-4 py-2.5">
+                            <div class="flex items-center gap-2 w-28">
+                                <div class="h-2.5 w-2.5 rounded-full"
+                                    :class="getScheduleForDay(day) ? 'bg-green-500' : 'bg-muted'" />
+                                <span class="text-sm font-medium"
+                                    :class="{ 'text-muted-foreground': !getScheduleForDay(day) }">
+                                    {{ day }}
+                                </span>
+                            </div>
+                            <span v-if="getScheduleForDay(day)" class="text-sm">
+                                {{ fmtTime(getScheduleForDay(day)!.start_time) }} – {{
+                                    fmtTime(getScheduleForDay(day)!.end_time) }}
+                            </span>
+                            <span v-else class="text-sm text-muted-foreground">Day off</span>
                         </div>
                     </div>
                 </CardContent>
@@ -261,7 +281,8 @@ function archiveEmployee() {
             <!-- ── Audit info ──────────────────────────────────────────── -->
             <Card>
                 <CardHeader class="pb-3">
-                    <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CardTitle
+                        class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                         <Clock class="h-4 w-4" /> Record Info
                     </CardTitle>
                 </CardHeader>
