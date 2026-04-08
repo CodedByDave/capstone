@@ -34,7 +34,7 @@ interface ArchivedEmployee {
     position: string
     branch_name: string | null
     hire_date: string
-    status: 'Active' | 'Inactive'
+    status: 'Active' | 'Inactive' | 'Archived'
     archived_at: string
     original_created_at: string | null
 }
@@ -221,6 +221,7 @@ function executeBulkRestore() {
                                             :class="{
                                                 'bg-green-500': emp.status === 'Active',
                                                 'bg-red-500': emp.status === 'Inactive',
+                                                'bg-amber-500': emp.status === 'Archived',
                                             }"
                                         >
                                             {{ emp.status }}

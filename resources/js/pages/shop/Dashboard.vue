@@ -1,570 +1,740 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
+import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue'
+import { dashboard } from '@/routes'
+import { type BreadcrumbItem } from '@/types'
 import { Head, usePage } from '@inertiajs/vue3'
-import { type AppPageProps } from '@/types'
-import { computed } from 'vue'
-
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-    Users, TrendingUp, TrendingDown, Minus,
-    CalendarCheck, Banknote, AlertTriangle,
-    Clock, Lightbulb, CheckCircle2, Info, XCircle,
-    ArrowUpRight, ArrowDownRight,
+    Users, GitBranch, Package, AlertTriangle,
+    ArrowUpRight, ArrowDownRight, Activity, BoxSelect,
+    RefreshCcw, Clock, Lightbulb, TrendingUp, TrendingDown,
+    ShieldAlert, CheckCircle2, Info
 } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface KPIs {
-    total_employees: number
-    employee_change: number
-    attendance_rate: number
-    attendance_change: number
-    absenteeism_rate: number
-    late_rate: number
-    payroll_cost: number
-    payroll_change: number
-    cost_per_employee: number
-    half_day_count: number
-    absent_count: number
-    late_count: number
-    present_count: number
-}
+interface MovementPoint { month: string; stock_in: number; stock_out: number }
+interface CategoryPoint { label: string; count: number }
+interface BranchEmployee { branch: string; count: number; status: string }
+interface LowStockItem { name: string; sku: string; quantity: number; min_stock: number; status: string; category: string }
+interface RecentMovement { item: string; sku: string; type: string; quantity: number; before: number; after: number; by: string; notes: string | null; date: string }
 
-interface TrendPoint {
-    date: string
-    label: string
-    present: number
-    absent: number
-    late: number
-    half_day: number
-}
-
-interface PayrollPoint {
-    label: string
-    net_pay: number
-    deductions: number
-    bonuses: number
-    employees: number
-}
-
-interface EmployeePerformance {
-    id: number
-    name: string
-    position: string
-    branch: string | null
-    total: number
-    present: number
-    absent: number
-    late: number
-    rate: number
-}
-
-interface Insight {
+interface DSSInsight {
     type: 'success' | 'warning' | 'danger' | 'info'
     title: string
     message: string
-    action: string
-}
-
-interface Shop {
-    id: number
-    shop_name: string
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const props = defineProps<{
-    kpis: KPIs
-    attendanceTrend: TrendPoint[]
-    payrollTrend: PayrollPoint[]
-    performance: EmployeePerformance[]
-    insights: Insight[]
-    shop: Shop
+const { props } = usePage<{
+    auth: { user: any }
+    modules: any[]
+    order?: {
+        status: string
+        shop_name: string
+        subscription_plan: string | null
+        expires_at: string | null
+        modules: { name: string; price: number }[]
+        total_price: number
+    }
+    stats?: {
+        employees: { total: number; active: number; inactive: number }
+        branches: { total: number; active: number }
+        inventory: { total: number; low_stock: number; out_of_stock: number }
+        low_stock_alerts: number
+        movements: { this_month: number; change: number }
+    }
+    shop?: {
+        shop_name?: string
+        phone?: string
+        block_street?: string
+        municipality?: string
+        barangay?: string
+        postal_code?: string
+        status?: string
+    } | null
+    movement_chart?: MovementPoint[]
+    category_breakdown?: CategoryPoint[]
+    employees_per_branch?: BranchEmployee[]
+    low_stock_items?: LowStockItem[]
+    recent_movements?: RecentMovement[]
 }>()
 
-const page = usePage<AppPageProps>()
-const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const user = props.auth.user
+const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
+const isApproved = computed(() =>
+    props.order?.status === 'approved' && props.shop?.status !== 'disabled'
+)
+const showOrder = ref(false)
 
-// ─── Chart Helpers ────────────────────────────────────────────────────────────
+// ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
-function formatCurrency(val: number): string {
-    return `₱${val.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-}
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: dashboard().url }
+]
 
-// Attendance chart dimensions
-const attChartWidth = 700
-const attChartHeight = 200
-const attPadding = { top: 20, right: 20, bottom: 30, left: 35 }
+// ─── DSS Insights ─────────────────────────────────────────────────────────────
 
-const attMaxVal = computed(() => {
-    if (!props.attendanceTrend.length) return 10
-    const max = Math.max(...props.attendanceTrend.map(d => d.present + d.absent + d.late + d.half_day))
-    return Math.max(max, 1)
-})
+const dssInsights = computed<DSSInsight[]>(() => {
+    const insights: DSSInsight[] = []
+    const stats = props.stats
+    const movChart = props.movement_chart ?? []
+    const catData = props.category_breakdown ?? []
+    const branches = props.employees_per_branch ?? []
 
-function attBarX(index: number): number {
-    const usable = attChartWidth - attPadding.left - attPadding.right
-    const barWidth = usable / props.attendanceTrend.length
-    return attPadding.left + (index * barWidth) + (barWidth * 0.15)
-}
+    if (!stats) return insights
 
-function attBarWidth(): number {
-    const usable = attChartWidth - attPadding.left - attPadding.right
-    return (usable / Math.max(props.attendanceTrend.length, 1)) * 0.7
-}
-
-function attBarHeight(val: number): number {
-    const usable = attChartHeight - attPadding.top - attPadding.bottom
-    return (val / attMaxVal.value) * usable
-}
-
-function attBarY(val: number): number {
-    return attChartHeight - attPadding.bottom - attBarHeight(val)
-}
-
-// Payroll chart
-const payChartWidth = 700
-const payChartHeight = 200
-const payPadding = { top: 20, right: 20, bottom: 30, left: 55 }
-
-const payMaxVal = computed(() => {
-    if (!props.payrollTrend.length) return 10000
-    return Math.max(...props.payrollTrend.map(d => d.net_pay)) * 1.15
-})
-
-function payLinePoints(): string {
-    if (!props.payrollTrend.length) return ''
-    const usableW = payChartWidth - payPadding.left - payPadding.right
-    const usableH = payChartHeight - payPadding.top - payPadding.bottom
-
-    return props.payrollTrend.map((d, i) => {
-        const x = payPadding.left + (i / Math.max(props.payrollTrend.length - 1, 1)) * usableW
-        const y = payChartHeight - payPadding.bottom - (d.net_pay / payMaxVal.value) * usableH
-        return `${x},${y}`
-    }).join(' ')
-}
-
-function payDotX(index: number): number {
-    const usableW = payChartWidth - payPadding.left - payPadding.right
-    return payPadding.left + (index / Math.max(props.payrollTrend.length - 1, 1)) * usableW
-}
-
-function payDotY(val: number): number {
-    const usableH = payChartHeight - payPadding.top - payPadding.bottom
-    return payChartHeight - payPadding.bottom - (val / payMaxVal.value) * usableH
-}
-
-// Y-axis labels
-const attYLabels = computed(() => {
-    const steps = 4
-    const labels = []
-    for (let i = 0; i <= steps; i++) {
-        labels.push(Math.round((attMaxVal.value / steps) * i))
+    // --- Stock alerts ---
+    if (stats.inventory.out_of_stock > 0) {
+        insights.push({
+            type: 'danger',
+            title: 'Out-of-Stock Items Detected',
+            message: `${stats.inventory.out_of_stock} item(s) have zero stock remaining. Initiate emergency reorders immediately — delayed restocking risks lost sales and poor customer experience.`,
+        })
     }
-    return labels
-})
 
-const payYLabels = computed(() => {
-    const steps = 4
-    const labels = []
-    for (let i = 0; i <= steps; i++) {
-        const val = (payMaxVal.value / steps) * i
-        labels.push(val >= 1000 ? `₱${(val / 1000).toFixed(0)}k` : `₱${val.toFixed(0)}`)
+    if (stats.inventory.low_stock > 0 && stats.inventory.out_of_stock === 0) {
+        insights.push({
+            type: 'warning',
+            title: 'Low Stock Warning',
+            message: `${stats.inventory.low_stock} item(s) are below their minimum stock level. Review your reorder points and contact suppliers before these items run out.`,
+        })
     }
-    return labels
+
+    // --- Movement trend ---
+    const change = stats.movements.change
+    if (change >= 20) {
+        insights.push({
+            type: 'info',
+            title: 'High Movement Spike This Month',
+            message: `Inventory movements surged by ${change}% compared to last month. Verify that this is demand-driven and not caused by data entry errors or unauthorized transfers.`,
+        })
+    } else if (change <= -20) {
+        insights.push({
+            type: 'warning',
+            title: 'Movement Activity Drop',
+            message: `Inventory movements dropped by ${Math.abs(change)}% this month. This could indicate slowed operations, understaffing, or potential supply chain delays — worth investigating.`,
+        })
+    } else if (change > 0) {
+        insights.push({
+            type: 'success',
+            title: 'Steady Inventory Activity',
+            message: `Movements are up ${change}% vs last month. Operations appear consistent. Keep monitoring reorder frequency to maintain this balance.`,
+        })
+    }
+
+    // --- Overstock vs inflow check ---
+    if (movChart.length >= 3) {
+        const last3 = movChart.slice(-3)
+        const inGt = last3.every(m => m.stock_in > m.stock_out)
+        if (inGt) {
+            insights.push({
+                type: 'info',
+                title: 'Consistent Inflow Surplus',
+                message: `Stock-in has exceeded stock-out for 3+ consecutive months. Review storage capacity and reorder triggers — accumulated inventory may increase holding costs.`,
+            })
+        }
+    }
+
+    // --- Category concentration ---
+    if (catData.length > 0) {
+        const total = catData.reduce((s, c) => s + c.count, 0)
+        const top = [...catData].sort((a, b) => b.count - a.count)[0]
+        const topPct = total > 0 ? Math.round((top.count / total) * 100) : 0
+        if (topPct >= 40) {
+            insights.push({
+                type: 'warning',
+                title: 'Category Concentration Risk',
+                message: `"${top.label}" makes up ${topPct}% of your inventory. Heavy concentration in one category increases risk if demand or supply shifts. Consider diversifying your stock mix.`,
+            })
+        }
+    }
+
+    // --- Branch imbalance ---
+    if (branches.length >= 2) {
+        const counts = branches.map(b => b.count)
+        const maxC = Math.max(...counts)
+        const minC = Math.min(...counts)
+        if (maxC > 0 && minC / maxC < 0.5) {
+            const heavy = branches.find(b => b.count === maxC)
+            const light = branches.find(b => b.count === minC)
+            insights.push({
+                type: 'info',
+                title: 'Branch Staffing Imbalance',
+                message: `${heavy?.branch} has ${maxC} employees while ${light?.branch} has only ${minC}. Consider redistributing staff or reviewing workload per branch to improve efficiency.`,
+            })
+        }
+    }
+
+    // --- All good ---
+    if (stats.inventory.out_of_stock === 0 && stats.inventory.low_stock === 0) {
+        insights.push({
+            type: 'success',
+            title: 'Inventory Fully Stocked',
+            message: `All items are at or above their minimum stock levels. Great job maintaining healthy inventory — keep your reorder schedule consistent to sustain this.`,
+        })
+    }
+
+    return insights
 })
 
-// Insight config
-const insightConfig: Record<string, { icon: any; bg: string; border: string; text: string }> = {
-    success: { icon: CheckCircle2, bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800' },
-    warning: { icon: AlertTriangle, bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800' },
-    danger:  { icon: XCircle, bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800' },
-    info:    { icon: Info, bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800' },
+// ─── Insight config ───────────────────────────────────────────────────────────
+
+const insightConfig = {
+    success: {
+        border: 'border-l-emerald-500',
+        bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+        icon: CheckCircle2,
+        iconCls: 'text-emerald-600',
+        title: 'text-emerald-700 dark:text-emerald-400',
+    },
+    warning: {
+        border: 'border-l-amber-500',
+        bg: 'bg-amber-50 dark:bg-amber-950/30',
+        icon: AlertTriangle,
+        iconCls: 'text-amber-600',
+        title: 'text-amber-700 dark:text-amber-400',
+    },
+    danger: {
+        border: 'border-l-red-500',
+        bg: 'bg-red-50 dark:bg-red-950/30',
+        icon: ShieldAlert,
+        iconCls: 'text-red-600',
+        title: 'text-red-700 dark:text-red-400',
+    },
+    info: {
+        border: 'border-l-blue-500',
+        bg: 'bg-blue-50 dark:bg-blue-950/30',
+        icon: Info,
+        iconCls: 'text-blue-600',
+        title: 'text-blue-700 dark:text-blue-400',
+    },
 }
 
-// Performance color
-function perfColor(rate: number): string {
-    if (rate >= 90) return 'bg-green-500'
-    if (rate >= 75) return 'bg-amber-500'
-    return 'bg-red-500'
+// ─── Charts ───────────────────────────────────────────────────────────────────
+
+const movementChartRef = ref<HTMLCanvasElement | null>(null)
+const categoryChartRef = ref<HTMLCanvasElement | null>(null)
+const branchChartRef = ref<HTMLCanvasElement | null>(null)
+
+function loadScript(src: string): Promise<void> {
+    return new Promise((resolve) => {
+        if (document.querySelector(`script[src="${src}"]`)) return resolve()
+        const script = document.createElement('script')
+        script.src = src
+        script.onload = () => resolve()
+        document.head.appendChild(script)
+    })
 }
 
-function perfTextColor(rate: number): string {
-    if (rate >= 90) return 'text-green-700'
-    if (rate >= 75) return 'text-amber-700'
-    return 'text-red-700'
+onMounted(async () => {
+    if (!isPaid.value) return
+    await loadScript('https://cdn.jsdelivr.net/npm/chart.js')
+
+    // @ts-ignore
+    const Chart = window.Chart
+
+    const movData = props.movement_chart ?? []
+    const catData = props.category_breakdown ?? []
+    const branchData = props.employees_per_branch ?? []
+
+    /* ── Movement Bar Chart ── */
+    if (movementChartRef.value && movData.length) {
+        new Chart(movementChartRef.value, {
+            type: 'bar',
+            data: {
+                labels: movData.map(d => d.month),
+                datasets: [
+                    {
+                        label: 'Stock In',
+                        data: movData.map(d => d.stock_in),
+                        backgroundColor: 'rgba(16,185,129,0.75)',
+                        borderRadius: 4,
+                    },
+                    {
+                        label: 'Stock Out',
+                        data: movData.map(d => d.stock_out),
+                        backgroundColor: 'rgba(239,68,68,0.75)',
+                        borderRadius: 4,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, boxHeight: 12 } },
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                },
+            },
+        })
+    }
+
+    /* ── Category Doughnut ── */
+    if (categoryChartRef.value && catData.length) {
+        const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6']
+        new Chart(categoryChartRef.value, {
+            type: 'doughnut',
+            data: {
+                labels: catData.map(d => d.label),
+                datasets: [{
+                    data: catData.map(d => d.count),
+                    backgroundColor: colors.slice(0, catData.length),
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, boxWidth: 12, boxHeight: 12 } },
+                },
+                cutout: '60%',
+            },
+        })
+    }
+
+    /* ── Employees per Branch Bar ── */
+    if (branchChartRef.value && branchData.length) {
+        new Chart(branchChartRef.value, {
+            type: 'bar',
+            data: {
+                labels: branchData.map(d => d.branch),
+                datasets: [{
+                    label: 'Employees',
+                    data: branchData.map(d => d.count),
+                    backgroundColor: branchData.map(d =>
+                        d.status === 'Active' ? 'rgba(99,102,241,0.75)' : 'rgba(156,163,175,0.5)'
+                    ),
+                    borderRadius: 5,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                },
+            },
+        })
+    }
+})
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const stockStatusConfig: Record<string, { label: string; cls: string }> = {
+    low: { label: 'Low Stock', cls: 'bg-amber-100 text-amber-700' },
+    out_of_stock: { label: 'Out of Stock', cls: 'bg-red-100 text-red-700' },
+    normal: { label: 'Normal', cls: 'bg-green-100 text-green-700' },
+    overstock: { label: 'Overstock', cls: 'bg-blue-100 text-blue-700' },
+}
+
+const movementTypeConfig: Record<string, { label: string; cls: string }> = {
+    in: { label: 'Stock In', cls: 'bg-emerald-100 text-emerald-700' },
+    out: { label: 'Stock Out', cls: 'bg-red-100 text-red-700' },
+    adjust: { label: 'Adjustment', cls: 'bg-blue-100 text-blue-700' },
+    transfer: { label: 'Transfer', cls: 'bg-violet-100 text-violet-700' },
 }
 </script>
 
 <template>
-    <Head title="Dashboard" />
 
-    <ShopLayout title="Dashboard">
-        <div class="px-6 space-y-6">
+    <Head title="Shop Dashboard" />
 
-            <!-- ── Header ──────────────────────────────────────── -->
-            <div>
-                <h2 class="text-lg font-semibold">Decision Support Dashboard</h2>
-                <p class="text-sm text-muted-foreground">
-                    Key performance indicators and insights for <span class="font-medium text-foreground">{{ shop.shop_name }}</span>.
-                </p>
-            </div>
-
-            <!-- ── KPI Cards ───────────────────────────────────── -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-
-                <!-- Active Employees -->
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <Users class="h-5 w-5 text-blue-600" />
-                            </div>
-                            <span v-if="kpis.employee_change !== 0"
-                                class="flex items-center gap-0.5 text-xs font-semibold"
-                                :class="kpis.employee_change > 0 ? 'text-green-600' : 'text-red-600'">
-                                <ArrowUpRight v-if="kpis.employee_change > 0" class="h-3 w-3" />
-                                <ArrowDownRight v-else class="h-3 w-3" />
-                                {{ Math.abs(kpis.employee_change) }}
-                            </span>
+    <ShopLayout :breadcrumbs="breadcrumbs" title="Dashboard">
+        <div class="flex h-full flex-1 flex-col gap-6 p-4">
+            <!-- ══════════════ DISABLED ══════════════ -->
+            <template v-if="props.shop?.status === 'disabled'">
+                <div class="flex flex-1 items-center justify-center min-h-[60vh]">
+                    <div class="text-center max-w-md">
+                        <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                            <ShieldAlert class="h-8 w-8 text-red-500" />
                         </div>
-                        <p class="text-2xl font-bold">{{ kpis.total_employees }}</p>
-                        <p class="text-xs text-muted-foreground mt-0.5">Active Employees</p>
-                    </CardContent>
-                </Card>
-
-                <!-- Attendance Rate -->
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="h-10 w-10 rounded-lg flex items-center justify-center"
-                                :class="kpis.attendance_rate >= 90 ? 'bg-green-100' : kpis.attendance_rate >= 75 ? 'bg-amber-100' : 'bg-red-100'">
-                                <CalendarCheck class="h-5 w-5"
-                                    :class="kpis.attendance_rate >= 90 ? 'text-green-600' : kpis.attendance_rate >= 75 ? 'text-amber-600' : 'text-red-600'" />
-                            </div>
-                            <span v-if="kpis.attendance_change !== 0"
-                                class="flex items-center gap-0.5 text-xs font-semibold"
-                                :class="kpis.attendance_change > 0 ? 'text-green-600' : 'text-red-600'">
-                                <ArrowUpRight v-if="kpis.attendance_change > 0" class="h-3 w-3" />
-                                <ArrowDownRight v-else class="h-3 w-3" />
-                                {{ Math.abs(kpis.attendance_change) }}%
-                            </span>
-                        </div>
-                        <p class="text-2xl font-bold">{{ kpis.attendance_rate }}%</p>
-                        <p class="text-xs text-muted-foreground mt-0.5">Attendance Rate</p>
-                    </CardContent>
-                </Card>
-
-                <!-- Tardiness Rate -->
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="h-10 w-10 rounded-lg flex items-center justify-center"
-                                :class="kpis.late_rate <= 5 ? 'bg-green-100' : kpis.late_rate <= 15 ? 'bg-amber-100' : 'bg-red-100'">
-                                <Clock class="h-5 w-5"
-                                    :class="kpis.late_rate <= 5 ? 'text-green-600' : kpis.late_rate <= 15 ? 'text-amber-600' : 'text-red-600'" />
-                            </div>
-                            <span class="text-xs text-muted-foreground">{{ kpis.late_count }} late</span>
-                        </div>
-                        <p class="text-2xl font-bold">{{ kpis.late_rate }}%</p>
-                        <p class="text-xs text-muted-foreground mt-0.5">Tardiness Rate</p>
-                    </CardContent>
-                </Card>
-
-                <!-- Payroll Cost -->
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                                <Banknote class="h-5 w-5 text-purple-600" />
-                            </div>
-                            <span v-if="kpis.payroll_change !== 0"
-                                class="flex items-center gap-0.5 text-xs font-semibold"
-                                :class="kpis.payroll_change > 0 ? 'text-red-600' : 'text-green-600'">
-                                <ArrowUpRight v-if="kpis.payroll_change > 0" class="h-3 w-3" />
-                                <ArrowDownRight v-else class="h-3 w-3" />
-                                {{ Math.abs(kpis.payroll_change) }}%
-                            </span>
-                        </div>
-                        <p class="text-2xl font-bold">{{ formatCurrency(kpis.payroll_cost) }}</p>
-                        <p class="text-xs text-muted-foreground mt-0.5">Payroll This Month</p>
-                    </CardContent>
-                </Card>
-
-                <!-- Absenteeism Rate -->
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="h-10 w-10 rounded-lg flex items-center justify-center"
-                                :class="kpis.absenteeism_rate <= 5 ? 'bg-green-100' : kpis.absenteeism_rate <= 10 ? 'bg-amber-100' : 'bg-red-100'">
-                                <XCircle class="h-5 w-5"
-                                    :class="kpis.absenteeism_rate <= 5 ? 'text-green-600' : kpis.absenteeism_rate <= 10 ? 'text-amber-600' : 'text-red-600'" />
-                            </div>
-                            <span class="text-xs text-muted-foreground">{{ kpis.absent_count }} absent</span>
-                        </div>
-                        <p class="text-2xl font-bold">{{ kpis.absenteeism_rate }}%</p>
-                        <p class="text-xs text-muted-foreground mt-0.5">Absenteeism Rate</p>
-                    </CardContent>
-                </Card>
-
-                <!-- Cost Per Employee -->
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                <Banknote class="h-5 w-5 text-indigo-600" />
-                            </div>
-                        </div>
-                        <p class="text-2xl font-bold">{{ formatCurrency(kpis.cost_per_employee) }}</p>
-                        <p class="text-xs text-muted-foreground mt-0.5">Avg. Cost / Employee</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- ── Charts Row ──────────────────────────────────── -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                <!-- Attendance Trend Chart -->
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="text-sm font-semibold">Attendance Trend (Last 14 Days)</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div v-if="attendanceTrend.length === 0" class="text-center py-10 text-sm text-muted-foreground">
-                            No attendance data available.
-                        </div>
-                        <svg v-else :viewBox="`0 0 ${attChartWidth} ${attChartHeight}`" class="w-full h-auto">
-                            <!-- Y-axis grid lines -->
-                            <template v-for="(label, i) in attYLabels" :key="'ay-' + i">
-                                <line
-                                    :x1="attPadding.left" :x2="attChartWidth - attPadding.right"
-                                    :y1="attChartHeight - attPadding.bottom - ((i / (attYLabels.length - 1)) * (attChartHeight - attPadding.top - attPadding.bottom))"
-                                    :y2="attChartHeight - attPadding.bottom - ((i / (attYLabels.length - 1)) * (attChartHeight - attPadding.top - attPadding.bottom))"
-                                    stroke="currentColor" class="text-muted/30" stroke-dasharray="4" />
-                                <text
-                                    :x="attPadding.left - 5"
-                                    :y="attChartHeight - attPadding.bottom - ((i / (attYLabels.length - 1)) * (attChartHeight - attPadding.top - attPadding.bottom)) + 4"
-                                    text-anchor="end" class="fill-muted-foreground text-[9px]">
-                                    {{ label }}
-                                </text>
-                            </template>
-
-                            <!-- Stacked bars -->
-                            <template v-for="(d, i) in attendanceTrend" :key="'att-' + i">
-                                <!-- Present (green) -->
-                                <rect :x="attBarX(i)" :y="attBarY(d.present + d.late + d.absent + d.half_day)"
-                                    :width="attBarWidth()" :height="attBarHeight(d.present)"
-                                    rx="2" class="fill-green-500/80" />
-                                <!-- Late (amber) -->
-                                <rect :x="attBarX(i)" :y="attBarY(d.late + d.absent + d.half_day)"
-                                    :width="attBarWidth()" :height="attBarHeight(d.late)"
-                                    rx="0" class="fill-amber-500/80" />
-                                <!-- Absent (red) -->
-                                <rect :x="attBarX(i)" :y="attBarY(d.absent + d.half_day)"
-                                    :width="attBarWidth()" :height="attBarHeight(d.absent)"
-                                    rx="0" class="fill-red-500/80" />
-                                <!-- Half Day (blue) -->
-                                <rect :x="attBarX(i)" :y="attBarY(d.half_day)"
-                                    :width="attBarWidth()" :height="attBarHeight(d.half_day)"
-                                    rx="0" class="fill-blue-500/80" />
-
-                                <!-- X label -->
-                                <text v-if="i % 2 === 0"
-                                    :x="attBarX(i) + attBarWidth() / 2"
-                                    :y="attChartHeight - 8"
-                                    text-anchor="middle" class="fill-muted-foreground text-[8px]">
-                                    {{ d.label }}
-                                </text>
-                            </template>
-                        </svg>
-
-                        <!-- Legend -->
-                        <div class="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground">
-                            <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-green-500" /> Present</span>
-                            <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-amber-500" /> Late</span>
-                            <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-red-500" /> Absent</span>
-                            <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-blue-500" /> Half Day</span>
-                        </div>
-
-                        <!-- Decision Note -->
-                        <div class="mt-3 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                            <Lightbulb class="inline h-3 w-3 mr-1 -mt-0.5 text-amber-500" />
-                            <strong>Decision Note:</strong> Look for patterns — consistent absences on specific days may indicate scheduling issues.
-                            A healthy shop targets 90%+ attendance. Spikes in tardiness may warrant shift time adjustments.
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Payroll Trend Chart -->
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="text-sm font-semibold">Payroll Cost Trend</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div v-if="payrollTrend.length === 0" class="text-center py-10 text-sm text-muted-foreground">
-                            No finalized payroll data available.
-                        </div>
-                        <svg v-else :viewBox="`0 0 ${payChartWidth} ${payChartHeight}`" class="w-full h-auto">
-                            <!-- Y-axis -->
-                            <template v-for="(label, i) in payYLabels" :key="'py-' + i">
-                                <line
-                                    :x1="payPadding.left" :x2="payChartWidth - payPadding.right"
-                                    :y1="payChartHeight - payPadding.bottom - ((i / (payYLabels.length - 1)) * (payChartHeight - payPadding.top - payPadding.bottom))"
-                                    :y2="payChartHeight - payPadding.bottom - ((i / (payYLabels.length - 1)) * (payChartHeight - payPadding.top - payPadding.bottom))"
-                                    stroke="currentColor" class="text-muted/30" stroke-dasharray="4" />
-                                <text
-                                    :x="payPadding.left - 5"
-                                    :y="payChartHeight - payPadding.bottom - ((i / (payYLabels.length - 1)) * (payChartHeight - payPadding.top - payPadding.bottom)) + 4"
-                                    text-anchor="end" class="fill-muted-foreground text-[9px]">
-                                    {{ label }}
-                                </text>
-                            </template>
-
-                            <!-- Area fill -->
-                            <polygon
-                                :points="`${payPadding.left},${payChartHeight - payPadding.bottom} ${payLinePoints()} ${payChartWidth - payPadding.right},${payChartHeight - payPadding.bottom}`"
-                                class="fill-purple-500/10" />
-
-                            <!-- Line -->
-                            <polyline :points="payLinePoints()" fill="none" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round"
-                                class="stroke-purple-500" />
-
-                            <!-- Dots + labels -->
-                            <template v-for="(d, i) in payrollTrend" :key="'pd-' + i">
-                                <circle :cx="payDotX(i)" :cy="payDotY(d.net_pay)" r="4"
-                                    class="fill-purple-500 stroke-white" stroke-width="2" />
-                                <text :x="payDotX(i)" :y="payDotY(d.net_pay) - 10"
-                                    text-anchor="middle" class="fill-foreground text-[8px] font-semibold">
-                                    {{ formatCurrency(d.net_pay) }}
-                                </text>
-                                <text :x="payDotX(i)" :y="payChartHeight - 8"
-                                    text-anchor="middle" class="fill-muted-foreground text-[7px]">
-                                    {{ d.label.length > 12 ? d.label.slice(0, 12) + '…' : d.label }}
-                                </text>
-                            </template>
-                        </svg>
-
-                        <!-- Decision Note -->
-                        <div class="mt-3 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                            <Lightbulb class="inline h-3 w-3 mr-1 -mt-0.5 text-amber-500" />
-                            <strong>Decision Note:</strong> Monitor payroll trends against revenue. If payroll costs rise faster than income,
-                            consider optimizing schedules or reviewing overtime. A stable or declining cost-per-employee indicates efficiency.
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- ── Employee Performance Table ──────────────────── -->
-            <Card>
-                <CardHeader class="pb-2">
-                    <CardTitle class="text-sm font-semibold">Employee Attendance Performance (This Month)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div v-if="performance.length === 0" class="text-center py-10 text-sm text-muted-foreground">
-                        No employee data available.
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                            Shop Disabled
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            Your shop has been disabled. Please contact support for assistance.
+                        </p>
                     </div>
-                    <div v-else class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="text-xs text-muted-foreground border-b">
-                                    <th class="text-left px-4 py-2 font-medium">Employee</th>
-                                    <th class="text-center px-4 py-2 font-medium">Present</th>
-                                    <th class="text-center px-4 py-2 font-medium">Absent</th>
-                                    <th class="text-center px-4 py-2 font-medium">Late</th>
-                                    <th class="text-center px-4 py-2 font-medium">Rate</th>
-                                    <th class="text-left px-4 py-2 font-medium w-[30%]">Performance</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="emp in performance" :key="emp.id"
-                                    class="border-b last:border-0 hover:bg-muted/20">
-                                    <td class="px-4 py-2.5">
-                                        <p class="font-medium">{{ emp.name }}</p>
-                                        <p class="text-xs text-muted-foreground">
-                                            {{ emp.position }}
-                                            <span v-if="emp.branch">· {{ emp.branch }}</span>
-                                        </p>
-                                    </td>
-                                    <td class="text-center px-4 py-2.5">
-                                        <span class="inline-flex items-center justify-center h-6 w-8 rounded bg-green-100 text-green-700 text-xs font-semibold">
-                                            {{ emp.present }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center px-4 py-2.5">
-                                        <span class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
-                                            :class="emp.absent > 0 ? 'bg-red-100 text-red-700' : 'bg-muted text-muted-foreground'">
-                                            {{ emp.absent }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center px-4 py-2.5">
-                                        <span class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
-                                            :class="emp.late > 0 ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'">
-                                            {{ emp.late }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center px-4 py-2.5">
-                                        <span class="text-xs font-bold" :class="perfTextColor(emp.rate)">
-                                            {{ emp.rate }}%
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-2.5">
-                                        <div class="flex items-center gap-2">
-                                            <div class="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                                                <div class="h-full rounded-full transition-all" :class="perfColor(emp.rate)"
-                                                    :style="{ width: `${emp.rate}%` }" />
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                </div>
+            </template>
 
-                    <!-- Decision Note -->
-                    <div class="mt-3 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                        <Lightbulb class="inline h-3 w-3 mr-1 -mt-0.5 text-amber-500" />
-                        <strong>Decision Note:</strong> Employees below 75% attendance may need a check-in.
-                        Consider whether absenteeism is due to scheduling conflicts, personal issues, or low engagement.
-                        Employees with 95%+ attendance could be candidates for recognition or incentive programs.
-                    </div>
-                </CardContent>
-            </Card>
+            <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
+            <template v-else-if="isApproved">
 
-            <!-- ── AI-Driven Insights ──────────────────────────── -->
-            <Card>
-                <CardHeader class="pb-2">
-                    <CardTitle class="text-sm font-semibold flex items-center gap-2">
-                        <Lightbulb class="h-4 w-4 text-amber-500" />
-                        Decision Support Insights
-                    </CardTitle>
-                </CardHeader>
-                <CardContent class="space-y-3">
-                    <div v-for="(insight, i) in insights" :key="i"
-                        class="rounded-lg border px-4 py-3"
-                        :class="[insightConfig[insight.type].bg, insightConfig[insight.type].border]">
-                        <div class="flex items-start gap-3">
-                            <component :is="insightConfig[insight.type].icon"
-                                class="h-5 w-5 mt-0.5 flex-shrink-0"
-                                :class="insightConfig[insight.type].text" />
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold" :class="insightConfig[insight.type].text">
-                                    {{ insight.title }}
+                <!-- Welcome Banner -->
+                <div
+                    class="rounded-xl bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 border border-border p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                            Welcome back, {{ user.name }} 👋
+                        </h2>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+                            Here's a live overview of
+                            <span class="font-semibold text-gray-800 dark:text-white">{{ props.order?.shop_name
+                                }}</span>
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium capitalize">
+                            {{ props.order?.subscription_plan ?? 'Active' }}
+                        </span>
+                        <span v-if="props.order?.expires_at" class="text-muted-foreground">
+                            Expires {{ new Date(props.order.expires_at).toLocaleDateString('en-PH', {
+                                month: 'short',
+                                day: 'numeric', year: 'numeric'
+                            }) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ── KPI STAT CARDS ── -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+                    <!-- Employees -->
+                    <Card>
+                        <CardContent class="pt-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Employees
                                 </p>
-                                <p class="text-xs mt-0.5" :class="insightConfig[insight.type].text + '/80'">
-                                    {{ insight.message }}
-                                </p>
-                                <div class="mt-2 flex items-start gap-1.5">
-                                    <ArrowUpRight class="h-3 w-3 mt-0.5 flex-shrink-0" :class="insightConfig[insight.type].text" />
-                                    <p class="text-xs font-medium" :class="insightConfig[insight.type].text">
-                                        Recommended Action: {{ insight.action }}
-                                    </p>
+                                <div class="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                    <Users class="h-4 w-4 text-indigo-600" />
                                 </div>
                             </div>
+                            <p class="text-3xl font-bold">{{ props.stats?.employees.total ?? 0 }}</p>
+                            <div class="flex gap-2 mt-1.5">
+                                <span class="text-xs text-emerald-600 font-medium">{{ props.stats?.employees.active ?? 0
+                                    }} active</span>
+                                <span class="text-xs text-muted-foreground">·</span>
+                                <span class="text-xs text-muted-foreground">{{ props.stats?.employees.inactive ?? 0 }}
+                                    inactive</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Branches -->
+                    <Card>
+                        <CardContent class="pt-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Branches
+                                </p>
+                                <div class="h-8 w-8 rounded-lg bg-violet-100 flex items-center justify-center">
+                                    <GitBranch class="h-4 w-4 text-violet-600" />
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold">{{ props.stats?.branches.total ?? 0 }}</p>
+                            <p class="text-xs text-emerald-600 font-medium mt-1.5">{{ props.stats?.branches.active ?? 0
+                                }} active</p>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Inventory -->
+                    <Card>
+                        <CardContent class="pt-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Inventory
+                                </p>
+                                <div class="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                                    <Package class="h-4 w-4 text-amber-600" />
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold">{{ props.stats?.inventory.total ?? 0 }}</p>
+                            <div class="flex gap-2 mt-1.5">
+                                <span class="text-xs text-amber-600 font-medium">{{ props.stats?.inventory.low_stock ??
+                                    0 }} low</span>
+                                <span class="text-xs text-muted-foreground">·</span>
+                                <span class="text-xs text-red-500 font-medium">{{ props.stats?.inventory.out_of_stock ??
+                                    0 }} out</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Alerts + Movement -->
+                    <Card>
+                        <CardContent class="pt-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Alerts</p>
+                                <div class="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center">
+                                    <AlertTriangle class="h-4 w-4 text-red-600" />
+                                </div>
+                            </div>
+                            <p class="text-3xl font-bold"
+                                :class="(props.stats?.low_stock_alerts ?? 0) > 0 ? 'text-red-600' : ''">
+                                {{ props.stats?.low_stock_alerts ?? 0 }}
+                            </p>
+                            <div class="flex items-center gap-1 mt-1.5">
+                                <ArrowUpRight v-if="(props.stats?.movements.change ?? 0) >= 0"
+                                    class="h-3.5 w-3.5 text-emerald-500" />
+                                <ArrowDownRight v-else class="h-3.5 w-3.5 text-red-500" />
+                                <p class="text-xs text-muted-foreground">
+                                    <span
+                                        :class="(props.stats?.movements.change ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'"
+                                        class="font-medium">
+                                        {{ Math.abs(props.stats?.movements.change ?? 0) }}%
+                                    </span>
+                                    movements vs last month
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                <!-- ── CHARTS ROW 1 ── -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <!-- Movement Bar Chart -->
+                    <Card class="md:col-span-2">
+                        <CardHeader class="pb-2">
+                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
+                                <Activity class="h-4 w-4 text-muted-foreground" />
+                                Inventory Movements (12 months)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="(props.movement_chart?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                                No movement data yet.
+                            </div>
+                            <div v-else class="relative h-[200px]">
+                                <canvas ref="movementChartRef"></canvas>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Category Doughnut -->
+                    <Card>
+                        <CardHeader class="pb-2">
+                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
+                                <BoxSelect class="h-4 w-4 text-muted-foreground" />
+                                Items by Category
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="flex items-center justify-center">
+                            <div v-if="(props.category_breakdown?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                                No categories yet.
+                            </div>
+                            <div v-else class="relative w-full h-[200px]">
+                                <canvas ref="categoryChartRef"></canvas>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                <!-- ── CHARTS ROW 2 + LOW STOCK TABLE ── -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <!-- Employees per Branch -->
+                    <Card>
+                        <CardHeader class="pb-2">
+                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
+                                <Users class="h-4 w-4 text-muted-foreground" />
+                                Employees per Branch
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="(props.employees_per_branch?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                                No branches yet.
+                            </div>
+                            <div v-else class="relative h-[180px]">
+                                <canvas ref="branchChartRef"></canvas>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Low Stock Items Table -->
+                    <Card class="md:col-span-2">
+                        <CardHeader class="pb-2">
+                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
+                                <AlertTriangle class="h-4 w-4 text-amber-500" />
+                                Low Stock Items
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="(props.low_stock_items?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-20 text-sm text-muted-foreground">
+                                All items are sufficiently stocked.
+                            </div>
+                            <div v-else class="rounded-lg border overflow-hidden">
+                                <table class="w-full text-xs">
+                                    <thead>
+                                        <tr class="bg-muted/40 text-muted-foreground border-b">
+                                            <th class="text-left px-3 py-2 font-medium">Item</th>
+                                            <th class="text-left px-3 py-2 font-medium">Category</th>
+                                            <th class="text-right px-3 py-2 font-medium">Qty</th>
+                                            <th class="text-right px-3 py-2 font-medium">Min</th>
+                                            <th class="text-left px-3 py-2 font-medium">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="item in props.low_stock_items" :key="item.sku"
+                                            class="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                                            <td class="px-3 py-2">
+                                                <p class="font-medium text-foreground">{{ item.name }}</p>
+                                                <p class="text-muted-foreground font-mono text-[10px]">{{ item.sku }}
+                                                </p>
+                                            </td>
+                                            <td class="px-3 py-2 text-muted-foreground">{{ item.category }}</td>
+                                            <td class="px-3 py-2 text-right font-bold"
+                                                :class="item.quantity === 0 ? 'text-red-600' : 'text-amber-600'">
+                                                {{ item.quantity }}
+                                            </td>
+                                            <td class="px-3 py-2 text-right text-muted-foreground">{{ item.min_stock }}
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                                                    :class="stockStatusConfig[item.status]?.cls ?? 'bg-gray-100 text-gray-500'">
+                                                    {{ stockStatusConfig[item.status]?.label ?? item.status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                <!-- ══════════════ DSS INSIGHTS PANEL ══════════════ -->
+                <div v-if="dssInsights.length > 0">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div
+                            class="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                            <Lightbulb class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <h3 class="text-sm font-semibold text-foreground">Decision Support Insights</h3>
+                        <span class="text-xs text-muted-foreground">— recommendations based on your current data</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        <div v-for="(insight, i) in dssInsights" :key="i" class="rounded-xl border-l-4 p-4 flex gap-3"
+                            :class="[insightConfig[insight.type].bg, insightConfig[insight.type].border]">
+                            <div class="mt-0.5 shrink-0">
+                                <component :is="insightConfig[insight.type].icon" class="h-4 w-4"
+                                    :class="insightConfig[insight.type].iconCls" />
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold mb-1" :class="insightConfig[insight.type].title">
+                                    {{ insight.title }}
+                                </p>
+                                <p class="text-xs text-muted-foreground leading-relaxed">
+                                    {{ insight.message }}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+
+                <!-- ── RECENT MOVEMENTS ── -->
+                <Card>
+                    <CardHeader class="pb-2">
+                        <CardTitle class="text-sm font-semibold flex items-center gap-2">
+                            <RefreshCcw class="h-4 w-4 text-muted-foreground" />
+                            Recent Inventory Movements
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div v-if="(props.recent_movements?.length ?? 0) === 0"
+                            class="flex items-center justify-center h-20 text-sm text-muted-foreground">
+                            No movements recorded yet.
+                        </div>
+                        <div v-else class="overflow-x-auto">
+                            <div class="rounded-lg border overflow-hidden">
+                                <table class="w-full text-xs">
+                                    <thead>
+                                        <tr class="bg-muted/40 text-muted-foreground border-b">
+                                            <th class="text-left px-3 py-2 font-medium">Item</th>
+                                            <th class="text-left px-3 py-2 font-medium">Type</th>
+                                            <th class="text-right px-3 py-2 font-medium">Qty</th>
+                                            <th class="text-right px-3 py-2 font-medium">Before</th>
+                                            <th class="text-right px-3 py-2 font-medium">After</th>
+                                            <th class="text-left px-3 py-2 font-medium">By</th>
+                                            <th class="text-left px-3 py-2 font-medium">Notes</th>
+                                            <th class="text-left px-3 py-2 font-medium">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(mov, i) in props.recent_movements" :key="i"
+                                            class="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                                            <td class="px-3 py-2">
+                                                <p class="font-medium text-foreground">{{ mov.item }}</p>
+                                                <p class="text-muted-foreground font-mono text-[10px]">{{ mov.sku }}</p>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <span class="px-2 py-0.5 rounded-full font-medium capitalize"
+                                                    :class="movementTypeConfig[mov.type]?.cls ?? 'bg-gray-100 text-gray-500'">
+                                                    {{ movementTypeConfig[mov.type]?.label ?? mov.type }}
+                                                </span>
+                                            </td>
+                                            <td class="px-3 py-2 text-right font-bold"
+                                                :class="mov.type === 'in' ? 'text-emerald-600' : 'text-red-600'">
+                                                {{ mov.type === 'in' ? '+' : '-' }}{{ mov.quantity }}
+                                            </td>
+                                            <td class="px-3 py-2 text-right text-muted-foreground">{{ mov.before }}</td>
+                                            <td class="px-3 py-2 text-right font-medium">{{ mov.after }}</td>
+                                            <td class="px-3 py-2 text-muted-foreground">{{ mov.by }}</td>
+                                            <td class="px-3 py-2 text-muted-foreground max-w-32 truncate">{{ mov.notes
+                                                ?? '—' }}</td>
+                                            <td class="px-3 py-2 text-muted-foreground whitespace-nowrap">{{ mov.date }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+            </template>
+
+            <!-- ══════════════ PAID BUT NOT APPROVED: Waiting ══════════════ -->
+            <template  v-else-if="isPaid && !isApproved">
+                <div class="flex flex-1 items-center justify-center min-h-[60vh]">
+                    <div class="text-center max-w-md">
+                        <div class="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+                            <Clock class="h-8 w-8 text-yellow-500" />
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                            Awaiting Admin Approval
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            Your payment has been received. Please wait while our admin reviews and approves your
+                            account.
+                            You'll have full access once approved.
+                        </p>
+                    </div>
+                </div>
+            </template>
+
+            <!-- NOT PAID: Order Form -->
+            <template v-else>
+                <div v-if="!showOrder" class="rounded-xl bg-gray-100 dark:bg-neutral-800 p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
+                        Welcome {{ user.name }} 👋
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400 mt-2 max-w-2xl">
+                        Complete your shop details and select the plans you need.
+                    </p>
+                    <Button class="mt-4" @click="showOrder = true">Get Started</Button>
+                </div>
+                <CheckoutConfirm v-if="showOrder" plan-name="Standard" :vat-pct="12" :billing-months="1"
+                    :user="{ name: user.name, email: user.email }" :shop="props.shop ?? undefined" />
+            </template>
 
         </div>
     </ShopLayout>

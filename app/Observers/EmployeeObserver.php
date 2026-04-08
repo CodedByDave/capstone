@@ -15,7 +15,7 @@ class EmployeeObserver
         if (! $employee->isForceDeleting()) {
             EmployeeArchive::create([
                 'shop_id'             => $employee->shop_id,
-                'user_id'             => $employee->user_id,
+                'user_id'             => auth()->id(),
                 'employee_id_ref'     => $employee->id,
                 'employee_id'         => $employee->employee_id,
                 'first_name'          => $employee->first_name,
@@ -26,7 +26,7 @@ class EmployeeObserver
                 'position'            => $employee->position,
                 'hire_date'           => $employee->hire_date,
                 'salary'              => $employee->salary,
-                'status'              => $employee->status,
+                'status'              => 'Archived',
                 'original_created_at' => $employee->created_at,
                 'archived_at'         => now(),
             ]);

@@ -19,7 +19,7 @@ class StoreEmployeeRequest extends FormRequest
             'first_name'  => 'required|string|max:255',
             'last_name'   => 'required|string|max:255',
             'email'       => 'required|email|max:255|unique:users,email|unique:employees,email',
-            'phone'       => 'required|string|max:20',
+            'phone'       => 'required|regex:/^09\d{9}$/',
             'address'     => 'required|string|max:500',
             'position'    => 'required|string|max:255',
             'hire_date'   => 'required|date|before_or_equal:today',
