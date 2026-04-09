@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan:*)",
+      "Bash(xargs grep:*)",
+      "Bash(php -l app/Http/Controllers/Shop/Operations/ShopOrderController.php)",
+      "Bash(php -l app/Http/Controllers/Shop/Operations/ShopServiceController.php)",
+      "Bash(php -l app/Http/Controllers/Shop/Operations/PromotionController.php)",
+      "Bash(php -l app/Http/Controllers/Shop/Employee/PayrollController.php)",
+      "Bash(find \"C:\\\\xampp\\\\htdocs\\\\thesis-a\\\\web-app\\\\app\" -name \"CheckPermission.php\" -exec cat -n {} \\\\;)",
+      "Bash(find \"C:\\\\xampp\\\\htdocs\\\\thesis-a\\\\web-app\\\\resources\\\\js\" -name \"usePermissions*\" -exec cat -n {} \\\\;)",
+      "Bash(xargs ls:*)",
+      "Bash(find \"C:\\\\xampp\\\\htdocs\\\\thesis-a\\\\web-app\" -name \"Module.php\" -path \"*/Models/*\" -exec cat {} \\\\; find \"C:\\\\xampp\\\\htdocs\\\\thesis-a\\\\web-app\" -name \"*module*\" -path \"*/migrations/*\")",
+      "Bash(xargs cat:*)"
+    ]
+  }
+}
