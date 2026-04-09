@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ShopDataController;
 use App\Http\Controllers\Shop\ShopDashboardController;
-use App\Http\Controllers\Shop\ShopOrderController;
 use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\Employee\EmployeeController;
 use App\Http\Controllers\Shop\Employee\ScheduleController;
@@ -23,6 +22,8 @@ use App\Http\Controllers\Shop\Inventory\InventoryController;
 use App\Http\Controllers\Shop\Inventory\SupplierController;
 use App\Http\Controllers\Shop\Inventory\InventoryCategoryController;
 use App\Http\Controllers\Shop\Inventory\LowStockAlertController;
+use App\Http\Controllers\Shop\Operations\ShopOrderController;
+use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -198,6 +199,33 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::delete('/supplier/{supplier}',   [SupplierController::class, 'destroy'])->name('supplier.destroy');
     Route::get('/supplier/archive',         [SupplierController::class, 'archive'])->name('supplier.archive');
     Route::post('/supplier/{id}/restore',   [SupplierController::class, 'restore'])->name('supplier.restore');
+
+    // Operations Routes
+    Route::get('operations/orders',                   [ShopOrderController::class, 'index'])->name('shop.orders.index');
+    Route::get('operations/orders/create',            [ShopOrderController::class, 'create'])->name('shop.orders.create');
+    Route::post('operations/orders',                  [ShopOrderController::class, 'store'])->name('shop.orders.store');
+    Route::get('operations/orders/{order}',           [ShopOrderController::class, 'show'])->name('shop.orders.show');
+    Route::get('operations/orders/{order}/edit',      [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
+    Route::put('operations/orders/{order}',           [ShopOrderController::class, 'update'])->name('shop.orders.update');
+    Route::delete('operations/orders/{order}',        [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
+
+    //Services and pricing
+    Route::get('operations/services',                          [ShopServiceController::class, 'index'])->name('shop.services.index');
+    Route::get('operations/services/create',                   [ShopServiceController::class, 'create'])->name('shop.services.create');
+    Route::post('operations/services',                         [ShopServiceController::class, 'store'])->name('shop.services.store');
+    Route::post('operations/services/restore-all',             [ShopServiceController::class, 'restoreAll'])->name('shop.services.restore-all');  // ← before {service}
+    Route::get('operations/services/{service}/edit',           [ShopServiceController::class, 'edit'])->name('shop.services.edit');
+    Route::put('operations/services/{service}',                [ShopServiceController::class, 'update'])->name('shop.services.update');
+    Route::delete('operations/services/{service}',             [ShopServiceController::class, 'destroy'])->name('shop.services.destroy');
+    Route::patch('operations/services/{service}/toggle',       [ShopServiceController::class, 'toggleActive'])->name('shop.services.toggle');
+    Route::patch('operations/services/{service}/restore',      [ShopServiceController::class, 'restore'])->name('shop.services.restore');
+
+    Route::post('operations/orders/restore-all',        [ShopOrderController::class, 'restoreAll'])->name('shop.orders.restore-all');
+Route::patch('operations/orders/{order}/restore',   [ShopOrderController::class, 'restore'])->name('shop.orders.restore');
+
+    // Dedicated status & payment update endpoints
+    Route::patch('orders/{order}/status',  [ShopOrderController::class, 'updateStatus'])->name('status');
+    Route::patch('orders/{order}/payment', [ShopOrderController::class, 'updatePayment'])->name('payment');
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {

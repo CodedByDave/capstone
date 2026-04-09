@@ -1,0 +1,1 @@
+import{d as o,a as e,o as s}from"./app-A8pWEMEY.js";const n={src:"/laundryhub.png",alt:"LaundryHub Logo",class:"h-10 w-10 object-cover rounded-full"},p=o({inheritAttrs:!1,__name:"AppLogoIcon",props:{className:{}},setup(r){return(t,a)=>(s(),e("img",n))}});export{p as _};

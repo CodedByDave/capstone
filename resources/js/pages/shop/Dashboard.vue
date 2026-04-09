@@ -371,38 +371,37 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
             </template>
 
             <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
+            <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
             <template v-else-if="isApproved">
 
                 <!-- Welcome Banner -->
                 <div
-                    class="rounded-xl bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 border border-border p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    class="rounded-xl border border-border bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                             Welcome back, {{ user.name }} 👋
                         </h2>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                            Here's a live overview of
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                            Live overview of
                             <span class="font-semibold text-gray-800 dark:text-white">{{ props.order?.shop_name
                                 }}</span>
                         </p>
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div class="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
                         <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium capitalize">
                             {{ props.order?.subscription_plan ?? 'Active' }}
                         </span>
-                        <span v-if="props.order?.expires_at" class="text-muted-foreground">
+                        <span v-if="props.order?.expires_at">
                             Expires {{ new Date(props.order.expires_at).toLocaleDateString('en-PH', {
                                 month: 'short',
-                                day: 'numeric', year: 'numeric'
-                            }) }}
+                                day: 'numeric', year: 'numeric' }) }}
                         </span>
                     </div>
                 </div>
 
-                <!-- ── KPI STAT CARDS ── -->
+                <!-- ── 1. KPI CARDS ── -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-                    <!-- Employees -->
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
@@ -413,7 +412,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                 </div>
                             </div>
                             <p class="text-3xl font-bold">{{ props.stats?.employees.total ?? 0 }}</p>
-                            <div class="flex gap-2 mt-1.5">
+                            <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-xs text-emerald-600 font-medium">{{ props.stats?.employees.active ?? 0
                                     }} active</span>
                                 <span class="text-xs text-muted-foreground">·</span>
@@ -423,7 +422,6 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         </CardContent>
                     </Card>
 
-                    <!-- Branches -->
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
@@ -439,7 +437,6 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         </CardContent>
                     </Card>
 
-                    <!-- Inventory -->
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
@@ -450,7 +447,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                 </div>
                             </div>
                             <p class="text-3xl font-bold">{{ props.stats?.inventory.total ?? 0 }}</p>
-                            <div class="flex gap-2 mt-1.5">
+                            <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-xs text-amber-600 font-medium">{{ props.stats?.inventory.low_stock ??
                                     0 }} low</span>
                                 <span class="text-xs text-muted-foreground">·</span>
@@ -460,7 +457,6 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         </CardContent>
                     </Card>
 
-                    <!-- Alerts + Movement -->
                     <Card>
                         <CardContent class="pt-5">
                             <div class="flex items-center justify-between mb-3">
@@ -477,37 +473,34 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                 <ArrowUpRight v-if="(props.stats?.movements.change ?? 0) >= 0"
                                     class="h-3.5 w-3.5 text-emerald-500" />
                                 <ArrowDownRight v-else class="h-3.5 w-3.5 text-red-500" />
-                                <p class="text-xs text-muted-foreground">
-                                    <span
-                                        :class="(props.stats?.movements.change ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'"
-                                        class="font-medium">
-                                        {{ Math.abs(props.stats?.movements.change ?? 0) }}%
-                                    </span>
-                                    movements vs last month
-                                </p>
+                                <span class="text-xs font-medium"
+                                    :class="(props.stats?.movements.change ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'">
+                                    {{ Math.abs(props.stats?.movements.change ?? 0) }}%
+                                </span>
+                                <span class="text-xs text-muted-foreground">movements vs last month</span>
                             </div>
                         </CardContent>
                     </Card>
 
                 </div>
 
-                <!-- ── CHARTS ROW 1 ── -->
+                <!-- ── 2. CHARTS ── -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                    <!-- Movement Bar Chart -->
+                    <!-- Movement Bar — spans 2 cols -->
                     <Card class="md:col-span-2">
                         <CardHeader class="pb-2">
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
                                 <Activity class="h-4 w-4 text-muted-foreground" />
-                                Inventory Movements (12 months)
+                                Inventory movements (12 months)
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div v-if="(props.movement_chart?.length ?? 0) === 0"
-                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                                class="flex items-center justify-center h-44 text-sm text-muted-foreground">
                                 No movement data yet.
                             </div>
-                            <div v-else class="relative h-[200px]">
+                            <div v-else class="relative h-[220px]">
                                 <canvas ref="movementChartRef"></canvas>
                             </div>
                         </CardContent>
@@ -518,106 +511,49 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         <CardHeader class="pb-2">
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
                                 <BoxSelect class="h-4 w-4 text-muted-foreground" />
-                                Items by Category
+                                Items by category
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="flex items-center justify-center">
                             <div v-if="(props.category_breakdown?.length ?? 0) === 0"
-                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                                class="flex items-center justify-center h-44 text-sm text-muted-foreground">
                                 No categories yet.
                             </div>
-                            <div v-else class="relative w-full h-[200px]">
+                            <div v-else class="relative w-full h-[220px]">
                                 <canvas ref="categoryChartRef"></canvas>
                             </div>
                         </CardContent>
                     </Card>
 
-                </div>
-
-                <!-- ── CHARTS ROW 2 + LOW STOCK TABLE ── -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                    <!-- Employees per Branch -->
-                    <Card>
+                    <!-- Employees per Branch — full width row -->
+                    <Card class="md:col-span-3">
                         <CardHeader class="pb-2">
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
                                 <Users class="h-4 w-4 text-muted-foreground" />
-                                Employees per Branch
+                                Employees per branch
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div v-if="(props.employees_per_branch?.length ?? 0) === 0"
-                                class="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                                class="flex items-center justify-center h-28 text-sm text-muted-foreground">
                                 No branches yet.
                             </div>
-                            <div v-else class="relative h-[180px]">
+                            <div v-else class="relative h-[160px]">
                                 <canvas ref="branchChartRef"></canvas>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <!-- Low Stock Items Table -->
-                    <Card class="md:col-span-2">
-                        <CardHeader class="pb-2">
-                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
-                                <AlertTriangle class="h-4 w-4 text-amber-500" />
-                                Low Stock Items
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div v-if="(props.low_stock_items?.length ?? 0) === 0"
-                                class="flex items-center justify-center h-20 text-sm text-muted-foreground">
-                                All items are sufficiently stocked.
-                            </div>
-                            <div v-else class="rounded-lg border overflow-hidden">
-                                <table class="w-full text-xs">
-                                    <thead>
-                                        <tr class="bg-muted/40 text-muted-foreground border-b">
-                                            <th class="text-left px-3 py-2 font-medium">Item</th>
-                                            <th class="text-left px-3 py-2 font-medium">Category</th>
-                                            <th class="text-right px-3 py-2 font-medium">Qty</th>
-                                            <th class="text-right px-3 py-2 font-medium">Min</th>
-                                            <th class="text-left px-3 py-2 font-medium">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="item in props.low_stock_items" :key="item.sku"
-                                            class="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                                            <td class="px-3 py-2">
-                                                <p class="font-medium text-foreground">{{ item.name }}</p>
-                                                <p class="text-muted-foreground font-mono text-[10px]">{{ item.sku }}
-                                                </p>
-                                            </td>
-                                            <td class="px-3 py-2 text-muted-foreground">{{ item.category }}</td>
-                                            <td class="px-3 py-2 text-right font-bold"
-                                                :class="item.quantity === 0 ? 'text-red-600' : 'text-amber-600'">
-                                                {{ item.quantity }}
-                                            </td>
-                                            <td class="px-3 py-2 text-right text-muted-foreground">{{ item.min_stock }}
-                                            </td>
-                                            <td class="px-3 py-2">
-                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium"
-                                                    :class="stockStatusConfig[item.status]?.cls ?? 'bg-gray-100 text-gray-500'">
-                                                    {{ stockStatusConfig[item.status]?.label ?? item.status }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </CardContent>
-                    </Card>
-
                 </div>
 
-                <!-- ══════════════ DSS INSIGHTS PANEL ══════════════ -->
+                <!-- ── 3. DECISION SUPPORT CARDS ── -->
                 <div v-if="dssInsights.length > 0">
                     <div class="flex items-center gap-2 mb-3">
                         <div
                             class="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
                             <Lightbulb class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <h3 class="text-sm font-semibold text-foreground">Decision Support Insights</h3>
+                        <h3 class="text-sm font-semibold">Decision support</h3>
                         <span class="text-xs text-muted-foreground">— recommendations based on your current data</span>
                     </div>
 
@@ -628,7 +564,21 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                                 <component :is="insightConfig[insight.type].icon" class="h-4 w-4"
                                     :class="insightConfig[insight.type].iconCls" />
                             </div>
-                            <div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 mb-1.5">
+                                    <!-- severity badge -->
+                                    <span
+                                        class="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide"
+                                        :class="{
+                                            'bg-emerald-100 text-emerald-700': insight.type === 'success',
+                                            'bg-amber-100 text-amber-700': insight.type === 'warning',
+                                            'bg-red-100 text-red-700': insight.type === 'danger',
+                                            'bg-blue-100 text-blue-700': insight.type === 'info',
+                                        }">
+                                        {{ insight.type === 'danger' ? 'Critical' : insight.type === 'warning' ?
+                                            'Warning' : insight.type === 'success' ? 'Healthy' : 'Info' }}
+                                    </span>
+                                </div>
                                 <p class="text-xs font-semibold mb-1" :class="insightConfig[insight.type].title">
                                     {{ insight.title }}
                                 </p>
@@ -640,70 +590,10 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                     </div>
                 </div>
 
-                <!-- ── RECENT MOVEMENTS ── -->
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="text-sm font-semibold flex items-center gap-2">
-                            <RefreshCcw class="h-4 w-4 text-muted-foreground" />
-                            Recent Inventory Movements
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div v-if="(props.recent_movements?.length ?? 0) === 0"
-                            class="flex items-center justify-center h-20 text-sm text-muted-foreground">
-                            No movements recorded yet.
-                        </div>
-                        <div v-else class="overflow-x-auto">
-                            <div class="rounded-lg border overflow-hidden">
-                                <table class="w-full text-xs">
-                                    <thead>
-                                        <tr class="bg-muted/40 text-muted-foreground border-b">
-                                            <th class="text-left px-3 py-2 font-medium">Item</th>
-                                            <th class="text-left px-3 py-2 font-medium">Type</th>
-                                            <th class="text-right px-3 py-2 font-medium">Qty</th>
-                                            <th class="text-right px-3 py-2 font-medium">Before</th>
-                                            <th class="text-right px-3 py-2 font-medium">After</th>
-                                            <th class="text-left px-3 py-2 font-medium">By</th>
-                                            <th class="text-left px-3 py-2 font-medium">Notes</th>
-                                            <th class="text-left px-3 py-2 font-medium">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(mov, i) in props.recent_movements" :key="i"
-                                            class="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                                            <td class="px-3 py-2">
-                                                <p class="font-medium text-foreground">{{ mov.item }}</p>
-                                                <p class="text-muted-foreground font-mono text-[10px]">{{ mov.sku }}</p>
-                                            </td>
-                                            <td class="px-3 py-2">
-                                                <span class="px-2 py-0.5 rounded-full font-medium capitalize"
-                                                    :class="movementTypeConfig[mov.type]?.cls ?? 'bg-gray-100 text-gray-500'">
-                                                    {{ movementTypeConfig[mov.type]?.label ?? mov.type }}
-                                                </span>
-                                            </td>
-                                            <td class="px-3 py-2 text-right font-bold"
-                                                :class="mov.type === 'in' ? 'text-emerald-600' : 'text-red-600'">
-                                                {{ mov.type === 'in' ? '+' : '-' }}{{ mov.quantity }}
-                                            </td>
-                                            <td class="px-3 py-2 text-right text-muted-foreground">{{ mov.before }}</td>
-                                            <td class="px-3 py-2 text-right font-medium">{{ mov.after }}</td>
-                                            <td class="px-3 py-2 text-muted-foreground">{{ mov.by }}</td>
-                                            <td class="px-3 py-2 text-muted-foreground max-w-32 truncate">{{ mov.notes
-                                                ?? '—' }}</td>
-                                            <td class="px-3 py-2 text-muted-foreground whitespace-nowrap">{{ mov.date }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
             </template>
 
             <!-- ══════════════ PAID BUT NOT APPROVED: Waiting ══════════════ -->
-            <template  v-else-if="isPaid && !isApproved">
+            <template v-else-if="isPaid && !isApproved">
                 <div class="flex flex-1 items-center justify-center min-h-[60vh]">
                     <div class="text-center max-w-md">
                         <div class="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">

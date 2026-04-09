@@ -2,10 +2,12 @@
 import { ref, onMounted, onUnmounted } from "vue"
 import { Link, router, usePage } from "@inertiajs/vue3"
 import { Button } from "@/components/ui/button"
-import { Menu, X, WashingMachine } from "lucide-vue-next"
+import { Menu, X } from "lucide-vue-next"
 import { dashboard } from '@/routes'
+import { usePWA } from '@/composables/usePWA'
 
 const page = usePage()
+const { installApp } = usePWA()
 
 const navLinks = [
     { href: "#modules", label: "Modules" },
@@ -38,11 +40,8 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
 
             <!-- Logo -->
             <a href="#" class="flex items-center gap-2 group">
-                <!-- Logo image -->
                 <img src="/laundryhub.png" alt="LaundryHub Logo"
                     class="h-9 w-9 object-contain shrink-0 transition-transform duration-300 group-hover:scale-110" />
-
-                <!-- Brand name -->
                 <span class="text-xl font-bold tracking-tight text-foreground font-serif">
                     LaundryHub
                 </span>
@@ -58,6 +57,18 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
 
             <!-- Desktop buttons -->
             <div class="hidden items-center gap-3 md:flex">
+                <!-- Install App button -->
+                <Button size="sm" variant="outline"
+                    class="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+                    @click="installApp">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Install App
+                </Button>
+
                 <template v-if="page.props.auth?.user">
                     <Link :href="dashboard.url()">
                         <Button size="sm" class="bg-primary text-primary-foreground hover:bg-accent shadow-none">
@@ -75,7 +86,6 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
                         @click="router.visit('/register/shop')">
                         Register Shop
                     </Button>
-
                 </template>
             </div>
 
@@ -95,6 +105,18 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
                     {{ link.label }}
                 </a>
                 <div class="flex flex-col gap-2 pt-2 border-t border-border">
+                    <!-- Mobile Install App button -->
+                    <Button size="sm" variant="outline"
+                        class="w-full flex items-center justify-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+                        @click="installApp">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Install App
+                    </Button>
+
                     <template v-if="page.props.auth?.user">
                         <Link :href="dashboard.url()" class="w-full">
                             <Button size="sm" class="w-full bg-primary text-primary-foreground hover:bg-accent">
