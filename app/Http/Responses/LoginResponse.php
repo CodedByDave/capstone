@@ -33,7 +33,7 @@ class LoginResponse implements LoginResponseContract
 
         $url = match ($user->role) {
             'super_admin' => route('admin.dashboard'),
-            'owner'       => $user->orders()->where('status', 'active')->exists()->route('shop.dashboard'),
+            'owner'       => route('shop.dashboard'),
             'staff'       => route('staff.dashboard'),
             default       => route('landing'),
         };
