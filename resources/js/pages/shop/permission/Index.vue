@@ -58,6 +58,7 @@ const moduleActionMap: Record<string, Action[]> = {
         { key: 'create', label: 'Create' },
         { key: 'update', label: 'Update' },
         { key: 'archive', label: 'Archive' },
+        { key: 'import', label: 'Import' },
     ],
     'Operations': [
         { key: 'view', label: 'View' },

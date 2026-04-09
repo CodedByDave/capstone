@@ -24,6 +24,7 @@ use App\Http\Controllers\Shop\Inventory\InventoryCategoryController;
 use App\Http\Controllers\Shop\Inventory\LowStockAlertController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
+use App\Http\Controllers\Shop\Operations\PromotionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -142,9 +143,10 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     // Payroll
     Route::get('/payroll',                          [PayrollController::class, 'index'])->name('payroll.index');
     Route::post('/payroll',                         [PayrollController::class, 'store'])->name('payroll.store');
+    Route::put('/payroll/settings',                 [PayrollController::class, 'updateSettings'])->name('payroll.settings');
     Route::get('/payroll/{payroll}',                [PayrollController::class, 'show'])->name('payroll.show');
     Route::put('/payroll/{payrollItem}/item',       [PayrollController::class, 'updateItem'])->name('payroll.item.update');
-    Route::post('/payroll/{payroll}/recalculate', [PayrollController::class, 'recalculate'])->name('payroll.recalculate');
+    Route::post('/payroll/{payroll}/recalculate',   [PayrollController::class, 'recalculate'])->name('payroll.recalculate');
     Route::post('/payroll/{payroll}/finalize',      [PayrollController::class, 'finalize'])->name('payroll.finalize');
     Route::delete('/payroll/{payroll}',             [PayrollController::class, 'destroy'])->name('payroll.destroy');
 
@@ -219,6 +221,16 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::delete('operations/services/{service}',             [ShopServiceController::class, 'destroy'])->name('shop.services.destroy');
     Route::patch('operations/services/{service}/toggle',       [ShopServiceController::class, 'toggleActive'])->name('shop.services.toggle');
     Route::patch('operations/services/{service}/restore',      [ShopServiceController::class, 'restore'])->name('shop.services.restore');
+
+    // Promotions
+    Route::get('operations/promos',                             [PromotionController::class, 'index'])->name('promotions.index');
+    Route::get('operations/promos/create',                      [PromotionController::class, 'create'])->name('promotions.create');
+    Route::post('operations/promos',                            [PromotionController::class, 'store'])->name('promotions.store');
+    Route::get('operations/promos/{promotion}/edit',            [PromotionController::class, 'edit'])->name('promotions.edit');
+    Route::put('operations/promos/{promotion}',                 [PromotionController::class, 'update'])->name('promotions.update');
+    Route::patch('operations/promos/{promotion}/toggle',        [PromotionController::class, 'toggleActive'])->name('promotions.toggle');
+    Route::delete('operations/promos/{promotion}',              [PromotionController::class, 'destroy'])->name('promotions.destroy');
+    Route::patch('operations/promos/{promotion}/restore',       [PromotionController::class, 'restore'])->name('promotions.restore');
 
     Route::post('operations/orders/restore-all',        [ShopOrderController::class, 'restoreAll'])->name('shop.orders.restore-all');
 Route::patch('operations/orders/{order}/restore',   [ShopOrderController::class, 'restore'])->name('shop.orders.restore');
@@ -357,8 +369,70 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff'])->group(fu
     });
 
     // ── Activity Logs ─────────────────────────────────────────────────────────
-    Route::middleware('permission:Activity Logs,view')->group(function () {
+    Route::middleware('permission:HRM,view')->group(function () {
         Route::get('/logs', [ActivityLogsController::class, 'index'])->name('staff.logs.index');
+    });
+
+    // ── Attendance ────────────────────────────────────────────────────────────
+    Route::middleware('permission:HRM,view')->group(function () {
+        Route::get('/attendance',              [AttendanceController::class, 'index'])->name('staff.attendance.index');
+    });
+    Route::middleware('permission:HRM,update')->group(function () {
+        Route::post('/attendance',             [AttendanceController::class, 'store'])->name('staff.attendance.store');
+        Route::put('/attendance/{attendance}', [AttendanceController::class, 'update'])->name('staff.attendance.update');
+    });
+
+    // ── Operations ────────────────────────────────────────────────────────────
+    Route::middleware('permission:Operations,view')->group(function () {
+        Route::get('/operations/orders',              [ShopOrderController::class, 'index'])->name('staff.orders.index');
+        Route::get('/operations/orders/{order}',      [ShopOrderController::class, 'show'])->name('staff.orders.show');
+        Route::get('/operations/services',            [ShopServiceController::class, 'index'])->name('staff.services.index');
+        Route::get('/operations/promos',              [PromotionController::class, 'index'])->name('staff.promotions.index');
+    });
+    Route::middleware('permission:Operations,create')->group(function () {
+        Route::get('/operations/orders/create',       [ShopOrderController::class, 'create'])->name('staff.orders.create');
+        Route::post('/operations/orders',             [ShopOrderController::class, 'store'])->name('staff.orders.store');
+        Route::get('/operations/services/create',     [ShopServiceController::class, 'create'])->name('staff.services.create');
+        Route::post('/operations/services',           [ShopServiceController::class, 'store'])->name('staff.services.store');
+        Route::get('/operations/promos/create',       [PromotionController::class, 'create'])->name('staff.promotions.create');
+        Route::post('/operations/promos',             [PromotionController::class, 'store'])->name('staff.promotions.store');
+    });
+    Route::middleware('permission:Operations,manage')->group(function () {
+        Route::get('/operations/orders/{order}/edit',         [ShopOrderController::class, 'edit'])->name('staff.orders.edit');
+        Route::put('/operations/orders/{order}',              [ShopOrderController::class, 'update'])->name('staff.orders.update');
+        Route::patch('/operations/orders/{order}/restore',    [ShopOrderController::class, 'restore'])->name('staff.orders.restore');
+        Route::post('/operations/orders/restore-all',         [ShopOrderController::class, 'restoreAll'])->name('staff.orders.restore-all');
+        Route::delete('/operations/orders/{order}',           [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
+        Route::patch('/operations/orders/{order}/status',     [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
+        Route::patch('/operations/orders/{order}/payment',    [ShopOrderController::class, 'updatePayment'])->name('staff.orders.payment');
+        Route::get('/operations/services/{service}/edit',     [ShopServiceController::class, 'edit'])->name('staff.services.edit');
+        Route::put('/operations/services/{service}',          [ShopServiceController::class, 'update'])->name('staff.services.update');
+        Route::patch('/operations/services/{service}/toggle', [ShopServiceController::class, 'toggleActive'])->name('staff.services.toggle');
+        Route::patch('/operations/services/{service}/restore',[ShopServiceController::class, 'restore'])->name('staff.services.restore');
+        Route::post('/operations/services/restore-all',       [ShopServiceController::class, 'restoreAll'])->name('staff.services.restore-all');
+        Route::delete('/operations/services/{service}',       [ShopServiceController::class, 'destroy'])->name('staff.services.destroy');
+        Route::get('/operations/promos/{promotion}/edit',     [PromotionController::class, 'edit'])->name('staff.promotions.edit');
+        Route::put('/operations/promos/{promotion}',          [PromotionController::class, 'update'])->name('staff.promotions.update');
+        Route::patch('/operations/promos/{promotion}/toggle', [PromotionController::class, 'toggleActive'])->name('staff.promotions.toggle');
+        Route::patch('/operations/promos/{promotion}/restore',[PromotionController::class, 'restore'])->name('staff.promotions.restore');
+        Route::delete('/operations/promos/{promotion}',       [PromotionController::class, 'destroy'])->name('staff.promotions.destroy');
+    });
+
+    // ── Payroll ───────────────────────────────────────────────────────────────
+    Route::middleware('permission:HRM,view')->group(function () {
+        Route::get('/payroll',              [PayrollController::class, 'index'])->name('staff.payroll.index');
+        Route::get('/payroll/{payroll}',    [PayrollController::class, 'show'])->name('staff.payroll.show');
+    });
+    Route::middleware('permission:HRM,create')->group(function () {
+        Route::post('/payroll',             [PayrollController::class, 'store'])->name('staff.payroll.store');
+    });
+    Route::middleware('permission:HRM,update')->group(function () {
+        Route::put('/payroll/{payrollItem}/item',     [PayrollController::class, 'updateItem'])->name('staff.payroll.item.update');
+        Route::post('/payroll/{payroll}/recalculate', [PayrollController::class, 'recalculate'])->name('staff.payroll.recalculate');
+        Route::post('/payroll/{payroll}/finalize',    [PayrollController::class, 'finalize'])->name('staff.payroll.finalize');
+    });
+    Route::middleware('permission:HRM,archive')->group(function () {
+        Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('staff.payroll.destroy');
     });
 
     Route::prefix('reports')->name('staff.reports.')->group(function () {

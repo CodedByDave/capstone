@@ -6,7 +6,7 @@ use App\Models\Employee;
 use App\Observers\EmployeeObserver;
 use App\Models\Order;
 use App\Observers\OrderObserver;
-use App\Models\ShopServicePricing;;
+use App\Models\ShopService;;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
         Order::observe(OrderObserver::class);
 
         Route::bind('service', function ($value) {
-            return ShopServicePricing::withTrashed()->findOrFail($value);
+            return ShopService::withTrashed()->findOrFail($value);
         });
     }
 }

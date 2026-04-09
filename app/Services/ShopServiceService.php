@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\ShopServicePricing;
+use App\Models\ShopService;
 use App\Repositories\ShopServiceRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
@@ -18,38 +18,38 @@ class ShopServiceService
         return $this->repo->allByShop($shopId, $activeOnly, $onlyTrashed);
     }
 
-    public function create(array $data): ShopServicePricing
+    public function create(array $data): ShopService
     {
         $this->validatePricingFields($data);
         return $this->repo->create($data);
     }
 
-    public function update(ShopServicePricing $service, array $data): ShopServicePricing
+    public function update(ShopService $service, array $data): ShopService
     {
         $this->validatePricingFields($data);
         return $this->repo->update($service, $data);
     }
 
-    public function delete(ShopServicePricing $service): void
+    public function delete(ShopService $service): void
     {
         $this->repo->delete($service);
     }
 
-    public function toggleActive(ShopServicePricing $service): ShopServicePricing
+    public function toggleActive(ShopService $service): ShopService
     {
         return $this->repo->update($service, [
             'is_active' => ! $service->is_active,
         ]);
     }
 
-    public function restore(ShopServicePricing $service): void
+    public function restore(ShopService $service): void
     {
         $service->restore();
     }
 
     public function restoreAll(int $shopId): void
     {
-        ShopServicePricing::onlyTrashed()->where('shop_id', $shopId)->restore();
+        ShopService::onlyTrashed()->where('shop_id', $shopId)->restore();
     }
 
     // ─── Private ───────────────────────────────────────

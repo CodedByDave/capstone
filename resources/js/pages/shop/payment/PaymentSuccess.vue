@@ -11,9 +11,7 @@ import {
     User,
     Phone,
     MapPin,
-    Mail,
     Clock,
-    Rocket,
     Download,
     Home,
     CreditCard,
@@ -22,13 +20,14 @@ import {
     DollarSign,
     UserCircle,
     BarChart3,
-    Megaphone
+    Megaphone,
+    CalendarDays,
+    BadgeCheck
 } from 'lucide-vue-next'
 import { ref, onMounted, nextTick } from 'vue'
 
 const props = defineProps<{
     order?: any
-    payment?: any
 }>()
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,7 +38,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 // -------------------- Barcode --------------------
 const barcodeRef = ref<SVGElement | null>(null)
 
-// Generate a stable random 10-digit number per order, persisted in localStorage
 const generateBarcodeValue = () => {
     const key = `barcode_order_${props.order?.id ?? 'unknown'}`
     const existing = localStorage.getItem(key)
@@ -96,6 +94,13 @@ const getModuleIcon = (moduleName: string) => {
         'Marketing': Megaphone
     }
     return iconMap[moduleName] || Package
+}
+
+const billingLabel = (months: number) => {
+    if (!months) return 'N/A'
+    if (months === 1) return '1 Month'
+    if (months === 12) return '1 Year (Annual)'
+    return `${months} Months`
 }
 
 const isLoading = ref(false)
@@ -181,8 +186,22 @@ const downloadReceipt = async () => {
         y += 8
 
         doc.text('Payment Method:', 20, y)
-        doc.text((props.payment?.payment_method || 'N/A').toUpperCase(), 60, y)
+        doc.text((props.order?.payment_method || 'N/A').toUpperCase(), 60, y)
         y += 8
+
+        doc.text('Plan:', 20, y)
+        doc.text(props.order?.plan_name || 'N/A', 60, y)
+        y += 8
+
+        doc.text('Billing Period:', 20, y)
+        doc.text(billingLabel(props.order?.billing_months), 60, y)
+        y += 8
+
+        if (props.order?.expires_at) {
+            doc.text('Expires At:', 20, y)
+            doc.text(formatDate(props.order.expires_at), 60, y)
+            y += 8
+        }
 
         doc.text('Status:', 20, y)
         doc.setTextColor(22, 163, 74)
@@ -208,14 +227,6 @@ const downloadReceipt = async () => {
         doc.text(props.order?.shop_name || 'N/A', 60, y)
         y += 8
 
-        if (props.order?.branch_name) {
-            doc.setFont(undefined, 'normal')
-            doc.setTextColor(75, 85, 99)
-            doc.text('Branch:', 20, y)
-            doc.text(props.order.branch_name, 60, y)
-            y += 8
-        }
-
         doc.setFont(undefined, 'normal')
         doc.setTextColor(75, 85, 99)
         doc.text('Owner:', 20, y)
@@ -236,56 +247,54 @@ const downloadReceipt = async () => {
 
         doc.text('Address:', 20, y)
         y += 8
-        doc.text(`${props.order?.block_street || ''}, ${props.order?.barangay || ''}, ${props.order?.municipality || ''} ${props.order?.postal_code || ''}`, 20, y)
+        const street = props.order?.block_street ? `${props.order.block_street}, ` : ''
+        doc.text(`${street}${props.order?.barangay || ''}, ${props.order?.municipality || ''} ${props.order?.postal_code || ''}`, 20, y)
         y += 25
 
-        // Modules
+        // Plan + Modules
         doc.setFontSize(13)
         doc.setTextColor(31, 41, 55)
         doc.setFont(undefined, 'bold')
-        doc.text('Modules Purchased', 20, y)
-        doc.line(20, y + 2, 65, y + 2)
-        y += 15
+        doc.text('Plan Purchased', 20, y)
+        doc.line(20, y + 2, 55, y + 2)
+        y += 12
 
+        // Plan name row
+        doc.setFontSize(12)
+        doc.setTextColor(31, 41, 55)
+        doc.setFont(undefined, 'bold')
+        doc.text(`${props.order?.plan_name || 'N/A'} Plan`, 20, y)
         doc.setFontSize(11)
-        doc.text('Description', 20, y)
-        doc.text('Qty', 130, y)
-        doc.text('Unit Price', 150, y)
-        doc.text('Amount', 180, y)
-        doc.setDrawColor(31, 41, 55)
-        doc.line(20, y + 2, 190, y + 2)
+        doc.setTextColor(22, 163, 74)
+        const total = parseFloat(props.order?.total_price || 0)
+        doc.text(`PHP ${total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 190, y, { align: 'right' })
+        y += 6
+
+        doc.setFontSize(9)
+        doc.setFont(undefined, 'normal')
+        doc.setTextColor(107, 114, 128)
+        doc.text(`${billingLabel(props.order?.billing_months)} subscription`, 20, y)
         y += 10
+
+        // Included modules list
+        doc.setFontSize(10)
+        doc.setFont(undefined, 'bold')
+        doc.setTextColor(59, 130, 246)
+        doc.text('Included Modules:', 20, y)
+        y += 7
 
         doc.setFont(undefined, 'normal')
+        doc.setTextColor(55, 65, 81)
         props.order?.modules?.forEach((module: any) => {
-            doc.setTextColor(31, 41, 55)
-            doc.text(module.name, 20, y)
-            doc.setTextColor(75, 85, 99)
-            doc.setFontSize(9)
-            doc.text('Module License - Annual Subscription', 20, y + 4)
-            doc.setFontSize(11)
-            doc.text('1', 130, y)
-            const price = parseFloat(module.price)
-            doc.text(`PHP ${price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 150, y)
-            doc.setFont(undefined, 'bold')
-            doc.text(`PHP ${price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 180, y)
-            doc.setFont(undefined, 'normal')
-            y += 15
+            doc.text(`• ${module.name}`, 24, y)
+            y += 6
         })
-
-        y += 10
-        const total = parseFloat(props.order?.total_price || 0)
-
-        doc.setTextColor(75, 85, 99)
-        doc.text('Subtotal:', 140, y)
-        doc.setTextColor(31, 41, 55)
-        doc.text(`PHP ${total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 180, y, { align: 'right' })
-        y += 8
-
-        doc.setTextColor(75, 85, 99)
-        doc.text('Tax (0%):', 140, y)
-        doc.text('PHP 0.00', 180, y, { align: 'right' })
         y += 12
+
+        // Total
+        doc.setDrawColor(200, 200, 200)
+        doc.line(20, y, 190, y)
+        y += 8
 
         doc.setFontSize(13)
         doc.setFont(undefined, 'bold')
@@ -302,7 +311,7 @@ const downloadReceipt = async () => {
         doc.text('Payment Status: PAID', 20, y)
         doc.setFont(undefined, 'normal')
         doc.setTextColor(75, 85, 99)
-        doc.text(`Paid on ${formatDate(props.payment?.paid_at || props.order?.created_at || '')}`, 20, y + 6)
+        doc.text(`Paid on ${formatDate(props.order?.created_at || '')}`, 20, y + 6)
         y += 20
 
         doc.setFontSize(9)
@@ -386,12 +395,6 @@ const downloadReceipt = async () => {
                                         </p>
                                         <p class="font-medium ml-6">{{ order.shop_name }}</p>
                                     </div>
-                                    <div v-if="order.branch_name && order.branch_name !== 'N/A'">
-                                        <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                                            <Package class="w-4 h-4" /> Branch
-                                        </p>
-                                        <p class="font-medium ml-6">{{ order.branch_name }}</p>
-                                    </div>
                                     <div>
                                         <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                                             <User class="w-4 h-4" /> Owner
@@ -404,6 +407,12 @@ const downloadReceipt = async () => {
                                         </p>
                                         <p class="font-medium ml-6">{{ order.phone }}</p>
                                     </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                            <MapPin class="w-4 h-4" /> Email
+                                        </p>
+                                        <p class="font-medium ml-6">{{ order.email }}</p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -413,24 +422,43 @@ const downloadReceipt = async () => {
                                     <MapPin class="w-4 h-4" /> Shop Address
                                 </p>
                                 <p class="font-medium ml-6">
-                                    {{ order.block_street }}, {{ order.barangay }}<br>
-                                    {{ order.municipality }}, {{ order.postal_code }}
+                                    <template v-if="order.block_street">{{ order.block_street }}, </template>
+                                    {{ order.barangay }}<br>
+                                    {{ order.municipality }}<template v-if="order.postal_code">, {{ order.postal_code }}</template>
                                 </p>
                             </div>
 
-                            <!-- Modules -->
+                            <!-- Plan + Included Modules -->
                             <div class="pt-4 border-t">
-                                <h3 class="font-semibold text-lg mb-3">Modules Purchased</h3>
-                                <div class="space-y-2">
-                                    <div v-for="(module, index) in order.modules" :key="index"
-                                        class="flex items-center justify-between p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                                <component :is="getModuleIcon(module.name)" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <h3 class="font-semibold text-lg mb-3">Plan Purchased</h3>
+
+                                <!-- Plan header -->
+                                <div class="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                                <BadgeCheck class="w-5 h-5 text-white" />
                                             </div>
-                                            <p class="font-semibold">{{ module.name }}</p>
+                                            <div>
+                                                <p class="font-bold text-blue-900 dark:text-blue-100 text-base">{{ order.plan_name }} Plan</p>
+                                                <p class="text-xs text-blue-600 dark:text-blue-400">{{ billingLabel(order.billing_months) }} subscription</p>
+                                            </div>
                                         </div>
-                                        <p class="font-bold text-green-600">₱{{ parseFloat(module.price).toLocaleString() }}</p>
+                                        <p class="font-bold text-green-600 text-lg">
+                                            ₱{{ parseFloat(order.total_price).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}
+                                        </p>
+                                    </div>
+
+                                    <!-- Included sub-modules -->
+                                    <div class="border-t border-blue-200 dark:border-blue-700 pt-3 mt-1">
+                                        <p class="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-widest mb-2">Included Modules</p>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <div v-for="(module, index) in order.modules" :key="index"
+                                                class="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-200">
+                                                <component :is="getModuleIcon(module.name)" class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                                <span>{{ module.name }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -439,7 +467,7 @@ const downloadReceipt = async () => {
                             <div class="pt-4 border-t">
                                 <div class="flex items-center justify-between text-xl">
                                     <span class="font-semibold">Total Paid</span>
-                                    <span class="font-bold text-green-600">₱{{ parseFloat(order.total_price).toLocaleString() }}</span>
+                                    <span class="font-bold text-green-600">₱{{ parseFloat(order.total_price).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}</span>
                                 </div>
                             </div>
 
@@ -450,8 +478,8 @@ const downloadReceipt = async () => {
                 <!-- Sidebar -->
                 <div class="space-y-6">
 
-                    <!-- Payment Info -->
-                    <Card v-if="payment">
+                    <!-- Payment Info (from orders table) -->
+                    <Card>
                         <CardHeader>
                             <CardTitle class="text-lg">Payment Details</CardTitle>
                         </CardHeader>
@@ -460,19 +488,39 @@ const downloadReceipt = async () => {
                                 <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                                     <CreditCard class="w-4 h-4" /> Payment Method
                                 </p>
-                                <p class="font-medium ml-6 capitalize">{{ payment.payment_method }}</p>
+                                <p class="font-medium ml-6 capitalize">{{ order.payment_method ?? 'N/A' }}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                    <BadgeCheck class="w-4 h-4" /> Status
+                                </p>
                                 <div class="ml-6">
-                                    <Badge class="bg-green-600">{{ payment.status }}</Badge>
+                                    <Badge class="bg-green-600 capitalize">{{ order.status }}</Badge>
                                 </div>
                             </div>
-                            <div v-if="payment.paid_at">
+                            <div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                    <Package class="w-4 h-4" /> Plan
+                                </p>
+                                <p class="font-medium ml-6">{{ order.plan_name }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                    <CalendarDays class="w-4 h-4" /> Billing Period
+                                </p>
+                                <p class="font-medium ml-6">{{ billingLabel(order.billing_months) }}</p>
+                            </div>
+                            <div v-if="order.expires_at">
+                                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                    <Clock class="w-4 h-4" /> Expires At
+                                </p>
+                                <p class="font-medium text-sm ml-6">{{ formatDate(order.expires_at) }}</p>
+                            </div>
+                            <div>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                                     <Clock class="w-4 h-4" /> Paid At
                                 </p>
-                                <p class="font-medium text-sm ml-6">{{ formatDate(payment.paid_at) }}</p>
+                                <p class="font-medium text-sm ml-6">{{ formatDate(order.created_at) }}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -489,7 +537,7 @@ const downloadReceipt = async () => {
                                 </div>
                                 <div>
                                     <p class="font-medium text-sm">Wait for admin approval</p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">Your plan will be automatically activated when admin approve your order. thank you</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Your plan will be automatically activated when admin approves your order. Thank you!</p>
                                 </div>
                             </div>
                         </CardContent>

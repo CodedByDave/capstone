@@ -6,7 +6,7 @@ import { ref, computed, onMounted } from 'vue'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import {
     ArrowLeft, Banknote, Users, CheckCircle2, Pencil,
-    Lock, Loader2, Download, RefreshCw
+    Lock, Loader2, Download, RefreshCw, ShieldCheck,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -44,6 +44,10 @@ interface PayrollItem {
     days_late: number
     days_half_day: number
     deductions: string
+    sss_contribution: string
+    philhealth_contribution: string
+    pagibig_contribution: string
+    withholding_tax: string
     bonuses: string
     net_pay: string
     remarks: string | null
@@ -103,6 +107,17 @@ const totalDeductions = computed(() =>
     props.payroll.items.reduce((sum, i) => sum + parseFloat(i.deductions), 0)
 )
 
+const totalGovContributions = computed(() =>
+    props.payroll.items.reduce((sum, i) =>
+        sum
+        + parseFloat(i.sss_contribution)
+        + parseFloat(i.philhealth_contribution)
+        + parseFloat(i.pagibig_contribution)
+        + parseFloat(i.withholding_tax),
+        0
+    )
+)
+
 const totalBonuses = computed(() =>
     props.payroll.items.reduce((sum, i) => sum + parseFloat(i.bonuses), 0)
 )
@@ -114,7 +129,6 @@ const isEditOpen = ref(false)
 const saving = ref(false)
 
 const editForm = ref({
-    deductions: '0',
     bonuses: '0',
     remarks: '',
 })
@@ -122,7 +136,6 @@ const editForm = ref({
 function openEdit(item: PayrollItem) {
     editItem.value = item
     editForm.value = {
-        deductions: item.deductions,
         bonuses: item.bonuses,
         remarks: item.remarks ?? '',
     }
@@ -187,7 +200,8 @@ function exportCSV() {
     const headers = [
         'Employee ID', 'Name', 'Position', 'Branch',
         'Basic Salary', 'Days Worked', 'Days Absent', 'Days Late', 'Half Days',
-        'Deductions', 'Bonuses', 'Net Pay', 'Remarks',
+        'Att. Deductions', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Withholding Tax',
+        'Bonuses', 'Net Pay', 'Remarks',
     ]
 
     const rows = props.payroll.items.map(i => [
@@ -196,7 +210,9 @@ function exportCSV() {
         i.employee.position,
         i.employee.branch_name ?? '',
         i.basic_salary, i.days_worked, i.days_absent, i.days_late, i.days_half_day,
-        i.deductions, i.bonuses, i.net_pay,
+        i.deductions, i.sss_contribution, i.philhealth_contribution,
+        i.pagibig_contribution, i.withholding_tax,
+        i.bonuses, i.net_pay,
         i.remarks ?? '',
     ])
 
@@ -275,7 +291,18 @@ function exportCSV() {
                         </div>
                         <div>
                             <p class="text-2xl font-bold">{{ formatCurrency(totalDeductions) }}</p>
-                            <p class="text-xs text-muted-foreground">Deductions</p>
+                            <p class="text-xs text-muted-foreground">Att. Deductions</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent class="pt-4 pb-4 flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                            <ShieldCheck class="h-5 w-5 text-orange-600" />
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold">{{ formatCurrency(totalGovContributions) }}</p>
+                            <p class="text-xs text-muted-foreground">Gov. Contributions</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -290,7 +317,7 @@ function exportCSV() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card class="sm:col-span-4">
                     <CardContent class="pt-4 pb-4 flex items-center gap-3">
                         <div class="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
                             <CheckCircle2 class="h-5 w-5 text-purple-600" />
@@ -311,11 +338,15 @@ function exportCSV() {
                             <tr class="bg-muted/40 text-xs text-muted-foreground border-b">
                                 <th class="text-left px-4 py-3 font-medium">Employee</th>
                                 <th class="text-right px-4 py-3 font-medium">Basic Salary</th>
-                                <th class="text-center px-4 py-3 font-medium">Days Worked</th>
+                                <th class="text-center px-4 py-3 font-medium">Worked</th>
                                 <th class="text-center px-4 py-3 font-medium">Absent</th>
                                 <th class="text-center px-4 py-3 font-medium">Late</th>
-                                <th class="text-center px-4 py-3 font-medium">Half Day</th>
-                                <th class="text-right px-4 py-3 font-medium">Deductions</th>
+                                <th class="text-center px-4 py-3 font-medium">½ Day</th>
+                                <th class="text-right px-4 py-3 font-medium">Att. Deduct.</th>
+                                <th class="text-right px-4 py-3 font-medium bg-orange-50">SSS</th>
+                                <th class="text-right px-4 py-3 font-medium bg-orange-50">PhilHealth</th>
+                                <th class="text-right px-4 py-3 font-medium bg-orange-50">Pag-IBIG</th>
+                                <th class="text-right px-4 py-3 font-medium bg-orange-50">W. Tax</th>
                                 <th class="text-right px-4 py-3 font-medium">Bonuses</th>
                                 <th class="text-right px-4 py-3 font-medium">Net Pay</th>
                                 <th class="text-left px-4 py-3 font-medium">Remarks</th>
@@ -339,37 +370,31 @@ function exportCSV() {
                                             </p>
                                             <p class="text-xs text-muted-foreground">
                                                 {{ item.employee.position }}
-                                                <span v-if="item.employee.branch_name">· {{ item.employee.branch_name
-                                                }}</span>
+                                                <span v-if="item.employee.branch_name">· {{ item.employee.branch_name }}</span>
                                             </p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-right font-mono text-xs">{{ formatCurrency(item.basic_salary)
-                                }}</td>
+                                <td class="px-4 py-3 text-right font-mono text-xs">{{ formatCurrency(item.basic_salary) }}</td>
                                 <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex items-center justify-center h-6 w-8 rounded bg-green-100 text-green-700 text-xs font-semibold">
+                                    <span class="inline-flex items-center justify-center h-6 w-8 rounded bg-green-100 text-green-700 text-xs font-semibold">
                                         {{ item.days_worked }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
+                                    <span class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
                                         :class="item.days_absent > 0 ? 'bg-red-100 text-red-700' : 'bg-muted text-muted-foreground'">
                                         {{ item.days_absent }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
+                                    <span class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
                                         :class="item.days_late > 0 ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'">
                                         {{ item.days_late }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
+                                    <span class="inline-flex items-center justify-center h-6 w-8 rounded text-xs font-semibold"
                                         :class="item.days_half_day > 0 ? 'bg-blue-100 text-blue-700' : 'bg-muted text-muted-foreground'">
                                         {{ item.days_half_day }}
                                     </span>
@@ -377,11 +402,23 @@ function exportCSV() {
                                 <td class="px-4 py-3 text-right font-mono text-xs text-red-600">
                                     {{ parseFloat(item.deductions) > 0 ? `-${formatCurrency(item.deductions)}` : '—' }}
                                 </td>
+                                <td class="px-4 py-3 text-right font-mono text-xs text-orange-600 bg-orange-50/40">
+                                    -{{ formatCurrency(item.sss_contribution) }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono text-xs text-orange-600 bg-orange-50/40">
+                                    -{{ formatCurrency(item.philhealth_contribution) }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono text-xs text-orange-600 bg-orange-50/40">
+                                    -{{ formatCurrency(item.pagibig_contribution) }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono text-xs text-orange-600 bg-orange-50/40">
+                                    {{ parseFloat(item.withholding_tax) > 0 ? `-${formatCurrency(item.withholding_tax)}` : '—' }}
+                                </td>
                                 <td class="px-4 py-3 text-right font-mono text-xs text-green-600">
                                     {{ parseFloat(item.bonuses) > 0 ? `+${formatCurrency(item.bonuses)}` : '—' }}
                                 </td>
                                 <td class="px-4 py-3 text-right font-semibold">{{ formatCurrency(item.net_pay) }}</td>
-                                <td class="px-4 py-3 text-xs text-muted-foreground max-w-[150px] truncate">
+                                <td class="px-4 py-3 text-xs text-muted-foreground max-w-[120px] truncate">
                                     {{ item.remarks ?? '—' }}
                                 </td>
                                 <td v-if="isDraft" class="px-4 py-3 text-right">
@@ -392,7 +429,7 @@ function exportCSV() {
                             </tr>
 
                             <tr v-if="payroll.items.length === 0">
-                                <td :colspan="isDraft ? 11 : 10"
+                                <td :colspan="isDraft ? 15 : 14"
                                     class="px-4 py-12 text-center text-sm text-muted-foreground">
                                     No payroll items found.
                                 </td>
@@ -403,6 +440,9 @@ function exportCSV() {
                                 <td class="px-4 py-3" colspan="6">Total</td>
                                 <td class="px-4 py-3 text-right font-mono text-xs text-red-600">
                                     {{ totalDeductions > 0 ? `-${formatCurrency(totalDeductions)}` : '—' }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono text-xs text-orange-600 bg-orange-50/40" colspan="4">
+                                    -{{ formatCurrency(totalGovContributions) }}
                                 </td>
                                 <td class="px-4 py-3 text-right font-mono text-xs text-green-600">
                                     {{ totalBonuses > 0 ? `+${formatCurrency(totalBonuses)}` : '—' }}
@@ -435,9 +475,31 @@ function exportCSV() {
                         <label class="text-sm font-medium">Remarks</label>
                         <Input v-model="editForm.remarks" placeholder="Optional" />
                     </div>
+
+                    <!-- Gov. contributions breakdown -->
+                    <div class="rounded-lg border bg-orange-50/60 px-4 py-3 space-y-1.5 text-xs">
+                        <p class="font-semibold text-orange-700 mb-2">Government Contributions (auto-calculated)</p>
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">SSS</span>
+                            <span class="font-mono">-{{ formatCurrency(editItem?.sss_contribution ?? '0') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">PhilHealth</span>
+                            <span class="font-mono">-{{ formatCurrency(editItem?.philhealth_contribution ?? '0') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">Pag-IBIG</span>
+                            <span class="font-mono">-{{ formatCurrency(editItem?.pagibig_contribution ?? '0') }}</span>
+                        </div>
+                        <div class="flex justify-between border-t pt-1.5 mt-1">
+                            <span class="text-muted-foreground">Withholding Tax</span>
+                            <span class="font-mono">-{{ formatCurrency(editItem?.withholding_tax ?? '0') }}</span>
+                        </div>
+                    </div>
+
                     <div class="rounded-lg border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
-                        Deductions are auto-calculated based on absences (full daily rate), tardiness (5% of daily
-                        rate), and half-days (50% of daily rate).
+                        Attendance deductions (tardiness 5% of daily rate) and absent days from schedule
+                        are auto-calculated and cannot be changed here. Use Recalculate to refresh all values.
                     </div>
                 </div>
                 <DialogFooter>

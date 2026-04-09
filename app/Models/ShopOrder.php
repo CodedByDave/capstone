@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\ShopServicePricing;
+use App\Models\ShopService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -23,12 +23,13 @@ class ShopOrder extends Model
         'actual_weight_kg',
         'pickup_type',
         'delivery_address',
-        'pricing_model',        
+        'pricing_model',
         'price_per_kg',
-        'bundle_weight_kg',     
-        'bundle_price',         
-        'bundle_quantity',      
+        'bundle_weight_kg',
+        'bundle_price',
+        'bundle_quantity',
         'additional_charges',
+        'promotion_id',
         'discount_amount',
         'total_amount',
         'payment_method',
@@ -44,9 +45,9 @@ class ShopOrder extends Model
         'estimated_weight_kg'     => 'decimal:2',
         'actual_weight_kg'        => 'decimal:2',
         'price_per_kg'            => 'decimal:2',
-        'bundle_weight_kg'        => 'decimal:2',  
-        'bundle_price'            => 'decimal:2',   
-        'bundle_quantity'         => 'integer',     
+        'bundle_weight_kg'        => 'decimal:2',
+        'bundle_price'            => 'decimal:2',
+        'bundle_quantity'         => 'integer',
         'additional_charges'      => 'decimal:2',
         'discount_amount'         => 'decimal:2',
         'total_amount'            => 'decimal:2',
@@ -75,7 +76,12 @@ class ShopOrder extends Model
 
     public function service(): BelongsTo
     {
-        return $this->belongsTo(ShopServicePricing::class, 'service_id');
+        return $this->belongsTo(ShopService::class, 'service_id');
+    }
+
+    public function promotion(): BelongsTo
+    {
+        return $this->belongsTo(Promotion::class);
     }
 
     public function supplies(): BelongsToMany
@@ -83,7 +89,7 @@ class ShopOrder extends Model
         return $this->belongsToMany(
             Inventory::class,
             'shop_order_supplies',
-            'order_id',     
+            'order_id',
             'inventory_id'
         )
             ->withPivot(['quantity_used', 'unit', 'inventory_movement_id'])

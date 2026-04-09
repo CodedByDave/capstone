@@ -88,7 +88,7 @@ class EmployeeService
         return DB::transaction(function () use ($shop, $data) {
 
             $userId = null;
-            $createAccount = !empty($data['create_account']);
+            $createAccount = (bool) ($data['create_account'] ?? false);
 
             if ($createAccount) {
                 $defaultPassword = $data['last_name'];
@@ -159,8 +159,39 @@ class EmployeeService
             'updated_by' => auth()->id(),
         ]);
 
+        // Create system account only if explicitly requested and none exists yet
+        $createAccount = (int) ($data['create_account'] ?? 0) === 1;
+
+        if ($createAccount && !$employee->user_id) {
+            $user = User::create([
+                'name'              => $employee->first_name . ' ' . $employee->last_name,
+                'email'             => $employee->email,
+                'password'          => Hash::make($employee->last_name),
+                'role'              => 'staff',
+                'email_verified_at' => now(),
+            ]);
+
+            $updated->update(['user_id' => $user->id]);
+
+            try {
+                Mail::to($user->email)->send(new EmployeeCredentialsMail(
+                    name: $user->name,
+                    email: $user->email,
+                    password: $employee->last_name,
+                    shopName: $employee->shop->shop_name,
+                ));
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send employee credentials email', [
+                    'email' => $user->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         if (!empty($changes)) {
-            $action = isset($changes['status']) ? 'status_changed' : (isset($changes['salary']) ? 'salary_changed' : 'updated');
+            $action = isset($changes['status'])
+                ? 'status_changed'
+                : (isset($changes['salary']) ? 'salary_changed' : 'updated');
 
             $this->activityLogService->log(
                 subject: $updated,

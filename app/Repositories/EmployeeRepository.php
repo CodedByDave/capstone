@@ -59,12 +59,17 @@ class EmployeeRepository extends Repository
         });
     }
 
-    // Update employee
+    // Update employee — strips service-only keys before hitting the DB
 
     public function updateEmployee(Employee $employee, array $data): Employee
     {
-        $this->transaction(function () use ($employee, $data) {
-            $this->update($employee, $data);
+        // Keys that exist in the service layer but are NOT columns on the employees table
+        $serviceOnlyKeys = ['create_account'];
+
+        $dbData = array_diff_key($data, array_flip($serviceOnlyKeys));
+
+        $this->transaction(function () use ($employee, $dbData) {
+            $this->update($employee, $dbData);
         });
 
         return $employee->fresh();
@@ -88,7 +93,8 @@ class EmployeeRepository extends Repository
             ->toArray();
     }
 
-    //Pagination
+    // Pagination
+
     public function getPaginatedByShop(Shop $shop, int $perPage = 10): LengthAwarePaginator
     {
         return $shop->employees()

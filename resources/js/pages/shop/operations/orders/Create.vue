@@ -22,12 +22,21 @@ interface InventoryItem {
     quantity: number
 }
 
+interface Promotion {
+    id: number
+    name: string
+    type: 'percentage' | 'fixed'
+    value: string
+    min_order_amount: string | null
+}
+
 const props = defineProps<{
     shopId: number
     pickupTypes: string[]
     paymentMethods: string[]
     services?: Service[]
     inventoryItems?: InventoryItem[]
+    promotions?: Promotion[]
 }>()
 
 // ─── Base URL ──────────────────────────────────────
@@ -57,6 +66,7 @@ const form = useForm({
     payment_status:         'unpaid',
     amount_paid:            0,
     estimated_completion_at: '',
+    promotion_id: '' as string | number,
     supplies: [] as { inventory_id: number; quantity_used: number; unit: string }[],
 })
 
@@ -108,18 +118,37 @@ const onServiceChange = () => {
     }
 }
 
+const selectedPromotion = computed(() =>
+    props.promotions?.find(p => p.id === Number(form.promotion_id))
+)
+
+const baseTotal = computed(() => {
+    if (isPerKg.value) {
+        return (parseFloat(String(form.actual_weight_kg)) || 0) *
+               (parseFloat(String(form.price_per_kg)) || 0)
+    }
+    return (parseFloat(String(form.bundle_quantity)) || 1) *
+           (parseFloat(String(form.bundle_price)) || 0)
+})
+
+const promoDiscount = computed(() => {
+    const promo = selectedPromotion.value
+    if (!promo) return 0
+    const total = baseTotal.value + (parseFloat(String(form.additional_charges)) || 0)
+    const min = promo.min_order_amount ? parseFloat(promo.min_order_amount) : 0
+    if (min > 0 && total < min) return 0
+    if (promo.type === 'percentage') return Math.round(total * (parseFloat(promo.value) / 100) * 100) / 100
+    return Math.min(parseFloat(promo.value), total)
+})
+
+const onPromotionChange = () => {
+    form.discount_amount = promoDiscount.value
+}
+
 const computedTotal = computed(() => {
     const charges  = parseFloat(String(form.additional_charges)) || 0
     const discount = parseFloat(String(form.discount_amount)) || 0
-    let base = 0
-    if (isPerKg.value) {
-        base = (parseFloat(String(form.actual_weight_kg)) || 0) *
-               (parseFloat(String(form.price_per_kg)) || 0)
-    } else {
-        base = (parseFloat(String(form.bundle_quantity)) || 1) *
-               (parseFloat(String(form.bundle_price)) || 0)
-    }
-    return Math.max(0, base + charges - discount)
+    return Math.max(0, baseTotal.value + charges - discount)
 })
 
 // ─── Supplies ──────────────────────────────────────
@@ -293,11 +322,30 @@ const submit = () => {
                                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                         </div>
                         <div class="col-span-12 sm:col-span-3 space-y-1">
+                            <label class="text-sm font-medium">Apply Promotion</label>
+                            <select v-model="form.promotion_id" @change="onPromotionChange"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="">No promotion</option>
+                                <option v-for="p in promotions" :key="p.id" :value="p.id">
+                                    {{ p.name }} —
+                                    {{ p.type === 'percentage' ? `${p.value}% off` : `₱${parseFloat(p.value).toFixed(2)} off` }}
+                                    {{ p.min_order_amount ? ` (min ₱${parseFloat(p.min_order_amount).toFixed(0)})` : '' }}
+                                </option>
+                            </select>
+                            <p v-if="selectedPromotion && promoDiscount === 0 && selectedPromotion.min_order_amount"
+                                class="text-xs text-amber-600">
+                                Order must be at least ₱{{ parseFloat(selectedPromotion.min_order_amount).toFixed(2) }} to apply.
+                            </p>
+                        </div>
+                        <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Discount</label>
                             <input v-model="form.discount_amount" type="number" step="0.01" min="0"
                                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                            <p v-if="selectedPromotion && promoDiscount > 0" class="text-xs text-green-600">
+                                Auto-filled from promotion
+                            </p>
                         </div>
-                        <div class="col-span-12 sm:col-span-6 space-y-1">
+                        <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Computed Total</label>
                             <div class="flex items-center justify-between rounded-lg bg-blue-50 border border-blue-200 px-4 h-[42px]">
                                 <span class="text-sm text-blue-700">

@@ -7,6 +7,7 @@ use App\Http\Requests\Shop\Employee\AttendanceRequest;
 use App\Http\Requests\Shop\Employee\UpdateAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use App\Models\Shop;
 use App\Services\AttendanceService;
 use Illuminate\Http\Request;
@@ -48,7 +49,7 @@ class AttendanceController extends Controller
             }
         }
 
-        $employees = $query->get(['id', 'employee_id', 'first_name', 'last_name', 'position', 'branch_name']);
+        $employees   = $query->get(['id', 'employee_id', 'first_name', 'last_name', 'position', 'branch_name']);
         $attendances = $this->attendanceService->getByDate($shop, $date);
 
         $branches = Employee::where('shop_id', $shop->id)
@@ -59,6 +60,10 @@ class AttendanceController extends Controller
             ->sort()
             ->values();
 
+        // Load schedules for all active employees so the frontend
+        $schedules = EmployeeSchedule::whereIn('employee_id', $employees->pluck('id'))
+            ->get(['employee_id', 'day', 'start_time', 'end_time']);
+
         return Inertia::render('shop/employee/attendance/Index', [
             'employees'   => $employees,
             'attendances' => $attendances,
@@ -66,6 +71,7 @@ class AttendanceController extends Controller
             'date'        => $date,
             'branches'    => $branches,
             'filters'     => $request->only(['date', 'status', 'search', 'branch']),
+            'schedules'   => $schedules,
         ]);
     }
 

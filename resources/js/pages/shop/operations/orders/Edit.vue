@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, useForm, usePage } from '@inertiajs/vue3'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { type AppPageProps } from '@/types'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Loader2 } from 'lucide-vue-next'
@@ -133,6 +133,12 @@ const computedTotal = computed(() => {
     }
     return Math.max(0, subtotal + charges - discount)
 })
+
+watch(computedTotal, (val) => {
+    if (form.payment_status !== 'paid') {
+        form.amount_paid = String(val)
+    }
+}, { immediate: true })
 
 const formatServiceLabel = (svc: Service) => {
     if (svc.pricing_model === 'per_kg') return `${svc.service_name} — ₱${svc.price_per_kg}/kg`

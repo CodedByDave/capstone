@@ -20,7 +20,18 @@ class Shop extends Model
         'barangay',
         'postal_code',
         'status',
-        'disable_reason'
+        'disable_reason',
+        'deduct_sss',
+        'deduct_philhealth',
+        'deduct_pagibig',
+        'deduct_withholding_tax',
+    ];
+
+    protected $casts = [
+        'deduct_sss'             => 'boolean',
+        'deduct_philhealth'      => 'boolean',
+        'deduct_pagibig'         => 'boolean',
+        'deduct_withholding_tax' => 'boolean',
     ];
 
     public function latestOrder()

@@ -349,7 +349,7 @@ const handleDelete = () => {
                                     <th class="px-4 py-3 text-left">Service</th>
                                     <th v-if="!showArchived" class="px-4 py-3 text-left">Status</th>
                                     <th v-if="!showArchived" class="px-4 py-3 text-left">Payment</th>
-                                    <th class="px-4 py-3 text-right">Total</th>
+                                    <th class="px-4 py-3 text-center">Total</th>
                                     <th class="px-4 py-3 text-left">Date</th>
                                     <th class="px-4 py-3 text-center">Actions</th>
                                 </tr>

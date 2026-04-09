@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Shop\Operations;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
+use App\Models\Employee;
+use App\Models\Promotion;
 use App\Models\ShopOrder;
-use App\Models\ShopServicePricing;
+use App\Models\ShopService;
 use App\Models\Inventory;
 use App\Services\ShopOrderService;
 use Illuminate\Http\RedirectResponse;
@@ -18,9 +20,23 @@ class ShopOrderController extends Controller
 {
     public function __construct(protected ShopOrderService $service) {}
 
+    private function getShopId(): int
+    {
+        $user = auth()->user();
+        if ($user->role === 'owner') {
+            return $user->shop->id;
+        }
+        return Employee::where('user_id', $user->id)->value('shop_id');
+    }
+
+    private function base(): string
+    {
+        return auth()->user()->role === 'owner' ? '/shop' : '/staff';
+    }
+
     public function index(Request $request): Response
     {
-        $shopId      = auth()->user()->shop->id;
+        $shopId      = $this->getShopId();
         $showTrashed = $request->boolean('archived');
 
         $orders = $this->service->getPaginatedOrders(
@@ -41,13 +57,13 @@ class ShopOrderController extends Controller
 
     public function create(): Response
     {
-        $shopId = auth()->user()->shop->id;
+        $shopId = $this->getShopId();
 
         return Inertia::render('shop/operations/orders/Create', [
             'shopId'         => $shopId,
             'pickupTypes'    => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
-            'services'       => ShopServicePricing::where('shop_id', $shopId)
+            'services'       => ShopService::where('shop_id', $shopId)
                 ->where('is_active', true)
                 ->orderBy('service_name')
                 ->get(),
@@ -55,19 +71,22 @@ class ShopOrderController extends Controller
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'unit', 'quantity']),
+            'promotions' => Promotion::where('shop_id', $shopId)
+                ->active()
+                ->valid()
+                ->orderBy('name')
+                ->get(['id', 'name', 'type', 'value', 'min_order_amount']),
         ]);
     }
 
     public function store(StoreShopOrderRequest $request): RedirectResponse
     {
-        $shopId = auth()->user()->shop->id;
-
         $order = $this->service->createOrder([
             ...$request->validated(),
-            'shop_id' => $shopId,
+            'shop_id' => $this->getShopId(),
         ]);
 
-        return redirect('/shop/operations/orders')
+        return redirect("{$this->base()}/operations/orders")
             ->with('toast', [
                 'type'    => 'success',
                 'message' => "Order {$order->order_number} created successfully.",
@@ -85,7 +104,7 @@ class ShopOrderController extends Controller
 
     public function edit(ShopOrder $order): Response
     {
-        $shopId = auth()->user()->shop->id;
+        $shopId = $this->getShopId();
         $order->load(['service', 'supplies']);
 
         return Inertia::render('shop/operations/orders/Edit', [
@@ -94,7 +113,7 @@ class ShopOrderController extends Controller
             'pickupTypes'    => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'statuses'       => ShopOrder::STATUSES,
-            'services'       => ShopServicePricing::where('shop_id', $shopId)
+            'services'       => ShopService::where('shop_id', $shopId)
                 ->where('is_active', true)
                 ->orderBy('service_name')
                 ->get(),
@@ -108,14 +127,14 @@ class ShopOrderController extends Controller
     {
         $this->service->updateOrder($order, $request->validated());
 
-        return redirect('/shop/operations/orders')
+        return redirect("{$this->base()}/operations/orders")
             ->with('toast', [
                 'type'    => 'success',
                 'message' => 'Order updated successfully.',
             ]);
     }
 
-    public function updateStatus(Request $request, int $shopId, ShopOrder $order): RedirectResponse
+    public function updateStatus(Request $request, ShopOrder $order): RedirectResponse
     {
         $request->validate([
             'status' => ['required', 'in:' . implode(',', ShopOrder::STATUSES)],
@@ -129,7 +148,7 @@ class ShopOrderController extends Controller
         ]);;
     }
 
-    public function updatePayment(Request $request, int $shopId, ShopOrder $order): RedirectResponse
+    public function updatePayment(Request $request, ShopOrder $order): RedirectResponse
     {
         $request->validate([
             'payment_method' => ['required', 'in:' . implode(',', ShopOrder::PAYMENT_METHODS)],
@@ -148,7 +167,7 @@ class ShopOrderController extends Controller
     {
         $this->service->deleteOrder($order);
 
-        return redirect('/shop/operations/orders')
+        return redirect("{$this->base()}/operations/orders")
             ->with('toast', [
                 'type'    => 'success',
                 'message' => 'Order archived successfully.',
@@ -160,7 +179,7 @@ class ShopOrderController extends Controller
         $order = ShopOrder::withTrashed()->findOrFail($order->id);
         $order->restore();
 
-        return redirect('/shop/operations/orders?archived=true')
+        return redirect("{$this->base()}/operations/orders?archived=true")
             ->with('toast', [
                 'type'    => 'success',
                 'message' => "Order {$order->order_number} restored successfully.",
@@ -169,10 +188,9 @@ class ShopOrderController extends Controller
 
     public function restoreAll(): RedirectResponse
     {
-        $shopId = auth()->user()->shop->id;
-        ShopOrder::onlyTrashed()->where('shop_id', $shopId)->restore();
+        ShopOrder::onlyTrashed()->where('shop_id', $this->getShopId())->restore();
 
-        return redirect('/shop/operations/orders?archived=true')
+        return redirect("{$this->base()}/operations/orders?archived=true")
             ->with('toast', [
                 'type'    => 'success',
                 'message' => 'All archived orders restored.',

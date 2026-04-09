@@ -252,18 +252,13 @@ watch(() => form.errors, (serverErrors) => {
 
 /* ---------------- SUBMIT ---------------- */
 const submit = () => {
-    console.log('agree:', form.agree)
-    console.log('isPasswordValid:', isPasswordValid.value)
-    console.log('passwordsMatch:', passwordsMatch.value)
 
     if (!validateStep3()) {
         focusFirstError()
         return
     }
 
-    console.log('About to post, form data:', form.data()) // ← add this
     form.post('/register/shop')
-    console.log('Post called') // ← and this
 }
 
 /* ---------------- GOOGLE OAuth ---------------- */

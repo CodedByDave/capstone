@@ -23,9 +23,7 @@ class CheckoutController extends Controller
         protected OrderService $orderService,
         protected PaymentService $paymentService,
         protected PaymongoService $paymongoService
-    ) {
-
-    }
+    ) {}
 
     // ── Plan selection page ────────────────────────────────────────────────────
 
@@ -102,7 +100,8 @@ class CheckoutController extends Controller
         ]);
     }
 
-    // Confirm page (Authenticated Users)
+    // ── Confirm page (Authenticated Users) ────────────────────────────────────
+
     public function confirm(): Response|RedirectResponse
     {
         $checkout = session('checkout');
@@ -128,7 +127,7 @@ class CheckoutController extends Controller
             'General Trias'  => 'City of General Trias',
         ];
 
-        $savedMunicipality = $shop?->municipality ?? '';
+        $savedMunicipality  = $shop?->municipality ?? '';
         $mappedMunicipality = $municipalityMap[$savedMunicipality] ?? $savedMunicipality;
 
         return Inertia::render('shop/CheckoutConfirm', [
@@ -139,7 +138,6 @@ class CheckoutController extends Controller
                 'name'  => $user->name,
                 'email' => $user->email,
             ],
-
             'shop' => [
                 'phone'        => $shop?->phone ?? '',
                 'shop_name'    => $shop?->shop_name ?? '',
@@ -148,7 +146,6 @@ class CheckoutController extends Controller
                 'barangay'     => $shop?->barangay ?? '',
                 'postal_code'  => $shop?->postal_code ?? '',
             ],
-
         ]);
     }
 
@@ -163,7 +160,7 @@ class CheckoutController extends Controller
 
             $user = auth()->user();
 
-            //Block duplicate orders
+            // Block duplicate orders
             $hasActiveOrder = Order::where('user_id', $user->id)
                 ->whereIn('status', ['approved', 'paid', 'pending'])
                 ->exists();
@@ -252,7 +249,10 @@ class CheckoutController extends Controller
             ]);
 
             session()->forget('checkout');
-            session(['checkout_url' => $session['data']['attributes']['checkout_url']]);
+            session([
+                'checkout_url'     => $session['data']['attributes']['checkout_url'],
+                'pending_order_id' => $order->id, // ← fallback for success() when query string is stripped
+            ]);
 
             return redirect()->route('checkout.confirm');
         } catch (\Exception $e) {
@@ -274,7 +274,11 @@ class CheckoutController extends Controller
 
     public function success(Request $request): Response
     {
-        $orderId = $request->query('order_id');
+        // ?order_id is present when PayMongo redirects with an active session.
+        // Falls back to session when auth middleware redirected to login first,
+        // which strips the query string from the intended URL.
+        $orderId = $request->query('order_id') ?? session('pending_order_id');
+        session()->forget('pending_order_id');
 
         if ($orderId) {
             $order   = Order::with('modules')->find($orderId);
@@ -309,32 +313,36 @@ class CheckoutController extends Controller
             }
 
             return Inertia::render('shop/payment/PaymentSuccess', [
-                'order'   => $order ? [
-                    'id'           => $order->id,
-                    'status'       => $order->status,
-                    'shop_name'    => $order->shop_name,
-                    'owner_name'   => $order->owner_name,
-                    'email'        => $order->email,
-                    'phone'        => $order->phone,
-                    'block_street' => $order->block_street,
-                    'municipality' => $order->municipality,
-                    'barangay'     => $order->barangay,
-                    'postal_code'  => $order->postal_code,
-                    'total_price'  => $order->total_price,
-                    'created_at'   => $order->created_at,
-                    'modules'      => $order->modules->map(fn($m) => [
+                'order' => $order ? [
+                    'id'             => $order->id,
+                    'status'         => $order->status,
+                    'shop_name'      => $order->shop_name,
+                    'owner_name'     => $order->owner_name,
+                    'email'          => $order->email,
+                    'phone'          => $order->phone,
+                    'block_street'   => $order->block_street,
+                    'municipality'   => $order->municipality,
+                    'barangay'       => $order->barangay,
+                    'postal_code'    => $order->postal_code,
+                    'total_price'    => $order->total_price,
+                    'payment_method' => $order->payment_method,
+                    'plan_name'      => $order->plan_name,
+                    'billing_months' => $order->billing_months,
+                    'expires_at'     => $order->expires_at,
+                    'created_at'     => $order->created_at,
+                    'modules'        => $order->modules->map(fn($m) => [
                         'name'  => $m->name,
                         'price' => $m->price,
                     ]),
                 ] : null,
-                'payment' => $payment,
             ]);
         }
 
         return Inertia::render('shop/payment/PaymentSuccess');
     }
 
-    // ── Payment cancel
+    // ── Payment cancel ─────────────────────────────────────────────────────────
+
     public function cancel(): Response
     {
         return Inertia::render('shop/payment/PaymentCancel');

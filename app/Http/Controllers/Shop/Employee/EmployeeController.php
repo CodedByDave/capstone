@@ -15,6 +15,7 @@ use App\Repositories\BranchRepository;
 use App\Services\EmployeeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class EmployeeController extends Controller
@@ -81,7 +82,7 @@ class EmployeeController extends Controller
         $this->employeeService->authorizeEmployee($employee, $shop);
 
         return Inertia::render('shop/employee/Show', [
-            'employee' => $employee->load(['creator:id,name', 'updater:id,name']),
+            'employee'  => $employee->load(['creator:id,name', 'updater:id,name']),
             'schedules' => $employee->schedules()->get(),
         ]);
     }
@@ -104,10 +105,31 @@ class EmployeeController extends Controller
         $shop = $this->getShop();
         $this->employeeService->authorizeEmployee($employee, $shop);
 
+        \Log::info('=== EDIT BEFORE RENDER ===', [
+            'user_id_value' => $employee->user_id,
+            'user_id_type'  => gettype($employee->user_id),
+        ]);
+
         return Inertia::render('shop/employee/Edit', [
-            'employee'     => $employee,
+            // Explicit array so no extra Eloquent attributes/relations bleed into the prop
+            'employee' => [
+                'id'          => $employee->id,
+                'employee_id' => $employee->employee_id,
+                'user_id'     => $employee->user_id,
+                'first_name'  => $employee->first_name,
+                'last_name'   => $employee->last_name,
+                'email'       => $employee->email,
+                'phone'       => $employee->phone,
+                'address'     => $employee->address,
+                'position'    => $employee->position,
+                'branch_name' => $employee->branch_name,
+                'hire_date'   => $employee->getRawOriginal('hire_date'),
+                'salary'      => $employee->salary,
+                'status'      => $employee->status,
+            ],
             'branch_names' => $this->employeeService->getBranchNames($shop),
             'roles'        => $this->getRoles($shop),
+            'schedules'    => $employee->schedules()->get(),
         ]);
     }
 
@@ -132,12 +154,11 @@ class EmployeeController extends Controller
     {
         $shop = $this->getShop();
 
-        $employee = $this->employeeService->createEmployee($shop, $request->validated());
+        $this->employeeService->createEmployee($shop, $request->validated());
 
         return $this->redirectIndex()
             ->with('toast', ['type' => 'success', 'message' => 'Employee added successfully.']);
     }
-
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {

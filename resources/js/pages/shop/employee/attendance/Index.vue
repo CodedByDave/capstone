@@ -37,11 +37,26 @@ interface Attendance {
     marker?: { id: number; name: string } | null
 }
 
+interface Schedule {
+    employee_id: number
+    day: string
+    start_time: string
+    end_time: string
+}
+
 interface Stats {
     present: number
     absent: number
     late: number
     half_day: number
+}
+
+interface EntryForm {
+    employee_id: number
+    status: 'present' | 'absent' | 'late' | 'half_day' | ''
+    time_in: string
+    time_out: string
+    remarks: string
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -53,8 +68,8 @@ const props = defineProps<{
     date: string
     branches: string[]
     filters: Record<string, string>
+    schedules: Schedule[]
 }>()
-
 
 // ─── RBAC ─────────────────────────────────────────────────────────────────────
 
@@ -68,11 +83,12 @@ onMounted(() => {
     if (!flashToast) return
     switch (flashToast.type) {
         case 'success': toast.success(flashToast.message); break
-        case 'error': toast.error(flashToast.message); break
+        case 'error':   toast.error(flashToast.message);   break
         case 'warning': toast.warning(flashToast.message); break
-        default: toast(flashToast.message)
+        default:        toast(flashToast.message)
     }
 })
+
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -99,11 +115,11 @@ function goToday() {
 
 function loadDate() {
     router.get(`${baseRoute.value}/attendance`, {
-        date: selectedDate.value,
+        date:   selectedDate.value,
         search: search.value,
         branch: selectedBranch.value === 'all' ? undefined : selectedBranch.value,
     }, {
-        preserveState: true,
+        preserveState:  true,
         preserveScroll: true,
     })
 }
@@ -118,52 +134,58 @@ function formatDateDisplay(dateStr: string): string {
     })
 }
 
-// ─── Attendance Entries ───────────────────────────────────────────────────────
+// ─── Schedule / Day-Off Logic ─────────────────────────────────────────────────
 
-interface EntryForm {
-    employee_id: number
-    status: 'present' | 'absent' | 'late' | 'half_day' | ''
-    time_in: string
-    time_out: string
-    remarks: string
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const selectedDayName = computed(() =>
+    DAYS[new Date(selectedDate.value + 'T00:00:00').getDay()]
+)
+
+function getSchedule(employeeId: number): Schedule | null {
+    const empSchedules = props.schedules.filter(s => s.employee_id === employeeId)
+    if (empSchedules.length === 0) return null
+    return empSchedules.find(s => s.day === selectedDayName.value) ?? null
 }
 
-const entries = ref<EntryForm[]>(
-    props.employees.map(emp => {
+function isScheduledDay(employeeId: number): boolean {
+    const empSchedules = props.schedules.filter(s => s.employee_id === employeeId)
+    if (empSchedules.length === 0) return true // no schedule set = always works
+    return empSchedules.some(s => s.day === selectedDayName.value)
+}
+
+// ─── Attendance Entries ───────────────────────────────────────────────────────
+
+function buildEntries(): EntryForm[] {
+    return props.employees.map(emp => {
         const existing = props.attendances.find(a => a.employee_id === emp.id)
+        const schedule = getSchedule(emp.id)
         return {
             employee_id: emp.id,
-            status: existing?.status ?? '',
-            time_in: existing?.time_in?.slice(0, 5) ?? '',
-            time_out: existing?.time_out?.slice(0, 5) ?? '',
-            remarks: existing?.remarks ?? '',
+            status:      existing?.status ?? '',
+            time_in:     existing?.time_in?.slice(0, 5)  ?? schedule?.start_time?.slice(0, 5) ?? '',
+            time_out:    existing?.time_out?.slice(0, 5) ?? schedule?.end_time?.slice(0, 5)   ?? '',
+            remarks:     existing?.remarks ?? '',
         }
     })
-)
+}
+
+const entries = ref<EntryForm[]>(buildEntries())
 
 watch(selectedBranch, (val) => {
     router.get(`${baseRoute.value}/attendance`, {
-        date: selectedDate.value,
+        date:   selectedDate.value,
         search: search.value,
         branch: val === 'all' ? undefined : val,
     }, {
-        preserveState: true,
+        preserveState:  true,
         preserveScroll: true,
     })
 })
 
-// Rebuild entries when props change
-watch(() => [props.employees, props.attendances], () => {
-    entries.value = props.employees.map(emp => {
-        const existing = props.attendances.find(a => a.employee_id === emp.id)
-        return {
-            employee_id: emp.id,
-            status: existing?.status ?? 'present',
-            time_in: existing?.time_in?.slice(0, 5) ?? '',
-            time_out: existing?.time_out?.slice(0, 5) ?? '',
-            remarks: existing?.remarks ?? '',
-        }
-    })
+// Rebuild entries when props change (e.g. after date navigation)
+watch(() => [props.employees, props.attendances, props.schedules], () => {
+    entries.value = buildEntries()
 }, { deep: true })
 
 // ─── Search / Filter ──────────────────────────────────────────────────────────
@@ -175,7 +197,7 @@ const filteredEmployees = computed(() => {
         e.first_name.toLowerCase().includes(q) ||
         e.last_name.toLowerCase().includes(q) ||
         e.employee_id.toLowerCase().includes(q) ||
-        (e.position?.toLowerCase().includes(q))
+        e.position?.toLowerCase().includes(q)
     )
 })
 
@@ -199,7 +221,7 @@ function fmtTime(time: string): string {
     if (!time) return ''
     const [h, m] = time.split(':').map(Number)
     const period = h >= 12 ? 'PM' : 'AM'
-    const hour = h % 12 || 12
+    const hour   = h % 12 || 12
     return `${hour}:${m.toString().padStart(2, '0')} ${period}`
 }
 
@@ -210,29 +232,23 @@ const isSaving = ref(false)
 function saveAttendance() {
     isSaving.value = true
     router.post(`${baseRoute.value}/attendance`, {
-        date: selectedDate.value,
-        entries: entries.value,
+        date:    selectedDate.value,
+        entries: entries.value.filter(e => isScheduledDay(e.employee_id)),
     }, {
         preserveScroll: true,
-        onSuccess: () => {
-            toast.success('Attendance saved successfully')
-        },
-        onError: () => {
-            toast.error('Failed to save attendance')
-        },
-        onFinish: () => {
-            isSaving.value = false
-        },
+        onSuccess: () => toast.success('Attendance saved successfully'),
+        onError:   () => toast.error('Failed to save attendance'),
+        onFinish:  () => { isSaving.value = false },
     })
 }
 
 // ─── Status Helpers ───────────────────────────────────────────────────────────
 
 const statusOptions = [
-    { value: 'present', label: 'Present', color: 'bg-green-500' },
-    { value: 'absent', label: 'Absent', color: 'bg-red-500' },
-    { value: 'late', label: 'Late', color: 'bg-amber-500' },
-    { value: 'half_day', label: 'Half Day', color: 'bg-blue-500' },
+    { value: 'present',  label: 'Present',  color: 'bg-green-500' },
+    { value: 'absent',   label: 'Absent',   color: 'bg-red-500'   },
+    { value: 'late',     label: 'Late',     color: 'bg-amber-500' },
+    { value: 'half_day', label: 'Half Day', color: 'bg-blue-500'  },
 ]
 
 function statusColor(status: string): string {
@@ -314,17 +330,19 @@ function statusLabel(status: string): string {
                 </Card>
             </div>
 
+            <!-- ── Toolbar ─────────────────────────────────────────── -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <!-- Left: Date Navigation -->
                 <div class="flex items-center gap-2">
                     <Button size="sm" variant="outline" @click="navigateDate(-1)">
                         <ChevronLeft class="h-4 w-4" />
                     </Button>
-                    <Input v-model="selectedDate" type="date" class="w-40 text-sm" />
+                    <Input v-model="selectedDate" type="date" class="w-40 text-sm"
+                        :max="new Date().toISOString().slice(0, 10)" />
                     <Button v-if="!isToday" size="sm" variant="outline" @click="goToday">
                         Today
                     </Button>
-                    <Button size="sm" variant="outline" @click="navigateDate(1)">
+                    <Button size="sm" variant="outline" @click="navigateDate(1)" :disabled="isToday">
                         <ChevronRight class="h-4 w-4" />
                     </Button>
                 </div>
@@ -368,12 +386,13 @@ function statusLabel(status: string): string {
                     </thead>
                     <tbody>
                         <tr v-for="emp in filteredEmployees" :key="emp.id"
-                            class="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                            class="border-b last:border-0 transition-colors"
+                            :class="isScheduledDay(emp.id) ? 'hover:bg-muted/20' : 'bg-muted/10 opacity-60'">
+
                             <!-- Employee Info -->
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
-                                    <div
-                                        class="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <div class="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                         <span class="text-xs font-bold text-primary">
                                             {{ emp.first_name[0] }}{{ emp.last_name[0] }}
                                         </span>
@@ -382,8 +401,9 @@ function statusLabel(status: string): string {
                                         <p class="font-medium truncate">{{ emp.first_name }} {{ emp.last_name }}</p>
                                         <p class="text-xs text-muted-foreground">
                                             {{ emp.position }}
-                                            <span v-if="emp.branch_name" class="ml-1 text-muted-foreground/60">· {{
-                                                emp.branch_name }}</span>
+                                            <span v-if="emp.branch_name" class="ml-1 text-muted-foreground/60">
+                                                · {{ emp.branch_name }}
+                                            </span>
                                         </p>
                                     </div>
                                 </div>
@@ -391,14 +411,16 @@ function statusLabel(status: string): string {
 
                             <!-- Status -->
                             <td class="px-4 py-3">
-                                <Select v-model="getEntry(emp.id).status">
+                                <span v-if="!isScheduledDay(emp.id)"
+                                    class="text-xs text-muted-foreground italic px-2 py-1 rounded bg-muted">
+                                    Day Off
+                                </span>
+                                <Select v-else v-model="getEntry(emp.id).status">
                                     <SelectTrigger class="h-8 w-28 text-xs">
                                         <SelectValue>
-                                            <span v-if="!getEntry(emp.id).status"
-                                                class="text-muted-foreground">Select</span>
+                                            <span v-if="!getEntry(emp.id).status" class="text-muted-foreground">Select</span>
                                             <span v-else class="flex items-center gap-1.5">
-                                                <span class="h-2 w-2 rounded-full"
-                                                    :class="statusColor(getEntry(emp.id).status)" />
+                                                <span class="h-2 w-2 rounded-full" :class="statusColor(getEntry(emp.id).status)" />
                                                 {{ statusLabel(getEntry(emp.id).status) }}
                                             </span>
                                         </SelectValue>
@@ -416,12 +438,12 @@ function statusLabel(status: string): string {
 
                             <!-- Time In -->
                             <td class="px-4 py-3">
-                                <Select v-model="getEntry(emp.id).time_in"
+                                <span v-if="!isScheduledDay(emp.id)" class="text-xs text-muted-foreground">—</span>
+                                <Select v-else v-model="getEntry(emp.id).time_in"
                                     :disabled="getEntry(emp.id).status === 'absent'">
                                     <SelectTrigger class="h-8 w-32 text-xs">
-                                        <SelectValue :placeholder="'Select'">
-                                            {{ getEntry(emp.id).time_in ? fmtTime(getEntry(emp.id).time_in) : 'Select'
-                                            }}
+                                        <SelectValue>
+                                            {{ getEntry(emp.id).time_in ? fmtTime(getEntry(emp.id).time_in) : 'Select' }}
                                         </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent class="max-h-60">
@@ -435,12 +457,12 @@ function statusLabel(status: string): string {
 
                             <!-- Time Out -->
                             <td class="px-4 py-3">
-                                <Select v-model="getEntry(emp.id).time_out"
+                                <span v-if="!isScheduledDay(emp.id)" class="text-xs text-muted-foreground">—</span>
+                                <Select v-else v-model="getEntry(emp.id).time_out"
                                     :disabled="getEntry(emp.id).status === 'absent'">
                                     <SelectTrigger class="h-8 w-32 text-xs">
-                                        <SelectValue :placeholder="'Select'">
-                                            {{ getEntry(emp.id).time_out ? fmtTime(getEntry(emp.id).time_out) : 'Select'
-                                            }}
+                                        <SelectValue>
+                                            {{ getEntry(emp.id).time_out ? fmtTime(getEntry(emp.id).time_out) : 'Select' }}
                                         </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent class="max-h-60">
@@ -454,7 +476,8 @@ function statusLabel(status: string): string {
 
                             <!-- Remarks -->
                             <td class="px-4 py-3">
-                                <Input v-model="getEntry(emp.id).remarks" placeholder="Optional"
+                                <span v-if="!isScheduledDay(emp.id)" class="text-xs text-muted-foreground">—</span>
+                                <Input v-else v-model="getEntry(emp.id).remarks" placeholder="Optional"
                                     class="h-8 text-xs w-full min-w-[120px]" />
                             </td>
                         </tr>

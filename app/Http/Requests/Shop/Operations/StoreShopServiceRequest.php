@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Shop\Operations;
 
-use App\Models\ShopServicePricing;;
+use App\Models\ShopService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

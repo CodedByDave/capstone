@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
+import { Checkbox } from '@/components/ui/checkbox'
 import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { ref, computed, onMounted, watch } from 'vue'
 
@@ -15,6 +16,7 @@ import axios from 'axios'
 interface Employee {
     id: number
     employee_id: string
+    user_id: number | null
     first_name: string
     last_name: string
     phone: string | null
@@ -151,6 +153,11 @@ const fullAddress = computed(() => {
 
 // ─── Employee Form ────────────────────────────────────────────────────────────
 
+const hasAccount = employee.user_id !== null && employee.user_id !== undefined
+
+// ← Separate ref so shadcn Checkbox reactivity is isolated and reliable
+const createAccount = ref(false)
+
 const form = ref({
     employee_id: employee.employee_id,
     branch_name: employee.branch_name ?? '',
@@ -172,6 +179,7 @@ function submit() {
     router.put(`${baseRoute.value}/employee/${employee.id}`, {
         ...form.value,
         branch_name: form.value.branch_name === '__none__' ? '' : form.value.branch_name,
+        create_account: createAccount.value ? 1 : 0,
     }, {
         preserveScroll: true,
         onFinish: () => { isSubmitting.value = false },
@@ -313,7 +321,6 @@ async function saveSchedule() {
                         <p v-if="errors.branch_name" class="text-xs text-red-500">{{ errors.branch_name }}</p>
                     </div>
 
-                    <!-- Hire Date — restricted for staff -->
                     <div class="col-span-12 sm:col-span-3 space-y-1">
                         <label class="text-sm font-medium">
                             Hire Date <span class="text-red-500">*</span>
@@ -328,7 +335,6 @@ async function saveSchedule() {
                         <p v-if="errors.hire_date" class="text-xs text-red-500">{{ errors.hire_date }}</p>
                     </div>
 
-                    <!-- Salary — restricted for staff -->
                     <div class="col-span-12 sm:col-span-3 space-y-1">
                         <label class="text-sm font-medium">
                             Salary (₱)
@@ -345,7 +351,6 @@ async function saveSchedule() {
                         <p v-if="errors.salary" class="text-xs text-red-500">{{ errors.salary }}</p>
                     </div>
 
-                    <!-- Status — restricted for staff -->
                     <div class="col-span-12 sm:col-span-3 space-y-1">
                         <label class="text-sm font-medium">
                             Status <span class="text-red-500">*</span>
@@ -452,6 +457,37 @@ async function saveSchedule() {
                 <p v-if="errors.address" class="mt-1 text-xs text-red-500">{{ errors.address }}</p>
             </div>
 
+            <!-- ── System Access ─────────────────────────────────────────────── -->
+            <div class="space-y-4">
+                <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">System Access</p>
+
+                <div v-if="hasAccount"
+                    class="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 px-4 py-3">
+                    <div class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                    <p class="text-sm text-green-800 dark:text-green-200">
+                        This employee already has a system account.
+                    </p>
+                </div>
+
+                <template v-else>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="create_account" :checked="createAccount"
+                            @change="(e) => { createAccount = e.target.checked; }"
+                            class="h-4 w-4 mt-1 rounded border-gray-300 cursor-pointer" />
+                        <div class="space-y-1">
+                            <label for="create_account" class="text-sm font-medium cursor-pointer">
+                                Create a system account for this employee
+                            </label>
+                            <p class="text-xs text-muted-foreground">
+                                A login account will be created using the employee's email. The default password will be
+                                their last name. Only enable this for employees who need system access.
+                            </p>
+                        </div>
+                    </div>
+                    <p v-if="errors.create_account" class="text-xs text-red-500">{{ errors.create_account }}</p>
+                </template>
+            </div>
+
             <!-- ── Schedule (owner only) ──────────────────────────────────────── -->
             <div v-if="isOwner">
                 <div class="flex items-center justify-between mb-4">
@@ -485,7 +521,6 @@ async function saveSchedule() {
                                 {{ d.day }}
                             </span>
                         </label>
-
                         <template v-if="d.enabled">
                             <div class="flex items-center gap-2">
                                 <Input v-model="d.start_time" type="time" class="h-8 w-32 text-sm" />

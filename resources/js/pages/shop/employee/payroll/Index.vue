@@ -19,7 +19,7 @@ import {
 import {
     Banknote, FileText, CheckCircle2, Clock,
     Plus, Eye, Trash2, Loader2,
-    ChevronLeft, ChevronRight,
+    ChevronLeft, ChevronRight, Settings2,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -52,11 +52,19 @@ interface Stats {
     latest_total: number
 }
 
+interface PayrollSettings {
+    deduct_sss: boolean
+    deduct_philhealth: boolean
+    deduct_pagibig: boolean
+    deduct_withholding_tax: boolean
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const props = defineProps<{
     payrolls: PaginatedPayrolls
     stats: Stats
+    settings: PayrollSettings
 }>()
 
 // ─── RBAC ─────────────────────────────────────────────────────────────────────
@@ -162,6 +170,27 @@ function confirmDelete() {
     })
 }
 
+// ─── Settings Dialog ──────────────────────────────────────────────────────────
+
+const isSettingsOpen = ref(false)
+const savingSettings = ref(false)
+
+const settingsForm = ref({ ...props.settings })
+
+function openSettings() {
+    settingsForm.value = { ...props.settings }
+    isSettingsOpen.value = true
+}
+
+function submitSettings() {
+    savingSettings.value = true
+    router.put(`${baseRoute.value}/payroll/settings`, settingsForm.value, {
+        preserveScroll: true,
+        onSuccess: () => { isSettingsOpen.value = false },
+        onFinish: () => { savingSettings.value = false },
+    })
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatCurrency(val: string | number | null): string {
@@ -206,10 +235,15 @@ const visiblePages = computed(() => {
                         Generate and manage employee payroll based on attendance records.
                     </p>
                 </div>
-                <Button @click="openGenerate">
-                    <Plus class="h-4 w-4 mr-2" />
-                    Generate Payroll
-                </Button>
+                <div class="flex items-center gap-2">
+                    <Button v-if="isOwner" variant="outline" @click="openSettings">
+                        <Settings2 class="h-4 w-4 mr-2" /> Settings
+                    </Button>
+                    <Button @click="openGenerate">
+                        <Plus class="h-4 w-4 mr-2" />
+                        Generate Payroll
+                    </Button>
+                </div>
             </div>
 
             <!-- ── Stats ───────────────────────────────────────── -->
@@ -379,6 +413,64 @@ const visiblePages = computed(() => {
                     <Button :disabled="generating" @click="submitGenerate">
                         <Loader2 v-if="generating" class="h-4 w-4 mr-2 animate-spin" />
                         {{ generating ? 'Generating...' : 'Generate' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- ── Settings Dialog ────────────────────────────────── -->
+        <Dialog v-model:open="isSettingsOpen">
+            <DialogContent class="max-w-sm">
+                <DialogHeader>
+                    <DialogTitle>Payroll Deduction Settings</DialogTitle>
+                </DialogHeader>
+                <div class="space-y-4">
+                    <p class="text-sm text-muted-foreground">
+                        Choose which government deductions apply to your employees' payroll.
+                    </p>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" v-model="settingsForm.deduct_sss"
+                                class="h-4 w-4 rounded border-gray-300 accent-primary" />
+                            <div>
+                                <p class="text-sm font-medium">SSS</p>
+                                <p class="text-xs text-muted-foreground">4.5% of Monthly Salary Credit</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" v-model="settingsForm.deduct_philhealth"
+                                class="h-4 w-4 rounded border-gray-300 accent-primary" />
+                            <div>
+                                <p class="text-sm font-medium">PhilHealth</p>
+                                <p class="text-xs text-muted-foreground">2.5% of monthly basic salary</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" v-model="settingsForm.deduct_pagibig"
+                                class="h-4 w-4 rounded border-gray-300 accent-primary" />
+                            <div>
+                                <p class="text-sm font-medium">Pag-IBIG</p>
+                                <p class="text-xs text-muted-foreground">1–2% of monthly salary (max ₱100)</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" v-model="settingsForm.deduct_withholding_tax"
+                                class="h-4 w-4 rounded border-gray-300 accent-primary" />
+                            <div>
+                                <p class="text-sm font-medium">Withholding Tax</p>
+                                <p class="text-xs text-muted-foreground">BIR TRAIN Law semi-monthly brackets</p>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="rounded-lg border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
+                        Changes apply to newly generated or recalculated payrolls only.
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="isSettingsOpen = false">Cancel</Button>
+                    <Button :disabled="savingSettings" @click="submitSettings">
+                        <Loader2 v-if="savingSettings" class="h-4 w-4 mr-2 animate-spin" />
+                        {{ savingSettings ? 'Saving...' : 'Save Settings' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

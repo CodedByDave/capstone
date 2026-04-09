@@ -2,14 +2,14 @@
 
 namespace App\Repositories;
 
-use App\Models\ShopServicePricing;
+use App\Models\ShopService;
 use Illuminate\Database\Eloquent\Collection;
 
 class ShopServiceRepository
 {
     public function allByShop(int $shopId, bool $activeOnly = false, bool $onlyTrashed = false): Collection
     {
-        return ShopServicePricing::query()
+        return ShopService::query()
             ->where('shop_id', $shopId)
             ->when($activeOnly, fn($q) => $q->where('is_active', true))
             ->when($onlyTrashed, fn($q) => $q->onlyTrashed())
@@ -17,23 +17,23 @@ class ShopServiceRepository
             ->get();
     }
 
-    public function find(int $id): ShopServicePricing
+    public function find(int $id): ShopService
     {
-        return ShopServicePricing::findOrFail($id);
+        return ShopService::findOrFail($id);
     }
 
-    public function create(array $data): ShopServicePricing
+    public function create(array $data): ShopService
     {
-        return ShopServicePricing::create($data);
+        return ShopService::create($data);
     }
 
-    public function update(ShopServicePricing $service, array $data): ShopServicePricing
+    public function update(ShopService $service, array $data): ShopService
     {
         $service->update($data);
         return $service->fresh();
     }
 
-    public function delete(ShopServicePricing $service): void
+    public function delete(ShopService $service): void
     {
         $service->delete();
     }

@@ -23,6 +23,7 @@ class UpdateEmployeeRequest extends FormRequest
             'hire_date'   => 'required|date|before_or_equal:today',
             'salary'      => 'nullable|numeric|min:0|max:9999999.99',
             'status'      => 'required|in:Active,Inactive',
+            'create_account' => 'sometimes', 'nullable', 'integer', 'in:0,1',
         ];
     }
 

@@ -16,16 +16,24 @@ class PayrollItem extends Model
         'days_late',
         'days_half_day',
         'deductions',
+        'sss_contribution',
+        'philhealth_contribution',
+        'pagibig_contribution',
+        'withholding_tax',
         'bonuses',
         'net_pay',
         'remarks',
     ];
 
     protected $casts = [
-        'basic_salary' => 'decimal:2',
-        'deductions'   => 'decimal:2',
-        'bonuses'      => 'decimal:2',
-        'net_pay'      => 'decimal:2',
+        'basic_salary'            => 'decimal:2',
+        'deductions'              => 'decimal:2',
+        'sss_contribution'        => 'decimal:2',
+        'philhealth_contribution' => 'decimal:2',
+        'pagibig_contribution'    => 'decimal:2',
+        'withholding_tax'         => 'decimal:2',
+        'bonuses'                 => 'decimal:2',
+        'net_pay'                 => 'decimal:2',
     ];
 
     public function payroll(): BelongsTo

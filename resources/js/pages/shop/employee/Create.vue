@@ -269,7 +269,7 @@ function submit() {
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Salary (Monthly) <span
-                                class="text-muted-foreground text-xs">(₱10,000 -
+                                class="text-muted-foreground text-xs">(₱13,000 -
                                 ₱50,000)</span></label>
                         <Input v-model.number="form.salary" type="number" min="1000" max="50000" step="0.01"
                             :class="{ 'border-red-500': errors.salary }" @input="validateSalary" />

@@ -32,6 +32,11 @@ class PayrollController extends Controller
         return Shop::findOrFail($employee->shop_id);
     }
 
+    private function base(): string
+    {
+        return auth()->user()->role === 'owner' ? '/shop' : '/staff';
+    }
+
     public function index()
     {
         $shop = $this->getShop();
@@ -39,7 +44,25 @@ class PayrollController extends Controller
         return Inertia::render('shop/employee/payroll/Index', [
             'payrolls' => $this->payrollService->paginate($shop),
             'stats'    => $this->payrollService->getStats($shop),
+            'settings' => [
+                'deduct_sss'             => (bool) $shop->deduct_sss,
+                'deduct_philhealth'      => (bool) $shop->deduct_philhealth,
+                'deduct_pagibig'         => (bool) $shop->deduct_pagibig,
+                'deduct_withholding_tax' => (bool) $shop->deduct_withholding_tax,
+            ],
         ]);
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $shop = $this->getShop();
+        abort_if($request->user()->role !== 'owner', 403);
+
+        $this->payrollService->updateSettings($shop, $request->only([
+            'deduct_sss', 'deduct_philhealth', 'deduct_pagibig', 'deduct_withholding_tax',
+        ]));
+
+        return back()->with('toast', ['type' => 'success', 'message' => 'Payroll settings saved.']);
     }
 
     public function show(Payroll $payroll)
@@ -69,7 +92,7 @@ class PayrollController extends Controller
 
         $this->payrollService->generate($shop, $request->validated());
 
-        return redirect()->route('payroll.index')
+        return redirect("{$this->base()}/payroll")
             ->with('toast', ['type' => 'success', 'message' => 'Payroll generated successfully.']);
     }
 
@@ -114,7 +137,7 @@ class PayrollController extends Controller
 
         $this->payrollService->delete($payroll);
 
-        return redirect()->route('payroll.index')
+        return redirect("{$this->base()}/payroll")
             ->with('toast', ['type' => 'success', 'message' => 'Payroll deleted.']);
     }
 }

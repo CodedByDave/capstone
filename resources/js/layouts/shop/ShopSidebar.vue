@@ -48,8 +48,8 @@ const allHrmSubActions = [
     {
         title: 'Branch List',
         icon: Building2,
-        href: isOwner.value ? '/shop/branch' : '/staff/branch',
-        show: () => isOwner.value || can('HRM', 'view'),
+        href: '/shop/branch',
+        show: () => isOwner.value,
     },
     {
         title: 'Attendance',
@@ -120,7 +120,7 @@ const allOperationsSubActions = [
     {
         title: 'Promotions',
         icon: Tag,
-        href: isOwner.value ? '/shop/services/promos' : '/staff/services/promos',
+        href: isOwner.value ? '/shop/operations/promos' : '/staff/operations/promos',
         show: () => isOwner.value || can('Operations', 'view'),
     },
 ]
@@ -244,10 +244,9 @@ const areaChecks: Record<string, (url: string) => boolean> = {
         url.startsWith('/shop/supplier')   || url.startsWith('/staff/supplier'),
 
     'Operations': (url) =>
-        url.startsWith('/shop/operations/orders')   || url.startsWith('/staff/operations/orders') ||
-        url.startsWith('/shop/operations/services') || url.startsWith('/staff/operations/services') ||
-        url.startsWith('/shop/orders')              || url.startsWith('/staff/orders') ||
-        url.startsWith('/shop/services')            || url.startsWith('/staff/services'),
+        url.startsWith('/shop/operations')  || url.startsWith('/staff/operations') ||
+        url.startsWith('/shop/orders')      || url.startsWith('/staff/orders') ||
+        url.startsWith('/shop/services')    || url.startsWith('/staff/services'),
 
     'Finance Management': (url) =>
         url.startsWith('/shop/finance')  || url.startsWith('/staff/finance'),
@@ -290,6 +289,7 @@ const exactRoutes = [
     '/shop/supplier',                  '/staff/supplier',
     '/shop/operations/orders',         '/staff/operations/orders',
     '/shop/operations/services',       '/staff/operations/services',
+    '/shop/operations/promos',         '/staff/operations/promos',
     '/shop/orders',                    '/staff/orders',
     '/shop/orders/pending',            '/staff/orders/pending',
     '/shop/orders/progress',           '/staff/orders/progress',
