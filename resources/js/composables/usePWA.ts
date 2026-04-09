@@ -6,6 +6,10 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const deferredPrompt = ref<BeforeInstallPromptEvent | null>(null);
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+
+export const showIOSBanner = ref(isIOS && !isInStandaloneMode);
 
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -14,10 +18,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 export function usePWA() {
     const installApp = async () => {
-        if (!deferredPrompt.value) {
-            // Already installed or not supported — do nothing or show a message
-            return;
-        }
+        if (!deferredPrompt.value) return;
         await deferredPrompt.value.prompt();
         const { outcome } = await deferredPrompt.value.userChoice;
         if (outcome === 'accepted') {
@@ -25,5 +26,5 @@ export function usePWA() {
         }
     };
 
-    return { installApp };
+    return { installApp, showIOSBanner };
 }

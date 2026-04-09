@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-vue-next"
 import { dashboard } from '@/routes'
 import { usePWA } from '@/composables/usePWA'
+import IOSInstallBanner from '@/components/IOSInstallBanner.vue'
 
 const page = usePage()
 const { installApp } = usePWA()
@@ -137,4 +138,6 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
             </div>
         </div>
     </header>
+
+    <IOSInstallBanner />
 </template>
