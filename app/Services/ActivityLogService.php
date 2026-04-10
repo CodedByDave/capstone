@@ -29,10 +29,11 @@ class ActivityLogService
         ]);
     }
 
-    public function getPaginatedLogs(Shop $shop, object $request): LengthAwarePaginator
+    public function getPaginatedLogs(Shop $shop, object $request, ?array $performerIds = null): LengthAwarePaginator
     {
         return ActivityLog::query()
             ->where('shop_id', $shop->id)
+            ->when($performerIds !== null, fn($q) => $q->whereIn('performed_by', $performerIds))
             ->with(['subject', 'performer:id,name'])
             ->when($request->action ?? null,       fn($q) => $q->where('action', $request->action))
             ->when($request->performed_by ?? null, fn($q) => $q->where('performed_by', (int) $request->performed_by))
@@ -70,20 +71,22 @@ class ActivityLogService
             ->withQueryString();
     }
 
-    public function getPerformers(Shop $shop): Collection
+    public function getPerformers(Shop $shop, ?array $performerIds = null): Collection
     {
         return User::whereIn(
             'id',
             ActivityLog::where('shop_id', $shop->id)
+                ->when($performerIds !== null, fn($q) => $q->whereIn('performed_by', $performerIds))
                 ->whereNotNull('performed_by')
                 ->distinct()
                 ->pluck('performed_by')
         )->select('id', 'name')->get();
     }
 
-    public function getModules(Shop $shop): Collection
+    public function getModules(Shop $shop, ?array $performerIds = null): Collection
     {
         return ActivityLog::where('shop_id', $shop->id)
+            ->when($performerIds !== null, fn($q) => $q->whereIn('performed_by', $performerIds))
             ->distinct()
             ->pluck('module');
     }

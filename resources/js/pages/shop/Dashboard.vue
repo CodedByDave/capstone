@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue'
-import { dashboard } from '@/routes'
 import { type BreadcrumbItem } from '@/types'
 import { Head, usePage } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
@@ -27,6 +26,10 @@ interface DSSInsight {
     title: string
     message: string
 }
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/shop/dashboard' },
+]
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -71,13 +74,7 @@ const isApproved = computed(() =>
 )
 const showOrder = ref(false)
 
-// ─── Breadcrumbs ──────────────────────────────────────────────────────────────
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard().url }
-]
-
-// ─── DSS Insights ─────────────────────────────────────────────────────────────
+// ─── Breadcrumbs ─────────────────────────────────────────────────────────────
 
 const dssInsights = computed<DSSInsight[]>(() => {
     const insights: DSSInsight[] = []
@@ -521,25 +518,6 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             </div>
                             <div v-else class="relative w-full h-[220px]">
                                 <canvas ref="categoryChartRef"></canvas>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Employees per Branch — full width row -->
-                    <Card class="md:col-span-3">
-                        <CardHeader class="pb-2">
-                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
-                                <Users class="h-4 w-4 text-muted-foreground" />
-                                Employees per branch
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div v-if="(props.employees_per_branch?.length ?? 0) === 0"
-                                class="flex items-center justify-center h-28 text-sm text-muted-foreground">
-                                No branches yet.
-                            </div>
-                            <div v-else class="relative h-[160px]">
-                                <canvas ref="branchChartRef"></canvas>
                             </div>
                         </CardContent>
                     </Card>

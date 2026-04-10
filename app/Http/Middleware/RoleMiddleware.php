@@ -31,10 +31,10 @@ class RoleMiddleware
             // Redirect based on actual role instead of 404
             return match($user->role) {
                 'super_admin' => redirect()->route('admin.dashboard'),
-                'owner' => redirect()->route('shop.dashboard'),
-                'staff' => redirect()->route('staff.dashboard'),
-                'user' => redirect()->route('dashboard'),
-                default => abort(403, 'Unauthorized access'),
+                'owner'       => redirect()->route('shop.dashboard'),
+                'staff'       => redirect()->route('staff.dashboard'),
+                'user'        => redirect()->route('user.dashboard'),
+                default       => abort(403, 'Unauthorized access'),
             };
         }
 

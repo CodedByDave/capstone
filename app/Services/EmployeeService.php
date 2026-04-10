@@ -35,26 +35,42 @@ class EmployeeService
     ) {}
 
     /* ─── READ ─────────────────────────── */
-    public function getEmployees(Shop $shop, int $perPage = 10): LengthAwarePaginator
+
+    /**
+     * Returns the authenticated staff member's branch name, or null for owners.
+     * An empty branch_name is treated as "unassigned" (returns null).
+     */
+    private function getStaffBranch(): ?string
     {
         $user = auth()->user();
 
+        if ($user->role === 'owner') {
+            return null;
+        }
+
+        $branch = Employee::where('user_id', $user->id)->value('branch_name');
+
+        return ($branch !== null && $branch !== '') ? $branch : null;
+    }
+
+    public function getEmployees(Shop $shop, int $perPage = 10): LengthAwarePaginator
+    {
         $query = Employee::with(['creator:id,name', 'updater:id,name'])
             ->where('shop_id', $shop->id);
 
-        if ($user->role === 'owner') {
-            // Owner sees everyone
-        } else {
-            // Staff: check their employee_role to determine scope
-            $employee = Employee::where('user_id', $user->id)->first();
-            $employeeRole = $employee?->roles()->value('role') ?? 'staff';
+        $branch = $this->getStaffBranch();
 
-            if (in_array($employeeRole, ['manager', 'hr'])) {
-                // Manager/HR sees everyone except themselves
-                $query->where('user_id', '!=', $user->id);
+        if (auth()->user()->role !== 'owner') {
+            if ($branch !== null) {
+                // Show only the manager's branch, excluding their own record
+                $query->where('branch_name', $branch)
+                      ->where(function ($q) {
+                          $q->where('user_id', '!=', auth()->id())
+                            ->orWhereNull('user_id');
+                      });
             } else {
-                // Everyone else only sees themselves
-                $query->where('user_id', $user->id);
+                // No branch assigned — return empty list
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -63,11 +79,20 @@ class EmployeeService
 
     public function getStats(Shop $shop): array
     {
-        return $this->employeeRepository->getStatsByShop($shop);
+        $branch = $this->getStaffBranch(); // null for owners → no filter applied
+
+        return $this->employeeRepository->getStatsByShop($shop, $branch);
     }
 
     public function getBranchNames(Shop $shop): array
     {
+        $branch = $this->getStaffBranch();
+
+        // Non-owners (managers/staff) can only assign to their own branch
+        if (auth()->user()->role !== 'owner') {
+            return $branch !== null ? [$branch] : [];
+        }
+
         return $this->employeeRepository->getBranchNames($shop);
     }
 

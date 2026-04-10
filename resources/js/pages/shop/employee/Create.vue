@@ -2,7 +2,7 @@
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { Checkbox } from '@/components/ui/checkbox'
-import { type BreadcrumbItem } from '@/types'
+import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { toast } from 'vue-sonner'
 
@@ -36,7 +36,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Add Employee', href: '/shop/employee/create' },
 ]
 
-const errors = computed(() => usePage().props.errors as Record<string, string>)
+const page = usePage<AppPageProps>()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+const errors = computed(() => page.props.errors as Record<string, string>)
 
 function generateEmployeeId(): string {
     const year = new Date().getFullYear()
@@ -121,9 +124,12 @@ const fullAddress = computed(() => {
     return parts.join(', ')
 })
 
+// For staff, pre-select their only available branch; for owners use the shop default
+const defaultBranch = branch_names.length === 1 ? branch_names[0] : (shop.branch_name ?? '')
+
 const form = ref({
     employee_id: generateEmployeeId(),
-    branch_name: shop.branch_name ?? '',
+    branch_name: defaultBranch,
     first_name: '',
     last_name: '',
     email: '',
@@ -139,7 +145,7 @@ const form = ref({
 const isSubmitting = ref(false)
 
 function cancel() {
-    router.visit('/shop/employee')
+    router.visit(`${baseRoute.value}/employee`)
 }
 
 function submit() {
@@ -149,7 +155,7 @@ function submit() {
         ...form.value,
         branch_name: form.value.branch_name === '__none__' ? '' : form.value.branch_name,
     }
-    router.post('/shop/employee', payload, {
+    router.post(`${baseRoute.value}/employee`, payload, {
         preserveScroll: true,
         onError: () => {
             toast.error('Failed to add employee', {

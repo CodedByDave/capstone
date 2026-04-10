@@ -41,9 +41,26 @@ class PayrollService
                 'created_by'   => auth()->id(),
             ]);
 
-            $employees = Employee::where('shop_id', $shop->id)
-                ->where('status', 'Active')
-                ->get();
+            $employeeQuery = Employee::where('shop_id', $shop->id)
+                ->where('status', 'Active');
+
+            // Non-owners generate payroll only for their branch, excluding themselves
+            if (auth()->user()->role !== 'owner') {
+                $userId = auth()->id();
+                $branch = Employee::where('user_id', $userId)->value('branch_name');
+
+                if ($branch) {
+                    $employeeQuery->where('branch_name', $branch)
+                        ->where(function ($q) use ($userId) {
+                            $q->where('user_id', '!=', $userId)
+                              ->orWhereNull('user_id');
+                        });
+                } else {
+                    $employeeQuery->whereRaw('1 = 0');
+                }
+            }
+
+            $employees = $employeeQuery->get();
 
             foreach ($employees as $employee) {
                 $attendance = $this->getAttendanceSummary($employee, $data['period_start'], $data['period_end']);

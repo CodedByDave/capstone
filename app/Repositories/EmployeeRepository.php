@@ -26,11 +26,15 @@ class EmployeeRepository extends Repository
             ->get();
     }
 
-    // Stats scoped to shop
+    // Stats scoped to shop (and optionally to a specific branch)
 
-    public function getStatsByShop(Shop $shop): array
+    public function getStatsByShop(Shop $shop, ?string $branch = null): array
     {
         $query = $shop->employees();
+
+        if ($branch !== null && $branch !== '') {
+            $query->where('branch_name', $branch);
+        }
 
         return [
             'total'          => (clone $query)->count(),

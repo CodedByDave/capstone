@@ -10,7 +10,6 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-import { dashboard } from '@/routes'
 import { type NavItem } from '@/types'
 import { Link } from '@inertiajs/vue3'
 import {
@@ -22,7 +21,7 @@ import AppLogo from '@/components/AppLogo.vue'
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard.url(),
+        href: '/admin/dashboard',
         icon: LayoutGrid,
     },
     {

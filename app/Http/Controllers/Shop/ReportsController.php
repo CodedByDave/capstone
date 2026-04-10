@@ -29,6 +29,25 @@ class ReportsController extends Controller
         return Shop::findOrFail($employee->shop_id);
     }
 
+    /** Returns the staff member's branch name, or null for owners. */
+    private function getStaffBranch(): ?string
+    {
+        $user = auth()->user();
+        if ($user->role === 'owner') return null;
+        $branch = Employee::where('user_id', $user->id)->value('branch_name');
+        return ($branch !== null && $branch !== '') ? $branch : null;
+    }
+
+    /** Applies a branch scope to an Employee query builder. */
+    private function scopeEmployees(Shop $shop, ?string $branch)
+    {
+        $q = Employee::where('shop_id', $shop->id);
+        if ($branch !== null) {
+            $q->where('branch_name', $branch);
+        }
+        return $q;
+    }
+
     private function getDateRange(string $period): array
     {
         return match ($period) {
@@ -43,6 +62,7 @@ class ReportsController extends Controller
     public function overview(Request $request)
     {
         $shop   = $this->getShop();
+        $branch = $this->getStaffBranch();
         $period = $request->get('period', 'month');
         [$from, $to] = $this->getDateRange($period);
 
@@ -50,8 +70,8 @@ class ReportsController extends Controller
         $activeItems     = Inventory::where('shop_id', $shop->id)->where('status', 'active')->count();
         $lowStockItems   = Inventory::where('shop_id', $shop->id)->whereColumn('quantity', '<=', 'min_stock')->count();
         $outOfStock      = Inventory::where('shop_id', $shop->id)->where('quantity', 0)->count();
-        $totalEmployees  = Employee::where('shop_id', $shop->id)->count();
-        $totalBranches   = Branch::where('shop_id', $shop->id)->count();
+        $totalEmployees  = $this->scopeEmployees($shop, $branch)->count();
+        $totalBranches   = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
         $unresolvedAlerts = LowStockAlert::where('shop_id', $shop->id)->whereIn('status', ['unread', 'read'])->count();
         $movementsInPeriod = InventoryMovement::whereHas('inventory', fn($q) => $q->where('shop_id', $shop->id))
             ->whereBetween('created_at', [$from, $to])->count();
@@ -173,46 +193,51 @@ class ReportsController extends Controller
     public function employee(Request $request)
     {
         $shop   = $this->getShop();
+        $branch = $this->getStaffBranch();
         $period = $request->get('period', 'month');
         [$from, $to] = $this->getDateRange($period);
 
-        $totalEmployees = Employee::where('shop_id', $shop->id)->count();
-        $totalBranches  = Branch::where('shop_id', $shop->id)->count();
-        $newEmployees   = Employee::where('shop_id', $shop->id)->whereBetween('created_at', [$from, $to])->count();
+        $totalEmployees = $this->scopeEmployees($shop, $branch)->count();
+        $totalBranches  = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
+        $newEmployees   = $this->scopeEmployees($shop, $branch)->whereBetween('created_at', [$from, $to])->count();
 
-        $employeesByBranch = Branch::where('shop_id', $shop->id)
-            ->withCount('employees')
-            ->get()
-            ->map(fn($b) => ['name' => $b->name, 'count' => $b->employees_count]);
+        $employeesByBranch = $branch !== null
+            ? collect([['name' => $branch, 'count' => $this->scopeEmployees($shop, $branch)->count()]])
+            : Branch::where('shop_id', $shop->id)
+                ->withCount('employees')
+                ->get()
+                ->map(fn($b) => ['name' => $b->name, 'count' => $b->employees_count]);
 
-        $employeeGrowth = collect(range(5, 0))->map(function ($monthsAgo) use ($shop) {
+        $employeeGrowth = collect(range(5, 0))->map(function ($monthsAgo) use ($shop, $branch) {
             $date = Carbon::now()->subMonths($monthsAgo);
             return [
                 'month' => $date->format('M Y'),
-                'count' => Employee::where('shop_id', $shop->id)
+                'count' => $this->scopeEmployees($shop, $branch)
                     ->whereYear('created_at', $date->year)
                     ->whereMonth('created_at', $date->month)
                     ->count(),
             ];
         })->values();
 
-        $scheduledThisWeek = EmployeeSchedule::whereHas('employee', fn($q) => $q->where('shop_id', $shop->id))
+        $scheduledThisWeek = EmployeeSchedule::whereHas(
+            'employee',
+            fn($q) => $q->where('shop_id', $shop->id)->when($branch, fn($q) => $q->where('branch_name', $branch))
+        )
             ->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
             ->count();
 
-        $recentEmployees = Employee::where('shop_id', $shop->id)
-            ->with('branch:id,name')
+        $recentEmployees = $this->scopeEmployees($shop, $branch)
             ->latest()
             ->limit(5)
-            ->get(['id', 'first_name', 'last_name', 'email', 'branch_id', 'created_at'])
+            ->get(['id', 'first_name', 'last_name', 'email', 'branch_name', 'created_at'])
             ->map(fn($e) => [
                 'name'       => "{$e->first_name} {$e->last_name}",
                 'email'      => $e->email,
-                'branch'     => $e->branch?->name ?? '—',
+                'branch'     => $e->branch_name ?? '—',
                 'created_at' => $e->created_at->format('M d, Y'),
             ]);
 
-        $employeesByRole = Employee::where('shop_id', $shop->id)
+        $employeesByRole = $this->scopeEmployees($shop, $branch)
             ->with('roles')
             ->get()
             ->flatMap(fn($e) => $e->roles->pluck('role'))

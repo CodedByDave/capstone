@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\ShopService;
+use App\Models\ShopOrder;
 
 class Shop extends Model
 {
@@ -19,6 +21,8 @@ class Shop extends Model
         'municipality',
         'barangay',
         'postal_code',
+        'latitude',
+        'longitude',
         'status',
         'disable_reason',
         'deduct_sss',
@@ -32,6 +36,8 @@ class Shop extends Model
         'deduct_philhealth'      => 'boolean',
         'deduct_pagibig'         => 'boolean',
         'deduct_withholding_tax' => 'boolean',
+        'latitude'               => 'float',
+        'longitude'              => 'float',
     ];
 
     public function latestOrder()
@@ -53,6 +59,16 @@ class Shop extends Model
     public function employees(): HasMany
     {
         return $this->hasMany(Employee::class);
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(ShopService::class);
+    }
+
+    public function shopOrders(): HasMany
+    {
+        return $this->hasMany(ShopOrder::class);
     }
 
     public function getBranchNames(): array

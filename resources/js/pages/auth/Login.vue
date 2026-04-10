@@ -115,7 +115,7 @@ function goToGoogle() {
 
             <div class="text-center text-sm text-muted-foreground">
                 Don't have an account?
-                <a @click.prevent="router.visit('/register/shop')"
+                <a @click.prevent="router.visit('/register')"
                     class="underline text-primary hover:text-primary/80 cursor-pointer">
                     Sign Up
                 </a>

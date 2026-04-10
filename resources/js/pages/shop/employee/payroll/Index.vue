@@ -73,6 +73,12 @@ const page = usePage<AppPageProps>()
 const isOwner = computed(() => page.props.auth.user.role === 'owner')
 const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
 
+const permissions = computed(() => page.props.auth.user.permissions ?? {})
+function hasPermission(module: string, action: string): boolean {
+    if (isOwner.value) return true
+    return permissions.value[module]?.includes(action) ?? false
+}
+
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
 onMounted(() => {
@@ -236,7 +242,7 @@ const visiblePages = computed(() => {
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Button v-if="isOwner" variant="outline" @click="openSettings">
+                    <Button v-if="hasPermission('HRM', 'update')" variant="outline" @click="openSettings">
                         <Settings2 class="h-4 w-4 mr-2" /> Settings
                     </Button>
                     <Button @click="openGenerate">

@@ -35,6 +35,7 @@ class LoginResponse implements LoginResponseContract
             'super_admin' => route('admin.dashboard'),
             'owner'       => route('shop.dashboard'),
             'staff'       => route('staff.dashboard'),
+            'user'        => route('user.dashboard'),
             default       => route('landing'),
         };
 

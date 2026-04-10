@@ -1,1 +1,0 @@
-import{c as o}from"./createLucideIcon-CGLcb35v.js";const r=o("ArrowDownRightIcon",[["path",{d:"m7 7 10 10",key:"1fmybs"}],["path",{d:"M17 7v10H7",key:"6fjiku"}]]);const a=o("ArrowUpRightIcon",[["path",{d:"M7 7h10v10",key:"1tivn9"}],["path",{d:"M7 17 17 7",key:"1vkiza"}]]);export{a as A,r as a};

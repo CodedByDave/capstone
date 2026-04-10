@@ -12,11 +12,11 @@ class UserRegisterController extends Controller
     public function __construct(private UserService $userService) {}
 
     /**
-     * Show shop registration page
+     * Show customer registration page
      */
     public function create()
     {
-
+        return Inertia::render('auth/RegisterUser');
     }
 
     /**

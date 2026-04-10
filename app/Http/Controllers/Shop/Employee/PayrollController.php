@@ -9,6 +9,7 @@ use App\Http\Requests\Shop\Employee\UpdatePayrollItemRequest;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use App\Models\RolePermission;
 use App\Models\Shop;
 use App\Services\PayrollService;
 use Illuminate\Http\Request;
@@ -56,7 +57,18 @@ class PayrollController extends Controller
     public function updateSettings(Request $request)
     {
         $shop = $this->getShop();
-        abort_if($request->user()->role !== 'owner', 403);
+        $user = $request->user();
+
+        if ($user->role !== 'owner') {
+            $employee   = Employee::where('user_id', $user->id)->with('roles')->first();
+            $roles      = $employee?->roles->pluck('role')->toArray() ?? [];
+            $permitted  = !empty($roles) && RolePermission::where('shop_id', $shop->id)
+                ->whereIn('role', $roles)
+                ->where('module', 'HRM')
+                ->where('action', 'update')
+                ->exists();
+            abort_unless($permitted, 403);
+        }
 
         $this->payrollService->updateSettings($shop, $request->only([
             'deduct_sss', 'deduct_philhealth', 'deduct_pagibig', 'deduct_withholding_tax',
@@ -70,7 +82,20 @@ class PayrollController extends Controller
         $shop = $this->getShop();
         abort_if($payroll->shop_id !== $shop->id, 403);
 
-        $payroll->load(['items.employee:id,employee_id,first_name,last_name,position,branch_name,salary', 'creator:id,name']);
+        $payroll->load(['items.employee:id,user_id,employee_id,first_name,last_name,position,branch_name,salary', 'creator:id,name']);
+
+        // Non-owners see only their own branch's items, excluding themselves
+        if (auth()->user()->role !== 'owner') {
+            $userId = auth()->id();
+            $branch = Employee::where('user_id', $userId)->value('branch_name');
+
+            $payroll->setRelation('items', $payroll->items->filter(function ($item) use ($branch, $userId) {
+                $emp = $item->employee;
+                return $emp
+                    && $emp->branch_name === $branch
+                    && ($emp->user_id === null || $emp->user_id !== $userId);
+            })->values());
+        }
 
         return Inertia::render('shop/employee/payroll/Show', [
             'payroll' => $payroll,

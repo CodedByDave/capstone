@@ -9,7 +9,7 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { watch, ref, computed } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
-import { store } from '@/routes/register';
+import { store } from '@/routes/register/user';
 
 const page = usePage();
 

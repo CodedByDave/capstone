@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AdminLayout from '@/layouts/admin/AdminLayout.vue'
-import { dashboard } from '@/routes'
 import { type BreadcrumbItem } from '@/types'
 import { Head, usePage, router } from '@inertiajs/vue3'
 
@@ -18,7 +17,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard().url },
+    { title: 'Dashboard', href: '/admin/dashboard' },
 ]
 
 const page = usePage()

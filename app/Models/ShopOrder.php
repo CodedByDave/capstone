@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\ShopService;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,11 +15,15 @@ class ShopOrder extends Model
 
     protected $fillable = [
         'shop_id',
+        'user_id',
+        'order_source',
+        'branch_name',
         'service_id',
         'order_number',
         'customer_name',
         'customer_phone',
         'customer_address',
+        'special_instructions',
         'estimated_weight_kg',
         'actual_weight_kg',
         'pickup_type',
@@ -72,6 +77,11 @@ class ShopOrder extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function service(): BelongsTo

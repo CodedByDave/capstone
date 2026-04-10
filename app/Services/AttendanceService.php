@@ -21,14 +21,14 @@ class AttendanceService
         return $this->attendanceRepository->getPaginated($shop, $filters, $perPage);
     }
 
-    public function getByDate(Shop $shop, string $date)
+    public function getByDate(Shop $shop, string $date, ?string $branch = null, ?int $excludeUserId = null)
     {
-        return $this->attendanceRepository->getByDate($shop, $date);
+        return $this->attendanceRepository->getByDate($shop, $date, $branch, $excludeUserId);
     }
 
-    public function getStats(Shop $shop, string $date): array
+    public function getStats(Shop $shop, string $date, ?string $branch = null, ?int $excludeUserId = null): array
     {
-        return $this->attendanceRepository->getStats($shop, $date);
+        return $this->attendanceRepository->getStats($shop, $date, $branch, $excludeUserId);
     }
 
     public function markAttendance(Shop $shop, array $data): Attendance

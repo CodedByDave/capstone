@@ -50,17 +50,46 @@ class AttendanceRepository extends Repository
         return $query->latest('date')->paginate($perPage);
     }
 
-    public function getByDate(Shop $shop, string $date): \Illuminate\Database\Eloquent\Collection
+    public function getByDate(Shop $shop, string $date, ?string $branch = null, ?int $excludeUserId = null): \Illuminate\Database\Eloquent\Collection
     {
-        return Attendance::with(['employee', 'marker:id,name'])
+        $query = Attendance::with(['employee', 'marker:id,name'])
             ->where('shop_id', $shop->id)
-            ->whereDate('date', $date)
-            ->get();
+            ->whereDate('date', $date);
+
+        if ($branch !== null || $excludeUserId !== null) {
+            $query->whereHas('employee', function ($q) use ($branch, $excludeUserId) {
+                if ($branch !== null) {
+                    $q->where('branch_name', $branch);
+                }
+                if ($excludeUserId !== null) {
+                    $q->where(function ($inner) use ($excludeUserId) {
+                        $inner->where('user_id', '!=', $excludeUserId)
+                              ->orWhereNull('user_id');
+                    });
+                }
+            });
+        }
+
+        return $query->get();
     }
 
-    public function getStats(Shop $shop, string $date): array
+    public function getStats(Shop $shop, string $date, ?string $branch = null, ?int $excludeUserId = null): array
     {
         $base = Attendance::where('shop_id', $shop->id)->whereDate('date', $date);
+
+        if ($branch !== null || $excludeUserId !== null) {
+            $base->whereHas('employee', function ($q) use ($branch, $excludeUserId) {
+                if ($branch !== null) {
+                    $q->where('branch_name', $branch);
+                }
+                if ($excludeUserId !== null) {
+                    $q->where(function ($inner) use ($excludeUserId) {
+                        $inner->where('user_id', '!=', $excludeUserId)
+                              ->orWhereNull('user_id');
+                    });
+                }
+            });
+        }
 
         return [
             'present'  => (clone $base)->where('status', 'present')->count(),

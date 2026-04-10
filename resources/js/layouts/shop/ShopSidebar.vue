@@ -7,7 +7,7 @@ import {
     SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Link, usePage, router } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import {
     LayoutGrid, UserCircle, Package, ClipboardList,
     Tags, BarChart3, ShieldCheck, ChevronRight,
@@ -48,8 +48,8 @@ const allHrmSubActions = [
     {
         title: 'Branch List',
         icon: Building2,
-        href: '/shop/branch',
-        show: () => isOwner.value,
+        href: isOwner.value ? '/shop/branch' : '/staff/branch',
+        show: () => isOwner.value || can('HRM', 'view'),
     },
     {
         title: 'Attendance',
@@ -67,7 +67,7 @@ const allHrmSubActions = [
         title: 'Activity Logs',
         icon: Clock,
         href: isOwner.value ? '/shop/logs' : '/staff/logs',
-        show: () => isOwner.value || can('Activity Logs', 'view'),
+        show: () => isOwner.value || can('HRM', 'view'),
     },
 ]
 
@@ -166,27 +166,15 @@ const allReportsSubActions = [
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
-        title: 'Sales Report',
-        icon: TrendingUp,
-        href: isOwner.value ? '/shop/reports/sales' : '/staff/reports/sales',
-        show: () => isOwner.value || can('Reports & Analytics', 'view'),
-    },
-    {
         title: 'Inventory Report',
         icon: FileText,
         href: isOwner.value ? '/shop/reports/inventory' : '/staff/reports/inventory',
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
-        title: 'Finance Report',
-        icon: LineChart,
-        href: isOwner.value ? '/shop/reports/finance' : '/staff/reports/finance',
-        show: () => isOwner.value || can('Reports & Analytics', 'view'),
-    },
-    {
-        title: 'Audit Log',
-        icon: BookOpen,
-        href: isOwner.value ? '/shop/reports/audit' : '/staff/reports/audit',
+        title: 'Employee Report',
+        icon: Users,
+        href: isOwner.value ? '/shop/reports/employee' : '/staff/reports/employee',
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
 ]
@@ -392,14 +380,12 @@ const dashboardItem = computed(() => [{
                             <CollapsibleContent>
                                 <SidebarMenuSub class="ml-4 mt-0.5 border-l border-muted/50">
                                     <SidebarMenuSubItem v-for="sub in getSubActions(mod.title)" :key="sub.title">
-                                        <SidebarMenuSubButton
-                                            class="flex items-center gap-2 text-xs cursor-pointer rounded-md px-2 py-1.5 w-full transition-colors"
-                                            :class="isSubActive(sub.href)
-                                                ? 'bg-muted/70 text-foreground font-medium'
-                                                : 'text-muted-foreground hover:bg-muted/50'"
-                                            @click="router.visit(sub.href)">
-                                            <component :is="sub.icon" class="w-3.5 h-3.5" />
-                                            {{ sub.title }}
+                                        <SidebarMenuSubButton as-child :is-active="isSubActive(sub.href)">
+                                            <Link :href="sub.href"
+                                                class="flex items-center gap-2 text-xs rounded-md px-2 py-1.5 w-full transition-colors">
+                                                <component :is="sub.icon" class="w-3.5 h-3.5" />
+                                                {{ sub.title }}
+                                            </Link>
                                         </SidebarMenuSubButton>
                                     </SidebarMenuSubItem>
                                 </SidebarMenuSub>
@@ -411,11 +397,11 @@ const dashboardItem = computed(() => [{
                 <!-- Regular item (no sub-menu) -->
                 <template v-else>
                     <SidebarMenuItem>
-                        <SidebarMenuButton class="flex items-center gap-2 w-full cursor-pointer transition-colors"
-                            :class="mod.active ? 'bg-muted/60 text-foreground' : 'hover:bg-muted/40'"
-                            @click="router.visit(mod.href)">
-                            <component :is="mod.icon" class="w-4 h-4 shrink-0" />
-                            <span>{{ mod.title }}</span>
+                        <SidebarMenuButton as-child :is-active="mod.active">
+                            <Link :href="mod.href" class="flex items-center gap-2 w-full">
+                                <component :is="mod.icon" class="w-4 h-4 shrink-0" />
+                                <span>{{ mod.title }}</span>
+                            </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </template>
@@ -430,11 +416,11 @@ const dashboardItem = computed(() => [{
             </p>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton class="flex items-center gap-2 w-full cursor-pointer transition-colors" :class="currentUrl.startsWith('/shop/permission')
-                        ? 'bg-muted/60 text-foreground'
-                        : 'hover:bg-muted/40'" @click="router.visit('/shop/permission')">
-                        <ShieldCheck class="w-4 h-4" />
-                        <span>Roles & Permission</span>
+                    <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/permission')">
+                        <Link href="/shop/permission" class="flex items-center gap-2 w-full">
+                            <ShieldCheck class="w-4 h-4" />
+                            <span>Roles & Permission</span>
+                        </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

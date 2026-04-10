@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Branch;
-use App\Models\Shop;
 use App\Services\ActivityLogService;
 use App\Repositories\BranchRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -25,11 +24,11 @@ class BranchService
 
     /* ─── READ ─────────────────────────────────── */
 
-    public function indexData(int $shopId): array
+    public function indexData(int $shopId, ?string $branch = null): array
     {
         return [
-            'branches' => $this->repository->paginateForShop($shopId),
-            'stats'    => $this->repository->statsForShop($shopId),
+            'branches' => $this->repository->paginateForShop($shopId, 15, $branch),
+            'stats'    => $this->repository->statsForShop($shopId, $branch),
         ];
     }
 
@@ -66,8 +65,6 @@ class BranchService
 
     public function update(Branch $branch, array $validated): bool
     {
-        $this->authorizeShop($branch);
-
         $changes = $this->diffChanges($branch, $validated);
 
         $result = $this->repository->update($branch, [
@@ -90,8 +87,6 @@ class BranchService
 
     public function archive(Branch $branch): bool
     {
-        $this->authorizeShop($branch);
-
         // Log BEFORE delete so subject still exists
         $this->activityLogService->log(
             subject: $branch,
@@ -102,10 +97,10 @@ class BranchService
         return $this->repository->delete($branch);
     }
 
-    public function restore(int $id): void
+    public function restore(int $id, int $shopId): void
     {
         $branch = $this->repository->findTrashedOrFail($id);
-        $this->authorizeShop($branch);
+        abort_if($branch->shop_id !== $shopId, 403, 'You do not have permission to restore this branch.');
         $this->repository->restore($branch);
 
         // Log AFTER restore so subject is active again
@@ -137,12 +132,4 @@ class BranchService
         return $changes;
     }
 
-    private function authorizeShop(Branch $branch): void
-    {
-        abort_if(
-            $branch->shop_id !== Auth::user()->shop->id,
-            403,
-            'You do not have permission to modify this branch.'
-        );
-    }
 }

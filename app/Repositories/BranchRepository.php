@@ -15,12 +15,13 @@ class BranchRepository extends Repository
 
     //Branch-specific queries
 
-    public function paginateForShop(int $shopId, int $perPage = 15): LengthAwarePaginator
+    public function paginateForShop(int $shopId, int $perPage = 15, ?string $branch = null): LengthAwarePaginator
     {
         return $this->query()
             ->with(['creator:id,name', 'updater:id,name'])
             ->withCount('employees')
             ->where('shop_id', $shopId)
+            ->when($branch !== null, fn($q) => $q->where('name', $branch))
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
@@ -46,9 +47,10 @@ class BranchRepository extends Repository
             ->pluck('name');
     }
 
-    public function statsForShop(int $shopId): array
+    public function statsForShop(int $shopId, ?string $branch = null): array
     {
-        $base = $this->query()->where('shop_id', $shopId);
+        $base = $this->query()->where('shop_id', $shopId)
+            ->when($branch !== null, fn($q) => $q->where('name', $branch));
 
         return [
             'total'    => (clone $base)->count(),

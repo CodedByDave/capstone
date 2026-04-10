@@ -15,9 +15,9 @@ class ShopOrderService
 
     // ─── Queries ──────────────────────────────────────────────────────────────
 
-    public function getPaginatedOrders(int $shopId, int $perPage = 15, array $filters = [], bool $onlyTrashed = false): LengthAwarePaginator
+    public function getPaginatedOrders(int $shopId, int $perPage = 15, array $filters = [], bool $onlyTrashed = false, ?string $branch = null): LengthAwarePaginator
     {
-        return $this->repository->paginateByShop($shopId, $perPage, $filters, $onlyTrashed);
+        return $this->repository->paginateByShop($shopId, $perPage, $filters, $onlyTrashed, $branch);
     }
 
     public function getOrder(int $id): ?ShopOrder
@@ -25,9 +25,9 @@ class ShopOrderService
         return $this->repository->findById($id);
     }
 
-    public function getStatusSummary(int $shopId): array
+    public function getStatusSummary(int $shopId, ?string $branch = null): array
     {
-        return $this->repository->countByStatus($shopId);
+        return $this->repository->countByStatus($shopId, $branch);
     }
 
     // ─── Create ───────────────────────────────────────────────────────────────

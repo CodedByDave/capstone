@@ -11,6 +11,7 @@ use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Models\Inventory;
 use App\Services\ShopOrderService;
+use App\Traits\BranchScoped;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,6 +19,8 @@ use Inertia\Response;
 
 class ShopOrderController extends Controller
 {
+    use BranchScoped;
+
     public function __construct(protected ShopOrderService $service) {}
 
     private function getShopId(): int
@@ -37,6 +40,7 @@ class ShopOrderController extends Controller
     public function index(Request $request): Response
     {
         $shopId      = $this->getShopId();
+        $branch      = $this->getStaffBranch();
         $showTrashed = $request->boolean('archived');
 
         $orders = $this->service->getPaginatedOrders(
@@ -44,16 +48,16 @@ class ShopOrderController extends Controller
             perPage: 15,
             filters: $request->only(['status', 'payment_status', 'search']),
             onlyTrashed: $showTrashed,
+            branch: $branch,
         );
 
         return Inertia::render('shop/operations/orders/Index', [
             'orders'        => $orders,
-            'statusSummary' => $this->service->getStatusSummary($shopId),
+            'statusSummary' => $this->service->getStatusSummary($shopId, $branch),
             'filters'       => $request->only(['status', 'payment_status', 'search']),
             'showArchived'  => $showTrashed,
         ]);
     }
-
 
     public function create(): Response
     {
@@ -83,7 +87,8 @@ class ShopOrderController extends Controller
     {
         $order = $this->service->createOrder([
             ...$request->validated(),
-            'shop_id' => $this->getShopId(),
+            'shop_id'     => $this->getShopId(),
+            'branch_name' => $this->getStaffBranch(),
         ]);
 
         return redirect("{$this->base()}/operations/orders")
@@ -108,7 +113,7 @@ class ShopOrderController extends Controller
         $order->load(['service', 'supplies']);
 
         return Inertia::render('shop/operations/orders/Edit', [
-            'shopOrder'          => $order,
+            'shopOrder'      => $order,
             'shopId'         => $shopId,
             'pickupTypes'    => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
@@ -123,6 +128,7 @@ class ShopOrderController extends Controller
                 ->get(['id', 'name', 'unit', 'quantity']),
         ]);
     }
+
     public function update(UpdateShopOrderRequest $request, ShopOrder $order): RedirectResponse
     {
         $this->service->updateOrder($order, $request->validated());
@@ -143,9 +149,9 @@ class ShopOrderController extends Controller
         $this->service->updateStatus($order, $request->input('status'));
 
         return back()->with('toast', [
-            'type' => 'success',
-            'message' => "Order status updated successfully."
-        ]);;
+            'type'    => 'success',
+            'message' => 'Order status updated successfully.',
+        ]);
     }
 
     public function updatePayment(Request $request, ShopOrder $order): RedirectResponse
@@ -158,9 +164,9 @@ class ShopOrderController extends Controller
         $this->service->updatePayment($order, $request->only(['payment_method', 'amount_paid']));
 
         return back()->with('toast', [
-            'type' => 'success',
-            'message' => "Order payment updated successfully."
-        ]);;
+            'type'    => 'success',
+            'message' => 'Order payment updated successfully.',
+        ]);
     }
 
     public function destroy(ShopOrder $order): RedirectResponse
@@ -188,7 +194,9 @@ class ShopOrderController extends Controller
 
     public function restoreAll(): RedirectResponse
     {
-        ShopOrder::onlyTrashed()->where('shop_id', $this->getShopId())->restore();
+        $query = ShopOrder::onlyTrashed()->where('shop_id', $this->getShopId());
+        $this->scopeBranch($query);
+        $query->restore();
 
         return redirect("{$this->base()}/operations/orders?archived=true")
             ->with('toast', [

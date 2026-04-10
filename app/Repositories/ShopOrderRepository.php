@@ -10,12 +10,13 @@ class ShopOrderRepository
 {
     public function __construct(protected ShopOrder $model) {}
 
-    public function paginateByShop(int $shopId, int $perPage = 15, array $filters = [], bool $onlyTrashed = false): LengthAwarePaginator
+    public function paginateByShop(int $shopId, int $perPage = 15, array $filters = [], bool $onlyTrashed = false, ?string $branch = null): LengthAwarePaginator
     {
         $query = $this->model->newQuery()
             ->with(['service', 'supplies'])
             ->when($onlyTrashed, fn($q) => $q->onlyTrashed())
             ->forShop($shopId)
+            ->when($branch !== null, fn($q) => $q->where('branch_name', $branch))
             ->latest();
 
         if (!empty($filters['status']) && !$onlyTrashed) {
@@ -81,9 +82,10 @@ class ShopOrderRepository
         return $this->model->forShop($shopId)->with(['service', 'supplies'])->latest()->get();
     }
 
-    public function countByStatus(int $shopId): array
+    public function countByStatus(int $shopId, ?string $branch = null): array
     {
         return $this->model->forShop($shopId)
+            ->when($branch !== null, fn($q) => $q->where('branch_name', $branch))
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')
