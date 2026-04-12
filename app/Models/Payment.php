@@ -18,6 +18,7 @@ class Payment extends Model
         'paymongo_payment_id',
         'transaction_id',
         'paid_at',
+        'refunded_at',
         'raw_response',
     ];
 

@@ -16,7 +16,7 @@ import {
     DollarSign, Scissors, PieChart, FileText,
     TrendingUp, Tag, Users, Briefcase, CalendarClock,
     Banknote, CreditCard, Receipt, Wallet,
-    BadgeDollarSign, LineChart, BookOpen, CreditCardIcon
+    BadgeDollarSign, LineChart, BookOpen, CreditCardIcon, QrCode, Settings,
 } from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
 import { computed, ref, watch } from 'vue'
@@ -32,7 +32,7 @@ const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status 
 const shopStatus = computed(() => (props as any).shop?.status)
 
 const isApproved = computed(() =>
-    props.order?.status === 'approved' && shopStatus.value !== 'disabled'
+    props.order?.status === 'approved' && (shopStatus.value ?? 'active') !== 'disabled'
 )
 
 /* ─────────────────────────────────────────
@@ -40,15 +40,15 @@ const isApproved = computed(() =>
 ───────────────────────────────────────── */
 const allHrmSubActions = [
     {
-        title: 'Employee List',
-        icon: List,
-        href: isOwner.value ? '/shop/employee' : '/staff/employee',
-        show: () => isOwner.value || can('HRM', 'view'),
-    },
-    {
         title: 'Branch List',
         icon: Building2,
         href: isOwner.value ? '/shop/branch' : '/staff/branch',
+        show: () => isOwner.value || can('HRM', 'view'),
+    },
+    {
+        title: 'Employee List',
+        icon: List,
+        href: isOwner.value ? '/shop/employee' : '/staff/employee',
         show: () => isOwner.value || can('HRM', 'view'),
     },
     {
@@ -76,21 +76,9 @@ const allHrmSubActions = [
 ───────────────────────────────────────── */
 const allInventorySubActions = [
     {
-        title: 'Product List',
-        icon: Package,
-        href: isOwner.value ? '/shop/inventory' : '/staff/inventory',
-        show: () => isOwner.value || can('Inventory Management', 'view'),
-    },
-    {
         title: 'Categories',
         icon: Layers,
         href: isOwner.value ? '/shop/inventory/category' : '/staff/inventory/category',
-        show: () => isOwner.value || can('Inventory Management', 'view'),
-    },
-    {
-        title: 'Stock Alerts',
-        icon: AlertTriangle,
-        href: isOwner.value ? '/shop/inventory/alerts' : '/staff/inventory/alerts',
         show: () => isOwner.value || can('Inventory Management', 'view'),
     },
     {
@@ -99,18 +87,24 @@ const allInventorySubActions = [
         href: isOwner.value ? '/shop/supplier' : '/staff/supplier',
         show: () => isOwner.value || can('Inventory Management', 'view'),
     },
+    {
+        title: 'Product List',
+        icon: Package,
+        href: isOwner.value ? '/shop/inventory' : '/staff/inventory',
+        show: () => isOwner.value || can('Inventory Management', 'view'),
+    },
+    {
+        title: 'Stock Alerts',
+        icon: AlertTriangle,
+        href: isOwner.value ? '/shop/inventory/alerts' : '/staff/inventory/alerts',
+        show: () => isOwner.value || can('Inventory Management', 'view'),
+    },
 ]
 
 /* ─────────────────────────────────────────
    OPERATIONS SUB-ACTIONS
 ───────────────────────────────────────── */
 const allOperationsSubActions = [
-    {
-        title: 'All Orders',
-        icon: ShoppingCart,
-        href: isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
-        show: () => isOwner.value || can('Operations', 'view'),
-    },
     {
         title: 'Service & Pricing',
         icon: Scissors,
@@ -121,6 +115,12 @@ const allOperationsSubActions = [
         title: 'Promotions',
         icon: Tag,
         href: isOwner.value ? '/shop/operations/promos' : '/staff/operations/promos',
+        show: () => isOwner.value || can('Operations', 'view'),
+    },
+    {
+        title: 'All Orders',
+        icon: ShoppingCart,
+        href: isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
         show: () => isOwner.value || can('Operations', 'view'),
     },
 ]
@@ -136,6 +136,12 @@ const allFinanceSubActions = [
         show: () => isOwner.value || can('Finance Management', 'view'),
     },
     {
+        title: 'Transactions',
+        icon: CreditCard,
+        href: isOwner.value ? '/shop/finance/transactions' : '/staff/finance/transactions',
+        show: () => isOwner.value || can('Finance Management', 'view'),
+    },
+    {
         title: 'Income',
         icon: BadgeDollarSign,
         href: isOwner.value ? '/shop/finance/income' : '/staff/finance/income',
@@ -145,12 +151,6 @@ const allFinanceSubActions = [
         title: 'Expenses',
         icon: Receipt,
         href: isOwner.value ? '/shop/finance/expenses' : '/staff/finance/expenses',
-        show: () => isOwner.value || can('Finance Management', 'view'),
-    },
-    {
-        title: 'Transactions',
-        icon: CreditCard,
-        href: isOwner.value ? '/shop/finance/transactions' : '/staff/finance/transactions',
         show: () => isOwner.value || can('Finance Management', 'view'),
     },
 ]
@@ -166,15 +166,15 @@ const allReportsSubActions = [
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
-        title: 'Inventory Report',
-        icon: FileText,
-        href: isOwner.value ? '/shop/reports/inventory' : '/staff/reports/inventory',
-        show: () => isOwner.value || can('Reports & Analytics', 'view'),
-    },
-    {
         title: 'Employee Report',
         icon: Users,
         href: isOwner.value ? '/shop/reports/employee' : '/staff/reports/employee',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
+        title: 'Inventory Report',
+        icon: FileText,
+        href: isOwner.value ? '/shop/reports/inventory' : '/staff/reports/inventory',
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
 ]
@@ -416,10 +416,34 @@ const dashboardItem = computed(() => [{
             </p>
             <SidebarMenu>
                 <SidebarMenuItem>
+                    <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/logistics')">
+                        <Link href="/shop/logistics" class="flex items-center gap-2 w-full">
+                            <Truck class="w-4 h-4" />
+                            <span>Logistics</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/payment-qr')">
+                        <Link href="/shop/payment-qr" class="flex items-center gap-2 w-full">
+                            <QrCode class="w-4 h-4" />
+                            <span>Payment QR</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                     <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/permission')">
                         <Link href="/shop/permission" class="flex items-center gap-2 w-full">
                             <ShieldCheck class="w-4 h-4" />
                             <span>Roles & Permission</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/settings')">
+                        <Link href="/shop/settings" class="flex items-center gap-2 w-full">
+                            <Settings class="w-4 h-4" />
+                            <span>Shop Settings</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ShopOrder;
 use App\Models\Inventory;
+use App\Notifications\OrderNotification;
 use App\Repositories\ShopOrderRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -130,7 +131,15 @@ class ShopOrderService
             $data['completed_at'] = now();
         }
 
-        return $this->repository->update($order, $data);
+        $updated = $this->repository->update($order, $data);
+
+        // Notify the customer if this was an online order with a linked user
+        if ($updated->user_id && in_array($status, ['in_progress', 'completed'])) {
+            $updated->load('shop');
+            $updated->user?->notify(new OrderNotification($updated, 'status_changed'));
+        }
+
+        return $updated;
     }
 
     public function updatePayment(ShopOrder $order, array $data): ShopOrder
@@ -147,7 +156,15 @@ class ShopOrderService
             $data['paid_at'] = now();
         }
 
-        return $this->repository->update($order, $data);
+        $updated = $this->repository->update($order, $data);
+
+        // Notify the customer when payment is marked paid
+        if ($updated->user_id && $data['payment_status'] === 'paid') {
+            $updated->load('shop');
+            $updated->user?->notify(new OrderNotification($updated, 'payment_updated'));
+        }
+
+        return $updated;
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────

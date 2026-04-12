@@ -111,4 +111,132 @@ class AttendanceService
             return $attendance->fresh();
         });
     }
+
+    // ── Self clock-in / clock-out (employee-initiated with geolocation) ──────────
+
+    /** Maximum allowed distance in metres from shop to accept a clock-in. */
+    private const GEO_RADIUS_METRES = 500;
+
+    /**
+     * Employee clocks themselves in.
+     *
+     * If the shop has GPS coordinates and the employee's location is further than
+     * GEO_RADIUS_METRES away, the attendance is recorded as 'absent' automatically.
+     *
+     * Returns the Attendance record.
+     */
+    public function selfClockIn(Employee $employee, Shop $shop, ?float $lat, ?float $lng): Attendance
+    {
+        return DB::transaction(function () use ($employee, $shop, $lat, $lng) {
+            $today = now()->toDateString();
+            $now   = now()->format('H:i:s');
+
+            // Geo-validation: auto-absent when out of range
+            $withinRange = $this->isWithinRange($shop, $lat, $lng);
+            $status      = $withinRange ? 'present' : 'absent';
+            $remarks     = $withinRange
+                ? null
+                : 'Auto-marked absent: location was outside the allowed range of the shop.';
+
+            $attendance = Attendance::updateOrCreate(
+                ['employee_id' => $employee->id, 'date' => $today],
+                [
+                    'shop_id'       => $shop->id,
+                    'status'        => $status,
+                    'time_in'       => $withinRange ? $now : null,
+                    'check_in_lat'  => $lat,
+                    'check_in_lng'  => $lng,
+                    'remarks'       => $remarks,
+                    'marked_by'     => $employee->user_id,
+                ]
+            );
+
+            $this->activityLogService->log(
+                subject: $employee,
+                action: 'clock_in',
+                changes: [
+                    'status'   => ['old' => '', 'new' => $status],
+                    'time_in'  => ['old' => '', 'new' => $now],
+                ],
+                shopId: $shop->id,
+                module: 'Attendance',
+            );
+
+            return $attendance;
+        });
+    }
+
+    /**
+     * Employee clocks themselves out.
+     * Only records time_out; does not change the attendance status.
+     */
+    public function selfClockOut(Employee $employee, Shop $shop, ?float $lat, ?float $lng): Attendance
+    {
+        return DB::transaction(function () use ($employee, $shop, $lat, $lng) {
+            $today = now()->toDateString();
+            $now   = now()->format('H:i:s');
+
+            $attendance = Attendance::where('employee_id', $employee->id)
+                ->where('date', $today)
+                ->firstOrFail();
+
+            $attendance->update([
+                'time_out'      => $now,
+                'check_out_lat' => $lat,
+                'check_out_lng' => $lng,
+                'marked_by'     => $employee->user_id,
+            ]);
+
+            $this->activityLogService->log(
+                subject: $employee,
+                action: 'clock_out',
+                changes: [
+                    'time_out' => ['old' => '', 'new' => $now],
+                ],
+                shopId: $shop->id,
+                module: 'Attendance',
+            );
+
+            return $attendance->fresh();
+        });
+    }
+
+    /**
+     * Fetch today's attendance record for a specific employee, or null if none.
+     */
+    public function todayFor(Employee $employee): ?Attendance
+    {
+        return Attendance::where('employee_id', $employee->id)
+            ->where('date', now()->toDateString())
+            ->first();
+    }
+
+    /**
+     * Returns true if the employee's coordinates are within GEO_RADIUS_METRES of
+     * the shop, or if either set of coordinates is missing (geo not configured).
+     */
+    private function isWithinRange(Shop $shop, ?float $lat, ?float $lng): bool
+    {
+        if ($shop->latitude === null || $shop->longitude === null) return true;
+        if ($lat === null || $lng === null) return false;
+
+        return $this->haversineMetres($shop->latitude, $shop->longitude, $lat, $lng)
+            <= self::GEO_RADIUS_METRES;
+    }
+
+    /**
+     * Haversine formula — returns distance in metres between two GPS coordinates.
+     */
+    private function haversineMetres(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $R   = 6_371_000; // Earth radius in metres
+        $φ1  = deg2rad($lat1);
+        $φ2  = deg2rad($lat2);
+        $Δφ  = deg2rad($lat2 - $lat1);
+        $Δλ  = deg2rad($lon2 - $lon1);
+
+        $a = sin($Δφ / 2) ** 2 + cos($φ1) * cos($φ2) * sin($Δλ / 2) ** 2;
+
+        return $R * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
 }

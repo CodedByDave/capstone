@@ -23,6 +23,7 @@ interface InventoryItem {
     name: string
     unit: string
     quantity: number
+    selling_price: string | null
 }
 
 interface Order {
@@ -151,8 +152,33 @@ const formatCurrency = (v: string | number | null) =>
 const formatLabel = (s: string) =>
     s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
-const addSupply    = () => form.supplies.push({ inventory_id: 0, quantity_used: 0, unit: '' })
-const removeSupply = (i: number) => form.supplies.splice(i, 1)
+const addSupply = () => form.supplies.push({ inventory_id: 0, quantity_used: 0, unit: '' })
+
+const removeSupply = (i: number) => {
+    form.supplies.splice(i, 1)
+    recalcSupplyCharges()
+}
+
+const onSupplyItemChange = (supply: { inventory_id: number; quantity_used: number; unit: string }) => {
+    const item = props.inventoryItems?.find(i => i.id === supply.inventory_id)
+    if (item) supply.unit = item.unit
+    recalcSupplyCharges()
+}
+
+const supplyCost = computed(() =>
+    form.supplies.reduce((sum, supply) => {
+        const item  = props.inventoryItems?.find(i => i.id === supply.inventory_id)
+        const price = item?.selling_price ? parseFloat(item.selling_price) : 0
+        const qty   = parseFloat(String(supply.quantity_used)) || 0
+        return sum + price * qty
+    }, 0)
+)
+
+function recalcSupplyCharges() {
+    form.additional_charges = String(parseFloat(supplyCost.value.toFixed(2)))
+}
+
+watch(() => form.supplies.map(s => s.quantity_used), recalcSupplyCharges, { deep: true })
 
 const submit = () => {
     form.total_amount = String(computedTotal.value)
@@ -292,7 +318,8 @@ const submit = () => {
                         <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Additional Charges</label>
                             <input v-model="form.additional_charges" type="number" step="0.01" min="0"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                                :class="['w-full rounded-lg border px-3 py-2.5 text-sm focus:ring-1', supplyCost > 0 ? 'border-amber-400 bg-amber-50 focus:border-amber-500 focus:ring-amber-400' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500']" />
+                            <p v-if="supplyCost > 0" class="text-xs text-amber-600">Auto-filled from supplies (₱{{ supplyCost.toFixed(2) }})</p>
                         </div>
                         <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Discount</label>
@@ -359,27 +386,33 @@ const submit = () => {
                     <p v-if="form.supplies.length === 0" class="text-sm text-muted-foreground italic">No supplies added yet.</p>
                     <div class="space-y-3">
                         <div v-for="(supply, i) in form.supplies" :key="i" class="grid grid-cols-12 gap-x-4 items-end">
-                            <div class="col-span-12 sm:col-span-6 space-y-1">
+                            <div class="col-span-12 sm:col-span-5 space-y-1">
                                 <label class="text-xs font-medium text-muted-foreground">Inventory Item</label>
-                                <select v-model="supply.inventory_id"
+                                <select v-model="supply.inventory_id" @change="onSupplyItemChange(supply)"
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                     <option :value="0" disabled>Select item</option>
                                     <option v-for="item in inventoryItems" :key="item.id" :value="item.id">
-                                        {{ item.name }} ({{ item.quantity }} {{ item.unit }})
+                                        {{ item.name }} ({{ item.quantity }} {{ item.unit }}){{ item.selling_price ? ' — ₱' + parseFloat(item.selling_price).toFixed(2) : '' }}
                                     </option>
                                 </select>
                             </div>
-                            <div class="col-span-5 sm:col-span-3 space-y-1">
+                            <div class="col-span-4 sm:col-span-2 space-y-1">
                                 <label class="text-xs font-medium text-muted-foreground">Qty Used</label>
                                 <input v-model="supply.quantity_used" type="number" step="0.01" min="0.01"
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                             </div>
-                            <div class="col-span-5 sm:col-span-2 space-y-1">
+                            <div class="col-span-4 sm:col-span-2 space-y-1">
                                 <label class="text-xs font-medium text-muted-foreground">Unit</label>
                                 <input v-model="supply.unit" type="text" placeholder="e.g. ml"
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                             </div>
-                            <div class="col-span-2 sm:col-span-1 flex justify-end">
+                            <div class="col-span-3 sm:col-span-2 space-y-1">
+                                <label class="text-xs font-medium text-amber-600">Line Cost</label>
+                                <div class="flex items-center h-[38px] rounded-lg bg-amber-50 border border-amber-200 px-3 text-sm text-amber-800 font-medium">
+                                    ₱{{ ((parseFloat(inventoryItems.find(it => it.id === supply.inventory_id)?.selling_price ?? '0') || 0) * (supply.quantity_used || 0)).toFixed(2) }}
+                                </div>
+                            </div>
+                            <div class="col-span-1 flex justify-end pb-1">
                                 <button type="button" @click="removeSupply(i)" class="text-red-400 hover:text-red-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -387,6 +420,11 @@ const submit = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <!-- Supply total -->
+                    <div v-if="supplyCost > 0" class="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 mt-2">
+                        <span class="text-sm text-amber-700 font-medium">Supplies Total</span>
+                        <span class="text-base font-bold text-amber-900">₱{{ supplyCost.toFixed(2) }}</span>
                     </div>
                 </div>
 

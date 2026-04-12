@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 
 // ─── Types ─────────────────────────────────────────
 
@@ -20,6 +20,7 @@ interface InventoryItem {
     name: string
     unit: string
     quantity: number
+    selling_price: string | null
 }
 
 interface Promotion {
@@ -158,13 +159,33 @@ const unitOptions = ['pcs', 'kg', 'g', 'liters', 'ml', 'bottles', 'boxes', 'pack
 const addSupply = () =>
     form.supplies.push({ inventory_id: 0, quantity_used: 0, unit: '' })
 
-const removeSupply = (i: number) =>
+const removeSupply = (i: number) => {
     form.supplies.splice(i, 1)
+    recalcSupplyCharges()
+}
 
 const onSupplyItemChange = (supply: { inventory_id: number; quantity_used: number; unit: string }) => {
     const item = props.inventoryItems?.find(i => i.id === supply.inventory_id)
     if (item) supply.unit = item.unit
+    recalcSupplyCharges()
 }
+
+// Sum (qty × selling_price) for every supply that has a price
+const supplyCost = computed(() => {
+    return form.supplies.reduce((sum, supply) => {
+        const item = props.inventoryItems?.find(i => i.id === supply.inventory_id)
+        const price = item?.selling_price ? parseFloat(item.selling_price) : 0
+        const qty   = parseFloat(String(supply.quantity_used)) || 0
+        return sum + price * qty
+    }, 0)
+})
+
+function recalcSupplyCharges() {
+    form.additional_charges = parseFloat(supplyCost.value.toFixed(2))
+}
+
+// Re-run whenever any qty_used value changes
+watch(() => form.supplies.map(s => s.quantity_used), recalcSupplyCharges, { deep: true })
 
 // ─── Submit ────────────────────────────────────────
 
@@ -319,7 +340,11 @@ const submit = () => {
                         <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Additional Charges</label>
                             <input v-model="form.additional_charges" type="number" step="0.01" min="0"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                :class="{ 'bg-amber-50 border-amber-300': supplyCost > 0 }" />
+                            <p v-if="supplyCost > 0" class="text-xs text-amber-600">
+                                Auto-filled from supplies (₱{{ supplyCost.toLocaleString('en-PH', { minimumFractionDigits: 2 }) }})
+                            </p>
                         </div>
                         <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Apply Promotion</label>
@@ -412,7 +437,7 @@ const submit = () => {
                             class="grid grid-cols-12 gap-x-4 items-end p-3 rounded-lg border border-gray-200 bg-gray-50/50">
 
                             <!-- Inventory Item -->
-                            <div class="col-span-12 sm:col-span-5 space-y-1">
+                            <div class="col-span-12 sm:col-span-4 space-y-1">
                                 <label class="text-xs font-medium text-muted-foreground">Inventory Item</label>
                                 <select
                                     v-model="supply.inventory_id"
@@ -420,13 +445,13 @@ const submit = () => {
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
                                     <option :value="0" disabled>Select item…</option>
                                     <option v-for="item in inventoryItems" :key="item.id" :value="item.id">
-                                        {{ item.name }} — {{ item.quantity }} {{ item.unit }} available
+                                        {{ item.name }} ({{ item.quantity }} {{ item.unit }} left{{ item.selling_price ? ` · ₱${parseFloat(item.selling_price).toFixed(2)}` : '' }})
                                     </option>
                                 </select>
                             </div>
 
                             <!-- Qty Used -->
-                            <div class="col-span-6 sm:col-span-3 space-y-1">
+                            <div class="col-span-5 sm:col-span-2 space-y-1">
                                 <label class="text-xs font-medium text-muted-foreground">Qty Used</label>
                                 <input
                                     v-model="supply.quantity_used"
@@ -435,7 +460,7 @@ const submit = () => {
                             </div>
 
                             <!-- Unit dropdown -->
-                            <div class="col-span-5 sm:col-span-3 space-y-1">
+                            <div class="col-span-5 sm:col-span-2 space-y-1">
                                 <label class="text-xs font-medium text-muted-foreground">Unit</label>
                                 <select
                                     v-model="supply.unit"
@@ -443,6 +468,19 @@ const submit = () => {
                                     <option value="" disabled>Select unit…</option>
                                     <option v-for="u in unitOptions" :key="u" :value="u">{{ u }}</option>
                                 </select>
+                            </div>
+
+                            <!-- Line cost -->
+                            <div class="col-span-11 sm:col-span-3 space-y-1">
+                                <label class="text-xs font-medium text-muted-foreground">Line Cost</label>
+                                <div class="flex items-center h-[38px] rounded-lg bg-amber-50 border border-amber-200 px-3 text-sm font-semibold text-amber-700">
+                                    {{ (() => {
+                                        const item = inventoryItems?.find(x => x.id === supply.inventory_id)
+                                        const price = item?.selling_price ? parseFloat(item.selling_price) : 0
+                                        const qty = parseFloat(String(supply.quantity_used)) || 0
+                                        return price ? `₱${(price * qty).toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'
+                                    })() }}
+                                </div>
                             </div>
 
                             <!-- Remove -->
@@ -456,6 +494,15 @@ const submit = () => {
                                 </button>
                             </div>
 
+                        </div>
+
+                        <!-- Supply total summary -->
+                        <div v-if="form.supplies.length > 0 && supplyCost > 0"
+                            class="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5">
+                            <span class="text-sm text-amber-700">Supply cost auto-added to Additional Charges</span>
+                            <span class="text-base font-bold text-amber-800">
+                                ₱{{ supplyCost.toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}
+                            </span>
                         </div>
                     </div>
 

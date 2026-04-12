@@ -294,9 +294,12 @@ class CheckoutController extends Controller
                         in_array($sessionStatus, ['completed', 'paid']) ||
                         in_array($paymentStatus, ['paid', 'succeeded'])
                     ) {
+                        $paymongoPaymentId = $this->paymongoService->extractPaymentId($session);
+
                         $payment->update([
-                            'status'  => 'paid',
-                            'paid_at' => now(),
+                            'status'               => 'paid',
+                            'paid_at'              => now(),
+                            'paymongo_payment_id'  => $paymongoPaymentId,
                         ]);
 
                         $order?->update(['status' => 'paid']);

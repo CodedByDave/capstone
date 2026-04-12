@@ -25,6 +25,7 @@ class Order extends Model
         'kyc_mayors',
         'kyc_sanitary',
         'status',
+        'rejection_reason',
         'total_price',
         'expires_at',
         'plan_name',

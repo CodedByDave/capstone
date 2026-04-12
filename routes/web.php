@@ -18,6 +18,7 @@ use App\Http\Controllers\Shop\Employee\ActivityLogsController;
 use App\Http\Controllers\Shop\Employee\AttendanceController;
 use App\Http\Controllers\Shop\Employee\BranchController;
 use App\Http\Controllers\Staff\StaffDashboardController;
+use App\Http\Controllers\Staff\SelfAttendanceController;
 use App\Http\Controllers\Shop\Inventory\InventoryController;
 use App\Http\Controllers\Shop\Inventory\SupplierController;
 use App\Http\Controllers\Shop\Inventory\InventoryCategoryController;
@@ -27,11 +28,20 @@ use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Finance\FinanceDashboardController;
 use App\Http\Controllers\Shop\Finance\ExpenseController;
+use App\Http\Controllers\Shop\PaymentQrController;
+use App\Http\Controllers\Shop\ShopSettingsController;
+use App\Http\Controllers\Shop\LogisticsController;
 use App\Http\Controllers\User\UserDashboardController;
+use App\Http\Controllers\User\UserNotificationController;
 use App\Http\Controllers\User\UserOrderController;
+use App\Http\Controllers\DriverPageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+
+// ── Driver / Rider routes (public — token-protected) ─────────────────────────
+Route::get('/driver/{token}', [DriverPageController::class, 'show']);
+Route::patch('/driver/{token}/status', [DriverPageController::class, 'updateStatus']);
 
 Route::get('/', function () {
     return Inertia::render('Landing', [
@@ -262,6 +272,25 @@ Route::patch('operations/orders/{order}/restore',   [ShopOrderController::class,
     Route::post('/finance/expenses/{id}/restore',       [ExpenseController::class, 'restore'])->name('finance.expenses.restore');
     Route::post('/finance/categories',                  [ExpenseController::class, 'storeCategory'])->name('finance.categories.store');
     Route::delete('/finance/categories/{category}',     [ExpenseController::class, 'destroyCategory'])->name('finance.categories.destroy');
+
+    // ── Payment QR ────────────────────────────────────────────────────────────
+    Route::get('/payment-qr',  [PaymentQrController::class, 'index'])->name('shop.payment-qr');
+    Route::post('/payment-qr', [PaymentQrController::class, 'update'])->name('shop.payment-qr.update');
+
+    // ── Shop Settings ─────────────────────────────────────────────────────────
+    Route::get('/settings',            [ShopSettingsController::class, 'index'])->name('shop.settings');
+    Route::post('/settings/geo',       [ShopSettingsController::class, 'updateGeo'])->name('shop.settings.geo');
+    Route::post('/settings/geo/clear', [ShopSettingsController::class, 'clearGeo'])->name('shop.settings.geo.clear');
+
+    // ── Logistics ─────────────────────────────────────────────────────────────
+    Route::get('/logistics',                        [LogisticsController::class, 'index'])->name('shop.logistics');
+    Route::post('/logistics',                       [LogisticsController::class, 'store'])->name('shop.logistics.store');
+    Route::patch('/logistics/{delivery}/status',    [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
+    Route::delete('/logistics/{delivery}',          [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
+    Route::get('/logistics/riders',                 [LogisticsController::class, 'riders'])->name('shop.logistics.riders');
+    Route::post('/logistics/riders',                [LogisticsController::class, 'storeRider'])->name('shop.logistics.riders.store');
+    Route::patch('/logistics/riders/{rider}',       [LogisticsController::class, 'updateRider'])->name('shop.logistics.riders.update');
+    Route::delete('/logistics/riders/{rider}',      [LogisticsController::class, 'destroyRider'])->name('shop.logistics.riders.destroy');
 });
 
 // ── Staff routes ───────────────────────────────────────────────────────────────
@@ -269,6 +298,10 @@ Route::patch('operations/orders/{order}/restore',   [ShopOrderController::class,
 Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff'])->group(function () {
 
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
+
+    // ── Self attendance (clock-in / clock-out) — no extra permission needed ──
+    Route::post('/attendance/clock-in',  [SelfAttendanceController::class, 'clockIn'])->name('staff.attendance.clock-in');
+    Route::post('/attendance/clock-out', [SelfAttendanceController::class, 'clockOut'])->name('staff.attendance.clock-out');
 
     // ── Employee ──────────────────────────────────────────────────────────────
     // Static routes MUST come before /{employee} wildcard to avoid 404s
@@ -395,9 +428,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff'])->group(fu
     });
 
     // ── Attendance ────────────────────────────────────────────────────────────
-    Route::middleware('permission:HRM,view')->group(function () {
-        Route::get('/attendance',              [AttendanceController::class, 'index'])->name('staff.attendance.index');
-    });
+    // All staff can VIEW the attendance list (read-only for staff with permissions).
+    Route::get('/attendance', [AttendanceController::class, 'index'])->name('staff.attendance.index');
+    // Only owner can save / update (enforced in controller via can_edit, not middleware).
     Route::middleware('permission:HRM,update')->group(function () {
         Route::post('/attendance',             [AttendanceController::class, 'store'])->name('staff.attendance.store');
         Route::put('/attendance/{attendance}', [AttendanceController::class, 'update'])->name('staff.attendance.update');
@@ -497,6 +530,11 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/orders',              [UserOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}',      [UserOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders',             [UserOrderController::class, 'store'])->name('orders.store');
+
+    Route::get('/notifications',       [UserNotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/read-all', [UserNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+    Route::get('/profile', fn() => inertia('user/Profile'))->name('profile');
 });
 
 require __DIR__ . '/settings.php';

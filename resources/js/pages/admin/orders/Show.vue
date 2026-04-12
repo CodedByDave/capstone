@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     ArrowLeft, ListOrdered, Store, User,
-    CreditCard, Package, MapPin, Phone, Mail,
+    CreditCard, Package, MapPin, Phone, Mail, AlertTriangle,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -41,6 +41,7 @@ interface Order {
     subscription_plan: string | null
     total_price: string
     status: string
+    rejection_reason: string | null
     expires_at: string | null
     created_at: string
     modules: Module[]
@@ -91,15 +92,27 @@ function getPlanBadge(p: string | null) {
 }
 
 const statusBadge: Record<string, string> = {
-    paid:    'bg-green-100 text-green-700',
-    pending: 'bg-amber-100 text-amber-700',
-    failed:  'bg-red-100 text-red-600',
+    paid:     'bg-green-100 text-green-700',
+    approved: 'bg-emerald-100 text-emerald-700',
+    rejected: 'bg-red-100 text-red-600',
+    pending:  'bg-amber-100 text-amber-700',
+    failed:   'bg-red-100 text-red-600',
 }
 
 const paymentStatusBadge: Record<string, string> = {
-    paid:    'bg-green-100 text-green-700',
-    pending: 'bg-amber-100 text-amber-700',
-    failed:  'bg-red-100 text-red-600',
+    paid:           'bg-green-100 text-green-700',
+    pending:        'bg-amber-100 text-amber-700',
+    failed:         'bg-red-100 text-red-600',
+    refund_pending: 'bg-orange-100 text-orange-700',
+    refunded:       'bg-gray-100 text-gray-500',
+}
+
+const paymentStatusLabel: Record<string, string> = {
+    paid:           'Paid',
+    pending:        'Pending',
+    failed:         'Failed',
+    refund_pending: 'Refund Pending',
+    refunded:       'Refunded',
 }
 </script>
 
@@ -129,6 +142,27 @@ const paymentStatusBadge: Record<string, string> = {
                     <Button variant="outline" size="sm" @click="router.visit('/admin/orders')">
                         <ArrowLeft class="h-4 w-4 mr-1.5" /> Back
                     </Button>
+                </div>
+            </div>
+
+            <!-- Rejection reason banner -->
+            <div v-if="order.status === 'rejected' && order.rejection_reason"
+                class="flex gap-3 rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 p-4">
+                <AlertTriangle class="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-red-700 dark:text-red-400 mb-0.5">Rejection Reason</p>
+                    <p class="text-sm text-red-600 dark:text-red-300">{{ order.rejection_reason }}</p>
+                    <p class="mt-1.5 text-xs text-red-400">
+                        <template v-if="order.payments.some(p => p.status === 'refunded')">
+                            A PayMongo refund was automatically issued. The owner has been notified by email.
+                        </template>
+                        <template v-else-if="order.payments.some(p => p.status === 'refund_pending')">
+                            Refund is pending manual processing. See payment history below.
+                        </template>
+                        <template v-else>
+                            The shop owner has been notified by email.
+                        </template>
+                    </p>
                 </div>
             </div>
 
@@ -243,10 +277,10 @@ const paymentStatusBadge: Record<string, string> = {
                                             <td class="px-4 py-2.5 font-medium">{{ formatPrice(payment.amount) }}</td>
                                             <td class="px-4 py-2.5">
                                                 <span
-                                                    class="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
+                                                    class="text-xs px-2 py-0.5 rounded-full font-medium"
                                                     :class="paymentStatusBadge[payment.status] ?? 'bg-gray-100 text-gray-500'"
                                                 >
-                                                    {{ payment.status }}
+                                                    {{ paymentStatusLabel[payment.status] ?? payment.status }}
                                                 </span>
                                             </td>
                                             <td class="px-4 py-2.5 font-mono text-xs text-muted-foreground">

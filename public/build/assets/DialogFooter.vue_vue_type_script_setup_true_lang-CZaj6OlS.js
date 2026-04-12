@@ -1,1 +1,0 @@
-import{a}from"./utils-BtHCylcM.js";import{d as r,a as t,p as l,e as n,J as c,k as p}from"./app-BiOsqBv2.js";const d=r({__name:"DialogFooter",props:{class:{}},setup(e){const s=e;return(o,f)=>(p(),t("div",{"data-slot":"dialog-footer",class:l(n(a)("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",s.class))},[c(o.$slots,"default")],2))}});export{d as _};

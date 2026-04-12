@@ -4,6 +4,8 @@ import { Head, router, usePage } from '@inertiajs/vue3'
 import { Checkbox } from '@/components/ui/checkbox'
 import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { ref, computed, onMounted, watch } from 'vue'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -232,8 +234,10 @@ async function saveSchedule() {
                 end_time: d.end_time,
             })),
         })
+        toast.success(`Schedule successfully added to ${employee.first_name} ${employee.last_name}.`)
     } catch (err: any) {
         scheduleError.value = err.response?.data?.message ?? 'Failed to save schedule.'
+        toast.error(scheduleError.value!)
     } finally {
         savingSchedule.value = false
     }

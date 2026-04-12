@@ -26,11 +26,23 @@ class ShopDashboardController extends Controller
             ->latest()
             ->first();
 
-        // If not paid, render basic dashboard with order form
+        // If not paid/approved, check if the latest order was rejected.
         if (! $order) {
+            $rejectedOrder = $user->orders()
+                ->where('status', 'rejected')
+                ->latest()
+                ->first();
+
             return Inertia::render('shop/Dashboard', [
-                'modules' => Module::all(),
-                'order'   => null,
+                'modules'        => Module::all(),
+                'order'          => null,
+                'rejected_order' => $rejectedOrder ? [
+                    'id'               => $rejectedOrder->id,
+                    'shop_name'        => $rejectedOrder->shop_name,
+                    'rejection_reason' => $rejectedOrder->rejection_reason,
+                    'total_price'      => $rejectedOrder->total_price,
+                    'email'            => $rejectedOrder->email,
+                ] : null,
                 'shop' => $shop ? [
                     'shop_name'    => $shop->shop_name,
                     'phone'        => $shop->phone,
@@ -42,6 +54,27 @@ class ShopDashboardController extends Controller
                 ] : null,
             ]);
         }
+        // Safety: shop record might not exist yet if approval race-condition occurs
+        if (! $shop) {
+            return Inertia::render('shop/Dashboard', [
+                'modules' => $order->modules,
+                'order'   => [
+                    'status'            => $order->status,
+                    'shop_name'         => $order->shop_name,
+                    'subscription_plan' => $order->plan_name,
+                    'modules'           => $order->modules->map(fn($m) => ['name' => $m->name, 'price' => $m->price]),
+                    'total_price'       => $order->total_price,
+                ],
+                'stats'               => null,
+                'movement_chart'      => [],
+                'category_breakdown'  => [],
+                'employees_per_branch' => [],
+                'low_stock_items'     => [],
+                'recent_movements'    => [],
+                'shop'                => null,
+            ]);
+        }
+
         $shopId = $shop->id;
         $now    = Carbon::now();
         $today  = $now->copy()->startOfDay();

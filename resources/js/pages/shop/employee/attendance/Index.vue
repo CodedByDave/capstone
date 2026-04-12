@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
     CalendarClock, Users, UserCheck, UserX, Clock, AlertCircle,
-    ChevronLeft, ChevronRight, Save, Loader2, Search,
+    ChevronLeft, ChevronRight, Loader2, Search, MapPin, Pencil, X,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,6 +34,10 @@ interface Attendance {
     time_in: string | null
     time_out: string | null
     remarks: string | null
+    check_in_lat: number | null
+    check_in_lng: number | null
+    check_out_lat: number | null
+    check_out_lng: number | null
     marker?: { id: number; name: string } | null
 }
 
@@ -51,14 +55,6 @@ interface Stats {
     half_day: number
 }
 
-interface EntryForm {
-    employee_id: number
-    status: 'present' | 'absent' | 'late' | 'half_day' | ''
-    time_in: string
-    time_out: string
-    remarks: string
-}
-
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const props = defineProps<{
@@ -69,9 +65,10 @@ const props = defineProps<{
     branches: string[]
     filters: Record<string, string>
     schedules: Schedule[]
+    can_edit: boolean
 }>()
 
-// ─── RBAC ─────────────────────────────────────────────────────────────────────
+// ─── Page setup ───────────────────────────────────────────────────────────────
 
 const page = usePage<AppPageProps>()
 const selectedBranch = ref(props.filters?.branch ?? 'all')
@@ -88,8 +85,6 @@ onMounted(() => {
         default:        toast(flashToast.message)
     }
 })
-
-// ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Employee Management', href: '/shop/employee' },
@@ -118,13 +113,17 @@ function loadDate() {
         date:   selectedDate.value,
         search: search.value,
         branch: selectedBranch.value === 'all' ? undefined : selectedBranch.value,
-    }, {
-        preserveState:  true,
-        preserveScroll: true,
-    })
+    }, { preserveState: true, preserveScroll: true })
 }
 
 watch(selectedDate, () => loadDate())
+watch(selectedBranch, (val) => {
+    router.get(`${baseRoute.value}/attendance`, {
+        date:   selectedDate.value,
+        search: search.value,
+        branch: val === 'all' ? undefined : val,
+    }, { preserveState: true, preserveScroll: true })
+})
 
 const isToday = computed(() => selectedDate.value === new Date().toISOString().split('T')[0])
 
@@ -134,7 +133,7 @@ function formatDateDisplay(dateStr: string): string {
     })
 }
 
-// ─── Schedule / Day-Off Logic ─────────────────────────────────────────────────
+// ─── Schedule helpers ─────────────────────────────────────────────────────────
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -150,45 +149,11 @@ function getSchedule(employeeId: number): Schedule | null {
 
 function isScheduledDay(employeeId: number): boolean {
     const empSchedules = props.schedules.filter(s => s.employee_id === employeeId)
-    if (empSchedules.length === 0) return true // no schedule set = always works
+    if (empSchedules.length === 0) return false // no schedule configured = no work days
     return empSchedules.some(s => s.day === selectedDayName.value)
 }
 
-// ─── Attendance Entries ───────────────────────────────────────────────────────
-
-function buildEntries(): EntryForm[] {
-    return props.employees.map(emp => {
-        const existing = props.attendances.find(a => a.employee_id === emp.id)
-        const schedule = getSchedule(emp.id)
-        return {
-            employee_id: emp.id,
-            status:      existing?.status ?? '',
-            time_in:     existing?.time_in?.slice(0, 5)  ?? schedule?.start_time?.slice(0, 5) ?? '',
-            time_out:    existing?.time_out?.slice(0, 5) ?? schedule?.end_time?.slice(0, 5)   ?? '',
-            remarks:     existing?.remarks ?? '',
-        }
-    })
-}
-
-const entries = ref<EntryForm[]>(buildEntries())
-
-watch(selectedBranch, (val) => {
-    router.get(`${baseRoute.value}/attendance`, {
-        date:   selectedDate.value,
-        search: search.value,
-        branch: val === 'all' ? undefined : val,
-    }, {
-        preserveState:  true,
-        preserveScroll: true,
-    })
-})
-
-// Rebuild entries when props change (e.g. after date navigation)
-watch(() => [props.employees, props.attendances, props.schedules], () => {
-    entries.value = buildEntries()
-}, { deep: true })
-
-// ─── Search / Filter ──────────────────────────────────────────────────────────
+// ─── Search / filter ──────────────────────────────────────────────────────────
 
 const filteredEmployees = computed(() => {
     if (!search.value.trim()) return props.employees
@@ -201,62 +166,105 @@ const filteredEmployees = computed(() => {
     )
 })
 
-function getEntry(employeeId: number): EntryForm {
-    return entries.value.find(e => e.employee_id === employeeId)!
+// ─── Data lookup helpers ──────────────────────────────────────────────────────
+
+function getAttendance(employeeId: number): Attendance | null {
+    return props.attendances.find(a => a.employee_id === employeeId) ?? null
 }
 
-// ─── Time Options ─────────────────────────────────────────────────────────────
+// ─── Status / time helpers ────────────────────────────────────────────────────
 
-const timeOptions = computed(() => {
-    const options: string[] = []
-    for (let h = 0; h < 24; h++) {
-        for (const m of ['00', '30']) {
-            options.push(`${h.toString().padStart(2, '0')}:${m}`)
-        }
-    }
-    return options
-})
+const statusOptions = [
+    { value: 'present',  label: 'Present',  dot: 'bg-green-500',  badge: 'bg-green-100 text-green-700'  },
+    { value: 'absent',   label: 'Absent',   dot: 'bg-red-500',    badge: 'bg-red-100 text-red-700'      },
+    { value: 'late',     label: 'Late',     dot: 'bg-amber-500',  badge: 'bg-amber-100 text-amber-700'  },
+    { value: 'half_day', label: 'Half Day', dot: 'bg-blue-500',   badge: 'bg-blue-100 text-blue-700'    },
+]
 
-function fmtTime(time: string): string {
-    if (!time) return ''
+function statusCfg(status: string) {
+    return statusOptions.find(s => s.value === status)
+}
+
+function fmtTime(time: string | null): string {
+    if (!time) return '—'
     const [h, m] = time.split(':').map(Number)
     const period = h >= 12 ? 'PM' : 'AM'
-    const hour   = h % 12 || 12
-    return `${hour}:${m.toString().padStart(2, '0')} ${period}`
+    return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${period}`
 }
 
-// ─── Submit ───────────────────────────────────────────────────────────────────
+const timeOptions = computed(() => {
+    const opts: string[] = []
+    for (let h = 0; h < 24; h++) {
+        for (const m of ['00', '30']) {
+            opts.push(`${h.toString().padStart(2, '0')}:${m}`)
+        }
+    }
+    return opts
+})
+
+// ─── Location helpers ─────────────────────────────────────────────────────────
+
+function mapsUrl(lat: number, lng: number): string {
+    return `https://www.google.com/maps?q=${lat},${lng}`
+}
+
+// ─── Mark Attendance Modal (owner only) ───────────────────────────────────────
+
+interface ModalForm {
+    employee_id: number
+    status: string
+    time_in: string
+    time_out: string
+    remarks: string
+}
+
+const modal = ref<{ open: boolean; employee: Employee | null; form: ModalForm }>({
+    open: false,
+    employee: null,
+    form: { employee_id: 0, status: '', time_in: '', time_out: '', remarks: '' },
+})
 
 const isSaving = ref(false)
 
-function saveAttendance() {
+function openModal(emp: Employee) {
+    const existing  = getAttendance(emp.id)
+    const schedule  = getSchedule(emp.id)
+
+    modal.value = {
+        open: true,
+        employee: emp,
+        form: {
+            employee_id: emp.id,
+            status:   existing?.status  ?? '',
+            time_in:  existing?.time_in?.slice(0, 5)  ?? schedule?.start_time?.slice(0, 5) ?? '',
+            time_out: existing?.time_out?.slice(0, 5) ?? schedule?.end_time?.slice(0, 5)   ?? '',
+            remarks:  existing?.remarks ?? '',
+        },
+    }
+}
+
+function closeModal() {
+    modal.value.open = false
+}
+
+function saveModal() {
+    if (!modal.value.form.status) {
+        toast.error('Please select a status.')
+        return
+    }
     isSaving.value = true
     router.post(`${baseRoute.value}/attendance`, {
         date:    selectedDate.value,
-        entries: entries.value.filter(e => isScheduledDay(e.employee_id)),
+        entries: [modal.value.form],
     }, {
         preserveScroll: true,
-        onSuccess: () => toast.success('Attendance saved successfully'),
-        onError:   () => toast.error('Failed to save attendance'),
-        onFinish:  () => { isSaving.value = false },
+        onSuccess: () => {
+            toast.success('Attendance saved.')
+            closeModal()
+        },
+        onError: () => toast.error('Failed to save attendance.'),
+        onFinish: () => { isSaving.value = false },
     })
-}
-
-// ─── Status Helpers ───────────────────────────────────────────────────────────
-
-const statusOptions = [
-    { value: 'present',  label: 'Present',  color: 'bg-green-500' },
-    { value: 'absent',   label: 'Absent',   color: 'bg-red-500'   },
-    { value: 'late',     label: 'Late',     color: 'bg-amber-500' },
-    { value: 'half_day', label: 'Half Day', color: 'bg-blue-500'  },
-]
-
-function statusColor(status: string): string {
-    return statusOptions.find(s => s.value === status)?.color ?? 'bg-gray-400'
-}
-
-function statusLabel(status: string): string {
-    return statusOptions.find(s => s.value === status)?.label ?? status
 }
 </script>
 
@@ -272,14 +280,19 @@ function statusLabel(status: string): string {
                 <div>
                     <h2 class="text-lg font-semibold">Daily Attendance</h2>
                     <p class="text-sm text-muted-foreground">
-                        Mark attendance for all active employees.
+                        <template v-if="props.can_edit">
+                            Click the edit icon on any row to mark or update attendance.
+                        </template>
+                        <template v-else>
+                            View clock-in and clock-out records for all employees.
+                        </template>
                     </p>
                 </div>
-                <Button :disabled="isSaving" @click="saveAttendance">
-                    <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                    <Save v-else class="h-4 w-4 mr-2" />
-                    {{ isSaving ? 'Saving...' : 'Save Attendance' }}
-                </Button>
+                <span v-if="!props.can_edit"
+                    class="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg font-medium">
+                    <AlertCircle class="h-3.5 w-3.5" />
+                    View only — editing is restricted to the owner
+                </span>
             </div>
 
             <!-- ── Stats Cards ─────────────────────────────────────── -->
@@ -332,22 +345,18 @@ function statusLabel(status: string): string {
 
             <!-- ── Toolbar ─────────────────────────────────────────── -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <!-- Left: Date Navigation -->
                 <div class="flex items-center gap-2">
                     <Button size="sm" variant="outline" @click="navigateDate(-1)">
                         <ChevronLeft class="h-4 w-4" />
                     </Button>
                     <Input v-model="selectedDate" type="date" class="w-40 text-sm"
                         :max="new Date().toISOString().slice(0, 10)" />
-                    <Button v-if="!isToday" size="sm" variant="outline" @click="goToday">
-                        Today
-                    </Button>
+                    <Button v-if="!isToday" size="sm" variant="outline" @click="goToday">Today</Button>
                     <Button size="sm" variant="outline" @click="navigateDate(1)" :disabled="isToday">
                         <ChevronRight class="h-4 w-4" />
                     </Button>
                 </div>
 
-                <!-- Right: Branch + Search -->
                 <div class="flex items-center gap-2">
                     <Select v-model="selectedBranch">
                         <SelectTrigger class="h-9 w-44 text-sm">
@@ -377,11 +386,13 @@ function statusLabel(status: string): string {
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-muted/40 text-xs text-muted-foreground border-b">
-                            <th class="text-left px-4 py-3 font-medium w-[30%]">Employee</th>
+                            <th class="text-left px-4 py-3 font-medium w-[28%]">Employee</th>
                             <th class="text-left px-4 py-3 font-medium">Status</th>
-                            <th class="text-left px-4 py-3 font-medium">Time In</th>
-                            <th class="text-left px-4 py-3 font-medium">Time Out</th>
+                            <th class="text-left px-4 py-3 font-medium">Clock In</th>
+                            <th class="text-left px-4 py-3 font-medium">Clock Out</th>
+                            <th class="text-left px-4 py-3 font-medium">Location</th>
                             <th class="text-left px-4 py-3 font-medium">Remarks</th>
+                            <th v-if="props.can_edit" class="px-4 py-3 w-12" />
                         </tr>
                     </thead>
                     <tbody>
@@ -389,10 +400,10 @@ function statusLabel(status: string): string {
                             class="border-b last:border-0 transition-colors"
                             :class="isScheduledDay(emp.id) ? 'hover:bg-muted/20' : 'bg-muted/10 opacity-60'">
 
-                            <!-- Employee Info -->
+                            <!-- Employee -->
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
-                                    <div class="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <div class="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                                         <span class="text-xs font-bold text-primary">
                                             {{ emp.first_name[0] }}{{ emp.last_name[0] }}
                                         </span>
@@ -412,79 +423,77 @@ function statusLabel(status: string): string {
                             <!-- Status -->
                             <td class="px-4 py-3">
                                 <span v-if="!isScheduledDay(emp.id)"
-                                    class="text-xs text-muted-foreground italic px-2 py-1 rounded bg-muted">
+                                    class="text-xs italic px-2 py-0.5 rounded bg-muted text-muted-foreground">
                                     Day Off
                                 </span>
-                                <Select v-else v-model="getEntry(emp.id).status">
-                                    <SelectTrigger class="h-8 w-28 text-xs">
-                                        <SelectValue>
-                                            <span v-if="!getEntry(emp.id).status" class="text-muted-foreground">Select</span>
-                                            <span v-else class="flex items-center gap-1.5">
-                                                <span class="h-2 w-2 rounded-full" :class="statusColor(getEntry(emp.id).status)" />
-                                                {{ statusLabel(getEntry(emp.id).status) }}
-                                            </span>
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
-                                            <span class="flex items-center gap-1.5">
-                                                <span class="h-2 w-2 rounded-full" :class="opt.color" />
-                                                {{ opt.label }}
-                                            </span>
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <template v-else-if="getAttendance(emp.id)?.status">
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
+                                        :class="statusCfg(getAttendance(emp.id)!.status)?.badge">
+                                        <span class="h-1.5 w-1.5 rounded-full"
+                                            :class="statusCfg(getAttendance(emp.id)!.status)?.dot" />
+                                        {{ statusCfg(getAttendance(emp.id)!.status)?.label }}
+                                    </span>
+                                </template>
+                                <span v-else class="text-xs text-muted-foreground italic">Not marked</span>
                             </td>
 
-                            <!-- Time In -->
-                            <td class="px-4 py-3">
-                                <span v-if="!isScheduledDay(emp.id)" class="text-xs text-muted-foreground">—</span>
-                                <Select v-else v-model="getEntry(emp.id).time_in"
-                                    :disabled="getEntry(emp.id).status === 'absent'">
-                                    <SelectTrigger class="h-8 w-32 text-xs">
-                                        <SelectValue>
-                                            {{ getEntry(emp.id).time_in ? fmtTime(getEntry(emp.id).time_in) : 'Select' }}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent class="max-h-60">
-                                        <SelectItem value="__clear__">— None —</SelectItem>
-                                        <SelectItem v-for="t in timeOptions" :key="'in-' + emp.id + t" :value="t">
-                                            {{ fmtTime(t) }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <!-- Clock In -->
+                            <td class="px-4 py-3 text-xs font-mono">
+                                <span v-if="!isScheduledDay(emp.id)" class="text-muted-foreground">—</span>
+                                <span v-else>{{ fmtTime(getAttendance(emp.id)?.time_in ?? null) }}</span>
                             </td>
 
-                            <!-- Time Out -->
+                            <!-- Clock Out -->
+                            <td class="px-4 py-3 text-xs font-mono">
+                                <span v-if="!isScheduledDay(emp.id)" class="text-muted-foreground">—</span>
+                                <span v-else>{{ fmtTime(getAttendance(emp.id)?.time_out ?? null) }}</span>
+                            </td>
+
+                            <!-- Location -->
                             <td class="px-4 py-3">
-                                <span v-if="!isScheduledDay(emp.id)" class="text-xs text-muted-foreground">—</span>
-                                <Select v-else v-model="getEntry(emp.id).time_out"
-                                    :disabled="getEntry(emp.id).status === 'absent'">
-                                    <SelectTrigger class="h-8 w-32 text-xs">
-                                        <SelectValue>
-                                            {{ getEntry(emp.id).time_out ? fmtTime(getEntry(emp.id).time_out) : 'Select' }}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent class="max-h-60">
-                                        <SelectItem value="__clear__">— None —</SelectItem>
-                                        <SelectItem v-for="t in timeOptions" :key="'out-' + emp.id + t" :value="t">
-                                            {{ fmtTime(t) }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <template v-if="getAttendance(emp.id)">
+                                    <div class="flex flex-col gap-1">
+                                        <a v-if="getAttendance(emp.id)!.check_in_lat"
+                                            :href="mapsUrl(getAttendance(emp.id)!.check_in_lat!, getAttendance(emp.id)!.check_in_lng!)"
+                                            target="_blank"
+                                            class="flex items-center gap-1 text-xs text-emerald-600 hover:underline font-medium">
+                                            <MapPin class="h-3 w-3 shrink-0" />
+                                            Clock In
+                                        </a>
+                                        <a v-if="getAttendance(emp.id)!.check_out_lat"
+                                            :href="mapsUrl(getAttendance(emp.id)!.check_out_lat!, getAttendance(emp.id)!.check_out_lng!)"
+                                            target="_blank"
+                                            class="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium">
+                                            <MapPin class="h-3 w-3 shrink-0" />
+                                            Clock Out
+                                        </a>
+                                        <span v-if="!getAttendance(emp.id)!.check_in_lat && !getAttendance(emp.id)!.check_out_lat"
+                                            class="text-xs text-muted-foreground">—</span>
+                                    </div>
+                                </template>
+                                <span v-else class="text-xs text-muted-foreground">—</span>
                             </td>
 
                             <!-- Remarks -->
-                            <td class="px-4 py-3">
-                                <span v-if="!isScheduledDay(emp.id)" class="text-xs text-muted-foreground">—</span>
-                                <Input v-else v-model="getEntry(emp.id).remarks" placeholder="Optional"
-                                    class="h-8 text-xs w-full min-w-[120px]" />
+                            <td class="px-4 py-3 text-xs text-muted-foreground">
+                                <span v-if="!isScheduledDay(emp.id)">—</span>
+                                <span v-else>{{ getAttendance(emp.id)?.remarks || '—' }}</span>
+                            </td>
+
+                            <!-- Edit button (owner only) -->
+                            <td v-if="props.can_edit" class="px-3 py-3 text-right">
+                                <button v-if="isScheduledDay(emp.id)"
+                                    class="h-7 w-7 inline-flex items-center justify-center rounded-lg border hover:bg-muted transition-colors"
+                                    title="Mark attendance"
+                                    @click="openModal(emp)">
+                                    <Pencil class="h-3.5 w-3.5 text-muted-foreground" />
+                                </button>
                             </td>
                         </tr>
 
-                        <!-- Empty state -->
                         <tr v-if="filteredEmployees.length === 0">
-                            <td colspan="5" class="px-4 py-12 text-center text-sm text-muted-foreground">
+                            <td :colspan="props.can_edit ? 7 : 6"
+                                class="px-4 py-12 text-center text-sm text-muted-foreground">
                                 <Users class="h-8 w-8 mx-auto mb-2 opacity-30" />
                                 <p>No active employees found.</p>
                             </td>
@@ -495,4 +504,119 @@ function statusLabel(status: string): string {
 
         </div>
     </ShopLayout>
+
+    <!-- ── Mark Attendance Modal ──────────────────────────────────────────────── -->
+    <Teleport to="body">
+        <Transition name="fade">
+            <div v-if="modal.open"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+                @click.self="closeModal">
+
+                <div class="w-full max-w-sm bg-background rounded-2xl shadow-xl border overflow-hidden">
+
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between px-5 py-4 border-b">
+                        <div>
+                            <p class="font-semibold text-sm">Mark Attendance</p>
+                            <p class="text-xs text-muted-foreground mt-0.5">
+                                {{ modal.employee?.first_name }} {{ modal.employee?.last_name }}
+                                · {{ formatDateDisplay(selectedDate) }}
+                            </p>
+                        </div>
+                        <button @click="closeModal"
+                            class="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-muted transition-colors">
+                            <X class="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="px-5 py-4 space-y-4">
+
+                        <!-- Status -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium">Status <span class="text-red-500">*</span></label>
+                            <Select v-model="modal.form.status">
+                                <SelectTrigger class="h-9 text-sm">
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
+                                        <span class="flex items-center gap-2">
+                                            <span class="h-2 w-2 rounded-full" :class="opt.dot" />
+                                            {{ opt.label }}
+                                        </span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <!-- Time In / Time Out -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium">Clock In</label>
+                                <Select v-model="modal.form.time_in"
+                                    :disabled="modal.form.status === 'absent'">
+                                    <SelectTrigger class="h-9 text-sm">
+                                        <SelectValue>
+                                            {{ modal.form.time_in ? fmtTime(modal.form.time_in) : '—' }}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-60">
+                                        <SelectItem value="">— None —</SelectItem>
+                                        <SelectItem v-for="t in timeOptions" :key="'mod-in-' + t" :value="t">
+                                            {{ fmtTime(t) }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium">Clock Out</label>
+                                <Select v-model="modal.form.time_out"
+                                    :disabled="modal.form.status === 'absent'">
+                                    <SelectTrigger class="h-9 text-sm">
+                                        <SelectValue>
+                                            {{ modal.form.time_out ? fmtTime(modal.form.time_out) : '—' }}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-60">
+                                        <SelectItem value="">— None —</SelectItem>
+                                        <SelectItem v-for="t in timeOptions" :key="'mod-out-' + t" :value="t">
+                                            {{ fmtTime(t) }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium">Remarks</label>
+                            <Input v-model="modal.form.remarks" placeholder="Optional note..." class="h-9 text-sm" />
+                        </div>
+                    </div>
+
+                    <!-- Modal footer -->
+                    <div class="flex justify-end gap-2 px-5 py-4 border-t bg-muted/20">
+                        <Button variant="outline" size="sm" @click="closeModal">Cancel</Button>
+                        <Button size="sm" :disabled="isSaving" @click="saveModal">
+                            <Loader2 v-if="isSaving" class="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            {{ isSaving ? 'Saving…' : 'Save' }}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
+
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.15s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>

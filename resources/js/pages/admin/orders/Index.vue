@@ -186,20 +186,35 @@ const confirmModal = ref<{
     action: 'approve' | 'reject' | null
     orderId: number | null
     shopName: string
-}>({ open: false, action: null, orderId: null, shopName: '' })
+    rejectionReason: string
+    reasonError: string
+}>({ open: false, action: null, orderId: null, shopName: '', rejectionReason: '', reasonError: '' })
 
 function openConfirm(action: 'approve' | 'reject', order: OrderItem) {
-    confirmModal.value = { open: true, action, orderId: order.id, shopName: order.shop_name }
+    confirmModal.value = { open: true, action, orderId: order.id, shopName: order.shop_name, rejectionReason: '', reasonError: '' }
 }
 
 function closeConfirm() {
-    confirmModal.value = { open: false, action: null, orderId: null, shopName: '' }
+    confirmModal.value = { open: false, action: null, orderId: null, shopName: '', rejectionReason: '', reasonError: '' }
 }
 
 function submitAction() {
     if (!confirmModal.value.orderId || !confirmModal.value.action) return
+
+    if (confirmModal.value.action === 'reject') {
+        if (!confirmModal.value.rejectionReason.trim()) {
+            confirmModal.value.reasonError = 'Please provide a reason for rejection.'
+            return
+        }
+        confirmModal.value.reasonError = ''
+    }
+
     const url = `/admin/orders/${confirmModal.value.orderId}/${confirmModal.value.action}`
-    router.post(url, {}, {
+    const payload = confirmModal.value.action === 'reject'
+        ? { rejection_reason: confirmModal.value.rejectionReason.trim() }
+        : {}
+
+    router.post(url, payload, {
         onSuccess: () => {
             closeConfirm()
             const flash = page.props.toast as { type: string; message: string } | undefined
@@ -577,14 +592,34 @@ const statusBadge: Record<string, string> = {
                         </div>
                     </div>
 
-                    <p class="text-sm text-muted-foreground mb-6">
+                    <p class="text-sm text-muted-foreground mb-4">
                         <template v-if="confirmModal.action === 'approve'">
                             This will activate the shop and make modules available to the owner.
                         </template>
                         <template v-else>
-                            This will reject the order. The shop will not be activated.
+                            This will reject the order. The shop will not be activated and the owner will be notified with your reason. A refund will be marked for processing.
                         </template>
                     </p>
+
+                    <!-- Rejection reason (only shown when rejecting) -->
+                    <div v-if="confirmModal.action === 'reject'" class="mb-5">
+                        <label class="block text-xs font-medium text-foreground mb-1.5">
+                            Reason for rejection <span class="text-red-500">*</span>
+                        </label>
+                        <textarea
+                            v-model="confirmModal.rejectionReason"
+                            rows="4"
+                            placeholder="e.g. Incomplete or invalid KYC documents submitted. Please re-submit with valid BIR and DTI certificates."
+                            class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
+                            :class="confirmModal.reasonError ? 'border-red-400' : ''"
+                        />
+                        <p v-if="confirmModal.reasonError" class="mt-1 text-xs text-red-500">
+                            {{ confirmModal.reasonError }}
+                        </p>
+                        <p class="mt-1.5 text-xs text-muted-foreground">
+                            This reason will be emailed to the shop owner along with a refund notice.
+                        </p>
+                    </div>
 
                     <div class="flex gap-2 justify-end">
                         <Button variant="outline" size="sm" @click="closeConfirm">Cancel</Button>

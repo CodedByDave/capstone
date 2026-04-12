@@ -8,6 +8,7 @@ use App\Models\ShopOrder;
 use App\Models\ShopService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Notifications\OrderNotification;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -92,6 +93,7 @@ class UserOrderController extends Controller
             'customer_phone'       => 'required|string|max:20',
             'estimated_weight_kg'  => 'required|numeric|min:0.5|max:100',
             'pickup_type'          => 'required|in:walk_in,pickup',
+            'payment_method'       => 'required|in:cash,gcash,maya',
             'customer_address'     => 'required_if:pickup_type,pickup|nullable|string|max:500',
             'special_instructions' => 'nullable|string|max:500',
         ]);
@@ -113,7 +115,7 @@ class UserOrderController extends Controller
 
         $orderNumber = $this->generateOrderNumber();
 
-        ShopOrder::create([
+        $newOrder = ShopOrder::create([
             'shop_id'              => $shop->id,
             'user_id'              => auth()->id(),
             'order_source'         => 'online',
@@ -133,11 +135,14 @@ class UserOrderController extends Controller
             'additional_charges'   => 0,
             'discount_amount'      => 0,
             'total_amount'         => $estimatedTotal,
-            'payment_method'       => 'cash',
+            'payment_method'       => $validated['payment_method'],
             'payment_status'       => 'unpaid',
             'amount_paid'          => 0,
             'status'               => 'pending',
         ]);
+
+        $newOrder->load('shop');
+        auth()->user()->notify(new OrderNotification($newOrder, 'placed'));
 
         return redirect()->route('user.orders.index')->with('toast', [
             'type'    => 'success',

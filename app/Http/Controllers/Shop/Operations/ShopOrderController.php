@@ -74,7 +74,7 @@ class ShopOrderController extends Controller
             'inventoryItems' => Inventory::where('shop_id', $shopId)
                 ->where('status', 'active')
                 ->orderBy('name')
-                ->get(['id', 'name', 'unit', 'quantity']),
+                ->get(['id', 'name', 'unit', 'quantity', 'selling_price']),
             'promotions' => Promotion::where('shop_id', $shopId)
                 ->active()
                 ->valid()
@@ -125,7 +125,7 @@ class ShopOrderController extends Controller
             'inventoryItems' => Inventory::where('shop_id', $shopId)
                 ->where('status', 'active')
                 ->orderBy('name')
-                ->get(['id', 'name', 'unit', 'quantity']),
+                ->get(['id', 'name', 'unit', 'quantity', 'selling_price']),
         ]);
     }
 

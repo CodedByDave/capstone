@@ -9,7 +9,7 @@ import {
     Users, GitBranch, Package, AlertTriangle,
     ArrowUpRight, ArrowDownRight, Activity, BoxSelect,
     RefreshCcw, Clock, Lightbulb, TrendingUp, TrendingDown,
-    ShieldAlert, CheckCircle2, Info
+    ShieldAlert, CheckCircle2, Info, XCircle, Mail
 } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 
@@ -44,6 +44,13 @@ const { props } = usePage<{
         modules: { name: string; price: number }[]
         total_price: number
     }
+    rejected_order?: {
+        id: number
+        shop_name: string
+        rejection_reason: string | null
+        total_price: number
+        email: string
+    } | null
     stats?: {
         employees: { total: number; active: number; inactive: number }
         branches: { total: number; active: number }
@@ -70,8 +77,9 @@ const { props } = usePage<{
 const user = props.auth.user
 const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
 const isApproved = computed(() =>
-    props.order?.status === 'approved' && props.shop?.status !== 'disabled'
+    props.order?.status === 'approved' && (props.shop?.status ?? 'active') !== 'disabled'
 )
+const isRejected = computed(() => !!props.rejected_order)
 const showOrder = ref(false)
 
 // ─── Breadcrumbs ─────────────────────────────────────────────────────────────
@@ -363,6 +371,83 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         <p class="text-sm text-muted-foreground">
                             Your shop has been disabled. Please contact support for assistance.
                         </p>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ══════════════ REJECTED ══════════════ -->
+            <template v-else-if="isRejected">
+
+                <!-- Show checkout form when owner clicks "Place New Order" -->
+                <CheckoutConfirm
+                    v-if="showOrder"
+                    plan-name="Standard"
+                    :vat-pct="12"
+                    :billing-months="1"
+                    :user="{ name: user.name, email: user.email }"
+                    :shop="props.shop ?? undefined"
+                />
+
+                <div v-else class="flex flex-1 items-center justify-center min-h-[60vh] px-4">
+                    <div class="w-full max-w-lg">
+
+                        <!-- Icon + heading -->
+                        <div class="flex flex-col items-center text-center mb-6">
+                            <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                                <XCircle class="h-8 w-8 text-red-500" />
+                            </div>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                                Order Rejected
+                            </h2>
+                            <p class="text-sm text-muted-foreground mt-1">
+                                Your subscription plan order for
+                                <span class="font-medium text-foreground">{{ props.rejected_order?.shop_name }}</span>
+                                was not approved.
+                            </p>
+                        </div>
+
+                        <!-- Reason card -->
+                        <div class="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 p-4 mb-4">
+                            <p class="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-1">
+                                Reason for rejection
+                            </p>
+                            <p class="text-sm text-red-700 dark:text-red-300 leading-relaxed">
+                                {{ props.rejected_order?.rejection_reason ?? 'No specific reason was provided.' }}
+                            </p>
+                        </div>
+
+                        <!-- Email instruction card -->
+                        <div class="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-4 mb-6">
+                            <div class="flex items-start gap-3">
+                                <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
+                                    <Mail class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-0.5">
+                                        Check your email for refund instructions
+                                    </p>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
+                                        A detailed email has been sent to
+                                        <span class="font-medium">{{ props.rejected_order?.email }}</span>
+                                        with your refund details and next steps. Your payment of
+                                        <span class="font-medium">
+                                            ₱{{ Number(props.rejected_order?.total_price ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}
+                                        </span>
+                                        will be returned to your original payment method.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CTA -->
+                        <Button class="w-full" @click="showOrder = true">
+                            Place a New Order
+                        </Button>
+
+                        <p class="text-xs text-center text-muted-foreground mt-4">
+                            If you believe this was a mistake, please contact our support team.
+                        </p>
+
                     </div>
                 </div>
             </template>

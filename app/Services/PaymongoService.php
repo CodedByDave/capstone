@@ -130,4 +130,59 @@ class PaymongoService
 
         return $response->json();
     }
+
+    /**
+     * Extract the first PayMongo payment ID from a checkout session response.
+     * Returns null if the session has no completed payments yet.
+     */
+    public function extractPaymentId(array $session): ?string
+    {
+        return $session['data']['attributes']['payment_intent']['attributes']['payments'][0]['id'] ?? null;
+    }
+
+    /**
+     * Issue a refund for a PayMongo payment.
+     *
+     * @param  string $paymentId      The PayMongo payment ID (pay_xxxx)
+     * @param  int    $amountCentavos Amount in centavos (₱1 = 100 centavos)
+     * @param  string $reason         'duplicate' | 'fraudulent' | 'others'
+     */
+    public function refund(string $paymentId, int $amountCentavos, string $reason = 'others'): array
+    {
+        Log::info('PayMongo Refund Request', [
+            'payment_id' => $paymentId,
+            'amount'     => $amountCentavos,
+            'reason'     => $reason,
+        ]);
+
+        $response = $this->client()->post('/refunds', [
+            'data' => [
+                'attributes' => [
+                    'amount'     => $amountCentavos,
+                    'payment_id' => $paymentId,
+                    'reason'     => $reason,
+                ],
+            ],
+        ]);
+
+        Log::info('PayMongo Refund Response', [
+            'status' => $response->status(),
+            'body'   => $response->json(),
+        ]);
+
+        if ($response->failed()) {
+            $error = $response->json();
+
+            Log::error('PayMongo Refund Failed', [
+                'payment_id' => $paymentId,
+                'status'     => $response->status(),
+                'error'      => $error,
+            ]);
+
+            $message = $error['errors'][0]['detail'] ?? $error['errors'][0]['code'] ?? 'Refund request failed';
+            throw new \Exception($message);
+        }
+
+        return $response->json();
+    }
 }

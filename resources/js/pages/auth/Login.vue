@@ -41,7 +41,7 @@ function goToGoogle() {
 </script>
 
 <template>
-    <AuthBase title="Log in to your account" description="Enter your email and password below to log in">
+    <AuthBase description="Enter your email and password below to log in">
 
         <Head title="Log in" />
 
@@ -49,7 +49,7 @@ function goToGoogle() {
             {{ status }}
         </div>
 
-        <Form v-bind="store.form()" :reset-on-success="['password']" v-slot="{ errors, processing }"
+        <Form :action="store.url()" method="post" :reset-on-success="['password']" v-slot="{ errors, processing }"
             class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">

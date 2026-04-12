@@ -16,7 +16,19 @@
       "Bash(grep -n \"CREATE TABLE\" \"C:\\\\xampp\\\\htdocs\\\\thesis-a\\\\web-app\\\\database\\\\migrations\"/*.php)",
       "Bash(grep -E '\\\\.\\(ts|js\\)$')",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/shop/finance/expenses)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(timeout 15 npx vite --version)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(npm --version)",
+      "Bash(composer show:*)",
+      "Bash(php -r \"echo 'PHP works';\")",
+      "Bash(grep -l \"deliveries\" /c/xampp/htdocs/thesis-a/web-app/database/migrations/*.php)",
+      "Bash(npm install:*)",
+      "Bash(npm list:*)",
+      "Bash(php -r ':*)",
+      "Bash(php -r \"echo gethostbyname\\(gethostname\\(\\)\\);\")",
+      "Bash(ipconfig)"
     ]
   }
 }

@@ -58,20 +58,20 @@ class EmployeeService
         $query = Employee::with(['creator:id,name', 'updater:id,name'])
             ->where('shop_id', $shop->id);
 
-        $branch = $this->getStaffBranch();
-
         if (auth()->user()->role !== 'owner') {
+            $branch = $this->getStaffBranch();
+
+            // Always exclude the staff member's own employee record
+            $query->where(function ($q) {
+                $q->where('user_id', '!=', auth()->id())
+                  ->orWhereNull('user_id');
+            });
+
+            // Restrict to their branch only if they have one assigned
             if ($branch !== null) {
-                // Show only the manager's branch, excluding their own record
-                $query->where('branch_name', $branch)
-                      ->where(function ($q) {
-                          $q->where('user_id', '!=', auth()->id())
-                            ->orWhereNull('user_id');
-                      });
-            } else {
-                // No branch assigned — return empty list
-                $query->whereRaw('1 = 0');
+                $query->where('branch_name', $branch);
             }
+            // No branch → see all shop employees (except themselves)
         }
 
         return $query->latest()->paginate($perPage);
@@ -86,11 +86,14 @@ class EmployeeService
 
     public function getBranchNames(Shop $shop): array
     {
-        $branch = $this->getStaffBranch();
-
-        // Non-owners (managers/staff) can only assign to their own branch
         if (auth()->user()->role !== 'owner') {
-            return $branch !== null ? [$branch] : [];
+            $branch = $this->getStaffBranch();
+
+            // If the staff is branch-scoped, restrict them to their own branch only
+            if ($branch !== null) {
+                return [$branch];
+            }
+            // No branch assigned → can see and assign any branch (shop-level staff)
         }
 
         return $this->employeeRepository->getBranchNames($shop);
@@ -112,28 +115,22 @@ class EmployeeService
     {
         return DB::transaction(function () use ($shop, $data) {
 
-            $userId = null;
-            $createAccount = (bool) ($data['create_account'] ?? false);
+            // Always create a login account for every employee.
+            $defaultPassword = $data['last_name'];
 
-            if ($createAccount) {
-                $defaultPassword = $data['last_name'];
-
-                $user = User::create([
-                    'name'              => $data['first_name'] . ' ' . $data['last_name'],
-                    'email'             => $data['email'],
-                    'password'          => Hash::make($defaultPassword),
-                    'role'              => 'staff',
-                    'email_verified_at' => now(),
-                ]);
-
-                $userId = $user->id;
-            }
+            $user = User::create([
+                'name'              => $data['first_name'] . ' ' . $data['last_name'],
+                'email'             => $data['email'],
+                'password'          => Hash::make($defaultPassword),
+                'role'              => 'staff',
+                'email_verified_at' => now(),
+            ]);
 
             $role = strtolower($data['position']);
 
             $employee = $this->employeeRepository->createForShop($shop, [
                 ...$data,
-                'user_id'    => $userId,
+                'user_id'    => $user->id,
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
@@ -148,21 +145,18 @@ class EmployeeService
                 'role'        => $role,
             ]);
 
-            // Only send credentials if account was created
-            if ($createAccount) {
-                try {
-                    Mail::to($user->email)->send(new EmployeeCredentialsMail(
-                        name: $user->name,
-                        email: $user->email,
-                        password: $defaultPassword,
-                        shopName: $shop->shop_name,
-                    ));
-                } catch (\Exception $e) {
-                    \Log::warning('Failed to send employee credentials email', [
-                        'email' => $user->email,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+            try {
+                Mail::to($user->email)->send(new EmployeeCredentialsMail(
+                    name: $user->name,
+                    email: $user->email,
+                    password: $defaultPassword,
+                    shopName: $shop->shop_name,
+                ));
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send employee credentials email', [
+                    'email' => $user->email,
+                    'error' => $e->getMessage(),
+                ]);
             }
 
             $this->activityLogService->log(

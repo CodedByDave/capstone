@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue"
 import { Link, router, usePage } from "@inertiajs/vue3"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-vue-next"
+import { dashboard } from '@/routes/user'
 import { usePWA } from '@/composables/usePWA'
 import IOSInstallBanner from '@/components/IOSInstallBanner.vue'
 
@@ -70,10 +71,11 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
                 </Button>
 
                 <template v-if="page.props.auth?.user">
-                    <Button size="sm" class="bg-primary text-primary-foreground hover:bg-accent shadow-none"
-                        @click="router.visit('/dashboard')">
-                        Dashboard
-                    </Button>
+                    <Link :href="dashboard.url()">
+                        <Button size="sm" class="bg-primary text-primary-foreground hover:bg-accent shadow-none">
+                            Dashboard
+                        </Button>
+                    </Link>
                 </template>
                 <template v-else>
                     <Button @click="router.visit('/login')" variant="ghost" size="sm"
@@ -117,10 +119,11 @@ onUnmounted(() => window.removeEventListener("scroll", handleScroll))
                     </Button>
 
                     <template v-if="page.props.auth?.user">
-                        <Button size="sm" class="w-full bg-primary text-primary-foreground hover:bg-accent"
-                            @click="router.visit('/dashboard')">
-                            Dashboard
-                        </Button>
+                        <Link :href="dashboard.url()" class="w-full">
+                            <Button size="sm" class="w-full bg-primary text-primary-foreground hover:bg-accent">
+                                Dashboard
+                            </Button>
+                        </Link>
                     </template>
                     <template v-else>
                         <Button variant="outline" size="sm" class="w-full" @click="router.visit('/login')">

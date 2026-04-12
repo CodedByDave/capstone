@@ -88,6 +88,7 @@ class AttendanceController extends Controller
             'branches'    => $branches,
             'filters'     => $request->only(['date', 'status', 'search', 'branch']),
             'schedules'   => $schedules,
+            'can_edit'    => auth()->user()->role === 'owner',
         ]);
     }
 

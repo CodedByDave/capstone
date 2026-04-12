@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
-import { Checkbox } from '@/components/ui/checkbox'
 import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { toast } from 'vue-sonner'
@@ -12,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // icons
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2, Mail } from 'lucide-vue-next'
 
 interface Shop {
     id: number
@@ -139,7 +138,6 @@ const form = ref({
     hire_date: '',
     salary: '',
     status: 'Active' as 'Active' | 'Inactive',
-    create_account: false,
 })
 
 const isSubmitting = ref(false)
@@ -379,25 +377,24 @@ function submit() {
                 </p>
                 <p v-if="errors.address" class="text-xs text-red-500">{{ errors.address }}</p>
             </div>
-            <!-- Section 4: System Access-->
+            <!-- Section 4: System Access -->
             <div class="space-y-4">
                 <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">System Access</p>
 
-                <div class="flex items-start gap-3">
-                    <Checkbox id="create_account" :checked="form.create_account"
-                        @update:checked="form.create_account = $event" />
+                <div class="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-4">
+                    <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
+                        <Mail class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
                     <div class="space-y-1">
-                        <label for="create_account" class="text-sm font-medium cursor-pointer">
-                            Create a system account for this employee
-                        </label>
-                        <p class="text-xs text-muted-foreground">
-                            A login account will be created using the employee's email and a temporary password will be
-                            generated.
-                            Only enable this for employees who need access to the system.
+                        <p class="text-sm font-medium text-blue-700 dark:text-blue-300">
+                            A login account will be created automatically
+                        </p>
+                        <p class="text-xs text-blue-600 dark:text-blue-400">
+                            The employee will receive their login credentials (email + temporary password) at the email address provided above.
+                            Their temporary password is their last name. They can change it after logging in.
                         </p>
                     </div>
                 </div>
-                <p v-if="errors.create_account" class="text-xs text-red-500">{{ errors.create_account }}</p>
             </div>
             <!-- Actions -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t">

@@ -7,7 +7,7 @@ import UserLayout from '@/layouts/user/UserLayout.vue'
 import { type AppPageProps } from '@/types'
 import {
     MapPin, ChevronRight, ShoppingBag, ClipboardList,
-    Loader2, AlertCircle, Package,
+    Loader2, Package, WashingMachine, Navigation, X, Phone,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -23,11 +23,26 @@ interface RecentOrder {
     created_at: string
 }
 
+interface NearbyShop {
+    id: number
+    shop_name: string
+    branch_name: string | null
+    municipality: string
+    barangay: string
+    cover_photo: string | null
+    distance_km: number
+    starting_price: string | null
+    services_count: number
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const props = defineProps<{
     recentOrders: RecentOrder[]
     totalOrders: number
+    nearbyShops: NearbyShop[]
+    userLat: number | null
+    userLng: number | null
 }>()
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -52,35 +67,89 @@ onMounted(() => {
             default:        toast(flashToast.message)
         }
     }
+
+    initLocation()
 })
 
 // ─── Location ─────────────────────────────────────────────────────────────────
 
-const locating = ref(false)
-const locError = ref('')
+const LOCATION_KEY  = 'lh_user_location'
+const DENIED_KEY    = 'lh_location_denied'
+const CACHE_MS      = 30 * 60 * 1000   // 30 minutes
 
-function findNearby() {
+const locating           = ref(false)
+const locationDenied     = ref(false)
+const showLocationBanner = ref(false)
+
+function initLocation() {
+    // Already loaded with coords — nothing to do
+    if (props.userLat && props.userLng) return
+
+    // Previously denied — show the "how-to-enable" hint instead of banner
+    if (localStorage.getItem(DENIED_KEY)) {
+        locationDenied.value = true
+        return
+    }
+
+    // Try using a cached position
+    const raw = localStorage.getItem(LOCATION_KEY)
+    if (raw) {
+        try {
+            const { lat, lng, ts } = JSON.parse(raw)
+            if (Date.now() - ts < CACHE_MS) {
+                router.get('/user/dashboard', { lat, lng }, { replace: true, preserveScroll: true })
+                return
+            }
+        } catch { /* ignore */ }
+    }
+
+    // No cached position — show the permission banner
+    showLocationBanner.value = true
+}
+
+function requestLocation() {
     if (!navigator.geolocation) {
-        locError.value = 'Geolocation is not supported on this device.'
+        locationDenied.value = true
+        showLocationBanner.value = false
         return
     }
     locating.value = true
-    locError.value = ''
     navigator.geolocation.getCurrentPosition(
         (pos) => {
+            const lat = pos.coords.latitude
+            const lng = pos.coords.longitude
+            localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat, lng, ts: Date.now() }))
+            localStorage.removeItem(DENIED_KEY)
             locating.value = false
-            router.get('/user/shops', {
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-            })
+            showLocationBanner.value = false
+            router.get('/user/dashboard', { lat, lng }, { replace: true })
         },
         () => {
             locating.value = false
-            locError.value = 'Location access denied. Showing all available shops.'
-            router.get('/user/shops')
+            localStorage.setItem(DENIED_KEY, '1')
+            locationDenied.value = true
+            showLocationBanner.value = false
         },
-        { timeout: 8000, maximumAge: 60000 },
+        { timeout: 10000, maximumAge: 0 },
     )
+}
+
+function dismissBanner() {
+    showLocationBanner.value = false
+}
+
+function retryLocation() {
+    localStorage.removeItem(DENIED_KEY)
+    locationDenied.value = false
+    showLocationBanner.value = true
+}
+
+function refreshLocation() {
+    localStorage.removeItem(LOCATION_KEY)
+    localStorage.removeItem(DENIED_KEY)
+    locationDenied.value = false
+    showLocationBanner.value = false
+    requestLocation()
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -99,6 +168,21 @@ const statusLabel: Record<string, string> = {
 
 function currency(val: number) {
     return `₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
+}
+
+function goToShop(shop: NearbyShop) {
+    router.visit(`/user/shops/${shop.id}${props.userLat ? `?lat=${props.userLat}&lng=${props.userLng}` : ''}`)
+}
+
+const gradients = [
+    'from-blue-500 to-indigo-600',
+    'from-teal-500 to-cyan-600',
+    'from-violet-500 to-purple-600',
+    'from-rose-500 to-pink-600',
+    'from-amber-500 to-orange-500',
+]
+function shopGradient(id: number) {
+    return gradients[id % gradients.length]
 }
 </script>
 
@@ -119,28 +203,146 @@ function currency(val: number) {
                         <ShoppingBag class="h-4 w-4 opacity-80" />
                         <span class="text-sm font-medium">{{ totalOrders }} order{{ totalOrders !== 1 ? 's' : '' }} placed</span>
                     </div>
+                    <!-- Refresh location -->
+                    <button
+                        v-if="userLat && userLng"
+                        class="bg-white/10 rounded-xl px-3 py-2.5 flex items-center gap-1.5 hover:bg-white/20 transition active:scale-95"
+                        :disabled="locating"
+                        title="Refresh location"
+                        @click="refreshLocation"
+                    >
+                        <Loader2 v-if="locating" class="h-4 w-4 animate-spin" />
+                        <Navigation v-else class="h-4 w-4" />
+                        <span class="text-xs font-medium">{{ locating ? 'Locating…' : 'Near me' }}</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- ── Find Nearby ────────────────────────────────── -->
-            <div>
+            <!-- ── Location Permission Banner ────────────────── -->
+            <div
+                v-if="showLocationBanner"
+                class="relative bg-blue-50 border border-blue-200 rounded-2xl p-4"
+            >
+                <button
+                    class="absolute top-3 right-3 text-blue-400 hover:text-blue-600"
+                    @click="dismissBanner"
+                >
+                    <X class="h-4 w-4" />
+                </button>
+                <div class="flex items-start gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                        <MapPin class="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-blue-900">See shops near you</p>
+                        <p class="text-xs text-blue-700 mt-0.5">Allow location access to get recommendations for nearby laundry shops.</p>
+                        <button
+                            class="mt-3 flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition active:scale-95 disabled:opacity-60"
+                            :disabled="locating"
+                            @click="requestLocation"
+                        >
+                            <Loader2 v-if="locating" class="h-3.5 w-3.5 animate-spin" />
+                            <Navigation v-else class="h-3.5 w-3.5" />
+                            {{ locating ? 'Getting location…' : 'Allow Location' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Location Denied Banner ─────────────────────── -->
+            <div
+                v-else-if="locationDenied"
+                class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3"
+            >
+                <div class="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <MapPin class="h-5 w-5 text-amber-600" />
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-amber-900">Location access blocked</p>
+                    <p class="text-xs text-amber-700 mt-0.5">
+                        To see nearby shops, enable location in your browser settings, then tap retry.
+                    </p>
+                    <button
+                        class="mt-2 text-xs font-semibold text-amber-700 underline underline-offset-2"
+                        @click="retryLocation"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Nearby Shops ───────────────────────────────── -->
+            <div v-if="nearbyShops.length > 0">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                        <MapPin class="h-4 w-4 text-blue-500" />
+                        Nearby Shops
+                    </h3>
+                    <button
+                        class="text-xs text-blue-600 font-medium hover:underline"
+                        @click="router.visit(`/user/shops?lat=${userLat}&lng=${userLng}`)"
+                    >
+                        See all
+                    </button>
+                </div>
+
+                <!-- Horizontal scroll on mobile -->
+                <div class="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
+                    <button
+                        v-for="shop in nearbyShops"
+                        :key="shop.id"
+                        class="shrink-0 w-52 snap-start text-left bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow active:scale-[0.98]"
+                        @click="goToShop(shop)"
+                    >
+                        <!-- Cover photo -->
+                        <div class="relative h-28 overflow-hidden">
+                            <img
+                                v-if="shop.cover_photo"
+                                :src="shop.cover_photo"
+                                :alt="shop.shop_name"
+                                class="w-full h-full object-cover"
+                            />
+                            <div
+                                v-else
+                                :class="`w-full h-full bg-gradient-to-br ${shopGradient(shop.id)} flex items-center justify-center`"
+                            >
+                                <WashingMachine class="h-9 w-9 text-white/50" />
+                            </div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                            <!-- Distance pill -->
+                            <div class="absolute top-2 right-2 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                <MapPin class="h-2.5 w-2.5" />
+                                {{ shop.distance_km }} km
+                            </div>
+                            <!-- Name overlay -->
+                            <div class="absolute bottom-2 left-3 right-3">
+                                <p class="text-white text-xs font-bold leading-tight line-clamp-1 drop-shadow">{{ shop.shop_name }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Card body -->
+                        <div class="px-3 py-2.5">
+                            <p class="text-[11px] text-gray-500 flex items-center gap-1">
+                                <MapPin class="h-3 w-3 shrink-0 text-gray-400" />
+                                <span class="line-clamp-1">{{ shop.barangay }}, {{ shop.municipality }}</span>
+                            </p>
+                            <div class="flex items-center justify-between mt-2">
+                                <span v-if="shop.starting_price" class="bg-blue-50 text-blue-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                                    From ₱{{ Number(shop.starting_price).toFixed(0) }}/kg
+                                </span>
+                                <span v-else class="text-[10px] text-gray-400">{{ shop.services_count }} services</span>
+                                <ChevronRight class="h-3.5 w-3.5 text-gray-300 shrink-0" />
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Browse Shops (fallback when no nearby) ─────── -->
+            <div v-if="!userLat || nearbyShops.length === 0">
                 <h3 class="text-sm font-semibold text-gray-700 mb-3">Find a Shop</h3>
                 <button
-                    class="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 font-medium text-sm bg-blue-50 hover:bg-blue-100 transition-colors active:scale-95"
-                    :disabled="locating"
-                    @click="findNearby"
-                >
-                    <Loader2 v-if="locating" class="h-4 w-4 animate-spin" />
-                    <MapPin v-else class="h-4 w-4" />
-                    {{ locating ? 'Getting your location...' : 'Find Laundry Near Me' }}
-                </button>
-                <p v-if="locError" class="text-xs text-red-500 mt-2 flex items-center gap-1">
-                    <AlertCircle class="h-3.5 w-3.5 shrink-0" /> {{ locError }}
-                </p>
-
-                <!-- Browse all -->
-                <button
-                    class="w-full mt-2 py-3 text-sm text-gray-500 hover:text-gray-700 font-medium underline-offset-2 hover:underline"
+                    class="w-full py-3 text-sm text-gray-500 hover:text-gray-700 font-medium underline-offset-2 hover:underline"
                     @click="router.visit('/user/shops')"
                 >
                     Browse all shops →
