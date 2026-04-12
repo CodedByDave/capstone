@@ -1,1 +1,0 @@
-import{d as e,b as o,j as s}from"./app-Bnbiscjq.js";const n={src:"/laundryhub.png",alt:"LaundryHub Logo",class:"h-10 w-10 object-cover rounded-full"},p=e({inheritAttrs:!1,__name:"AppLogoIcon",props:{className:{}},setup(r){return(t,a)=>(s(),o("img",n))}});export{p as _};

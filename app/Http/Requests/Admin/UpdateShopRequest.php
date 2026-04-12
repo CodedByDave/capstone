@@ -21,7 +21,7 @@ class UpdateShopRequest extends FormRequest
             'municipality' => ['required', 'string', 'max:255'],
             'barangay'     => ['required', 'string', 'max:255'],
             'postal_code'  => ['required', 'string', 'max:255'],
-            'status'       => ['required', 'in:active,inactive,pending'],
+            'status'       => ['required', 'in:active,pending,disabled'],
         ];
     }
 
@@ -34,7 +34,7 @@ class UpdateShopRequest extends FormRequest
             'barangay.required'     => 'Barangay is required.',
             'postal_code.required'  => 'Postal code is required.',
             'status.required'       => 'Status is required.',
-            'status.in'             => 'Status must be active, inactive, or pending.',
+            'status.in'             => 'Status must be active, pending, or disabled.',
         ];
     }
 }
