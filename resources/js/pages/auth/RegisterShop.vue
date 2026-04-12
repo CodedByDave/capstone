@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner'
 import AuthBase from '@/layouts/AuthLayout.vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
-import { Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-vue-next'
+import { Eye, EyeOff, CheckCircle2, XCircle, Navigation, Loader2 } from 'lucide-vue-next'
 
 /* ---------------- PROPS (from GoogleAuthController) ---------------- */
 const props = defineProps<{
@@ -83,6 +83,82 @@ const passwordStrength = computed(() => {
     if (passed === 3) return { label: 'Good', color: 'bg-yellow-400', width: 'w-3/4' }
     return { label: 'Strong', color: 'bg-green-500', width: 'w-full' }
 })
+
+/* ---------------- USE MY LOCATION ---------------- */
+const locating    = ref(false)
+const locateError = ref('')
+
+async function useMyLocation() {
+    if (!navigator.geolocation) {
+        locateError.value = 'Geolocation is not supported by your browser.'
+        return
+    }
+
+    locating.value    = true
+    locateError.value = ''
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            try {
+                const { latitude, longitude } = pos.coords
+                const res  = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+                    { headers: { 'Accept-Language': 'en' } }
+                )
+                const data = await res.json()
+                const addr = data.address ?? {}
+
+                // Try to match the returned city/municipality to our predefined list
+                const rawCity = (
+                    addr.city ?? addr.town ?? addr.municipality ?? addr.county ?? ''
+                ).toLowerCase()
+
+                const matchedMunicipality = municipalities.find(m =>
+                    rawCity.includes(m.toLowerCase().replace('city of ', '').split(' ')[0]) ||
+                    m.toLowerCase().includes(rawCity.split(' ')[0])
+                )
+
+                if (matchedMunicipality) {
+                    form.municipality = matchedMunicipality
+
+                    // After municipality is set, try to match the barangay
+                    const rawBarangay = (
+                        addr.suburb ?? addr.neighbourhood ?? addr.quarter ?? addr.village ?? ''
+                    ).toLowerCase()
+
+                    if (rawBarangay) {
+                        await nextTick()
+                        const barangays = barangaysByMunicipality[matchedMunicipality] ?? []
+                        const matchedBarangay = barangays.find(b =>
+                            b.name.toLowerCase().includes(rawBarangay) ||
+                            rawBarangay.includes(b.name.toLowerCase())
+                        )
+                        if (matchedBarangay) form.barangay = matchedBarangay.name
+                    }
+                } else {
+                    locateError.value = 'Your location is outside the supported area. Please select manually.'
+                }
+
+                // Pre-fill block/street if available
+                const road = addr.road ?? addr.pedestrian ?? ''
+                if (road && !form.block_street) form.block_street = road
+
+            } catch {
+                locateError.value = 'Could not fetch location details. Please select manually.'
+            } finally {
+                locating.value = false
+            }
+        },
+        (err) => {
+            locating.value = false
+            if (err.code === err.PERMISSION_DENIED)
+                locateError.value = 'Location access denied. Please allow it and try again.'
+            else
+                locateError.value = 'Unable to get your location. Please select manually.'
+        },
+        { timeout: 10000 }
+    )
+}
 
 /* ---------------- MUNICIPALITIES / BARANGAYS ---------------- */
 const barangaysByMunicipality: Record<string, Array<{ name: string; postal: string }>> = {
@@ -371,6 +447,20 @@ const goToGoogle = () => {
                         :class="errors.shop_name ? 'border-red-500 focus-visible:ring-red-500' : ''"
                         :data-error="errors.shop_name ? '' : undefined" />
                     <p v-if="errors.shop_name" class="text-red-500 text-xs mt-1">{{ errors.shop_name }}</p>
+                </div>
+
+                <!-- Use My Location -->
+                <div class="rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-3 space-y-2">
+                    <p class="text-xs text-muted-foreground">Auto-fill your address using your current location.</p>
+                    <button type="button"
+                        :disabled="locating"
+                        @click="useMyLocation"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60">
+                        <Loader2 v-if="locating" class="h-3.5 w-3.5 animate-spin" />
+                        <Navigation v-else class="h-3.5 w-3.5" />
+                        {{ locating ? 'Detecting location…' : 'Use My Location' }}
+                    </button>
+                    <p v-if="locateError" class="text-xs text-red-500">{{ locateError }}</p>
                 </div>
 
                 <div>
