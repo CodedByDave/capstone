@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
     MapPin, Navigation, Loader2, ExternalLink, Trash2,
-    Building2, CheckCircle2,
+    Building2, CheckCircle2, AlertTriangle,
 } from 'lucide-vue-next'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -24,6 +24,7 @@ const props = defineProps<{
         postal_code: string | null
         latitude: number | null
         longitude: number | null
+        status: string
     }
 }>()
 
@@ -69,7 +70,7 @@ function useMyLocation() {
             locating.value = false
             toast.error('Could not get your location. Please allow location access and try again.')
         },
-        { enableHighAccuracy: true, timeout: 10_000 }
+        { timeout: 8_000 }
     )
 }
 
@@ -184,6 +185,19 @@ function clearGeo() {
                         <MapPin class="h-4 w-4 text-amber-500 shrink-0" />
                         <p class="text-xs text-amber-700">
                             No location set. Staff clock-in will not check distance.
+                        </p>
+                    </div>
+
+                    <!-- Visibility warning -->
+                    <div
+                        v-if="props.shop.status !== 'active'"
+                        class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
+                    >
+                        <AlertTriangle class="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                        <p class="text-xs text-amber-700">
+                            Your shop is currently
+                            <span class="font-semibold capitalize">{{ props.shop.status }}</span>
+                            and will not appear in user searches until it is approved and active.
                         </p>
                     </div>
 

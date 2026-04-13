@@ -31,10 +31,10 @@ class OrderObserver
             ]);
         }
 
-        // When order becomes expired — deactivate the shop only if no other active paid orders
+        // When order becomes expired — deactivate the shop only if no other active paid/approved orders
         if ($order->wasChanged('status') && $order->status === 'expired') {
             $hasActivePaidOrder = Order::where('user_id', $order->user_id)
-                ->where('status', 'paid')
+                ->whereIn('status', ['paid', 'approved'])
                 ->where('expires_at', '>', now())
                 ->exists();
 

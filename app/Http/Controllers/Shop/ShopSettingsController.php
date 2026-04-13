@@ -28,6 +28,7 @@ class ShopSettingsController extends Controller
                 'postal_code'  => $shop->postal_code,
                 'latitude'     => $shop->latitude,
                 'longitude'    => $shop->longitude,
+                'status'       => $shop->status,
             ],
         ]);
     }

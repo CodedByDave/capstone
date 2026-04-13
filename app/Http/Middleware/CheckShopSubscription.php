@@ -20,9 +20,9 @@ class CheckShopSubscription
 
             // Only run check if this user owns a shop
             if ($shop) {
-                // Step 1: Mark any overdue paid orders as expired
+                // Step 1: Mark any overdue paid/approved orders as expired
                 Order::where('user_id', $user->id)
-                    ->where('status', 'paid')
+                    ->whereIn('status', ['paid', 'approved'])
                     ->where('expires_at', '<=', now())
                     ->each(function (Order $order) {
                         // updateQuietly skips the observer to avoid double-processing
@@ -35,9 +35,9 @@ class CheckShopSubscription
                         ]);
                     });
 
-                // Step 2: Check if any active paid order still exists
+                // Step 2: Check if any active paid or approved order still exists
                 $hasActivePaidOrder = Order::where('user_id', $user->id)
-                    ->where('status', 'paid')
+                    ->whereIn('status', ['paid', 'approved'])
                     ->where('expires_at', '>', now())
                     ->exists();
 
