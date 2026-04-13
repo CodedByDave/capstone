@@ -29,12 +29,7 @@ class UpdateShopOrderRequest extends FormRequest
                 'numeric',
                 'min:0.1',
             ],
-            'actual_weight_kg'       => [
-                Rule::requiredIf(fn() => $this->input('pricing_model') === 'per_kg'),
-                'nullable',
-                'numeric',
-                'min:0.1',
-            ],
+            'actual_weight_kg'       => ['nullable', 'numeric', 'min:0.1'],
             'price_per_kg'           => ['nullable', 'numeric', 'min:0'],
             'bundle_weight_kg'       => [
                 Rule::requiredIf(fn() => $this->input('pricing_model') === 'per_bundle'),

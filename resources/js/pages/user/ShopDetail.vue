@@ -94,11 +94,6 @@ const selectedPayment = computed(() =>
     paymentOptions.find(p => p.value === form.value.payment_method)!
 )
 
-const activeQr = computed(() => {
-    if (form.value.payment_method === 'gcash') return props.shop.gcash_qr
-    if (form.value.payment_method === 'maya')  return props.shop.maya_qr
-    return null
-})
 
 function openOrder(service: ShopService) {
     selectedService.value  = service
@@ -118,8 +113,11 @@ const estimatedTotal = computed(() => {
     if (!wt || wt <= 0) return null
     if (svc.pricing_model === 'per_kg' && svc.price_per_kg)
         return (parseFloat(svc.price_per_kg) * wt).toFixed(2)
-    if (svc.pricing_model === 'per_bundle' && svc.bundle_price)
-        return parseFloat(svc.bundle_price).toFixed(2)
+    if (svc.pricing_model === 'per_bundle' && svc.bundle_price) {
+        const bundleSize = svc.bundle_weight_kg ? parseFloat(svc.bundle_weight_kg) : 1
+        const bundles    = Math.ceil(wt / bundleSize)
+        return (bundles * parseFloat(svc.bundle_price)).toFixed(2)
+    }
     return null
 })
 
@@ -373,17 +371,6 @@ function goBack() {
                             {{ selectedPayment.note }}
                         </p>
 
-                        <!-- QR code display -->
-                        <div v-if="activeQr" class="mt-2 flex flex-col items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 p-3">
-                            <p class="text-xs font-semibold text-blue-700">
-                                Scan to pay via {{ form.payment_method === 'gcash' ? 'GCash' : 'Maya' }}
-                            </p>
-                            <img :src="activeQr" :alt="`${form.payment_method} QR`"
-                                class="h-40 w-40 object-contain rounded-lg border border-blue-200 bg-white p-1" />
-                        </div>
-                        <div v-else-if="form.payment_method !== 'cash'" class="mt-2 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-700 text-center">
-                            The shop hasn't set up a QR for this method yet. They will send payment details after confirming.
-                        </div>
                     </div>
 
                     <!-- Special instructions -->
@@ -394,9 +381,9 @@ function goBack() {
 
                     <!-- Disclaimer -->
                     <div class="bg-amber-50 rounded-xl p-3 text-xs text-amber-700">
-                        <strong>Note:</strong> Total is finalized by the shop after weighing.
-                        <span v-if="form.payment_method === 'cash'"> Payment is collected at the shop.</span>
-                        <span v-else> The shop will send your <strong>{{ form.payment_method === 'gcash' ? 'GCash' : 'Maya' }}</strong> payment details after confirming your order.</span>
+                        <strong>Note:</strong> No payment is collected now. The total is finalized by the shop after weighing your items.
+                        <span v-if="form.payment_method === 'cash'"> You will pay cash when you drop off or pick up.</span>
+                        <span v-else> The shop will send your <strong>{{ form.payment_method === 'gcash' ? 'GCash' : 'Maya' }}</strong> payment request after confirming the actual weight.</span>
                     </div>
                 </div>
 

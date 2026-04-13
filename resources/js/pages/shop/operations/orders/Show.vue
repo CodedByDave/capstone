@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { type AppPageProps } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Pencil, Clock, CheckCircle, Loader, Package, CreditCard } from 'lucide-vue-next'
+import { ArrowLeft, Pencil, Clock, CheckCircle, Loader, Package, CreditCard, Send, Loader2 } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
@@ -46,9 +46,32 @@ interface Order {
     supplies: Supply[]
 }
 
-const props = defineProps<{ shopOrder: Order}>()
+const props = defineProps<{
+    shopOrder: Order
+    gcash_qr: string | null
+    maya_qr:  string | null
+}>()
 
-const base = '/shop/operations/orders'
+const base    = '/shop/operations/orders'
+const sending = ref(false)
+
+const activeQr = computed(() => {
+    if (props.shopOrder.payment_method === 'gcash') return props.gcash_qr
+    if (props.shopOrder.payment_method === 'maya')  return props.maya_qr
+    return null
+})
+
+const isDigitalPayment = computed(() =>
+    ['gcash', 'maya'].includes(props.shopOrder.payment_method)
+)
+
+function sendPaymentRequest() {
+    sending.value = true
+    router.post(`${base}/${props.shopOrder.id}/payment-request`, {}, {
+        preserveScroll: true,
+        onFinish: () => { sending.value = false },
+    })
+}
 
 const page = usePage<AppPageProps>()
 onMounted(() => {
@@ -291,6 +314,51 @@ const statusIcon = (s: string) => ({
                                 <p class="text-xs text-muted-foreground uppercase tracking-wide mb-1">Payment Method</p>
                                 <p class="font-medium">{{ shopOrder.payment_method.toUpperCase() }}</p>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- GCash / Maya Payment Request -->
+                    <Card v-if="isDigitalPayment">
+                        <CardHeader>
+                            <CardTitle class="flex items-center gap-2">
+                                <CreditCard class="h-4 w-4" />
+                                {{ shopOrder.payment_method.toUpperCase() }} Payment
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="space-y-4">
+
+                            <!-- QR code -->
+                            <div v-if="activeQr" class="flex flex-col items-center gap-2">
+                                <p class="text-xs text-muted-foreground text-center">
+                                    Show or share this QR for the customer to scan
+                                </p>
+                                <img :src="activeQr"
+                                    :alt="`${shopOrder.payment_method} QR`"
+                                    class="h-44 w-44 object-contain rounded-xl border bg-white p-2" />
+                                <p class="text-sm font-bold">{{ formatCurrency(shopOrder.total_amount) }}</p>
+                            </div>
+                            <div v-else class="text-xs text-amber-700 bg-amber-50 rounded-lg p-3">
+                                No QR code set up yet. Go to
+                                <a href="/shop/payment-qr" class="underline font-medium">Payment QR</a>
+                                in settings to add one.
+                            </div>
+
+                            <!-- Send in-app notification -->
+                            <Button
+                                class="w-full"
+                                :disabled="sending || shopOrder.payment_status === 'paid'"
+                                @click="sendPaymentRequest"
+                            >
+                                <Loader2 v-if="sending" class="h-4 w-4 mr-2 animate-spin" />
+                                <Send v-else class="h-4 w-4 mr-2" />
+                                {{ sending ? 'Sending…' : 'Send Payment Request to Customer' }}
+                            </Button>
+                            <p v-if="shopOrder.payment_status === 'paid'" class="text-xs text-emerald-600 text-center">
+                                Order is already fully paid.
+                            </p>
+                            <p class="text-xs text-muted-foreground text-center">
+                                Sends an in-app notification with the amount and QR link.
+                            </p>
                         </CardContent>
                     </Card>
 

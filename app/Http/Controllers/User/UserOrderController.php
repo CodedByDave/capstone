@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Delivery;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
+use App\Notifications\DeliveryNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Notifications\OrderNotification;
@@ -50,7 +52,9 @@ class UserOrderController extends Controller
     {
         abort_if($order->user_id !== auth()->id(), 403);
 
-        $order->load(['shop', 'service']);
+        $order->load(['shop', 'service', 'delivery.rider']);
+
+        $delivery = $order->delivery;
 
         return Inertia::render('user/OrderDetail', [
             'order' => [
@@ -78,6 +82,14 @@ class UserOrderController extends Controller
                     'block_street' => $order->shop->block_street,
                 ] : null,
                 'service_name' => $order->service->service_name ?? '—',
+                'delivery' => $delivery ? [
+                    'id'               => $delivery->id,
+                    'status'           => $delivery->status,
+                    'delivery_address' => $delivery->delivery_address,
+                    'rider_name'       => $delivery->rider?->name,
+                    'picked_up_at'     => $delivery->picked_up_at?->format('M d, Y g:i A'),
+                    'delivered_at'     => $delivery->delivered_at?->format('M d, Y g:i A'),
+                ] : null,
             ],
         ]);
     }
@@ -147,6 +159,40 @@ class UserOrderController extends Controller
         return redirect()->route('user.orders.index')->with('toast', [
             'type'    => 'success',
             'message' => "Order {$orderNumber} placed! The shop will confirm and process it shortly.",
+        ]);
+    }
+
+    // ─── Request delivery ─────────────────────────────────────────────────────
+
+    public function requestDelivery(Request $request, ShopOrder $order): RedirectResponse
+    {
+        abort_if($order->user_id !== auth()->id(), 403);
+        abort_if($order->status !== 'completed' || $order->payment_status !== 'paid', 422);
+        abort_if($order->delivery()->exists(), 422);
+
+        $data = $request->validate([
+            'delivery_address' => ['required', 'string', 'max:500'],
+        ]);
+
+        $delivery = Delivery::create([
+            'shop_id'          => $order->shop_id,
+            'shop_order_id'    => $order->id,
+            'customer_name'    => $order->customer_name,
+            'customer_phone'   => $order->customer_phone,
+            'delivery_address' => $data['delivery_address'],
+            'status'           => 'pending',
+            'notes'            => 'Requested by customer via app.',
+        ]);
+
+        // Notify shop owner
+        $shopOwner = $order->shop->owner ?? null;
+        if ($shopOwner) {
+            $shopOwner->notify(new DeliveryNotification($delivery));
+        }
+
+        return back()->with('toast', [
+            'type'    => 'success',
+            'message' => 'Delivery requested! The shop will assign a rider shortly.',
         ]);
     }
 

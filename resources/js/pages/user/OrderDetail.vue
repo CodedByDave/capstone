@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+import { Head, router, useForm } from '@inertiajs/vue3'
 import UserLayout from '@/layouts/user/UserLayout.vue'
 import {
     ArrowLeft, MapPin, Phone, WashingMachine, CreditCard,
-    Package, Clock, CheckCircle2, Loader, Info,
+    Package, Clock, CheckCircle2, Loader, Info, Truck, X,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -15,6 +15,15 @@ interface Shop {
     municipality: string
     barangay: string
     block_street: string | null
+}
+
+interface Delivery {
+    id: number
+    status: 'pending' | 'assigned' | 'picked_up' | 'delivered' | 'failed'
+    delivery_address: string | null
+    rider_name: string | null
+    picked_up_at: string | null
+    delivered_at: string | null
 }
 
 interface Order {
@@ -36,6 +45,7 @@ interface Order {
     completed_at: string | null
     shop: Shop | null
     service_name: string
+    delivery: Delivery | null
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -65,6 +75,30 @@ function currency(val: number) {
 
 function formatAddress(shop: Shop) {
     return [shop.block_street, shop.barangay, shop.municipality].filter(Boolean).join(', ')
+}
+
+const canRequestDelivery = computed(() =>
+    props.order.status === 'completed' &&
+    props.order.payment_status === 'paid' &&
+    !props.order.delivery
+)
+
+const showDeliveryForm = ref(false)
+const deliveryForm = useForm({ delivery_address: props.order.customer_address ?? '' })
+
+function submitDelivery() {
+    deliveryForm.post(`/user/orders/${props.order.id}/request-delivery`, {
+        preserveScroll: true,
+        onSuccess: () => { showDeliveryForm.value = false },
+    })
+}
+
+const deliveryStatusConfig = {
+    pending:   { label: 'Pending',    classes: 'bg-amber-50 text-amber-700',   icon: Clock },
+    assigned:  { label: 'Assigned',   classes: 'bg-blue-50 text-blue-700',     icon: Truck },
+    picked_up: { label: 'Picked Up',  classes: 'bg-indigo-50 text-indigo-700', icon: Truck },
+    delivered: { label: 'Delivered',  classes: 'bg-emerald-50 text-emerald-700', icon: CheckCircle2 },
+    failed:    { label: 'Failed',     classes: 'bg-red-50 text-red-700',       icon: X },
 }
 </script>
 
@@ -204,6 +238,94 @@ function formatAddress(shop: Shop) {
                     <Phone class="h-3.5 w-3.5 shrink-0 text-gray-400" />
                     <a :href="`tel:${order.shop.phone}`" class="hover:text-blue-600">{{ order.shop.phone }}</a>
                 </div>
+            </div>
+
+            <!-- ── Delivery ───────────────────────────────────── -->
+
+            <!-- Existing delivery status -->
+            <div v-if="order.delivery" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Delivery</p>
+
+                <div class="flex items-center gap-2">
+                    <component
+                        :is="deliveryStatusConfig[order.delivery.status]?.icon ?? Truck"
+                        class="h-4 w-4 shrink-0"
+                        :class="order.delivery.status === 'delivered' ? 'text-emerald-600' : 'text-blue-600'"
+                    />
+                    <span
+                        class="text-xs font-semibold px-2.5 py-1 rounded-full"
+                        :class="deliveryStatusConfig[order.delivery.status]?.classes ?? 'bg-gray-50 text-gray-600'"
+                    >
+                        {{ deliveryStatusConfig[order.delivery.status]?.label ?? order.delivery.status }}
+                    </span>
+                </div>
+
+                <div v-if="order.delivery.delivery_address" class="flex items-start gap-2 text-xs text-gray-500">
+                    <MapPin class="h-3.5 w-3.5 shrink-0 mt-0.5 text-gray-400" />
+                    <span>{{ order.delivery.delivery_address }}</span>
+                </div>
+                <div v-if="order.delivery.rider_name" class="flex items-center gap-2 text-xs text-gray-500">
+                    <Truck class="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                    <span>Rider: <span class="font-medium text-gray-700">{{ order.delivery.rider_name }}</span></span>
+                </div>
+                <div v-if="order.delivery.picked_up_at" class="text-xs text-gray-400">
+                    Picked up: {{ order.delivery.picked_up_at }}
+                </div>
+                <div v-if="order.delivery.delivered_at" class="text-xs text-emerald-600 font-medium">
+                    Delivered: {{ order.delivery.delivered_at }}
+                </div>
+            </div>
+
+            <!-- Request delivery button (completed + paid, no delivery yet) -->
+            <div v-else-if="canRequestDelivery" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Delivery</p>
+
+                <div v-if="!showDeliveryForm">
+                    <p class="text-sm text-gray-600 mb-3">
+                        Your laundry is ready. Want it delivered to you?
+                    </p>
+                    <button
+                        class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-3 rounded-xl transition"
+                        @click="showDeliveryForm = true"
+                    >
+                        <Truck class="h-4 w-4" />
+                        Request Delivery
+                    </button>
+                </div>
+
+                <form v-else @submit.prevent="submitDelivery" class="space-y-3">
+                    <div>
+                        <label class="text-xs font-medium text-gray-600 block mb-1">Delivery Address <span class="text-red-500">*</span></label>
+                        <textarea
+                            v-model="deliveryForm.delivery_address"
+                            rows="3"
+                            placeholder="Enter your full delivery address"
+                            class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                            :class="deliveryForm.errors.delivery_address ? 'border-red-400' : ''"
+                        />
+                        <p v-if="deliveryForm.errors.delivery_address" class="text-xs text-red-500 mt-1">
+                            {{ deliveryForm.errors.delivery_address }}
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            type="button"
+                            class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                            @click="showDeliveryForm = false"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            :disabled="deliveryForm.processing"
+                            class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold py-2.5 rounded-xl transition"
+                        >
+                            <Loader v-if="deliveryForm.processing" class="h-4 w-4 animate-spin" />
+                            <Truck v-else class="h-4 w-4" />
+                            {{ deliveryForm.processing ? 'Requesting…' : 'Confirm Request' }}
+                        </button>
+                    </div>
+                </form>
             </div>
 
         </div>

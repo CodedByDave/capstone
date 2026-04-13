@@ -33,6 +33,26 @@ class UserNotificationController extends Controller
         ]);
     }
 
+    public function poll(): JsonResponse
+    {
+        $user  = auth()->user();
+        $unread = $user->unreadNotifications()
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(fn($n) => [
+                'id'   => $n->id,
+                'type' => $n->data['type'] ?? null,
+                'title' => $n->data['title'] ?? '',
+                'body'  => $n->data['body'] ?? '',
+            ]);
+
+        return response()->json([
+            'count'   => $unread->count(),
+            'unread'  => $unread->values(),
+        ]);
+    }
+
     public function markRead(string $id): JsonResponse
     {
         auth()->user()

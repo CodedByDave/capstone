@@ -9,7 +9,8 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string    $event, // placed | status_changed | payment_updated
+        public readonly string    $event, // placed | status_changed | payment_updated | payment_request
+        public readonly ?string   $qrUrl  = null,
     ) {}
 
     public function via(object $notifiable): array
@@ -44,6 +45,15 @@ class OrderNotification extends Notification
                 'order_number' => $order->order_number,
                 'type'         => 'payment_updated',
                 'payment_status' => $order->payment_status,
+            ],
+            'payment_request' => [
+                'title'        => 'Payment request from ' . $order->shop->shop_name,
+                'body'         => "Please pay ₱" . number_format($order->total_amount, 2) . " for order #{$order->order_number} via " . strtoupper($order->payment_method) . ".",
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'type'         => 'payment_request',
+                'amount'       => $order->total_amount,
+                'qr_url'       => $this->qrUrl,
             ],
             default => [],
         };

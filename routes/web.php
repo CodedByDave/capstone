@@ -220,10 +220,11 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::get('operations/orders',                   [ShopOrderController::class, 'index'])->name('shop.orders.index');
     Route::get('operations/orders/create',            [ShopOrderController::class, 'create'])->name('shop.orders.create');
     Route::post('operations/orders',                  [ShopOrderController::class, 'store'])->name('shop.orders.store');
-    Route::get('operations/orders/{order}',           [ShopOrderController::class, 'show'])->name('shop.orders.show');
-    Route::get('operations/orders/{order}/edit',      [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
-    Route::put('operations/orders/{order}',           [ShopOrderController::class, 'update'])->name('shop.orders.update');
-    Route::delete('operations/orders/{order}',        [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
+    Route::get('operations/orders/{order}',                        [ShopOrderController::class, 'show'])->name('shop.orders.show');
+    Route::get('operations/orders/{order}/edit',                   [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
+    Route::put('operations/orders/{order}',                        [ShopOrderController::class, 'update'])->name('shop.orders.update');
+    Route::delete('operations/orders/{order}',                     [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
+    Route::post('operations/orders/{order}/payment-request',       [ShopOrderController::class, 'sendPaymentRequest'])->name('shop.orders.payment-request');
 
     //Services and pricing
     Route::get('operations/services',                          [ShopServiceController::class, 'index'])->name('shop.services.index');
@@ -459,8 +460,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff'])->group(fu
         Route::patch('/operations/orders/{order}/restore',    [ShopOrderController::class, 'restore'])->name('staff.orders.restore');
         Route::post('/operations/orders/restore-all',         [ShopOrderController::class, 'restoreAll'])->name('staff.orders.restore-all');
         Route::delete('/operations/orders/{order}',           [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
-        Route::patch('/operations/orders/{order}/status',     [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
-        Route::patch('/operations/orders/{order}/payment',    [ShopOrderController::class, 'updatePayment'])->name('staff.orders.payment');
+        Route::patch('/operations/orders/{order}/status',              [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
+        Route::patch('/operations/orders/{order}/payment',             [ShopOrderController::class, 'updatePayment'])->name('staff.orders.payment');
+        Route::post('/operations/orders/{order}/payment-request',      [ShopOrderController::class, 'sendPaymentRequest'])->name('staff.orders.payment-request');
         Route::get('/operations/services/{service}/edit',     [ShopServiceController::class, 'edit'])->name('staff.services.edit');
         Route::put('/operations/services/{service}',          [ShopServiceController::class, 'update'])->name('staff.services.update');
         Route::patch('/operations/services/{service}/toggle', [ShopServiceController::class, 'toggleActive'])->name('staff.services.toggle');
@@ -527,11 +529,13 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/dashboard',           [UserDashboardController::class, 'index'])->name('dashboard');
     Route::get('/shops',               [UserDashboardController::class, 'shops'])->name('shops');
     Route::get('/shops/{shop}',        [UserDashboardController::class, 'showShop'])->name('shops.show');
-    Route::get('/orders',              [UserOrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}',      [UserOrderController::class, 'show'])->name('orders.show');
-    Route::post('/orders',             [UserOrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders',                              [UserOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}',                      [UserOrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders',                             [UserOrderController::class, 'store'])->name('orders.store');
+    Route::post('/orders/{order}/request-delivery',    [UserOrderController::class, 'requestDelivery'])->name('orders.request-delivery');
 
-    Route::get('/notifications',       [UserNotificationController::class, 'index'])->name('notifications');
+    Route::get('/notifications',           [UserNotificationController::class, 'index'])->name('notifications');
+    Route::get('/notifications/poll',      [UserNotificationController::class, 'poll'])->name('notifications.poll');
     Route::post('/notifications/read-all', [UserNotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('/profile', fn() => inertia('user/Profile'))->name('profile');

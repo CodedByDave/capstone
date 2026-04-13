@@ -10,10 +10,12 @@ use App\Models\Promotion;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Models\Inventory;
+use App\Notifications\OrderNotification;
 use App\Services\ShopOrderService;
 use App\Traits\BranchScoped;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -100,10 +102,45 @@ class ShopOrderController extends Controller
 
     public function show(ShopOrder $order): Response
     {
-        $order->load(['service', 'supplies']);
+        $order->load(['service', 'supplies', 'shop']);
+
+        $shop   = $order->shop;
+        $qrUrl  = fn(?string $path) => $path ? Storage::url($path) : null;
 
         return Inertia::render('shop/operations/orders/Show', [
             'shopOrder' => $order,
+            'gcash_qr'  => $qrUrl($shop->gcash_qr),
+            'maya_qr'   => $qrUrl($shop->maya_qr),
+        ]);
+    }
+
+    public function sendPaymentRequest(ShopOrder $order): RedirectResponse
+    {
+        if (! in_array($order->payment_method, ['gcash', 'maya'])) {
+            return back()->with('toast', [
+                'type'    => 'error',
+                'message' => 'Payment request can only be sent for GCash or Maya orders.',
+            ]);
+        }
+
+        $customer = $order->customer;
+
+        if (! $customer) {
+            return back()->with('toast', [
+                'type'    => 'error',
+                'message' => 'This order has no linked customer account to notify.',
+            ]);
+        }
+
+        $shop  = $order->shop;
+        $qrPath = $order->payment_method === 'gcash' ? $shop->gcash_qr : $shop->maya_qr;
+        $qrUrl  = $qrPath ? Storage::url($qrPath) : null;
+
+        $customer->notify(new OrderNotification($order, 'payment_request', $qrUrl));
+
+        return back()->with('toast', [
+            'type'    => 'success',
+            'message' => 'Payment request sent to customer.',
         ]);
     }
 

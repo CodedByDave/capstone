@@ -104,6 +104,17 @@ const form = useForm({
 
 const isPerKg = computed(() => form.pricing_model === 'per_kg')
 
+// When actual weight is entered for per_bundle orders, auto-update bundle quantity
+watch(() => form.actual_weight_kg, (val) => {
+    if (!isPerKg.value && val) {
+        const bundleSize = parseFloat(String(form.bundle_weight_kg)) || 1
+        const actualKg   = parseFloat(String(val)) || 0
+        if (actualKg > 0) {
+            form.bundle_quantity = Math.ceil(actualKg / bundleSize)
+        }
+    }
+})
+
 const selectedService = computed(() =>
     props.services?.find(s => s.id === Number(form.service_id))
 )
@@ -290,12 +301,28 @@ const submit = () => {
                             </div>
                         </template>
                         <template v-else>
+                            <!-- Row 1: estimated + actual weight + bundle size -->
+                            <div class="col-span-12 sm:col-span-4 space-y-1">
+                                <label class="text-sm font-medium">Estimated Weight (kg)</label>
+                                <div class="flex items-center h-[42px] rounded-lg bg-muted/40 border border-gray-200 px-3 text-sm text-muted-foreground">
+                                    {{ form.estimated_weight_kg || '—' }} kg
+                                    <span class="ml-2 text-xs text-blue-500">(customer's estimate)</span>
+                                </div>
+                            </div>
+                            <div class="col-span-12 sm:col-span-4 space-y-1">
+                                <label class="text-sm font-medium">Actual Weight (kg)</label>
+                                <input v-model="form.actual_weight_kg" type="number" step="0.01" min="0.1"
+                                    placeholder="Enter after weighing"
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                                <p class="text-xs text-muted-foreground">Auto-updates number of bundles</p>
+                            </div>
                             <div class="col-span-12 sm:col-span-4 space-y-1">
                                 <label class="text-sm font-medium">Bundle Size</label>
                                 <div class="flex items-center h-[42px] rounded-lg bg-muted/40 border border-gray-200 px-3 text-sm text-muted-foreground">
                                     {{ form.bundle_weight_kg }} kg / bundle
                                 </div>
                             </div>
+                            <!-- Row 2: bundle price + bundle quantity -->
                             <div class="col-span-12 sm:col-span-4 space-y-1">
                                 <label class="text-sm font-medium">Bundle Price</label>
                                 <div class="flex items-center h-[42px] rounded-lg bg-muted/40 border border-gray-200 px-3 text-sm text-muted-foreground">

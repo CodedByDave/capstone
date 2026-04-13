@@ -1,13 +1,64 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Link, usePage } from '@inertiajs/vue3'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import { Home, Store, ClipboardList, User, Bell } from 'lucide-vue-next'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 import type { AppPageProps } from '@/types'
 
 const page = usePage<AppPageProps>()
 const url  = computed(() => page.url)
 
 const unread = computed(() => (page.props as any).unreadNotifications ?? 0)
+
+// ─── Payment-request polling ──────────────────────────────────────────────────
+
+const seenIds = ref<Set<string>>(new Set())
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+async function pollNotifications() {
+    // Don't poll if user is already on the notifications page
+    if (url.value === '/user/notifications') return
+
+    try {
+        const res  = await fetch('/user/notifications/poll', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+        if (!res.ok) return
+        const data = await res.json() as {
+            count: number
+            unread: { id: string; type: string; title: string; body: string }[]
+        }
+
+        for (const n of data.unread) {
+            if (seenIds.value.has(n.id)) continue
+            seenIds.value.add(n.id)
+
+            if (n.type === 'payment_request') {
+                toast(n.title, {
+                    type:      'info',
+                    position:  'top-center',
+                    autoClose: false,
+                    closeOnClick: false,
+                    theme:     'colored',
+                    icon:      '💳',
+                    onClick:   () => router.visit('/user/notifications'),
+                    toastStyle: { cursor: 'pointer' },
+                })
+            }
+        }
+    } catch {
+        // silently ignore network errors
+    }
+}
+
+onMounted(() => {
+    pollTimer = setInterval(pollNotifications, 20_000)
+})
+
+onUnmounted(() => {
+    if (pollTimer) clearInterval(pollTimer)
+})
 
 const navItems = [
     { href: '/user/dashboard',    label: 'Home',    icon: Home },
