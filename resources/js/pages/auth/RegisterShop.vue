@@ -6,8 +6,21 @@ import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import AuthBase from '@/layouts/AuthLayout.vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
-import { Eye, EyeOff, CheckCircle2, XCircle, Navigation, Loader2 } from 'lucide-vue-next'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { Eye, EyeOff, CheckCircle2, XCircle, MapPin } from 'lucide-vue-next'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
+// Fix Leaflet default marker icon
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+delete (L.Icon.Default.prototype as any)._getIconUrl
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+})
 
 /* ---------------- PROPS (from GoogleAuthController) ---------------- */
 const props = defineProps<{
@@ -35,6 +48,8 @@ const form = useForm({
     municipality: '',
     barangay: '',
     postal_code: '',
+    latitude: '' as string | number,
+    longitude: '' as string | number,
 
     agree: false,
 
@@ -84,81 +99,191 @@ const passwordStrength = computed(() => {
     return { label: 'Strong', color: 'bg-green-500', width: 'w-full' }
 })
 
-/* ---------------- USE MY LOCATION ---------------- */
-const locating    = ref(false)
-const locateError = ref('')
+/* ---------------- MAP PIN ---------------- */
+const mapContainer = ref<HTMLElement | null>(null)
+const mapInstance  = ref<L.Map | null>(null)
+const pinMarker    = ref<L.Marker | null>(null)
+const geocoding    = ref(false)
+const pinError     = ref('')
+const pinned       = ref(false)
 
-async function useMyLocation() {
-    if (!navigator.geolocation) {
-        locateError.value = 'Geolocation is not supported by your browser.'
-        return
+/* --- Search bar --- */
+interface SearchResult {
+    display_name: string
+    lat: string
+    lon: string
+    place_id: number
+}
+const searchQuery      = ref('')
+const searchResults    = ref<SearchResult[]>([])
+const searchLoading    = ref(false)
+const showSuggestions  = ref(false)
+let   searchDebounce: ReturnType<typeof setTimeout> | null = null
+
+function onSearchInput() {
+    if (searchDebounce) clearTimeout(searchDebounce)
+    const q = searchQuery.value.trim()
+    if (q.length < 3) { searchResults.value = []; showSuggestions.value = false; return }
+    searchDebounce = setTimeout(() => fetchSuggestions(q), 400)
+}
+
+async function fetchSuggestions(q: string) {
+    searchLoading.value = true
+    try {
+        const res  = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=6&countrycodes=ph`,
+            { headers: { 'Accept-Language': 'en' } }
+        )
+        searchResults.value = await res.json()
+        showSuggestions.value = searchResults.value.length > 0
+    } catch {
+        searchResults.value = []
+    } finally {
+        searchLoading.value = false
+    }
+}
+
+async function selectSuggestion(result: SearchResult) {
+    const lat = parseFloat(result.lat)
+    const lng = parseFloat(result.lon)
+
+    showSuggestions.value = false
+    searchQuery.value     = result.display_name
+
+    const map = mapInstance.value
+    if (!map) return
+
+    map.setView([lat, lng], 17)
+
+    if (pinMarker.value) {
+        pinMarker.value.setLatLng([lat, lng])
+    } else {
+        pinMarker.value = L.marker([lat, lng], { draggable: true }).addTo(map as L.Map)
+        pinMarker.value.on('dragend', async (evt: L.LeafletEvent) => {
+            const pos = (evt.target as L.Marker).getLatLng()
+            await reverseGeocode(pos.lat, pos.lng)
+        })
     }
 
-    locating.value    = true
-    locateError.value = ''
-
-    navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-            try {
-                const { latitude, longitude } = pos.coords
-                const res  = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-                    { headers: { 'Accept-Language': 'en' } }
-                )
-                const data = await res.json()
-                const addr = data.address ?? {}
-
-                // Try to match the returned city/municipality to our predefined list
-                const rawCity = (
-                    addr.city ?? addr.town ?? addr.municipality ?? addr.county ?? ''
-                ).toLowerCase()
-
-                const matchedMunicipality = municipalities.find(m =>
-                    rawCity.includes(m.toLowerCase().replace('city of ', '').split(' ')[0]) ||
-                    m.toLowerCase().includes(rawCity.split(' ')[0])
-                )
-
-                if (matchedMunicipality) {
-                    form.municipality = matchedMunicipality
-
-                    // After municipality is set, try to match the barangay
-                    const rawBarangay = (
-                        addr.suburb ?? addr.neighbourhood ?? addr.quarter ?? addr.village ?? ''
-                    ).toLowerCase()
-
-                    if (rawBarangay) {
-                        await nextTick()
-                        const barangays = barangaysByMunicipality[matchedMunicipality] ?? []
-                        const matchedBarangay = barangays.find(b =>
-                            b.name.toLowerCase().includes(rawBarangay) ||
-                            rawBarangay.includes(b.name.toLowerCase())
-                        )
-                        if (matchedBarangay) form.barangay = matchedBarangay.name
-                    }
-                } else {
-                    locateError.value = 'Your location is outside the supported area. Please select manually.'
-                }
-
-                // Pre-fill block/street if available
-                const road = addr.road ?? addr.pedestrian ?? ''
-                if (road && !form.block_street) form.block_street = road
-
-            } catch {
-                locateError.value = 'Could not fetch location details. Please select manually.'
-            } finally {
-                locating.value = false
-            }
-        },
-        (err) => {
-            locating.value = false
-            if (err.code === err.PERMISSION_DENIED)
-                locateError.value = 'Location access denied. Please allow it and try again.'
-            else
-                locateError.value = 'Unable to get your location. Please select manually.'
-        },
-        { timeout: 10000 }
-    )
+    await reverseGeocode(lat, lng)
 }
+
+function closeSearchOnOutsideClick(e: MouseEvent) {
+    const searchEl = document.getElementById('map-search-wrapper')
+    if (searchEl && !searchEl.contains(e.target as Node)) {
+        showSuggestions.value = false
+    }
+}
+
+onMounted(() => document.addEventListener('click', closeSearchOnOutsideClick))
+onUnmounted(() => document.removeEventListener('click', closeSearchOnOutsideClick))
+
+// Cavite province center as default view
+const MAP_CENTER: L.LatLngTuple = [14.2456, 120.8687]
+const MAP_ZOOM = 12
+
+function initMap() {
+    if (!mapContainer.value || mapInstance.value) return
+
+    const map = L.map(mapContainer.value).setView(MAP_CENTER, MAP_ZOOM)
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+    }).addTo(map)
+
+    map.on('click', async (e: L.LeafletMouseEvent) => {
+        const { lat, lng } = e.latlng
+
+        // Place / move pin
+        if (pinMarker.value) {
+            pinMarker.value.setLatLng([lat, lng])
+        } else {
+            pinMarker.value = L.marker([lat, lng], { draggable: true }).addTo(map)
+            pinMarker.value.on('dragend', async (evt: L.LeafletEvent) => {
+                const pos = (evt.target as L.Marker).getLatLng()
+                await reverseGeocode(pos.lat, pos.lng)
+            })
+        }
+
+        await reverseGeocode(lat, lng)
+    })
+
+    mapInstance.value = map
+}
+
+async function reverseGeocode(lat: number, lng: number) {
+    geocoding.value = true
+    pinError.value  = ''
+    pinned.value    = false
+
+    form.latitude  = lat
+    form.longitude = lng
+
+    try {
+        const res  = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+            { headers: { 'Accept-Language': 'en' } }
+        )
+        const data = await res.json()
+        const addr = data.address ?? {}
+
+        const rawCity = (
+            addr.city ?? addr.town ?? addr.municipality ?? addr.county ?? ''
+        ).toLowerCase()
+
+        const matchedMunicipality = municipalities.find(m =>
+            rawCity.includes(m.toLowerCase().replace('city of ', '').split(' ')[0]) ||
+            m.toLowerCase().includes(rawCity.split(' ')[0])
+        )
+
+        if (matchedMunicipality) {
+            form.municipality = matchedMunicipality
+
+            const rawBarangay = (
+                addr.suburb ?? addr.neighbourhood ?? addr.quarter ?? addr.village ?? ''
+            ).toLowerCase()
+
+            if (rawBarangay) {
+                await nextTick()
+                const barangays = barangaysByMunicipality[matchedMunicipality] ?? []
+                const matchedBarangay = barangays.find(b =>
+                    b.name.toLowerCase().includes(rawBarangay) ||
+                    rawBarangay.includes(b.name.toLowerCase())
+                )
+                if (matchedBarangay) form.barangay = matchedBarangay.name
+            }
+        } else {
+            pinError.value = 'Pinned location is outside the supported area. Please pin within Cavite.'
+        }
+
+        const road = addr.road ?? addr.pedestrian ?? ''
+        if (road) form.block_street = road
+
+        pinned.value = true
+
+    } catch {
+        pinError.value = 'Could not get address from pin. Please fill in manually.'
+        pinned.value   = true // still allow submit
+    } finally {
+        geocoding.value = false
+    }
+}
+
+// Init map when step 2 becomes visible
+watch(() => step.value, async (val) => {
+    if (val === 2) {
+        await nextTick()
+        initMap()
+        // Invalidate size in case container was hidden
+        setTimeout(() => mapInstance.value?.invalidateSize(), 100)
+    }
+})
+
+onUnmounted(() => {
+    mapInstance.value?.remove()
+    mapInstance.value = null
+})
 
 /* ---------------- MUNICIPALITIES / BARANGAYS ---------------- */
 const barangaysByMunicipality: Record<string, Array<{ name: string; postal: string }>> = {
@@ -266,6 +391,8 @@ const validateStep2 = (): boolean => {
     const errs: Record<string, string> = {}
     if (form.shop_name.trim().length <= 2)
         errs.shop_name = 'Shop name must be more than 2 characters.'
+    if (!form.latitude || !form.longitude)
+        errs.pin = 'Please pin your shop location on the map.'
     if (!form.municipality)
         errs.municipality = 'Please select a municipality.'
     if (!form.barangay)
@@ -449,18 +576,70 @@ const goToGoogle = () => {
                     <p v-if="errors.shop_name" class="text-red-500 text-xs mt-1">{{ errors.shop_name }}</p>
                 </div>
 
-                <!-- Use My Location -->
-                <div class="rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-3 space-y-2">
-                    <p class="text-xs text-muted-foreground">Auto-fill your address using your current location.</p>
-                    <button type="button"
-                        :disabled="locating"
-                        @click="useMyLocation"
-                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60">
-                        <Loader2 v-if="locating" class="h-3.5 w-3.5 animate-spin" />
-                        <Navigation v-else class="h-3.5 w-3.5" />
-                        {{ locating ? 'Detecting location…' : 'Use My Location' }}
-                    </button>
-                    <p v-if="locateError" class="text-xs text-red-500">{{ locateError }}</p>
+                <!-- Map Pin -->
+                <div class="space-y-1.5">
+                    <Label class="mb-1 flex items-center gap-1.5">
+                        <MapPin class="h-3.5 w-3.5 text-primary" />
+                        Pin Your Shop Location
+                    </Label>
+                    <p class="text-xs text-muted-foreground">Search for your shop address or click on the map to drop a pin. You can drag the pin to adjust.</p>
+
+                    <!-- Map wrapper with search bar overlaid -->
+                    <div
+                        :class="[
+                            'relative w-full rounded-lg border overflow-hidden',
+                            errors.pin ? 'border-red-500' : 'border-border'
+                        ]"
+                    >
+                        <!-- Search bar overlay -->
+                        <div id="map-search-wrapper" class="absolute top-2 left-2 right-2 z-[1000]">
+                            <div class="relative">
+                                <div class="flex items-center gap-2 rounded-lg border border-border bg-background/95 backdrop-blur-sm shadow-md px-3 py-2">
+                                    <svg v-if="!searchLoading" class="h-4 w-4 shrink-0 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                    <span v-else class="h-4 w-4 shrink-0 inline-block animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                    <input
+                                        v-model="searchQuery"
+                                        type="text"
+                                        placeholder="Search for your shop location…"
+                                        class="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                                        @input="onSearchInput"
+                                        @focus="showSuggestions = searchResults.length > 0"
+                                        autocomplete="off"
+                                    />
+                                    <button v-if="searchQuery" type="button" @click="searchQuery = ''; searchResults = []; showSuggestions = false" class="text-muted-foreground hover:text-foreground">
+                                        <XCircle class="h-4 w-4" />
+                                    </button>
+                                </div>
+
+                                <!-- Suggestions dropdown -->
+                                <ul v-if="showSuggestions" class="absolute top-full mt-1 w-full rounded-lg border border-border bg-background shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+                                    <li
+                                        v-for="result in searchResults"
+                                        :key="result.place_id"
+                                        @click="selectSuggestion(result)"
+                                        class="flex items-start gap-2 px-3 py-2 text-xs cursor-pointer hover:bg-muted transition-colors"
+                                    >
+                                        <MapPin class="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
+                                        <span class="line-clamp-2">{{ result.display_name }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Map canvas -->
+                        <div ref="mapContainer" class="w-full h-72" />
+                    </div>
+
+                    <div v-if="geocoding" class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        Getting address from pin…
+                    </div>
+                    <div v-else-if="pinned && !pinError" class="flex items-center gap-1.5 text-xs text-green-600">
+                        <CheckCircle2 class="h-3.5 w-3.5" />
+                        Location pinned — address filled below.
+                    </div>
+                    <p v-if="pinError" class="text-xs text-red-500">{{ pinError }}</p>
+                    <p v-if="errors.pin" class="text-red-500 text-xs">{{ errors.pin }}</p>
                 </div>
 
                 <div>

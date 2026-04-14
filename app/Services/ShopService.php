@@ -30,6 +30,8 @@ class ShopService
                 'municipality' => $data['municipality'],
                 'barangay'     => $data['barangay'],
                 'postal_code'  => $data['postal_code'],
+                'latitude'     => $data['latitude'] ?? null,
+                'longitude'    => $data['longitude'] ?? null,
                 'status'       => 'pending',
             ]);
 

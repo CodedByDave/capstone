@@ -41,6 +41,8 @@ class ShopRegisterController extends Controller
                         'municipality' => $request->municipality,
                         'barangay'     => $request->barangay,
                         'postal_code'  => $request->postal_code,
+                        'latitude'     => $request->latitude,
+                        'longitude'    => $request->longitude,
                         'google_id'    => $request->google_id,
                         'otp_verified' => true, // mark as already verified
                     ]
@@ -73,6 +75,8 @@ class ShopRegisterController extends Controller
                     'municipality'   => $request->municipality,
                     'barangay'       => $request->barangay,
                     'postal_code'    => $request->postal_code,
+                    'latitude'       => $request->latitude,
+                    'longitude'      => $request->longitude,
                     'otp_code'       => $otp,
                     'otp_expires_at' => now()->addMinutes(10)->toDateTimeString(),
                 ]

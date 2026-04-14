@@ -160,6 +160,8 @@ class OtpVerificationController extends Controller
                 'municipality' => $pendingData['municipality'],
                 'barangay'     => $pendingData['barangay'],
                 'postal_code'  => $pendingData['postal_code'],
+                'latitude'     => $pendingData['latitude'] ?? null,
+                'longitude'    => $pendingData['longitude'] ?? null,
                 'google_id'    => $pendingData['google_id'] ?? null,
             ]);
 
