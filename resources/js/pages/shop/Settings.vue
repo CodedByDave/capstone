@@ -46,7 +46,7 @@ const coverFile    = ref<File | null>(null)
 const coverPreview = ref<string | null>(props.shop.cover_photo)
 const uploadingCover = ref(false)
 const removingCover  = ref(false)
-const coverInput   = ref<HTMLInputElement | null>(null)
+const coverInput     = ref<HTMLInputElement | null>(null)
 
 function onCoverChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0]
@@ -63,7 +63,11 @@ function uploadCover() {
     router.post('/shop/settings/cover-photo', data, {
         forceFormData: true,
         preserveScroll: true,
-        onSuccess: () => { coverFile.value = null },
+        onSuccess: () => {
+            coverFile.value = null
+            toast.success('Cover photo saved successfully.')
+        },
+        onError: () => { toast.error('Failed to save cover photo. Please try again.') },
         onFinish: () => { uploadingCover.value = false },
     })
 }
@@ -75,7 +79,9 @@ function removeCover() {
         onSuccess: () => {
             coverFile.value    = null
             coverPreview.value = null
+            toast.success('Cover photo removed.')
         },
+        onError: () => { toast.error('Failed to remove cover photo. Please try again.') },
         onFinish: () => { removingCover.value = false },
     })
 }

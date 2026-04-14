@@ -68,6 +68,12 @@ function sendPaymentRequest() {
     sending.value = true
     router.post(`${base.value}/${props.shopOrder.id}/payment-request`, {}, {
         preserveScroll: true,
+        onSuccess: () => {
+            toast.success(`Payment request sent to ${props.shopOrder.customer_name} successfully.`)
+        },
+        onError: () => {
+            toast.error('Failed to send payment request. Please try again.')
+        },
         onFinish: () => { sending.value = false },
     })
 }

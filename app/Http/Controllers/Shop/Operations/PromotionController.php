@@ -126,10 +126,10 @@ class PromotionController extends Controller
         return back()->with('toast', ['type' => 'success', 'message' => 'Promotion archived.']);
     }
 
-    public function restore(Promotion $promotion)
+    public function restore(int $id)
     {
-        $shop = $this->getShop();
-        abort_if($promotion->shop_id !== $shop->id, 403);
+        $shop      = $this->getShop();
+        $promotion = Promotion::withTrashed()->where('shop_id', $shop->id)->findOrFail($id);
 
         $this->promotionService->restore($promotion);
 

@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { type BreadcrumbItem } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ref } from 'vue'
 import {
-    Package, Users, Building2, AlertTriangle,
-    TrendingUp, BarChart3, ArrowUpDown, ShieldAlert,
+    Package, Users, AlertTriangle,
+    TrendingUp, BarChart3, ShieldAlert, Download, Loader2,
 } from 'lucide-vue-next'
 import { usePermissions } from '@/composables/usePermissions'
 import {
@@ -17,11 +16,31 @@ import {
     LineElement, PointElement, ArcElement, Title, Tooltip, Legend,
 } from 'chart.js'
 import { Bar, Doughnut } from 'vue-chartjs'
+import html2pdf from 'html2pdf.js'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend)
 
 const { isOwner } = usePermissions()
 const base = computed(() => isOwner.value ? '/shop/reports' : '/staff/reports')
+
+const reportContent = ref<HTMLElement | null>(null)
+const downloading   = ref(false)
+
+async function downloadPDF() {
+    if (!reportContent.value || downloading.value) return
+    downloading.value = true
+    try {
+        await html2pdf().set({
+            margin:     [10, 10, 10, 10],
+            filename:   `overview-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+            image:      { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF:      { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        }).from(reportContent.value).save()
+    } finally {
+        downloading.value = false
+    }
+}
 
 const props = defineProps<{
     period: string
@@ -95,7 +114,7 @@ const doughnutOptions = {
 <template>
     <Head title="Reports — Overview" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Reports & Analytics">
-        <div class="px-6 space-y-6">
+        <div ref="reportContent" class="px-6 space-y-6">
 
             <!-- Header with period filter -->
             <div class="flex items-center justify-between">
@@ -115,6 +134,11 @@ const doughnutOptions = {
                             <SelectItem value="year">This Year</SelectItem>
                         </SelectContent>
                     </Select>
+                    <Button size="sm" variant="outline" :disabled="downloading" @click="downloadPDF" class="gap-1.5">
+                        <Loader2 v-if="downloading" class="h-3.5 w-3.5 animate-spin" />
+                        <Download v-else class="h-3.5 w-3.5" />
+                        {{ downloading ? 'Generating…' : 'Download PDF' }}
+                    </Button>
                 </div>
             </div>
 

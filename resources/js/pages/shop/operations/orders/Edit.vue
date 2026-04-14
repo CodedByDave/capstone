@@ -26,6 +26,14 @@ interface InventoryItem {
     selling_price: string | null
 }
 
+interface Promotion {
+    id: number
+    name: string
+    type: 'percentage' | 'fixed'
+    value: string
+    min_order_amount: string | null
+}
+
 interface Order {
     id: number
     order_number: string
@@ -41,6 +49,7 @@ interface Order {
     bundle_weight_kg: string | null
     bundle_price: string | null
     bundle_quantity: number | null
+    promotion_id: number | null
     additional_charges: string
     discount_amount: string
     total_amount: string
@@ -60,6 +69,7 @@ const props = defineProps<{
     statuses: string[]
     services?: Service[]
     inventoryItems?: InventoryItem[]
+    promotions?: Promotion[]
 }>()
 
 const page = usePage<AppPageProps>()
@@ -85,6 +95,7 @@ const form = useForm({
     bundle_weight_kg:        props.shopOrder.bundle_weight_kg ?? '',
     bundle_price:            props.shopOrder.bundle_price ?? 0,
     bundle_quantity:         props.shopOrder.bundle_quantity ?? 1,
+    promotion_id:            props.shopOrder.promotion_id ?? ('' as string | number),
     additional_charges:      props.shopOrder.additional_charges,
     discount_amount:         props.shopOrder.discount_amount,
     total_amount:            props.shopOrder.total_amount,
@@ -134,16 +145,33 @@ const onServiceChange = () => {
     }
 }
 
+const selectedPromotion = computed(() =>
+    props.promotions?.find(p => p.id === Number(form.promotion_id))
+)
+
+const baseTotal = computed(() => {
+    if (isPerKg.value)
+        return (parseFloat(String(form.actual_weight_kg)) || 0) * (parseFloat(String(form.price_per_kg)) || 0)
+    return (parseFloat(String(form.bundle_quantity)) || 1) * (parseFloat(String(form.bundle_price)) || 0)
+})
+
+const promoDiscount = computed(() => {
+    const promo = selectedPromotion.value
+    if (!promo) return 0
+    const total = baseTotal.value
+    if (promo.min_order_amount && total < parseFloat(promo.min_order_amount)) return 0
+    if (promo.type === 'percentage') return Math.round(total * (parseFloat(promo.value) / 100) * 100) / 100
+    return Math.min(parseFloat(promo.value), total)
+})
+
+const onPromotionChange = () => {
+    form.discount_amount = String(promoDiscount.value)
+}
+
 const computedTotal = computed(() => {
     const charges  = parseFloat(String(form.additional_charges)) || 0
     const discount = parseFloat(String(form.discount_amount)) || 0
-    let subtotal = 0
-    if (isPerKg.value) {
-        subtotal = (parseFloat(String(form.actual_weight_kg)) || 0) * (parseFloat(String(form.price_per_kg)) || 0)
-    } else {
-        subtotal = (parseFloat(String(form.bundle_quantity)) || 1) * (parseFloat(String(form.bundle_price)) || 0)
-    }
-    return Math.max(0, subtotal + charges - discount)
+    return Math.max(0, baseTotal.value + charges - discount)
 })
 
 watch(computedTotal, (val) => {
@@ -342,18 +370,36 @@ const submit = () => {
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Pricing</p>
                     <div class="grid grid-cols-12 gap-x-6 gap-y-5">
+                        <div class="col-span-12 sm:col-span-4 space-y-1">
+                            <label class="text-sm font-medium">Apply Promotion</label>
+                            <select v-model="form.promotion_id" @change="onPromotionChange"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="">No promotion</option>
+                                <option v-for="p in promotions" :key="p.id" :value="p.id">
+                                    {{ p.name }} —
+                                    {{ p.type === 'percentage' ? `${p.value}% off` : `₱${parseFloat(p.value).toFixed(2)} off` }}
+                                    {{ p.min_order_amount ? ` (min ₱${parseFloat(p.min_order_amount).toFixed(0)})` : '' }}
+                                </option>
+                            </select>
+                            <p v-if="selectedPromotion && promoDiscount > 0" class="text-xs text-green-600">
+                                Discount: ₱{{ promoDiscount.toFixed(2) }} applied
+                            </p>
+                            <p v-else-if="selectedPromotion && promoDiscount === 0" class="text-xs text-amber-600">
+                                Order total does not meet the minimum requirement.
+                            </p>
+                        </div>
                         <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Additional Charges</label>
                             <input v-model="form.additional_charges" type="number" step="0.01" min="0"
                                 :class="['w-full rounded-lg border px-3 py-2.5 text-sm focus:ring-1', supplyCost > 0 ? 'border-amber-400 bg-amber-50 focus:border-amber-500 focus:ring-amber-400' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500']" />
                             <p v-if="supplyCost > 0" class="text-xs text-amber-600">Auto-filled from supplies (₱{{ supplyCost.toFixed(2) }})</p>
                         </div>
-                        <div class="col-span-12 sm:col-span-3 space-y-1">
+                        <div class="col-span-12 sm:col-span-2 space-y-1">
                             <label class="text-sm font-medium">Discount</label>
                             <input v-model="form.discount_amount" type="number" step="0.01" min="0"
                                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                         </div>
-                        <div class="col-span-12 sm:col-span-6 space-y-1">
+                        <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Computed Total</label>
                             <div class="flex items-center justify-between rounded-lg bg-blue-50 border border-blue-200 px-4 h-[42px]">
                                 <span class="text-sm text-blue-700">

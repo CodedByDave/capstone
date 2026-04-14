@@ -49,6 +49,7 @@ class UpdateShopOrderRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+            'promotion_id'           => ['nullable', 'integer', 'exists:promotions,id'],
             'additional_charges'     => ['nullable', 'numeric', 'min:0'],
             'discount_amount'        => ['nullable', 'numeric', 'min:0'],
             'total_amount'           => ['required', 'numeric', 'min:0'],

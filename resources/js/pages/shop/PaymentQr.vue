@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
@@ -74,7 +74,9 @@ function submit() {
     router.post('/shop/payment-qr', data, {
         forceFormData: true,
         preserveScroll: true,
-        onFinish: () => { submitting.value = false },
+        onSuccess: () => { toast.success('QR codes saved successfully.') },
+        onError:   () => { toast.error('Failed to save QR codes. Please try again.') },
+        onFinish:  () => { submitting.value = false },
     })
 }
 </script>

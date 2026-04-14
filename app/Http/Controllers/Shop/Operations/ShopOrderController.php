@@ -163,6 +163,11 @@ class ShopOrderController extends Controller
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'unit', 'quantity', 'selling_price']),
+            'promotions' => Promotion::where('shop_id', $shopId)
+                ->active()
+                ->valid()
+                ->orderBy('name')
+                ->get(['id', 'name', 'type', 'value', 'min_order_amount']),
         ]);
     }
 
