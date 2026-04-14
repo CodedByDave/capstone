@@ -223,7 +223,7 @@ const submit = () => {
 
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-3 pt-4 border-t">
-                    <Button variant="outline" :disabled="form.processing" @click="router.visit(base)">
+                    <Button type="button" variant="outline" :disabled="form.processing" @click="router.visit(base)">
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">
