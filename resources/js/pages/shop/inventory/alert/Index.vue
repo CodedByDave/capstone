@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
-import { type BreadcrumbItem } from '@/types'
+import { Head, router, usePage } from '@inertiajs/vue3'
+import { ref, computed } from 'vue'
+import { type BreadcrumbItem, type AppPageProps } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, CheckCircle2, X, Eye, BellOff, Loader2 } from 'lucide-vue-next'
@@ -37,9 +37,14 @@ const props = defineProps<{
     unreadCount: number
 }>()
 
+const page = usePage<AppPageProps>()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const alertsBase = computed(() => isOwner.value ? '/shop/inventory/alerts' : '/staff/inventory/alerts')
+const inventoryBase = computed(() => isOwner.value ? '/shop/inventory' : '/staff/inventory')
+
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Inventory', href: '/shop/inventory' },
-    { title: 'Stock Alerts', href: '/shop/inventory/alerts' },
+    { title: 'Inventory', href: inventoryBase.value },
+    { title: 'Stock Alerts', href: alertsBase.value },
 ]
 
 const alertList   = ref<AlertItem[]>([...props.alerts.data])
@@ -49,7 +54,7 @@ const markingAll  = ref(false)
 async function updateAlert(id: number, status: 'read' | 'resolved' | 'dismissed') {
     updatingId.value = id
     try {
-        await axios.patch(`/shop/inventory/alerts/${id}`, { status })
+        await axios.patch(`${alertsBase.value}/${id}`, { status })
         const alert = alertList.value.find(a => a.id === id)
         if (alert) alert.status = status
     } catch { /* silent */ }
@@ -59,7 +64,7 @@ async function updateAlert(id: number, status: 'read' | 'resolved' | 'dismissed'
 async function markAllRead() {
     markingAll.value = true
     try {
-        await axios.post('/shop/inventory/alerts/mark-all-read')
+        await axios.post(`${alertsBase.value}/mark-all-read`)
         alertList.value.forEach(a => { if (a.status === 'unread') a.status = 'read' })
     } catch { /* silent */ }
     finally { markingAll.value = false }
@@ -162,7 +167,7 @@ const statusStyle: Record<string, string> = {
                                             <Button
                                                 v-if="alert.inventory"
                                                 size="icon" variant="ghost"
-                                                @click="router.visit(`/shop/inventory/${alert.inventory.id}`)"
+                                                @click="router.visit(`${inventoryBase}/${alert.inventory.id}`)"
                                             >
                                                 <Eye class="h-3.5 w-3.5 text-blue-500" />
                                             </Button>

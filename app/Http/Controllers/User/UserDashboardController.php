@@ -52,7 +52,7 @@ class UserDashboardController extends Controller
                         'branch_name'    => $shop->branch_name,
                         'municipality'   => $shop->municipality,
                         'barangay'       => $shop->barangay,
-                        'cover_photo'    => $shop->cover_photo,
+                        'cover_photo'    => $this->coverUrl($shop->cover_photo),
                         'distance_km'    => $this->haversine($lat, $lng, $shop->latitude, $shop->longitude),
                         'starting_price' => $shop->services->whereNotNull('price_per_kg')->min('price_per_kg'),
                         'services_count' => $shop->services->count(),
@@ -98,7 +98,8 @@ class UserDashboardController extends Controller
 
         $shops = $query->get()->map(function ($shop) use ($lat, $lng) {
             $data = $shop->toArray();
-            $data['distance_km'] = ($lat && $lng && $shop->latitude && $shop->longitude)
+            $data['cover_photo']  = $this->coverUrl($shop->cover_photo);
+            $data['distance_km']  = ($lat && $lng && $shop->latitude && $shop->longitude)
                 ? $this->haversine($lat, $lng, $shop->latitude, $shop->longitude)
                 : null;
 
@@ -165,7 +166,7 @@ class UserDashboardController extends Controller
                 'barangay'     => $shop->barangay,
                 'latitude'     => $shop->latitude,
                 'longitude'    => $shop->longitude,
-                'cover_photo'  => $shop->cover_photo,
+                'cover_photo'  => $this->coverUrl($shop->cover_photo),
                 'gcash_qr'     => $this->qrUrl($shop->gcash_qr),
                 'maya_qr'      => $this->qrUrl($shop->maya_qr),
                 'distance_km'  => $distance,
@@ -176,13 +177,21 @@ class UserDashboardController extends Controller
         ]);
     }
 
-    // ─── Haversine formula ────────────────────────────────────────────────────
+    // ─── URL helpers ──────────────────────────────────────────────────────────
 
     private function qrUrl(?string $value): ?string
     {
         if (!$value) return null;
         return str_starts_with($value, 'http') ? $value : \Storage::url($value);
     }
+
+    private function coverUrl(?string $value): ?string
+    {
+        if (!$value) return null;
+        return str_starts_with($value, 'http') ? $value : \Storage::url($value);
+    }
+
+    // ─── Haversine formula ────────────────────────────────────────────────────
 
     private function haversine(float $lat1, float $lng1, float $lat2, float $lng2): float
     {

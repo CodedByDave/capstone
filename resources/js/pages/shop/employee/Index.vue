@@ -170,7 +170,7 @@ function cancelArchive() {
 
 function confirmArchive() {
     if (!employeeToArchive.value) return
-    router.delete(`/shop/employee/${employeeToArchive.value.id}`, {
+    router.delete(employeeUrl(employeeToArchive.value.id), {
         preserveScroll: true,
         onSuccess: () => {
             employeeToArchive.value = null

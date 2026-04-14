@@ -9,17 +9,48 @@ import {
     Users, GitBranch, Package, AlertTriangle,
     ArrowUpRight, ArrowDownRight, Activity, BoxSelect,
     RefreshCcw, Clock, Lightbulb, TrendingUp, TrendingDown,
-    ShieldAlert, CheckCircle2, Info, XCircle, Mail
+    ShieldAlert, CheckCircle2, Info, XCircle, Mail, RotateCcw,
+    ShoppingBag, BarChart2, Flame, Percent,
 } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface MovementPoint { month: string; stock_in: number; stock_out: number }
-interface CategoryPoint { label: string; count: number }
+interface MovementPoint  { month: string; stock_in: number; stock_out: number }
+interface CategoryPoint  { label: string; count: number }
 interface BranchEmployee { branch: string; count: number; status: string }
-interface LowStockItem { name: string; sku: string; quantity: number; min_stock: number; status: string; category: string }
+interface LowStockItem   { name: string; sku: string; quantity: number; min_stock: number; status: string; category: string }
 interface RecentMovement { item: string; sku: string; type: string; quantity: number; before: number; after: number; by: string; notes: string | null; date: string }
+
+interface MonthlyOrderPoint {
+    month: string
+    month_key: string
+    total_orders: number
+    completed: number
+    revenue: number
+}
+interface ServicePop {
+    name: string
+    order_count: number
+    revenue: number
+}
+interface OrderStats {
+    total: number
+    completed: number
+    pending: number
+    in_progress: number
+    completion_rate: number
+    total_revenue: number
+    avg_order_value: number
+    this_month: number
+    last_month: number
+    orders_change: number
+}
+interface OrderStatusDist {
+    pending: number
+    in_progress: number
+    completed: number
+}
 
 interface DSSInsight {
     type: 'success' | 'warning' | 'danger' | 'info'
@@ -51,6 +82,10 @@ const { props } = usePage<{
         total_price: number
         email: string
     } | null
+    expired_order?: {
+        plan_name: string | null
+        expires_at: string | null
+    } | null
     stats?: {
         employees: { total: number; active: number; inactive: number }
         branches: { total: number; active: number }
@@ -72,36 +107,131 @@ const { props } = usePage<{
     employees_per_branch?: BranchEmployee[]
     low_stock_items?: LowStockItem[]
     recent_movements?: RecentMovement[]
+    order_stats?: OrderStats
+    monthly_orders?: MonthlyOrderPoint[]
+    service_popularity?: ServicePop[]
+    order_status_dist?: OrderStatusDist
 }>()
 
-const user = props.auth.user
-const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
+const user       = props.auth.user
+const isPaid     = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
 const isApproved = computed(() =>
     props.order?.status === 'approved' && (props.shop?.status ?? 'active') !== 'disabled'
 )
 const isRejected = computed(() => !!props.rejected_order)
-const showOrder = ref(false)
+const isExpired  = computed(() => !!props.expired_order)
+const showOrder  = ref(false)
 
-// ─── Breadcrumbs ─────────────────────────────────────────────────────────────
+// ─── DSS Insights ─────────────────────────────────────────────────────────────
 
 const dssInsights = computed<DSSInsight[]>(() => {
     const insights: DSSInsight[] = []
-    const stats = props.stats
-    const movChart = props.movement_chart ?? []
-    const catData = props.category_breakdown ?? []
-    const branches = props.employees_per_branch ?? []
+    const stats     = props.stats
+    const movChart  = props.movement_chart ?? []
+    const catData   = props.category_breakdown ?? []
+    const branches  = props.employees_per_branch ?? []
+    const orderStats = props.order_stats
+    const orders12  = props.monthly_orders ?? []
 
     if (!stats) return insights
 
-    // --- Stock alerts ---
+    // ── Order completion rate ──
+    if (orderStats) {
+        if (orderStats.total > 0) {
+            if (orderStats.completion_rate < 50) {
+                insights.push({
+                    type: 'danger',
+                    title: 'Low Order Completion Rate',
+                    message: `Only ${orderStats.completion_rate}% of orders have been completed. Review your processing workflow and identify bottlenecks causing delays — unfinished orders risk customer dissatisfaction.`,
+                })
+            } else if (orderStats.completion_rate >= 85) {
+                insights.push({
+                    type: 'success',
+                    title: 'Excellent Completion Rate',
+                    message: `Your order completion rate is ${orderStats.completion_rate}%. This reflects strong operational efficiency and good customer satisfaction — keep up the consistent workflow.`,
+                })
+            }
+        }
+
+        // ── Pending backlog ──
+        if (orderStats.pending > 5) {
+            insights.push({
+                type: 'warning',
+                title: 'High Pending Order Backlog',
+                message: `${orderStats.pending} orders are currently queued. A large backlog can increase turnaround times and frustrate customers. Consider assigning more staff or extending operating hours.`,
+            })
+        }
+
+        // ── Orders this month change ──
+        if (orderStats.orders_change >= 25) {
+            insights.push({
+                type: 'info',
+                title: 'Order Volume Surge This Month',
+                message: `Orders increased by ${orderStats.orders_change}% compared to last month. Ensure your team capacity and supply levels can sustain this demand spike.`,
+            })
+        } else if (orderStats.orders_change <= -25 && orderStats.last_month > 0) {
+            insights.push({
+                type: 'warning',
+                title: 'Order Volume Drop This Month',
+                message: `Orders dropped by ${Math.abs(orderStats.orders_change)}% compared to last month. Consider launching promotions or loyalty incentives to re-engage customers.`,
+            })
+        }
+    }
+
+    // ── Peak & slow months ──
+    if (orders12.length >= 3) {
+        const nonZero = orders12.filter(d => d.total_orders > 0)
+        if (nonZero.length >= 2) {
+            const maxOrders = Math.max(...nonZero.map(d => d.total_orders))
+            const peakMonths = nonZero.filter(d => d.total_orders >= maxOrders * 0.75)
+            const slowMonths = nonZero.filter(d => d.total_orders <= maxOrders * 0.30)
+
+            if (peakMonths.length > 0 && peakMonths.length < orders12.length) {
+                insights.push({
+                    type: 'info',
+                    title: `Peak Laundry Season: ${peakMonths.map(m => m.month).join(', ')}`,
+                    message: `These months have the highest laundry demand. Pre-stock chemicals, ensure all machines are serviced, and schedule extra staffing to maximise throughput during peak periods.`,
+                })
+            }
+            if (slowMonths.length > 0 && slowMonths.length < orders12.length) {
+                insights.push({
+                    type: 'warning',
+                    title: `Slow Months Detected: ${slowMonths.map(m => m.month).join(', ')}`,
+                    message: `Order volume dips significantly in these months. Consider targeted promos, referral discounts, or bundle deals to sustain revenue during off-peak seasons.`,
+                })
+            }
+
+            // ── Revenue growth (last 2 months) ──
+            if (orders12.length >= 2) {
+                const last2 = orders12.filter(d => d.total_orders > 0 || d.revenue > 0).slice(-2)
+                if (last2.length === 2 && last2[0].revenue > 0) {
+                    const revChange = ((last2[1].revenue - last2[0].revenue) / last2[0].revenue) * 100
+                    if (revChange >= 20) {
+                        insights.push({
+                            type: 'success',
+                            title: 'Revenue Growing',
+                            message: `Revenue grew by ${revChange.toFixed(1)}% from ${last2[0].month} to ${last2[1].month}. Sustain this by maintaining service quality and exploring upsell opportunities.`,
+                        })
+                    } else if (revChange <= -20) {
+                        insights.push({
+                            type: 'warning',
+                            title: 'Revenue Declining',
+                            message: `Revenue dropped by ${Math.abs(revChange).toFixed(1)}% from ${last2[0].month} to ${last2[1].month}. Investigate if this is seasonal or if customer retention issues need to be addressed.`,
+                        })
+                    }
+                }
+            }
+        }
+    }
+
+    // ── Stock alerts ──
     if (stats.inventory.out_of_stock > 0) {
         insights.push({
             type: 'danger',
             title: 'Out-of-Stock Items Detected',
-            message: `${stats.inventory.out_of_stock} item(s) have zero stock remaining. Initiate emergency reorders immediately — delayed restocking risks lost sales and poor customer experience.`,
+            message: `${stats.inventory.out_of_stock} item(s) have zero stock remaining. Initiate emergency reorders immediately — delayed restocking risks disrupting active laundry orders.`,
         })
     }
-
     if (stats.inventory.low_stock > 0 && stats.inventory.out_of_stock === 0) {
         insights.push({
             type: 'warning',
@@ -110,60 +240,53 @@ const dssInsights = computed<DSSInsight[]>(() => {
         })
     }
 
-    // --- Movement trend ---
+    // ── Movement trend ──
     const change = stats.movements.change
     if (change >= 20) {
         insights.push({
             type: 'info',
-            title: 'High Movement Spike This Month',
-            message: `Inventory movements surged by ${change}% compared to last month. Verify that this is demand-driven and not caused by data entry errors or unauthorized transfers.`,
+            title: 'High Inventory Movement Spike',
+            message: `Inventory movements surged by ${change}% compared to last month. Verify this is demand-driven and not caused by data entry errors or unauthorised transfers.`,
         })
     } else if (change <= -20) {
         insights.push({
             type: 'warning',
-            title: 'Movement Activity Drop',
-            message: `Inventory movements dropped by ${Math.abs(change)}% this month. This could indicate slowed operations, understaffing, or potential supply chain delays — worth investigating.`,
-        })
-    } else if (change > 0) {
-        insights.push({
-            type: 'success',
-            title: 'Steady Inventory Activity',
-            message: `Movements are up ${change}% vs last month. Operations appear consistent. Keep monitoring reorder frequency to maintain this balance.`,
+            title: 'Inventory Movement Drop',
+            message: `Inventory movements dropped by ${Math.abs(change)}% this month. This could indicate slowed operations, understaffing, or supply chain delays.`,
         })
     }
 
-    // --- Overstock vs inflow check ---
+    // ── Overstock inflow check ──
     if (movChart.length >= 3) {
         const last3 = movChart.slice(-3)
-        const inGt = last3.every(m => m.stock_in > m.stock_out)
-        if (inGt) {
+        if (last3.every(m => m.stock_in > m.stock_out)) {
             insights.push({
                 type: 'info',
                 title: 'Consistent Inflow Surplus',
-                message: `Stock-in has exceeded stock-out for 3+ consecutive months. Review storage capacity and reorder triggers — accumulated inventory may increase holding costs.`,
+                message: `Stock-in has exceeded stock-out for 3+ consecutive months. Review storage capacity and reorder triggers — excess inventory may increase holding costs.`,
             })
         }
     }
 
-    // --- Category concentration ---
+    // ── Category concentration ──
     if (catData.length > 0) {
         const total = catData.reduce((s, c) => s + c.count, 0)
-        const top = [...catData].sort((a, b) => b.count - a.count)[0]
+        const top   = [...catData].sort((a, b) => b.count - a.count)[0]
         const topPct = total > 0 ? Math.round((top.count / total) * 100) : 0
         if (topPct >= 40) {
             insights.push({
                 type: 'warning',
                 title: 'Category Concentration Risk',
-                message: `"${top.label}" makes up ${topPct}% of your inventory. Heavy concentration in one category increases risk if demand or supply shifts. Consider diversifying your stock mix.`,
+                message: `"${top.label}" makes up ${topPct}% of your inventory. Heavy concentration increases risk if demand or supply shifts — consider diversifying your stock mix.`,
             })
         }
     }
 
-    // --- Branch imbalance ---
+    // ── Branch staffing imbalance ──
     if (branches.length >= 2) {
         const counts = branches.map(b => b.count)
-        const maxC = Math.max(...counts)
-        const minC = Math.min(...counts)
+        const maxC   = Math.max(...counts)
+        const minC   = Math.min(...counts)
         if (maxC > 0 && minC / maxC < 0.5) {
             const heavy = branches.find(b => b.count === maxC)
             const light = branches.find(b => b.count === minC)
@@ -175,12 +298,12 @@ const dssInsights = computed<DSSInsight[]>(() => {
         }
     }
 
-    // --- All good ---
+    // ── All stocked ──
     if (stats.inventory.out_of_stock === 0 && stats.inventory.low_stock === 0) {
         insights.push({
             type: 'success',
             title: 'Inventory Fully Stocked',
-            message: `All items are at or above their minimum stock levels. Great job maintaining healthy inventory — keep your reorder schedule consistent to sustain this.`,
+            message: `All items are at or above their minimum stock levels. Keep your reorder schedule consistent to sustain this.`,
         })
     }
 
@@ -190,48 +313,28 @@ const dssInsights = computed<DSSInsight[]>(() => {
 // ─── Insight config ───────────────────────────────────────────────────────────
 
 const insightConfig = {
-    success: {
-        border: 'border-l-emerald-500',
-        bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-        icon: CheckCircle2,
-        iconCls: 'text-emerald-600',
-        title: 'text-emerald-700 dark:text-emerald-400',
-    },
-    warning: {
-        border: 'border-l-amber-500',
-        bg: 'bg-amber-50 dark:bg-amber-950/30',
-        icon: AlertTriangle,
-        iconCls: 'text-amber-600',
-        title: 'text-amber-700 dark:text-amber-400',
-    },
-    danger: {
-        border: 'border-l-red-500',
-        bg: 'bg-red-50 dark:bg-red-950/30',
-        icon: ShieldAlert,
-        iconCls: 'text-red-600',
-        title: 'text-red-700 dark:text-red-400',
-    },
-    info: {
-        border: 'border-l-blue-500',
-        bg: 'bg-blue-50 dark:bg-blue-950/30',
-        icon: Info,
-        iconCls: 'text-blue-600',
-        title: 'text-blue-700 dark:text-blue-400',
-    },
+    success: { border: 'border-l-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', icon: CheckCircle2,  iconCls: 'text-emerald-600', title: 'text-emerald-700 dark:text-emerald-400' },
+    warning: { border: 'border-l-amber-500',   bg: 'bg-amber-50 dark:bg-amber-950/30',     icon: AlertTriangle, iconCls: 'text-amber-600',   title: 'text-amber-700 dark:text-amber-400' },
+    danger:  { border: 'border-l-red-500',     bg: 'bg-red-50 dark:bg-red-950/30',         icon: ShieldAlert,   iconCls: 'text-red-600',     title: 'text-red-700 dark:text-red-400' },
+    info:    { border: 'border-l-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/30',       icon: Info,          iconCls: 'text-blue-600',    title: 'text-blue-700 dark:text-blue-400' },
 }
 
-// ─── Charts ───────────────────────────────────────────────────────────────────
+// ─── Chart refs ───────────────────────────────────────────────────────────────
 
-const movementChartRef = ref<HTMLCanvasElement | null>(null)
-const categoryChartRef = ref<HTMLCanvasElement | null>(null)
-const branchChartRef = ref<HTMLCanvasElement | null>(null)
+const ordersChartRef    = ref<HTMLCanvasElement | null>(null)
+const revenueChartRef   = ref<HTMLCanvasElement | null>(null)
+const serviceChartRef   = ref<HTMLCanvasElement | null>(null)
+const orderStatusRef    = ref<HTMLCanvasElement | null>(null)
+const movementChartRef  = ref<HTMLCanvasElement | null>(null)
+const categoryChartRef  = ref<HTMLCanvasElement | null>(null)
+const branchChartRef    = ref<HTMLCanvasElement | null>(null)
 
 function loadScript(src: string): Promise<void> {
     return new Promise((resolve) => {
         if (document.querySelector(`script[src="${src}"]`)) return resolve()
-        const script = document.createElement('script')
-        script.src = src
-        script.onload = () => resolve()
+        const script    = document.createElement('script')
+        script.src      = src
+        script.onload   = () => resolve()
         document.head.appendChild(script)
     })
 }
@@ -239,41 +342,170 @@ function loadScript(src: string): Promise<void> {
 onMounted(async () => {
     if (!isPaid.value) return
     await loadScript('https://cdn.jsdelivr.net/npm/chart.js')
-
     // @ts-ignore
     const Chart = window.Chart
 
-    const movData = props.movement_chart ?? []
-    const catData = props.category_breakdown ?? []
+    const orders12   = props.monthly_orders    ?? []
+    const services   = props.service_popularity ?? []
+    const statusDist = props.order_status_dist  ?? { pending: 0, in_progress: 0, completed: 0 }
+    const movData    = props.movement_chart     ?? []
+    const catData    = props.category_breakdown ?? []
     const branchData = props.employees_per_branch ?? []
 
-    /* ── Movement Bar Chart ── */
+    // Peak threshold — months >= 75% of max are peak (orange)
+    const maxOrders    = Math.max(...orders12.map(d => d.total_orders), 1)
+    const peakThreshold = maxOrders * 0.75
+
+    /* ── Monthly Orders Bar (peak highlighted) ── */
+    if (ordersChartRef.value && orders12.length) {
+        new Chart(ordersChartRef.value, {
+            type: 'bar',
+            data: {
+                labels: orders12.map(d => d.month),
+                datasets: [{
+                    label: 'Orders',
+                    data: orders12.map(d => d.total_orders),
+                    backgroundColor: orders12.map(d =>
+                        d.total_orders >= peakThreshold && d.total_orders > 0
+                            ? 'rgba(234,88,12,0.85)'
+                            : 'rgba(99,102,241,0.70)'
+                    ),
+                    borderRadius: 5,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: (ctx: any) => {
+                                const v = orders12[ctx.dataIndex]
+                                return v.total_orders >= peakThreshold && v.total_orders > 0 ? '🔥 Peak Month' : ''
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                },
+            },
+        })
+    }
+
+    /* ── Revenue Trend Line ── */
+    if (revenueChartRef.value) {
+        new Chart(revenueChartRef.value, {
+            type: 'line',
+            data: {
+                labels: orders12.map(d => d.month),
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: orders12.map(d => d.revenue),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16,185,129,0.10)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#10b981',
+                    pointHoverRadius: 6,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx: any) =>
+                                `₱${Number(ctx.raw).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`,
+                        },
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: { size: 10 },
+                            callback: (v: any) => `₱${Number(v).toLocaleString('en-PH')}`,
+                        },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                    },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                },
+            },
+        })
+    }
+
+    /* ── Service Popularity Horizontal Bar ── */
+    if (serviceChartRef.value && services.length) {
+        const palette = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6']
+        new Chart(serviceChartRef.value, {
+            type: 'bar',
+            data: {
+                labels: services.map(s => s.name),
+                datasets: [{
+                    label: 'Orders',
+                    data: services.map(s => s.order_count),
+                    backgroundColor: services.map((_, i) => palette[i % palette.length]),
+                    borderRadius: 4,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                },
+            },
+        })
+    }
+
+    /* ── Order Status Donut ── */
+    if (orderStatusRef.value) {
+        new Chart(orderStatusRef.value, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'In Progress', 'Completed'],
+                datasets: [{
+                    data: [statusDist.pending, statusDist.in_progress, statusDist.completed],
+                    backgroundColor: ['#f59e0b','#3b82f6','#10b981'],
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 10, font: { size: 10 }, boxWidth: 10, boxHeight: 10 } },
+                },
+                cutout: '60%',
+            },
+        })
+    }
+
+    /* ── Inventory Movement Bar ── */
     if (movementChartRef.value && movData.length) {
         new Chart(movementChartRef.value, {
             type: 'bar',
             data: {
                 labels: movData.map(d => d.month),
                 datasets: [
-                    {
-                        label: 'Stock In',
-                        data: movData.map(d => d.stock_in),
-                        backgroundColor: 'rgba(16,185,129,0.75)',
-                        borderRadius: 4,
-                    },
-                    {
-                        label: 'Stock Out',
-                        data: movData.map(d => d.stock_out),
-                        backgroundColor: 'rgba(239,68,68,0.75)',
-                        borderRadius: 4,
-                    },
+                    { label: 'Stock In',  data: movData.map(d => d.stock_in),  backgroundColor: 'rgba(16,185,129,0.75)', borderRadius: 4 },
+                    { label: 'Stock Out', data: movData.map(d => d.stock_out), backgroundColor: 'rgba(239,68,68,0.75)',  borderRadius: 4 },
                 ],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, boxHeight: 12 } },
-                },
+                plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12, boxHeight: 12 } } },
                 scales: {
                     y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
                     x: { grid: { display: false }, ticks: { font: { size: 11 } } },
@@ -284,30 +516,23 @@ onMounted(async () => {
 
     /* ── Category Doughnut ── */
     if (categoryChartRef.value && catData.length) {
-        const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6']
+        const colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6']
         new Chart(categoryChartRef.value, {
             type: 'doughnut',
             data: {
                 labels: catData.map(d => d.label),
-                datasets: [{
-                    data: catData.map(d => d.count),
-                    backgroundColor: colors.slice(0, catData.length),
-                    borderWidth: 2,
-                    borderColor: '#fff',
-                }],
+                datasets: [{ data: catData.map(d => d.count), backgroundColor: colors.slice(0, catData.length), borderWidth: 2, borderColor: '#fff' }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, boxWidth: 12, boxHeight: 12 } },
-                },
+                plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, boxWidth: 12, boxHeight: 12 } } },
                 cutout: '60%',
             },
         })
     }
 
-    /* ── Employees per Branch Bar ── */
+    /* ── Employees per Branch ── */
     if (branchChartRef.value && branchData.length) {
         new Chart(branchChartRef.value, {
             type: 'bar',
@@ -316,9 +541,7 @@ onMounted(async () => {
                 datasets: [{
                     label: 'Employees',
                     data: branchData.map(d => d.count),
-                    backgroundColor: branchData.map(d =>
-                        d.status === 'Active' ? 'rgba(99,102,241,0.75)' : 'rgba(156,163,175,0.5)'
-                    ),
+                    backgroundColor: branchData.map(d => d.status === 'Active' ? 'rgba(99,102,241,0.75)' : 'rgba(156,163,175,0.5)'),
                     borderRadius: 5,
                 }],
             },
@@ -338,17 +561,21 @@ onMounted(async () => {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const stockStatusConfig: Record<string, { label: string; cls: string }> = {
-    low: { label: 'Low Stock', cls: 'bg-amber-100 text-amber-700' },
+    low:          { label: 'Low Stock',   cls: 'bg-amber-100 text-amber-700' },
     out_of_stock: { label: 'Out of Stock', cls: 'bg-red-100 text-red-700' },
-    normal: { label: 'Normal', cls: 'bg-green-100 text-green-700' },
-    overstock: { label: 'Overstock', cls: 'bg-blue-100 text-blue-700' },
+    normal:       { label: 'Normal',      cls: 'bg-green-100 text-green-700' },
+    overstock:    { label: 'Overstock',   cls: 'bg-blue-100 text-blue-700' },
 }
 
 const movementTypeConfig: Record<string, { label: string; cls: string }> = {
-    in: { label: 'Stock In', cls: 'bg-emerald-100 text-emerald-700' },
-    out: { label: 'Stock Out', cls: 'bg-red-100 text-red-700' },
-    adjust: { label: 'Adjustment', cls: 'bg-blue-100 text-blue-700' },
-    transfer: { label: 'Transfer', cls: 'bg-violet-100 text-violet-700' },
+    in:       { label: 'Stock In',    cls: 'bg-emerald-100 text-emerald-700' },
+    out:      { label: 'Stock Out',   cls: 'bg-red-100 text-red-700' },
+    adjust:   { label: 'Adjustment', cls: 'bg-blue-100 text-blue-700' },
+    transfer: { label: 'Transfer',   cls: 'bg-violet-100 text-violet-700' },
+}
+
+function formatPeso(v: number) {
+    return v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 </script>
 
@@ -358,6 +585,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Dashboard">
         <div class="flex h-full flex-1 flex-col gap-6 p-4">
+
             <!-- ══════════════ DISABLED ══════════════ -->
             <template v-if="props.shop?.status === 'disabled'">
                 <div class="flex flex-1 items-center justify-center min-h-[60vh]">
@@ -365,9 +593,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                             <ShieldAlert class="h-8 w-8 text-red-500" />
                         </div>
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                            Shop Disabled
-                        </h2>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Shop Disabled</h2>
                         <p class="text-sm text-muted-foreground">
                             Your shop has been disabled. Please contact support for assistance.
                         </p>
@@ -377,96 +603,95 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
 
             <!-- ══════════════ REJECTED ══════════════ -->
             <template v-else-if="isRejected">
-
-                <!-- Show checkout form when owner clicks "Place New Order" -->
                 <CheckoutConfirm
                     v-if="showOrder"
-                    plan-name="Standard"
-                    :vat-pct="12"
-                    :billing-months="1"
+                    plan-name="Standard" :vat-pct="12" :billing-months="1"
                     :user="{ name: user.name, email: user.email }"
                     :shop="props.shop ?? undefined"
                 />
-
                 <div v-else class="flex flex-1 items-center justify-center min-h-[60vh] px-4">
                     <div class="w-full max-w-lg">
-
-                        <!-- Icon + heading -->
                         <div class="flex flex-col items-center text-center mb-6">
                             <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
                                 <XCircle class="h-8 w-8 text-red-500" />
                             </div>
-                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-                                Order Rejected
-                            </h2>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Order Rejected</h2>
                             <p class="text-sm text-muted-foreground mt-1">
                                 Your subscription plan order for
                                 <span class="font-medium text-foreground">{{ props.rejected_order?.shop_name }}</span>
                                 was not approved.
                             </p>
                         </div>
-
-                        <!-- Reason card -->
                         <div class="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 p-4 mb-4">
-                            <p class="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-1">
-                                Reason for rejection
-                            </p>
+                            <p class="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">Reason for rejection</p>
                             <p class="text-sm text-red-700 dark:text-red-300 leading-relaxed">
                                 {{ props.rejected_order?.rejection_reason ?? 'No specific reason was provided.' }}
                             </p>
                         </div>
-
-                        <!-- Email instruction card -->
                         <div class="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-4 mb-6">
                             <div class="flex items-start gap-3">
-                                <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
-                                    <Mail class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                                    <Mail class="h-4 w-4 text-blue-600" />
                                 </div>
                                 <div>
-                                    <p class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-0.5">
-                                        Check your email for refund instructions
-                                    </p>
-                                    <p class="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-                                        A detailed email has been sent to
-                                        <span class="font-medium">{{ props.rejected_order?.email }}</span>
+                                    <p class="text-sm font-semibold text-blue-700 mb-0.5">Check your email for refund instructions</p>
+                                    <p class="text-xs text-blue-600 leading-relaxed">
+                                        A detailed email has been sent to <span class="font-medium">{{ props.rejected_order?.email }}</span>
                                         with your refund details and next steps. Your payment of
-                                        <span class="font-medium">
-                                            ₱{{ Number(props.rejected_order?.total_price ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}
-                                        </span>
+                                        <span class="font-medium">₱{{ Number(props.rejected_order?.total_price ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}</span>
                                         will be returned to your original payment method.
                                     </p>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- CTA -->
-                        <Button class="w-full" @click="showOrder = true">
-                            Place a New Order
-                        </Button>
-
+                        <Button class="w-full" @click="showOrder = true">Place a New Order</Button>
                         <p class="text-xs text-center text-muted-foreground mt-4">
                             If you believe this was a mistake, please contact our support team.
                         </p>
+                    </div>
+                </div>
+            </template>
 
+            <!-- ══════════════ EXPIRED ══════════════ -->
+            <template v-else-if="isExpired">
+                <div class="flex flex-1 items-center justify-center min-h-[60vh] px-4">
+                    <div class="w-full max-w-md text-center">
+                        <div class="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                            <RotateCcw class="h-8 w-8 text-amber-500" />
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-1">Subscription Expired</h2>
+                        <p class="text-sm text-muted-foreground mb-1">
+                            Your <span class="font-semibold text-foreground">{{ props.expired_order?.plan_name ?? 'plan' }}</span> subscription has expired.
+                        </p>
+                        <p v-if="props.expired_order?.expires_at" class="text-xs text-muted-foreground mb-6">
+                            Expired on {{ new Date(props.expired_order.expires_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) }}
+                        </p>
+                        <p v-else class="mb-6" />
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-4 mb-6 text-left">
+                            <p class="text-sm text-amber-700 leading-relaxed">
+                                Your shop is currently <span class="font-semibold">inactive</span> and hidden from customers.
+                                Renew your plan to restore full access.
+                            </p>
+                        </div>
+                        <a href="/shop/upgrade">
+                            <Button class="w-full gap-2"><RotateCcw class="h-4 w-4" /> Renew Plan</Button>
+                        </a>
+                        <p class="text-xs text-muted-foreground mt-4">You can also upgrade to a higher plan if needed.</p>
                     </div>
                 </div>
             </template>
 
             <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
-            <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
             <template v-else-if="isApproved">
 
                 <!-- Welcome Banner -->
-                <div
-                    class="rounded-xl border border-border bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="rounded-xl border border-border bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                             Welcome back, {{ user.name }} 👋
                         </h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                            Live overview of
-                            <span class="font-semibold text-gray-800 dark:text-white">{{ props.order?.shop_name
-                                }}</span>
+                            Live overview of <span class="font-semibold text-gray-800 dark:text-white">{{ props.order?.shop_name }}</span>
                         </p>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
@@ -474,154 +699,193 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             {{ props.order?.subscription_plan ?? 'Active' }}
                         </span>
                         <span v-if="props.order?.expires_at">
-                            Expires {{ new Date(props.order.expires_at).toLocaleDateString('en-PH', {
-                                month: 'short',
-                                day: 'numeric', year: 'numeric' }) }}
+                            Expires {{ new Date(props.order.expires_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) }}
                         </span>
                     </div>
                 </div>
 
-                <!-- ── 1. KPI CARDS ── -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- ── 1. ORDER KPI CARDS ── -->
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                        <ShoppingBag class="h-3.5 w-3.5" /> Laundry Operations
+                    </p>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-                    <Card>
-                        <CardContent class="pt-5">
-                            <div class="flex items-center justify-between mb-3">
-                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Employees
+                        <Card>
+                            <CardContent class="pt-5">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Orders</p>
+                                    <div class="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                        <ShoppingBag class="h-4 w-4 text-indigo-600" />
+                                    </div>
+                                </div>
+                                <p class="text-3xl font-bold">{{ props.order_stats?.total ?? 0 }}</p>
+                                <div class="flex items-center gap-1 mt-1.5">
+                                    <ArrowUpRight v-if="(props.order_stats?.orders_change ?? 0) >= 0" class="h-3.5 w-3.5 text-emerald-500" />
+                                    <ArrowDownRight v-else class="h-3.5 w-3.5 text-red-500" />
+                                    <span class="text-xs font-medium" :class="(props.order_stats?.orders_change ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'">
+                                        {{ Math.abs(props.order_stats?.orders_change ?? 0) }}%
+                                    </span>
+                                    <span class="text-xs text-muted-foreground">vs last month</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent class="pt-5">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Revenue</p>
+                                    <div class="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                        <TrendingUp class="h-4 w-4 text-emerald-600" />
+                                    </div>
+                                </div>
+                                <p class="text-2xl font-bold">₱{{ formatPeso(props.order_stats?.total_revenue ?? 0) }}</p>
+                                <p class="text-xs text-muted-foreground mt-1.5">
+                                    Avg ₱{{ formatPeso(props.order_stats?.avg_order_value ?? 0) }} / order
                                 </p>
-                                <div class="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                    <Users class="h-4 w-4 text-indigo-600" />
-                                </div>
-                            </div>
-                            <p class="text-3xl font-bold">{{ props.stats?.employees.total ?? 0 }}</p>
-                            <div class="flex items-center gap-2 mt-1.5">
-                                <span class="text-xs text-emerald-600 font-medium">{{ props.stats?.employees.active ?? 0
-                                    }} active</span>
-                                <span class="text-xs text-muted-foreground">·</span>
-                                <span class="text-xs text-muted-foreground">{{ props.stats?.employees.inactive ?? 0 }}
-                                    inactive</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    <Card>
-                        <CardContent class="pt-5">
-                            <div class="flex items-center justify-between mb-3">
-                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Branches
+                        <Card>
+                            <CardContent class="pt-5">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Completion Rate</p>
+                                    <div class="h-8 w-8 rounded-lg bg-violet-100 flex items-center justify-center">
+                                        <Percent class="h-4 w-4 text-violet-600" />
+                                    </div>
+                                </div>
+                                <p class="text-3xl font-bold" :class="(props.order_stats?.completion_rate ?? 0) >= 75 ? 'text-emerald-600' : 'text-amber-600'">
+                                    {{ props.order_stats?.completion_rate ?? 0 }}%
                                 </p>
-                                <div class="h-8 w-8 rounded-lg bg-violet-100 flex items-center justify-center">
-                                    <GitBranch class="h-4 w-4 text-violet-600" />
-                                </div>
-                            </div>
-                            <p class="text-3xl font-bold">{{ props.stats?.branches.total ?? 0 }}</p>
-                            <p class="text-xs text-emerald-600 font-medium mt-1.5">{{ props.stats?.branches.active ?? 0
-                                }} active</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent class="pt-5">
-                            <div class="flex items-center justify-between mb-3">
-                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Inventory
+                                <p class="text-xs text-muted-foreground mt-1.5">
+                                    {{ props.order_stats?.completed ?? 0 }} of {{ props.order_stats?.total ?? 0 }} completed
                                 </p>
-                                <div class="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                                    <Package class="h-4 w-4 text-amber-600" />
-                                </div>
-                            </div>
-                            <p class="text-3xl font-bold">{{ props.stats?.inventory.total ?? 0 }}</p>
-                            <div class="flex items-center gap-2 mt-1.5">
-                                <span class="text-xs text-amber-600 font-medium">{{ props.stats?.inventory.low_stock ??
-                                    0 }} low</span>
-                                <span class="text-xs text-muted-foreground">·</span>
-                                <span class="text-xs text-red-500 font-medium">{{ props.stats?.inventory.out_of_stock ??
-                                    0 }} out</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    <Card>
-                        <CardContent class="pt-5">
-                            <div class="flex items-center justify-between mb-3">
-                                <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Alerts</p>
-                                <div class="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center">
-                                    <AlertTriangle class="h-4 w-4 text-red-600" />
+                        <Card>
+                            <CardContent class="pt-5">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending Orders</p>
+                                    <div class="h-8 w-8 rounded-lg flex items-center justify-center"
+                                        :class="(props.order_stats?.pending ?? 0) > 5 ? 'bg-amber-100' : 'bg-blue-100'">
+                                        <Flame class="h-4 w-4" :class="(props.order_stats?.pending ?? 0) > 5 ? 'text-amber-600' : 'text-blue-600'" />
+                                    </div>
                                 </div>
-                            </div>
-                            <p class="text-3xl font-bold"
-                                :class="(props.stats?.low_stock_alerts ?? 0) > 0 ? 'text-red-600' : ''">
-                                {{ props.stats?.low_stock_alerts ?? 0 }}
-                            </p>
-                            <div class="flex items-center gap-1 mt-1.5">
-                                <ArrowUpRight v-if="(props.stats?.movements.change ?? 0) >= 0"
-                                    class="h-3.5 w-3.5 text-emerald-500" />
-                                <ArrowDownRight v-else class="h-3.5 w-3.5 text-red-500" />
-                                <span class="text-xs font-medium"
-                                    :class="(props.stats?.movements.change ?? 0) >= 0 ? 'text-emerald-500' : 'text-red-500'">
-                                    {{ Math.abs(props.stats?.movements.change ?? 0) }}%
-                                </span>
-                                <span class="text-xs text-muted-foreground">movements vs last month</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                <p class="text-3xl font-bold" :class="(props.order_stats?.pending ?? 0) > 5 ? 'text-amber-600' : ''">
+                                    {{ props.order_stats?.pending ?? 0 }}
+                                </p>
+                                <p class="text-xs text-muted-foreground mt-1.5">
+                                    {{ props.order_stats?.in_progress ?? 0 }} in progress
+                                </p>
+                            </CardContent>
+                        </Card>
 
+                    </div>
                 </div>
 
-                <!-- ── 2. CHARTS ── -->
+                <!-- ── 2. ORDER CHARTS ROW 1: Monthly Orders + Order Status ── -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                    <!-- Movement Bar — spans 2 cols -->
+                    <!-- Monthly Orders Bar with peak highlighting -->
                     <Card class="md:col-span-2">
                         <CardHeader class="pb-2">
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
-                                <Activity class="h-4 w-4 text-muted-foreground" />
-                                Inventory movements (12 months)
+                                <BarChart2 class="h-4 w-4 text-muted-foreground" />
+                                Monthly Order Volume
+                                <span class="ml-auto flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                                    <span class="inline-block h-2.5 w-2.5 rounded-sm bg-orange-500 opacity-85"></span> Peak &nbsp;
+                                    <span class="inline-block h-2.5 w-2.5 rounded-sm bg-indigo-500 opacity-70"></span> Normal
+                                </span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div v-if="(props.movement_chart?.length ?? 0) === 0"
-                                class="flex items-center justify-center h-44 text-sm text-muted-foreground">
-                                No movement data yet.
+                            <div v-if="(props.monthly_orders?.every(d => d.total_orders === 0))"
+                                class="flex items-center justify-center h-48 text-sm text-muted-foreground">
+                                No order data yet.
                             </div>
                             <div v-else class="relative h-[220px]">
-                                <canvas ref="movementChartRef"></canvas>
+                                <canvas ref="ordersChartRef"></canvas>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <!-- Category Doughnut -->
+                    <!-- Order Status Donut -->
                     <Card>
                         <CardHeader class="pb-2">
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
-                                <BoxSelect class="h-4 w-4 text-muted-foreground" />
-                                Items by category
+                                <ShoppingBag class="h-4 w-4 text-muted-foreground" />
+                                Order Status
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="flex items-center justify-center">
-                            <div v-if="(props.category_breakdown?.length ?? 0) === 0"
-                                class="flex items-center justify-center h-44 text-sm text-muted-foreground">
-                                No categories yet.
+                            <div v-if="(props.order_stats?.total ?? 0) === 0"
+                                class="flex items-center justify-center h-48 text-sm text-muted-foreground">
+                                No orders yet.
                             </div>
                             <div v-else class="relative w-full h-[220px]">
-                                <canvas ref="categoryChartRef"></canvas>
+                                <canvas ref="orderStatusRef"></canvas>
                             </div>
                         </CardContent>
                     </Card>
 
                 </div>
 
-                <!-- ── 3. DECISION SUPPORT CARDS ── -->
+                <!-- ── 3. ORDER CHARTS ROW 2: Revenue Trend + Service Popularity ── -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <!-- Revenue Trend Line -->
+                    <Card class="md:col-span-2">
+                        <CardHeader class="pb-2">
+                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
+                                <TrendingUp class="h-4 w-4 text-muted-foreground" />
+                                Monthly Revenue Trend (12 months)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="(props.monthly_orders?.every(d => d.revenue === 0))"
+                                class="flex items-center justify-center h-48 text-sm text-muted-foreground">
+                                No revenue data yet.
+                            </div>
+                            <div v-else class="relative h-[220px]">
+                                <canvas ref="revenueChartRef"></canvas>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Service Popularity -->
+                    <Card>
+                        <CardHeader class="pb-2">
+                            <CardTitle class="text-sm font-semibold flex items-center gap-2">
+                                <Activity class="h-4 w-4 text-muted-foreground" />
+                                Service Popularity
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="flex items-center justify-center">
+                            <div v-if="(props.service_popularity?.length ?? 0) === 0"
+                                class="flex items-center justify-center h-48 text-sm text-muted-foreground">
+                                No service data yet.
+                            </div>
+                            <div v-else class="relative w-full h-[220px]">
+                                <canvas ref="serviceChartRef"></canvas>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                <!-- ── 4. DSS INSIGHT CARDS ── -->
                 <div v-if="dssInsights.length > 0">
                     <div class="flex items-center gap-2 mb-3">
-                        <div
-                            class="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                        <div class="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
                             <Lightbulb class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <h3 class="text-sm font-semibold">Decision support</h3>
-                        <span class="text-xs text-muted-foreground">— recommendations based on your current data</span>
+                        <h3 class="text-sm font-semibold">Decision Support</h3>
+                        <span class="text-xs text-muted-foreground">— recommendations based on your business data</span>
                     </div>
-
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                        <div v-for="(insight, i) in dssInsights" :key="i" class="rounded-xl border-l-4 p-4 flex gap-3"
+                        <div v-for="(insight, i) in dssInsights" :key="i"
+                            class="rounded-xl border-l-4 p-4 flex gap-3"
                             :class="[insightConfig[insight.type].bg, insightConfig[insight.type].border]">
                             <div class="mt-0.5 shrink-0">
                                 <component :is="insightConfig[insight.type].icon" class="h-4 w-4"
@@ -629,25 +893,20 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                             </div>
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1.5 mb-1.5">
-                                    <!-- severity badge -->
-                                    <span
-                                        class="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide"
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide"
                                         :class="{
                                             'bg-emerald-100 text-emerald-700': insight.type === 'success',
-                                            'bg-amber-100 text-amber-700': insight.type === 'warning',
-                                            'bg-red-100 text-red-700': insight.type === 'danger',
-                                            'bg-blue-100 text-blue-700': insight.type === 'info',
+                                            'bg-amber-100 text-amber-700':     insight.type === 'warning',
+                                            'bg-red-100 text-red-700':         insight.type === 'danger',
+                                            'bg-blue-100 text-blue-700':       insight.type === 'info',
                                         }">
-                                        {{ insight.type === 'danger' ? 'Critical' : insight.type === 'warning' ?
-                                            'Warning' : insight.type === 'success' ? 'Healthy' : 'Info' }}
+                                        {{ insight.type === 'danger' ? 'Critical' : insight.type === 'warning' ? 'Warning' : insight.type === 'success' ? 'Healthy' : 'Info' }}
                                     </span>
                                 </div>
                                 <p class="text-xs font-semibold mb-1" :class="insightConfig[insight.type].title">
                                     {{ insight.title }}
                                 </p>
-                                <p class="text-xs text-muted-foreground leading-relaxed">
-                                    {{ insight.message }}
-                                </p>
+                                <p class="text-xs text-muted-foreground leading-relaxed">{{ insight.message }}</p>
                             </div>
                         </div>
                     </div>
@@ -662,12 +921,9 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
                         <div class="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
                             <Clock class="h-8 w-8 text-yellow-500" />
                         </div>
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                            Awaiting Admin Approval
-                        </h2>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Awaiting Admin Approval</h2>
                         <p class="text-sm text-muted-foreground">
-                            Your payment has been received. Please wait while our admin reviews and approves your
-                            account.
+                            Your payment has been received. Please wait while our admin reviews and approves your account.
                             You'll have full access once approved.
                         </p>
                     </div>
@@ -677,9 +933,7 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
             <!-- NOT PAID: Order Form -->
             <template v-else>
                 <div v-if="!showOrder" class="rounded-xl bg-gray-100 dark:bg-neutral-800 p-6">
-                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
-                        Welcome {{ user.name }} 👋
-                    </h2>
+                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Welcome {{ user.name }} 👋</h2>
                     <p class="text-gray-600 dark:text-gray-400 mt-2 max-w-2xl">
                         Complete your shop details and select the plans you need.
                     </p>

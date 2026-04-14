@@ -9,6 +9,7 @@ use App\Models\Inventory;
 use App\Models\Module;
 use App\Models\InventoryMovement;
 use App\Models\LowStockAlert;
+use App\Models\ShopOrder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -26,8 +27,32 @@ class ShopDashboardController extends Controller
             ->latest()
             ->first();
 
-        // If not paid/approved, check if the latest order was rejected.
+        // If not paid/approved, check if expired or rejected.
         if (! $order) {
+            $latestOrder = $user->orders()->latest()->first();
+
+            // Expired subscription — show renew banner
+            if ($latestOrder && $latestOrder->status === 'expired') {
+                return Inertia::render('shop/Dashboard', [
+                    'modules'        => Module::all(),
+                    'order'          => null,
+                    'rejected_order' => null,
+                    'expired_order'  => [
+                        'plan_name'  => $latestOrder->plan_name,
+                        'expires_at' => $latestOrder->expires_at,
+                    ],
+                    'shop' => $shop ? [
+                        'shop_name'    => $shop->shop_name,
+                        'phone'        => $shop->phone,
+                        'block_street' => $shop->block_street,
+                        'municipality' => $shop->municipality,
+                        'barangay'     => $shop->barangay,
+                        'postal_code'  => $shop->postal_code,
+                        'status'       => $shop->status,
+                    ] : null,
+                ]);
+            }
+
             $rejectedOrder = $user->orders()
                 ->where('status', 'rejected')
                 ->latest()
@@ -43,6 +68,7 @@ class ShopDashboardController extends Controller
                     'total_price'      => $rejectedOrder->total_price,
                     'email'            => $rejectedOrder->email,
                 ] : null,
+                'expired_order'  => null,
                 'shop' => $shop ? [
                     'shop_name'    => $shop->shop_name,
                     'phone'        => $shop->phone,
@@ -186,6 +212,86 @@ class ShopDashboardController extends Controller
             ])
             ->values();
 
+        // ── LAUNDRY ORDER DATA ────────────────────────────────────────────────
+
+        // Order KPIs
+        $totalOrders     = ShopOrder::forShop($shopId)->count();
+        $completedOrders = ShopOrder::forShop($shopId)->completed()->count();
+        $pendingOrders   = ShopOrder::forShop($shopId)->pending()->count();
+        $inProgressOrders = ShopOrder::forShop($shopId)->inProgress()->count();
+        $completionRate  = $totalOrders > 0
+            ? round(($completedOrders / $totalOrders) * 100, 1)
+            : 0;
+        $totalRevenue = (float) ShopOrder::forShop($shopId)
+            ->where('payment_status', 'paid')
+            ->sum('total_amount');
+        $avgOrderValue = $completedOrders > 0
+            ? round(ShopOrder::forShop($shopId)->completed()->avg('total_amount'), 2)
+            : 0;
+        $ordersThisMonth = ShopOrder::forShop($shopId)
+            ->where('created_at', '>=', $thisMonthStart)->count();
+        $ordersLastMonth = ShopOrder::forShop($shopId)
+            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
+        $ordersChange = $ordersLastMonth > 0
+            ? round((($ordersThisMonth - $ordersLastMonth) / $ordersLastMonth) * 100, 1)
+            : ($ordersThisMonth > 0 ? 100 : 0);
+
+        // Monthly orders — full 12-month grid (fills zeros for months with no orders)
+        $months12 = collect();
+        for ($i = 11; $i >= 0; $i--) {
+            $m = $now->copy()->subMonths($i)->startOfMonth();
+            $months12->put($m->format('Y-m'), [
+                'month'        => $m->format('M'),
+                'month_key'    => $m->format('Y-m'),
+                'total_orders' => 0,
+                'completed'    => 0,
+                'revenue'      => 0.0,
+            ]);
+        }
+        $rawMonthlyOrders = ShopOrder::forShop($shopId)
+            ->where('created_at', '>=', $now->copy()->subMonths(11)->startOfMonth())
+            ->select(
+                DB::raw("DATE_FORMAT(created_at, '%b') as month"),
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month_key"),
+                DB::raw("COUNT(*) as total_orders"),
+                DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed"),
+                DB::raw("COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END), 0) as revenue")
+            )
+            ->groupBy('month_key', 'month')
+            ->orderBy('month_key')
+            ->get();
+        foreach ($rawMonthlyOrders as $row) {
+            if ($months12->has($row->month_key)) {
+                $months12[$row->month_key] = [
+                    'month'        => $row->month,
+                    'month_key'    => $row->month_key,
+                    'total_orders' => (int) $row->total_orders,
+                    'completed'    => (int) $row->completed,
+                    'revenue'      => (float) $row->revenue,
+                ];
+            }
+        }
+        $monthlyOrders = $months12->values();
+
+        // Service popularity
+        $servicePopularity = ShopOrder::forShop($shopId)
+            ->select(
+                'service_id',
+                DB::raw('COUNT(*) as order_count'),
+                DB::raw('COALESCE(SUM(total_amount), 0) as revenue')
+            )
+            ->with('service:id,service_name')
+            ->groupBy('service_id')
+            ->orderByDesc('order_count')
+            ->limit(6)
+            ->get()
+            ->map(fn($r) => [
+                'name'        => $r->service?->service_name ?? 'Unknown',
+                'order_count' => (int) $r->order_count,
+                'revenue'     => (float) $r->revenue,
+            ])
+            ->values();
+
         return Inertia::render('shop/Dashboard', [
             'modules' => $order->modules,
             'order'   => [
@@ -207,6 +313,26 @@ class ShopDashboardController extends Controller
             'employees_per_branch' => $employeesPerBranch,
             'low_stock_items'     => $lowStockItems,
             'recent_movements'    => $recentMovements,
+
+            'order_stats' => [
+                'total'           => $totalOrders,
+                'completed'       => $completedOrders,
+                'pending'         => $pendingOrders,
+                'in_progress'     => $inProgressOrders,
+                'completion_rate' => $completionRate,
+                'total_revenue'   => $totalRevenue,
+                'avg_order_value' => (float) $avgOrderValue,
+                'this_month'      => $ordersThisMonth,
+                'last_month'      => $ordersLastMonth,
+                'orders_change'   => $ordersChange,
+            ],
+            'monthly_orders'     => $monthlyOrders,
+            'service_popularity' => $servicePopularity,
+            'order_status_dist'  => [
+                'pending'     => $pendingOrders,
+                'in_progress' => $inProgressOrders,
+                'completed'   => $completedOrders,
+            ],
 
             'shop' => $shop ? [
                 'shop_name'    => $shop->shop_name,

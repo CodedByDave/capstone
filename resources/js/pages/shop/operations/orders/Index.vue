@@ -77,7 +77,8 @@ watch(
 
 // ─── Base URL ──────────────────────────────────────
 
-const base = '/shop/operations/orders'
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const base = computed(() => isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders')
 
 // ─── Filters ───────────────────────────────────────
 
@@ -86,7 +87,7 @@ const status        = ref(props.filters.status ?? '')
 const paymentStatus = ref(props.filters.payment_status ?? '')
 
 const applyFilters = debounce(() => {
-    router.get(base, {
+    router.get(base.value, {
         search:         search.value || undefined,
         status:         status.value || undefined,
         payment_status: paymentStatus.value || undefined,
@@ -159,7 +160,7 @@ const paymentStyle = (s: string) => ({
 // ─── Toggle Archive View ───────────────────────────
 
 const toggleArchived = () => {
-    router.get(base, { archived: props.showArchived ? undefined : true }, {
+    router.get(base.value, { archived: props.showArchived ? undefined : true }, {
         preserveState: false,
         replace: true,
     })
@@ -168,11 +169,11 @@ const toggleArchived = () => {
 // ─── Restore ───────────────────────────────────────
 
 const restoreOrder = (order: Order) => {
-    router.patch(`${base}/${order.id}/restore`)
+    router.patch(`${base.value}/${order.id}/restore`)
 }
 
 const restoreAll = () => {
-    router.post(`${base}/restore-all`)
+    router.post(`${base.value}/restore-all`)
 }
 
 // ─── Delete Dialog ─────────────────────────────────
@@ -187,7 +188,7 @@ const confirmDelete = (order: Order) => {
 
 const handleDelete = () => {
     if (!orderToDelete.value) return
-    router.delete(`${base}/${orderToDelete.value.id}`)
+    router.delete(`${base.value}/${orderToDelete.value.id}`)
     showDeleteDialog.value = false
     orderToDelete.value   = null
 }

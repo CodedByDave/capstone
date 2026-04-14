@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
+import { Head, router, useForm, usePage } from '@inertiajs/vue3'
 import { type BreadcrumbItem } from '@/types'
+import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,10 +17,14 @@ interface Supplier {
 
 const { supplier } = defineProps<{ supplier: Supplier }>()
 
+const page = usePage()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Inventory', href: '/shop/inventory' },
-    { title: 'Suppliers', href: '/shop/supplier' },
-    { title: 'Edit', href: `/shop/supplier/${supplier.id}/edit` },
+    { title: 'Inventory', href: `${baseRoute.value}/inventory` },
+    { title: 'Suppliers', href: `${baseRoute.value}/supplier` },
+    { title: 'Edit', href: `${baseRoute.value}/supplier/${supplier.id}/edit` },
 ]
 
 const form = useForm({
@@ -33,7 +38,7 @@ const form = useForm({
 })
 
 function submit() {
-    form.put(`/shop/supplier/${supplier.id}`)
+    form.put(`${baseRoute.value}/supplier/${supplier.id}`)
 }
 </script>
 
@@ -47,7 +52,7 @@ function submit() {
                     <h2 class="text-lg font-semibold">Edit Supplier</h2>
                     <p class="text-sm text-muted-foreground">Update details for <span class="font-medium text-foreground">{{ supplier.name }}</span>.</p>
                 </div>
-                <Button variant="outline" @click="router.visit('/shop/supplier')">
+                <Button variant="outline" @click="router.visit(`${baseRoute}/supplier`)">
                     <ArrowLeft class="h-4 w-4 mr-2" /> Back
                 </Button>
             </div>
@@ -103,7 +108,7 @@ function submit() {
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" :disabled="form.processing" @click="router.visit('/shop/supplier')">Cancel</Button>
+                <Button variant="outline" :disabled="form.processing" @click="router.visit(`${baseRoute}/supplier`)">Cancel</Button>
                 <Button :disabled="form.processing" @click="submit">
                     <Loader2 v-if="form.processing" class="h-4 w-4 mr-2 animate-spin" />
                     {{ form.processing ? 'Saving...' : 'Save Changes' }}

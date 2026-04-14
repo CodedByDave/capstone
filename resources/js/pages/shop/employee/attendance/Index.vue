@@ -87,8 +87,8 @@ onMounted(() => {
 })
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Employee Management', href: '/shop/employee' },
-    { title: 'Attendance', href: '/shop/attendance' },
+    { title: 'Employee Management', href: `${baseRoute.value}/employee` },
+    { title: 'Attendance', href: `${baseRoute.value}/attendance` },
 ]
 
 // ─── Date Navigation ──────────────────────────────────────────────────────────

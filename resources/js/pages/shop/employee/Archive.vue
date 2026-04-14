@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
 import { type BreadcrumbItem } from '@/types'
 import { ref, computed } from 'vue'
 
@@ -43,11 +43,15 @@ interface ArchivedEmployee {
 
 const { archived } = defineProps<{ archived: ArchivedEmployee[] }>()
 
+const page = usePage()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Employee Management', href: '/shop/employee' },
-    { title: 'Archive', href: '/shop/employee/archive' },
+    { title: 'Employee Management', href: `${baseRoute.value}/employee` },
+    { title: 'Archive', href: `${baseRoute.value}/employee/archive` },
 ]
 
 // ─── Search ───────────────────────────────────────────────────────────────────
@@ -99,7 +103,7 @@ const formatDate = (val: string) =>
 // ─── Single restore ───────────────────────────────────────────────────────────
 
 function restore(employeeIdRef: number) {
-    router.post(`/shop/employee/${employeeIdRef}/restore`, {}, { preserveScroll: true })
+    router.post(`${baseRoute.value}/employee/${employeeIdRef}/restore`, {}, { preserveScroll: true })
 }
 
 // ─── Bulk restore ─────────────────────────────────────────────────────────────
@@ -114,7 +118,7 @@ function confirmBulk() {
 function executeBulkRestore() {
     showBulkConfirm.value = false
     router.post(
-        '/shop/employee/bulk-restore',
+        `${baseRoute.value}/employee/bulk-restore`,
         { ids: selected.value },
         {
             preserveScroll: true,
@@ -134,7 +138,7 @@ function executeBulkRestore() {
 
             <!-- Back button -->
             <div>
-                <Button type="button" variant="outline" @click="router.visit('/shop/employee')">
+                <Button type="button" variant="outline" @click="router.visit(`${baseRoute}/employee`)">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back to Employees
                 </Button>

@@ -62,9 +62,9 @@ const props = defineProps<{
     inventoryItems?: InventoryItem[]
 }>()
 
-const base = '/shop/operations/orders'
-
 const page = usePage<AppPageProps>()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const base = computed(() => isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders')
 onMounted(() => {
     const t = page.props.toast as any
     if (!t) return
@@ -193,7 +193,7 @@ watch(() => form.supplies.map(s => s.quantity_used), recalcSupplyCharges, { deep
 
 const submit = () => {
     form.total_amount = String(computedTotal.value)
-    form.put(`${base}/${props.shopOrder.id}`)
+    form.put(`${base.value}/${props.shopOrder.id}`)
 }
 </script>
 

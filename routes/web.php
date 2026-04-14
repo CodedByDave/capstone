@@ -30,6 +30,7 @@ use App\Http\Controllers\Shop\Finance\FinanceDashboardController;
 use App\Http\Controllers\Shop\Finance\ExpenseController;
 use App\Http\Controllers\Shop\PaymentQrController;
 use App\Http\Controllers\Shop\ShopSettingsController;
+use App\Http\Controllers\Shop\UpgradeController;
 use App\Http\Controllers\Shop\LogisticsController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
@@ -279,9 +280,17 @@ Route::patch('operations/orders/{order}/restore',   [ShopOrderController::class,
     Route::post('/payment-qr', [PaymentQrController::class, 'update'])->name('shop.payment-qr.update');
 
     // ── Shop Settings ─────────────────────────────────────────────────────────
-    Route::get('/settings',            [ShopSettingsController::class, 'index'])->name('shop.settings');
-    Route::post('/settings/geo',       [ShopSettingsController::class, 'updateGeo'])->name('shop.settings.geo');
-    Route::post('/settings/geo/clear', [ShopSettingsController::class, 'clearGeo'])->name('shop.settings.geo.clear');
+    // ── Upgrade Plan ──────────────────────────────────────────────────────────
+    Route::get('/upgrade',         [UpgradeController::class, 'show'])->name('shop.upgrade');
+    Route::post('/upgrade/select', [UpgradeController::class, 'select'])->name('shop.upgrade.select');
+    Route::get('/upgrade/confirm', [UpgradeController::class, 'confirm'])->name('shop.upgrade.confirm');
+    Route::post('/upgrade/process',[UpgradeController::class, 'process'])->name('shop.upgrade.process');
+
+    Route::get('/settings',                    [ShopSettingsController::class, 'index'])->name('shop.settings');
+    Route::post('/settings/geo',               [ShopSettingsController::class, 'updateGeo'])->name('shop.settings.geo');
+    Route::post('/settings/geo/clear',         [ShopSettingsController::class, 'clearGeo'])->name('shop.settings.geo.clear');
+    Route::post('/settings/cover-photo',       [ShopSettingsController::class, 'updateCoverPhoto'])->name('shop.settings.cover-photo');
+    Route::post('/settings/cover-photo/clear', [ShopSettingsController::class, 'removeCoverPhoto'])->name('shop.settings.cover-photo.clear');
 
     // ── Logistics ─────────────────────────────────────────────────────────────
     Route::get('/logistics',                        [LogisticsController::class, 'index'])->name('shop.logistics');

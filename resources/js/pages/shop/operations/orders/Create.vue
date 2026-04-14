@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
+import { Head, router, useForm, usePage } from '@inertiajs/vue3'
 import { computed, watch } from 'vue'
+import { type AppPageProps } from '@/types'
 
 // ─── Types ─────────────────────────────────────────
 
@@ -42,7 +43,9 @@ const props = defineProps<{
 
 // ─── Base URL ──────────────────────────────────────
 
-const base = '/shop/operations/orders'
+const page = usePage<AppPageProps>()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const base = computed(() => isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders')
 
 // ─── Form ──────────────────────────────────────────
 
@@ -191,7 +194,7 @@ watch(() => form.supplies.map(s => s.quantity_used), recalcSupplyCharges, { deep
 
 const submit = () => {
     form.total_amount = computedTotal.value
-    form.post(base)
+    form.post(base.value)
 }
 </script>
 

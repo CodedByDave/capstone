@@ -62,7 +62,8 @@ watch(
 
 // ─── Base ──────────────────────────────────────────
 
-const base = '/shop/operations/services'
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const base = computed(() => isOwner.value ? '/shop/operations/services' : '/staff/operations/services')
 
 // ─── Search ────────────────────────────────────────
 
@@ -97,7 +98,7 @@ const formatPrice = (s: ShopService) =>
 // ─── Toggle View ───────────────────────────────────
 
 const toggleArchived = () => {
-    router.get(base, { archived: props.showArchived ? undefined : true }, {
+    router.get(base.value, { archived: props.showArchived ? undefined : true }, {
         preserveState: false,
         replace: true,
     })
@@ -115,7 +116,7 @@ const confirmDelete = (service: ShopService) => {
 
 const handleDelete = () => {
     if (!serviceToDelete.value) return
-    router.delete(`${base}/${serviceToDelete.value.id}`)
+    router.delete(`${base.value}/${serviceToDelete.value.id}`)
     showDeleteDialog.value = false
     serviceToDelete.value = null
 }
@@ -123,17 +124,17 @@ const handleDelete = () => {
 // ─── Restore ───────────────────────────────────────
 
 const restoreService = (service: ShopService) => {
-    router.patch(`${base}/${service.id}/restore`)
+    router.patch(`${base.value}/${service.id}/restore`)
 }
 
 const restoreAll = () => {
-    router.post(`${base}/restore-all`)
+    router.post(`${base.value}/restore-all`)
 }
 
 // ─── Toggle Active ─────────────────────────────────
 
 const toggleActive = (service: ShopService) => {
-    router.patch(`${base}/${service.id}/toggle`)
+    router.patch(`${base.value}/${service.id}/toggle`)
 }
 </script>
 

@@ -16,7 +16,7 @@ import {
     DollarSign, Scissors, PieChart, FileText,
     TrendingUp, Tag, Users, Briefcase, CalendarClock,
     Banknote, CreditCard, Receipt, Wallet,
-    BadgeDollarSign, LineChart, BookOpen, CreditCardIcon, QrCode, Settings,
+    BadgeDollarSign, LineChart, BookOpen, CreditCardIcon, QrCode, Settings, ArrowUp,
 } from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
 import { computed, ref, watch } from 'vue'
@@ -42,8 +42,8 @@ const allHrmSubActions = [
     {
         title: 'Branch List',
         icon: Building2,
-        href: isOwner.value ? '/shop/branch' : '/staff/branch',
-        show: () => isOwner.value || can('HRM', 'view'),
+        href: '/shop/branch',
+        show: () => isOwner.value,
     },
     {
         title: 'Employee List',
@@ -66,8 +66,8 @@ const allHrmSubActions = [
     {
         title: 'Activity Logs',
         icon: Clock,
-        href: isOwner.value ? '/shop/logs' : '/staff/logs',
-        show: () => isOwner.value || can('HRM', 'view'),
+        href: '/shop/logs',
+        show: () => isOwner.value,
     },
 ]
 
@@ -436,6 +436,14 @@ const dashboardItem = computed(() => [{
                         <Link href="/shop/permission" class="flex items-center gap-2 w-full">
                             <ShieldCheck class="w-4 h-4" />
                             <span>Roles & Permission</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem v-if="isOwner">
+                    <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/upgrade')">
+                        <Link href="/shop/upgrade" class="flex items-center gap-2 w-full">
+                            <ArrowUp class="w-4 h-4" />
+                            <span>Upgrade Plan</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
+import { Head, router, useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
+import { type AppPageProps } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -24,7 +25,9 @@ const props = defineProps<{
     pricingModels: string[]
 }>()
 
-const base = '/shop/operations/services'
+const page = usePage<AppPageProps>()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const base = computed(() => isOwner.value ? '/shop/operations/services' : '/staff/operations/services')
 
 const form = useForm({
     service_name:     props.service.service_name,
@@ -49,7 +52,7 @@ const onModelChange = () => {
 }
 
 const submit = () => {
-    form.put(`${base}/${props.service.id}`)
+    form.put(`${base.value}/${props.service.id}`)
 }
 </script>
 

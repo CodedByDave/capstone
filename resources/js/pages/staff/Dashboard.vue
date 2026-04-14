@@ -418,8 +418,8 @@ function fmtDate(d: string): string {
                 </div>
             </div>
 
-            <!-- ── Personal Attendance History (only when no module access) ── -->
-            <div v-if="accessibleModules.length === 0">
+            <!-- ── Personal Attendance History ── -->
+            <div>
                 <div class="flex items-center gap-2 mb-3">
                     <CalendarClock class="h-4 w-4 text-muted-foreground" />
                     <h3 class="text-sm font-semibold">My Attendance — Last 30 Days</h3>

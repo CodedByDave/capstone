@@ -117,7 +117,7 @@ function applyFilters() {
             date_from:   dateFrom.value || undefined,
             date_to:     dateTo.value || undefined,
         },
-        { preserveState: true, replace: true },
+        { replace: true },
     )
 }
 
@@ -126,7 +126,7 @@ function clearFilters() {
     categoryId.value = 'all'
     dateFrom.value   = ''
     dateTo.value     = ''
-    router.get(`${base.value}/finance/expenses`, {}, { preserveState: true, replace: true })
+    router.get(`${base.value}/finance/expenses`, {}, { replace: true })
 }
 
 // ─── Create Dialog ────────────────────────────────────────────────────────────
@@ -257,7 +257,7 @@ function goToPage(p: number) {
     router.get(
         `${base.value}/finance/expenses`,
         { page: p, ...props.filters },
-        { preserveScroll: true, preserveState: true },
+        { preserveScroll: true },
     )
 }
 

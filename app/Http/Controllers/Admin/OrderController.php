@@ -45,6 +45,14 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->update(['status' => 'approved']);
 
+        // If this is a plan upgrade, expire all previous active orders for this user
+        if ($order->is_upgrade) {
+            Order::where('user_id', $order->user_id)
+                ->whereIn('status', ['approved', 'paid'])
+                ->where('id', '!=', $order->id)
+                ->update(['status' => 'expired']);
+        }
+
         // Create the shop record if it doesn't exist yet, then activate it.
         // The Order holds all shop details submitted during checkout.
         Shop::withTrashed()->updateOrCreate(
@@ -61,8 +69,12 @@ class OrderController extends Controller
             ]
         );
 
+        $message = $order->is_upgrade
+            ? "{$order->shop_name} plan upgraded to {$order->plan_name}. Previous plan expired."
+            : "{$order->shop_name} has been approved. Shop now has dashboard access.";
+
         return redirect()->back()
-            ->with('toast', ['type' => 'success', 'message' => "{$order->shop_name} has been approved. Shop now has dashboard access."]);
+            ->with('toast', ['type' => 'success', 'message' => $message]);
     }
 
     public function reject(Request $request, $id)

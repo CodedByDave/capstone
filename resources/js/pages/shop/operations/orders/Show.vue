@@ -52,7 +52,6 @@ const props = defineProps<{
     maya_qr:  string | null
 }>()
 
-const base    = '/shop/operations/orders'
 const sending = ref(false)
 
 const activeQr = computed(() => {
@@ -67,13 +66,16 @@ const isDigitalPayment = computed(() =>
 
 function sendPaymentRequest() {
     sending.value = true
-    router.post(`${base}/${props.shopOrder.id}/payment-request`, {}, {
+    router.post(`${base.value}/${props.shopOrder.id}/payment-request`, {}, {
         preserveScroll: true,
         onFinish: () => { sending.value = false },
     })
 }
 
 const page = usePage<AppPageProps>()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const base = computed(() => isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders')
+
 onMounted(() => {
     const t = page.props.toast as any
     if (!t) return

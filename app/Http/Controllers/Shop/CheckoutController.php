@@ -7,12 +7,12 @@ use App\Http\Requests\Shop\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Shop;
+use Illuminate\Support\Facades\DB;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\PaymongoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -303,6 +303,34 @@ class CheckoutController extends Controller
                         ]);
 
                         $order?->update(['status' => 'paid']);
+
+                        // Upgrade orders are auto-approved — no admin review needed.
+                        if ($order && $order->is_upgrade) {
+                            DB::transaction(function () use ($order) {
+                                $order->update(['status' => 'approved']);
+
+                                // Expire all previously active/paid orders for this user.
+                                Order::where('user_id', $order->user_id)
+                                    ->whereIn('status', ['approved', 'paid'])
+                                    ->where('id', '!=', $order->id)
+                                    ->update(['status' => 'expired']);
+
+                                // Update the shop record with the new plan details.
+                                Shop::withTrashed()->updateOrCreate(
+                                    ['owner_id' => $order->user_id],
+                                    [
+                                        'shop_name'    => $order->shop_name,
+                                        'phone'        => $order->phone       ?? null,
+                                        'block_street' => $order->block_street ?? null,
+                                        'municipality' => $order->municipality ?? '',
+                                        'barangay'     => $order->barangay     ?? '',
+                                        'postal_code'  => $order->postal_code  ?? null,
+                                        'status'       => 'active',
+                                        'deleted_at'   => null,
+                                    ]
+                                );
+                            });
+                        }
 
                         $payment = $payment->fresh();
                         $order   = $order->fresh()->load('modules');

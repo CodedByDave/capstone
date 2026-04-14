@@ -1,1 +1,0 @@
-import{_ as r}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{b as c,j as e}from"./app-CgY6_SaV.js";const n={};function o(t,a){return e(),c("div",null,"Branch")}const f=r(n,[["render",o]]);export{f as default};

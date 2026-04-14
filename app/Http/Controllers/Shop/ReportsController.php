@@ -219,12 +219,14 @@ class ReportsController extends Controller
             ];
         })->values();
 
+        // Schedules store a recurring day-of-week (e.g. "Monday"), not a specific date.
+        // Count distinct employees that have at least one scheduled day.
         $scheduledThisWeek = EmployeeSchedule::whereHas(
             'employee',
             fn($q) => $q->where('shop_id', $shop->id)->when($branch, fn($q) => $q->where('branch_name', $branch))
         )
-            ->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
-            ->count();
+            ->distinct('employee_id')
+            ->count('employee_id');
 
         $recentEmployees = $this->scopeEmployees($shop, $branch)
             ->latest()

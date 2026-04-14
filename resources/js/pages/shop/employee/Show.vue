@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 import { type BreadcrumbItem } from '@/types'
 
 // shadcn components
@@ -61,6 +62,10 @@ interface Schedule {
 
 const { employee, schedules } = defineProps<{ employee: Employee; schedules: Schedule[] }>()
 
+const page = usePage()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+
 const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const getScheduleForDay = (day: string) => schedules?.find(s => s.day === day)
@@ -75,8 +80,8 @@ function fmtTime(time: string): string {
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Employee Management', href: '/shop/employee' },
-    { title: `${employee.first_name} ${employee.last_name}`, href: `/shop/employee/${employee.id}` },
+    { title: 'Employee Management', href: `${baseRoute.value}/employee` },
+    { title: `${employee.first_name} ${employee.last_name}`, href: `${baseRoute.value}/employee/${employee.id}` },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -96,9 +101,9 @@ const formatDateTime = (val: string) =>
 // ─── Archive ──────────────────────────────────────────────────────────────────
 
 function archiveEmployee() {
-    router.delete(`/shop/employee/${employee.id}`, {
+    router.delete(`${baseRoute.value}/employee/${employee.id}`, {
         preserveScroll: true,
-        onSuccess: () => router.visit('/shop/employee'),
+        onSuccess: () => router.visit(`${baseRoute.value}/employee`),
     })
 }
 </script>
@@ -113,7 +118,7 @@ function archiveEmployee() {
 
             <!-- ── Actions bar ─────────────────────────────────────────── -->
             <div class="flex items-center justify-between">
-                <Button type="button" variant="outline" @click="router.visit('/shop/employee')">
+                <Button type="button" variant="outline" @click="router.visit(`${baseRoute}/employee`)">
                     <ArrowLeft class="h-4 w-4 mr-2" /> Back to Employees
                 </Button>
             </div>

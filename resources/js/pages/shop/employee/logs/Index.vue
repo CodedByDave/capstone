@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
 import { type BreadcrumbItem } from '@/types'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,6 +56,10 @@ interface PaginatedLogs {
 
 /* ───────── PROPS ───────── */
 
+const page = usePage()
+const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+
 const { logs, performers, modules, filters } = defineProps<{
     logs: PaginatedLogs
     performers: Performer[]
@@ -73,8 +77,8 @@ const { logs, performers, modules, filters } = defineProps<{
 /* ───────── BREADCRUMBS ───────── */
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Employee Management', href: '/shop/employee' },
-    { title: 'Activity Logs', href: '/shop/logs' },
+    { title: 'Employee Management', href: `${baseRoute.value}/employee` },
+    { title: 'Activity Logs', href: `${baseRoute.value}/logs` },
 ]
 
 /* ───────── FILTER STATE ───────── */
@@ -88,8 +92,8 @@ const dateTo       = ref(filters.date_to ?? '')
 
 /* ───────── FILTER FUNCTIONS ───────── */
 
-function applyFilters(page = 1) {
-    router.get('/shop/logs', {
+function applyFilters(currentPage = 1) {
+    router.get(`${baseRoute.value}/logs`, {
         search:       search.value || undefined,
         action:       action.value === '__all__' ? undefined : action.value,
         performed_by: performedBy.value === '__all__' ? undefined : performedBy.value,
@@ -97,7 +101,7 @@ function applyFilters(page = 1) {
         date_from:    dateFrom.value || undefined,
         date_to:      dateTo.value || undefined,
         per_page:     10,
-        page,
+        page: currentPage,
     }, { preserveScroll: true, preserveState: false })
 }
 
@@ -136,15 +140,15 @@ function subjectMeta(log: ActivityLog): string | null {
     return log.subject.employee_id ?? log.subject.sku ?? null
 }
 
-const MODULE_ROUTES: Record<string, string> = {
-    Employee: '/shop/employee',
-    Product:  '/shop/product',
-    Attendance: '/shop/attendance',
-}
+const moduleRoutes = computed<Record<string, string>>(() => ({
+    Employee: `${baseRoute.value}/employee`,
+    Product:  `${baseRoute.value}/product`,
+    Attendance: `${baseRoute.value}/attendance`,
+}))
 
 function subjectUrl(log: ActivityLog): string | null {
     if (!log.subject) return null
-    const base = MODULE_ROUTES[log.module]
+    const base = moduleRoutes.value[log.module]
     return base ? `${base}/${log.subject.id}` : null
 }
 
@@ -205,7 +209,7 @@ function toggleRow(id: number) {
                         Track all changes across every system module.
                     </p>
                 </div>
-                <Button variant="outline" @click="router.visit('/shop/employee')">
+                <Button variant="outline" @click="router.visit(`${baseRoute}/employee`)">
                     <ChevronLeft class="h-4 w-4 mr-1.5" /> Back to Employees
                 </Button>
             </div>

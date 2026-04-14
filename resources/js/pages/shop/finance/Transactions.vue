@@ -67,7 +67,7 @@ function applyFilters() {
             date_from: dateFrom.value || undefined,
             date_to:   dateTo.value   || undefined,
         },
-        { preserveState: true, replace: true },
+        { replace: true },
     )
 }
 
@@ -78,7 +78,7 @@ function clearFilters() {
     router.get(
         `${base.value}/finance/transactions`,
         { date_from: dateFrom.value, date_to: dateTo.value },
-        { preserveState: true, replace: true },
+        { replace: true },
     )
 }
 

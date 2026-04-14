@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
     MapPin, Navigation, Loader2, ExternalLink, Trash2,
-    Building2, CheckCircle2, AlertTriangle,
+    Building2, CheckCircle2, AlertTriangle, ImagePlus, Upload,
 } from 'lucide-vue-next'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -25,6 +25,7 @@ const props = defineProps<{
         latitude: number | null
         longitude: number | null
         status: string
+        cover_photo: string | null
     }
 }>()
 
@@ -38,6 +39,46 @@ onMounted(() => {
     else if (flash.type === 'error') toast.error(flash.message)
     else toast(flash.message)
 })
+
+// ─── Cover photo ──────────────────────────────────────────────────────────────
+
+const coverFile    = ref<File | null>(null)
+const coverPreview = ref<string | null>(props.shop.cover_photo)
+const uploadingCover = ref(false)
+const removingCover  = ref(false)
+const coverInput   = ref<HTMLInputElement | null>(null)
+
+function onCoverChange(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (!file) return
+    coverFile.value    = file
+    coverPreview.value = URL.createObjectURL(file)
+}
+
+function uploadCover() {
+    if (!coverFile.value) return
+    uploadingCover.value = true
+    const data = new FormData()
+    data.append('cover_photo', coverFile.value)
+    router.post('/shop/settings/cover-photo', data, {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => { coverFile.value = null },
+        onFinish: () => { uploadingCover.value = false },
+    })
+}
+
+function removeCover() {
+    removingCover.value = true
+    router.post('/shop/settings/cover-photo/clear', {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            coverFile.value    = null
+            coverPreview.value = null
+        },
+        onFinish: () => { removingCover.value = false },
+    })
+}
 
 // ─── Geo form ─────────────────────────────────────────────────────────────────
 
@@ -145,6 +186,59 @@ function clearGeo() {
                             </p>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <!-- ── Cover Photo ── -->
+            <Card>
+                <CardHeader class="pb-3">
+                    <div class="flex items-center gap-2">
+                        <ImagePlus class="h-4 w-4 text-muted-foreground" />
+                        <CardTitle class="text-sm">Cover Photo</CardTitle>
+                    </div>
+                    <CardDescription class="text-xs">
+                        This photo appears on your shop card in the user dashboard and shop listing.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent class="space-y-4">
+
+                    <!-- Preview area -->
+                    <div class="relative h-48 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 overflow-hidden group flex items-center justify-center">
+                        <img v-if="coverPreview" :src="coverPreview" alt="Cover photo"
+                            class="h-full w-full object-cover" />
+                        <div v-else class="flex flex-col items-center gap-2 text-muted-foreground">
+                            <ImagePlus class="h-10 w-10 opacity-30" />
+                            <p class="text-xs">No cover photo uploaded</p>
+                        </div>
+
+                        <!-- Remove button overlay -->
+                        <button v-if="coverPreview" type="button"
+                            class="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow"
+                            :disabled="removingCover"
+                            @click="removeCover">
+                            <Loader2 v-if="removingCover" class="h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <!-- File input + actions -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <input ref="coverInput" type="file" accept="image/*" class="hidden"
+                            @change="onCoverChange" />
+
+                        <Button variant="outline" size="sm" @click="coverInput?.click()">
+                            <Upload class="h-3.5 w-3.5 mr-1.5" />
+                            {{ coverPreview ? 'Replace Photo' : 'Upload Photo' }}
+                        </Button>
+
+                        <Button v-if="coverFile" size="sm" :disabled="uploadingCover" @click="uploadCover">
+                            <Loader2 v-if="uploadingCover" class="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            {{ uploadingCover ? 'Saving…' : 'Save Photo' }}
+                        </Button>
+                    </div>
+
+                    <p class="text-xs text-muted-foreground">PNG, JPG or WEBP — max 4 MB.</p>
+
                 </CardContent>
             </Card>
 

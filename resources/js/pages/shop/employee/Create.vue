@@ -30,14 +30,14 @@ const { branch_names, shop, roles } = defineProps<{
     shop: Shop
 }>()
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Employee Management', href: '/shop/employee' },
-    { title: 'Add Employee', href: '/shop/employee/create' },
-]
-
 const page = usePage<AppPageProps>()
 const isOwner = computed(() => page.props.auth.user.role === 'owner')
 const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Employee Management', href: `${baseRoute.value}/employee` },
+    { title: 'Add Employee', href: `${baseRoute.value}/employee/create` },
+]
 const errors = computed(() => page.props.errors as Record<string, string>)
 
 function generateEmployeeId(): string {

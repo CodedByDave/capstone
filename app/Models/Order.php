@@ -30,6 +30,7 @@ class Order extends Model
         'expires_at',
         'plan_name',
         'billing_months',
+        'is_upgrade',
         'payment_method'
     ];
 

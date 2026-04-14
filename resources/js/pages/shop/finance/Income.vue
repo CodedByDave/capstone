@@ -82,7 +82,7 @@ function applyFilters() {
             date_to:   dateTo.value   || undefined,
             method:    method.value   || undefined,
         },
-        { preserveState: true, replace: true },
+        { replace: true },
     )
 }
 
@@ -90,7 +90,7 @@ function clearFilters() {
     dateFrom.value = ''
     dateTo.value   = ''
     method.value   = ''
-    router.get(`${base.value}/finance/income`, {}, { preserveState: true, replace: true })
+    router.get(`${base.value}/finance/income`, {}, { replace: true })
 }
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ function goToPage(p: number) {
     router.get(
         `${base.value}/finance/income`,
         { page: p, ...props.filters },
-        { preserveScroll: true, preserveState: true },
+        { preserveScroll: true },
     )
 }
 
