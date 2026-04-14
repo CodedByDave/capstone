@@ -130,9 +130,10 @@ class EmployeeService
 
             $employee = $this->employeeRepository->createForShop($shop, [
                 ...$data,
-                'user_id'    => $user->id,
-                'created_by' => auth()->id(),
-                'updated_by' => auth()->id(),
+                'user_id'     => $user->id,
+                'has_account' => 1,
+                'created_by'  => auth()->id(),
+                'updated_by'  => auth()->id(),
             ]);
 
             ShopRole::firstOrCreate(
@@ -190,7 +191,7 @@ class EmployeeService
                 'email_verified_at' => now(),
             ]);
 
-            $updated->update(['user_id' => $user->id]);
+            $updated->update(['user_id' => $user->id, 'has_account' => 1]);
 
             try {
                 Mail::to($user->email)->send(new EmployeeCredentialsMail(
@@ -259,10 +260,5 @@ class EmployeeService
             }
         }
         return $changes;
-    }
-
-    private function roleForPosition(string $position): string
-    {
-        return strtolower($position);
     }
 }

@@ -542,6 +542,7 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/orders/{order}',                      [UserOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders',                             [UserOrderController::class, 'store'])->name('orders.store');
     Route::post('/orders/{order}/request-delivery',    [UserOrderController::class, 'requestDelivery'])->name('orders.request-delivery');
+    Route::post('/orders/{order}/cancel',              [UserOrderController::class, 'cancel'])->name('orders.cancel');
 
     Route::get('/notifications',           [UserNotificationController::class, 'index'])->name('notifications');
     Route::get('/notifications/poll',      [UserNotificationController::class, 'poll'])->name('notifications.poll');

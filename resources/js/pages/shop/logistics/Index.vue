@@ -43,7 +43,9 @@ interface PendingOrder {
     order_number: string
     customer_name: string
     customer_phone: string | null
+    customer_email: string | null
     delivery_address: string | null
+    pickup_type: string
 }
 
 interface Stats { pending: number; assigned: number; picked_up: number; delivered: number; failed: number }
@@ -111,6 +113,7 @@ const createForm = ref({
     shop_order_id:    '',
     customer_name:    '',
     customer_phone:   '',
+    customer_email:   '',
     delivery_address: '',
     rider_id:         '',
     notes:            '',
@@ -120,6 +123,7 @@ function prefillFromOrder(orderId: string) {
     if (orderId === '__none__') {
         createForm.value.customer_name    = ''
         createForm.value.customer_phone   = ''
+        createForm.value.customer_email   = ''
         createForm.value.delivery_address = ''
         return
     }
@@ -128,10 +132,12 @@ function prefillFromOrder(orderId: string) {
     createForm.value.customer_name    = order.customer_name
     createForm.value.customer_phone   = order.customer_phone ?? ''
     createForm.value.delivery_address = order.delivery_address ?? ''
+    // Auto-fill email only when the order type is pickup
+    createForm.value.customer_email   = order.pickup_type === 'pickup' ? (order.customer_email ?? '') : ''
 }
 
 function openCreate() {
-    createForm.value = { shop_order_id: '', customer_name: '', customer_phone: '', delivery_address: '', rider_id: '', notes: '' }
+    createForm.value = { shop_order_id: '', customer_name: '', customer_phone: '', customer_email: '', delivery_address: '', rider_id: '', notes: '' }
     showCreate.value = true
 }
 
@@ -143,6 +149,7 @@ function submitCreate() {
         shop_order_id:    (orderId && orderId !== '__none__') ? orderId : null,
         customer_name:    createForm.value.customer_name,
         customer_phone:   createForm.value.customer_phone || null,
+        customer_email:   createForm.value.customer_email || null,
         delivery_address: createForm.value.delivery_address || null,
         rider_id:         (riderId && riderId !== '__none__') ? riderId : null,
         notes:            createForm.value.notes || null,
@@ -456,6 +463,13 @@ function fmtTime(d: string) {
                         <div class="space-y-1.5">
                             <label class="text-xs font-medium">Phone</label>
                             <Input v-model="createForm.customer_phone" placeholder="09XXXXXXXXX" class="h-9 text-sm" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium">
+                                Email
+                                <span v-if="createForm.customer_email" class="ml-1 text-blue-500 font-normal">(auto-filled)</span>
+                            </label>
+                            <Input v-model="createForm.customer_email" type="email" placeholder="customer@email.com" class="h-9 text-sm" />
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-xs font-medium">Delivery Address</label>

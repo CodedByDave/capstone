@@ -10,7 +10,7 @@ class Delivery extends Model
 {
     protected $fillable = [
         'shop_id', 'shop_order_id', 'rider_id',
-        'customer_name', 'customer_phone', 'delivery_address',
+        'customer_name', 'customer_phone', 'customer_email', 'delivery_address',
         'status', 'notes', 'driver_token',
         'assigned_at', 'picked_up_at', 'delivered_at',
     ];

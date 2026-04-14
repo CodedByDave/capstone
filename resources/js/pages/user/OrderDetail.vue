@@ -4,7 +4,7 @@ import { Head, router, useForm } from '@inertiajs/vue3'
 import UserLayout from '@/layouts/user/UserLayout.vue'
 import {
     ArrowLeft, MapPin, Phone, WashingMachine, CreditCard,
-    Package, Clock, CheckCircle2, Loader, Info, Truck, X,
+    Package, Clock, CheckCircle2, Loader, Info, Truck, X, AlertTriangle,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ interface Delivery {
 interface Order {
     id: number
     order_number: string
-    status: 'pending' | 'in_progress' | 'completed'
+    status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
     payment_status: 'unpaid' | 'partial' | 'paid'
     payment_method: string
     total_amount: number
@@ -58,9 +58,23 @@ const statusSteps = ['pending', 'in_progress', 'completed']
 const currentStep = computed(() => statusSteps.indexOf(props.order.status))
 
 const statusConfig = {
-    pending:     { label: 'Pending',     icon: Clock,         classes: 'text-yellow-600 bg-yellow-50' },
-    in_progress: { label: 'In Progress', icon: Loader,        classes: 'text-blue-600 bg-blue-50' },
-    completed:   { label: 'Completed',   icon: CheckCircle2,  classes: 'text-green-600 bg-green-50' },
+    pending:     { label: 'Pending',     icon: Clock,          classes: 'text-yellow-600 bg-yellow-50' },
+    in_progress: { label: 'In Progress', icon: Loader,         classes: 'text-blue-600 bg-blue-50' },
+    completed:   { label: 'Completed',   icon: CheckCircle2,   classes: 'text-green-600 bg-green-50' },
+    cancelled:   { label: 'Cancelled',   icon: X,              classes: 'text-red-600 bg-red-50' },
+}
+
+// ─── Cancel order ─────────────────────────────────────────────────────────────
+
+const showCancelConfirm = ref(false)
+const cancelling = ref(false)
+
+function confirmCancel() {
+    cancelling.value = true
+    router.post(`/user/orders/${props.order.id}/cancel`, {}, {
+        preserveScroll: true,
+        onFinish: () => { cancelling.value = false },
+    })
 }
 
 const paymentConfig = {
@@ -122,9 +136,17 @@ const deliveryStatusConfig = {
             <!-- ── Status progress bar ────────────────────────── -->
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Order Status</p>
-                <div class="flex items-center gap-0">
+
+                <!-- Cancelled banner -->
+                <div v-if="order.status === 'cancelled'"
+                    class="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                    <X class="h-4 w-4 text-red-500 shrink-0" />
+                    <p class="text-sm font-semibold text-red-600">This order has been cancelled.</p>
+                </div>
+
+                <!-- Normal progress steps -->
+                <div v-else class="flex items-center gap-0">
                     <template v-for="(step, idx) in statusSteps" :key="step">
-                        <!-- Step circle -->
                         <div class="flex flex-col items-center gap-1">
                             <div
                                 class="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all"
@@ -142,7 +164,6 @@ const deliveryStatusConfig = {
                                 {{ statusConfig[step as keyof typeof statusConfig]?.label }}
                             </span>
                         </div>
-                        <!-- Connector line -->
                         <div
                             v-if="idx < statusSteps.length - 1"
                             class="flex-1 h-0.5 mb-4 mx-1 transition-all"
@@ -326,6 +347,53 @@ const deliveryStatusConfig = {
                         </button>
                     </div>
                 </form>
+            </div>
+
+            <!-- ── Cancel order ───────────────────────────────── -->
+            <div v-if="order.status === 'pending'" class="bg-white rounded-2xl border border-red-100 shadow-sm p-4 space-y-3">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Cancel Order</p>
+
+                <!-- Default state -->
+                <div v-if="!showCancelConfirm">
+                    <p class="text-sm text-gray-500 mb-3">
+                        Changed your mind? You can cancel this order while it's still pending.
+                    </p>
+                    <button
+                        class="w-full flex items-center justify-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold py-2.5 rounded-xl transition"
+                        @click="showCancelConfirm = true"
+                    >
+                        <X class="h-4 w-4" />
+                        Cancel Order
+                    </button>
+                </div>
+
+                <!-- Confirmation state -->
+                <div v-else class="space-y-3">
+                    <div class="flex items-start gap-2 bg-red-50 rounded-xl px-3 py-3 text-xs text-red-700">
+                        <AlertTriangle class="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                        <span>Are you sure you want to cancel order <span class="font-semibold">{{ order.order_number }}</span>? This cannot be undone.</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            type="button"
+                            class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                            :disabled="cancelling"
+                            @click="showCancelConfirm = false"
+                        >
+                            Go Back
+                        </button>
+                        <button
+                            type="button"
+                            :disabled="cancelling"
+                            class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold py-2.5 rounded-xl transition"
+                            @click="confirmCancel"
+                        >
+                            <Loader v-if="cancelling" class="h-4 w-4 animate-spin" />
+                            <X v-else class="h-4 w-4" />
+                            {{ cancelling ? 'Cancelling…' : 'Yes, Cancel' }}
+                        </button>
+                    </div>
+                </div>
             </div>
 
         </div>

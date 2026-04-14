@@ -38,8 +38,18 @@ class LogisticsController extends Controller
         $pendingOrders = ShopOrder::where('shop_id', $shop->id)
             ->where('status', 'completed')
             ->whereNotIn('id', Delivery::where('shop_id', $shop->id)->whereNotNull('shop_order_id')->pluck('shop_order_id'))
+            ->with('customer:id,email')
             ->orderByDesc('created_at')
-            ->get(['id', 'order_number', 'customer_name', 'customer_phone', 'delivery_address']);
+            ->get(['id', 'order_number', 'customer_name', 'customer_phone', 'delivery_address', 'pickup_type', 'user_id'])
+            ->map(fn($o) => [
+                'id'               => $o->id,
+                'order_number'     => $o->order_number,
+                'customer_name'    => $o->customer_name,
+                'customer_phone'   => $o->customer_phone,
+                'delivery_address' => $o->delivery_address,
+                'pickup_type'      => $o->pickup_type,
+                'customer_email'   => $o->customer?->email,
+            ]);
 
         $stats = [
             'pending'   => Delivery::where('shop_id', $shop->id)->where('status', 'pending')->count(),
@@ -65,6 +75,7 @@ class LogisticsController extends Controller
             'shop_order_id'    => ['nullable', 'exists:shop_orders,id'],
             'customer_name'    => ['required', 'string', 'max:100'],
             'customer_phone'   => ['nullable', 'string', 'max:20'],
+            'customer_email'   => ['nullable', 'email', 'max:255'],
             'delivery_address' => ['nullable', 'string', 'max:500'],
             'rider_id'         => ['nullable', 'exists:riders,id'],
             'notes'            => ['nullable', 'string', 'max:500'],
@@ -77,6 +88,7 @@ class LogisticsController extends Controller
             'shop_order_id'    => $data['shop_order_id'] ?? null,
             'customer_name'    => $data['customer_name'],
             'customer_phone'   => $data['customer_phone'] ?? null,
+            'customer_email'   => $data['customer_email'] ?? null,
             'delivery_address' => $data['delivery_address'] ?? null,
             'rider_id'         => $data['rider_id'] ?? null,
             'status'           => $data['rider_id'] ? 'assigned' : 'pending',

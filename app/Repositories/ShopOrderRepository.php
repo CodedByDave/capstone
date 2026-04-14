@@ -16,7 +16,11 @@ class ShopOrderRepository
             ->with(['service', 'supplies'])
             ->when($onlyTrashed, fn($q) => $q->onlyTrashed())
             ->forShop($shopId)
-            ->when($branch !== null, fn($q) => $q->where('branch_name', $branch))
+            ->when($branch !== null, fn($q) => $q->where(function ($q) use ($branch) {
+                $q->where('branch_name', $branch)
+                  ->orWhereNull('branch_name')
+                  ->orWhere('branch_name', '');
+            }))
             ->latest();
 
         if (!empty($filters['status']) && !$onlyTrashed) {
@@ -85,7 +89,11 @@ class ShopOrderRepository
     public function countByStatus(int $shopId, ?string $branch = null): array
     {
         return $this->model->forShop($shopId)
-            ->when($branch !== null, fn($q) => $q->where('branch_name', $branch))
+            ->when($branch !== null, fn($q) => $q->where(function ($q) use ($branch) {
+                $q->where('branch_name', $branch)
+                  ->orWhereNull('branch_name')
+                  ->orWhere('branch_name', '');
+            }))
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')

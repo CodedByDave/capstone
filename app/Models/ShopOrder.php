@@ -71,7 +71,7 @@ class ShopOrder extends Model
 
     const PAYMENT_STATUSES = ['unpaid', 'partial', 'paid'];
 
-    const STATUSES = ['pending', 'in_progress', 'completed'];
+    const STATUSES = ['pending', 'in_progress', 'completed', 'cancelled'];
 
     // ─── Relationships ────────────────────────────────────────────────────────
 

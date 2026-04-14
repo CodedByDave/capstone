@@ -9,7 +9,7 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string    $event, // placed | status_changed | payment_updated | payment_request
+        public readonly string    $event, // placed | status_changed | payment_updated | payment_request | cancelled
         public readonly ?string   $qrUrl  = null,
     ) {}
 
@@ -54,6 +54,13 @@ class OrderNotification extends Notification
                 'type'         => 'payment_request',
                 'amount'       => $order->total_amount,
                 'qr_url'       => $this->qrUrl,
+            ],
+            'cancelled' => [
+                'title'        => 'Order cancelled',
+                'body'         => "Order #{$order->order_number} has been cancelled by the customer.",
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'type'         => 'cancelled',
             ],
             default => [],
         };

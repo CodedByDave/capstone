@@ -196,6 +196,33 @@ class UserOrderController extends Controller
         ]);
     }
 
+    // ─── Cancel order ─────────────────────────────────────────────────────────
+
+    public function cancel(ShopOrder $order): RedirectResponse
+    {
+        abort_if($order->user_id !== auth()->id(), 403);
+
+        if ($order->status !== 'pending') {
+            return back()->with('toast', [
+                'type'    => 'error',
+                'message' => 'Only pending orders can be cancelled.',
+            ]);
+        }
+
+        $order->update(['status' => 'cancelled']);
+
+        // Notify shop owner
+        $shopOwner = $order->shop?->owner ?? null;
+        if ($shopOwner) {
+            $shopOwner->notify(new OrderNotification($order, 'cancelled'));
+        }
+
+        return redirect()->route('user.orders.index')->with('toast', [
+            'type'    => 'success',
+            'message' => "Order {$order->order_number} has been cancelled.",
+        ]);
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private function generateOrderNumber(): string
