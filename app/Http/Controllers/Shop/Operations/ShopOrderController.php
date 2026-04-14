@@ -105,7 +105,7 @@ class ShopOrderController extends Controller
         $order->load(['service', 'supplies', 'shop']);
 
         $shop   = $order->shop;
-        $qrUrl  = fn(?string $path) => $path ? Storage::url($path) : null;
+        $qrUrl  = fn(?string $path) => $path ? Storage::disk('public')->url($path) : null;
 
         return Inertia::render('shop/operations/orders/Show', [
             'shopOrder' => $order,
@@ -134,7 +134,7 @@ class ShopOrderController extends Controller
 
         $shop  = $order->shop;
         $qrPath = $order->payment_method === 'gcash' ? $shop->gcash_qr : $shop->maya_qr;
-        $qrUrl  = $qrPath ? Storage::url($qrPath) : null;
+        $qrUrl  = $qrPath ? Storage::disk('public')->url($qrPath) : null;
 
         $customer->notify(new OrderNotification($order, 'payment_request', $qrUrl));
 

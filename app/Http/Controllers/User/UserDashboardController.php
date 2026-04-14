@@ -182,13 +182,13 @@ class UserDashboardController extends Controller
     private function qrUrl(?string $value): ?string
     {
         if (!$value) return null;
-        return str_starts_with($value, 'http') ? $value : \Storage::url($value);
+        return str_starts_with($value, 'http') ? $value : \Storage::disk('public')->url($value);
     }
 
     private function coverUrl(?string $value): ?string
     {
         if (!$value) return null;
-        return str_starts_with($value, 'http') ? $value : \Storage::url($value);
+        return str_starts_with($value, 'http') ? $value : \Storage::disk('public')->url($value);
     }
 
     // ─── Haversine formula ────────────────────────────────────────────────────

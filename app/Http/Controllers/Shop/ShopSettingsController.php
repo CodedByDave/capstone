@@ -18,7 +18,7 @@ class ShopSettingsController extends Controller
     private function coverPhotoUrl(?string $value): ?string
     {
         if (!$value) return null;
-        return str_starts_with($value, 'http') ? $value : Storage::url($value);
+        return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
     }
 
     public function index()
