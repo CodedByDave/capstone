@@ -23,9 +23,48 @@ class ShopDashboardController extends Controller
         $shop  = $user->shop;
         $order = $user->orders()
             ->with('modules')
-            ->whereIn('status', ['paid', 'approved'])
+            ->whereIn('status', ['paid', 'approved', 'pending'])
             ->latest()
             ->first();
+
+        // Pending order — waiting for admin review
+        if ($order && $order->status === 'pending') {
+            return Inertia::render('shop/Dashboard', [
+                'modules'        => Module::all(),
+                'order'          => null,
+                'pending_order'  => [
+                    'plan_name'      => $order->plan_name,
+                    'billing_months' => $order->billing_months,
+                    'total_price'    => $order->total_price,
+                    'created_at'     => $order->created_at->format('M d, Y'),
+                ],
+                'approved_order' => null,
+                'rejected_order' => null,
+                'expired_order'  => null,
+                'shop'           => null,
+            ]);
+        }
+
+        // Approved non-trial, non-upgrade — payment step
+        if ($order && $order->status === 'approved' && ! $order->is_trial && ! $order->is_upgrade) {
+            return Inertia::render('shop/Dashboard', [
+                'modules'        => Module::all(),
+                'order'          => null,
+                'pending_order'  => null,
+                'approved_order' => [
+                    'plan_name'   => $order->plan_name,
+                    'total_price' => (float) $order->total_price,
+                ],
+                'rejected_order' => null,
+                'expired_order'  => null,
+                'shop'           => null,
+            ]);
+        }
+
+        $trialDaysLeft = null;
+        if ($order && $order->is_trial && $order->expires_at) {
+            $trialDaysLeft = max(0, (int) now()->diffInDays($order->expires_at, false));
+        }
 
         // If not paid/approved, check if expired or rejected.
         if (! $order) {
@@ -40,6 +79,7 @@ class ShopDashboardController extends Controller
                     'expired_order'  => [
                         'plan_name'  => $latestOrder->plan_name,
                         'expires_at' => $latestOrder->expires_at,
+                        'is_trial'   => (bool) $latestOrder->is_trial,
                     ],
                     'shop' => $shop ? [
                         'shop_name'    => $shop->shop_name,
@@ -58,9 +98,12 @@ class ShopDashboardController extends Controller
                 ->latest()
                 ->first();
 
+            $hasUsedTrial = $user->orders()->where('is_trial', true)->exists();
+
             return Inertia::render('shop/Dashboard', [
                 'modules'        => Module::all(),
                 'order'          => null,
+                'has_used_trial' => $hasUsedTrial,
                 'rejected_order' => $rejectedOrder ? [
                     'id'               => $rejectedOrder->id,
                     'shop_name'        => $rejectedOrder->shop_name,
@@ -300,6 +343,9 @@ class ShopDashboardController extends Controller
                 'subscription_plan' => $order->plan_name,
                 'modules'           => $order->modules->map(fn($m) => ['name' => $m->name, 'price' => $m->price]),
                 'total_price'       => $order->total_price,
+                'is_trial'          => (bool) $order->is_trial,
+                'expires_at'        => $order->expires_at,
+                'trial_days_left'   => $trialDaysLeft,
             ],
             'stats' => [
                 'employees'         => ['total' => $totalEmployees,    'active' => $employeesActive,   'inactive' => $employeesInactive],

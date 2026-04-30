@@ -6,25 +6,22 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterUserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $viaGoogle = $this->filled('google_id');
+
         return [
-            'name' => ['required', 'string',  'max:150'],
-            'email' => ['required', 'email', 'max:100', 'unique:users,email'],
-            'password' => 'required|string|confirmed|min:8',
+            'name'      => ['required', 'string', 'max:150'],
+            'email'     => ['required', 'email', 'max:100', 'unique:users,email'],
+            'password'  => $viaGoogle
+                ? ['nullable', 'string']
+                : ['required', 'string', 'confirmed', 'min:8'],
+            'google_id' => ['nullable', 'string'],
         ];
     }
 }

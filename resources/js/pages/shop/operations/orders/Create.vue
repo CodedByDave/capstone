@@ -66,7 +66,6 @@ const form = useForm({
     additional_charges:     0,
     discount_amount:        0,
     total_amount:           0,
-    payment_method:         'cash',
     payment_status:         'unpaid',
     amount_paid:            0,
     estimated_completion_at: '',
@@ -392,13 +391,6 @@ const submit = () => {
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Payment</p>
                     <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                        <div class="col-span-12 sm:col-span-3 space-y-1">
-                            <label class="text-sm font-medium">Payment Method <span class="text-red-500">*</span></label>
-                            <select v-model="form.payment_method"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option v-for="m in paymentMethods" :key="m" :value="m">{{ m.toUpperCase() }}</option>
-                            </select>
-                        </div>
                         <div class="col-span-12 sm:col-span-3 space-y-1">
                             <label class="text-sm font-medium">Payment Status</label>
                             <select v-model="form.payment_status"

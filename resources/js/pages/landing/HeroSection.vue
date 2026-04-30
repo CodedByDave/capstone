@@ -71,7 +71,7 @@ const stats = [
                     'mt-10 flex flex-col items-center gap-3 sm:flex-row transition-all duration-700 delay-[450ms]',
                     isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                 ]">
-                    <Button @click="router.visit('/register/shop')" size="lg" variant="default" class="w-full sm:w-auto
+                    <Button @click="router.visit('/trial')" size="lg" variant="default" class="w-full sm:w-auto
                         !bg-blue-600 !text-white
                         hover:!bg-blue-500
                         hover:-translate-y-1
@@ -80,13 +80,13 @@ const stats = [
                         px-8 py-6 text-base
                         !shadow-none
                         group">
-                        Get Started
+                        Start Free Trial
                         <ArrowRight class="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </Button>
 
-                    <Button variant="outline" size="lg"
+                    <Button @click="router.visit('/plans')" variant="outline" size="lg"
                         class="w-full sm:w-auto px-8 py-6 text-base border-border text-foreground hover:bg-secondary">
-                        Explore Modules
+                        See Pricing
                     </Button>
                 </div>
 

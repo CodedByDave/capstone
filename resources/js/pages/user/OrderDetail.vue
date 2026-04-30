@@ -5,6 +5,7 @@ import UserLayout from '@/layouts/user/UserLayout.vue'
 import {
     ArrowLeft, MapPin, Phone, WashingMachine, CreditCard,
     Package, Clock, CheckCircle2, Loader, Info, Truck, X, AlertTriangle,
+    Smartphone,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ interface Order {
     price_per_kg: string | null
     created_at: string
     completed_at: string | null
+    shop_has_paymongo: boolean
     shop: Shop | null
     service_name: string
     delivery: Delivery | null
@@ -96,6 +98,24 @@ const canRequestDelivery = computed(() =>
     props.order.payment_status === 'paid' &&
     !props.order.delivery
 )
+
+// ─── Pay Online ───────────────────────────────────────────────────────────────
+
+const payingOnline = ref(false)
+
+const canPayOnline = computed(() =>
+    props.order.shop_has_paymongo &&
+    props.order.payment_status !== 'paid' &&
+    props.order.status !== 'cancelled' &&
+    props.order.total_amount >= 100
+)
+
+function payOnline() {
+    payingOnline.value = true
+    router.post(`/user/orders/${props.order.id}/pay-online`, {}, {
+        onFinish: () => { payingOnline.value = false },
+    })
+}
 
 const showDeliveryForm = ref(false)
 const deliveryForm = useForm({ delivery_address: props.order.customer_address ?? '' })
@@ -241,7 +261,23 @@ const deliveryStatusConfig = {
                     <span class="font-semibold text-emerald-600">{{ currency(order.amount_paid) }}</span>
                 </div>
 
-                <div class="mt-3 bg-amber-50 rounded-xl p-3 text-xs text-amber-700 flex items-start gap-2">
+                <!-- Pay Online button (shown when shop has PayMongo and order is unpaid) -->
+                <div v-if="canPayOnline" class="mt-3 space-y-2">
+                    <button
+                        :disabled="payingOnline"
+                        class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold py-3 rounded-xl transition"
+                        @click="payOnline"
+                    >
+                        <Loader v-if="payingOnline" class="h-4 w-4 animate-spin" />
+                        <Smartphone v-else class="h-4 w-4" />
+                        {{ payingOnline ? 'Redirecting to payment…' : 'Pay Online' }}
+                    </button>
+                    <p class="text-xs text-center text-muted-foreground">
+                        GCash · Maya · Card · GrabPay — secured by PayMongo
+                    </p>
+                </div>
+
+                <div v-else-if="order.payment_status !== 'paid'" class="mt-3 bg-amber-50 rounded-xl p-3 text-xs text-amber-700 flex items-start gap-2">
                     <Info class="h-3.5 w-3.5 shrink-0 mt-0.5" />
                     Total is finalised by the shop after weighing. Payment is made at the shop.
                 </div>

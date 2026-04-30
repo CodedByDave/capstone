@@ -32,7 +32,7 @@ const isPaid = computed(() => ['paid', 'approved'].includes(props.order?.status 
 const shopStatus = computed(() => (props as any).shop?.status)
 
 const isApproved = computed(() =>
-    props.order?.status === 'approved' && (shopStatus.value ?? 'active') !== 'disabled'
+    ['approved', 'paid'].includes(props.order?.status ?? '') && (shopStatus.value ?? 'active') !== 'disabled'
 )
 
 /* ─────────────────────────────────────────
@@ -424,14 +424,6 @@ const dashboardItem = computed(() => [{
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/payment-qr')">
-                        <Link href="/shop/payment-qr" class="flex items-center gap-2 w-full">
-                            <QrCode class="w-4 h-4" />
-                            <span>Payment QR</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
                     <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/permission')">
                         <Link href="/shop/permission" class="flex items-center gap-2 w-full">
                             <ShieldCheck class="w-4 h-4" />
@@ -444,6 +436,14 @@ const dashboardItem = computed(() => [{
                         <Link href="/shop/upgrade" class="flex items-center gap-2 w-full">
                             <ArrowUp class="w-4 h-4" />
                             <span>Upgrade Plan</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton as-child :is-active="currentUrl.startsWith('/shop/payment-qr')">
+                        <Link href="/shop/payment-qr" class="flex items-center gap-2 w-full">
+                            <QrCode class="w-4 h-4" />
+                            <span>Payment Settings</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

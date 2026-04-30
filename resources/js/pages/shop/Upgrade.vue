@@ -264,7 +264,7 @@ function formatDate(d: string | null) {
                     <ArrowUp v-else class="h-4 w-4" />
                     {{ submitting ? 'Please wait…'
                         : (isExpired && selectedPlanName === currentPlan) ? 'Renew Plan'
-                        : 'Proceed to Payment' }}
+                        : 'Proceed to order' }}
                 </Button>
             </div>
 

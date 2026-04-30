@@ -26,6 +26,8 @@ class Shop extends Model
         'cover_photo',
         'gcash_qr',
         'maya_qr',
+        'paymongo_secret_key',
+        'paymongo_public_key',
         'status',
         'disable_reason',
         'deduct_sss',
@@ -41,7 +43,13 @@ class Shop extends Model
         'deduct_withholding_tax' => 'boolean',
         'latitude'               => 'float',
         'longitude'              => 'float',
+        'paymongo_secret_key'    => 'encrypted',
     ];
+
+    public function hasPaymongo(): bool
+    {
+        return !empty($this->paymongo_secret_key) && !empty($this->paymongo_public_key);
+    }
 
     public function latestOrder()
     {

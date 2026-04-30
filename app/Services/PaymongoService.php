@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\ShopOrder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,6 +14,15 @@ class PaymongoService
     protected function client()
     {
         return Http::withBasicAuth(config('services.paymongo.secret_key'), '')
+            ->accept('application/json')
+            ->contentType('application/json')
+            ->baseUrl($this->baseUrl)
+            ->timeout(30);
+    }
+
+    protected function clientWithKey(string $secretKey)
+    {
+        return Http::withBasicAuth($secretKey, '')
             ->accept('application/json')
             ->contentType('application/json')
             ->baseUrl($this->baseUrl)
@@ -181,6 +191,106 @@ class PaymongoService
 
             $message = $error['errors'][0]['detail'] ?? $error['errors'][0]['code'] ?? 'Refund request failed';
             throw new \Exception($message);
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Create a PayMongo checkout session for a shop order using that shop's own secret key.
+     * Money lands directly in the shop's PayMongo account.
+     */
+    public function createShopOrderSession(ShopOrder $order, string $secretKey): array
+    {
+        $amount = (int) round((float) $order->total_amount * 100);
+
+        if ($amount < 10000) {
+            throw new \Exception('Minimum payment amount is ₱100.00');
+        }
+
+        $payload = [
+            'data' => [
+                'attributes' => [
+                    'send_email_receipt' => false,
+                    'show_description'   => true,
+                    'show_line_items'    => true,
+                    'line_items' => [
+                        [
+                            'currency' => 'PHP',
+                            'amount'   => $amount,
+                            'name'     => "Laundry Order {$order->order_number}",
+                            'quantity' => 1,
+                        ],
+                    ],
+                    'payment_method_types' => ['gcash', 'paymaya', 'card', 'grab_pay', 'dob'],
+                    'success_url' => url("/user/orders/{$order->id}/payment/success"),
+                    'cancel_url'  => url("/user/orders/{$order->id}/payment/cancel"),
+                    'description' => "Order {$order->order_number} — {$order->customer_name}",
+                    'metadata'    => [
+                        'order_id'     => (string) $order->id,
+                        'order_number' => $order->order_number,
+                        'shop_id'      => (string) $order->shop_id,
+                    ],
+                ],
+            ],
+        ];
+
+        Log::info('PayMongo ShopOrder Checkout Request', [
+            'order_id'        => $order->id,
+            'amount_php'      => $order->total_amount,
+            'amount_centavos' => $amount,
+        ]);
+
+        $response = $this->clientWithKey($secretKey)->post('/checkout_sessions', $payload);
+
+        Log::info('PayMongo ShopOrder Checkout Response', [
+            'status' => $response->status(),
+            'body'   => $response->json(),
+        ]);
+
+        if ($response->failed()) {
+            $error        = $response->json();
+            $errorMessage = $error['errors'][0]['detail'] ?? $error['errors'][0]['code'] ?? 'Failed to create checkout session';
+
+            Log::error('PayMongo ShopOrder Checkout Failed', [
+                'order_id' => $order->id,
+                'error'    => $error,
+            ]);
+
+            throw new \Exception($errorMessage);
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Test whether a PayMongo secret key is valid by calling the events endpoint.
+     * Returns true if authenticated (key is valid), false if 401 or request fails.
+     */
+    public function verifySecretKey(string $key): bool
+    {
+        try {
+            $response = $this->clientWithKey($key)->get('/events?limit=1');
+            return $response->status() !== 401;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Retrieve a checkout session using a shop's own secret key.
+     */
+    public function getShopOrderSession(string $sessionId, string $secretKey): array
+    {
+        $response = $this->clientWithKey($secretKey)->get("/checkout_sessions/{$sessionId}");
+
+        if ($response->failed()) {
+            Log::error('Failed to retrieve ShopOrder checkout session', [
+                'session_id' => $sessionId,
+                'error'      => $response->json(),
+            ]);
+
+            throw new \Exception('Failed to retrieve checkout session');
         }
 
         return $response->json();

@@ -31,7 +31,9 @@
       "Bash(ipconfig)",
       "Bash(grep -l \"shops\" \"c:\\\\xampp\\\\htdocs\\\\thesis-a\\\\web-app\\\\database\\\\migrations\"/*.php)",
       "Bash(php -r \"require 'c:/xampp/htdocs/thesis-a/web-app/vendor/autoload.php';\")",
-      "Bash(php c:/xampp/htdocs/thesis-a/web-app/artisan route:list --path=\"shop/reports\")"
+      "Bash(php c:/xampp/htdocs/thesis-a/web-app/artisan route:list --path=\"shop/reports\")",
+      "Bash(php -r \"echo date\\('Y_m_d_His'\\);\")",
+      "Bash(node -e \"const pkg=require\\('./node_modules/@inertiajs/vue3/package.json'\\); console.log\\(pkg.version\\)\")"
     ]
   }
 }

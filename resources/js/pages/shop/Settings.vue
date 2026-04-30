@@ -151,13 +151,14 @@ function clearGeo() {
         onFinish: () => { clearing.value = false },
     })
 }
+
 </script>
 
 <template>
     <Head title="Shop Settings" />
 
     <ShopLayout title="Shop Settings">
-        <div class="px-6 space-y-6 max-w-2xl">
+        <div class="px-6 space-y-6 max-w-2xl mx-auto">
 
             <!-- ── Header ── -->
             <div>

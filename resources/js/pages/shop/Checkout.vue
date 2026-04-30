@@ -309,7 +309,7 @@ function goBack() {
                         class="mt-5 w-full"
                         @click="proceedToPayment"
                     >
-                        Continue to payment
+                        Proceed to order
                     </Button>
 
                     <!-- Trust badges -->

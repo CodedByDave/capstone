@@ -41,13 +41,18 @@ class UpgradeController extends Controller
         $currentPlan = $currentOrder?->plan_name ?? null;
         $currentRank = self::PLAN_RANK[$currentPlan ?? ''] ?? 0;
         $isExpired   = $currentOrder?->status === 'expired';
+        $isTrial     = (bool) ($currentOrder?->is_trial ?? false);
 
-        // When expired: allow renewing the same plan (rank >=) plus any higher plan
-        // When active:  only allow upgrading to a strictly higher plan (rank >)
+        // Trial (expired or active): all plans available — user is choosing their first paid plan
+        // Expired paid plan: allow renewing same plan (rank >=) or upgrading
+        // Active paid plan: only allow upgrading to a strictly higher plan (rank >)
         $availableUpgrades = array_keys(
-            array_filter(self::PLAN_RANK, fn($rank) => $isExpired
-                ? $rank >= $currentRank   // renew same or upgrade
-                : $rank > $currentRank    // upgrade only
+            array_filter(self::PLAN_RANK, fn($rank) => ($isTrial || $isExpired && $isTrial)
+                ? true                    // trial → any plan
+                : ($isExpired
+                    ? $rank >= $currentRank   // renew same or upgrade
+                    : $rank > $currentRank    // upgrade only
+                )
             )
         );
 
@@ -56,6 +61,7 @@ class UpgradeController extends Controller
             'currentExpiresAt'  => $currentOrder?->expires_at,
             'availableUpgrades' => $availableUpgrades,
             'isExpired'         => $isExpired,
+            'isTrial'           => $isTrial,
             'vatPct'            => 12,
         ]);
     }
@@ -79,11 +85,12 @@ class UpgradeController extends Controller
             ->first();
 
         $isExpired    = $currentOrder?->status === 'expired';
+        $isTrial      = (bool) ($currentOrder?->is_trial ?? false);
         $currentRank  = self::PLAN_RANK[$currentOrder?->plan_name ?? ''] ?? 0;
         $selectedRank = self::PLAN_RANK[$request->plan_name] ?? 0;
 
-        // Expired: allow renewing same plan or upgrading. Active: only upgrading.
-        $invalid = $isExpired ? $selectedRank < $currentRank : $selectedRank <= $currentRank;
+        // Trial → any plan is valid. Expired → same or higher. Active → strictly higher.
+        $invalid = $isTrial ? false : ($isExpired ? $selectedRank < $currentRank : $selectedRank <= $currentRank);
 
         if ($invalid) {
             return back()->with('toast', [
@@ -166,10 +173,11 @@ class UpgradeController extends Controller
             $billingMonths = (int) $request->validated()['billing_months'];
 
             $isExpired    = $currentOrder?->status === 'expired';
+            $isTrial      = (bool) ($currentOrder?->is_trial ?? false);
             $currentRank  = self::PLAN_RANK[$currentOrder?->plan_name ?? ''] ?? 0;
             $selectedRank = self::PLAN_RANK[$planName] ?? 0;
 
-            $invalid = $isExpired ? $selectedRank < $currentRank : $selectedRank <= $currentRank;
+            $invalid = $isTrial ? false : ($isExpired ? $selectedRank < $currentRank : $selectedRank <= $currentRank);
 
             if ($invalid) {
                 return back()->with('toast', [

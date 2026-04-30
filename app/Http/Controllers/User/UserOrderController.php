@@ -74,6 +74,7 @@ class UserOrderController extends Controller
                 'price_per_kg'         => $order->price_per_kg,
                 'created_at'           => $order->created_at->format('M d, Y'),
                 'completed_at'         => $order->completed_at?->format('M d, Y'),
+                'shop_has_paymongo'    => $order->shop?->hasPaymongo() ?? false,
                 'shop' => $order->shop ? [
                     'name'         => $order->shop->shop_name,
                     'phone'        => $order->shop->phone,
@@ -105,7 +106,7 @@ class UserOrderController extends Controller
             'customer_phone'       => 'required|string|max:20',
             'estimated_weight_kg'  => 'required|numeric|min:0.5|max:100',
             'pickup_type'          => 'required|in:walk_in,pickup',
-            'payment_method'       => 'required|in:cash,gcash,maya',
+            'payment_method'       => 'required|in:cash,gcash,maya,online',
             'customer_address'     => 'required_if:pickup_type,pickup|nullable|string|max:500',
             'special_instructions' => 'nullable|string|max:500',
         ]);

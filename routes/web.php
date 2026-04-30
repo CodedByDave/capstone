@@ -30,11 +30,13 @@ use App\Http\Controllers\Shop\Finance\FinanceDashboardController;
 use App\Http\Controllers\Shop\Finance\ExpenseController;
 use App\Http\Controllers\Shop\PaymentQrController;
 use App\Http\Controllers\Shop\ShopSettingsController;
+use App\Http\Controllers\Shop\TrialController;
 use App\Http\Controllers\Shop\UpgradeController;
 use App\Http\Controllers\Shop\LogisticsController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
 use App\Http\Controllers\User\UserOrderController;
+use App\Http\Controllers\User\UserPaymentController;
 use App\Http\Controllers\DriverPageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -57,6 +59,10 @@ Route::get('/plans', [CheckoutController::class, 'plans'])->name('plans');
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout/confirm',  [CheckoutController::class, 'confirm'])->name('checkout.confirm');
     Route::post('/checkout/process', [CheckoutController::class, 'checkout'])->name('checkout.process');
+    Route::post('/shop/payment/pay',  [CheckoutController::class, 'pay'])->name('shop.payment.pay');
+
+    Route::get('/trial',  [TrialController::class, 'show'])->name('trial.show');
+    Route::post('/trial', [TrialController::class, 'start'])->name('trial.start');
 });
 
 // ── Super admin routes ─────────────────────────────────────────────────────────
@@ -291,6 +297,7 @@ Route::patch('operations/orders/{order}/restore',   [ShopOrderController::class,
     Route::post('/settings/geo/clear',         [ShopSettingsController::class, 'clearGeo'])->name('shop.settings.geo.clear');
     Route::post('/settings/cover-photo',       [ShopSettingsController::class, 'updateCoverPhoto'])->name('shop.settings.cover-photo');
     Route::post('/settings/cover-photo/clear', [ShopSettingsController::class, 'removeCoverPhoto'])->name('shop.settings.cover-photo.clear');
+    Route::post('/settings/paymongo',          [ShopSettingsController::class, 'updatePaymongo'])->name('shop.settings.paymongo');
 
     // ── Logistics ─────────────────────────────────────────────────────────────
     Route::get('/logistics',                        [LogisticsController::class, 'index'])->name('shop.logistics');
@@ -543,6 +550,9 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::post('/orders',                             [UserOrderController::class, 'store'])->name('orders.store');
     Route::post('/orders/{order}/request-delivery',    [UserOrderController::class, 'requestDelivery'])->name('orders.request-delivery');
     Route::post('/orders/{order}/cancel',              [UserOrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/pay-online',          [UserPaymentController::class, 'pay'])->name('orders.pay-online');
+    Route::get('/orders/{order}/payment/success',      [UserPaymentController::class, 'success'])->name('orders.payment.success');
+    Route::get('/orders/{order}/payment/cancel',       [UserPaymentController::class, 'cancel'])->name('orders.payment.cancel');
 
     Route::get('/notifications',           [UserNotificationController::class, 'index'])->name('notifications');
     Route::get('/notifications/poll',      [UserNotificationController::class, 'poll'])->name('notifications.poll');

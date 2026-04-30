@@ -2,17 +2,18 @@
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
 import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue'
 import { type BreadcrumbItem } from '@/types'
-import { Head, usePage } from '@inertiajs/vue3'
+import { Head, usePage, router } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import {
     Users, GitBranch, Package, AlertTriangle,
     ArrowUpRight, ArrowDownRight, Activity, BoxSelect,
     RefreshCcw, Clock, Lightbulb, TrendingUp, TrendingDown,
     ShieldAlert, CheckCircle2, Info, XCircle, Mail, RotateCcw,
-    ShoppingBag, BarChart2, Flame, Percent,
+    ShoppingBag, BarChart2, Flame, Percent, Loader2, CreditCard,
 } from 'lucide-vue-next'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,7 +75,19 @@ const { props } = usePage<{
         expires_at: string | null
         modules: { name: string; price: number }[]
         total_price: number
+        is_trial: boolean
+        trial_days_left: number | null
     }
+    pending_order?: {
+        plan_name: string
+        billing_months: number
+        total_price: number
+        created_at: string
+    } | null
+    approved_order?: {
+        plan_name: string
+        total_price: number
+    } | null
     rejected_order?: {
         id: number
         shop_name: string
@@ -85,7 +98,9 @@ const { props } = usePage<{
     expired_order?: {
         plan_name: string | null
         expires_at: string | null
+        is_trial: boolean
     } | null
+    has_used_trial?: boolean
     stats?: {
         employees: { total: number; active: number; inactive: number }
         branches: { total: number; active: number }
@@ -116,11 +131,26 @@ const { props } = usePage<{
 const user       = props.auth.user
 const isPaid     = computed(() => ['paid', 'approved'].includes(props.order?.status ?? ''))
 const isApproved = computed(() =>
-    props.order?.status === 'approved' && (props.shop?.status ?? 'active') !== 'disabled'
+    ['approved', 'paid'].includes(props.order?.status ?? '') && (props.shop?.status ?? 'active') !== 'disabled'
 )
+const isPending         = computed(() => !!props.pending_order)
+const isApprovedNonTrial = computed(() => !!props.approved_order)
 const isRejected = computed(() => !!props.rejected_order)
 const isExpired  = computed(() => !!props.expired_order)
-const showOrder  = ref(false)
+const showOrder       = ref(false)
+const showTrialConfirm = ref(false)
+
+// ─── Payment form (approved non-trial) ───────────────────────────────────────
+
+const PAYMENT_METHODS = [
+    { key: 'gcash',    label: 'GCash',              icon: 'https://upload.wikimedia.org/wikipedia/commons/5/52/GCash_logo.svg',                          note: 'Pay via GCash mobile wallet',       tag: 'Most Popular' },
+    { key: 'maya',     label: 'Maya',               icon: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Maya_logo.svg',                           note: 'Pay via Maya (PayMaya) wallet' },
+    { key: 'card',     label: 'Credit / Debit Card', icon: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Visa_Inc._logo_%282005%E2%80%932014%29.svg', note: 'Visa, Mastercard, JCB' },
+    { key: 'grab_pay', label: 'GrabPay',            icon: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Grab_Logo.svg',                           note: 'Pay via GrabPay wallet' },
+    { key: 'dob',      label: 'Online Banking',      icon: 'https://upload.wikimedia.org/wikipedia/commons/4/49/BDO_Unibank_%28logo%29.svg',              note: 'BDO, BPI, UnionBank, Metrobank' },
+    { key: 'billease', label: 'BillEase',            icon: 'https://logobase.net/wp-content/uploads/2025/08/BillEase-Logo-1.webp',                        note: 'Buy now, pay later',                tag: 'Installment' },
+]
+const payForm = reactive({ payment_method: '', submitting: false })
 
 // ─── DSS Insights ─────────────────────────────────────────────────────────────
 
@@ -577,6 +607,33 @@ const movementTypeConfig: Record<string, { label: string; cls: string }> = {
 function formatPeso(v: number) {
     return v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+
+function proceedToPay() {
+    if (!payForm.payment_method || payForm.submitting) return
+    payForm.submitting = true
+
+    // Use a real form POST so the server's external redirect (PayMongo) is followed correctly.
+    // Inertia's router.post intercepts redirects via XHR and cannot navigate to external URLs.
+    const form   = document.createElement('form')
+    form.method  = 'POST'
+    form.action  = '/shop/payment/pay'
+
+    const csrf      = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+    const csrfField = document.createElement('input')
+    csrfField.type  = 'hidden'
+    csrfField.name  = '_token'
+    csrfField.value = csrf
+    form.appendChild(csrfField)
+
+    const pmField   = document.createElement('input')
+    pmField.type    = 'hidden'
+    pmField.name    = 'payment_method'
+    pmField.value   = payForm.payment_method
+    form.appendChild(pmField)
+
+    document.body.appendChild(form)
+    form.submit()
+}
 </script>
 
 <template>
@@ -597,6 +654,101 @@ function formatPeso(v: number) {
                         <p class="text-sm text-muted-foreground">
                             Your shop has been disabled. Please contact support for assistance.
                         </p>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ══════════════ PENDING REVIEW ══════════════ -->
+            <template v-else-if="isPending">
+                <div class="flex flex-1 items-center justify-center min-h-[60vh] px-4">
+                    <div class="w-full max-w-md text-center">
+                        <div class="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                            <Clock class="h-8 w-8 text-blue-500 animate-pulse" />
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-1">Order Under Review</h2>
+                        <p class="text-sm text-muted-foreground mb-6">
+                            Your <span class="font-semibold text-foreground">{{ props.pending_order?.plan_name }}</span> plan order is being reviewed by our admin team.
+                            You'll be notified once it's approved.
+                        </p>
+                        <div class="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 p-4 text-left space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-muted-foreground">Plan</span>
+                                <span class="font-medium">{{ props.pending_order?.plan_name }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-muted-foreground">Duration</span>
+                                <span class="font-medium">{{ props.pending_order?.billing_months }} month{{ (props.pending_order?.billing_months ?? 1) > 1 ? 's' : '' }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-muted-foreground">Total</span>
+                                <span class="font-semibold text-blue-700">₱{{ Number(props.pending_order?.total_price ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-muted-foreground">Submitted</span>
+                                <span class="font-medium">{{ props.pending_order?.created_at }}</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted-foreground mt-4">No payment is collected until your order is approved.</p>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ══════════════ APPROVED — PAY NOW ══════════════ -->
+            <template v-else-if="isApprovedNonTrial">
+                <div class="flex flex-1 items-center justify-center min-h-[60vh] px-4">
+                    <div class="w-full max-w-md">
+                        <div class="text-center mb-6">
+                            <div class="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                                <CheckCircle2 class="h-8 w-8 text-emerald-500" />
+                            </div>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Order Approved!</h2>
+                            <p class="text-sm text-muted-foreground mt-1">
+                                Complete your payment to activate your
+                                <span class="font-semibold text-foreground">{{ props.approved_order?.plan_name }}</span> plan.
+                            </p>
+                        </div>
+
+                        <div class="rounded-xl border bg-white dark:bg-muted p-5 space-y-4 shadow-sm">
+                            <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Select Payment Method</p>
+                            <div class="space-y-2">
+                                <button
+                                    v-for="method in PAYMENT_METHODS"
+                                    :key="method.key"
+                                    type="button"
+                                    class="w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition"
+                                    :class="payForm.payment_method === method.key
+                                        ? 'border-emerald-500 bg-emerald-50'
+                                        : 'border-gray-200 hover:border-gray-300'"
+                                    @click="payForm.payment_method = method.key"
+                                >
+                                    <img :src="method.icon" :alt="method.label" class="h-6 w-10 object-contain shrink-0" />
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium flex items-center gap-2"
+                                            :class="payForm.payment_method === method.key ? 'text-emerald-700' : 'text-gray-700'">
+                                            {{ method.label }}
+                                            <span v-if="method.tag" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{{ method.tag }}</span>
+                                        </p>
+                                        <p class="text-xs text-muted-foreground">{{ method.note }}</p>
+                                    </div>
+                                    <CheckCircle2 v-if="payForm.payment_method === method.key" class="h-4 w-4 text-emerald-500 shrink-0" />
+                                </button>
+                            </div>
+
+                            <div class="border-t pt-3 flex justify-between text-sm font-semibold">
+                                <span>Total due</span>
+                                <span class="text-emerald-700">₱{{ Number(props.approved_order?.total_price ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}</span>
+                            </div>
+
+                            <Button
+                                class="w-full gap-2 bg-emerald-600 hover:bg-emerald-700"
+                                :disabled="!payForm.payment_method || payForm.submitting"
+                                @click="proceedToPay"
+                            >
+                                <Loader2 v-if="payForm.submitting" class="h-4 w-4 animate-spin" />
+                                <CreditCard v-else class="h-4 w-4" />
+                                {{ payForm.submitting ? 'Redirecting...' : 'Pay Now' }}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -634,12 +786,10 @@ function formatPeso(v: number) {
                                     <Mail class="h-4 w-4 text-blue-600" />
                                 </div>
                                 <div>
-                                    <p class="text-sm font-semibold text-blue-700 mb-0.5">Check your email for refund instructions</p>
+                                    <p class="text-sm font-semibold text-blue-700 mb-0.5">A notification has been sent to your email</p>
                                     <p class="text-xs text-blue-600 leading-relaxed">
-                                        A detailed email has been sent to <span class="font-medium">{{ props.rejected_order?.email }}</span>
-                                        with your refund details and next steps. Your payment of
-                                        <span class="font-medium">₱{{ Number(props.rejected_order?.total_price ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 }) }}</span>
-                                        will be returned to your original payment method.
+                                        Details have been sent to <span class="font-medium">{{ props.rejected_order?.email }}</span>.
+                                        No payment was collected. You may re-apply after addressing the reason above.
                                     </p>
                                 </div>
                             </div>
@@ -656,33 +806,97 @@ function formatPeso(v: number) {
             <template v-else-if="isExpired">
                 <div class="flex flex-1 items-center justify-center min-h-[60vh] px-4">
                     <div class="w-full max-w-md text-center">
-                        <div class="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-                            <RotateCcw class="h-8 w-8 text-amber-500" />
-                        </div>
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-1">Subscription Expired</h2>
-                        <p class="text-sm text-muted-foreground mb-1">
-                            Your <span class="font-semibold text-foreground">{{ props.expired_order?.plan_name ?? 'plan' }}</span> subscription has expired.
-                        </p>
-                        <p v-if="props.expired_order?.expires_at" class="text-xs text-muted-foreground mb-6">
-                            Expired on {{ new Date(props.expired_order.expires_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) }}
-                        </p>
-                        <p v-else class="mb-6" />
-                        <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-4 mb-6 text-left">
-                            <p class="text-sm text-amber-700 leading-relaxed">
-                                Your shop is currently <span class="font-semibold">inactive</span> and hidden from customers.
-                                Renew your plan to restore full access.
+
+                        <!-- Trial expired -->
+                        <template v-if="props.expired_order?.is_trial">
+                            <div class="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                                <Clock class="h-8 w-8 text-blue-500" />
+                            </div>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-1">Your free trial has ended</h2>
+                            <p class="text-sm text-muted-foreground mb-1">
+                                Your 7-day free trial has expired.
                             </p>
-                        </div>
-                        <a href="/shop/upgrade">
-                            <Button class="w-full gap-2"><RotateCcw class="h-4 w-4" /> Renew Plan</Button>
-                        </a>
-                        <p class="text-xs text-muted-foreground mt-4">You can also upgrade to a higher plan if needed.</p>
+                            <p v-if="props.expired_order?.expires_at" class="text-xs text-muted-foreground mb-6">
+                                Ended on {{ new Date(props.expired_order.expires_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) }}
+                            </p>
+                            <p v-else class="mb-6" />
+                            <div class="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 p-4 mb-6 text-left">
+                                <p class="text-sm text-blue-700 leading-relaxed">
+                                    Your shop is currently <span class="font-semibold">inactive</span> and hidden from customers.
+                                    Choose a plan to continue using LaundryHub.
+                                </p>
+                            </div>
+                            <a href="/shop/upgrade">
+                                <Button class="w-full gap-2">Choose a Plan</Button>
+                            </a>
+                        </template>
+
+                        <!-- Paid plan expired -->
+                        <template v-else>
+                            <div class="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                                <RotateCcw class="h-8 w-8 text-amber-500" />
+                            </div>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-1">Subscription Expired</h2>
+                            <p class="text-sm text-muted-foreground mb-1">
+                                Your <span class="font-semibold text-foreground">{{ props.expired_order?.plan_name ?? 'plan' }}</span> subscription has expired.
+                            </p>
+                            <p v-if="props.expired_order?.expires_at" class="text-xs text-muted-foreground mb-6">
+                                Expired on {{ new Date(props.expired_order.expires_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) }}
+                            </p>
+                            <p v-else class="mb-6" />
+                            <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-4 mb-6 text-left">
+                                <p class="text-sm text-amber-700 leading-relaxed">
+                                    Your shop is currently <span class="font-semibold">inactive</span> and hidden from customers.
+                                    Renew your plan to restore full access.
+                                </p>
+                            </div>
+                            <a href="/shop/upgrade">
+                                <Button class="w-full gap-2"><RotateCcw class="h-4 w-4" /> Renew Plan</Button>
+                            </a>
+                            <p class="text-xs text-muted-foreground mt-4">You can also upgrade to a higher plan if needed.</p>
+                        </template>
+
                     </div>
                 </div>
             </template>
 
             <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
             <template v-else-if="isApproved">
+
+                <!-- Trial Banner -->
+                <div v-if="props.order?.is_trial"
+                    class="rounded-xl border px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                    :class="(props.order.trial_days_left ?? 0) <= 1
+                        ? 'border-red-200 bg-red-50'
+                        : (props.order.trial_days_left ?? 0) <= 3
+                            ? 'border-amber-200 bg-amber-50'
+                            : 'border-blue-200 bg-blue-50'"
+                >
+                    <div class="flex items-center gap-3">
+                        <Clock class="h-5 w-5 shrink-0"
+                            :class="(props.order.trial_days_left ?? 0) <= 1 ? 'text-red-500' : (props.order.trial_days_left ?? 0) <= 3 ? 'text-amber-500' : 'text-blue-500'" />
+                        <div>
+                            <p class="text-sm font-semibold"
+                                :class="(props.order.trial_days_left ?? 0) <= 1 ? 'text-red-800' : (props.order.trial_days_left ?? 0) <= 3 ? 'text-amber-800' : 'text-blue-800'">
+                                <span v-if="(props.order.trial_days_left ?? 0) === 0">Your free trial expires today</span>
+                                <span v-else>{{ props.order.trial_days_left }} day{{ props.order.trial_days_left === 1 ? '' : 's' }} left in your free trial</span>
+                            </p>
+                            <p class="text-xs mt-0.5"
+                                :class="(props.order.trial_days_left ?? 0) <= 1 ? 'text-red-600' : (props.order.trial_days_left ?? 0) <= 3 ? 'text-amber-600' : 'text-blue-600'">
+                                Subscribe now to keep your shop running after the trial ends.
+                            </p>
+                        </div>
+                    </div>
+                    <Button size="sm" @click="router.visit('/shop/upgrade')"
+                        :class="(props.order.trial_days_left ?? 0) <= 1
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                            : (props.order.trial_days_left ?? 0) <= 3
+                                ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'"
+                        class="shrink-0 border-0">
+                        Subscribe Now
+                    </Button>
+                </div>
 
                 <!-- Welcome Banner -->
                 <div class="rounded-xl border border-border bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-neutral-800 dark:to-neutral-800 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -695,8 +909,9 @@ function formatPeso(v: number) {
                         </p>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium capitalize">
-                            {{ props.order?.subscription_plan ?? 'Active' }}
+                        <span class="px-2.5 py-1 rounded-full font-medium capitalize"
+                            :class="props.order?.is_trial ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'">
+                            {{ props.order?.is_trial ? 'Free Trial' : (props.order?.subscription_plan ?? 'Active') }}
                         </span>
                         <span v-if="props.order?.expires_at">
                             Expires {{ new Date(props.order.expires_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) }}
@@ -911,10 +1126,9 @@ function formatPeso(v: number) {
                         </div>
                     </div>
                 </div>
-
             </template>
 
-            <!-- ══════════════ PAID BUT NOT APPROVED: Waiting ══════════════ -->
+            <!-- paid not approved: Waiting -->
             <template v-else-if="isPaid && !isApproved">
                 <div class="flex flex-1 items-center justify-center min-h-[60vh]">
                     <div class="text-center max-w-md">
@@ -930,19 +1144,82 @@ function formatPeso(v: number) {
                 </div>
             </template>
 
-            <!-- NOT PAID: Order Form -->
+            <!-- NOT PAID: Choose path -->
             <template v-else>
-                <div v-if="!showOrder" class="rounded-xl bg-gray-100 dark:bg-neutral-800 p-6">
-                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Welcome {{ user.name }} 👋</h2>
-                    <p class="text-gray-600 dark:text-gray-400 mt-2 max-w-2xl">
-                        Complete your shop details and select the plans you need.
-                    </p>
-                    <Button class="mt-4" @click="showOrder = true">Get Started</Button>
+                <!-- Choice screen -->
+                <div v-if="!showOrder" class="flex flex-1 items-start justify-center min-h-[60vh] px-4 pt-8">
+                    <div class="w-full max-w-2xl">
+                        <div class="text-center mb-8">
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {{ user.name }} 👋</h2>
+                            <p class="text-sm text-muted-foreground mt-2">Choose how you'd like to get started with LaundryHub.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Free Trial card (hidden if already used) -->
+                            <button v-if="!props.has_used_trial"
+                                class="group relative flex flex-col items-start gap-3 rounded-2xl border-2 border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-6 text-left transition hover:border-blue-400 hover:shadow-md focus:outline-none"
+                                @click="showTrialConfirm = true"
+                            >
+                                <div class="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+                                    <Lightbulb class="h-6 w-6 text-blue-600" />
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900 dark:text-white">Start Free Trial</p>
+                                    <p class="text-sm text-muted-foreground mt-1 leading-relaxed">
+                                        Try all features free for 7 days — no payment required.
+                                    </p>
+                                </div>
+                                <span class="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">FREE</span>
+                            </button>
+
+                            <!-- Subscribe card -->
+                            <button
+                                class="group flex flex-col items-start gap-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800 p-6 text-left transition hover:border-emerald-400 hover:shadow-md focus:outline-none"
+                                :class="props.has_used_trial ? 'sm:col-span-2' : ''"
+                                @click="showOrder = true"
+                            >
+                                <div class="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                                    <CreditCard class="h-6 w-6 text-emerald-600" />
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900 dark:text-white">Subscribe to a Plan</p>
+                                    <p class="text-sm text-muted-foreground mt-1 leading-relaxed">
+                                        Choose Basic, Standard, or Premium and submit your application.
+                                    </p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
                 <CheckoutConfirm v-if="showOrder" plan-name="Standard" :vat-pct="12" :billing-months="1"
                     :user="{ name: user.name, email: user.email }" :shop="props.shop ?? undefined" />
             </template>
 
         </div>
+
+        <!-- Free Trial Confirmation Dialog -->
+        <Dialog v-model:open="showTrialConfirm">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <div class="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center mb-3">
+                        <Lightbulb class="h-6 w-6 text-blue-600" />
+                    </div>
+                    <DialogTitle class="text-lg">Start Your Free Trial?</DialogTitle>
+                    <DialogDescription class="text-sm leading-relaxed mt-1">
+                        You're about to activate a <span class="font-semibold text-foreground">7-day free trial</span> with access to all LaundryHub features — no payment required.
+                        <br /><br />
+                        Please note that you can only use the free trial <span class="font-semibold text-foreground">once</span>. After it expires, you'll need to subscribe to continue using the platform.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter class="gap-2 sm:gap-0 mt-2">
+                    <Button variant="outline" @click="showTrialConfirm = false">Cancel</Button>
+                    <Button class="bg-blue-600 hover:bg-blue-700 text-white" @click="showTrialConfirm = false; router.visit('/trial')">
+                        <Lightbulb class="h-4 w-4 mr-1.5" /> Activate Free Trial
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
     </ShopLayout>
 </template>

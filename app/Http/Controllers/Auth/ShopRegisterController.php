@@ -31,20 +31,21 @@ class ShopRegisterController extends Controller
             if ($request->filled('google_id')) {
                 session([
                     'pending_registration' => [
-                        'name'         => $request->name,
-                        'email'        => $request->email,
-                        'password'     => $request->password,
-                        'shop_name'    => $request->shop_name,
-                        'phone'        => $request->phone,
-                        'branch_name'  => $request->branch_name,
-                        'block_street' => $request->block_street,
-                        'municipality' => $request->municipality,
-                        'barangay'     => $request->barangay,
-                        'postal_code'  => $request->postal_code,
-                        'latitude'     => $request->latitude,
-                        'longitude'    => $request->longitude,
-                        'google_id'    => $request->google_id,
-                        'otp_verified' => true, // mark as already verified
+                        'name'              => $request->name,
+                        'email'             => $request->email,
+                        'password'          => $request->password,
+                        'shop_name'         => $request->shop_name,
+                        'phone'             => $request->phone,
+                        'branch_name'       => $request->branch_name,
+                        'block_street'      => $request->block_street,
+                        'municipality'      => $request->municipality,
+                        'barangay'          => $request->barangay,
+                        'postal_code'       => $request->postal_code,
+                        'latitude'          => $request->latitude,
+                        'longitude'         => $request->longitude,
+                        'google_id'         => $request->google_id,
+                        'otp_verified'      => true,
+                        'registration_type' => 'shop',
                     ]
                 ]);
 

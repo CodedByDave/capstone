@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Notifications\PlanRejectedNotification;
 use App\Services\OrderService;
-use App\Services\PaymongoService;
 use App\Models\Order;
 use App\Models\Shop;
 use Illuminate\Http\Request;
@@ -18,8 +17,7 @@ use Inertia\Inertia;
 class OrderController extends Controller
 {
     public function __construct(
-        private readonly OrderService   $orderService,
-        private readonly PaymongoService $paymongoService,
+        private readonly OrderService $orderService,
     ) {}
 
     public function index(Request $request)
@@ -83,65 +81,22 @@ class OrderController extends Controller
             'rejection_reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        $order = Order::with(['user', 'payments'])->findOrFail($id);
+        $order = Order::with('user')->findOrFail($id);
 
         $order->update([
             'status'           => 'rejected',
             'rejection_reason' => $request->rejection_reason,
         ]);
 
-        // Attempt an automatic PayMongo refund for each paid payment.
-        // GCash / Maya / card refunds are credited back to the original payment method.
-        $refundIssued = false;
-
-        foreach ($order->payments->where('status', 'paid') as $payment) {
-            $newStatus = 'refund_pending'; // fallback if PayMongo call fails
-
-            if ($payment->paymongo_payment_id) {
-                try {
-                    $amountCentavos = (int) round($payment->amount * 100);
-
-                    $this->paymongoService->refund(
-                        $payment->paymongo_payment_id,
-                        $amountCentavos,
-                        'others',
-                    );
-
-                    $newStatus    = 'refunded';
-                    $refundIssued = true;
-
-                    Log::info('PayMongo refund issued', [
-                        'order_id'           => $order->id,
-                        'payment_id'         => $payment->id,
-                        'paymongo_payment_id' => $payment->paymongo_payment_id,
-                        'amount'             => $payment->amount,
-                    ]);
-                } catch (\Exception $e) {
-                    // Log and fall through — payment stays refund_pending for manual processing.
-                    Log::error('PayMongo auto-refund failed; marked as refund_pending', [
-                        'order_id'   => $order->id,
-                        'payment_id' => $payment->id,
-                        'error'      => $e->getMessage(),
-                    ]);
-                }
-            }
-
-            $payment->update(['status' => $newStatus]);
-        }
-
         // Notify the shop owner via email and in-app notification.
         if ($order->user) {
             $order->user->notify(
-                new PlanRejectedNotification($order, $request->rejection_reason, $refundIssued)
+                new PlanRejectedNotification($order, $request->rejection_reason, false)
             );
         }
 
-        $toastMsg = $refundIssued
-            ? "{$order->shop_name} rejected. A PayMongo refund has been issued to the owner."
-            : "{$order->shop_name} rejected. Refund could not be processed automatically — please handle it manually.";
-
         return redirect()->back()
-            ->with('toast', ['type' => 'error', 'message' => $toastMsg]);
+            ->with('toast', ['type' => 'error', 'message' => "{$order->shop_name} rejected. No payment was collected."]);
     }
 
     public function serveKyc(Request $request): StreamedResponse

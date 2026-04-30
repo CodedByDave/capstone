@@ -42,6 +42,8 @@ class ShopOrder extends Model
         'payment_status',
         'amount_paid',
         'paid_at',
+        'paymongo_session_id',
+        'paymongo_payment_id',
         'status',
         'estimated_completion_at',
         'completed_at',
@@ -67,7 +69,7 @@ class ShopOrder extends Model
 
     const PICKUP_TYPES = ['walk_in', 'pickup'];
 
-    const PAYMENT_METHODS = ['cash', 'gcash', 'maya'];
+    const PAYMENT_METHODS = ['cash', 'gcash', 'maya', 'online'];
 
     const PAYMENT_STATUSES = ['unpaid', 'partial', 'paid'];
 

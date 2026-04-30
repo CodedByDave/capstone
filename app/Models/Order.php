@@ -31,7 +31,13 @@ class Order extends Model
         'plan_name',
         'billing_months',
         'is_upgrade',
+        'is_trial',
         'payment_method'
+    ];
+
+    protected $casts = [
+        'is_upgrade' => 'boolean',
+        'is_trial'   => 'boolean',
     ];
 
     public function modules(): HasMany

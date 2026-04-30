@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Services\ShopService;
+use App\Services\UserService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -17,14 +18,15 @@ use Inertia\Inertia;
 class OtpVerificationController extends Controller
 {
     public function __construct(
-        private ShopService $shopService
+        private ShopService $shopService,
+        private UserService $userService,
     ) {}
 
     public function show()
     {
         if (!session('pending_registration')) {
             Log::warning('OTP verification page accessed without pending registration');
-            return redirect()->route('register.shop')
+            return redirect()->route($this->registerRoute())
                 ->withErrors(['error' => 'No pending registration found. Please register again.']);
         }
 
@@ -48,7 +50,7 @@ class OtpVerificationController extends Controller
 
         if (!$pendingData) {
             Log::warning('OTP verification attempted without pending registration');
-            return redirect()->route('register.shop')
+            return redirect()->route($this->registerRoute())
                 ->withErrors(['error' => 'Session expired. Please register again.']);
         }
 
@@ -74,7 +76,7 @@ class OtpVerificationController extends Controller
 
         if (!$pendingData) {
             Log::warning('OTP resend attempted without pending registration');
-            return redirect()->route('register.shop')
+            return redirect()->route($this->registerRoute())
                 ->withErrors(['error' => 'Session expired. Please register again.']);
         }
 
@@ -138,6 +140,7 @@ class OtpVerificationController extends Controller
                             ? route('shop.dashboard')
                             : route('plans'),
                         'staff'       => route('staff.dashboard'),
+                        'user'        => route('user.dashboard'),
                         default       => route('landing'),
                     });
                 }
@@ -149,23 +152,34 @@ class OtpVerificationController extends Controller
             }
 
             // ── Create account ─────────────────────────────────────────────────
-            $result = $this->shopService->registerShop([
-                'name'         => $pendingData['name'],
-                'email'        => $pendingData['email'],
-                'password'     => $pendingData['password'],
-                'shop_name'    => $pendingData['shop_name'],
-                'phone'        => $pendingData['phone'],
-                'branch_name'  => $pendingData['branch_name'] ?? null,
-                'block_street' => $pendingData['block_street'],
-                'municipality' => $pendingData['municipality'],
-                'barangay'     => $pendingData['barangay'],
-                'postal_code'  => $pendingData['postal_code'],
-                'latitude'     => $pendingData['latitude'] ?? null,
-                'longitude'    => $pendingData['longitude'] ?? null,
-                'google_id'    => $pendingData['google_id'] ?? null,
-            ]);
+            $registrationType = $pendingData['registration_type'] ?? 'shop';
 
-            $user = $result['owner'];
+            if ($registrationType === 'user') {
+                $user = $this->userService->registerUser([
+                    'name'      => $pendingData['name'],
+                    'email'     => $pendingData['email'],
+                    'password'  => $pendingData['password'],
+                    'google_id' => $pendingData['google_id'] ?? null,
+                ]);
+            } else {
+                $result = $this->shopService->registerShop([
+                    'name'         => $pendingData['name'],
+                    'email'        => $pendingData['email'],
+                    'password'     => $pendingData['password'],
+                    'shop_name'    => $pendingData['shop_name'],
+                    'phone'        => $pendingData['phone'],
+                    'branch_name'  => $pendingData['branch_name'] ?? null,
+                    'block_street' => $pendingData['block_street'],
+                    'municipality' => $pendingData['municipality'],
+                    'barangay'     => $pendingData['barangay'],
+                    'postal_code'  => $pendingData['postal_code'],
+                    'latitude'     => $pendingData['latitude'] ?? null,
+                    'longitude'    => $pendingData['longitude'] ?? null,
+                    'google_id'    => $pendingData['google_id'] ?? null,
+                ]);
+
+                $user = $result['owner'];
+            }
 
             $user->update([
                 'email_verified_at' => now(),
@@ -178,6 +192,7 @@ class OtpVerificationController extends Controller
 
             Log::info('Account created successfully', [
                 'email'      => $user->email,
+                'type'       => $registrationType,
                 'via_google' => !empty($pendingData['google_id']),
             ]);
 
@@ -197,5 +212,15 @@ class OtpVerificationController extends Controller
                 'otp' => 'Failed to complete registration. Please try again.',
             ]);
         }
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private function registerRoute(): string
+    {
+        $pendingData = session('pending_registration');
+        $type = $pendingData['registration_type'] ?? 'shop';
+
+        return $type === 'user' ? 'register.user' : 'register.shop';
     }
 }

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import AdminLayout from '@/layouts/admin/AdminLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
+import { ref } from 'vue'
 import { type BreadcrumbItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     ArrowLeft, ListOrdered, Store, User,
     CreditCard, Package, MapPin, Phone, Mail, AlertTriangle,
+    Check, X,
 } from 'lucide-vue-next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -114,6 +116,33 @@ const paymentStatusLabel: Record<string, string> = {
     refund_pending: 'Refund Pending',
     refunded:       'Refunded',
 }
+
+// ─── Approve / Reject ─────────────────────────────────────────────────────────
+
+const showRejectDialog = ref(false)
+const rejectionReason  = ref('')
+const submitting       = ref(false)
+
+function approveOrder() {
+    submitting.value = true
+    router.post(`/admin/orders/${order.id}/approve`, {}, {
+        onFinish: () => { submitting.value = false },
+    })
+}
+
+function openRejectDialog() {
+    rejectionReason.value = ''
+    showRejectDialog.value = true
+}
+
+function submitReject() {
+    if (!rejectionReason.value.trim()) return
+    submitting.value = true
+    router.post(`/admin/orders/${order.id}/reject`, { rejection_reason: rejectionReason.value }, {
+        onSuccess: () => { showRejectDialog.value = false },
+        onFinish:  () => { submitting.value = false },
+    })
+}
 </script>
 
 <template>
@@ -139,6 +168,14 @@ const paymentStatusLabel: Record<string, string> = {
                     >
                         {{ order.status }}
                     </span>
+                    <template v-if="order.status === 'pending'">
+                        <Button size="sm" class="bg-emerald-600 hover:bg-emerald-700 text-white" :disabled="submitting" @click="approveOrder">
+                            <Check class="h-4 w-4 mr-1.5" /> Approve
+                        </Button>
+                        <Button size="sm" variant="destructive" :disabled="submitting" @click="openRejectDialog">
+                            <X class="h-4 w-4 mr-1.5" /> Reject
+                        </Button>
+                    </template>
                     <Button variant="outline" size="sm" @click="router.visit('/admin/orders')">
                         <ArrowLeft class="h-4 w-4 mr-1.5" /> Back
                     </Button>
@@ -353,5 +390,37 @@ const paymentStatusLabel: Record<string, string> = {
 
             </div>
         </div>
+
+        <!-- Reject dialog -->
+        <Teleport to="body">
+            <div v-if="showRejectDialog" class="fixed inset-0 z-50 flex items-center justify-center">
+                <div class="absolute inset-0 bg-black/50" @click="showRejectDialog = false" />
+                <div class="relative z-10 bg-background rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                    <div class="flex items-start gap-3 mb-4">
+                        <AlertTriangle class="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                        <div>
+                            <h3 class="font-semibold text-base">Reject Order #{{ order.id }}</h3>
+                            <p class="text-sm text-muted-foreground mt-0.5">
+                                Provide a reason. The shop owner will be notified by email. No payment will be collected.
+                            </p>
+                        </div>
+                    </div>
+                    <textarea
+                        v-model="rejectionReason"
+                        rows="4"
+                        placeholder="e.g. Incomplete or invalid KYC documents submitted."
+                        class="w-full rounded-lg border bg-muted/30 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-400"
+                    />
+                    <p v-if="!rejectionReason.trim()" class="text-xs text-red-400 mt-1">Reason is required.</p>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <Button variant="outline" size="sm" @click="showRejectDialog = false">Cancel</Button>
+                        <Button size="sm" variant="destructive" :disabled="!rejectionReason.trim() || submitting" @click="submitReject">
+                            <X class="h-4 w-4 mr-1.5" /> Confirm Reject
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
     </AdminLayout>
 </template>

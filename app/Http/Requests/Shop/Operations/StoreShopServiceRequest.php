@@ -20,22 +20,22 @@ class StoreShopServiceRequest extends FormRequest
             'description'      => ['nullable', 'string'],
             'is_active'        => ['boolean'],
             'pricing_model'    => ['required', Rule::in(ShopService::PRICING_MODELS)],
-            'estimated_hours'  => ['nullable', 'integer', 'min:1'],
+            'estimated_hours'  => ['nullable', 'integer', 'min:1', 'max:720'],
 
             // per_kg
             'price_per_kg'     => [
                 Rule::requiredIf(fn() => $this->pricing_model === 'per_kg'),
-                'nullable', 'numeric', 'min:0',
+                'nullable', 'numeric', 'min:1', 'max:9999',
             ],
 
             // per_bundle
             'bundle_price'     => [
                 Rule::requiredIf(fn() => $this->pricing_model === 'per_bundle'),
-                'nullable', 'numeric', 'min:0',
+                'nullable', 'numeric', 'min:1', 'max:99999',
             ],
             'bundle_weight_kg' => [
                 Rule::requiredIf(fn() => $this->pricing_model === 'per_bundle'),
-                'nullable', 'numeric', 'min:0.1',
+                'nullable', 'numeric', 'min:0.1', 'max:500',
             ],
         ];
     }
@@ -44,8 +44,14 @@ class StoreShopServiceRequest extends FormRequest
     {
         return [
             'price_per_kg.required_if'     => 'Price per kg is required for per-kg pricing.',
+            'price_per_kg.min'             => 'Price per kg must be at least ₱1.',
+            'price_per_kg.max'             => 'Price per kg cannot exceed ₱9,999.',
             'bundle_price.required_if'     => 'Bundle price is required for bundle pricing.',
+            'bundle_price.min'             => 'Bundle price must be at least ₱1.',
+            'bundle_price.max'             => 'Bundle price cannot exceed ₱99,999.',
             'bundle_weight_kg.required_if' => 'Bundle weight is required for bundle pricing.',
+            'bundle_weight_kg.max'         => 'Bundle weight cannot exceed 500 kg.',
+            'estimated_hours.max'          => 'Estimated time cannot exceed 720 hours (30 days).',
         ];
     }
 }

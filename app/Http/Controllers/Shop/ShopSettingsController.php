@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
+use App\Services\PaymongoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -27,17 +28,47 @@ class ShopSettingsController extends Controller
 
         return Inertia::render('shop/Settings', [
             'shop' => [
-                'shop_name'    => $shop->shop_name,
-                'phone'        => $shop->phone,
-                'block_street' => $shop->block_street,
-                'municipality' => $shop->municipality,
-                'barangay'     => $shop->barangay,
-                'postal_code'  => $shop->postal_code,
-                'latitude'     => $shop->latitude,
-                'longitude'    => $shop->longitude,
-                'status'       => $shop->status,
-                'cover_photo'  => $this->coverPhotoUrl($shop->cover_photo),
+                'shop_name'             => $shop->shop_name,
+                'phone'                 => $shop->phone,
+                'block_street'          => $shop->block_street,
+                'municipality'          => $shop->municipality,
+                'barangay'              => $shop->barangay,
+                'postal_code'           => $shop->postal_code,
+                'latitude'              => $shop->latitude,
+                'longitude'             => $shop->longitude,
+                'status'                => $shop->status,
+                'cover_photo'           => $this->coverPhotoUrl($shop->cover_photo),
             ],
+        ]);
+    }
+
+    public function updatePaymongo(Request $request, PaymongoService $paymongo)
+    {
+        $data = $request->validate([
+            'paymongo_secret_key' => ['nullable', 'string', 'max:200'],
+            'paymongo_public_key' => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $secretKey = $data['paymongo_secret_key'] ?: null;
+        $publicKey = $data['paymongo_public_key'] ?: null;
+
+        // Verify the secret key against PayMongo before saving
+        if ($secretKey && !$paymongo->verifySecretKey($secretKey)) {
+            return back()->with('toast', [
+                'type'    => 'error',
+                'message' => 'Invalid secret key. Please check your PayMongo Developer Dashboard and try again.',
+            ]);
+        }
+
+        $shop = $this->getShop();
+        $shop->update([
+            'paymongo_secret_key' => $secretKey,
+            'paymongo_public_key' => $publicKey,
+        ]);
+
+        return back()->with('toast', [
+            'type'    => 'success',
+            'message' => $secretKey ? 'PayMongo connected successfully.' : 'PayMongo disconnected.',
         ]);
     }
 

@@ -13,10 +13,11 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { store } from '@/routes/login';
 import { Form, Head, router } from '@inertiajs/vue3';
 
-defineProps<{
+const props = defineProps<{
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
+    trialIntent?: boolean;
 }>();
 
 const page = usePage();
@@ -41,7 +42,10 @@ function goToGoogle() {
 </script>
 
 <template>
-    <AuthBase description="Enter your email and password below to log in">
+    <AuthBase
+        title="Sign In"
+        description="Enter your email and password below to log in"
+        class="font-bold">
 
         <Head title="Log in" />
 
@@ -91,7 +95,7 @@ function goToGoogle() {
                     <span class="w-full border-t border-border" />
                 </div>
                 <div class="relative flex justify-center text-xs uppercase">
-                    <span class="bg-card px-2 text-muted-foreground">Or continue with</span>
+                    <span class="bg-card px-2 text-muted-foreground">OR</span>
                 </div>
             </div>
 
@@ -115,7 +119,7 @@ function goToGoogle() {
 
             <div class="text-center text-sm text-muted-foreground">
                 Don't have an account?
-                <a @click.prevent="router.visit('/register')"
+                <a @click.prevent="router.visit(props.trialIntent ? '/register/shop' : '/register')"
                     class="underline text-primary hover:text-primary/80 cursor-pointer">
                     Sign Up
                 </a>

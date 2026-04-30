@@ -7,13 +7,12 @@ import { Label } from '@/components/ui/label'
 import {
     ShieldCheck, Clock, Upload, X,
     FileText, CheckCircle2, AlertCircle,
-    Phone, MapPin, Tag, Loader2, CreditCard
+    Phone, MapPin, Tag, Loader2
 } from 'lucide-vue-next'
 
 interface Plan { name: string; price: number; moduleNames: string[] }
 interface Period { months: number; shortLabel: string; fullLabel: string; discountPct: number }
 interface UploadedFile { file: File; preview?: string; name: string; size: string }
-interface PaymentMethod { key: string; label: string; description: string; icon: string; tag?: string }
 
 const props = defineProps<{
     planName: string
@@ -67,17 +66,6 @@ const totalDue = computed(() => subtotal.value + vatAmount.value)
 const savedAmount = computed(() => plan.value.price * selectedPeriod.value.months - subtotal.value)
 const fmt = (n: number) => '₱' + Math.round(n).toLocaleString('en-PH')
 
-// ── Payment methods ────────────────────────────────────────────────────────
-const PAYMENT_METHODS: PaymentMethod[] = [
-    { key: 'gcash', label: 'GCash', description: 'Pay via GCash mobile wallet', icon: 'https://upload.wikimedia.org/wikipedia/commons/5/52/GCash_logo.svg', tag: 'Most Popular' },
-    { key: 'maya', label: 'Maya', description: 'Pay via Maya (PayMaya) wallet', icon: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Maya_logo.svg' },
-    { key: 'card', label: 'Credit / Debit Card', description: 'Visa, Mastercard, JCB', icon: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Visa_Inc._logo_%282005%E2%80%932014%29.svg' },
-    { key: 'grab_pay', label: 'GrabPay', description: 'Pay via GrabPay wallet', icon: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Grab_Logo.svg' },
-    { key: 'dob', label: 'Online Banking', description: 'BDO, BPI, UnionBank, Metrobank', icon: 'https://upload.wikimedia.org/wikipedia/commons/4/49/BDO_Unibank_%28logo%29.svg' },
-    { key: 'billease', label: 'BillEase', description: 'Buy now, pay later', icon: 'https://logobase.net/wp-content/uploads/2025/08/BillEase-Logo-1.webp', tag: 'Installment' },
-]
-const selectedPayment = ref('')
-const selectedPaymentMethod = computed(() => PAYMENT_METHODS.find(m => m.key === selectedPayment.value) ?? null)
 
 // ── Location Data ──────────────────────────────────────────────────────────
 const barangaysByMunicipality: Record<string, Array<{ name: string; postal: string }>> = {
@@ -226,7 +214,6 @@ function removeFile(key: string) {
 // ── Validation ─────────────────────────────────────────────────────────────
 const canProceed = computed(() =>
     requiredKycComplete.value &&
-    !!selectedPayment.value &&
     !!shopForm.value.shop_name &&
     !!shopForm.value.phone &&
     !!shopForm.value.municipality &&
@@ -249,7 +236,6 @@ function proceedToPayment() {
     formData.append('municipality', shopForm.value.municipality)
     formData.append('barangay', shopForm.value.barangay)
     formData.append('postal_code', shopForm.value.postal_code)
-    formData.append('payment_method', selectedPayment.value)
     Object.entries(kycDocs.value).forEach(([key, fileObj]) => {
         if (fileObj?.file) formData.append(`kyc_${key}`, fileObj.file)
     })
@@ -440,37 +426,6 @@ function proceedToPayment() {
                         </div>
                     </div>
 
-                    <!-- Payment Method -->
-                    <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-                        <div class="mb-4 flex items-center gap-2">
-                            <CreditCard class="h-4 w-4 text-stone-400" />
-                            <p class="text-[11px] font-semibold uppercase tracking-widest text-stone-400">Payment Method</p>
-                        </div>
-                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            <button v-for="method in PAYMENT_METHODS" :key="method.key" type="button"
-                                @click="selectedPayment = method.key"
-                                class="relative flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all"
-                                :class="selectedPayment === method.key ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-white'">
-                                <div class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
-                                    :class="selectedPayment === method.key ? 'border-blue-500 bg-blue-500' : 'border-stone-300'">
-                                    <div v-if="selectedPayment === method.key" class="h-1.5 w-1.5 rounded-full bg-white" />
-                                </div>
-                                <img :src="method.icon" alt="" class="h-6 w-6 object-contain shrink-0" />
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium text-stone-800">{{ method.label }}</p>
-                                    <p class="text-xs text-stone-400">{{ method.description }}</p>
-                                </div>
-                                <span v-if="method.tag"
-                                    class="absolute right-2 top-2 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">
-                                    {{ method.tag }}
-                                </span>
-                            </button>
-                        </div>
-                        <p v-if="!selectedPayment" class="mt-3 flex items-center gap-1.5 text-xs text-amber-600">
-                            <AlertCircle class="h-3.5 w-3.5 shrink-0" />Please select a payment method to proceed.
-                        </p>
-                    </div>
-
                     <!-- KYC Documents -->
                     <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                         <div class="mb-4 flex items-start justify-between">
@@ -554,12 +509,6 @@ function proceedToPayment() {
                             </div>
                         </div>
                         <hr class="my-4 border-stone-100" />
-                        <div v-if="selectedPayment"
-                            class="mb-4 flex items-center gap-2 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2">
-                            <img v-if="selectedPaymentMethod?.icon" :src="selectedPaymentMethod.icon" class="h-5 w-auto" alt="" />
-                            <span class="text-xs font-medium text-stone-700">{{ selectedPaymentMethod?.label }}</span>
-                            <span class="ml-auto text-[10px] text-stone-400">via PayMongo</span>
-                        </div>
                         <div class="flex items-baseline justify-between">
                             <span class="text-sm font-medium text-stone-700">Total due today</span>
                             <span class="text-xl font-bold text-stone-900">{{ fmt(totalDue) }}</span>
@@ -571,13 +520,12 @@ function proceedToPayment() {
                             class="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-700">
                             <AlertCircle class="h-3.5 w-3.5 shrink-0" />
                             <span v-if="!requiredKycComplete">Upload all required KYC documents.</span>
-                            <span v-else-if="!selectedPayment">Select a payment method.</span>
                             <span v-else>Please fill in all required fields.</span>
                         </div>
                         <Button class="mt-4 w-full bg-blue-500" type="button" :disabled="!canProceed || isSubmitting"
                             @click="proceedToPayment">
                             <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                            {{ isSubmitting ? 'Processing...' : 'Proceed to Payment' }}
+                            {{ isSubmitting ? 'Processing...' : 'Proceed to order' }}
                         </Button>
                         <div class="mt-4 flex items-center justify-center gap-5">
                             <span class="flex items-center gap-1.5 text-xs text-stone-400">

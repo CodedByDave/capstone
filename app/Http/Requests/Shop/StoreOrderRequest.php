@@ -23,7 +23,7 @@ class StoreOrderRequest extends FormRequest
             'municipality'   => ['required', 'string', 'max:255'],
             'barangay'       => ['required', 'string', 'max:255'],
             'postal_code'    => ['required', 'string', 'max:10'],
-            'payment_method' => ['required', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
+            'payment_method' => ['nullable', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
             'kyc_bir'        => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'kyc_dti'        => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'kyc_mayors'     => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],

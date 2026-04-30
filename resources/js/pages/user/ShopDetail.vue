@@ -90,10 +90,6 @@ const form = ref({
     special_instructions: '',
 })
 
-const selectedPayment = computed(() =>
-    paymentOptions.find(p => p.value === form.value.payment_method)!
-)
-
 
 function openOrder(service: ShopService) {
     selectedService.value  = service
@@ -105,6 +101,8 @@ function closeOrder() {
     isOrderOpen.value     = false
     selectedService.value = null
 }
+
+const selectedPayment = computed(() => paymentOptions.find(o => o.value === form.value.payment_method))
 
 const estimatedTotal = computed(() => {
     if (!selectedService.value) return null
@@ -351,26 +349,26 @@ function goBack() {
                     <!-- Payment method -->
                     <div class="space-y-1.5">
                         <label class="text-sm font-medium">Payment Method <span class="text-red-500">*</span></label>
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="space-y-2">
                             <button
                                 v-for="opt in paymentOptions"
                                 :key="opt.value"
                                 type="button"
-                                class="flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 text-xs font-medium transition"
+                                class="w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition"
                                 :class="form.payment_method === opt.value
-                                    ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                    : 'border-gray-200 text-gray-600 hover:border-gray-300'"
-                                @click="form.payment_method = opt.value as any"
+                                    ? 'border-blue-600 bg-blue-50'
+                                    : 'border-gray-200 hover:border-gray-300'"
+                                @click="form.payment_method = opt.value as 'cash' | 'gcash' | 'maya'"
                             >
-                                <component :is="opt.icon" class="h-4 w-4" />
-                                {{ opt.label }}
+                                <component :is="opt.icon" class="h-4 w-4 shrink-0"
+                                    :class="form.payment_method === opt.value ? 'text-blue-600' : 'text-gray-400'" />
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium" :class="form.payment_method === opt.value ? 'text-blue-700' : 'text-gray-700'">{{ opt.label }}</p>
+                                    <p class="text-xs text-gray-400 truncate">{{ opt.note }}</p>
+                                </div>
                             </button>
                         </div>
-                        <p class="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                            <Info class="h-3 w-3 shrink-0" />
-                            {{ selectedPayment.note }}
-                        </p>
-
+                        <p v-if="errors.payment_method" class="text-xs text-red-500">{{ errors.payment_method }}</p>
                     </div>
 
                     <!-- Special instructions -->
@@ -381,9 +379,8 @@ function goBack() {
 
                     <!-- Disclaimer -->
                     <div class="bg-amber-50 rounded-xl p-3 text-xs text-amber-700">
-                        <strong>Note:</strong> No payment is collected now. The total is finalized by the shop after weighing your items.
-                        <span v-if="form.payment_method === 'cash'"> You will pay cash when you drop off or pick up.</span>
-                        <span v-else> The shop will send your <strong>{{ form.payment_method === 'gcash' ? 'GCash' : 'Maya' }}</strong> payment request after confirming the actual weight.</span>
+                        <strong>Note:</strong> Estimated total is indicative — the shop will weigh your items and confirm the final price.
+                        Payment via <strong>{{ selectedPayment?.label }}</strong> will be collected once the shop sets the final amount.
                     </div>
                 </div>
 

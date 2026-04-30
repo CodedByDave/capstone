@@ -11,10 +11,13 @@ class AuthController extends Controller
 {
     public function show()
     {
+        $intended = session('url.intended', '');
+
         return Inertia::render('auth/Login', [
-            'canRegister' => true,
+            'canRegister'      => true,
             'canResetPassword' => Route::has('password.request'),
-            'status' => session('status'),
+            'status'           => session('status'),
+            'trialIntent'      => str_contains($intended, '/trial'),
         ]);
     }
 }

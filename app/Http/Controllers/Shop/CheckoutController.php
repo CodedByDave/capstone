@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class CheckoutController extends Controller
 {
@@ -149,25 +150,20 @@ class CheckoutController extends Controller
         ]);
     }
 
-    // ── Process order ──────────────────────────────────────────────────────────
+    // ── Process order (no payment — admin reviews first) ──────────────────────
 
-    public function checkout(StoreOrderRequest $request): RedirectResponse
+    public function checkout(StoreOrderRequest $request): RedirectResponse|SymfonyResponse
     {
         Log::info('CHECKOUT HIT', $request->all());
 
         try {
-            Log::info('=== CHECKOUT START ===', $request->validated());
-
             $user = auth()->user();
 
-            // Block duplicate orders
             $hasActiveOrder = Order::where('user_id', $user->id)
                 ->whereIn('status', ['approved', 'paid', 'pending'])
                 ->exists();
 
             if ($hasActiveOrder) {
-                Log::warning('Duplicate order attempt blocked', ['user_id' => $user->id]);
-
                 return back()->with('toast', [
                     'type'    => 'error',
                     'message' => 'You already have an active plan or pending order.',
@@ -187,9 +183,8 @@ class CheckoutController extends Controller
             $vatAmount    = round($subtotal * 0.12);
             $grandTotal   = $subtotal + $vatAmount;
 
-            [$order, $payment] = DB::transaction(function () use ($request, $user, $planName, $billingMonths, $grandTotal) {
-
-                $order = $this->orderService->create([
+            $order = DB::transaction(function () use ($request, $user, $planName, $billingMonths, $grandTotal) {
+                return $this->orderService->create([
                     'shop_name'      => $request->validated()['shop_name'],
                     'phone'          => $request->validated()['phone'],
                     'block_street'   => $request->validated()['block_street'],
@@ -202,40 +197,65 @@ class CheckoutController extends Controller
                     'plan_name'      => $planName,
                     'billing_months' => $billingMonths,
                     'total_price'    => $grandTotal,
-                    'payment_method' => $request->validated()['payment_method'],
                 ]);
-
-                Log::info('Order created', [
-                    'order_id'    => $order->id,
-                    'total_price' => $order->total_price,
-                ]);
-
-                $payment = $this->paymentService->createForOrder($order, [
-                    'payment_method' => $request->validated()['payment_method'],
-                    'amount'         => $grandTotal,
-                ]);
-
-                Log::info('Payment record created', ['payment_id' => $payment->id]);
-
-                return [$order, $payment];
             });
 
+            // Store KYC documents
             $kycPaths = [];
             foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {
                 if ($request->hasFile($key)) {
-                    $kycPaths[$key] = $request->file($key)->store(
-                        "kyc/{$order->id}",
-                        'private'
-                    );
+                    $kycPaths[$key] = $request->file($key)->store("kyc/{$order->id}", 'private');
                 }
             }
-
             if (!empty($kycPaths)) {
                 Order::where('id', $order->id)->update($kycPaths);
-                Log::info('KYC files stored', ['order_id' => $order->id, 'files' => $kycPaths]);
             }
 
-            $order = Order::findOrFail($order->id);
+            session()->flash('toast', [
+                'type'    => 'success',
+                'message' => 'Order placed! Please wait while our admin reviews your application.',
+            ]);
+
+            // Force a full browser navigation so the Dashboard component remounts
+            // with fresh props (pending_order). An XHR-based redirect would keep
+            // the same component instance alive and leave the stale props in place.
+            return Inertia::location(route('shop.dashboard'));
+        } catch (\Exception $e) {
+            Log::error('=== CHECKOUT FAILED ===', [
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+
+            return back()->with('toast', [
+                'type'    => 'error',
+                'message' => 'Something went wrong. Please try again.',
+            ]);
+        }
+    }
+
+    // ── Initiate payment for an admin-approved order ───────────────────────────
+
+    public function pay(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'payment_method' => ['required', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
+        ]);
+
+        $user  = auth()->user();
+        $order = Order::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where('is_trial', false)
+            ->latest()
+            ->firstOrFail();
+
+        try {
+            $order->update(['payment_method' => $request->payment_method]);
+
+            $payment = $this->paymentService->createForOrder($order, [
+                'payment_method' => $request->payment_method,
+                'amount'         => $order->total_price,
+            ]);
 
             $session = $this->paymongoService->createCheckoutSession($order);
 
@@ -243,29 +263,17 @@ class CheckoutController extends Controller
                 'paymongo_session_id' => $session['data']['id'],
             ]);
 
-            Log::info('Checkout session created', [
-                'session_id'   => $session['data']['id'],
-                'checkout_url' => $session['data']['attributes']['checkout_url'],
-            ]);
+            session(['pending_order_id' => $order->id]);
 
-            session()->forget('checkout');
-            session([
-                'checkout_url'     => $session['data']['attributes']['checkout_url'],
-                'pending_order_id' => $order->id, // ← fallback for success() when query string is stripped
-            ]);
-
-            return redirect()->route('checkout.confirm');
+            return redirect($session['data']['attributes']['checkout_url']);
         } catch (\Exception $e) {
-            Log::error('=== CHECKOUT FAILED ===', [
+            Log::error('=== PAY INITIATION FAILED ===', [
                 'error' => $e->getMessage(),
-                'file'  => $e->getFile(),
-                'line'  => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return back()->with('toast', [
                 'type'    => 'error',
-                'message' => 'Something went wrong. Please try again.',
+                'message' => 'Could not initiate payment. Please try again.',
             ]);
         }
     }

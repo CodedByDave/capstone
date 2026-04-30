@@ -36,8 +36,8 @@ class PaymentQrController extends Controller
         $shop = $this->getShop();
 
         return Inertia::render('shop/PaymentQr', [
-            'gcash_qr' => $this->qrUrl($shop->gcash_qr),
-            'maya_qr'  => $this->qrUrl($shop->maya_qr),
+            'paymongo_configured' => $shop->hasPaymongo(),
+            'paymongo_public_key' => $shop->paymongo_public_key,
         ]);
     }
 

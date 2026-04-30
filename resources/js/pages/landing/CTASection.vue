@@ -32,15 +32,15 @@ onMounted(() => {
             </p>
             <div class="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
 
-                <Button @click="router.visit('/register/shop')" size="lg"
+                <Button @click="router.visit('/trial')" size="lg"
                     class="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-8 py-6 text-base shadow-sm group">
-                    Register Your Shop
+                    Start Free Trial
                     <ArrowRight class="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
 
-                <Button variant="outline" size="lg"
+                <Button @click="router.visit('/plans')" variant="outline" size="lg"
                     class="w-full sm:w-auto border-white text-white hover:bg-white/10 px-8 py-6 text-base bg-transparent">
-                    Contact Sales
+                    See Pricing
                 </Button>
 
             </div>
