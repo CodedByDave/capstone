@@ -45,8 +45,11 @@ class ShopSettingsController extends Controller
     public function updatePaymongo(Request $request, PaymongoService $paymongo)
     {
         $data = $request->validate([
-            'paymongo_secret_key' => ['nullable', 'string', 'max:200'],
-            'paymongo_public_key' => ['nullable', 'string', 'max:200'],
+            'paymongo_secret_key' => ['nullable', 'string', 'max:300', 'regex:/^sk_(test|live)_[A-Za-z0-9]+$/'],
+            'paymongo_public_key' => ['nullable', 'string', 'max:300', 'regex:/^pk_(test|live)_[A-Za-z0-9]+$/'],
+        ], [
+            'paymongo_secret_key.regex' => 'Account Code must start with sk_test_ or sk_live_.',
+            'paymongo_public_key.regex' => 'Account ID must start with pk_test_ or pk_live_.',
         ]);
 
         $secretKey = $data['paymongo_secret_key'] ?: null;

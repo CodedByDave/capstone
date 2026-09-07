@@ -71,7 +71,7 @@ const stats = [
                     'mt-10 flex flex-col items-center gap-3 sm:flex-row transition-all duration-700 delay-[450ms]',
                     isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
                 ]">
-                    <Button @click="router.visit('/trial')" size="lg" variant="default" class="w-full sm:w-auto
+                    <Button @click="router.visit('/register/shop')" size="lg" variant="default" class="w-full sm:w-auto
                         !bg-blue-600 !text-white
                         hover:!bg-blue-500
                         hover:-translate-y-1

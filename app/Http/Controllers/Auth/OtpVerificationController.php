@@ -61,8 +61,8 @@ class OtpVerificationController extends Controller
             return back()->withErrors(['otp' => 'OTP has expired. Please request a new one.']);
         }
 
-        // Verify OTP
-        if ($pendingData['otp_code'] != $request->otp) {
+        // Verify OTP — strict comparison prevents type-juggling bypass
+        if ((string) $pendingData['otp_code'] !== (string) $request->otp) {
             Log::warning('Invalid OTP entered', ['email' => $pendingData['email']]);
             return back()->withErrors(['otp' => 'OTP is invalid.']);
         }

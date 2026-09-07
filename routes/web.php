@@ -42,7 +42,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
-// ── Driver / Rider routes (public — token-protected) ─────────────────────────
+// ── Driver / Rider routes ─────────────────────────
 Route::get('/driver/{token}', [DriverPageController::class, 'show']);
 Route::patch('/driver/{token}/status', [DriverPageController::class, 'updateStatus']);
 
@@ -316,12 +316,11 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff'])->group(fu
 
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
 
-    // ── Self attendance (clock-in / clock-out) — no extra permission needed ──
+    // ── Self attendance (clock-in / clock-out) ──
     Route::post('/attendance/clock-in',  [SelfAttendanceController::class, 'clockIn'])->name('staff.attendance.clock-in');
     Route::post('/attendance/clock-out', [SelfAttendanceController::class, 'clockOut'])->name('staff.attendance.clock-out');
 
     // ── Employee ──────────────────────────────────────────────────────────────
-    // Static routes MUST come before /{employee} wildcard to avoid 404s
     Route::middleware('permission:HRM,create')->group(function () {
         Route::get('/employee/create', [EmployeeController::class, 'create'])->name('staff.employee.create');
         Route::post('/employee',       [EmployeeController::class, 'store'])->name('staff.employee.store');

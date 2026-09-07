@@ -24,6 +24,10 @@ class Order extends Model
         'kyc_dti',
         'kyc_mayors',
         'kyc_sanitary',
+        'bir_expiry_date',
+        'dti_expiry_date',
+        'mayors_expiry_date',
+        'sanitary_expiry_date',
         'status',
         'rejection_reason',
         'total_price',
@@ -36,8 +40,12 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'is_upgrade' => 'boolean',
-        'is_trial'   => 'boolean',
+        'is_upgrade'          => 'boolean',
+        'is_trial'            => 'boolean',
+        'bir_expiry_date'     => 'date',
+        'dti_expiry_date'     => 'date',
+        'mayors_expiry_date'  => 'date',
+        'sanitary_expiry_date' => 'date',
     ];
 
     public function modules(): HasMany

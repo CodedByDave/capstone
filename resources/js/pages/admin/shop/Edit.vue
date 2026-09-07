@@ -21,6 +21,9 @@ const { shop } = defineProps<{
         barangay: string
         postal_code: string
         status: string
+        mayors_expiry_date: string | null
+        dti_expiry_date: string | null
+        sanitary_expiry_date: string | null
         owner: { name: string; email: string }
     }
 }>()
@@ -32,14 +35,17 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 const form = useForm({
-    shop_name:    shop.shop_name,
-    branch_name:  shop.branch_name ?? '',
-    phone:        shop.phone,
-    block_street: shop.block_street,
-    municipality: shop.municipality,
-    barangay:     shop.barangay,
-    postal_code:  shop.postal_code,
-    status:       shop.status,
+    shop_name:          shop.shop_name,
+    branch_name:        shop.branch_name ?? '',
+    phone:              shop.phone,
+    block_street:       shop.block_street,
+    municipality:       shop.municipality,
+    barangay:           shop.barangay,
+    postal_code:        shop.postal_code,
+    status:             shop.status,
+    mayors_expiry_date:  shop.mayors_expiry_date  ?? '',
+    dti_expiry_date:     shop.dti_expiry_date     ?? '',
+    sanitary_expiry_date:shop.sanitary_expiry_date ?? '',
 })
 
 function submit() {
@@ -118,6 +124,28 @@ function submit() {
                     </SelectContent>
                 </Select>
                 <p v-if="form.errors.status" class="text-xs text-red-500">{{ form.errors.status }}</p>
+            </div>
+
+            <!-- Document Expiry Dates (full width) -->
+            <div class="space-y-1 md:col-span-2">
+                <label class="text-sm font-medium">Mayor's Permit Expiry Date</label>
+                <Input type="date" v-model="form.mayors_expiry_date" class="w-full" />
+                <p v-if="form.errors.mayors_expiry_date" class="text-xs text-red-500">{{ form.errors.mayors_expiry_date }}</p>
+            </div>
+
+            <div class="space-y-1 md:col-span-2">
+                <label class="text-sm font-medium">DTI Registration Expiry Date</label>
+                <Input type="date" v-model="form.dti_expiry_date" class="w-full" />
+                <p v-if="form.errors.dti_expiry_date" class="text-xs text-red-500">{{ form.errors.dti_expiry_date }}</p>
+            </div>
+
+            <div class="space-y-1 md:col-span-2">
+                <label class="text-sm font-medium">
+                    Sanitary Permit Expiry Date
+                    <span class="text-muted-foreground text-xs">(optional)</span>
+                </label>
+                <Input type="date" v-model="form.sanitary_expiry_date" class="w-full" />
+                <p v-if="form.errors.sanitary_expiry_date" class="text-xs text-red-500">{{ form.errors.sanitary_expiry_date }}</p>
             </div>
 
             <!-- Block / Street -->

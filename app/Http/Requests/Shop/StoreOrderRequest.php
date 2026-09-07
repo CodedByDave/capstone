@@ -26,8 +26,12 @@ class StoreOrderRequest extends FormRequest
             'payment_method' => ['nullable', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
             'kyc_bir'        => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'kyc_dti'        => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'kyc_mayors'     => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'kyc_sanitary'   => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'kyc_mayors'          => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'kyc_sanitary'        => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'bir_expiry_date'     => ['required', 'date', 'after:today'],
+            'mayors_expiry_date'  => ['required', 'date', 'after:today'],
+            'dti_expiry_date'     => ['required', 'date', 'after:today'],
+            'sanitary_expiry_date'=> ['nullable', 'date', 'after:today'],
         ];
     }
 
@@ -51,8 +55,13 @@ class StoreOrderRequest extends FormRequest
             'kyc_mayors.required' => "Mayor's Business Permit is required.",
             'kyc_mayors.mimes'    => "Mayor's permit must be a PDF, JPG, or PNG.",
             'kyc_mayors.max'      => "Mayor's permit must not exceed 5MB.",
-            'kyc_sanitary.mimes'  => 'Sanitary permit must be a PDF, JPG, or PNG.',
-            'kyc_sanitary.max'    => 'Sanitary permit must not exceed 5MB.',
+            'kyc_sanitary.mimes'       => 'Sanitary permit must be a PDF, JPG, or PNG.',
+            'kyc_sanitary.max'         => 'Sanitary permit must not exceed 5MB.',
+            'mayors_expiry_date.required'  => "Mayor's permit expiry date is required.",
+            'mayors_expiry_date.after'     => "Mayor's permit expiry date must be in the future.",
+            'dti_expiry_date.required'     => 'DTI registration expiry date is required.',
+            'dti_expiry_date.after'        => 'DTI expiry date must be in the future.',
+            'sanitary_expiry_date.after'   => 'Sanitary permit expiry date must be in the future.',
         ];
     }
 

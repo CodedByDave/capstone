@@ -116,13 +116,14 @@ class UpgradeController extends Controller
 
     public function confirm(): Response|RedirectResponse
     {
-        // If payment was just processed, forward to PayMongo
+        // If payment was just processed, forward to PayMongo (paid→upgrade path only)
         if (session('upgrade_checkout_url')) {
             return Inertia::render('shop/UpgradeConfirm', [
                 'planName'      => session('upgrade_plan_name', 'Standard'),
                 'billingMonths' => session('upgrade_billing_months', 1),
                 'vatPct'        => 12,
                 'checkoutUrl'   => session('upgrade_checkout_url'),
+                'requiresKyc'   => false,
             ]);
         }
 
@@ -135,14 +136,20 @@ class UpgradeController extends Controller
             ]);
         }
 
-        $user = auth()->user();
-        $shop = Shop::where('owner_id', $user->id)->first();
+        $user         = auth()->user();
+        $shop         = Shop::where('owner_id', $user->id)->first();
+        $currentOrder = Order::where('user_id', $user->id)
+            ->whereNotIn('status', ['rejected'])
+            ->latest()
+            ->first();
+        $isTrial = (bool) ($currentOrder?->is_trial ?? false);
 
         return Inertia::render('shop/UpgradeConfirm', [
             'planName'      => $checkout['plan_name'],
             'billingMonths' => (int) $checkout['billing_months'],
             'vatPct'        => 12,
             'checkoutUrl'   => null,
+            'requiresKyc'   => $isTrial,
             'user' => [
                 'name'  => $user->name,
                 'email' => $user->email,
@@ -197,6 +204,54 @@ class UpgradeController extends Controller
 
             $shop = Shop::where('owner_id', $user->id)->firstOrFail();
 
+            if ($isTrial) {
+                // ── Trial → first paid plan: require KYC + admin review ────────
+                // Do NOT auto-approve or go to PayMongo yet.
+                $order = DB::transaction(function () use ($request, $user, $shop, $planName, $billingMonths, $grandTotal) {
+                    $order = $this->orderService->create([
+                        'shop_name'          => $shop->shop_name,
+                        'phone'              => $shop->phone ?? '',
+                        'block_street'       => $shop->block_street ?? '',
+                        'municipality'       => $shop->municipality ?? '',
+                        'barangay'           => $shop->barangay ?? '',
+                        'postal_code'        => $shop->postal_code ?? '',
+                        'owner_name'         => $user->name,
+                        'email'              => $user->email,
+                        'user_id'            => $user->id,
+                        'plan_name'          => $planName,
+                        'billing_months'     => $billingMonths,
+                        'total_price'        => $grandTotal,
+                        'bir_expiry_date'     => $request->validated()['bir_expiry_date'],
+                        'dti_expiry_date'     => $request->validated()['dti_expiry_date'],
+                        'mayors_expiry_date'  => $request->validated()['mayors_expiry_date'],
+                        'sanitary_expiry_date'=> $request->validated()['sanitary_expiry_date'] ?? null,
+                    ]);
+
+                    $kycPaths = [];
+                    foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {
+                        if ($request->hasFile($key)) {
+                            $kycPaths[$key] = $request->file($key)->store("kyc/{$order->id}", 'private');
+                        }
+                    }
+                    if (!empty($kycPaths)) {
+                        Order::where('id', $order->id)->update($kycPaths);
+                    }
+
+                    return $order;
+                });
+
+                session()->forget('upgrade_checkout');
+
+                Log::info('Trial → paid plan submitted for admin review', [
+                    'user_id'  => $user->id,
+                    'order_id' => $order->id,
+                    'plan'     => $planName,
+                ]);
+
+                return Inertia::location(route('shop.dashboard'));
+            }
+
+            // ── Paid → upgrade: auto-approve after PayMongo payment ───────────
             [$order, $payment] = DB::transaction(function () use ($request, $user, $shop, $planName, $billingMonths, $grandTotal) {
                 $order = $this->orderService->create([
                     'shop_name'      => $shop->shop_name,
@@ -214,7 +269,6 @@ class UpgradeController extends Controller
                     'payment_method' => $request->validated()['payment_method'],
                 ]);
 
-                // Mark this as an upgrade order
                 $order->update(['is_upgrade' => true]);
 
                 $payment = $this->paymentService->createForOrder($order, [
@@ -233,10 +287,10 @@ class UpgradeController extends Controller
 
             session()->forget('upgrade_checkout');
             session([
-                'upgrade_checkout_url'     => $session['data']['attributes']['checkout_url'],
-                'upgrade_plan_name'        => $planName,
-                'upgrade_billing_months'   => $billingMonths,
-                'pending_order_id'         => $order->id,
+                'upgrade_checkout_url'   => $session['data']['attributes']['checkout_url'],
+                'upgrade_plan_name'      => $planName,
+                'upgrade_billing_months' => $billingMonths,
+                'pending_order_id'       => $order->id,
             ]);
 
             return redirect()->route('shop.upgrade.confirm');

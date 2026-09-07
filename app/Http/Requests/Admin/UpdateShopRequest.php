@@ -21,7 +21,10 @@ class UpdateShopRequest extends FormRequest
             'municipality' => ['required', 'string', 'max:255'],
             'barangay'     => ['required', 'string', 'max:255'],
             'postal_code'  => ['required', 'string', 'max:255'],
-            'status'       => ['required', 'in:active,pending,disabled'],
+            'status'             => ['required', 'in:active,pending,disabled'],
+            'mayors_expiry_date'  => ['nullable', 'date'],
+            'dti_expiry_date'     => ['nullable', 'date'],
+            'sanitary_expiry_date'=> ['nullable', 'date'],
         ];
     }
 

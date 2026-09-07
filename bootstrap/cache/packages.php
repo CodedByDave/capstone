@@ -112,6 +112,13 @@
       0 => 'Pest\\Laravel\\PestServiceProvider',
     ),
   ),
+  'squeak/rat' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Rat\\RatServiceProvider',
+    ),
+  ),
   'tightenco/ziggy' => 
   array (
     'providers' => 

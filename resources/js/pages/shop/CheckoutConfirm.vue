@@ -183,6 +183,10 @@ onMounted(() => {
 const kycDocs = ref<Record<string, UploadedFile | null>>({
     bir: null, dti: null, mayors: null, sanitary: null,
 })
+const birExpiryDate = ref('')
+const mayorsExpiryDate   = ref('')
+const dtiExpiryDate      = ref('')
+const sanitaryExpiryDate = ref('')
 const kycMeta: Record<string, { label: string; description: string; required: boolean }> = {
     bir: { label: 'BIR Certificate of Registration', description: 'Form 2303 — Bureau of Internal Revenue', required: true },
     dti: { label: 'DTI Business Name Registration', description: 'Business name certificate from DTI', required: true },
@@ -214,6 +218,9 @@ function removeFile(key: string) {
 // ── Validation ─────────────────────────────────────────────────────────────
 const canProceed = computed(() =>
     requiredKycComplete.value &&
+    !!birExpiryDate.value &&
+    !!mayorsExpiryDate.value &&
+    !!dtiExpiryDate.value &&
     !!shopForm.value.shop_name &&
     !!shopForm.value.phone &&
     !!shopForm.value.municipality &&
@@ -239,6 +246,10 @@ function proceedToPayment() {
     Object.entries(kycDocs.value).forEach(([key, fileObj]) => {
         if (fileObj?.file) formData.append(`kyc_${key}`, fileObj.file)
     })
+    formData.append('bir_expiry_date', birExpiryDate.value)
+    formData.append('mayors_expiry_date',   mayorsExpiryDate.value)
+    formData.append('dti_expiry_date',      dtiExpiryDate.value)
+    if (sanitaryExpiryDate.value) formData.append('sanitary_expiry_date', sanitaryExpiryDate.value)
     router.post('/checkout/process', formData, {
         forceFormData: true,
         onError: () => { isSubmitting.value = false },
@@ -476,6 +487,47 @@ function proceedToPayment() {
                                 </label>
                             </div>
                         </div>
+
+                        <!-- Permit Expiry Date -->
+                        <div class="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3.5 space-y-1.5">
+
+                            <!--BIR Permit Expiry Date-->
+                            <label class="text-sm font-medium text-stone-700">
+                                BIR Permit Expiry Date <span class="text-red-400">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                v-model="birExpiryDate"
+                                :min="new Date(Date.now() + 86400000).toISOString().split('T')[0]"
+                                class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                            />
+                            <p class="text-xs text-stone-400">Enter the expiry date printed on your BIR Business Permit.</p>
+
+                            <!--DTI Permit Expiry Date-->
+                            <label class="text-sm font-medium text-stone-700">
+                                DTI Permit Expiry Date <span class="text-red-400">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                v-model="dtiExpiryDate"
+                                :min="new Date(Date.now() + 86400000).toISOString().split('T')[0]"
+                                class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                            />
+                            <p class="text-xs text-stone-400">Enter the expiry date printed on your DTI Business Permit.</p>
+
+                            <!-- Mayor's Permit Expiry Date -->
+                            <label class="text-sm font-medium text-stone-700">
+                                Mayor's Permit Expiry Date <span class="text-red-400">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                v-model="mayorsExpiryDate"
+                                :min="new Date(Date.now() + 86400000).toISOString().split('T')[0]"
+                                class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                            />
+                            <p class="text-xs text-stone-400">Enter the expiry date printed on your Mayor's Business Permit.</p>
+                        </div>
+
                         <div class="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 p-3">
                             <ShieldCheck class="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
                             <p class="text-xs text-blue-700">Documents are encrypted and stored securely. Used only for business verification and never shared with third parties.</p>

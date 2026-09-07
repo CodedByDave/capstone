@@ -40,6 +40,9 @@ const { shop } = defineProps<{
         barangay: string
         postal_code: string
         status: string
+        mayors_expiry_date: string | null
+        dti_expiry_date: string | null
+        sanitary_expiry_date: string | null
         disable_reason: string | null
         created_at: string
         updated_at: string
@@ -218,6 +221,33 @@ function enableShop() {
                             {{ shop.status }}
                         </span>
                     </div>
+
+                    <!-- Document Expiry Dates -->
+                    <template v-for="doc in [
+                        { key: 'mayors_expiry_date',   label: 'Mayor\'s Permit Expiry' },
+                        { key: 'dti_expiry_date',      label: 'DTI Expiry' },
+                        { key: 'sanitary_expiry_date', label: 'Sanitary Permit Expiry' },
+                    ]" :key="doc.key">
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold uppercase text-muted-foreground">{{ doc.label }}</p>
+                            <div v-if="(shop as any)[doc.key]" class="flex items-center gap-2">
+                                <p class="font-medium">{{ formatDate((shop as any)[doc.key]) }}</p>
+                                <span v-if="isExpired((shop as any)[doc.key])"
+                                    class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                                    Expired
+                                </span>
+                                <span v-else-if="new Date((shop as any)[doc.key]) <= new Date(Date.now() + 30*24*60*60*1000)"
+                                    class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                                    Expiring soon
+                                </span>
+                                <span v-else
+                                    class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                                    Valid
+                                </span>
+                            </div>
+                            <p v-else class="font-medium text-muted-foreground">Not set</p>
+                        </div>
+                    </template>
 
                     <div class="space-y-1">
                         <p class="text-xs font-semibold uppercase text-muted-foreground">Block / Street</p>

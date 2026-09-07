@@ -7,6 +7,10 @@ import UserLayout from '@/layouts/user/UserLayout.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
     User, Mail, Lock, LogOut, ChevronRight, CheckCircle2, Loader2,
 } from 'lucide-vue-next'
 import type { AppPageProps } from '@/types'
@@ -51,6 +55,7 @@ function saveProfile() {
 
 const passwordForm = ref({ current_password: '', password: '', password_confirmation: '' })
 const savingPwd    = ref(false)
+const logoutDialogOpen = ref(false)
 
 function savePassword() {
     savingPwd.value = true
@@ -145,7 +150,7 @@ function logout() {
             <!-- ── Logout ─────────────────────────────────────── -->
             <button
                 class="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-red-100 text-red-600 hover:bg-red-50 transition active:scale-[0.99]"
-                @click="logout"
+                @click="logoutDialogOpen = true"
             >
                 <div class="flex items-center gap-2 font-semibold text-sm">
                     <LogOut class="h-4 w-4" />
@@ -153,6 +158,21 @@ function logout() {
                 </div>
                 <ChevronRight class="h-4 w-4 opacity-50" />
             </button>
+
+            <AlertDialog v-model:open="logoutDialogOpen">
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Log out?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to log out of your account?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction @click="logout">Log out</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
         </div>
     </UserLayout>

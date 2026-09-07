@@ -29,6 +29,9 @@ class Shop extends Model
         'paymongo_secret_key',
         'paymongo_public_key',
         'status',
+        'mayors_expiry_date',
+        'dti_expiry_date',
+        'sanitary_expiry_date',
         'disable_reason',
         'deduct_sss',
         'deduct_philhealth',
@@ -43,6 +46,9 @@ class Shop extends Model
         'deduct_withholding_tax' => 'boolean',
         'latitude'               => 'float',
         'longitude'              => 'float',
+        'mayors_expiry_date'     => 'date',
+        'dti_expiry_date'        => 'date',
+        'sanitary_expiry_date'   => 'date',
         'paymongo_secret_key'    => 'encrypted',
     ];
 

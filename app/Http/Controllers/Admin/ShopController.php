@@ -59,9 +59,12 @@ class ShopController extends Controller
                     'phone'            => $shop->phone,
                     'municipality'     => $shop->municipality,
                     'barangay'         => $shop->barangay,
-                    'status'           => $shop->status,
-                    'disable_reason'   => $shop->disable_reason,
-                    'created_at'       => $shop->created_at,
+                    'status'              => $shop->status,
+                    'disable_reason'      => $shop->disable_reason,
+                    'mayors_expiry_date'       => $shop->mayors_expiry_date?->toDateString(),
+                    'dti_expiry_date'          => $shop->dti_expiry_date?->toDateString(),
+                    'sanitary_expiry_date'     => $shop->sanitary_expiry_date?->toDateString(),
+                    'created_at'          => $shop->created_at,
 
                     'owner' => $shop->owner ? [
                         'id'    => $shop->owner->id,
@@ -156,7 +159,13 @@ class ShopController extends Controller
         }
 
         $order->update(['status' => 'approved']);
-        $shop->update(['status' => 'active']);
+        $shop->update([
+            'status'              => 'active',
+            'bir_expiry_date'     => $order->bir_expiry_date,
+            'dti_expiry_date'     => $order->dti_expiry_date,
+            'mayors_expiry_date'  => $order->mayors_expiry_date,
+            'sanitary_expiry_date'=> $order->sanitary_expiry_date,
+        ]);
 
         return redirect()->back()
             ->with('toast', ['type' => 'success', 'message' => 'Order approved. Shop now has dashboard access.']);
