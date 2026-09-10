@@ -32,6 +32,7 @@ class Shop extends Model
         'mayors_expiry_date',
         'dti_expiry_date',
         'sanitary_expiry_date',
+        'last_activity_at',
         'disable_reason',
         'deduct_sss',
         'deduct_philhealth',
@@ -49,6 +50,7 @@ class Shop extends Model
         'mayors_expiry_date'     => 'date',
         'dti_expiry_date'        => 'date',
         'sanitary_expiry_date'   => 'date',
+        'last_activity_at'       => 'datetime',
         'paymongo_secret_key'    => 'encrypted',
     ];
 

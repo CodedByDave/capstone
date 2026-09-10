@@ -33,7 +33,6 @@ const props = defineProps<{
         pendingShops: number
         shopChange: number
         totalOwners: number
-        totalStaff: number
         totalCustomers: number
         newUsersMonth: number
         usersChange: number
@@ -153,7 +152,7 @@ const kpiCards = computed(() => [
         change: liveKpis.value.usersChange,
         icon: Users,
         color: 'purple',
-        sub: `${liveKpis.value.totalCustomers} customers · ${liveKpis.value.totalStaff} staff`,
+        sub: `${liveKpis.value.totalCustomers} customers`,
         invertColor: false,
     },
 ])

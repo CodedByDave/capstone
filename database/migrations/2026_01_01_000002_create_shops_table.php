@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('gcash_qr')->nullable();
             $table->string('maya_qr')->nullable();
             $table->string('status')->default('pending');
+            $table->timestamp('last_activity_at')->nullable();
             $table->text('disable_reason')->nullable();
             $table->boolean('deduct_sss')->default(true);
             $table->boolean('deduct_philhealth')->default(true);

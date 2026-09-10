@@ -10,7 +10,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes; // ← add SoftDeletes
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
 
     public const ROLE_USER        = 'user';
     public const ROLE_OWNER       = 'owner';
