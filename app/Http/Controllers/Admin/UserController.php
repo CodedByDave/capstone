@@ -19,12 +19,65 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['search', 'role', 'verified']);
+        $filters = $request->only([
+            'search',
+            'role',
+            'verified',
+            'sort_by',
+            'sort_direction',
+        ]);
+        $perPage = min(max($request->integer('per_page', 20), 5), 100);
+        $filters['per_page'] = (string) $perPage;
 
         return Inertia::render('admin/users/Index', [
-            'users'   => $this->userManagementService->getPaginated($filters),
+            'users'   => $this->userManagementService->getPaginated($filters, $perPage),
             'stats'   => $this->userManagementService->getStats(),
             'filters' => $filters,
+        ]);
+    }
+
+    public function exportCsv()
+    {
+        $users = $this->userManagementService->getCsvExportUsers();
+
+        return response()->streamDownload(function () use ($users) {
+            $output = fopen('php://output', 'w');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['name', 'email', 'role', 'verified', 'joined_at'], ',', '"', '');
+
+            foreach ($users as $user) {
+                fputcsv(
+                    $output,
+                    [
+                        $user->name,
+                        $user->email,
+                        $user->role,
+                        $user->is_verified ? 'yes' : 'no',
+                        $user->created_at?->toDateTimeString(),
+                    ],
+                    ',',
+                    '"',
+                    '',
+                );
+            }
+
+            fclose($output);
+        }, 'users-backup-'.now()->format('Y-m-d-His').'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function importCsv(Request $request)
+    {
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        $result = $this->userManagementService->importCsv($validated['file']);
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "CSV import complete: {$result['created']} created and {$result['updated']} updated.",
         ]);
     }
 

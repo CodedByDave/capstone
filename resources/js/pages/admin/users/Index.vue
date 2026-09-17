@@ -1,173 +1,329 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/admin/AdminLayout.vue'
-import { Head, router, usePage } from '@inertiajs/vue3'
-import { ref, computed, onMounted } from 'vue'
-import { type BreadcrumbItem } from '@/types'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
+import AdminLayout from '@/layouts/admin/AdminLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, ref, watch } from 'vue';
+import Vue3EasyDataTable, {
+    type Header,
+    type ServerOptions,
+} from 'vue3-easy-data-table';
+import 'vue3-easy-data-table/dist/style.css';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
-    AlertDialog, AlertDialogContent, AlertDialogHeader,
-    AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
-} from '@/components/ui/alert-dialog'
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
-    Users, UserCheck, Store, User,
-    Search, Archive, ArchiveRestore, Trash2, Eye, RefreshCcw,
-} from 'lucide-vue-next'
+    Archive,
+    ArchiveRestore,
+    Download,
+    Eye,
+    RefreshCcw,
+    Search,
+    Store,
+    Trash2,
+    Upload,
+    User,
+    UserCheck,
+    Users,
+} from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Shop {
-    id: number
-    shop_name: string
+    id: number;
+    shop_name: string;
 }
 
 interface UserItem {
-    id: number
-    name: string
-    email: string
-    role: string
-    is_verified: boolean
-    shop_id: number | null
-    shop: Shop | null
-    created_at: string
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    is_verified: boolean;
+    shop_id: number | null;
+    shop: Shop | null;
+    created_at: string;
 }
 
 interface Paginator {
-    data: UserItem[]
-    current_page: number
-    last_page: number
-    per_page: number
-    total: number
-    links: { url: string | null; label: string; active: boolean }[]
+    data: UserItem[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: { url: string | null; label: string; active: boolean }[];
 }
+
+// Keep a script-level reference so the import organizer preserves the
+// component used by the template.
+const EasyDataTable = Vue3EasyDataTable;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const props = defineProps<{
-    users: Paginator
+    users: Paginator;
     stats: {
-        total: number
-        owners: number
-        staff: number
-        users: number
-        archived: number
-    }
-    filters: Record<string, string>
-}>()
+        total: number;
+        owners: number;
+        staff: number;
+        users: number;
+        archived: number;
+    };
+    filters: Record<string, string>;
+}>();
 
 // ─── Flash ────────────────────────────────────────────────────────────────────
 
-const page = usePage()
+const page = usePage();
 
 onMounted(() => {
-    const flash = page.props.toast as { type: string; message: string } | undefined
-    if (!flash) return
+    const flash = page.props.toast as
+        | { type: string; message: string }
+        | undefined;
+    if (!flash) return;
     switch (flash.type) {
-        case 'success': toast.success(flash.message); break
-        case 'error': toast.error(flash.message); break
-        default: toast(flash.message)
+        case 'success':
+            toast.success(flash.message);
+            break;
+        case 'error':
+            toast.error(flash.message);
+            break;
+        default:
+            toast(flash.message);
     }
-})
+});
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/admin/dashboard' },
     { title: 'Users', href: '/admin/users' },
-]
+];
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
-const search = ref(props.filters.search ?? '')
-const role = ref(props.filters.role ?? 'all')
-const verified = ref(props.filters.verified ?? 'all')
+const search = ref(props.filters.search ?? '');
+const role = ref(props.filters.role ?? 'all');
+const verified = ref(props.filters.verified ?? 'all');
+const tableLoading = ref(false);
+
+const headers: Header[] = [
+    { text: '', value: 'selection', width: 48 },
+    { text: 'Name', value: 'name', width: 180, sortable: true },
+    { text: 'Email', value: 'email', width: 220, sortable: true },
+    { text: 'Role', value: 'role', width: 140 },
+    { text: 'Shop', value: 'shop_name', width: 180, sortable: true },
+    { text: 'Account', value: 'account', width: 140 },
+    { text: 'Joined', value: 'created_at', width: 160, sortable: true },
+    { text: 'Actions', value: 'actions', width: 110 },
+];
+
+const serverOptions = ref<ServerOptions>({
+    page: props.users.current_page,
+    rowsPerPage: props.users.per_page,
+    sortBy: props.filters.sort_by ?? 'created_at',
+    sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
+});
 
 function applyFilters() {
-    router.get('/admin/users', {
-        search: search.value || undefined,
-        role: role.value !== 'all' ? role.value : undefined,
-        verified: verified.value !== 'all' ? verified.value : undefined,
-    }, { preserveState: true, replace: true })
+    router.get(
+        '/admin/users',
+        {
+            search: search.value || undefined,
+            role: role.value !== 'all' ? role.value : undefined,
+            verified: verified.value !== 'all' ? verified.value : undefined,
+            sort_by: serverOptions.value.sortBy,
+            sort_direction: serverOptions.value.sortType,
+            page: serverOptions.value.page,
+            per_page: serverOptions.value.rowsPerPage,
+        },
+        {
+            only: ['users', 'filters'],
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            showProgress: false,
+            onStart: () => {
+                tableLoading.value = true;
+            },
+            onFinish: () => {
+                tableLoading.value = false;
+            },
+        },
+    );
+}
+
+function filterTable() {
+    if (serverOptions.value.page !== 1) {
+        serverOptions.value.page = 1;
+        return;
+    }
+
+    applyFilters();
 }
 
 function resetFilters() {
-    search.value = ''
-    role.value = 'all'
-    verified.value = 'all'
-    router.get('/admin/users', {}, { preserveState: true, replace: true })
+    search.value = '';
+    role.value = 'all';
+    verified.value = 'all';
+    const sortChanged =
+        serverOptions.value.page !== 1 ||
+        serverOptions.value.sortBy !== 'created_at' ||
+        serverOptions.value.sortType !== 'desc';
+
+    serverOptions.value.page = 1;
+    serverOptions.value.sortBy = 'created_at';
+    serverOptions.value.sortType = 'desc';
+
+    if (!sortChanged) applyFilters();
+}
+
+watch(
+    [
+        () => serverOptions.value.page,
+        () => serverOptions.value.rowsPerPage,
+        () => serverOptions.value.sortBy,
+        () => serverOptions.value.sortType,
+    ],
+    () => applyFilters(),
+);
+
+const importInput = ref<HTMLInputElement | null>(null);
+const importing = ref(false);
+
+function exportCsv() {
+    window.location.assign('/admin/users/export');
+}
+
+function chooseCsvFile() {
+    importInput.value?.click();
+}
+
+function importCsv(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    importing.value = true;
+    router.post(
+        '/admin/users/import',
+        { file },
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: (responsePage) => {
+                const flash = responsePage.props.toast as
+                    | { type: string; message: string }
+                    | undefined;
+                toast.success(
+                    flash?.message ?? 'User CSV imported successfully.',
+                );
+            },
+            onError: (errors) => {
+                toast.error(
+                    typeof errors.file === 'string'
+                        ? errors.file
+                        : 'Unable to import the CSV file.',
+                );
+            },
+            onFinish: () => {
+                importing.value = false;
+                input.value = '';
+            },
+        },
+    );
 }
 
 // ─── Selection ────────────────────────────────────────────────────────────────
 
-const selected = ref<number[]>([])
-const allSelected = computed(() =>
-    props.users.data.length > 0 &&
-    props.users.data.every(u => selected.value.includes(u.id))
-)
+const selected = ref<number[]>([]);
+const allSelected = computed(
+    () =>
+        props.users.data.length > 0 &&
+        props.users.data.every((u) => selected.value.includes(u.id)),
+);
 
 function toggleAll() {
     allSelected.value
-        ? selected.value = []
-        : selected.value = props.users.data.map(u => u.id)
+        ? (selected.value = [])
+        : (selected.value = props.users.data.map((u) => u.id));
 }
 
 function toggleOne(id: number) {
     selected.value.includes(id)
-        ? selected.value = selected.value.filter(i => i !== id)
-        : selected.value.push(id)
+        ? (selected.value = selected.value.filter((i) => i !== id))
+        : selected.value.push(id);
 }
 
 // ─── Archive single ───────────────────────────────────────────────────────────
 
-const archiveId = ref<number | null>(null)
-const archiveName = ref('')
-const archiveOpen = ref(false)
+const archiveId = ref<number | null>(null);
+const archiveName = ref('');
+const archiveOpen = ref(false);
 
 function openArchive(user: UserItem) {
-    archiveId.value = user.id
-    archiveName.value = user.name
-    archiveOpen.value = true
+    archiveId.value = user.id;
+    archiveName.value = user.name;
+    archiveOpen.value = true;
 }
 
 function cancelArchive() {
-    archiveOpen.value = false
-    setTimeout(() => { archiveId.value = null; archiveName.value = '' }, 200)
+    archiveOpen.value = false;
+    setTimeout(() => {
+        archiveId.value = null;
+        archiveName.value = '';
+    }, 200);
 }
 
 function confirmArchive() {
-    if (!archiveId.value) return
+    if (!archiveId.value) return;
     router.delete(`/admin/users/${archiveId.value}`, {
         preserveScroll: true,
-        onSuccess: () => { toast.success('User archived.'); archiveOpen.value = false },
+        onSuccess: () => {
+            toast.success('User archived.');
+            archiveOpen.value = false;
+        },
         onError: () => toast.error('Failed to archive user.'),
-    })
+    });
 }
 
 // ─── Bulk archive ─────────────────────────────────────────────────────────────
 
 function bulkArchive() {
-    if (!selected.value.length) return
-    router.post('/admin/users/bulk-archive', { ids: selected.value }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            toast.success(`${selected.value.length} user(s) archived.`)
-            selected.value = []
+    if (!selected.value.length) return;
+    router.post(
+        '/admin/users/bulk-archive',
+        { ids: selected.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(`${selected.value.length} user(s) archived.`);
+                selected.value = [];
+            },
+            onError: () => toast.error('Bulk archive failed.'),
         },
-        onError: () => toast.error('Bulk archive failed.'),
-    })
+    );
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string) {
     return new Date(d).toLocaleDateString('en-PH', {
-        year: 'numeric', month: 'short', day: 'numeric',
-    })
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
 }
 
 const roleBadge: Record<string, string> = {
@@ -176,219 +332,361 @@ const roleBadge: Record<string, string> = {
     manager: 'bg-sky-100 text-sky-700',
     staff: 'bg-orange-100 text-orange-700',
     user: 'bg-gray-100 text-gray-600',
-}
+};
+
+const tableItems = computed(() =>
+    props.users.data.map((user) => ({
+        ...user,
+        shop_name: user.shop?.shop_name ?? '—',
+        account: user.is_verified ? 'Verified' : 'Unverified',
+        actions: '',
+    })),
+);
 </script>
 
 <template>
-
     <Head title="Users" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="User Management">
-        <div class="px-6 space-y-6">
-
+        <div class="space-y-6 px-6">
             <!-- Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-5">
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total</p>
-                            <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Total
+                            </p>
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100"
+                            >
                                 <Users class="h-4 w-4 text-blue-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold">{{ stats.total.toLocaleString() }}</p>
+                        <p class="text-3xl font-bold">
+                            {{ stats.total.toLocaleString() }}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Owners</p>
-                            <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Owners
+                            </p>
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100"
+                            >
                                 <Store class="h-4 w-4 text-blue-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-blue-600">{{ stats.owners.toLocaleString() }}</p>
+                        <p class="text-3xl font-bold text-blue-600">
+                            {{ stats.owners.toLocaleString() }}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Staff</p>
-                            <div class="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Staff
+                            </p>
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100"
+                            >
                                 <UserCheck class="h-4 w-4 text-orange-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-orange-600">{{ stats.staff.toLocaleString() }}</p>
+                        <p class="text-3xl font-bold text-orange-600">
+                            {{ stats.staff.toLocaleString() }}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Customers</p>
-                            <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Customers
+                            </p>
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100"
+                            >
                                 <User class="h-4 w-4 text-green-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-green-600">{{ stats.users.toLocaleString() }}</p>
+                        <p class="text-3xl font-bold text-green-600">
+                            {{ stats.users.toLocaleString() }}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Archived</p>
-                            <div class="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Archived
+                            </p>
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100"
+                            >
                                 <Archive class="h-4 w-4 text-amber-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-amber-600">{{ stats.archived.toLocaleString() }}</p>
+                        <p class="text-3xl font-bold text-amber-600">
+                            {{ stats.archived.toLocaleString() }}
+                        </p>
                     </CardContent>
                 </Card>
             </div>
 
             <!-- Table card -->
             <Card>
-                <CardHeader class="pb-3">
-                    <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                        <CardTitle class="flex items-center gap-2">
-                            <Users class="h-4 w-4 text-muted-foreground" />
-                            All Users
-                        </CardTitle>
-                        <div class="flex gap-2 flex-wrap">
-                            <Button v-if="selected.length > 0" size="sm" variant="outline"
-                                class="border-amber-300 text-amber-700 hover:bg-amber-50" @click="bulkArchive">
-                                <Archive class="h-4 w-4 mr-1.5" />
-                                Archive ({{ selected.length }})
-                            </Button>
-                            <Button size="sm" variant="outline" @click="router.visit('/admin/users/archive')">
-                                <ArchiveRestore class="h-4 w-4 mr-1.5" /> View Archive
-                            </Button>
-                            <Button size="sm" variant="ghost" @click="resetFilters">
-                                <RefreshCcw class="h-4 w-4 mr-1.5" /> Reset
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-
                 <CardContent class="space-y-4">
-                    <!-- Filters -->
-                    <div class="flex flex-wrap gap-2">
-                        <div class="relative flex-1 min-w-48">
-                            <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input v-model="search" placeholder="Search name or email..." class="pl-8"
-                                @keyup.enter="applyFilters" />
+                    <div class="flex flex-wrap items-center gap-2 pt-6">
+                        <div class="relative min-w-48 flex-1">
+                            <Search
+                                class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
+                            />
+                            <Input
+                                v-model="search"
+                                placeholder="Search name or email..."
+                                class="pl-8"
+                                @keyup.enter="filterTable"
+                            />
                         </div>
 
-                        <Select v-model="role" @update:model-value="applyFilters">
-                            <SelectTrigger class="w-36">
-                                <SelectValue placeholder="Role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Roles</SelectItem>
-                                <SelectItem value="owner">Owner</SelectItem>
-                                <SelectItem value="manager">Manager</SelectItem>
-                                <SelectItem value="staff">Staff</SelectItem>
-                                <SelectItem value="user">Customer</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Button
+                            v-if="selected.length > 0"
+                            size="sm"
+                            variant="outline"
+                            class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40"
+                            @click="bulkArchive"
+                        >
+                            <Archive class="mr-1.5 h-4 w-4" />
+                            Archive ({{ selected.length }})
+                        </Button>
 
-                        <Select v-model="verified" @update:model-value="applyFilters">
-                            <SelectTrigger class="w-36">
-                                <SelectValue placeholder="Account" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-                                <SelectItem value="yes">Verified</SelectItem>
-                                <SelectItem value="no">Unverified</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                            @click="router.visit('/admin/users/archive')"
+                        >
+                            <ArchiveRestore class="mr-1.5 h-4 w-4" />
+                            Archive
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800"
+                            @click="resetFilters"
+                        >
+                            <RefreshCcw class="mr-1.5 h-4 w-4" />
+                            Reset
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                            @click="exportCsv"
+                        >
+                            <Download class="mr-1.5 h-4 w-4" />
+                            Export CSV
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                            :disabled="importing"
+                            @click="chooseCsvFile"
+                        >
+                            <Upload class="mr-1.5 h-4 w-4" />
+                            {{ importing ? 'Importing...' : 'Import CSV' }}
+                        </Button>
+                        <input
+                            ref="importInput"
+                            type="file"
+                            accept=".csv,text/csv"
+                            class="hidden"
+                            @change="importCsv"
+                        />
                     </div>
 
                     <!-- Table -->
-                    <div class="rounded-lg border overflow-hidden">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="bg-muted/40 text-xs text-muted-foreground border-b">
-                                    <th class="px-4 py-3 w-8">
-                                        <input type="checkbox" :checked="allSelected" @change="toggleAll"
-                                            class="rounded" />
-                                    </th>
-                                    <th class="text-left px-4 py-3 font-medium">Name</th>
-                                    <th class="text-left px-4 py-3 font-medium">Email</th>
-                                    <th class="text-left px-4 py-3 font-medium">Role</th>
-                                    <th class="text-left px-4 py-3 font-medium">Shop</th>
-                                    <th class="text-left px-4 py-3 font-medium">Account</th>
-                                    <th class="text-left px-4 py-3 font-medium">Joined</th>
-                                    <th class="text-center px-4 py-3 font-medium">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="u in users.data" :key="u.id"
-                                    class="border-b last:border-0 hover:bg-muted/20 transition-colors"
-                                    :class="{ 'bg-muted/10': selected.includes(u.id) }">
-                                    <td class="px-4 py-3">
-                                        <input type="checkbox" :checked="selected.includes(u.id)"
-                                            @change="toggleOne(u.id)" class="rounded" />
-                                    </td>
-                                    <td class="px-4 py-3 font-medium whitespace-nowrap">{{ u.name }}</td>
-                                    <td class="px-4 py-3 text-muted-foreground text-xs">{{ u.email }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
-                                            :class="roleBadge[u.role] ?? 'bg-gray-100 text-gray-600'">
-                                            {{ u.role.replace('_', ' ') }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-xs text-muted-foreground">
-                                        {{ u.shop?.shop_name ?? '—' }}
-                                    </td>
+                    <div class="overflow-hidden rounded-lg border">
+                        <EasyDataTable
+                            v-model:server-options="serverOptions"
+                            class="user-data-table"
+                            :headers="headers"
+                            :items="tableItems"
+                            :server-items-length="users.total"
+                            :loading="tableLoading"
+                            :rows-items="[5, 10, 20, 50, 100]"
+                            rows-of-page-separator-message="out of"
+                            rows-per-page-message="Rows per page:"
+                            buttons-pagination
+                            alternating
+                            must-sort
+                        >
+                            <template #header-selection>
+                                <input
+                                    type="checkbox"
+                                    aria-label="Select all users on this page"
+                                    :checked="allSelected"
+                                    class="rounded"
+                                    @change="toggleAll"
+                                />
+                            </template>
 
-                                    <!-- Account — verified for all roles since all go through OTP -->
-                                    <td class="px-4 py-3">
-                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium" :class="u.is_verified
+                            <template #header-role="{ text }">
+                                <div class="column-filter">
+                                    <span>{{ text }}</span>
+                                    <select
+                                        v-model="role"
+                                        class="column-filter-input"
+                                        aria-label="Filter by role"
+                                        @click.stop
+                                        @change="filterTable"
+                                    >
+                                        <option value="all">All roles</option>
+                                        <option value="owner">Owner</option>
+                                        <option value="user">User</option>
+                                    </select>
+                                </div>
+                            </template>
+
+                            <template #header-account="{ text }">
+                                <div class="column-filter">
+                                    <span>{{ text }}</span>
+                                    <select
+                                        v-model="verified"
+                                        class="column-filter-input"
+                                        aria-label="Filter by account status"
+                                        @click.stop
+                                        @change="filterTable"
+                                    >
+                                        <option value="all">
+                                            All accounts
+                                        </option>
+                                        <option value="yes">Verified</option>
+                                        <option value="no">Unverified</option>
+                                    </select>
+                                </div>
+                            </template>
+
+                            <template #item-selection="u">
+                                <input
+                                    type="checkbox"
+                                    :checked="selected.includes(u.id)"
+                                    :aria-label="`Select ${u.name}`"
+                                    class="rounded"
+                                    @change="toggleOne(u.id)"
+                                />
+                            </template>
+
+                            <template #item-name="u">
+                                <span class="font-medium whitespace-nowrap">{{
+                                    u.name
+                                }}</span>
+                            </template>
+
+                            <template #item-email="u">
+                                <span class="text-xs text-muted-foreground">{{
+                                    u.email
+                                }}</span>
+                            </template>
+
+                            <template #item-role="u">
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                                    :class="
+                                        roleBadge[u.role] ??
+                                        'bg-gray-100 text-gray-600'
+                                    "
+                                >
+                                    {{ u.role.replace('_', ' ') }}
+                                </span>
+                            </template>
+
+                            <template #item-shop_name="u">
+                                <span class="text-xs text-muted-foreground">{{
+                                    u.shop_name
+                                }}</span>
+                            </template>
+
+                            <template #item-account="u">
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="
+                                        u.is_verified
                                             ? 'bg-green-100 text-green-700'
-                                            : 'bg-red-100 text-red-600'">
-                                            {{ u.is_verified ? 'Verified' : 'Unverified' }}
-                                        </span>
-                                    </td>
+                                            : 'bg-red-100 text-red-600'
+                                    "
+                                >
+                                    {{ u.account }}
+                                </span>
+                            </template>
 
-                                    <td class="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
-                                        {{ formatDate(u.created_at) }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center justify-center gap-1">
-                                            <Button size="icon" variant="ghost"
-                                                @click="router.visit(`/admin/users/${u.id}`)">
-                                                <Eye class="h-4 w-4 text-blue-500" />
-                                            </Button>
-                                            <Button size="icon" variant="ghost" @click="openArchive(u)">
-                                                <Trash2 class="h-4 w-4 text-amber-500" />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="users.data.length === 0">
-                                    <td colspan="8" class="px-4 py-12 text-center text-sm text-muted-foreground">
-                                        <Users class="h-10 w-10 mx-auto mb-2 opacity-20" />
-                                        No users found.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                            <template #item-created_at="u">
+                                <span
+                                    class="text-xs whitespace-nowrap text-muted-foreground"
+                                >
+                                    {{ formatDate(u.created_at) }}
+                                </span>
+                            </template>
 
-                    <!-- Pagination -->
-                    <div v-if="users.last_page > 1" class="flex items-center justify-between pt-2">
-                        <p class="text-xs text-muted-foreground">
-                            Showing {{ users.data.length }} of {{ users.total }} users
-                        </p>
-                        <div class="flex gap-1">
-                            <Button v-for="link in users.links" :key="link.label" size="sm"
-                                :variant="link.active ? 'default' : 'outline'" :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs" @click="link.url && router.visit(link.url)"
-                                v-html="link.label" />
-                        </div>
+                            <template #item-actions="u">
+                                <div
+                                    class="flex items-center justify-center gap-1"
+                                >
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        aria-label="View user"
+                                        @click="
+                                            router.visit(`/admin/users/${u.id}`)
+                                        "
+                                    >
+                                        <Eye class="h-4 w-4 text-blue-500" />
+                                    </Button>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        aria-label="Archive user"
+                                        @click="openArchive(u)"
+                                    >
+                                        <Trash2
+                                            class="h-4 w-4 text-amber-500"
+                                        />
+                                    </Button>
+                                </div>
+                            </template>
+
+                            <template #empty-message>
+                                <div
+                                    class="py-10 text-center text-sm text-muted-foreground"
+                                >
+                                    <Users
+                                        class="mx-auto mb-2 h-10 w-10 opacity-20"
+                                    />
+                                    No users found.
+                                </div>
+                            </template>
+                        </EasyDataTable>
                     </div>
                 </CardContent>
             </Card>
-
         </div>
 
         <!-- Archive confirm -->
@@ -398,16 +696,90 @@ const roleBadge: Record<string, string> = {
                     <AlertDialogTitle>Archive User</AlertDialogTitle>
                     <AlertDialogDescription>
                         Are you sure you want to archive
-                        <strong>{{ archiveName }}</strong>?
-                        They will lose access but can be restored later.
+                        <strong>{{ archiveName }}</strong
+                        >? They will lose access but can be restored later.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <Button variant="outline" @click="cancelArchive">Cancel</Button>
-                    <Button variant="destructive" @click="confirmArchive">Archive</Button>
+                    <Button variant="outline" @click="cancelArchive"
+                        >Cancel</Button
+                    >
+                    <Button variant="destructive" @click="confirmArchive"
+                        >Archive</Button
+                    >
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-
     </AdminLayout>
 </template>
+
+<style scoped>
+.user-data-table {
+    --easy-table-border: 0;
+    --easy-table-row-border: 1px solid var(--border);
+    --easy-table-header-background-color: var(--muted);
+    --easy-table-header-font-color: var(--muted-foreground);
+    --easy-table-header-font-size: 12px;
+    --easy-table-header-height: 82px;
+    --easy-table-header-item-padding: 10px 12px;
+    --easy-table-body-row-background-color: var(--background);
+    --easy-table-body-even-row-background-color: color-mix(
+        in srgb,
+        var(--muted) 35%,
+        transparent
+    );
+    --easy-table-body-row-font-color: var(--foreground);
+    --easy-table-body-even-row-font-color: var(--foreground);
+    --easy-table-body-row-hover-background-color: color-mix(
+        in srgb,
+        var(--muted) 65%,
+        transparent
+    );
+    --easy-table-body-row-hover-font-color: var(--foreground);
+    --easy-table-body-row-height: 58px;
+    --easy-table-body-item-padding: 10px 12px;
+    --easy-table-message-font-color: var(--muted-foreground);
+    --easy-table-footer-background-color: var(--background);
+    --easy-table-footer-font-color: var(--muted-foreground);
+    --easy-table-footer-font-size: 12px;
+    --easy-table-footer-height: 56px;
+    --easy-table-footer-padding: 0 16px;
+    --easy-table-buttons-pagination-border: 1px solid var(--border);
+    width: 100%;
+}
+
+.column-filter {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.column-filter-input {
+    height: 30px;
+    width: 100%;
+    min-width: 90px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    padding: 0 8px;
+    color: var(--foreground);
+    font-size: 12px;
+    font-weight: 400;
+    outline: none;
+}
+
+.column-filter-input:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+:deep(.vue3-easy-data-table__main) {
+    background: var(--background);
+}
+
+:deep(.vue3-easy-data-table__main table) {
+    min-width: 1120px;
+}
+</style>

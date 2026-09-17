@@ -84,6 +84,8 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
     // ── Users ─────────────────────────────────────────────────────────────────────
     Route::prefix('users')->name('admin.users.')->group(function () {
         Route::get('/',              [UserController::class, 'index'])->name('index');
+        Route::get('/export',        [UserController::class, 'exportCsv'])->name('export');
+        Route::post('/import',       [UserController::class, 'importCsv'])->name('import');
         Route::post('/bulk-archive', [UserController::class, 'bulkArchive'])->name('bulk-archive');
 
         Route::prefix('archive')->name('archive.')->group(function () {
@@ -112,10 +114,10 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     // Orders
     Route::prefix('orders')->name('admin.orders.')->group(function () {
-        Route::get('/',              [OrderController::class, 'index'])->name('index');
-        Route::get('/{id}',          [OrderController::class, 'show'])->name('show');
-        Route::post('/{id}/approve', [OrderController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject',  [OrderController::class, 'reject'])->name('reject');
+        Route::get('/',                              [OrderController::class, 'index'])->name('index');
+        Route::get('/{order:public_id}',             [OrderController::class, 'show'])->name('show');
+        Route::post('/{order:public_id}/approve',    [OrderController::class, 'approve'])->name('approve');
+        Route::post('/{order:public_id}/reject',     [OrderController::class, 'reject'])->name('reject');
     });
 
     Route::get('/kyc-file', [OrderController::class, 'serveKyc'])->name('admin.kyc-file');

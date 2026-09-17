@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class UserRepository extends Repository
 {
@@ -24,8 +25,7 @@ class UserRepository extends Repository
         $query = $this->query()
             ->whereNull('deleted_at')
             ->where('role', '!=', 'super_admin')
-            ->with('shop')
-            ->latest();
+            ->with('shop');
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
@@ -42,6 +42,24 @@ class UserRepository extends Repository
             $query->where('is_verified', $filters['verified'] === 'yes');
         }
 
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortDirection = ($filters['sort_direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+        if ($sortBy === 'shop_name') {
+            $query->orderBy(
+                \App\Models\Shop::select('shop_name')
+                    ->whereColumn('shops.owner_id', 'users.id')
+                    ->limit(1),
+                $sortDirection,
+            );
+        } else {
+            $sortableColumns = ['name', 'email', 'created_at'];
+            $query->orderBy(
+                in_array($sortBy, $sortableColumns, true) ? $sortBy : 'created_at',
+                $sortDirection,
+            );
+        }
+
         return $query->paginate($perPage)->withQueryString();
     }
 
@@ -54,6 +72,15 @@ class UserRepository extends Repository
             'users'    => User::whereNull('deleted_at')->where('role', 'user')->count(),
             'archived' => User::onlyTrashed()->where('role', '!=', 'super_admin')->count(),
         ];
+    }
+
+    public function getForCsvExport(): Collection
+    {
+        return User::query()
+            ->whereNull('deleted_at')
+            ->where('role', '!=', 'super_admin')
+            ->orderBy('id')
+            ->get();
     }
 
     public function findWithRelations(int $id): User

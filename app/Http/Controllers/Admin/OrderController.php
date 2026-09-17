@@ -31,16 +31,15 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show(int $id)
+    public function show(Order $order)
     {
         return Inertia::render('admin/orders/Show', [
-            'order' => $this->orderService->find($id),
+            'order' => $order->load(['user', 'modules', 'payments']),
         ]);
     }
 
-    public function approve($id)
+    public function approve(Order $order)
     {
-        $order = Order::findOrFail($id);
         $order->update(['status' => 'approved']);
 
         // If this is a plan upgrade, expire all previous active orders for this user
@@ -75,13 +74,13 @@ class OrderController extends Controller
             ->with('toast', ['type' => 'success', 'message' => $message]);
     }
 
-    public function reject(Request $request, $id)
+    public function reject(Request $request, Order $order)
     {
         $request->validate([
             'rejection_reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        $order = Order::with('user')->findOrFail($id);
+        $order->load('user');
 
         $order->update([
             'status'           => 'rejected',

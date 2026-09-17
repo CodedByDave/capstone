@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
@@ -47,6 +48,13 @@ class Order extends Model
         'mayors_expiry_date'  => 'date',
         'sanitary_expiry_date' => 'date',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Order $order) {
+            $order->public_id ??= (string) Str::ulid();
+        });
+    }
 
     public function modules(): HasMany
     {
