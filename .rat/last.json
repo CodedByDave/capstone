@@ -1,27 +1,27 @@
 {
-  "generated_at": "2026-09-07T08:56:12+00:00",
+  "generated_at": "2026-09-12T12:46:30+00:00",
   "stats": {
     "routes": 325,
-    "files": 284,
+    "files": 288,
     "by_type": {
       "Controller": 59,
-      "Other": 139,
+      "Other": 141,
       "Middleware": 1,
       "Mail": 2,
       "Model": 31,
       "Notification": 3,
       "Observer": 2,
-      "Service": 47
+      "Service": 49
     },
     "graph": {
-      "nodes": 538,
-      "edges": 1396,
+      "nodes": 542,
+      "edges": 1400,
       "by_type": {
         "Route": 234,
         "Controller": 57,
-        "Service": 68,
+        "Service": 70,
         "Model": 32,
-        "Other": 135,
+        "Other": 137,
         "Database": 1,
         "Event": 1,
         "Filesystem": 1,
@@ -3171,17 +3171,17 @@
         "meta": {}
       },
       {
-        "id": "model:Order",
+        "id": "model:Payment",
         "type": "Model",
-        "name": "Order",
+        "name": "Payment",
         "file": "",
         "line": 0,
         "meta": {}
       },
       {
-        "id": "model:Payment",
+        "id": "model:Order",
         "type": "Model",
-        "name": "Payment",
+        "name": "Order",
         "file": "",
         "line": 0,
         "meta": {}
@@ -3955,6 +3955,14 @@
         "meta": {}
       },
       {
+        "id": "service:AdminDashboardRepository",
+        "type": "Service",
+        "name": "AdminDashboardRepository",
+        "file": "app\\Repositories\\AdminDashboardRepository.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
         "id": "service:UserRepository",
         "type": "Service",
         "name": "UserRepository",
@@ -4111,6 +4119,14 @@
         "type": "Service",
         "name": "ActivityLogService",
         "file": "app\\Services\\ActivityLogService.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "service:AdminDashboardService",
+        "type": "Service",
+        "name": "AdminDashboardService",
+        "file": "app\\Services\\Admin\\AdminDashboardService.php",
         "line": 1,
         "meta": {}
       },
@@ -4775,6 +4791,22 @@
         "type": "Other",
         "name": "2026_04_30_000004_add_document_expiry_dates_to_orders_table",
         "file": "database\\migrations\\2026_04_30_000004_add_document_expiry_dates_to_orders_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "type": "Other",
+        "name": "2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "file": "database\\migrations\\2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_10_172350_add_last_activity_at_to_shops_table",
+        "type": "Other",
+        "name": "2026_09_10_172350_add_last_activity_at_to_shops_table",
+        "file": "database\\migrations\\2026_09_10_172350_add_last_activity_at_to_shops_table.php",
         "line": 1,
         "meta": {}
       },
@@ -8881,160 +8913,6 @@
         "meta": {}
       },
       {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AdminDashboardController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
         "from": "controller:AnalyticsController",
         "to": "model:User",
         "kind": "WRITES",
@@ -10533,6 +10411,118 @@
         "meta": {}
       },
       {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
         "from": "service:UserRepository",
         "to": "model:User",
         "kind": "WRITES",
@@ -10744,6 +10734,34 @@
       },
       {
         "from": "service:ActivityLogService",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardService",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardService",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardService",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardService",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
@@ -11829,6 +11847,48 @@
       },
       {
         "from": "other:2026_04_30_000004_add_document_expiry_dates_to_orders_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_10_172350_add_last_activity_at_to_shops_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_10_172350_add_last_activity_at_to_shops_table",
         "to": "schema:Schema",
         "kind": "DEPENDS_ON",
         "label": "Schema::",
@@ -14762,14 +14822,14 @@
       }
     ],
     "stats": {
-      "nodes": 538,
-      "edges": 1396,
+      "nodes": 542,
+      "edges": 1400,
       "by_type": {
         "Route": 234,
         "Controller": 57,
-        "Service": 68,
+        "Service": 70,
         "Model": 32,
-        "Other": 135,
+        "Other": 137,
         "Database": 1,
         "Event": 1,
         "Filesystem": 1,

@@ -14,7 +14,7 @@ import { type NavItem } from '@/types'
 import { Link } from '@inertiajs/vue3'
 import {
     LayoutGrid, Store, User, ListOrdered,
-    ChartNoAxesCombined, Users, ShieldCheck,
+    ChartNoAxesCombined, Users, ShieldCheck, CircleAlert
 } from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
 
@@ -55,6 +55,11 @@ const mainNavItems: NavItem[] = [
         title: 'Analytics Report',
         href: '/admin/analytics',
         icon: ChartNoAxesCombined,
+    },
+    {
+        title: 'Complaints',
+        href: '/admin/complaints',
+        icon: CircleAlert,
     },
 ]
 </script>

@@ -356,9 +356,6 @@ class AdminDashboardService
 
             'planBreakdown' =>
                 $this->getPlanBreakdown($now),
-
-            'shops' =>
-                $this->getRecentShops($now),
         ];
     }
 

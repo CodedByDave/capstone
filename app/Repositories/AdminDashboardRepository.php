@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\Employee;
 use App\Models\Inventory;
 use Carbon\CarbonPeriod;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -94,7 +95,7 @@ class AdminDashboardRepository extends Repository
 
     public function activeSubcriptionsCount(Carbon $now): int
     {
-        return Order::where('status', 'paid')
+        return Order::whereIn('status', ['paid', 'approved'])
             ->where('expires_at', '>', $now)
             ->count();
     }
@@ -102,7 +103,7 @@ class AdminDashboardRepository extends Repository
     public function expiringSubscriptionsInSevenDays(Carbon $now): Collection
     {
         $targetDate = $now->copy()->addDays(7);
-        return Order::where('status', 'paid')
+        return Order::whereIn('status', ['paid', 'approved'])
             ->whereBetween('expires_at', [
                 $targetDate->copy()->startOfDay(),
                 $targetDate->copy()->endOfDay()
@@ -113,7 +114,7 @@ class AdminDashboardRepository extends Repository
 
     public function expiredSubscriptionsCount(Carbon $now): int
     {
-        return Order::where('status', 'paid')
+        return Order::whereIn('status', ['paid', 'approved'])
             ->where('expires_at', '<', $now)
             ->count();
     }
@@ -128,26 +129,47 @@ class AdminDashboardRepository extends Repository
         return Order::whereBetween('created_at', [$start, $end])->count();
     }
 
-    // Plan breakdown for pie chart (for count per plan)
+    // Active subscription breakdown by plan name.
     public function getPlanBreakdown(Carbon $now): Collection
     {
-        return Order::where('status', 'paid')
+        return Order::whereIn('status', ['paid', 'approved'])
             ->where('expires_at', '>', $now)
-            ->selectRaw('billing_months, COUNT(*) as total')
-            ->groupBy('billing_months')
-            ->orderBy('billing_months')
-            ->pluck('total', 'billing_months');
+            ->selectRaw('plan_name, COUNT(*) as total')
+            ->groupBy('plan_name')
+            ->orderBy('plan_name')
+            ->pluck('total', 'plan_name');
     }
 
     // Revenue by month (current year)
     public function getMonthlyRevenue(Carbon $now): Collection
     {
-        return Payment::where('status', 'paid')
-            ->whereYear('created_at', $now->year)
-            ->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
+        $paymentRevenue = Payment::where('status', 'paid')
+            ->where(function ($query) use ($now) {
+                $query->whereYear('paid_at', $now->year)
+                    ->orWhere(function ($legacyPayment) use ($now) {
+                        $legacyPayment->whereNull('paid_at')
+                            ->whereYear('created_at', $now->year);
+                    });
+            })
+            ->selectRaw('MONTH(COALESCE(paid_at, created_at)) as month, SUM(amount) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month');
+
+        $orderRevenue = $this->ordersWithoutPaidPayment()
+            ->whereYear('created_at', $now->year)
+            ->selectRaw('MONTH(created_at) as month, SUM(total_price) as total')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month');
+
+        return $paymentRevenue->keys()
+            ->merge($orderRevenue->keys())
+            ->unique()
+            ->mapWithKeys(fn ($month) => [
+                $month => (float) ($paymentRevenue[$month] ?? 0)
+                    + (float) ($orderRevenue[$month] ?? 0),
+            ]);
     }
 
     // Orders by month (current year)
@@ -163,14 +185,39 @@ class AdminDashboardRepository extends Repository
 
     public function revenueBetween(Carbon $start, Carbon $end): float
     {
-        return (float) Payment::where('status', 'paid')
-            ->whereBetween('created_at', [$start, $end])
+        $paymentRevenue = (float) Payment::where('status', 'paid')
+            ->where(function ($query) use ($start, $end) {
+                $query->whereBetween('paid_at', [$start, $end])
+                    ->orWhere(function ($legacyPayment) use ($start, $end) {
+                        $legacyPayment->whereNull('paid_at')
+                            ->whereBetween('created_at', [$start, $end]);
+                    });
+            })
             ->sum('amount');
+
+        $orderRevenue = (float) $this->ordersWithoutPaidPayment()
+            ->whereBetween('created_at', [$start, $end])
+            ->sum('total_price');
+
+        return $paymentRevenue + $orderRevenue;
     }
 
     public function totalRevenue(): float
     {
-        return (float) Payment::where('status', 'paid')->sum('amount');
+        $paymentRevenue = (float) Payment::where('status', 'paid')->sum('amount');
+        $orderRevenue = (float) $this->ordersWithoutPaidPayment()->sum('total_price');
+
+        return $paymentRevenue + $orderRevenue;
+    }
+
+    private function ordersWithoutPaidPayment(): Builder
+    {
+        return Order::query()
+            ->whereIn('status', ['approved', 'paid', 'expired'])
+            ->where('is_trial', false)
+            ->where('total_price', '>', 0)
+            ->whereDoesntHave('payments', fn ($query) =>
+                $query->where('status', 'paid'));
     }
 
     public function getMonthlyShopRegistrations(Carbon $now): Collection
@@ -210,7 +257,7 @@ class AdminDashboardRepository extends Repository
     // Alerts for overdue subscriptions (expired) - for monitoring which shops have not renewed their subscriptions for more than 7 days
     public function getOverdueSubscriptions(Carbon $now): Collection
     {
-        return Order::where('status', 'paid')
+        return Order::whereIn('status', ['paid', 'approved'])
             ->where('expires_at', '<', $now->copy()->subDays(7))
             ->with('user')
             ->get();

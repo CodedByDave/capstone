@@ -12,21 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->date('bir_expiry_date')->nullable()->before('mayors_expiry_date');
-        });
-
-        Schema::table('shops', function (Blueprint $table) {
-            $table->date('bir_expiry_date')->nullable()->before('mayors_expiry_date');
+            $table->date('bir_expiry_date')
+                ->nullable()
+                ->before('mayors_expiry_date');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn('bir_expiry_date');
-        });
-
-        Schema::table('shops', function (Blueprint $table) {
             $table->dropColumn('bir_expiry_date');
         });
     }
