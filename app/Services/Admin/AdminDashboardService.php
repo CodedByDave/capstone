@@ -2,7 +2,7 @@
 
 namespace App\Services\Admin;
 
-use App\Models\User;
+use App\Enums\AccountType;
 use App\Repositories\AdminDashboardRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -251,15 +251,11 @@ class AdminDashboardService
                 ),
 
                 'totalOwners' => $this->usersCountByRole(
-                    User::ROLE_OWNER
+                    AccountType::ShopOwner->value
                 ),
 
-                'totalStaff' =>
-                    $this->usersCountByRole(User::ROLE_STAFF)
-                    + $this->usersCountByRole(User::ROLE_MANAGER),
-
                 'totalCustomers' => $this->usersCountByRole(
-                    User::ROLE_USER
+                    AccountType::Customer->value
                 ),
 
                 'newUsersMonth' => $newUsersMonth,
@@ -271,11 +267,9 @@ class AdminDashboardService
 
                 'totalOrders' => $this->ordersTotalCount(),
 
-                'activeSubscriptions' =>
-                    $this->activeSubscriptionsCount($now),
+                'activeSubscriptions' => $this->activeSubscriptionsCount($now),
 
-                'expiredOrders' =>
-                    $this->expiredSubscriptionsCount($now),
+                'expiredOrders' => $this->expiredSubscriptionsCount($now),
 
                 'ordersThisMonth' => $ordersThisMonth,
 
@@ -312,34 +306,27 @@ class AdminDashboardService
             ],
 
             'alerts' => [
-                'overduePayments' =>
-                    $overdueSubscriptions
-                        ->map(
-                            fn ($order) =>
-                                $order->shop_name
-                                ?? $order->user?->name
-                        )
-                        ->values(),
+                'overduePayments' => $overdueSubscriptions
+                    ->map(
+                        fn ($order) => $order->shop_name
+                            ?? $order->user?->name
+                    )
+                    ->values(),
 
-                'expiringShops' =>
-                    $expiringSubscriptions
-                        ->map(
-                            fn ($order) =>
-                                $order->shop_name
-                                ?? $order->user?->name
-                        )
-                        ->values(),
+                'expiringShops' => $expiringSubscriptions
+                    ->map(
+                        fn ($order) => $order->shop_name
+                            ?? $order->user?->name
+                    )
+                    ->values(),
 
-                'inactiveShops' =>
-                    $inactiveShops
-                        ->map(
-                            fn ($shop) =>
-                                $shop->shop_name
-                        )
-                        ->values(),
+                'inactiveShops' => $inactiveShops
+                    ->map(
+                        fn ($shop) => $shop->shop_name
+                    )
+                    ->values(),
 
-                'pendingShops' =>
-                    $this->shopsCountByStatus('pending'),
+                'pendingShops' => $this->shopsCountByStatus('pending'),
 
                 'lowStockCount' => $this->adminDashboardRepository
                     ->inventoryLowStockCount(),
@@ -354,8 +341,9 @@ class AdminDashboardService
                 'shops' => $shopsChart,
             ],
 
-            'planBreakdown' =>
-                $this->getPlanBreakdown($now),
+            'planBreakdown' => $this->getPlanBreakdown($now),
+
+            'shops' => $this->getRecentShops($now),
         ];
     }
 
@@ -376,7 +364,6 @@ class AdminDashboardService
     }
 
     // Percentage calculation
-
     private function percentageChange(
         float|int $current,
         float|int $previous

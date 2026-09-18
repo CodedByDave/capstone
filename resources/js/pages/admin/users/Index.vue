@@ -49,7 +49,7 @@ interface UserItem {
     name: string;
     email: string;
     role: string;
-    is_verified: boolean;
+    email_verified_at: string | null;
     shop_id: number | null;
     shop: Shop | null;
     created_at: string;
@@ -75,7 +75,6 @@ const props = defineProps<{
     stats: {
         total: number;
         owners: number;
-        staff: number;
         users: number;
         archived: number;
     };
@@ -329,8 +328,6 @@ function formatDate(d: string) {
 const roleBadge: Record<string, string> = {
     super_admin: 'bg-purple-100 text-purple-700',
     owner: 'bg-blue-100 text-blue-700',
-    manager: 'bg-sky-100 text-sky-700',
-    staff: 'bg-orange-100 text-orange-700',
     user: 'bg-gray-100 text-gray-600',
 };
 
@@ -338,7 +335,7 @@ const tableItems = computed(() =>
     props.users.data.map((user) => ({
         ...user,
         shop_name: user.shop?.shop_name ?? '—',
-        account: user.is_verified ? 'Verified' : 'Unverified',
+        account: user.email_verified_at ? 'Verified' : 'Unverified',
         actions: '',
     })),
 );
@@ -349,20 +346,15 @@ const tableItems = computed(() =>
     <AdminLayout :breadcrumbs="breadcrumbs" title="User Management">
         <div class="space-y-6 px-6">
             <!-- Stats -->
-            <div class="grid grid-cols-2 gap-4 md:grid-cols-5">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-4">
                 <Card>
                     <CardContent class="pt-5">
                         <div class="mb-2 flex items-center justify-between">
                             <p
                                 class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
                             >
-                                Total
+                                Total Users
                             </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100"
-                            >
-                                <Users class="h-4 w-4 text-blue-600" />
-                            </div>
                         </div>
                         <p class="text-3xl font-bold">
                             {{ stats.total.toLocaleString() }}
@@ -375,13 +367,8 @@ const tableItems = computed(() =>
                             <p
                                 class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
                             >
-                                Owners
+                                Total Owners
                             </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100"
-                            >
-                                <Store class="h-4 w-4 text-blue-600" />
-                            </div>
                         </div>
                         <p class="text-3xl font-bold text-blue-600">
                             {{ stats.owners.toLocaleString() }}
@@ -394,16 +381,11 @@ const tableItems = computed(() =>
                             <p
                                 class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
                             >
-                                Staff
+                                Total Normal Users
                             </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100"
-                            >
-                                <UserCheck class="h-4 w-4 text-orange-600" />
-                            </div>
                         </div>
                         <p class="text-3xl font-bold text-orange-600">
-                            {{ stats.staff.toLocaleString() }}
+                            {{ stats.users.toLocaleString() }}
                         </p>
                     </CardContent>
                 </Card>
@@ -413,7 +395,7 @@ const tableItems = computed(() =>
                             <p
                                 class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
                             >
-                                Customers
+                                Total Verified Users
                             </p>
                             <div
                                 class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100"
@@ -426,29 +408,9 @@ const tableItems = computed(() =>
                         </p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Archived
-                            </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100"
-                            >
-                                <Archive class="h-4 w-4 text-amber-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-amber-600">
-                            {{ stats.archived.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
             </div>
 
             <!-- Table card -->
-            <Card>
                 <CardContent class="space-y-4">
                     <div class="flex flex-wrap items-center gap-2 pt-6">
                         <div class="relative min-w-48 flex-1">
@@ -629,7 +591,7 @@ const tableItems = computed(() =>
                                 <span
                                     class="rounded-full px-2 py-0.5 text-xs font-medium"
                                     :class="
-                                        u.is_verified
+                                        u.email_verified_at
                                             ? 'bg-green-100 text-green-700'
                                             : 'bg-red-100 text-red-600'
                                     "
@@ -686,7 +648,6 @@ const tableItems = computed(() =>
                         </EasyDataTable>
                     </div>
                 </CardContent>
-            </Card>
         </div>
 
         <!-- Archive confirm -->

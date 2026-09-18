@@ -2,55 +2,56 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Shop;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class AnalyticsController extends Controller
 {
     public function index()
     {
-        $now       = Carbon::now();
+        $now = Carbon::now();
         $thisMonth = $now->copy()->startOfMonth();
         $lastMonth = $now->copy()->subMonth()->startOfMonth();
         $lastMonthEnd = $now->copy()->subMonth()->endOfMonth();
 
-        //Stat Cards
+        // Stat Cards
 
         // Total Shops
-        $totalShops     = Shop::count();
+        $totalShops = Shop::count();
         $shopsThisMonth = Shop::where('created_at', '>=', $thisMonth)->count();
         $shopsLastMonth = Shop::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
-        $shopsChange    = $shopsLastMonth > 0
+        $shopsChange = $shopsLastMonth > 0
             ? round((($shopsThisMonth - $shopsLastMonth) / $shopsLastMonth) * 100, 1)
             : ($shopsThisMonth > 0 ? 100 : 0);
 
         // Total Customers (role = 'user')
-        $totalCustomers     = User::where('role', User::ROLE_USER)->count();
-        $customersThisMonth = User::where('role', User::ROLE_USER)->where('created_at', '>=', $thisMonth)->count();
-        $customersLastMonth = User::where('role', User::ROLE_USER)->whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
-        $customersChange    = $customersLastMonth > 0
+        $totalCustomers = User::where('role', AccountType::Customer->value)->count();
+        $customersThisMonth = User::where('role', AccountType::Customer->value)->where('created_at', '>=', $thisMonth)->count();
+        $customersLastMonth = User::where('role', AccountType::Customer->value)->whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
+        $customersChange = $customersLastMonth > 0
             ? round((($customersThisMonth - $customersLastMonth) / $customersLastMonth) * 100, 1)
             : ($customersThisMonth > 0 ? 100 : 0);
 
         // Total Revenue (paid payments)
-        $totalRevenue     = Payment::where('status', 'paid')->sum('amount');
+        $totalRevenue = Payment::where('status', 'paid')->sum('amount');
         $revenueThisMonth = Payment::where('status', 'paid')->where('paid_at', '>=', $thisMonth)->sum('amount');
         $revenueLastMonth = Payment::where('status', 'paid')->whereBetween('paid_at', [$lastMonth, $lastMonthEnd])->sum('amount');
-        $revenueChange    = $revenueLastMonth > 0
+        $revenueChange = $revenueLastMonth > 0
             ? round((($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100, 1)
             : ($revenueThisMonth > 0 ? 100 : 0);
 
         // Total Orders (paid orders)
-        $totalOrders     = Order::where('status', 'paid')->count();
+        $totalOrders = Order::where('status', 'paid')->count();
         $ordersThisMonth = Order::where('status', 'paid')->where('created_at', '>=', $thisMonth)->count();
         $ordersLastMonth = Order::where('status', 'paid')->whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
-        $ordersChange    = $ordersLastMonth > 0
+        $ordersChange = $ordersLastMonth > 0
             ? round((($ordersThisMonth - $ordersLastMonth) / $ordersLastMonth) * 100, 1)
             : ($ordersThisMonth > 0 ? 100 : 0);
 
@@ -65,8 +66,8 @@ class AnalyticsController extends Controller
             ->groupBy('month_key', 'month')
             ->orderBy('month_key')
             ->get()
-            ->map(fn($r) => [
-                'month'  => $r->month,
+            ->map(fn ($r) => [
+                'month' => $r->month,
                 'amount' => (float) $r->amount,
             ])
             ->values();
@@ -83,14 +84,14 @@ class AnalyticsController extends Controller
             ->groupBy('month_key', 'month')
             ->orderBy('month_key')
             ->get()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'month' => $r->month,
                 'count' => (int) $r->count,
             ])
             ->values();
 
         // Registration Chart last 12 months
-        $registrationsChart = User::where('role', User::ROLE_USER)
+        $registrationsChart = User::where('role', AccountType::Customer->value)
             ->where('created_at', '>=', $now->copy()->subMonths(11)->startOfMonth())
             ->select(
                 DB::raw("DATE_FORMAT(created_at, '%b') as month"),
@@ -100,7 +101,7 @@ class AnalyticsController extends Controller
             ->groupBy('month_key', 'month')
             ->orderBy('month_key')
             ->get()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'month' => $r->month,
                 'count' => (int) $r->count,
             ])
@@ -131,12 +132,12 @@ class AnalyticsController extends Controller
                 // Growth: compare this month vs last month revenue per shop
                 $revenueThisMonth = Payment::where('status', 'paid')
                     ->where('paid_at', '>=', $now->copy()->startOfMonth())
-                    ->whereHas('order', fn($q) => $q->where('user_id', DB::table('shops')->where('id', $shop->id)->value('owner_id')))
+                    ->whereHas('order', fn ($q) => $q->where('user_id', DB::table('shops')->where('id', $shop->id)->value('owner_id')))
                     ->sum('amount');
 
                 $revenueLastMonth = Payment::where('status', 'paid')
                     ->whereBetween('paid_at', [$lastMonth, $lastMonthEnd])
-                    ->whereHas('order', fn($q) => $q->where('user_id', DB::table('shops')->where('id', $shop->id)->value('owner_id')))
+                    ->whereHas('order', fn ($q) => $q->where('user_id', DB::table('shops')->where('id', $shop->id)->value('owner_id')))
                     ->sum('amount');
 
                 $growth = $revenueLastMonth > 0
@@ -144,12 +145,12 @@ class AnalyticsController extends Controller
                     : ($revenueThisMonth > 0 ? 100 : 0);
 
                 return [
-                    'rank'     => $index + 1,
-                    'name'     => $shop->shop_name,
+                    'rank' => $index + 1,
+                    'name' => $shop->shop_name,
                     'location' => "{$shop->barangay}, {$shop->municipality}",
-                    'revenue'  => (float) $shop->revenue,
-                    'orders'   => (int) $shop->orders,
-                    'growth'   => $growth,
+                    'revenue' => (float) $shop->revenue,
+                    'orders' => (int) $shop->orders,
+                    'growth' => $growth,
                 ];
             })
             ->values();
@@ -157,15 +158,15 @@ class AnalyticsController extends Controller
         // Index page
         return Inertia::render('admin/analytics/Index', [
             'stats' => [
-                'total_shops'     => ['value' => $totalShops,     'change' => $shopsChange],
+                'total_shops' => ['value' => $totalShops,     'change' => $shopsChange],
                 'total_customers' => ['value' => $totalCustomers, 'change' => $customersChange],
-                'total_revenue'   => ['value' => $totalRevenue,   'change' => $revenueChange],
-                'total_orders'    => ['value' => $totalOrders,    'change' => $ordersChange],
+                'total_revenue' => ['value' => $totalRevenue,   'change' => $revenueChange],
+                'total_orders' => ['value' => $totalOrders,    'change' => $ordersChange],
             ],
-            'revenue_chart'       => $revenueChart,
-            'orders_chart'        => $ordersChart,
+            'revenue_chart' => $revenueChart,
+            'orders_chart' => $ordersChart,
             'registrations_chart' => $registrationsChart,
-            'top_shops'           => $topShops,
+            'top_shops' => $topShops,
         ]);
     }
 }

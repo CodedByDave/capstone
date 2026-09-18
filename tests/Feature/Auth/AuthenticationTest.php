@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AccountType;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
@@ -10,17 +11,27 @@ test('login screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('users are sent to the dashboard for their account type', function (
+    AccountType $accountType,
+    string $dashboardRoute,
+) {
+    $user = User::factory()->create([
+        'role' => $accountType->value,
+    ]);
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
-});
+    $this->assertAuthenticatedAs($user);
+    $response->assertRedirect(route($dashboardRoute));
+})->with([
+    'customer' => [AccountType::Customer, 'user.dashboard'],
+    'shop owner' => [AccountType::ShopOwner, 'shop.dashboard'],
+    'staff' => [AccountType::Staff, 'staff.dashboard'],
+    'super admin' => [AccountType::SuperAdmin, 'admin.dashboard'],
+]);
 
 test('users with two factor enabled are redirected to two factor challenge', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
@@ -67,7 +78,7 @@ test('users can logout', function () {
     $response = $this->actingAs($user)->post(route('logout'));
 
     $this->assertGuest();
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('landing'));
 });
 
 test('users are rate limited', function () {

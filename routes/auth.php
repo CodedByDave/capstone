@@ -1,16 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use App\Http\Controllers\Auth\ShopRegisterController;
-use App\Http\Controllers\Auth\UserRegisterController;
-use App\Http\Controllers\Auth\OtpVerificationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Auth\OtpVerificationController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\ShopRegisterController;
+use App\Http\Controllers\Auth\UserRegisterController;
 use App\Services\LoginLogService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // Logout
 Route::post('/logout', function (LoginLogService $loginLogService) {
@@ -18,11 +18,11 @@ Route::post('/logout', function (LoginLogService $loginLogService) {
 
     if ($user) {
         $loginLogService->logLogout(
-            userId:    $user->id,
-            email:     $user->email,
-            name:      $user->name,
-            role:      $user->role,
-            ip:        request()->ip(),
+            userId: $user->id,
+            email: $user->email,
+            name: $user->name,
+            role: $user->role,
+            ip: request()->ip(),
             userAgent: request()->userAgent() ?? '',
         );
     }
@@ -34,13 +34,15 @@ Route::post('/logout', function (LoginLogService $loginLogService) {
     return redirect('/');
 })->middleware('auth')->name('logout');
 
-Route::get('/auth/google',          [GoogleAuthController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 // Guest Routes
 Route::middleware(['guest'])->group(function () {
 
     Route::get('/login', [AuthController::class, 'show'])->name('login');
+    Route::get('/two-factor-challenge', fn () => Inertia::render('auth/TwoFactorChallenge'))
+        ->name('two-factor.login');
 
     Route::get('/register/shop', [ShopRegisterController::class, 'show'])->name('register.shop');
     Route::post('/register/shop', [ShopRegisterController::class, 'store'])

@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Enums\AccountType;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class SuperAdminSeeder extends Seeder
@@ -21,10 +22,15 @@ class SuperAdminSeeder extends Seeder
             [
                 'name' => 'Super Admin',
                 'password' => Hash::make('AdminPassword_123'),
-                'role' => 'super_admin',
+                'role' => AccountType::SuperAdmin->value,
+                'email_verified_at' => now(),
             ]
         );
 
-        $this->command->info('Super admin created or already exists: ' . $superAdminEmail);
+        if ($user->email_verified_at === null) {
+            $user->update(['email_verified_at' => now()]);
+        }
+
+        $this->command->info('Super admin created or already exists: '.$superAdminEmail);
     }
 }

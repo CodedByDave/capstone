@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Enums\AccountType;
 use App\Services\LoginLogService;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
@@ -30,14 +31,7 @@ class LoginResponse implements LoginResponseContract
             return redirect()->route('checkout.confirm');
         }
 
-
-        $url = match ($user->role) {
-            'super_admin' => route('admin.dashboard'),
-            'owner'       => route('shop.dashboard'),
-            'staff'       => route('staff.dashboard'),
-            'user'        => route('user.dashboard'),
-            default       => route('landing'),
-        };
+        $url = route(AccountType::dashboardRouteFor($user->role));
 
         return $request->wantsJson()
             ? response()->json(['two_factor' => false])

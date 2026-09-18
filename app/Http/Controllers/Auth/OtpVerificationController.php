@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\User;
+use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\VerifyOtpRequest;
+use App\Mail\OtpVerificationMail;
+use App\Models\User;
 use App\Services\ShopService;
 use App\Services\UserService;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use App\Mail\OtpVerificationMail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class OtpVerificationController extends Controller
@@ -24,8 +25,9 @@ class OtpVerificationController extends Controller
 
     public function show()
     {
-        if (!session('pending_registration')) {
+        if (! session('pending_registration')) {
             Log::warning('OTP verification page accessed without pending registration');
+
             return redirect()->route($this->registerRoute())
                 ->withErrors(['error' => 'No pending registration found. Please register again.']);
         }
@@ -34,8 +36,9 @@ class OtpVerificationController extends Controller
         Log::info('OTP verification page accessed', ['email' => $pendingData['email']]);
 
         // Google users are already verified — skip OTP page entirely
-        if (!empty($pendingData['otp_verified'])) {
+        if (! empty($pendingData['otp_verified'])) {
             Log::info('Google user — skipping OTP', ['email' => $pendingData['email']]);
+
             return $this->createAccount($pendingData);
         }
 
@@ -48,8 +51,9 @@ class OtpVerificationController extends Controller
     {
         $pendingData = session('pending_registration');
 
-        if (!$pendingData) {
+        if (! $pendingData) {
             Log::warning('OTP verification attempted without pending registration');
+
             return redirect()->route($this->registerRoute())
                 ->withErrors(['error' => 'Session expired. Please register again.']);
         }
@@ -58,12 +62,14 @@ class OtpVerificationController extends Controller
         $expiresAt = Carbon::parse($pendingData['otp_expires_at']);
         if ($expiresAt->isPast()) {
             Log::warning('Expired OTP used', ['email' => $pendingData['email']]);
+
             return back()->withErrors(['otp' => 'OTP has expired. Please request a new one.']);
         }
 
         // Verify OTP — strict comparison prevents type-juggling bypass
         if ((string) $pendingData['otp_code'] !== (string) $request->otp) {
             Log::warning('Invalid OTP entered', ['email' => $pendingData['email']]);
+
             return back()->withErrors(['otp' => 'OTP is invalid.']);
         }
 
@@ -74,15 +80,16 @@ class OtpVerificationController extends Controller
     {
         $pendingData = session('pending_registration');
 
-        if (!$pendingData) {
+        if (! $pendingData) {
             Log::warning('OTP resend attempted without pending registration');
+
             return redirect()->route($this->registerRoute())
                 ->withErrors(['error' => 'Session expired. Please register again.']);
         }
 
         $otp = random_int(100000, 999999);
 
-        $pendingData['otp_code']       = $otp;
+        $pendingData['otp_code'] = $otp;
         $pendingData['otp_expires_at'] = now()->addMinutes(10)->toDateTimeString();
         session(['pending_registration' => $pendingData]);
 
@@ -93,7 +100,7 @@ class OtpVerificationController extends Controller
             Log::info('OTP resent successfully', ['email' => $pendingData['email']]);
 
             return back()->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'A new OTP has been sent to your email.',
             ]);
         } catch (\Exception $e) {
@@ -123,30 +130,27 @@ class OtpVerificationController extends Controller
                 session()->forget('pending_registration');
 
                 // If Google user, just link the google_id and log them in
-                if (!empty($pendingData['google_id']) && !$existing->google_id) {
+                if (! empty($pendingData['google_id']) && ! $existing->google_id) {
                     $existing->update(['google_id' => $pendingData['google_id']]);
                 }
 
-                if (!empty($pendingData['google_id'])) {
+                if (! empty($pendingData['google_id'])) {
                     Auth::login($existing);
 
                     Log::info('Google OAuth — email already exists, logged in instead', [
                         'email' => $existing->email,
                     ]);
 
-                    return redirect()->intended(match ($existing->role) {
-                        'super_admin' => route('admin.dashboard'),
-                        'owner'       => $existing->orders()->where('status', 'approved')->exists()
-                            ? route('shop.dashboard')
-                            : route('plans'),
-                        'staff'       => route('staff.dashboard'),
-                        'user'        => route('user.dashboard'),
-                        default       => route('landing'),
-                    });
+                    $destination = $existing->role === AccountType::ShopOwner->value
+                        && ! $existing->orders()->where('status', 'approved')->exists()
+                            ? route('plans')
+                            : route(AccountType::dashboardRouteFor($existing->role));
+
+                    return redirect()->intended($destination);
                 }
 
                 return redirect()->route('login')->with('toast', [
-                    'type'    => 'error',
+                    'type' => 'error',
                     'message' => 'An account with this email already exists. Please log in.',
                 ]);
             }
@@ -156,48 +160,45 @@ class OtpVerificationController extends Controller
 
             if ($registrationType === 'user') {
                 $user = $this->userService->registerUser([
-                    'name'      => $pendingData['name'],
-                    'email'     => $pendingData['email'],
-                    'password'  => $pendingData['password'],
+                    'name' => $pendingData['name'],
+                    'email' => $pendingData['email'],
+                    'password' => $pendingData['password'],
                     'google_id' => $pendingData['google_id'] ?? null,
                 ]);
             } else {
                 $result = $this->shopService->registerShop([
-                    'name'         => $pendingData['name'],
-                    'email'        => $pendingData['email'],
-                    'password'     => $pendingData['password'],
-                    'shop_name'    => $pendingData['shop_name'],
-                    'phone'        => $pendingData['phone'],
-                    'branch_name'  => $pendingData['branch_name'] ?? null,
+                    'name' => $pendingData['name'],
+                    'email' => $pendingData['email'],
+                    'password' => $pendingData['password'],
+                    'shop_name' => $pendingData['shop_name'],
+                    'phone' => $pendingData['phone'],
+                    'branch_name' => $pendingData['branch_name'] ?? null,
                     'block_street' => $pendingData['block_street'],
                     'municipality' => $pendingData['municipality'],
-                    'barangay'     => $pendingData['barangay'],
-                    'postal_code'  => $pendingData['postal_code'],
-                    'latitude'     => $pendingData['latitude'] ?? null,
-                    'longitude'    => $pendingData['longitude'] ?? null,
-                    'google_id'    => $pendingData['google_id'] ?? null,
+                    'barangay' => $pendingData['barangay'],
+                    'postal_code' => $pendingData['postal_code'],
+                    'latitude' => $pendingData['latitude'] ?? null,
+                    'longitude' => $pendingData['longitude'] ?? null,
+                    'google_id' => $pendingData['google_id'] ?? null,
                 ]);
 
                 $user = $result['owner'];
             }
 
-            $user->update([
-                'email_verified_at' => now(),
-                'is_verified'       => true,
-            ]);
+            $user->update(['email_verified_at' => now()]);
 
             DB::commit();
 
             session()->forget('pending_registration');
 
             Log::info('Account created successfully', [
-                'email'      => $user->email,
-                'type'       => $registrationType,
-                'via_google' => !empty($pendingData['google_id']),
+                'email' => $user->email,
+                'type' => $registrationType,
+                'via_google' => ! empty($pendingData['google_id']),
             ]);
 
             return redirect()->route('login')->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Your account has been created. You can now login.',
             ]);
         } catch (\Exception $e) {

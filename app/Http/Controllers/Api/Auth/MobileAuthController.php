@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -14,21 +15,21 @@ class MobileAuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email'=> 'required|email|unique:users,email',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role'     => User::ROLE_USER, // mobile customers
+            'role' => AccountType::Customer->value, // mobile customers
         ]);
 
         $token = $user->createToken('mobile_token')->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
+            'user' => $user,
             'token' => $token,
         ], 201);
     }
@@ -36,13 +37,15 @@ class MobileAuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->where('role', User::ROLE_USER)->first();
+        $user = User::where('email', $request->email)
+            ->where('role', AccountType::Customer->value)
+            ->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -51,7 +54,7 @@ class MobileAuthController extends Controller
         $token = $user->createToken('mobile_token')->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
+            'user' => $user,
             'token' => $token,
         ]);
     }
@@ -68,4 +71,3 @@ class MobileAuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 }
-

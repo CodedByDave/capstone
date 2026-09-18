@@ -24,7 +24,7 @@ interface UserItem {
     name: string
     email: string
     role: string
-    is_verified: boolean
+    email_verified_at: string | null
     shop: Shop | null
     created_at: string
     deleted_at: string

@@ -30,8 +30,8 @@ class UserController extends Controller
         $filters['per_page'] = (string) $perPage;
 
         return Inertia::render('admin/users/Index', [
-            'users'   => $this->userManagementService->getPaginated($filters, $perPage),
-            'stats'   => $this->userManagementService->getStats(),
+            'users' => $this->userManagementService->getPaginated($filters, $perPage),
+            'stats' => $this->userManagementService->getStats(),
             'filters' => $filters,
         ]);
     }
@@ -52,7 +52,7 @@ class UserController extends Controller
                         $user->name,
                         $user->email,
                         $user->role,
-                        $user->is_verified ? 'yes' : 'no',
+                        $user->email_verified_at !== null ? 'yes' : 'no',
                         $user->created_at?->toDateTimeString(),
                     ],
                     ',',
@@ -97,7 +97,7 @@ class UserController extends Controller
         $this->userManagementService->archive($user);
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => "{$user->name} has been archived.",
         ]);
     }
@@ -109,8 +109,8 @@ class UserController extends Controller
         $this->userManagementService->bulkArchive($request->validated('ids'));
 
         return back()->with('toast', [
-            'type'    => 'success',
-            'message' => count($request->validated('ids')) . ' user(s) archived.',
+            'type' => 'success',
+            'message' => count($request->validated('ids')).' user(s) archived.',
         ]);
     }
 
@@ -121,8 +121,8 @@ class UserController extends Controller
         $filters = $request->only(['search', 'role']);
 
         return Inertia::render('admin/users/Archive', [
-            'users'   => $this->userManagementService->getArchivedPaginated($filters),
-            'total'   => $this->userManagementService->getArchivedTotal(),
+            'users' => $this->userManagementService->getArchivedPaginated($filters),
+            'total' => $this->userManagementService->getArchivedTotal(),
             'filters' => $filters,
         ]);
     }
@@ -134,7 +134,7 @@ class UserController extends Controller
         $this->userManagementService->restore($id);
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'User restored successfully.',
         ]);
     }
@@ -146,8 +146,8 @@ class UserController extends Controller
         $this->userManagementService->bulkRestore($request->validated('ids'));
 
         return back()->with('toast', [
-            'type'    => 'success',
-            'message' => count($request->validated('ids')) . ' user(s) restored.',
+            'type' => 'success',
+            'message' => count($request->validated('ids')).' user(s) restored.',
         ]);
     }
 
@@ -158,7 +158,7 @@ class UserController extends Controller
         $this->userManagementService->forceDelete($id);
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'User permanently deleted.',
         ]);
     }

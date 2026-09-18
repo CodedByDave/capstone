@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AccountType;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -87,7 +88,11 @@ class UserManagementService
                     ]);
                 }
 
-                if (! in_array($role, ['owner', 'manager', 'staff', 'user'], true)) {
+                if (! in_array($role, [
+                    AccountType::ShopOwner->value,
+                    AccountType::Staff->value,
+                    AccountType::Customer->value,
+                ], true)) {
                     throw ValidationException::withMessages([
                         'file' => "Row {$rowNumber} contains an invalid role.",
                     ]);
@@ -111,7 +116,7 @@ class UserManagementService
                     'name' => trim((string) $row['name']),
                     'email' => strtolower(trim((string) $row['email'])),
                     'role' => $role,
-                    'is_verified' => in_array($verified, ['1', 'yes', 'true', 'verified'], true),
+                    'verified' => in_array($verified, ['1', 'yes', 'true', 'verified'], true),
                     'joined_at' => $joinedAt,
                 ];
             }
@@ -126,12 +131,12 @@ class UserManagementService
             foreach ($rows as $row) {
                 $user = User::withTrashed()->where('email', $row['email'])->first();
 
-                if ($user?->role === 'super_admin') {
+                if ($user?->role === AccountType::SuperAdmin->value) {
                     continue;
                 }
 
                 if ($user === null) {
-                    $user = new User();
+                    $user = new User;
                     $user->email = $row['email'];
                     $user->password = Str::random(40);
                     $created++;
@@ -141,8 +146,7 @@ class UserManagementService
 
                 $user->name = $row['name'];
                 $user->role = $row['role'];
-                $user->is_verified = $row['is_verified'];
-                $user->email_verified_at = $row['is_verified']
+                $user->email_verified_at = $row['verified']
                     ? ($user->email_verified_at ?? now())
                     : null;
 
@@ -168,7 +172,11 @@ class UserManagementService
 
     public function archive(User $user): void
     {
-        abort_if($user->role === 'super_admin', 403, 'Cannot archive super admin.');
+        abort_if(
+            $user->role === AccountType::SuperAdmin->value,
+            403,
+            'Cannot archive super admin.',
+        );
         $this->userRepository->archiveUser($user);
     }
 

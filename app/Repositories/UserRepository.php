@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\AccountType;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -24,22 +25,24 @@ class UserRepository extends Repository
     {
         $query = $this->query()
             ->whereNull('deleted_at')
-            ->where('role', '!=', 'super_admin')
+            ->where('role', '!=', AccountType::SuperAdmin->value)
             ->with('shop');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name',  'like', "%{$filters['search']}%")
-                  ->orWhere('email', 'like', "%{$filters['search']}%");
+                $q->where('name', 'like', "%{$filters['search']}%")
+                    ->orWhere('email', 'like', "%{$filters['search']}%");
             });
         }
 
-        if (!empty($filters['role'])) {
+        if (! empty($filters['role'])) {
             $query->where('role', $filters['role']);
         }
 
-        if (!empty($filters['verified'])) {
-            $query->where('is_verified', $filters['verified'] === 'yes');
+        if (! empty($filters['verified'])) {
+            $filters['verified'] === 'yes'
+                ? $query->whereNotNull('email_verified_at')
+                : $query->whereNull('email_verified_at');
         }
 
         $sortBy = $filters['sort_by'] ?? 'created_at';
@@ -66,11 +69,11 @@ class UserRepository extends Repository
     public function getStats(): array
     {
         return [
-            'total'    => User::whereNull('deleted_at')->where('role', '!=', 'super_admin')->count(),
-            'owners'   => User::whereNull('deleted_at')->where('role', 'owner')->count(),
-            'staff'    => User::whereNull('deleted_at')->whereIn('role', ['staff', 'manager'])->count(),
-            'users'    => User::whereNull('deleted_at')->where('role', 'user')->count(),
-            'archived' => User::onlyTrashed()->where('role', '!=', 'super_admin')->count(),
+            'total' => User::whereNull('deleted_at')->where('role', '!=', AccountType::SuperAdmin->value)->count(),
+            'owners' => User::whereNull('deleted_at')->where('role', AccountType::ShopOwner->value)->count(),
+            'staff' => User::whereNull('deleted_at')->where('role', AccountType::Staff->value)->count(),
+            'users' => User::whereNull('deleted_at')->where('role', AccountType::Customer->value)->count(),
+            'archived' => User::onlyTrashed()->where('role', '!=', AccountType::SuperAdmin->value)->count(),
         ];
     }
 
@@ -78,7 +81,7 @@ class UserRepository extends Repository
     {
         return User::query()
             ->whereNull('deleted_at')
-            ->where('role', '!=', 'super_admin')
+            ->where('role', '!=', AccountType::SuperAdmin->value)
             ->orderBy('id')
             ->get();
     }
@@ -98,25 +101,25 @@ class UserRepository extends Repository
     public function bulkArchive(array $ids): void
     {
         User::whereIn('id', $ids)
-            ->where('role', '!=', 'super_admin')
+            ->where('role', '!=', AccountType::SuperAdmin->value)
             ->delete();
     }
 
     public function getArchivedPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         $query = User::onlyTrashed()
-            ->where('role', '!=', 'super_admin')
+            ->where('role', '!=', AccountType::SuperAdmin->value)
             ->with('shop')
             ->latest();
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name',  'like', "%{$filters['search']}%")
-                  ->orWhere('email', 'like', "%{$filters['search']}%");
+                $q->where('name', 'like', "%{$filters['search']}%")
+                    ->orWhere('email', 'like', "%{$filters['search']}%");
             });
         }
 
-        if (!empty($filters['role'])) {
+        if (! empty($filters['role'])) {
             $query->where('role', $filters['role']);
         }
 
@@ -125,7 +128,9 @@ class UserRepository extends Repository
 
     public function getArchivedTotal(): int
     {
-        return User::onlyTrashed()->where('role', '!=', 'super_admin')->count();
+        return User::onlyTrashed()
+            ->where('role', '!=', AccountType::SuperAdmin->value)
+            ->count();
     }
 
     public function restore(int $id): void

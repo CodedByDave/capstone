@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,7 @@ class GoogleAuthController extends Controller
 
         $driver = Socialite::driver('google')->stateless();
 
-        if (!empty($stateData)) {
+        if (! empty($stateData)) {
             $driver->with(['state' => Crypt::encryptString(json_encode($stateData))]);
         }
 
@@ -43,22 +44,22 @@ class GoogleAuthController extends Controller
             ]);
 
             return redirect()->route('login')->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Google login failed. Please try again.',
             ]);
         }
 
         // Restore state from encrypted param
-        $rawState  = request()->input('state');
+        $rawState = request()->input('state');
         $registerAs = null;
         if ($rawState) {
             try {
                 $decoded = json_decode(Crypt::decryptString($rawState), true);
-                if (!empty($decoded['checkout'])) {
+                if (! empty($decoded['checkout'])) {
                     session(['checkout' => $decoded['checkout']]);
                     Log::info('Checkout restored from OAuth state');
                 }
-                if (!empty($decoded['register_as'])) {
+                if (! empty($decoded['register_as'])) {
                     $registerAs = $decoded['register_as'];
                 }
             } catch (\Exception $e) {
@@ -72,7 +73,7 @@ class GoogleAuthController extends Controller
 
         // ── Existing user ──────────────────────────────────────────────────────
         if ($user) {
-            if (!$user->google_id) {
+            if (! $user->google_id) {
                 $user->update(['google_id' => $googleUser->getId()]);
             }
 
@@ -89,7 +90,7 @@ class GoogleAuthController extends Controller
                 session()->forget('checkout');
 
                 return redirect()->route('shop.dashboard')->with('toast', [
-                    'type'    => 'error',
+                    'type' => 'error',
                     'message' => 'You already have an active plan.',
                 ]);
             }
@@ -106,13 +107,7 @@ class GoogleAuthController extends Controller
                 return redirect()->route('trial.show');
             }
 
-            return redirect(match ($user->role) {
-                'super_admin' => route('admin.dashboard'),
-                'owner'       => route('shop.dashboard'),
-                'staff'       => route('staff.dashboard'),
-                'user'        => route('user.dashboard'),
-                default       => route('landing'),
-            });
+            return redirect()->route(AccountType::dashboardRouteFor($user->role));
         }
 
         // ── New user ───────────────────────────────────────────────────────────
@@ -121,11 +116,11 @@ class GoogleAuthController extends Controller
         if ($registerAs === 'user') {
             session([
                 'pending_registration' => [
-                    'name'              => $googleUser->getName(),
-                    'email'             => $googleUser->getEmail(),
-                    'password'          => null,
-                    'google_id'         => $googleUser->getId(),
-                    'otp_verified'      => true,
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'password' => null,
+                    'google_id' => $googleUser->getId(),
+                    'otp_verified' => true,
                     'registration_type' => 'user',
                 ],
             ]);
@@ -137,7 +132,7 @@ class GoogleAuthController extends Controller
             ]);
 
             return redirect()->route('otp.verify.page')->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Google account verified. Creating your account...',
             ]);
         }
@@ -145,9 +140,9 @@ class GoogleAuthController extends Controller
         // Shop registration — still needs shop details, go to register form
         session()->put('google_user', [
             'google_id' => $googleUser->getId(),
-            'name'      => $googleUser->getName(),
-            'email'     => $googleUser->getEmail(),
-            'avatar'    => $googleUser->getAvatar(),
+            'name' => $googleUser->getName(),
+            'email' => $googleUser->getEmail(),
+            'avatar' => $googleUser->getAvatar(),
         ]);
 
         session()->save();
@@ -157,7 +152,7 @@ class GoogleAuthController extends Controller
         ]);
 
         return redirect()->route('register.shop')->with('toast', [
-            'type'    => 'info',
+            'type' => 'info',
             'message' => 'Please complete your registration to continue.',
         ]);
     }

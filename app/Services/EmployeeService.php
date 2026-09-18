@@ -2,16 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\Employee;
-use App\Models\Shop;
-use App\Models\User;
-use App\Models\ShopRole;
-use App\Models\EmployeeRole;
-use App\Repositories\EmployeeRepository;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Enums\AccountType;
 use App\Mail\EmployeeCredentialsMail;
+use App\Models\Employee;
+use App\Models\EmployeeRole;
+use App\Models\Shop;
+use App\Models\ShopRole;
+use App\Models\User;
+use App\Repositories\EmployeeRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class EmployeeService
@@ -64,7 +65,7 @@ class EmployeeService
             // Always exclude the staff member's own employee record
             $query->where(function ($q) {
                 $q->where('user_id', '!=', auth()->id())
-                  ->orWhereNull('user_id');
+                    ->orWhereNull('user_id');
             });
 
             // Restrict to their branch only if they have one assigned
@@ -119,10 +120,10 @@ class EmployeeService
             $defaultPassword = $data['last_name'];
 
             $user = User::create([
-                'name'              => $data['first_name'] . ' ' . $data['last_name'],
-                'email'             => $data['email'],
-                'password'          => Hash::make($defaultPassword),
-                'role'              => 'staff',
+                'name' => $data['first_name'].' '.$data['last_name'],
+                'email' => $data['email'],
+                'password' => Hash::make($defaultPassword),
+                'role' => AccountType::Staff->value,
                 'email_verified_at' => now(),
             ]);
 
@@ -130,10 +131,10 @@ class EmployeeService
 
             $employee = $this->employeeRepository->createForShop($shop, [
                 ...$data,
-                'user_id'     => $user->id,
+                'user_id' => $user->id,
                 'has_account' => 1,
-                'created_by'  => auth()->id(),
-                'updated_by'  => auth()->id(),
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
 
             ShopRole::firstOrCreate(
@@ -143,7 +144,7 @@ class EmployeeService
 
             EmployeeRole::firstOrCreate([
                 'employee_id' => $employee->id,
-                'role'        => $role,
+                'role' => $role,
             ]);
 
             try {
@@ -182,12 +183,12 @@ class EmployeeService
         // Create system account only if explicitly requested and none exists yet
         $createAccount = (int) ($data['create_account'] ?? 0) === 1;
 
-        if ($createAccount && !$employee->user_id) {
+        if ($createAccount && ! $employee->user_id) {
             $user = User::create([
-                'name'              => $employee->first_name . ' ' . $employee->last_name,
-                'email'             => $employee->email,
-                'password'          => Hash::make($employee->last_name),
-                'role'              => 'staff',
+                'name' => $employee->first_name.' '.$employee->last_name,
+                'email' => $employee->email,
+                'password' => Hash::make($employee->last_name),
+                'role' => AccountType::Staff->value,
                 'email_verified_at' => now(),
             ]);
 
@@ -208,7 +209,7 @@ class EmployeeService
             }
         }
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             $action = isset($changes['status'])
                 ? 'status_changed'
                 : (isset($changes['salary']) ? 'salary_changed' : 'updated');
@@ -252,13 +253,14 @@ class EmployeeService
     {
         $changes = [];
         foreach (self::TRACKED_FIELDS as $field) {
-            if (isset($data[$field]) && (string)$employee->$field !== (string)$data[$field]) {
+            if (isset($data[$field]) && (string) $employee->$field !== (string) $data[$field]) {
                 $changes[$field] = [
-                    'old' => (string)$employee->$field,
-                    'new' => (string)$data[$field],
+                    'old' => (string) $employee->$field,
+                    'new' => (string) $data[$field],
                 ];
             }
         }
+
         return $changes;
     }
 }

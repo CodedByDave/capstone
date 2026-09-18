@@ -2,11 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\AccountType;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
@@ -14,7 +15,7 @@ class RoleMiddleware
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -29,13 +30,11 @@ class RoleMiddleware
 
         if ($user->role !== $role) {
             // Redirect based on actual role instead of 404
-            return match($user->role) {
-                'super_admin' => redirect()->route('admin.dashboard'),
-                'owner'       => redirect()->route('shop.dashboard'),
-                'staff'       => redirect()->route('staff.dashboard'),
-                'user'        => redirect()->route('user.dashboard'),
-                default       => abort(403, 'Unauthorized access'),
-            };
+            $accountType = AccountType::tryFrom($user->role ?? '');
+
+            return $accountType
+                ? redirect()->route($accountType->dashboardRoute())
+                : abort(403, 'Unauthorized access');
         }
 
         return $next($request);
