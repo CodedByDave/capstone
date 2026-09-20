@@ -71,7 +71,7 @@ class PaymongoService
                         ]
                     ],
                     'payment_method_types' => $paymentMethods,
-                    'success_url'          => url('/shop/payment/success?order_id=' . $order->id),
+                    'success_url'          => route('payment.success', ['order' => $order->public_id]),
                     'cancel_url'           => url('/shop/payment/cancel'),
                     'description'          => "Order #{$order->id} - {$order->shop_name}",
                     'metadata'             => [

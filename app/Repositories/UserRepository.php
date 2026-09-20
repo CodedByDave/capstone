@@ -73,6 +73,10 @@ class UserRepository extends Repository
             'owners' => User::whereNull('deleted_at')->where('role', AccountType::ShopOwner->value)->count(),
             'staff' => User::whereNull('deleted_at')->where('role', AccountType::Staff->value)->count(),
             'users' => User::whereNull('deleted_at')->where('role', AccountType::Customer->value)->count(),
+            'verified' => User::whereNull('deleted_at')
+                ->where('role', '!=', AccountType::SuperAdmin->value)
+                ->whereNotNull('email_verified_at')
+                ->count(),
             'archived' => User::onlyTrashed()->where('role', '!=', AccountType::SuperAdmin->value)->count(),
         ];
     }

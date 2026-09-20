@@ -29,11 +29,9 @@ import {
     Eye,
     RefreshCcw,
     Search,
-    Store,
     Trash2,
     Upload,
     User,
-    UserCheck,
     Users,
 } from 'lucide-vue-next';
 
@@ -46,6 +44,7 @@ interface Shop {
 
 interface UserItem {
     id: number;
+    public_id: string;
     name: string;
     email: string;
     role: string;
@@ -76,7 +75,7 @@ const props = defineProps<{
         total: number;
         owners: number;
         users: number;
-        archived: number;
+        verified: number;
     };
     filters: Record<string, string>;
 }>();
@@ -397,257 +396,248 @@ const tableItems = computed(() =>
                             >
                                 Total Verified Users
                             </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100"
-                            >
-                                <User class="h-4 w-4 text-green-600" />
-                            </div>
                         </div>
                         <p class="text-3xl font-bold text-green-600">
-                            {{ stats.users.toLocaleString() }}
+                            {{ stats.verified.toLocaleString() }}
                         </p>
                     </CardContent>
                 </Card>
             </div>
 
             <!-- Table card -->
-                <CardContent class="space-y-4">
-                    <div class="flex flex-wrap items-center gap-2 pt-6">
-                        <div class="relative min-w-48 flex-1">
-                            <Search
-                                class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                placeholder="Search name or email..."
-                                class="pl-8"
-                                @keyup.enter="filterTable"
-                            />
-                        </div>
-
-                        <Button
-                            v-if="selected.length > 0"
-                            size="sm"
-                            variant="outline"
-                            class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40"
-                            @click="bulkArchive"
-                        >
-                            <Archive class="mr-1.5 h-4 w-4" />
-                            Archive ({{ selected.length }})
-                        </Button>
-
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
-                            @click="router.visit('/admin/users/archive')"
-                        >
-                            <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                            Archive
-                        </Button>
-
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800"
-                            @click="resetFilters"
-                        >
-                            <RefreshCcw class="mr-1.5 h-4 w-4" />
-                            Reset
-                        </Button>
-
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
-                            @click="exportCsv"
-                        >
-                            <Download class="mr-1.5 h-4 w-4" />
-                            Export CSV
-                        </Button>
-
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
-                            :disabled="importing"
-                            @click="chooseCsvFile"
-                        >
-                            <Upload class="mr-1.5 h-4 w-4" />
-                            {{ importing ? 'Importing...' : 'Import CSV' }}
-                        </Button>
-                        <input
-                            ref="importInput"
-                            type="file"
-                            accept=".csv,text/csv"
-                            class="hidden"
-                            @change="importCsv"
+            <CardContent class="space-y-4">
+                <div class="flex flex-wrap items-center gap-2 pt-6">
+                    <div class="relative min-w-48 flex-1">
+                        <Search
+                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
+                        />
+                        <Input
+                            v-model="search"
+                            placeholder="Search name or email..."
+                            class="pl-8"
+                            @keyup.enter="filterTable"
                         />
                     </div>
 
-                    <!-- Table -->
-                    <div class="overflow-hidden rounded-lg border">
-                        <EasyDataTable
-                            v-model:server-options="serverOptions"
-                            class="user-data-table"
-                            :headers="headers"
-                            :items="tableItems"
-                            :server-items-length="users.total"
-                            :loading="tableLoading"
-                            :rows-items="[5, 10, 20, 50, 100]"
-                            rows-of-page-separator-message="out of"
-                            rows-per-page-message="Rows per page:"
-                            buttons-pagination
-                            alternating
-                            must-sort
-                        >
-                            <template #header-selection>
-                                <input
-                                    type="checkbox"
-                                    aria-label="Select all users on this page"
-                                    :checked="allSelected"
-                                    class="rounded"
-                                    @change="toggleAll"
-                                />
-                            </template>
+                    <Button
+                        v-if="selected.length > 0"
+                        size="sm"
+                        variant="outline"
+                        class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40"
+                        @click="bulkArchive"
+                    >
+                        <Archive class="mr-1.5 h-4 w-4" />
+                        Archive ({{ selected.length }})
+                    </Button>
 
-                            <template #header-role="{ text }">
-                                <div class="column-filter">
-                                    <span>{{ text }}</span>
-                                    <select
-                                        v-model="role"
-                                        class="column-filter-input"
-                                        aria-label="Filter by role"
-                                        @click.stop
-                                        @change="filterTable"
-                                    >
-                                        <option value="all">All roles</option>
-                                        <option value="owner">Owner</option>
-                                        <option value="user">User</option>
-                                    </select>
-                                </div>
-                            </template>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                        @click="router.visit('/admin/users/archive')"
+                    >
+                        <ArchiveRestore class="mr-1.5 h-4 w-4" />
+                        Archive
+                    </Button>
 
-                            <template #header-account="{ text }">
-                                <div class="column-filter">
-                                    <span>{{ text }}</span>
-                                    <select
-                                        v-model="verified"
-                                        class="column-filter-input"
-                                        aria-label="Filter by account status"
-                                        @click.stop
-                                        @change="filterTable"
-                                    >
-                                        <option value="all">
-                                            All accounts
-                                        </option>
-                                        <option value="yes">Verified</option>
-                                        <option value="no">Unverified</option>
-                                    </select>
-                                </div>
-                            </template>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800"
+                        @click="resetFilters"
+                    >
+                        <RefreshCcw class="mr-1.5 h-4 w-4" />
+                        Reset
+                    </Button>
 
-                            <template #item-selection="u">
-                                <input
-                                    type="checkbox"
-                                    :checked="selected.includes(u.id)"
-                                    :aria-label="`Select ${u.name}`"
-                                    class="rounded"
-                                    @change="toggleOne(u.id)"
-                                />
-                            </template>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                        @click="exportCsv"
+                    >
+                        <Download class="mr-1.5 h-4 w-4" />
+                        Export CSV
+                    </Button>
 
-                            <template #item-name="u">
-                                <span class="font-medium whitespace-nowrap">{{
-                                    u.name
-                                }}</span>
-                            </template>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                        :disabled="importing"
+                        @click="chooseCsvFile"
+                    >
+                        <Upload class="mr-1.5 h-4 w-4" />
+                        {{ importing ? 'Importing...' : 'Import CSV' }}
+                    </Button>
+                    <input
+                        ref="importInput"
+                        type="file"
+                        accept=".csv,text/csv"
+                        class="hidden"
+                        @change="importCsv"
+                    />
+                </div>
 
-                            <template #item-email="u">
-                                <span class="text-xs text-muted-foreground">{{
-                                    u.email
-                                }}</span>
-                            </template>
+                <!-- Table -->
+                <div class="overflow-hidden rounded-lg border">
+                    <EasyDataTable
+                        v-model:server-options="serverOptions"
+                        class="user-data-table"
+                        :headers="headers"
+                        :items="tableItems"
+                        :server-items-length="users.total"
+                        :loading="tableLoading"
+                        :rows-items="[5, 10, 20, 50, 100]"
+                        rows-of-page-separator-message="out of"
+                        rows-per-page-message="Rows per page:"
+                        buttons-pagination
+                        alternating
+                        must-sort
+                    >
+                        <template #header-selection>
+                            <input
+                                type="checkbox"
+                                aria-label="Select all users on this page"
+                                :checked="allSelected"
+                                class="rounded"
+                                @change="toggleAll"
+                            />
+                        </template>
 
-                            <template #item-role="u">
-                                <span
-                                    class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                    :class="
-                                        roleBadge[u.role] ??
-                                        'bg-gray-100 text-gray-600'
+                        <template #header-role="{ text }">
+                            <div class="column-filter">
+                                <span>{{ text }}</span>
+                                <select
+                                    v-model="role"
+                                    class="column-filter-input"
+                                    aria-label="Filter by role"
+                                    @click.stop
+                                    @change="filterTable"
+                                >
+                                    <option value="all">All roles</option>
+                                    <option value="owner">Owner</option>
+                                    <option value="user">User</option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #header-account="{ text }">
+                            <div class="column-filter">
+                                <span>{{ text }}</span>
+                                <select
+                                    v-model="verified"
+                                    class="column-filter-input"
+                                    aria-label="Filter by account status"
+                                    @click.stop
+                                    @change="filterTable"
+                                >
+                                    <option value="all">All accounts</option>
+                                    <option value="yes">Verified</option>
+                                    <option value="no">Unverified</option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #item-selection="u">
+                            <input
+                                type="checkbox"
+                                :checked="selected.includes(u.id)"
+                                :aria-label="`Select ${u.name}`"
+                                class="rounded"
+                                @change="toggleOne(u.id)"
+                            />
+                        </template>
+
+                        <template #item-name="u">
+                            <span class="font-medium whitespace-nowrap">{{
+                                u.name
+                            }}</span>
+                        </template>
+
+                        <template #item-email="u">
+                            <span class="text-xs text-muted-foreground">{{
+                                u.email
+                            }}</span>
+                        </template>
+
+                        <template #item-role="u">
+                            <span
+                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                                :class="
+                                    roleBadge[u.role] ??
+                                    'bg-gray-100 text-gray-600'
+                                "
+                            >
+                                {{ u.role.replace('_', ' ') }}
+                            </span>
+                        </template>
+
+                        <template #item-shop_name="u">
+                            <span class="text-xs text-muted-foreground">{{
+                                u.shop_name
+                            }}</span>
+                        </template>
+
+                        <template #item-account="u">
+                            <span
+                                class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                :class="
+                                    u.email_verified_at
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-red-100 text-red-600'
+                                "
+                            >
+                                {{ u.account }}
+                            </span>
+                        </template>
+
+                        <template #item-created_at="u">
+                            <span
+                                class="text-xs whitespace-nowrap text-muted-foreground"
+                            >
+                                {{ formatDate(u.created_at) }}
+                            </span>
+                        </template>
+
+                        <template #item-actions="u">
+                            <div class="flex items-center justify-center gap-1">
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="View user"
+                                    @click="
+                                        router.visit(
+                                            `/admin/users/${u.public_id}`,
+                                        )
                                     "
                                 >
-                                    {{ u.role.replace('_', ' ') }}
-                                </span>
-                            </template>
-
-                            <template #item-shop_name="u">
-                                <span class="text-xs text-muted-foreground">{{
-                                    u.shop_name
-                                }}</span>
-                            </template>
-
-                            <template #item-account="u">
-                                <span
-                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                    :class="
-                                        u.email_verified_at
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-red-100 text-red-600'
-                                    "
+                                    <Eye class="h-4 w-4 text-blue-500" />
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="Archive user"
+                                    @click="openArchive(u)"
                                 >
-                                    {{ u.account }}
-                                </span>
-                            </template>
+                                    <Trash2 class="h-4 w-4 text-amber-500" />
+                                </Button>
+                            </div>
+                        </template>
 
-                            <template #item-created_at="u">
-                                <span
-                                    class="text-xs whitespace-nowrap text-muted-foreground"
-                                >
-                                    {{ formatDate(u.created_at) }}
-                                </span>
-                            </template>
-
-                            <template #item-actions="u">
-                                <div
-                                    class="flex items-center justify-center gap-1"
-                                >
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="View user"
-                                        @click="
-                                            router.visit(`/admin/users/${u.id}`)
-                                        "
-                                    >
-                                        <Eye class="h-4 w-4 text-blue-500" />
-                                    </Button>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="Archive user"
-                                        @click="openArchive(u)"
-                                    >
-                                        <Trash2
-                                            class="h-4 w-4 text-amber-500"
-                                        />
-                                    </Button>
-                                </div>
-                            </template>
-
-                            <template #empty-message>
-                                <div
-                                    class="py-10 text-center text-sm text-muted-foreground"
-                                >
-                                    <Users
-                                        class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                    />
-                                    No users found.
-                                </div>
-                            </template>
-                        </EasyDataTable>
-                    </div>
-                </CardContent>
+                        <template #empty-message>
+                            <div
+                                class="py-10 text-center text-sm text-muted-foreground"
+                            >
+                                <Users
+                                    class="mx-auto mb-2 h-10 w-10 opacity-20"
+                                />
+                                No users found.
+                            </div>
+                        </template>
+                    </EasyDataTable>
+                </div>
+            </CardContent>
         </div>
 
         <!-- Archive confirm -->
@@ -665,7 +655,7 @@ const tableItems = computed(() =>
                     <Button variant="outline" @click="cancelArchive"
                         >Cancel</Button
                     >
-                    <Button variant="destructive" @click="confirmArchive"
+                    <Button variant="outline" @click="confirmArchive" class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
                         >Archive</Button
                     >
                 </AlertDialogFooter>

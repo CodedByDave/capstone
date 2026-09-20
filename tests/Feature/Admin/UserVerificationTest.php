@@ -16,6 +16,8 @@ test('user verification filters use email verified at', function () {
 
     $repository = app(UserRepository::class);
 
+    expect($repository->getStats()['verified'])->toBe(1);
+
     expect($repository->getPaginated(['verified' => 'yes'])->pluck('id'))
         ->toContain($verifiedUser->id)
         ->not->toContain($unverifiedUser->id)

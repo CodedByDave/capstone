@@ -284,12 +284,11 @@ class CheckoutController extends Controller
 
     // ── Payment success ────────────────────────────────────────────────────────
 
-    public function success(Request $request): Response
+    public function success(Order $order): Response
     {
-        // ?order_id is present when PayMongo redirects with an active session.
-        // Falls back to session when auth middleware redirected to login first,
-        // which strips the query string from the intended URL.
-        $orderId = $request->query('order_id') ?? session('pending_order_id');
+        abort_unless($order->user_id === auth()->id(), 403);
+
+        $orderId = $order->id;
         session()->forget('pending_order_id');
 
         if ($orderId) {
@@ -357,7 +356,7 @@ class CheckoutController extends Controller
 
             return Inertia::render('shop/payment/PaymentSuccess', [
                 'order' => $order ? [
-                    'id'             => $order->id,
+                    'public_id'      => $order->public_id,
                     'status'         => $order->status,
                     'shop_name'      => $order->shop_name,
                     'owner_name'     => $order->owner_name,

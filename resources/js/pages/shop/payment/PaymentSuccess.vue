@@ -32,14 +32,14 @@ const props = defineProps<{
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/shop/dashboard' },
-    { title: 'Payment Success', href: '/shop/payment/success' }
+    { title: 'Payment Success', href: '#' }
 ]
 
 // -------------------- Barcode --------------------
 const barcodeRef = ref<SVGElement | null>(null)
 
 const generateBarcodeValue = () => {
-    const key = `barcode_order_${props.order?.id ?? 'unknown'}`
+    const key = `barcode_order_${props.order?.public_id ?? 'unknown'}`
     const existing = localStorage.getItem(key)
     if (existing) return existing
     const generated = String(Math.floor(1000000000 + Math.random() * 9000000000))
@@ -49,7 +49,7 @@ const generateBarcodeValue = () => {
 const barcodeValue = ref(generateBarcodeValue())
 
 onMounted(async () => {
-    if (!props.order?.id) return
+    if (!props.order?.public_id) return
     await nextTick()
     try {
         const JsBarcode = (await import('jsbarcode')).default
@@ -171,7 +171,7 @@ const downloadReceipt = async () => {
         doc.text('Invoice Number:', 20, y)
         doc.setFont(undefined, 'bold')
         doc.setTextColor(31, 41, 55)
-        doc.text(`INV-${String(props.order?.id || '000000').padStart(6, '0')}`, 60, y)
+        doc.text(`INV-${props.order?.public_id || 'UNKNOWN'}`, 60, y)
         y += 8
 
         doc.setFont(undefined, 'normal')
@@ -320,13 +320,13 @@ const downloadReceipt = async () => {
         doc.text(`LaundryHub Management System • © ${new Date().getFullYear()}`, 105, y + 5, { align: 'center' })
 
         doc.setProperties({
-            title: `LaundryHub Receipt - Order ${props.order?.id || ''}`,
+            title: `LaundryHub Receipt - Order ${props.order?.public_id || ''}`,
             subject: 'Payment Receipt',
             creator: 'LaundryHub',
             author: 'LaundryHub'
         })
 
-        doc.save(`LaundryHub_Receipt_${props.order?.id || Date.now()}.pdf`)
+        doc.save(`LaundryHub_Receipt_${props.order?.public_id || Date.now()}.pdf`)
         isLoading.value = false
     } catch (error) {
         console.error('Error generating PDF:', error)
@@ -377,7 +377,7 @@ const downloadReceipt = async () => {
                             <div class="grid grid-cols-2 gap-4 pb-4 border-b">
                                 <div>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">Order ID</p>
-                                    <p class="font-mono font-semibold">#{{ order.id }}</p>
+                                    <p class="font-mono text-sm font-semibold">{{ order.public_id }}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">Order Date</p>

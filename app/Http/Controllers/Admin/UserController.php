@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BulkUserRequest;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use App\Services\UserManagementService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +14,7 @@ class UserController extends Controller
 {
     public function __construct(
         private readonly UserManagementService $userManagementService,
+        private readonly ActivityLogService $activityLogService,
     ) {}
 
     // ── Index ─────────────────────────────────────────────────────────────────
@@ -75,6 +77,13 @@ class UserController extends Controller
 
         $result = $this->userManagementService->importCsv($validated['file']);
 
+        $this->activityLogService->log(
+            $request->user(),
+            'imported_csv',
+            ['result' => $result],
+            module: 'User Management',
+        );
+
         return back()->with('toast', [
             'type' => 'success',
             'message' => "CSV import complete: {$result['created']} created and {$result['updated']} updated.",
@@ -85,7 +94,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return Inertia::render('admin/Users/Show', [
+        return Inertia::render('admin/users/Show', [
             'user' => $this->userManagementService->find($user->id),
         ]);
     }
@@ -95,6 +104,8 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->userManagementService->archive($user);
+
+        $this->logUserManagementAction($user, 'archived');
 
         return back()->with('toast', [
             'type' => 'success',
@@ -106,7 +117,13 @@ class UserController extends Controller
 
     public function bulkArchive(BulkUserRequest $request)
     {
+        $users = User::query()
+            ->whereIn('id', $request->validated('ids'))
+            ->get();
+
         $this->userManagementService->bulkArchive($request->validated('ids'));
+
+        $users->each(fn (User $user) => $this->logUserManagementAction($user, 'archived'));
 
         return back()->with('toast', [
             'type' => 'success',
@@ -131,7 +148,10 @@ class UserController extends Controller
 
     public function restore(int $id)
     {
+        $user = User::onlyTrashed()->findOrFail($id);
         $this->userManagementService->restore($id);
+
+        $this->logUserManagementAction($user, 'restored');
 
         return back()->with('toast', [
             'type' => 'success',
@@ -143,7 +163,13 @@ class UserController extends Controller
 
     public function bulkRestore(BulkUserRequest $request)
     {
+        $users = User::onlyTrashed()
+            ->whereIn('id', $request->validated('ids'))
+            ->get();
+
         $this->userManagementService->bulkRestore($request->validated('ids'));
+
+        $users->each(fn (User $user) => $this->logUserManagementAction($user, 'restored'));
 
         return back()->with('toast', [
             'type' => 'success',
@@ -155,11 +181,31 @@ class UserController extends Controller
 
     public function forceDelete(int $id)
     {
+        $user = User::onlyTrashed()->findOrFail($id);
+
+        $this->logUserManagementAction($user, 'permanently_deleted');
         $this->userManagementService->forceDelete($id);
 
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'User permanently deleted.',
         ]);
+    }
+
+    private function logUserManagementAction(User $user, string $action): void
+    {
+        $this->activityLogService->log(
+            $user,
+            $action,
+            [
+                'target_user' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'public_id' => $user->public_id,
+                ],
+            ],
+            module: 'User Management',
+        );
     }
 }

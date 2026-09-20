@@ -1,22 +1,27 @@
 <script setup lang="ts">
-import BaseSidebar from '@/components/navigation/BaseSidebar.vue'
-import NavMain from '@/components/NavMain.vue'
-import NavFooter from '@/components/NavFooter.vue'
-import NavUser from '@/components/NavUser.vue'
+import BaseSidebar from '@/components/navigation/BaseSidebar.vue';
+import NavMain from '@/components/NavMain.vue';
+import NavUser from '@/components/NavUser.vue';
 
 import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from '@/components/ui/sidebar'
+} from '@/components/ui/sidebar';
 
-import { type NavItem } from '@/types'
-import { Link } from '@inertiajs/vue3'
+import AppLogo from '@/components/AppLogo.vue';
+import { type NavItem } from '@/types';
+import { Link } from '@inertiajs/vue3';
 import {
-    LayoutGrid, Store, User, ListOrdered,
-    ChartNoAxesCombined, Users, ShieldCheck, CircleAlert
-} from 'lucide-vue-next'
-import AppLogo from '@/components/AppLogo.vue'
+    ChartNoAxesCombined,
+    CircleAlert,
+    LayoutGrid,
+    ListOrdered,
+    ShieldCheck,
+    Store,
+    User,
+    Users,
+} from 'lucide-vue-next';
 
 const mainNavItems: NavItem[] = [
     {
@@ -35,8 +40,8 @@ const mainNavItems: NavItem[] = [
                 icon: Users,
             },
             {
-                title: 'Login Logs',
-                href: '/admin/login-logs',
+                title: 'Audit & Logs',
+                href: '/admin/audit-logs',
                 icon: ShieldCheck,
             },
         ],
@@ -57,11 +62,11 @@ const mainNavItems: NavItem[] = [
         icon: ChartNoAxesCombined,
     },
     {
-        title: 'Complaints',
-        href: '/admin/complaints',
+        title: 'Feedbacks',
+        href: '/admin/feedbacks',
         icon: CircleAlert,
     },
-]
+];
 </script>
 
 <template>

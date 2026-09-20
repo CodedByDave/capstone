@@ -95,22 +95,33 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
             Route::delete('/{id}',       [UserController::class, 'forceDelete'])->name('force-delete');
         });
 
-        Route::get('/{user}',        [UserController::class, 'show'])->name('show');
+        Route::get('/{user:public_id}', [UserController::class, 'show'])->name('show');
         Route::delete('/{user}',     [UserController::class, 'destroy'])->name('destroy');
     });
 
-    Route::prefix('login-logs')->name('admin.login-logs.')->group(function () {
+    Route::prefix('audit-logs')->name('admin.audit-logs.')->group(function () {
         Route::get('/',               [LoginLogController::class, 'index'])->name('index');
-        Route::delete('/{loginLog}',  [LoginLogController::class, 'destroy'])->name('destroy');
+        Route::get('/export',         [LoginLogController::class, 'exportCsv'])->name('export');
+        Route::post('/import',        [LoginLogController::class, 'importCsv'])->name('import');
         Route::post('/bulk-archive',  [LoginLogController::class, 'bulkArchive'])->name('bulk-archive');
 
         Route::prefix('archive')->name('archive.')->group(function () {
             Route::get('/',              [LoginLogController::class, 'archiveIndex'])->name('index');
-            Route::post('/{id}/restore', [LoginLogController::class, 'restore'])->name('restore');
+            Route::post('/{category}/{id}/restore', [LoginLogController::class, 'restore'])->name('restore');
             Route::post('/bulk-restore', [LoginLogController::class, 'bulkRestore'])->name('bulk-restore');
-            Route::delete('/{id}',       [LoginLogController::class, 'forceDelete'])->name('force-delete');
+            Route::delete('/{category}/{id}', [LoginLogController::class, 'forceDelete'])->name('force-delete');
         });
+
+        Route::get('/{category}/{id}', [LoginLogController::class, 'show'])
+            ->whereIn('category', ['authentication', 'activity'])
+            ->name('show');
+
+        Route::delete('/{category}/{id}', [LoginLogController::class, 'destroy'])
+            ->whereIn('category', ['authentication', 'activity'])
+            ->name('destroy');
     });
+
+    Route::get('/login-logs', fn () => redirect()->route('admin.audit-logs.index'));
 
     // Orders
     Route::prefix('orders')->name('admin.orders.')->group(function () {
@@ -134,7 +145,7 @@ Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(fun
     Route::get('/data',      [ShopDataController::class, 'getShop'])->name('shop.data');
 
     Route::post('/checkout',       [CheckoutController::class, 'checkout'])->name('checkout');
-    Route::get('/payment/success', [CheckoutController::class, 'success'])->name('payment.success');
+    Route::get('/payment/success/{order:public_id}', [CheckoutController::class, 'success'])->name('payment.success');
     Route::get('/payment/cancel',  [CheckoutController::class, 'cancel'])->name('payment.cancel');
 
     Route::get('/logs', [ActivityLogsController::class, 'index'])->name('logs.index');
