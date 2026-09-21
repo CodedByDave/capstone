@@ -3,16 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Notifications\PlanRejectedNotification;
 use App\Services\OrderService;
-use App\Models\Order;
-use App\Models\Shop;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
 {
@@ -25,8 +22,8 @@ class OrderController extends Controller
         $filters = $request->only(['search', 'status', 'plan', 'date']);
 
         return Inertia::render('admin/orders/Index', [
-            'orders'  => $this->orderService->getPaginated($filters),
-            'stats'   => $this->orderService->getStats(),
+            'orders' => $this->orderService->getPaginated($filters),
+            'stats' => $this->orderService->getStats(),
             'filters' => $filters,
         ]);
     }
@@ -50,21 +47,7 @@ class OrderController extends Controller
                 ->update(['status' => 'expired']);
         }
 
-        // Create the shop record if it doesn't exist yet, then activate it.
-        // The Order holds all shop details submitted during checkout.
-        Shop::withTrashed()->updateOrCreate(
-            ['owner_id' => $order->user_id],
-            [
-                'shop_name'    => $order->shop_name,
-                'phone'        => $order->phone       ?? null,
-                'block_street' => $order->block_street ?? null,
-                'municipality' => $order->municipality ?? '',
-                'barangay'     => $order->barangay     ?? '',
-                'postal_code'  => $order->postal_code  ?? null,
-                'status'       => 'active',
-                'deleted_at'   => null,   // restore if soft-deleted
-            ]
-        );
+        $this->orderService->syncApprovedShop($order);
 
         $message = $order->is_upgrade
             ? "{$order->shop_name} plan upgraded to {$order->plan_name}. Previous plan expired."
@@ -83,7 +66,7 @@ class OrderController extends Controller
         $order->load('user');
 
         $order->update([
-            'status'           => 'rejected',
+            'status' => 'rejected',
             'rejection_reason' => $request->rejection_reason,
         ]);
 
@@ -102,7 +85,7 @@ class OrderController extends Controller
     {
         $path = $request->query('path');
 
-        if (!$path || !Storage::disk('private')->exists($path)) {
+        if (! $path || ! Storage::disk('private')->exists($path)) {
             abort(404);
         }
 

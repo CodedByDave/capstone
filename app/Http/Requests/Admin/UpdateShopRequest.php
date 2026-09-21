@@ -14,30 +14,31 @@ class UpdateShopRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'shop_name'    => ['required', 'string', 'max:255'],
-            'branch_name'  => ['nullable', 'string', 'max:255'],
-            'phone'        => ['required', 'string', 'max:255'],
+            'shop_name' => ['required', 'string', 'max:255'],
+            'branch_name' => ['nullable', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:255'],
             'block_street' => ['nullable', 'string', 'max:255'],
             'municipality' => ['required', 'string', 'max:255'],
-            'barangay'     => ['required', 'string', 'max:255'],
-            'postal_code'  => ['required', 'string', 'max:255'],
-            'status'             => ['required', 'in:active,pending,disabled'],
-            'mayors_expiry_date'  => ['nullable', 'date'],
-            'dti_expiry_date'     => ['nullable', 'date'],
-            'sanitary_expiry_date'=> ['nullable', 'date'],
+            'barangay' => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:255'],
+            'status' => ['required', 'in:active,pending,disabled'],
+            'bir_expiry_date' => ['nullable', 'date'],
+            'mayors_expiry_date' => ['nullable', 'date'],
+            'dti_expiry_date' => ['nullable', 'date'],
+            'sanitary_expiry_date' => ['nullable', 'date'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'shop_name.required'    => 'Shop name is required.',
-            'phone.required'        => 'Phone number is required.',
+            'shop_name.required' => 'Shop name is required.',
+            'phone.required' => 'Phone number is required.',
             'municipality.required' => 'Municipality is required.',
-            'barangay.required'     => 'Barangay is required.',
-            'postal_code.required'  => 'Postal code is required.',
-            'status.required'       => 'Status is required.',
-            'status.in'             => 'Status must be active, pending, or disabled.',
+            'barangay.required' => 'Barangay is required.',
+            'postal_code.required' => 'Postal code is required.',
+            'status.required' => 'Status is required.',
+            'status.in' => 'Status must be active, pending, or disabled.',
         ];
     }
 }

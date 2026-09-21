@@ -2,12 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Shop;
-use App\Models\Employee;
 use App\Models\Attendance;
+use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
-use Illuminate\Support\Facades\DB;
+use App\Models\Shop;
 use Carbon\Carbon;
 
 class DashboardService
@@ -106,7 +105,7 @@ class DashboardService
 
         $records = Attendance::where('shop_id', $shop->id)
             ->where('date', '>=', $startDate)
-            ->selectRaw("date, status, COUNT(*) as count")
+            ->selectRaw('date, status, COUNT(*) as count')
             ->groupBy('date', 'status')
             ->orderBy('date')
             ->get();
@@ -132,6 +131,10 @@ class DashboardService
     {
         $payrolls = Payroll::where('shop_id', $shop->id)
             ->where('status', 'finalized')
+            ->withCount('items')
+            ->withSum('items as total_net_pay', 'net_pay')
+            ->withSum('items as total_deductions', 'deductions')
+            ->withSum('items as total_bonuses', 'bonuses')
             ->latest('period_start')
             ->take($limit)
             ->get()
@@ -139,17 +142,12 @@ class DashboardService
             ->values();
 
         return $payrolls->map(function ($p) {
-            $totalNet = $p->items()->sum('net_pay');
-            $totalDeductions = $p->items()->sum('deductions');
-            $totalBonuses = $p->items()->sum('bonuses');
-            $employeeCount = $p->items()->count();
-
             return [
                 'label' => $p->period_label,
-                'net_pay' => round($totalNet, 2),
-                'deductions' => round($totalDeductions, 2),
-                'bonuses' => round($totalBonuses, 2),
-                'employees' => $employeeCount,
+                'net_pay' => round((float) $p->total_net_pay, 2),
+                'deductions' => round((float) $p->total_deductions, 2),
+                'bonuses' => round((float) $p->total_bonuses, 2),
+                'employees' => (int) $p->items_count,
             ];
         })->toArray();
     }
@@ -164,18 +162,26 @@ class DashboardService
             ->where('status', 'Active')
             ->get(['id', 'first_name', 'last_name', 'position', 'branch_name']);
 
-        return $employees->map(function ($emp) use ($startOfMonth, $endOfMonth) {
-            $attendance = Attendance::where('employee_id', $emp->id)
-                ->whereBetween('date', [$startOfMonth, $endOfMonth]);
+        $attendanceByEmployee = Attendance::whereIn('employee_id', $employees->pluck('id'))
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->selectRaw('employee_id, COUNT(*) as total')
+            ->selectRaw("SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present")
+            ->selectRaw("SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absent")
+            ->selectRaw("SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late")
+            ->groupBy('employee_id')
+            ->get()
+            ->keyBy('employee_id');
 
-            $total = (clone $attendance)->count();
-            $present = (clone $attendance)->where('status', 'present')->count();
-            $absent = (clone $attendance)->where('status', 'absent')->count();
-            $late = (clone $attendance)->where('status', 'late')->count();
+        return $employees->map(function ($emp) use ($attendanceByEmployee) {
+            $attendance = $attendanceByEmployee->get($emp->id);
+            $total = (int) ($attendance?->total ?? 0);
+            $present = (int) ($attendance?->present ?? 0);
+            $absent = (int) ($attendance?->absent ?? 0);
+            $late = (int) ($attendance?->late ?? 0);
 
             return [
                 'id' => $emp->id,
-                'name' => $emp->first_name . ' ' . $emp->last_name,
+                'name' => $emp->first_name.' '.$emp->last_name,
                 'position' => $emp->position,
                 'branch' => $emp->branch_name,
                 'total' => $total,
@@ -185,9 +191,9 @@ class DashboardService
                 'rate' => $total > 0 ? round(($present / $total) * 100, 1) : 0,
             ];
         })
-        ->sortBy('rate')
-        ->values()
-        ->toArray();
+            ->sortBy('rate')
+            ->values()
+            ->toArray();
     }
 
     public function getInsights(array $kpis): array
@@ -230,7 +236,7 @@ class DashboardService
             $insights[] = [
                 'type' => 'info',
                 'title' => 'Payroll Cost Decrease',
-                'message' => "Payroll costs decreased by " . abs($kpis['payroll_change']) . "% compared to last month.",
+                'message' => 'Payroll costs decreased by '.abs($kpis['payroll_change']).'% compared to last month.',
                 'action' => 'Verify this is due to efficiency gains and not understaffing.',
             ];
         }

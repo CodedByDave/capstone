@@ -9,8 +9,9 @@ use App\Models\PayrollItem;
 use App\Models\Shop;
 use App\Repositories\PayrollRepository;
 use DateTime;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class PayrollService
 {
@@ -33,12 +34,12 @@ class PayrollService
     {
         return DB::transaction(function () use ($shop, $data) {
             $payroll = $this->payrollRepository->create([
-                'shop_id'      => $shop->id,
+                'shop_id' => $shop->id,
                 'period_label' => $data['period_label'],
                 'period_start' => $data['period_start'],
-                'period_end'   => $data['period_end'],
-                'status'       => 'draft',
-                'created_by'   => auth()->id(),
+                'period_end' => $data['period_end'],
+                'status' => 'draft',
+                'created_by' => auth()->id(),
             ]);
 
             $employeeQuery = Employee::where('shop_id', $shop->id)
@@ -53,7 +54,7 @@ class PayrollService
                     $employeeQuery->where('branch_name', $branch)
                         ->where(function ($q) use ($userId) {
                             $q->where('user_id', '!=', $userId)
-                              ->orWhereNull('user_id');
+                                ->orWhereNull('user_id');
                         });
                 } else {
                     $employeeQuery->whereRaw('1 = 0');
@@ -61,13 +62,18 @@ class PayrollService
             }
 
             $employees = $employeeQuery->get();
+            $attendanceSummaries = $this->getAttendanceSummaries(
+                $employees,
+                $data['period_start'],
+                $data['period_end'],
+            );
 
             foreach ($employees as $employee) {
-                $attendance = $this->getAttendanceSummary($employee, $data['period_start'], $data['period_end']);
+                $attendance = $attendanceSummaries->get($employee->id, $this->emptyAttendanceSummary());
                 $item = $this->calculatePayrollItem($employee, $attendance, $data['period_start'], $data['period_end'], $shop);
 
                 PayrollItem::create([
-                    'payroll_id'  => $payroll->id,
+                    'payroll_id' => $payroll->id,
                     'employee_id' => $employee->id,
                     ...$item,
                 ]);
@@ -92,7 +98,7 @@ class PayrollService
         ]);
 
         $dailyRate = $this->calculateDailyRate($item->employee);
-        $grossPay  = ($dailyRate * $item->days_worked) + (($dailyRate / 2) * $item->days_half_day);
+        $grossPay = ($dailyRate * $item->days_worked) + (($dailyRate / 2) * $item->days_half_day);
 
         $netPay = max(0, round(
             $grossPay
@@ -142,18 +148,18 @@ class PayrollService
 
         return [
             'total_payrolls' => Payroll::where('shop_id', $shop->id)->count(),
-            'draft'          => Payroll::where('shop_id', $shop->id)->where('status', 'draft')->count(),
-            'finalized'      => Payroll::where('shop_id', $shop->id)->where('status', 'finalized')->count(),
-            'latest_total'   => $latest ? $latest->items()->sum('net_pay') : 0,
+            'draft' => Payroll::where('shop_id', $shop->id)->where('status', 'draft')->count(),
+            'finalized' => Payroll::where('shop_id', $shop->id)->where('status', 'finalized')->count(),
+            'latest_total' => $latest ? $latest->items()->sum('net_pay') : 0,
         ];
     }
 
     public function updateSettings(Shop $shop, array $data): void
     {
         $shop->update([
-            'deduct_sss'             => $data['deduct_sss'] ?? false,
-            'deduct_philhealth'      => $data['deduct_philhealth'] ?? false,
-            'deduct_pagibig'         => $data['deduct_pagibig'] ?? false,
+            'deduct_sss' => $data['deduct_sss'] ?? false,
+            'deduct_philhealth' => $data['deduct_philhealth'] ?? false,
+            'deduct_pagibig' => $data['deduct_pagibig'] ?? false,
             'deduct_withholding_tax' => $data['deduct_withholding_tax'] ?? false,
         ]);
     }
@@ -161,14 +167,15 @@ class PayrollService
     public function recalculate(Payroll $payroll): Payroll
     {
         return DB::transaction(function () use ($payroll) {
-            $payroll->load('items.employee');
+            $payroll->load(['items.employee', 'shop']);
+            $attendanceSummaries = $this->getAttendanceSummaries(
+                $payroll->items->pluck('employee')->filter()->unique('id'),
+                $payroll->period_start->toDateString(),
+                $payroll->period_end->toDateString(),
+            );
 
             foreach ($payroll->items as $item) {
-                $attendance = $this->getAttendanceSummary(
-                    $item->employee,
-                    $payroll->period_start->toDateString(),
-                    $payroll->period_end->toDateString()
-                );
+                $attendance = $attendanceSummaries->get($item->employee_id, $this->emptyAttendanceSummary());
 
                 $calculated = $this->calculatePayrollItem(
                     $item->employee,
@@ -182,7 +189,7 @@ class PayrollService
                 $calculated['bonuses'] = (float) $item->bonuses;
 
                 $dailyRate = $this->calculateDailyRate($item->employee);
-                $grossPay  = ($dailyRate * $calculated['days_worked']) + (($dailyRate / 2) * $calculated['days_half_day']);
+                $grossPay = ($dailyRate * $calculated['days_worked']) + (($dailyRate / 2) * $calculated['days_half_day']);
 
                 $calculated['net_pay'] = max(0, round(
                     $grossPay
@@ -209,22 +216,47 @@ class PayrollService
      * Only rows explicitly recorded in the attendance table are counted.
      * Absent days reduce pay naturally since gross is based only on present/late/half_day days.
      */
-    private function getAttendanceSummary(Employee $employee, string $start, string $end): array
+    private function getAttendanceSummaries(Collection $employees, string $start, string $end): Collection
     {
-        $base = Attendance::where('employee_id', $employee->id)
-            ->whereBetween('date', [$start, $end]);
+        $employeeIds = $employees->pluck('id')->filter()->values();
 
+        if ($employeeIds->isEmpty()) {
+            return collect();
+        }
+
+        return Attendance::whereIn('employee_id', $employeeIds)
+            ->whereBetween('date', [$start, $end])
+            ->selectRaw('employee_id')
+            ->selectRaw("SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present")
+            ->selectRaw("SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absent")
+            ->selectRaw("SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late")
+            ->selectRaw("SUM(CASE WHEN status = 'half_day' THEN 1 ELSE 0 END) as half_day")
+            ->groupBy('employee_id')
+            ->get()
+            ->mapWithKeys(fn ($row) => [
+                (int) $row->employee_id => [
+                    'present' => (int) $row->present,
+                    'absent' => (int) $row->absent,
+                    'late' => (int) $row->late,
+                    'half_day' => (int) $row->half_day,
+                ],
+            ]);
+    }
+
+    private function emptyAttendanceSummary(): array
+    {
         return [
-            'present'  => (clone $base)->where('status', 'present')->count(),
-            'absent'   => (clone $base)->where('status', 'absent')->count(),
-            'late'     => (clone $base)->where('status', 'late')->count(),
-            'half_day' => (clone $base)->where('status', 'half_day')->count(),
+            'present' => 0,
+            'absent' => 0,
+            'late' => 0,
+            'half_day' => 0,
         ];
     }
 
     private function calculateDailyRate(Employee $employee): float
     {
         $monthlySalary = (float) ($employee->salary ?? 0);
+
         return round($monthlySalary / 26, 2); // 26 working days
     }
 
@@ -235,6 +267,7 @@ class PayrollService
     private function getPeriodFactor(string $start, string $end): float
     {
         $days = (new DateTime($start))->diff(new DateTime($end))->days + 1;
+
         return $days >= 25 ? 1.0 : 0.5;
     }
 
@@ -247,6 +280,7 @@ class PayrollService
     private function calculateSSS(float $monthlySalary): float
     {
         $msc = max(4000, min(30000, round($monthlySalary / 500) * 500));
+
         return round($msc * 0.045, 2);
     }
 
@@ -268,6 +302,7 @@ class PayrollService
         if ($monthlySalary <= 1500) {
             return round($monthlySalary * 0.01, 2);
         }
+
         return round(min(100.0, $monthlySalary * 0.02), 2);
     }
 
@@ -277,39 +312,50 @@ class PayrollService
      */
     private function calculateWithholdingTax(float $taxableIncome): float
     {
-        if ($taxableIncome <= 10416.67) return 0.0;
-        if ($taxableIncome <= 16666.67) return round(($taxableIncome - 10416.67) * 0.15, 2);
-        if ($taxableIncome <= 33333.33) return round(937.50  + ($taxableIncome - 16666.67) * 0.20, 2);
-        if ($taxableIncome <= 83333.33) return round(4270.83 + ($taxableIncome - 33333.33) * 0.25, 2);
-        if ($taxableIncome <= 333333.33) return round(16770.83 + ($taxableIncome - 83333.33) * 0.30, 2);
+        if ($taxableIncome <= 10416.67) {
+            return 0.0;
+        }
+        if ($taxableIncome <= 16666.67) {
+            return round(($taxableIncome - 10416.67) * 0.15, 2);
+        }
+        if ($taxableIncome <= 33333.33) {
+            return round(937.50 + ($taxableIncome - 16666.67) * 0.20, 2);
+        }
+        if ($taxableIncome <= 83333.33) {
+            return round(4270.83 + ($taxableIncome - 33333.33) * 0.25, 2);
+        }
+        if ($taxableIncome <= 333333.33) {
+            return round(16770.83 + ($taxableIncome - 83333.33) * 0.30, 2);
+        }
+
         return round(91770.83 + ($taxableIncome - 333333.33) * 0.35, 2);
     }
 
     private function calculatePayrollItem(Employee $employee, array $attendance, string $periodStart, string $periodEnd, Shop $shop): array
     {
-        $dailyRate     = $this->calculateDailyRate($employee);
+        $dailyRate = $this->calculateDailyRate($employee);
         $monthlySalary = (float) ($employee->salary ?? 0);
-        $periodFactor  = $this->getPeriodFactor($periodStart, $periodEnd);
+        $periodFactor = $this->getPeriodFactor($periodStart, $periodEnd);
 
         // Gross pay: only pay for days actually worked/partially worked
-        $grossPay        = $dailyRate * $attendance['present'];
-        $halfDayPay      = ($dailyRate / 2) * $attendance['half_day'];
-        $lateDeduction   = ($dailyRate * 0.05) * $attendance['late'];
+        $grossPay = $dailyRate * $attendance['present'];
+        $halfDayPay = ($dailyRate / 2) * $attendance['half_day'];
+        $lateDeduction = ($dailyRate * 0.05) * $attendance['late'];
 
-        $totalGross          = round($grossPay + $halfDayPay, 2);
+        $totalGross = round($grossPay + $halfDayPay, 2);
         $attendanceDeduction = round($lateDeduction, 2);
 
         // Government contributions (pro-rated by period, only if enabled for the shop)
-        $sssMonthly        = $this->calculateSSS($monthlySalary);
+        $sssMonthly = $this->calculateSSS($monthlySalary);
         $philhealthMonthly = $this->calculatePhilHealth($monthlySalary);
-        $pagibigMonthly    = $this->calculatePagIbig($monthlySalary);
+        $pagibigMonthly = $this->calculatePagIbig($monthlySalary);
 
-        $sss        = $shop->deduct_sss        ? round($sssMonthly * $periodFactor, 2)        : 0.0;
-        $philhealth = $shop->deduct_philhealth  ? round($philhealthMonthly * $periodFactor, 2) : 0.0;
-        $pagibig    = $shop->deduct_pagibig     ? round($pagibigMonthly * $periodFactor, 2)    : 0.0;
+        $sss = $shop->deduct_sss ? round($sssMonthly * $periodFactor, 2) : 0.0;
+        $philhealth = $shop->deduct_philhealth ? round($philhealthMonthly * $periodFactor, 2) : 0.0;
+        $pagibig = $shop->deduct_pagibig ? round($pagibigMonthly * $periodFactor, 2) : 0.0;
 
         // Withholding tax on taxable income for this period
-        $taxableIncome  = max(0.0, $totalGross - $sss - $philhealth - $pagibig);
+        $taxableIncome = max(0.0, $totalGross - $sss - $philhealth - $pagibig);
         $withholdingTax = $shop->deduct_withholding_tax
             ? $this->calculateWithholdingTax($taxableIncome)
             : 0.0;
@@ -317,18 +363,18 @@ class PayrollService
         $netPay = max(0, round($totalGross - $attendanceDeduction - $sss - $philhealth - $pagibig - $withholdingTax, 2));
 
         return [
-            'basic_salary'            => $monthlySalary,
-            'days_worked'             => $attendance['present'],
-            'days_absent'             => $attendance['absent'],
-            'days_late'               => $attendance['late'],
-            'days_half_day'           => $attendance['half_day'],
-            'deductions'              => $attendanceDeduction,
-            'sss_contribution'        => $sss,
+            'basic_salary' => $monthlySalary,
+            'days_worked' => $attendance['present'],
+            'days_absent' => $attendance['absent'],
+            'days_late' => $attendance['late'],
+            'days_half_day' => $attendance['half_day'],
+            'deductions' => $attendanceDeduction,
+            'sss_contribution' => $sss,
             'philhealth_contribution' => $philhealth,
-            'pagibig_contribution'    => $pagibig,
-            'withholding_tax'         => $withholdingTax,
-            'bonuses'                 => 0,
-            'net_pay'                 => $netPay,
+            'pagibig_contribution' => $pagibig,
+            'withholding_tax' => $withholdingTax,
+            'bonuses' => 0,
+            'net_pay' => $netPay,
         ];
     }
 }

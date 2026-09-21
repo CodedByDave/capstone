@@ -26,6 +26,7 @@ class ReportsController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -33,8 +34,11 @@ class ReportsController extends Controller
     private function getStaffBranch(): ?string
     {
         $user = auth()->user();
-        if ($user->role === 'owner') return null;
+        if ($user->role === 'owner') {
+            return null;
+        }
         $branch = Employee::where('user_id', $user->id)->value('branch_name');
+
         return ($branch !== null && $branch !== '') ? $branch : null;
     }
 
@@ -45,6 +49,7 @@ class ReportsController extends Controller
         if ($branch !== null) {
             $q->where('branch_name', $branch);
         }
+
         return $q;
     }
 
@@ -52,72 +57,78 @@ class ReportsController extends Controller
     {
         return match ($period) {
             'today' => [Carbon::today(),               Carbon::today()->endOfDay()],
-            'week'  => [Carbon::now()->startOfWeek(),  Carbon::now()->endOfWeek()],
+            'week' => [Carbon::now()->startOfWeek(),  Carbon::now()->endOfWeek()],
             'month' => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
-            'year'  => [Carbon::now()->startOfYear(),  Carbon::now()->endOfYear()],
+            'year' => [Carbon::now()->startOfYear(),  Carbon::now()->endOfYear()],
             default => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
         };
     }
 
     public function overview(Request $request)
     {
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $branch = $this->getStaffBranch();
         $period = $request->get('period', 'month');
         [$from, $to] = $this->getDateRange($period);
 
-        $totalItems      = Inventory::where('shop_id', $shop->id)->count();
-        $activeItems     = Inventory::where('shop_id', $shop->id)->where('status', 'active')->count();
-        $lowStockItems   = Inventory::where('shop_id', $shop->id)->whereColumn('quantity', '<=', 'min_stock')->count();
-        $outOfStock      = Inventory::where('shop_id', $shop->id)->where('quantity', 0)->count();
-        $totalEmployees  = $this->scopeEmployees($shop, $branch)->count();
-        $totalBranches   = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
+        $totalItems = Inventory::where('shop_id', $shop->id)->count();
+        $activeItems = Inventory::where('shop_id', $shop->id)->where('status', 'active')->count();
+        $lowStockItems = Inventory::where('shop_id', $shop->id)->whereColumn('quantity', '<=', 'min_stock')->count();
+        $outOfStock = Inventory::where('shop_id', $shop->id)->where('quantity', 0)->count();
+        $totalEmployees = $this->scopeEmployees($shop, $branch)->count();
+        $totalBranches = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
         $unresolvedAlerts = LowStockAlert::where('shop_id', $shop->id)->whereIn('status', ['unread', 'read'])->count();
-        $movementsInPeriod = InventoryMovement::whereHas('inventory', fn($q) => $q->where('shop_id', $shop->id))
+        $movementsInPeriod = InventoryMovement::where('shop_id', $shop->id)
             ->whereBetween('created_at', [$from, $to])->count();
 
-        $movementTrend = collect(range(6, 0))->map(function ($daysAgo) use ($shop) {
+        $movementCounts = InventoryMovement::where('shop_id', $shop->id)
+            ->whereDate('created_at', '>=', Carbon::today()->subDays(6))
+            ->selectRaw('DATE(created_at) as movement_date, COUNT(*) as total')
+            ->groupByRaw('DATE(created_at)')
+            ->pluck('total', 'movement_date');
+
+        $movementTrend = collect(range(6, 0))->map(function ($daysAgo) use ($movementCounts) {
             $date = Carbon::today()->subDays($daysAgo);
+
             return [
-                'date'  => $date->format('M d'),
-                'count' => InventoryMovement::whereHas('inventory', fn($q) => $q->where('shop_id', $shop->id))
-                    ->whereDate('created_at', $date)->count(),
+                'date' => $date->format('M d'),
+                'count' => (int) ($movementCounts[$date->toDateString()] ?? 0),
             ];
         })->values();
 
         $categoryBreakdown = InventoryCategory::where('shop_id', $shop->id)
-            ->withCount(['inventories' => fn($q) => $q->where('status', 'active')])
+            ->withCount(['inventories' => fn ($q) => $q->where('status', 'active')])
             ->get()
-            ->map(fn($c) => ['name' => $c->name, 'count' => $c->inventories_count]);
+            ->map(fn ($c) => ['name' => $c->name, 'count' => $c->inventories_count]);
 
         return Inertia::render('shop/reports/Overview', [
             'period' => $period,
-            'stats'  => [
-                'total_items'        => $totalItems,
-                'active_items'       => $activeItems,
-                'low_stock_items'    => $lowStockItems,
-                'out_of_stock'       => $outOfStock,
-                'total_employees'    => $totalEmployees,
-                'total_branches'     => $totalBranches,
-                'unresolved_alerts'  => $unresolvedAlerts,
-                'movements_period'   => $movementsInPeriod,
+            'stats' => [
+                'total_items' => $totalItems,
+                'active_items' => $activeItems,
+                'low_stock_items' => $lowStockItems,
+                'out_of_stock' => $outOfStock,
+                'total_employees' => $totalEmployees,
+                'total_branches' => $totalBranches,
+                'unresolved_alerts' => $unresolvedAlerts,
+                'movements_period' => $movementsInPeriod,
             ],
-            'movementTrend'     => $movementTrend,
+            'movementTrend' => $movementTrend,
             'categoryBreakdown' => $categoryBreakdown,
         ]);
     }
 
     public function inventory(Request $request)
     {
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $period = $request->get('period', 'month');
         [$from, $to] = $this->getDateRange($period);
 
-        $totalItems    = Inventory::where('shop_id', $shop->id)->count();
-        $activeItems   = Inventory::where('shop_id', $shop->id)->where('status', 'active')->count();
+        $totalItems = Inventory::where('shop_id', $shop->id)->count();
+        $activeItems = Inventory::where('shop_id', $shop->id)->where('status', 'active')->count();
         $inactiveItems = Inventory::where('shop_id', $shop->id)->where('status', 'inactive')->count();
-        $lowStock      = Inventory::where('shop_id', $shop->id)->whereColumn('quantity', '<=', 'min_stock')->where('quantity', '>', 0)->count();
-        $outOfStock    = Inventory::where('shop_id', $shop->id)->where('quantity', 0)->count();
+        $lowStock = Inventory::where('shop_id', $shop->id)->whereColumn('quantity', '<=', 'min_stock')->where('quantity', '>', 0)->count();
+        $outOfStock = Inventory::where('shop_id', $shop->id)->where('quantity', 0)->count();
 
         $topStocked = Inventory::where('shop_id', $shop->id)
             ->where('status', 'active')
@@ -131,33 +142,37 @@ class ReportsController extends Controller
             ->limit(5)
             ->get(['id', 'name', 'quantity', 'unit', 'min_stock']);
 
-        $movementsByType = InventoryMovement::whereHas('inventory', fn($q) => $q->where('shop_id', $shop->id))
+        $movementsByType = InventoryMovement::where('shop_id', $shop->id)
             ->whereBetween('created_at', [$from, $to])
             ->selectRaw('type, count(*) as count')
             ->groupBy('type')
             ->get()
-            ->map(fn($m) => ['type' => $m->type, 'count' => $m->count]);
+            ->map(fn ($m) => ['type' => $m->type, 'count' => $m->count]);
 
-        $movementTrend = collect(range(6, 0))->map(function ($daysAgo) use ($shop) {
+        $movementCounts = InventoryMovement::where('shop_id', $shop->id)
+            ->whereDate('created_at', '>=', Carbon::today()->subDays(6))
+            ->selectRaw('DATE(created_at) as movement_date, type, COUNT(*) as total')
+            ->groupByRaw('DATE(created_at), type')
+            ->get()
+            ->keyBy(fn ($movement) => $movement->movement_date.'|'.$movement->type);
+
+        $movementTrend = collect(range(6, 0))->map(function ($daysAgo) use ($movementCounts) {
             $date = Carbon::today()->subDays($daysAgo);
-            $restock = InventoryMovement::whereHas('inventory', fn($q) => $q->where('shop_id', $shop->id))
-                ->whereDate('created_at', $date)->where('type', 'restock')->count();
-            $usage = InventoryMovement::whereHas('inventory', fn($q) => $q->where('shop_id', $shop->id))
-                ->whereDate('created_at', $date)->where('type', 'usage')->count();
+
             return [
-                'date'    => $date->format('M d'),
-                'restock' => $restock,
-                'usage'   => $usage,
+                'date' => $date->format('M d'),
+                'restock' => (int) ($movementCounts->get($date->toDateString().'|restock')?->total ?? 0),
+                'usage' => (int) ($movementCounts->get($date->toDateString().'|usage')?->total ?? 0),
             ];
         })->values();
 
         $categoryBreakdown = InventoryCategory::where('shop_id', $shop->id)
-            ->withCount(['inventories' => fn($q) => $q->where('status', 'active')])
-            ->withSum(['inventories' => fn($q) => $q->where('status', 'active')], 'quantity')
+            ->withCount(['inventories' => fn ($q) => $q->where('status', 'active')])
+            ->withSum(['inventories' => fn ($q) => $q->where('status', 'active')], 'quantity')
             ->get()
-            ->map(fn($c) => [
-                'name'     => $c->name,
-                'count'    => $c->inventories_count,
+            ->map(fn ($c) => [
+                'name' => $c->name,
+                'count' => $c->inventories_count,
                 'quantity' => $c->inventories_sum_quantity ?? 0,
             ]);
 
@@ -167,24 +182,24 @@ class ReportsController extends Controller
             ->selectRaw('supplier_id, count(*) as count')
             ->groupBy('supplier_id')
             ->get()
-            ->map(fn($i) => [
-                'name'  => $i->supplier?->name ?? 'Unknown',
+            ->map(fn ($i) => [
+                'name' => $i->supplier?->name ?? 'Unknown',
                 'count' => $i->count,
             ]);
 
         return Inertia::render('shop/reports/Inventory', [
             'period' => $period,
-            'stats'  => [
-                'total_items'    => $totalItems,
-                'active_items'   => $activeItems,
+            'stats' => [
+                'total_items' => $totalItems,
+                'active_items' => $activeItems,
                 'inactive_items' => $inactiveItems,
-                'low_stock'      => $lowStock,
-                'out_of_stock'   => $outOfStock,
+                'low_stock' => $lowStock,
+                'out_of_stock' => $outOfStock,
             ],
-            'topStocked'        => $topStocked,
-            'lowStockItems'     => $lowStockItems,
-            'movementsByType'   => $movementsByType,
-            'movementTrend'     => $movementTrend,
+            'topStocked' => $topStocked,
+            'lowStockItems' => $lowStockItems,
+            'movementsByType' => $movementsByType,
+            'movementTrend' => $movementTrend,
             'categoryBreakdown' => $categoryBreakdown,
             'supplierBreakdown' => $supplierBreakdown,
         ]);
@@ -192,30 +207,35 @@ class ReportsController extends Controller
 
     public function employee(Request $request)
     {
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $branch = $this->getStaffBranch();
         $period = $request->get('period', 'month');
         [$from, $to] = $this->getDateRange($period);
 
         $totalEmployees = $this->scopeEmployees($shop, $branch)->count();
-        $totalBranches  = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
-        $newEmployees   = $this->scopeEmployees($shop, $branch)->whereBetween('created_at', [$from, $to])->count();
+        $totalBranches = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
+        $newEmployees = $this->scopeEmployees($shop, $branch)->whereBetween('created_at', [$from, $to])->count();
 
         $employeesByBranch = $branch !== null
             ? collect([['name' => $branch, 'count' => $this->scopeEmployees($shop, $branch)->count()]])
             : Branch::where('shop_id', $shop->id)
                 ->withCount('employees')
                 ->get()
-                ->map(fn($b) => ['name' => $b->name, 'count' => $b->employees_count]);
+                ->map(fn ($b) => ['name' => $b->name, 'count' => $b->employees_count]);
 
-        $employeeGrowth = collect(range(5, 0))->map(function ($monthsAgo) use ($shop, $branch) {
+        $growthStart = Carbon::now()->subMonths(5)->startOfMonth();
+        $employeeGrowthCounts = $this->scopeEmployees($shop, $branch)
+            ->where('created_at', '>=', $growthStart)
+            ->pluck('created_at')
+            ->map(fn ($createdAt) => Carbon::parse($createdAt)->format('Y-m'))
+            ->countBy();
+
+        $employeeGrowth = collect(range(5, 0))->map(function ($monthsAgo) use ($employeeGrowthCounts) {
             $date = Carbon::now()->subMonths($monthsAgo);
+
             return [
                 'month' => $date->format('M Y'),
-                'count' => $this->scopeEmployees($shop, $branch)
-                    ->whereYear('created_at', $date->year)
-                    ->whereMonth('created_at', $date->month)
-                    ->count(),
+                'count' => (int) ($employeeGrowthCounts[$date->format('Y-m')] ?? 0),
             ];
         })->values();
 
@@ -223,7 +243,7 @@ class ReportsController extends Controller
         // Count distinct employees that have at least one scheduled day.
         $scheduledThisWeek = EmployeeSchedule::whereHas(
             'employee',
-            fn($q) => $q->where('shop_id', $shop->id)->when($branch, fn($q) => $q->where('branch_name', $branch))
+            fn ($q) => $q->where('shop_id', $shop->id)->when($branch, fn ($q) => $q->where('branch_name', $branch))
         )
             ->distinct('employee_id')
             ->count('employee_id');
@@ -232,33 +252,33 @@ class ReportsController extends Controller
             ->latest()
             ->limit(5)
             ->get(['id', 'first_name', 'last_name', 'email', 'branch_name', 'created_at'])
-            ->map(fn($e) => [
-                'name'       => "{$e->first_name} {$e->last_name}",
-                'email'      => $e->email,
-                'branch'     => $e->branch_name ?? '—',
+            ->map(fn ($e) => [
+                'name' => "{$e->first_name} {$e->last_name}",
+                'email' => $e->email,
+                'branch' => $e->branch_name ?? '—',
                 'created_at' => $e->created_at->format('M d, Y'),
             ]);
 
         $employeesByRole = $this->scopeEmployees($shop, $branch)
             ->with('roles')
             ->get()
-            ->flatMap(fn($e) => $e->roles->pluck('role'))
+            ->flatMap(fn ($e) => $e->roles->pluck('role'))
             ->countBy()
-            ->map(fn($count, $role) => ['role' => $role, 'count' => $count])
+            ->map(fn ($count, $role) => ['role' => $role, 'count' => $count])
             ->values();
 
         return Inertia::render('shop/reports/Employee', [
             'period' => $period,
-            'stats'  => [
-                'total_employees'    => $totalEmployees,
-                'total_branches'     => $totalBranches,
-                'new_employees'      => $newEmployees,
-                'scheduled_week'     => $scheduledThisWeek,
+            'stats' => [
+                'total_employees' => $totalEmployees,
+                'total_branches' => $totalBranches,
+                'new_employees' => $newEmployees,
+                'scheduled_week' => $scheduledThisWeek,
             ],
             'employeesByBranch' => $employeesByBranch,
-            'employeeGrowth'    => $employeeGrowth,
-            'recentEmployees'   => $recentEmployees,
-            'employeesByRole'   => $employeesByRole,
+            'employeeGrowth' => $employeeGrowth,
+            'recentEmployees' => $recentEmployees,
+            'employeesByRole' => $employeesByRole,
         ]);
     }
 }

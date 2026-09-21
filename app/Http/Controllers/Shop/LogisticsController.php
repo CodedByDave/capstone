@@ -22,7 +22,7 @@ class LogisticsController extends Controller
 
     public function index(Request $request)
     {
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $status = $request->get('status');
 
         $deliveries = Delivery::with(['rider', 'order:id,order_number'])
@@ -41,59 +41,59 @@ class LogisticsController extends Controller
             ->with('customer:id,email')
             ->orderByDesc('created_at')
             ->get(['id', 'order_number', 'customer_name', 'customer_phone', 'delivery_address', 'pickup_type', 'user_id'])
-            ->map(fn($o) => [
-                'id'               => $o->id,
-                'order_number'     => $o->order_number,
-                'customer_name'    => $o->customer_name,
-                'customer_phone'   => $o->customer_phone,
+            ->map(fn ($o) => [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'customer_name' => $o->customer_name,
+                'customer_phone' => $o->customer_phone,
                 'delivery_address' => $o->delivery_address,
-                'pickup_type'      => $o->pickup_type,
-                'customer_email'   => $o->customer?->email,
+                'pickup_type' => $o->pickup_type,
+                'customer_email' => $o->customer?->email,
             ]);
 
-        $stats = [
-            'pending'   => Delivery::where('shop_id', $shop->id)->where('status', 'pending')->count(),
-            'assigned'  => Delivery::where('shop_id', $shop->id)->where('status', 'assigned')->count(),
-            'picked_up' => Delivery::where('shop_id', $shop->id)->where('status', 'picked_up')->count(),
-            'delivered' => Delivery::where('shop_id', $shop->id)->where('status', 'delivered')->count(),
-            'failed'    => Delivery::where('shop_id', $shop->id)->where('status', 'failed')->count(),
-        ];
+        $statusCounts = Delivery::where('shop_id', $shop->id)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+        $stats = collect(['pending', 'assigned', 'picked_up', 'delivered', 'failed'])
+            ->mapWithKeys(fn ($status) => [$status => (int) ($statusCounts[$status] ?? 0)])
+            ->all();
 
         return Inertia::render('shop/logistics/Index', [
-            'deliveries'    => $deliveries,
-            'riders'        => $riders,
+            'deliveries' => $deliveries,
+            'riders' => $riders,
             'rider_base_url' => rtrim(env('RIDER_BASE_URL', config('app.url')), '/'),
             'pending_orders' => $pendingOrders,
-            'stats'         => $stats,
-            'filters'       => $request->only('status'),
+            'stats' => $stats,
+            'filters' => $request->only('status'),
         ]);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'shop_order_id'    => ['nullable', 'exists:shop_orders,id'],
-            'customer_name'    => ['required', 'string', 'max:100'],
-            'customer_phone'   => ['nullable', 'string', 'max:20'],
-            'customer_email'   => ['nullable', 'email', 'max:255'],
+            'shop_order_id' => ['nullable', 'exists:shop_orders,id'],
+            'customer_name' => ['required', 'string', 'max:100'],
+            'customer_phone' => ['nullable', 'string', 'max:20'],
+            'customer_email' => ['nullable', 'email', 'max:255'],
             'delivery_address' => ['nullable', 'string', 'max:500'],
-            'rider_id'         => ['nullable', 'exists:riders,id'],
-            'notes'            => ['nullable', 'string', 'max:500'],
+            'rider_id' => ['nullable', 'exists:riders,id'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         $shop = $this->getShop();
 
         Delivery::create([
-            'shop_id'          => $shop->id,
-            'shop_order_id'    => $data['shop_order_id'] ?? null,
-            'customer_name'    => $data['customer_name'],
-            'customer_phone'   => $data['customer_phone'] ?? null,
-            'customer_email'   => $data['customer_email'] ?? null,
+            'shop_id' => $shop->id,
+            'shop_order_id' => $data['shop_order_id'] ?? null,
+            'customer_name' => $data['customer_name'],
+            'customer_phone' => $data['customer_phone'] ?? null,
+            'customer_email' => $data['customer_email'] ?? null,
             'delivery_address' => $data['delivery_address'] ?? null,
-            'rider_id'         => $data['rider_id'] ?? null,
-            'status'           => $data['rider_id'] ? 'assigned' : 'pending',
-            'notes'            => $data['notes'] ?? null,
-            'assigned_at'      => $data['rider_id'] ? now() : null,
+            'rider_id' => $data['rider_id'] ?? null,
+            'status' => $data['rider_id'] ? 'assigned' : 'pending',
+            'notes' => $data['notes'] ?? null,
+            'assigned_at' => $data['rider_id'] ? now() : null,
         ]);
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Delivery created successfully.']);
@@ -102,26 +102,26 @@ class LogisticsController extends Controller
     public function updateStatus(Request $request, Delivery $delivery)
     {
         $data = $request->validate([
-            'status'   => ['required', 'in:pending,assigned,picked_up,delivered,failed'],
+            'status' => ['required', 'in:pending,assigned,picked_up,delivered,failed'],
             'rider_id' => ['nullable', 'exists:riders,id'],
-            'notes'    => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         $timestamps = [];
-        if ($data['status'] === 'assigned' && !$delivery->assigned_at) {
+        if ($data['status'] === 'assigned' && ! $delivery->assigned_at) {
             $timestamps['assigned_at'] = now();
         }
-        if ($data['status'] === 'picked_up' && !$delivery->picked_up_at) {
+        if ($data['status'] === 'picked_up' && ! $delivery->picked_up_at) {
             $timestamps['picked_up_at'] = now();
         }
-        if ($data['status'] === 'delivered' && !$delivery->delivered_at) {
+        if ($data['status'] === 'delivered' && ! $delivery->delivered_at) {
             $timestamps['delivered_at'] = now();
         }
 
         $delivery->update(array_merge([
-            'status'   => $data['status'],
+            'status' => $data['status'],
             'rider_id' => $data['rider_id'] ?? $delivery->rider_id,
-            'notes'    => $data['notes'] ?? $delivery->notes,
+            'notes' => $data['notes'] ?? $delivery->notes,
         ], $timestamps));
 
         // Notify the customer linked to the shop order, if any
@@ -137,6 +137,7 @@ class LogisticsController extends Controller
     public function destroy(Delivery $delivery)
     {
         $delivery->delete();
+
         return back()->with('toast', ['type' => 'success', 'message' => 'Delivery removed.']);
     }
 
@@ -144,7 +145,7 @@ class LogisticsController extends Controller
 
     public function riders()
     {
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $riders = Rider::where('shop_id', $shop->id)->withCount('deliveries')->orderBy('name')->get();
 
         return Inertia::render('shop/logistics/Riders', [
@@ -155,8 +156,8 @@ class LogisticsController extends Controller
     public function storeRider(Request $request)
     {
         $data = $request->validate([
-            'name'         => ['required', 'string', 'max:100'],
-            'phone'        => ['nullable', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'vehicle_type' => ['nullable', 'string', 'max:50'],
         ]);
 
@@ -169,10 +170,10 @@ class LogisticsController extends Controller
     public function updateRider(Request $request, Rider $rider)
     {
         $data = $request->validate([
-            'name'         => ['required', 'string', 'max:100'],
-            'phone'        => ['nullable', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'vehicle_type' => ['nullable', 'string', 'max:50'],
-            'status'       => ['required', 'in:active,inactive'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         $rider->update($data);
@@ -183,6 +184,7 @@ class LogisticsController extends Controller
     public function destroyRider(Rider $rider)
     {
         $rider->delete();
+
         return back()->with('toast', ['type' => 'success', 'message' => 'Rider removed.']);
     }
 }

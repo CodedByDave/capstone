@@ -30,23 +30,24 @@ class OrderRepository extends Repository
             ->with(['user', 'modules', 'payments'])
             ->latest();
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('shop_name',  'like', "%{$filters['search']}%")
+                $q->where('shop_name', 'like', "%{$filters['search']}%")
                     ->orWhere('owner_name', 'like', "%{$filters['search']}%")
-                    ->orWhere('email',     'like', "%{$filters['search']}%");
+                    ->orWhere('email', 'like', "%{$filters['search']}%")
+                    ->orWhere('transaction_reference', 'like', "%{$filters['search']}%");
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['plan'])) {
+        if (! empty($filters['plan'])) {
             $query->where('plan_name', $filters['plan']);
         }
 
-        if (!empty($filters['date'])) {
+        if (! empty($filters['date'])) {
             $query->whereDate('created_at', $filters['date']);
         }
 
@@ -56,15 +57,15 @@ class OrderRepository extends Repository
     public function getStats(): array
     {
         return [
-            'total'    => Order::count(),
-            'paid'     => Order::where('status', 'paid')->count(),
+            'total' => Order::count(),
+            'paid' => Order::where('status', 'paid')->count(),
             'approved' => Order::where('status', 'approved')->count(),
             'rejected' => Order::where('status', 'rejected')->count(),
-            'pending'  => Order::where('status', 'pending')->count(),
-            'expired'  => Order::where('status', 'approved')
+            'pending' => Order::where('status', 'pending')->count(),
+            'expired' => Order::where('status', 'approved')
                 ->where('expires_at', '<', now())
                 ->count(),
-            'revenue'  => (float) Order::where('status', 'approved')->sum('total_price'),
+            'revenue' => (float) Order::where('status', 'approved')->sum('total_price'),
         ];
     }
 

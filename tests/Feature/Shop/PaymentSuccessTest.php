@@ -26,7 +26,7 @@ function createPlanOrderFor(User $owner): Order
     ]);
 }
 
-test('payment success receipt uses the public order id', function () {
+test('payment success receipt uses a transaction reference instead of the database id', function () {
     $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
     $order = createPlanOrderFor($owner);
     $url = route('payment.success', ['order' => $order->public_id]);
@@ -35,13 +35,29 @@ test('payment success receipt uses the public order id', function () {
         ->toContain("/shop/payment/success/{$order->public_id}")
         ->not->toContain('order_id=');
 
+    expect($order->transaction_reference)
+        ->toStartWith('TXN-')
+        ->not->toBe('TXN-'.$order->id);
+
     $this->actingAs($owner)
         ->get($url)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('shop/payment/PaymentSuccess')
             ->where('order.public_id', $order->public_id)
+            ->where('order.transaction_reference', $order->transaction_reference)
             ->missing('order.id'));
+});
+
+test('each order receives a unique transaction reference', function () {
+    $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
+
+    $firstOrder = createPlanOrderFor($owner);
+    $secondOrder = createPlanOrderFor($owner);
+
+    expect($firstOrder->transaction_reference)
+        ->toStartWith('TXN-')
+        ->not->toBe($secondOrder->transaction_reference);
 });
 
 test('an owner cannot view another owners payment receipt', function () {

@@ -37,15 +37,15 @@ class Order extends Model
         'billing_months',
         'is_upgrade',
         'is_trial',
-        'payment_method'
+        'payment_method',
     ];
 
     protected $casts = [
-        'is_upgrade'          => 'boolean',
-        'is_trial'            => 'boolean',
-        'bir_expiry_date'     => 'date',
-        'dti_expiry_date'     => 'date',
-        'mayors_expiry_date'  => 'date',
+        'is_upgrade' => 'boolean',
+        'is_trial' => 'boolean',
+        'bir_expiry_date' => 'date',
+        'dti_expiry_date' => 'date',
+        'mayors_expiry_date' => 'date',
         'sanitary_expiry_date' => 'date',
     ];
 
@@ -53,6 +53,7 @@ class Order extends Model
     {
         static::creating(function (Order $order) {
             $order->public_id ??= (string) Str::ulid();
+            $order->transaction_reference ??= 'TXN-'.Str::upper((string) Str::ulid());
         });
     }
 

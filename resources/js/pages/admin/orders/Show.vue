@@ -40,8 +40,8 @@ interface Payment {
 }
 
 interface Order {
-    id: number;
     public_id: string;
+    transaction_reference: string;
     shop_name: string;
     owner_name: string;
     email: string;
@@ -69,7 +69,10 @@ const { order } = defineProps<{ order: Order }>();
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/admin/dashboard' },
     { title: 'Order Management', href: '/admin/orders' },
-    { title: `Order #${order.id}`, href: `/admin/orders/${order.public_id}` },
+    {
+        title: order.transaction_reference,
+        href: `/admin/orders/${order.public_id}`,
+    },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -173,15 +176,18 @@ function submitReject() {
 </script>
 
 <template>
-    <Head :title="`Order #${order.id}`" />
-    <AdminLayout :breadcrumbs="breadcrumbs" :title="`Order #${order.id}`">
+    <Head :title="order.transaction_reference" />
+    <AdminLayout
+        :breadcrumbs="breadcrumbs"
+        :title="order.transaction_reference"
+    >
         <div class="space-y-6 px-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="flex items-center gap-2 text-lg font-semibold">
                         <ListOrdered class="h-5 w-5 text-muted-foreground" />
-                        Order #{{ order.id }}
+                        {{ order.transaction_reference }}
                     </h2>
                     <p class="mt-0.5 text-sm text-muted-foreground">
                         Placed on {{ formatDate(order.created_at) }}
@@ -631,7 +637,7 @@ function submitReject() {
                         />
                         <div>
                             <h3 class="text-base font-semibold">
-                                Reject Order #{{ order.id }}
+                                Reject {{ order.transaction_reference }}
                             </h3>
                             <p class="mt-0.5 text-sm text-muted-foreground">
                                 Provide a reason. The shop owner will be

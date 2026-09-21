@@ -2,13 +2,12 @@
 
 namespace App\Repositories;
 
-use App\Models\Shop;
-use App\Models\User;
-use App\Models\Order;
-use App\Models\Payment;
 use App\Models\Employee;
 use App\Models\Inventory;
-use Carbon\CarbonPeriod;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -17,7 +16,7 @@ class AdminDashboardRepository extends Repository
 {
     public function __construct()
     {
-        parent::__construct(new Shop());
+        parent::__construct(new Shop);
     }
 
     // Shop related informations methods
@@ -43,15 +42,12 @@ class AdminDashboardRepository extends Repository
 
     public function getRecentShops(Carbon $now): Collection
     {
-        return Shop::with('owner')
+        return Shop::with(['owner', 'latestOrder'])
             ->latest()
             ->take(10)
             ->get()
             ->map(function (Shop $shop) use ($now) {
-                $latestOrder = Order::where('user_id', $shop->owner_id)
-                    ->whereIn('status', ['paid', 'approved'])
-                    ->latest()
-                    ->first();
+                $latestOrder = $shop->latestOrder;
 
                 return [
                     'name' => $shop->shop_name,
@@ -62,14 +58,13 @@ class AdminDashboardRepository extends Repository
                         ? Carbon::parse($latestOrder->expires_at)->format('Y-m-d')
                         : '—',
                     'revenue' => $latestOrder?->total_price
-                        ? '₱' . number_format($latestOrder->total_price, 2)
+                        ? '₱'.number_format($latestOrder->total_price, 2)
                         : '₱0.00',
                     'is_expiring' => $latestOrder?->expires_at
                         && Carbon::parse($latestOrder->expires_at)->between($now, $now->copy()->addDays(7)),
                 ];
             });
     }
-
 
     // User related informations methods
     public function usersCountByRole(string $role): int
@@ -103,10 +98,11 @@ class AdminDashboardRepository extends Repository
     public function expiringSubscriptionsInSevenDays(Carbon $now): Collection
     {
         $targetDate = $now->copy()->addDays(7);
+
         return Order::whereIn('status', ['paid', 'approved'])
             ->whereBetween('expires_at', [
                 $targetDate->copy()->startOfDay(),
-                $targetDate->copy()->endOfDay()
+                $targetDate->copy()->endOfDay(),
             ])
             ->with('user')
             ->get();
@@ -216,8 +212,7 @@ class AdminDashboardRepository extends Repository
             ->whereIn('status', ['approved', 'paid', 'expired'])
             ->where('is_trial', false)
             ->where('total_price', '>', 0)
-            ->whereDoesntHave('payments', fn ($query) =>
-                $query->where('status', 'paid'));
+            ->whereDoesntHave('payments', fn ($query) => $query->where('status', 'paid'));
     }
 
     public function getMonthlyShopRegistrations(Carbon $now): Collection

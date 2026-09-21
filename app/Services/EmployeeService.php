@@ -124,6 +124,7 @@ class EmployeeService
                 'email' => $data['email'],
                 'password' => Hash::make($defaultPassword),
                 'role' => AccountType::Staff->value,
+                'shop_id' => $shop->id,
                 'email_verified_at' => now(),
             ]);
 

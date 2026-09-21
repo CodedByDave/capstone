@@ -107,23 +107,48 @@ class AuditLogService
         return DB::transaction(function () use ($rows) {
             $created = 0;
             $skipped = 0;
+            $rowCollection = collect($rows);
+            $usersByEmail = User::withTrashed()
+                ->whereIn('email', $rowCollection->pluck('email')->map(fn ($email) => strtolower(trim((string) $email)))->filter()->unique())
+                ->get()
+                ->keyBy(fn (User $user) => strtolower($user->email));
+            $shopsByName = Shop::withTrashed()
+                ->whereIn('shop_name', $rowCollection->pluck('shop')->map(fn ($name) => trim((string) $name))->filter()->unique())
+                ->get()
+                ->keyBy('shop_name');
+
+            $authenticationRows = $rowCollection->filter(
+                fn ($row) => strtolower(trim((string) $row['type'])) === 'authentication',
+            );
+            $existingAuthentication = LoginLog::withTrashed()
+                ->whereIn('email', $authenticationRows->pluck('email')->map(fn ($email) => strtolower(trim((string) $email)))->filter()->unique())
+                ->whereIn('logged_at', $authenticationRows->pluck('occurred_at')->map(fn ($date) => Carbon::parse($date)->format('Y-m-d H:i:s'))->unique())
+                ->get(['email', 'status', 'logged_at'])
+                ->mapWithKeys(fn (LoginLog $log) => [
+                    strtolower($log->email).'|'.$log->status.'|'.$log->logged_at->format('Y-m-d H:i:s') => true,
+                ]);
+
+            $activityRows = $rowCollection->filter(
+                fn ($row) => strtolower(trim((string) $row['type'])) === 'activity',
+            );
+            $existingActivities = ActivityLog::withTrashed()
+                ->whereIn('created_at', $activityRows->pluck('occurred_at')->map(fn ($date) => Carbon::parse($date)->format('Y-m-d H:i:s'))->unique())
+                ->get(['module', 'action', 'performed_by', 'created_at'])
+                ->mapWithKeys(fn (ActivityLog $log) => [
+                    $log->module.'|'.$log->action.'|'.($log->performed_by ?? 'null').'|'.$log->created_at->format('Y-m-d H:i:s') => true,
+                ]);
 
             foreach ($rows as $row) {
                 $type = strtolower(trim((string) $row['type']));
                 $email = strtolower(trim((string) ($row['email'] ?? '')));
                 $occurredAt = Carbon::parse($row['occurred_at'])->format('Y-m-d H:i:s');
-                $user = $email !== ''
-                    ? User::withTrashed()->where('email', $email)->first()
-                    : null;
+                $user = $email !== '' ? $usersByEmail->get($email) : null;
 
                 if ($type === 'authentication') {
-                    $duplicate = LoginLog::withTrashed()
-                        ->where('email', $email)
-                        ->where('status', strtolower(trim((string) $row['event'])))
-                        ->where('logged_at', $occurredAt)
-                        ->exists();
+                    $event = strtolower(trim((string) $row['event']));
+                    $authenticationKey = $email.'|'.$event.'|'.$occurredAt;
 
-                    if ($duplicate) {
+                    if ($existingAuthentication->has($authenticationKey)) {
                         $skipped++;
 
                         continue;
@@ -140,27 +165,20 @@ class AuditLogService
                         'failure_reason' => trim((string) ($row['details'] ?? '')) ?: null,
                         'logged_at' => $occurredAt,
                     ]);
+                    $existingAuthentication->put($authenticationKey, true);
                 } else {
                     $module = trim((string) ($row['module'] ?? '')) ?: 'Imported Activity';
                     $event = trim((string) ($row['event'] ?? ''));
-                    $duplicateQuery = ActivityLog::withTrashed()
-                        ->where('module', $module)
-                        ->where('action', $event)
-                        ->where('created_at', $occurredAt);
-                    $user
-                        ? $duplicateQuery->where('performed_by', $user->id)
-                        : $duplicateQuery->whereNull('performed_by');
+                    $activityKey = $module.'|'.$event.'|'.($user?->id ?? 'null').'|'.$occurredAt;
 
-                    if ($duplicateQuery->exists()) {
+                    if ($existingActivities->has($activityKey)) {
                         $skipped++;
 
                         continue;
                     }
 
                     $shopName = trim((string) ($row['shop'] ?? ''));
-                    $shop = $shopName !== ''
-                        ? Shop::withTrashed()->where('shop_name', $shopName)->first()
-                        : null;
+                    $shop = $shopName !== '' ? $shopsByName->get($shopName) : null;
                     $details = trim((string) ($row['details'] ?? ''));
                     $changes = null;
                     if ($details !== '') {
@@ -180,6 +198,7 @@ class AuditLogService
                     $activity->created_at = $occurredAt;
                     $activity->updated_at = $occurredAt;
                     $activity->save();
+                    $existingActivities->put($activityKey, true);
                 }
 
                 $created++;

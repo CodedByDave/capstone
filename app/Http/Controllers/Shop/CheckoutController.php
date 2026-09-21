@@ -6,13 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\Shop;
-use Illuminate\Support\Facades\DB;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\PaymongoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,9 +31,9 @@ class CheckoutController extends Controller
     {
         return Inertia::render('shop/Checkout', [
             'planName' => $plan,
-            'vatPct'   => 12,
-            'user'     => auth()->user() ? [
-                'name'  => auth()->user()->name,
+            'vatPct' => 12,
+            'user' => auth()->user() ? [
+                'name' => auth()->user()->name,
                 'email' => auth()->user()->email,
             ] : null,
         ]);
@@ -48,7 +47,7 @@ class CheckoutController extends Controller
 
         if ($hasActiveOrder) {
             return redirect()->route('shop.dashboard')->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'You already have an active plan.',
             ]);
         }
@@ -61,11 +60,11 @@ class CheckoutController extends Controller
     public function select(Request $request): RedirectResponse
     {
         $request->validate([
-            'plan_name'      => 'required|string|in:Basic,Standard,Premium',
+            'plan_name' => 'required|string|in:Basic,Standard,Premium',
             'billing_months' => 'required|integer|in:1,12,24,48',
-            'discount_pct'   => 'required|integer',
-            'monthly_price'  => 'required|integer',
-            'total_amount'   => 'required|integer',
+            'discount_pct' => 'required|integer',
+            'monthly_price' => 'required|integer',
+            'total_amount' => 'required|integer',
         ]);
 
         if (auth()->check()) {
@@ -75,7 +74,7 @@ class CheckoutController extends Controller
 
             if ($hasActiveOrder) {
                 return redirect()->route('shop.dashboard')->with('toast', [
-                    'type'    => 'error',
+                    'type' => 'error',
                     'message' => 'You already have an active plan.',
                 ]);
             }
@@ -83,12 +82,12 @@ class CheckoutController extends Controller
 
         session([
             'checkout' => [
-                'plan_name'      => $request->plan_name,
+                'plan_name' => $request->plan_name,
                 'billing_months' => $request->billing_months,
-                'discount_pct'   => $request->discount_pct,
-                'monthly_price'  => $request->monthly_price,
-                'total_amount'   => $request->total_amount,
-            ]
+                'discount_pct' => $request->discount_pct,
+                'monthly_price' => $request->monthly_price,
+                'total_amount' => $request->total_amount,
+            ],
         ]);
 
         if (auth()->check()) {
@@ -96,7 +95,7 @@ class CheckoutController extends Controller
         }
 
         return redirect()->route('login')->with('toast', [
-            'type'    => 'info',
+            'type' => 'info',
             'message' => 'Please log in or create an account to continue.',
         ]);
     }
@@ -107,9 +106,9 @@ class CheckoutController extends Controller
     {
         $checkout = session('checkout');
 
-        if (!$checkout && !session('checkout_url')) {
+        if (! $checkout && ! session('checkout_url')) {
             return redirect()->route('landing')->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'No plan selected. Please pick a plan first.',
             ]);
         }
@@ -120,32 +119,32 @@ class CheckoutController extends Controller
         $billingMonths = (int) ($checkout['billing_months'] ?? 12);
 
         $municipalityMap = [
-            'Cavite City'    => 'City of Cavite',
-            'Dasmariñas'     => 'City of Dasmariñas',
-            'Bacoor'         => 'City of Bacoor',
-            'Imus'           => 'City of Imus',
+            'Cavite City' => 'City of Cavite',
+            'Dasmariñas' => 'City of Dasmariñas',
+            'Bacoor' => 'City of Bacoor',
+            'Imus' => 'City of Imus',
             'Trece Martires' => 'City of Trece Martires',
-            'General Trias'  => 'City of General Trias',
+            'General Trias' => 'City of General Trias',
         ];
 
-        $savedMunicipality  = $shop?->municipality ?? '';
+        $savedMunicipality = $shop?->municipality ?? '';
         $mappedMunicipality = $municipalityMap[$savedMunicipality] ?? $savedMunicipality;
 
         return Inertia::render('shop/CheckoutConfirm', [
-            'planName'      => $checkout['plan_name'] ?? 'Standard',
+            'planName' => $checkout['plan_name'] ?? 'Standard',
             'billingMonths' => $billingMonths,
-            'vatPct'        => 12,
+            'vatPct' => 12,
             'user' => [
-                'name'  => $user->name,
+                'name' => $user->name,
                 'email' => $user->email,
             ],
             'shop' => [
-                'phone'        => $shop?->phone ?? '',
-                'shop_name'    => $shop?->shop_name ?? '',
+                'phone' => $shop?->phone ?? '',
+                'shop_name' => $shop?->shop_name ?? '',
                 'block_street' => $shop?->block_street ?? '',
                 'municipality' => $mappedMunicipality,
-                'barangay'     => $shop?->barangay ?? '',
-                'postal_code'  => $shop?->postal_code ?? '',
+                'barangay' => $shop?->barangay ?? '',
+                'postal_code' => $shop?->postal_code ?? '',
             ],
         ]);
     }
@@ -165,42 +164,42 @@ class CheckoutController extends Controller
 
             if ($hasActiveOrder) {
                 return back()->with('toast', [
-                    'type'    => 'error',
+                    'type' => 'error',
                     'message' => 'You already have an active plan or pending order.',
                 ]);
             }
 
-            $planName      = $request->validated()['plan_name'];
+            $planName = $request->validated()['plan_name'];
             $billingMonths = (int) $request->validated()['billing_months'];
 
             $planPrices = ['Basic' => 3800, 'Standard' => 6300, 'Premium' => 8000];
-            $discounts  = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
+            $discounts = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
 
-            $basePrice    = $planPrices[$planName];
-            $discountPct  = $discounts[$billingMonths] ?? 0;
+            $basePrice = $planPrices[$planName];
+            $discountPct = $discounts[$billingMonths] ?? 0;
             $monthlyPrice = $basePrice * (1 - $discountPct / 100);
-            $subtotal     = $monthlyPrice * $billingMonths;
-            $vatAmount    = round($subtotal * 0.12);
-            $grandTotal   = $subtotal + $vatAmount;
+            $subtotal = $monthlyPrice * $billingMonths;
+            $vatAmount = round($subtotal * 0.12);
+            $grandTotal = $subtotal + $vatAmount;
 
             $order = DB::transaction(function () use ($request, $user, $planName, $billingMonths, $grandTotal) {
                 return $this->orderService->create([
-                    'shop_name'      => $request->validated()['shop_name'],
-                    'phone'          => $request->validated()['phone'],
-                    'block_street'   => $request->validated()['block_street'],
-                    'municipality'   => $request->validated()['municipality'],
-                    'barangay'            => $request->validated()['barangay'],
-                    'postal_code'         => $request->validated()['postal_code'],
-                    'bir_expiry_date'     => $request->validated()['bir_expiry_date'],
-                    'dti_expiry_date'     => $request->validated()['dti_expiry_date'],
-                    'mayors_expiry_date'  => $request->validated()['mayors_expiry_date'],
-                    'sanitary_expiry_date'=> $request->validated()['sanitary_expiry_date'] ?? null,
-                    'owner_name'          => $user->name,
-                    'email'               => $user->email,
-                    'user_id'             => $user->id,
-                    'plan_name'           => $planName,
-                    'billing_months'      => $billingMonths,
-                    'total_price'         => $grandTotal,
+                    'shop_name' => $request->validated()['shop_name'],
+                    'phone' => $request->validated()['phone'],
+                    'block_street' => $request->validated()['block_street'],
+                    'municipality' => $request->validated()['municipality'],
+                    'barangay' => $request->validated()['barangay'],
+                    'postal_code' => $request->validated()['postal_code'],
+                    'bir_expiry_date' => $request->validated()['bir_expiry_date'],
+                    'dti_expiry_date' => $request->validated()['dti_expiry_date'],
+                    'mayors_expiry_date' => $request->validated()['mayors_expiry_date'],
+                    'sanitary_expiry_date' => $request->validated()['sanitary_expiry_date'] ?? null,
+                    'owner_name' => $user->name,
+                    'email' => $user->email,
+                    'user_id' => $user->id,
+                    'plan_name' => $planName,
+                    'billing_months' => $billingMonths,
+                    'total_price' => $grandTotal,
                 ]);
             });
 
@@ -211,12 +210,12 @@ class CheckoutController extends Controller
                     $kycPaths[$key] = $request->file($key)->store("kyc/{$order->id}", 'private');
                 }
             }
-            if (!empty($kycPaths)) {
+            if (! empty($kycPaths)) {
                 Order::where('id', $order->id)->update($kycPaths);
             }
 
             session()->flash('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Order placed! Please wait while our admin reviews your application.',
             ]);
 
@@ -227,12 +226,12 @@ class CheckoutController extends Controller
         } catch (\Exception $e) {
             Log::error('=== CHECKOUT FAILED ===', [
                 'error' => $e->getMessage(),
-                'file'  => $e->getFile(),
-                'line'  => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Something went wrong. Please try again.',
             ]);
         }
@@ -246,7 +245,7 @@ class CheckoutController extends Controller
             'payment_method' => ['required', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
         ]);
 
-        $user  = auth()->user();
+        $user = auth()->user();
         $order = Order::where('user_id', $user->id)
             ->where('status', 'approved')
             ->where('is_trial', false)
@@ -258,7 +257,7 @@ class CheckoutController extends Controller
 
             $payment = $this->paymentService->createForOrder($order, [
                 'payment_method' => $request->payment_method,
-                'amount'         => $order->total_price,
+                'amount' => $order->total_price,
             ]);
 
             $session = $this->paymongoService->createCheckoutSession($order);
@@ -276,7 +275,7 @@ class CheckoutController extends Controller
             ]);
 
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Could not initiate payment. Please try again.',
             ]);
         }
@@ -292,12 +291,12 @@ class CheckoutController extends Controller
         session()->forget('pending_order_id');
 
         if ($orderId) {
-            $order   = Order::with('modules')->find($orderId);
+            $order = Order::with('modules')->find($orderId);
             $payment = Payment::where('order_id', $orderId)->first();
 
             if ($payment && $payment->paymongo_session_id) {
                 try {
-                    $session       = $this->paymongoService->getCheckoutSession($payment->paymongo_session_id);
+                    $session = $this->paymongoService->getCheckoutSession($payment->paymongo_session_id);
                     $sessionStatus = $session['data']['attributes']['status'] ?? null;
                     $paymentStatus = $session['data']['attributes']['payment_intent']['attributes']['status'] ?? null;
 
@@ -308,9 +307,9 @@ class CheckoutController extends Controller
                         $paymongoPaymentId = $this->paymongoService->extractPaymentId($session);
 
                         $payment->update([
-                            'status'               => 'paid',
-                            'paid_at'              => now(),
-                            'paymongo_payment_id'  => $paymongoPaymentId,
+                            'status' => 'paid',
+                            'paid_at' => now(),
+                            'paymongo_payment_id' => $paymongoPaymentId,
                         ]);
 
                         $order?->update(['status' => 'paid']);
@@ -326,54 +325,42 @@ class CheckoutController extends Controller
                                     ->where('id', '!=', $order->id)
                                     ->update(['status' => 'expired']);
 
-                                // Update the shop record with the new plan details.
-                                Shop::withTrashed()->updateOrCreate(
-                                    ['owner_id' => $order->user_id],
-                                    [
-                                        'shop_name'    => $order->shop_name,
-                                        'phone'        => $order->phone       ?? null,
-                                        'block_street' => $order->block_street ?? null,
-                                        'municipality' => $order->municipality ?? '',
-                                        'barangay'     => $order->barangay     ?? '',
-                                        'postal_code'  => $order->postal_code  ?? null,
-                                        'status'       => 'active',
-                                        'deleted_at'   => null,
-                                    ]
-                                );
+                                $this->orderService->syncApprovedShop($order);
                             });
                         }
 
                         $payment = $payment->fresh();
-                        $order   = $order->fresh()->load('modules');
+                        $order = $order->fresh()->load('modules');
                     }
                 } catch (\Exception $e) {
                     Log::error('Failed to verify PayMongo session on success', [
                         'order_id' => $orderId,
-                        'error'    => $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ]);
                 }
             }
 
             return Inertia::render('shop/payment/PaymentSuccess', [
                 'order' => $order ? [
-                    'public_id'      => $order->public_id,
-                    'status'         => $order->status,
-                    'shop_name'      => $order->shop_name,
-                    'owner_name'     => $order->owner_name,
-                    'email'          => $order->email,
-                    'phone'          => $order->phone,
-                    'block_street'   => $order->block_street,
-                    'municipality'   => $order->municipality,
-                    'barangay'       => $order->barangay,
-                    'postal_code'    => $order->postal_code,
-                    'total_price'    => $order->total_price,
+                    'public_id' => $order->public_id,
+                    'transaction_reference' => $order->transaction_reference,
+                    'status' => $order->status,
+                    'shop_name' => $order->shop_name,
+                    'owner_name' => $order->owner_name,
+                    'email' => $order->email,
+                    'phone' => $order->phone,
+                    'block_street' => $order->block_street,
+                    'municipality' => $order->municipality,
+                    'barangay' => $order->barangay,
+                    'postal_code' => $order->postal_code,
+                    'total_price' => $order->total_price,
                     'payment_method' => $order->payment_method,
-                    'plan_name'      => $order->plan_name,
+                    'plan_name' => $order->plan_name,
                     'billing_months' => $order->billing_months,
-                    'expires_at'     => $order->expires_at,
-                    'created_at'     => $order->created_at,
-                    'modules'        => $order->modules->map(fn($m) => [
-                        'name'  => $m->name,
+                    'expires_at' => $order->expires_at,
+                    'created_at' => $order->created_at,
+                    'modules' => $order->modules->map(fn ($m) => [
+                        'name' => $m->name,
                         'price' => $m->price,
                     ]),
                 ] : null,

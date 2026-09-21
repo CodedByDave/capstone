@@ -127,9 +127,13 @@ class UserManagementService
         return DB::transaction(function () use ($rows) {
             $created = 0;
             $updated = 0;
+            $usersByEmail = User::withTrashed()
+                ->whereIn('email', collect($rows)->pluck('email')->unique())
+                ->get()
+                ->keyBy(fn (User $user) => strtolower($user->email));
 
             foreach ($rows as $row) {
-                $user = User::withTrashed()->where('email', $row['email'])->first();
+                $user = $usersByEmail->get($row['email']);
 
                 if ($user?->role === AccountType::SuperAdmin->value) {
                     continue;
@@ -140,6 +144,7 @@ class UserManagementService
                     $user->email = $row['email'];
                     $user->password = Str::random(40);
                     $created++;
+                    $usersByEmail->put($row['email'], $user);
                 } else {
                     $updated++;
                 }

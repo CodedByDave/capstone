@@ -110,12 +110,21 @@ class AnalyticsController extends Controller
         // Top Performer shop
         $topShops = Shop::select(
             'shops.id',
+            'shops.owner_id',
             'shops.shop_name',
             'shops.municipality',
             'shops.barangay',
             DB::raw('COALESCE(SUM(p.amount), 0) as revenue'),
             DB::raw('COUNT(DISTINCT o.id) as orders')
         )
+            ->selectRaw(
+                'COALESCE(SUM(CASE WHEN p.paid_at >= ? THEN p.amount ELSE 0 END), 0) as revenue_this_month',
+                [$thisMonth],
+            )
+            ->selectRaw(
+                'COALESCE(SUM(CASE WHEN p.paid_at BETWEEN ? AND ? THEN p.amount ELSE 0 END), 0) as revenue_last_month',
+                [$lastMonth, $lastMonthEnd],
+            )
             ->leftJoin('orders as o', function ($join) {
                 $join->on('o.user_id', '=', 'shops.owner_id')
                     ->where('o.status', '=', 'paid');
@@ -124,22 +133,13 @@ class AnalyticsController extends Controller
                 $join->on('p.order_id', '=', 'o.id')
                     ->where('p.status', '=', 'paid');
             })
-            ->groupBy('shops.id', 'shops.shop_name', 'shops.municipality', 'shops.barangay')
+            ->groupBy('shops.id', 'shops.owner_id', 'shops.shop_name', 'shops.municipality', 'shops.barangay')
             ->orderByDesc('revenue')
             ->limit(5)
             ->get()
-            ->map(function ($shop, $index) use ($now, $lastMonth, $lastMonthEnd) {
-                // Growth: compare this month vs last month revenue per shop
-                $revenueThisMonth = Payment::where('status', 'paid')
-                    ->where('paid_at', '>=', $now->copy()->startOfMonth())
-                    ->whereHas('order', fn ($q) => $q->where('user_id', DB::table('shops')->where('id', $shop->id)->value('owner_id')))
-                    ->sum('amount');
-
-                $revenueLastMonth = Payment::where('status', 'paid')
-                    ->whereBetween('paid_at', [$lastMonth, $lastMonthEnd])
-                    ->whereHas('order', fn ($q) => $q->where('user_id', DB::table('shops')->where('id', $shop->id)->value('owner_id')))
-                    ->sum('amount');
-
+            ->map(function ($shop, $index) {
+                $revenueThisMonth = (float) $shop->revenue_this_month;
+                $revenueLastMonth = (float) $shop->revenue_last_month;
                 $growth = $revenueLastMonth > 0
                     ? round((($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100, 1)
                     : ($revenueThisMonth > 0 ? 100 : 0);

@@ -58,6 +58,7 @@ const paymentBadge: Record<string, { label: string; cls: string }> = {
 interface OrderItem {
     id: number;
     public_id: string;
+    transaction_reference: string;
     shop_name: string;
     owner_name: string;
     email: string;
@@ -162,10 +163,11 @@ function resetFilters() {
 
 // ─── Module Dropdown ──────────────────────────────────────────────────────────
 
-const expandedOrder = ref<number | null>(null);
+const expandedOrder = ref<string | null>(null);
 
-function toggleModules(orderId: number) {
-    expandedOrder.value = expandedOrder.value === orderId ? null : orderId;
+function toggleModules(orderReference: string) {
+    expandedOrder.value =
+        expandedOrder.value === orderReference ? null : orderReference;
 }
 
 function handleClickOutside() {
@@ -446,7 +448,7 @@ const statusBadge: Record<string, string> = {
                             />
                             <Input
                                 v-model="search"
-                                placeholder="Search shop, owner, email..."
+                                placeholder="Search reference, shop, owner, email..."
                                 class="pl-8"
                                 @keyup.enter="applyFilters"
                             />
@@ -505,7 +507,7 @@ const statusBadge: Record<string, string> = {
                                     class="border-b bg-muted/40 text-xs text-muted-foreground"
                                 >
                                     <th class="px-4 py-3 text-left font-medium">
-                                        #
+                                        Transaction Reference
                                     </th>
                                     <th class="px-4 py-3 text-left font-medium">
                                         Shop
@@ -544,13 +546,13 @@ const statusBadge: Record<string, string> = {
                             <tbody>
                                 <tr
                                     v-for="order in orders.data"
-                                    :key="order.id"
+                                    :key="order.public_id"
                                     class="border-b transition-colors last:border-0 hover:bg-muted/20"
                                 >
                                     <td
                                         class="px-4 py-3 font-mono text-xs text-muted-foreground"
                                     >
-                                        #{{ order.id }}
+                                        {{ order.transaction_reference }}
                                     </td>
                                     <td class="px-4 py-3">
                                         <p
@@ -598,7 +600,11 @@ const statusBadge: Record<string, string> = {
                                             <button
                                                 type="button"
                                                 class="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors hover:bg-muted/70"
-                                                @click="toggleModules(order.id)"
+                                                @click="
+                                                    toggleModules(
+                                                        order.public_id,
+                                                    )
+                                                "
                                             >
                                                 {{ order.modules.length }}
                                                 module{{
@@ -610,7 +616,7 @@ const statusBadge: Record<string, string> = {
                                                     class="h-3 w-3 transition-transform duration-200"
                                                     :class="
                                                         expandedOrder ===
-                                                        order.id
+                                                        order.public_id
                                                             ? 'rotate-180'
                                                             : ''
                                                     "
@@ -618,7 +624,8 @@ const statusBadge: Record<string, string> = {
                                             </button>
                                             <div
                                                 v-if="
-                                                    expandedOrder === order.id
+                                                    expandedOrder ===
+                                                    order.public_id
                                                 "
                                                 class="absolute left-0 z-20 mt-1 min-w-44 rounded-lg border border-border bg-card py-1 shadow-lg"
                                             >
