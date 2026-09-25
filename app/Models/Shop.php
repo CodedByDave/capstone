@@ -23,8 +23,18 @@ class Shop extends Model
 
     public function latestOrder()
     {
+<<<<<<< HEAD
         return $this->hasOne(Order::class, 'user_id', 'user_id')
             ->where('status', 'paid')
+=======
+        return ! empty($this->paymongo_secret_key) && ! empty($this->paymongo_public_key);
+    }
+
+    public function latestOrder(): HasOne
+    {
+        return $this->hasOne(Order::class, 'user_id', 'owner_id')
+            ->activeSubscription()
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
             ->latestOfMany();
     }
     public function owner(): BelongsTo

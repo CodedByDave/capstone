@@ -104,13 +104,29 @@ class CheckoutController extends Controller
                         in_array($sessionStatus, ['completed', 'paid']) ||
                         in_array($paymentStatus, ['paid', 'succeeded'])
                     ) {
+<<<<<<< HEAD
                         $payment->update([
                             'status'  => 'paid',
                             'paid_at' => now(),
                         ]);
+=======
+                        $paymongoPaymentId = $this->paymongoService->extractPaymentId($session);
 
-                        $order?->update(['status' => 'paid']);
+                        // Do not restart the subscription period when the success page is refreshed.
+                        if ($payment->status !== 'paid' || $order->status !== 'paid') {
+                            $payment->update([
+                                'status' => 'paid',
+                                'paid_at' => now(),
+                                'paymongo_payment_id' => $paymongoPaymentId,
+                            ]);
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
+                            $order->update([
+                                'status' => 'paid',
+                                'expires_at' => now()->addMonths((int) $order->billing_months),
+                            ]);
+
+<<<<<<< HEAD
                         // Activate the shop once payment is confirmed
                         Shop::where('owner_id', $order->user_id)
                             ->update(['status' => 'active']);
@@ -119,6 +135,22 @@ class CheckoutController extends Controller
                             'order_id' => $orderId,
                             'user_id'  => $order->user_id,
                         ]);
+=======
+                            $this->orderService->syncApprovedShop($order);
+
+                            // Upgrade orders are auto-approved — no admin review needed.
+                            if ($order->is_upgrade) {
+                                DB::transaction(function () use ($order) {
+                                    // Expire all previously active/paid orders for this user.
+                                    Order::where('user_id', $order->user_id)
+                                        ->activeSubscription()
+                                        ->where('id', '!=', $order->id)
+                                        ->update(['status' => 'expired']);
+
+                                });
+                            }
+                        }
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
                         $payment = $payment->fresh();
                         $order   = $order->fresh()->load('modules');

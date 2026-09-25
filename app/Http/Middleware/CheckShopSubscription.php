@@ -22,22 +22,30 @@ class CheckShopSubscription
             if ($shop) {
                 // Step 1: Mark any overdue paid orders as expired
                 Order::where('user_id', $user->id)
+<<<<<<< HEAD
                     ->where('status', 'paid')
+=======
+                    ->activeSubscription()
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                     ->where('expires_at', '<=', now())
                     ->each(function (Order $order) {
                         // updateQuietly skips the observer to avoid double-processing
                         $order->updateQuietly(['status' => 'expired']);
 
                         Log::info('Order expired via middleware', [
-                            'order_id'   => $order->id,
-                            'user_id'    => $order->user_id,
+                            'order_id' => $order->id,
+                            'user_id' => $order->user_id,
                             'expired_at' => $order->expires_at,
                         ]);
                     });
 
                 // Step 2: Check if any active paid order still exists
                 $hasActivePaidOrder = Order::where('user_id', $user->id)
+<<<<<<< HEAD
                     ->where('status', 'paid')
+=======
+                    ->activeSubscription()
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                     ->where('expires_at', '>', now())
                     ->exists();
 

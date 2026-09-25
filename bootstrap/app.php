@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\ProtectedPlatformRoleException;
 use App\Http\Middleware\CheckShopSubscription;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -7,6 +8,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -27,9 +29,38 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role'       => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
+<<<<<<< HEAD
+=======
+            'owner.platform-permissions' => \App\Http\Middleware\EnforceOwnerPlatformPermissions::class,
+            'shop.activity' => \App\Http\Middleware\TrackShopActivity::class,
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login.user'));
     })
+<<<<<<< HEAD
     ->withExceptions(fn($exceptions) => null)
+=======
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (ProtectedPlatformRoleException $exception, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+
+            return back()->withErrors(['role' => $exception->getMessage()]);
+        });
+
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
+            if ($response->getStatusCode() === 403 && request()->header('X-Inertia')) {
+                return redirect(request()->user()?->role === 'staff' ? '/staff/dashboard' : '/shop/dashboard')
+                    ->with('toast', ['type' => 'error', 'message' => 'You do not have permission to access this page.']);
+            }
+
+            return $response;
+        });
+    })
+    ->withProviders([
+        AuthServiceProvider::class,
+    ])
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
     ->create();

@@ -5,16 +5,31 @@ import { type BreadcrumbItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
+<<<<<<< HEAD
     ArrowLeft, ListOrdered, Store, User,
     CreditCard, Package, MapPin, Phone, Mail,
 } from 'lucide-vue-next'
+=======
+    AlertTriangle,
+    ArrowLeft,
+    Check,
+    CreditCard,
+    X,
+} from 'lucide-vue-next';
+import { ref } from 'vue';
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Module {
+<<<<<<< HEAD
     id: number
     name: string
     price: string
+=======
+    id: number;
+    name: string;
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 }
 
 interface Payment {
@@ -29,6 +44,7 @@ interface Payment {
 }
 
 interface Order {
+<<<<<<< HEAD
     id: number
     shop_name: string
     owner_name: string
@@ -45,6 +61,26 @@ interface Order {
     created_at: string
     modules: Module[]
     payments: Payment[]
+=======
+    public_id: string;
+    transaction_reference: string;
+    shop_name: string;
+    owner_name: string;
+    email: string;
+    phone: string;
+    block_street: string;
+    municipality: string;
+    barangay: string;
+    postal_code: string;
+    plan_name: string | null;
+    total_price: string;
+    status: string;
+    rejection_reason: string | null;
+    expires_at: string | null;
+    created_at: string;
+    modules: Module[];
+    payments: Payment[];
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -73,17 +109,43 @@ function formatPrice(p: string | number) {
     return `₱${Number(p).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
 }
 
+function moduleBadgeClass(name: string) {
+    const moduleName = name.toLowerCase();
+
+    if (moduleName.includes('hrm')) {
+        return 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/70';
+    }
+    if (moduleName.includes('operations')) {
+        return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/70';
+    }
+    if (moduleName.includes('inventory')) {
+        return 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:hover:bg-amber-900/70';
+    }
+    if (moduleName.includes('finance')) {
+        return 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:hover:bg-violet-900/70';
+    }
+
+    return 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:hover:bg-rose-900/70';
+}
+
 function isExpired(expiresAt: string | null) {
     if (!expiresAt) return false
     return new Date(expiresAt) < new Date()
 }
 
 const planStyles: Record<string, { label: string; cls: string }> = {
+<<<<<<< HEAD
     monthly:       { label: 'Monthly',     cls: 'bg-blue-100 text-blue-700'     },
     quarterly:     { label: 'Quarterly',   cls: 'bg-purple-100 text-purple-700' },
     semi_annually: { label: 'Semi-Annual', cls: 'bg-green-100 text-green-700'   },
     annually:      { label: 'Annually',    cls: 'bg-amber-100 text-amber-700'   },
 }
+=======
+    Basic: { label: 'Basic', cls: 'bg-blue-100 text-blue-700' },
+    Standard: { label: 'Standard', cls: 'bg-violet-100 text-violet-700' },
+    Premium: { label: 'Premium', cls: 'bg-amber-100 text-amber-700' },
+};
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 function getPlanBadge(p: string | null) {
     if (!p) return { label: 'None', cls: 'bg-gray-100 text-gray-400' }
@@ -111,9 +173,14 @@ const paymentStatusBadge: Record<string, string> = {
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
+<<<<<<< HEAD
                     <h2 class="text-lg font-semibold flex items-center gap-2">
                         <ListOrdered class="h-5 w-5 text-muted-foreground" />
                         Order #{{ order.id }}
+=======
+                    <h2 class="flex items-center gap-2 text-lg font-semibold">
+                        {{ order.transaction_reference }}
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                     </h2>
                     <p class="text-sm text-muted-foreground mt-0.5">
                         Placed on {{ formatDate(order.created_at) }}
@@ -140,8 +207,15 @@ const paymentStatusBadge: Record<string, string> = {
                     <!-- Shop & Owner info -->
                     <Card>
                         <CardHeader class="pb-3">
+<<<<<<< HEAD
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
                                 <Store class="h-4 w-4 text-muted-foreground" /> Shop Information
+=======
+                            <CardTitle
+                                class="flex items-center gap-2 text-sm font-semibold"
+                            >
+                                Shop Information
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="grid grid-cols-2 gap-4 text-sm">
@@ -150,37 +224,88 @@ const paymentStatusBadge: Record<string, string> = {
                                 <p class="font-medium">{{ order.shop_name }}</p>
                             </div>
                             <div>
+<<<<<<< HEAD
                                 <p class="text-xs text-muted-foreground mb-1">Owner</p>
                                 <p class="font-medium flex items-center gap-1.5">
                                     <User class="h-3.5 w-3.5 text-muted-foreground" />
+=======
+                                <p class="mb-1 text-xs text-muted-foreground">
+                                    Owner
+                                </p>
+                                <p
+                                    class="flex items-center gap-1.5 font-medium"
+                                >
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                                     {{ order.owner_name }}
                                 </p>
                             </div>
                             <div>
+<<<<<<< HEAD
                                 <p class="text-xs text-muted-foreground mb-1">Email</p>
                                 <p class="font-medium flex items-center gap-1.5">
                                     <Mail class="h-3.5 w-3.5 text-muted-foreground" />
+=======
+                                <p class="mb-1 text-xs text-muted-foreground">
+                                    Email
+                                </p>
+                                <p
+                                    class="flex items-center gap-1.5 font-medium"
+                                >
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                                     {{ order.email }}
                                 </p>
                             </div>
                             <div>
+<<<<<<< HEAD
                                 <p class="text-xs text-muted-foreground mb-1">Phone</p>
                                 <p class="font-medium flex items-center gap-1.5">
                                     <Phone class="h-3.5 w-3.5 text-muted-foreground" />
+=======
+                                <p class="mb-1 text-xs text-muted-foreground">
+                                    Phone
+                                </p>
+                                <p
+                                    class="flex items-center gap-1.5 font-medium"
+                                >
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                                     {{ order.phone }}
                                 </p>
                             </div>
                             <div class="col-span-2">
+<<<<<<< HEAD
                                 <p class="text-xs text-muted-foreground mb-1">Address</p>
                                 <p class="font-medium flex items-center gap-1.5">
                                     <MapPin class="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                     {{ [order.block_street, order.barangay, order.municipality].filter(Boolean).join(', ') }}
                                     <span v-if="order.postal_code" class="text-muted-foreground">{{ order.postal_code }}</span>
+=======
+                                <p class="mb-1 text-xs text-muted-foreground">
+                                    Address
+                                </p>
+                                <p
+                                    class="flex items-center gap-1.5 font-medium"
+                                >
+                                    {{
+                                        [
+                                            order.block_street,
+                                            order.barangay,
+                                            order.municipality,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(', ')
+                                    }}
+                                    <span
+                                        v-if="order.postal_code"
+                                        class="text-muted-foreground"
+                                        >{{ order.postal_code }}</span
+                                    >
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                                 </p>
                             </div>
                         </CardContent>
                     </Card>
 
+<<<<<<< HEAD
                     <!-- Modules -->
                     <Card>
                         <CardHeader class="pb-3">
@@ -220,6 +345,15 @@ const paymentStatusBadge: Record<string, string> = {
                         <CardHeader class="pb-3">
                             <CardTitle class="text-sm font-semibold flex items-center gap-2">
                                 <CreditCard class="h-4 w-4 text-muted-foreground" /> Payment History
+=======
+                    <!-- Payment history -->
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <CardTitle
+                                class="flex items-center gap-2 text-sm font-semibold"
+                            >
+                                Payment History
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -278,10 +412,17 @@ const paymentStatusBadge: Record<string, string> = {
                             <div class="flex items-center justify-between">
                                 <p class="text-muted-foreground">Plan</p>
                                 <span
+<<<<<<< HEAD
                                     class="text-xs px-2 py-0.5 rounded-full font-medium"
                                     :class="getPlanBadge(order.subscription_plan).cls"
                                 >
                                     {{ getPlanBadge(order.subscription_plan).label }}
+=======
+                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="getPlanBadge(order.plan_name).cls"
+                                >
+                                    {{ getPlanBadge(order.plan_name).label }}
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                                 </span>
                             </div>
                             <div class="flex items-center justify-between">
@@ -312,6 +453,35 @@ const paymentStatusBadge: Record<string, string> = {
                                         This subscription has expired
                                     </span>
                                 </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Modules -->
+                    <Card>
+                        <CardHeader class="px-4 pt-4 pb-2">
+                            <CardTitle
+                                class="flex items-center gap-2 text-sm font-semibold"
+                            >
+                                Subscribed Modules
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="px-4 pb-4">
+                            <div class="flex flex-wrap gap-2">
+                                <span
+                                    v-for="mod in order.modules"
+                                    :key="mod.id"
+                                    class="rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors"
+                                    :class="moduleBadgeClass(mod.name)"
+                                >
+                                    {{ mod.name }}
+                                </span>
+                                <span
+                                    v-if="order.modules.length === 0"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    No subscribed modules
+                                </span>
                             </div>
                         </CardContent>
                     </Card>

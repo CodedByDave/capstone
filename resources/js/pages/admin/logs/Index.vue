@@ -1,10 +1,48 @@
 <script setup lang="ts">
+<<<<<<< HEAD
 import AdminLayout from '@/layouts/admin/AdminLayout.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { ref, computed, onMounted } from 'vue'
 import { type BreadcrumbItem } from '@/types'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+=======
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import AdminLayout from '@/layouts/admin/AdminLayout.vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import {
+    Archive,
+    ArchiveRestore,
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
+    Download,
+    Eye,
+    FileClock,
+    RefreshCcw,
+    Search,
+    Trash2,
+    Upload,
+} from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
+import Vue3EasyDataTable, {
+    type Header,
+    type ServerOptions,
+} from 'vue3-easy-data-table';
+import 'vue3-easy-data-table/dist/style.css';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -62,6 +100,7 @@ const props = defineProps<{
 const page = usePage()
 
 onMounted(() => {
+<<<<<<< HEAD
     const flash = page.props.toast as { type: string; message: string } | undefined
     if (!flash) return
     switch (flash.type) {
@@ -70,20 +109,90 @@ onMounted(() => {
         default:        toast(flash.message)
     }
 })
+=======
+    const flash = page.props.toast as
+        | { type: string; message: string }
+        | undefined;
+    if (!flash) return;
+    if (flash.type === 'error') {
+        toast.error(flash.message);
+        return;
+    }
+
+    toast.success(flash.message);
+});
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard',  href: '/admin/dashboard' },
     { title: 'Login Logs', href: '/admin/login-logs' },
 ]
+=======
+type AuditSortColumn =
+    | 'name'
+    | 'email'
+    | 'category'
+    | 'module'
+    | 'event'
+    | 'occurred_at';
+
+const headers: Header[] = [
+    { text: '', value: 'selection', width: 48 },
+    { text: 'User', value: 'name', width: 185 },
+    { text: 'Email', value: 'email', width: 210 },
+    { text: 'Role', value: 'role', width: 125 },
+    { text: 'Type', value: 'category', width: 150 },
+    { text: 'Module', value: 'module', width: 155 },
+    { text: 'Event', value: 'event', width: 135 },
+    { text: 'Context', value: 'context', width: 230 },
+    { text: 'Date & Time', value: 'occurred_at', width: 190 },
+    { text: 'Actions', value: 'actions', width: 105 },
+];
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 const search = ref(props.filters.search ?? '')
 const status = ref(props.filters.status ?? 'all')
 const role   = ref(props.filters.role   ?? 'all')
 const date   = ref(props.filters.date   ?? '')
+=======
+function toggleSort(column: AuditSortColumn) {
+    if (serverOptions.value.sortBy === column) {
+        serverOptions.value.sortType =
+            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
+        return;
+    }
+
+    serverOptions.value.sortBy = column;
+    serverOptions.value.sortType = 'asc';
+}
+
+function sortIcon(column: AuditSortColumn) {
+    if (serverOptions.value.sortBy !== column) return ArrowUpDown;
+
+    return serverOptions.value.sortType === 'asc' ? ArrowUp : ArrowDown;
+}
+
+function queryParams() {
+    return {
+        search: search.value || undefined,
+        category: category.value !== 'all' ? category.value : undefined,
+        role: role.value !== 'all' ? role.value : undefined,
+        module: module.value !== 'all' ? module.value : undefined,
+        event: event.value || undefined,
+        date: date.value || undefined,
+        sort_by: serverOptions.value.sortBy,
+        sort_direction: serverOptions.value.sortType,
+        page: serverOptions.value.page,
+        per_page: serverOptions.value.rowsPerPage,
+    };
+}
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 function applyFilters() {
     router.get('/admin/login-logs', {
@@ -433,6 +542,316 @@ const roleBadge: Record<string, string> = {
                 </CardContent>
             </Card>
 
+<<<<<<< HEAD
+=======
+                        <template #header-name="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort users ${serverOptions.sortBy === 'name' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('name')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('name')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !== 'name',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
+                        <template #header-email="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort emails ${serverOptions.sortBy === 'email' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('email')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('email')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !== 'email',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
+                        <template #header-role="{ text }">
+                            <div class="column-filter">
+                                <span>{{ text }}</span>
+                                <select
+                                    v-model="role"
+                                    class="column-filter-input"
+                                    @click.stop
+                                    @change="filterTable"
+                                >
+                                    <option value="all">All roles</option>
+                                    <option value="super_admin">
+                                        Super Admin
+                                    </option>
+                                    <option value="owner">Owner</option>
+                                    <option value="staff">Staff</option>
+                                    <option value="user">Customer</option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #header-category="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort types ${serverOptions.sortBy === 'category' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('category')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('category')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'category',
+                                        }"
+                                    />
+                                </button>
+                                <select
+                                    v-model="category"
+                                    class="column-filter-input"
+                                    @click.stop
+                                    @change="filterTable"
+                                >
+                                    <option value="all">All types</option>
+                                    <option value="authentication">
+                                        Authentication
+                                    </option>
+                                    <option value="activity">
+                                        User Activity
+                                    </option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #header-module="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort modules ${serverOptions.sortBy === 'module' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('module')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('module')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'module',
+                                        }"
+                                    />
+                                </button>
+                                <select
+                                    v-model="module"
+                                    class="column-filter-input"
+                                    @click.stop
+                                    @change="filterTable"
+                                >
+                                    <option value="all">All modules</option>
+                                    <option value="Authentication">
+                                        Authentication
+                                    </option>
+                                    <option
+                                        v-for="item in modules"
+                                        :key="item"
+                                        :value="item"
+                                    >
+                                        {{ item }}
+                                    </option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #header-event="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort events ${serverOptions.sortBy === 'event' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('event')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('event')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'event',
+                                        }"
+                                    />
+                                </button>
+                                <input
+                                    v-model="event"
+                                    class="column-filter-input"
+                                    placeholder="Filter event"
+                                    @click.stop
+                                    @keyup.enter="filterTable"
+                                />
+                            </div>
+                        </template>
+
+                        <template #header-occurred_at="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort dates ${serverOptions.sortBy === 'occurred_at' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('occurred_at')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('occurred_at')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'occurred_at',
+                                        }"
+                                    />
+                                </button>
+                                <input
+                                    v-model="date"
+                                    type="date"
+                                    class="column-filter-input"
+                                    @click.stop
+                                    @change="filterTable"
+                                />
+                            </div>
+                        </template>
+
+                        <template #item-selection="log">
+                            <input
+                                type="checkbox"
+                                :checked="selected.includes(entryKey(log))"
+                                :aria-label="`Select audit log ${log.record_id}`"
+                                class="rounded"
+                                @change="toggleOne(log)"
+                            />
+                        </template>
+
+                        <template #item-name="log">
+                            <span class="font-medium whitespace-nowrap">{{
+                                log.name || 'Unknown user'
+                            }}</span>
+                        </template>
+                        <template #item-email="log">
+                            <span class="text-xs text-muted-foreground">{{
+                                log.email || '—'
+                            }}</span>
+                        </template>
+                        <template #item-role="log">
+                            <span
+                                v-if="log.role"
+                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                                :class="roleBadge[log.role] ?? roleBadge.user"
+                            >
+                                {{ log.role.replace('_', ' ') }}
+                            </span>
+                            <span v-else class="text-xs text-muted-foreground"
+                                >—</span
+                            >
+                        </template>
+                        <template #item-category="log">
+                            <span
+                                class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                :class="
+                                    log.category === 'authentication'
+                                        ? 'bg-indigo-100 text-indigo-700'
+                                        : 'bg-emerald-100 text-emerald-700'
+                                "
+                            >
+                                {{
+                                    log.category === 'authentication'
+                                        ? 'Authentication'
+                                        : 'User Activity'
+                                }}
+                            </span>
+                        </template>
+                        <template #item-module="log">
+                            <span class="text-xs font-medium">{{
+                                log.module
+                            }}</span>
+                        </template>
+                        <template #item-event="log">
+                            <span
+                                class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                :class="
+                                    eventBadge[log.event] ??
+                                    'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
+                                "
+                            >
+                                {{ eventLabel(log.event) }}
+                            </span>
+                        </template>
+                        <template #item-context="log">
+                            <span
+                                class="line-clamp-2 text-xs text-muted-foreground"
+                                :title="log.context"
+                                >{{ log.context }}</span
+                            >
+                        </template>
+                        <template #item-occurred_at="log">
+                            <span
+                                class="text-xs whitespace-nowrap text-muted-foreground"
+                                >{{ formatDate(log.occurred_at) }}</span
+                            >
+                        </template>
+                        <template #item-actions="log">
+                            <div class="flex items-center justify-center gap-1">
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="View audit event"
+                                    @click="
+                                        router.visit(
+                                            `/admin/audit-logs/${log.category}/${log.record_id}`,
+                                        )
+                                    "
+                                >
+                                    <Eye class="h-4 w-4 text-blue-500" />
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="Archive log"
+                                    @click="openArchive(log)"
+                                >
+                                    <Trash2 class="h-4 w-4 text-amber-500" />
+                                </Button>
+                            </div>
+                        </template>
+
+                        <template #empty-message>
+                            <div
+                                class="py-10 text-center text-sm text-muted-foreground"
+                            >
+                                <FileClock
+                                    class="mx-auto mb-2 h-10 w-10 opacity-20"
+                                />
+                                No audit events found.
+                            </div>
+                        </template>
+                    </EasyDataTable>
+                </div>
+            </CardContent>
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
         </div>
 
         <!-- Archive confirm dialog -->
@@ -453,3 +872,89 @@ const roleBadge: Record<string, string> = {
 
     </AdminLayout>
 </template>
+<<<<<<< HEAD
+=======
+
+<style scoped>
+.audit-data-table {
+    --easy-table-border: 0;
+    --easy-table-row-border: 1px solid var(--border);
+    --easy-table-header-background-color: var(--muted);
+    --easy-table-header-font-color: var(--muted-foreground);
+    --easy-table-header-font-size: 12px;
+    --easy-table-header-height: 82px;
+    --easy-table-header-item-padding: 10px 12px;
+    --easy-table-body-row-background-color: var(--background);
+    --easy-table-body-even-row-background-color: color-mix(
+        in srgb,
+        var(--muted) 35%,
+        transparent
+    );
+    --easy-table-body-row-font-color: var(--foreground);
+    --easy-table-body-even-row-font-color: var(--foreground);
+    --easy-table-body-row-hover-background-color: color-mix(
+        in srgb,
+        var(--muted) 65%,
+        transparent
+    );
+    --easy-table-body-row-hover-font-color: var(--foreground);
+    --easy-table-body-row-height: 62px;
+    --easy-table-body-item-padding: 10px 12px;
+    --easy-table-message-font-color: var(--muted-foreground);
+    --easy-table-footer-background-color: var(--background);
+    --easy-table-footer-font-color: var(--muted-foreground);
+    --easy-table-footer-font-size: 12px;
+    --easy-table-footer-height: 56px;
+    --easy-table-footer-padding: 0 16px;
+    --easy-table-buttons-pagination-border: 1px solid var(--border);
+    width: 100%;
+}
+
+.sortable-column {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    font: inherit;
+}
+
+.sortable-column:hover {
+    color: var(--foreground);
+}
+
+.column-filter {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.column-filter-input {
+    height: 30px;
+    width: 100%;
+    min-width: 95px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    padding: 0 8px;
+    color: var(--foreground);
+    font-size: 12px;
+    font-weight: 400;
+    outline: none;
+}
+
+.column-filter-input:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+:deep(.vue3-easy-data-table__main) {
+    background: var(--background);
+}
+
+:deep(.vue3-easy-data-table__main table) {
+    min-width: 1500px;
+}
+</style>
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)

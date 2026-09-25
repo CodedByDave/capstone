@@ -1,5 +1,14 @@
 <?php
 
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\IssueReportController;
+use App\Http\Controllers\Admin\LoginLogController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PlatformRoleController;
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\LoginLogController;
@@ -33,6 +42,7 @@ Route::get('/', function () {
 Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+<<<<<<< HEAD
     Route::get('/settings/profile', fn() => Inertia::render('Admin/Settings'))->name('admin.settings');
 
     Route::get('/shop',                 [ShopController::class, 'index'])->name('shop.index');
@@ -42,6 +52,16 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
     Route::delete('/shop/{shop}',       [ShopController::class, 'destroy'])->name('shop.destroy');
     Route::post('/shop/{shop}/disable', [ShopController::class, 'disable'])->name('shop.disable');
     Route::post('/shop/{shop}/enable',  [ShopController::class, 'enable'])->name('shop.enable');
+=======
+    Route::get('/settings/profile', fn () => Inertia::render('Admin/Settings'))->name('admin.settings');
+    Route::prefix('settings/roles-permissions')->name('admin.settings.roles-permissions.')->group(function () {
+        Route::get('/', [PlatformRoleController::class, 'index'])->name('index');
+        Route::post('/roles', [PlatformRoleController::class, 'store'])->name('store');
+        Route::patch('/roles/{platformRole}/permissions', [PlatformRoleController::class, 'togglePermission'])
+            ->name('permissions.toggle');
+        Route::delete('/roles/{platformRole}', [PlatformRoleController::class, 'destroy'])->name('destroy');
+    });
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 
     // ── Users ─────────────────────────────────────────────────────────────────────
@@ -74,13 +94,41 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     // Orders
     Route::prefix('orders')->name('admin.orders.')->group(function () {
+<<<<<<< HEAD
         Route::get('/',       [OrderController::class, 'index'])->name('index');
         Route::get('/{id}',   [OrderController::class, 'show'])->name('show');
     });
+=======
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/export', [OrderController::class, 'exportCsv'])->name('export');
+        Route::post('/import', [OrderController::class, 'importCsv'])->name('import');
+        Route::get('/{order:public_id}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{order:public_id}/approve', [OrderController::class, 'approve'])->name('approve');
+        Route::post('/{order:public_id}/reject', [OrderController::class, 'reject'])->name('reject');
+    });
+
+    Route::get('/kyc-file', [OrderController::class, 'serveKyc'])->name('admin.kyc-file');
+
+    // Analytics
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
+
+    Route::prefix('issue-reports')->name('admin.issue-reports.')->group(function () {
+        Route::get('/', [IssueReportController::class, 'index'])->name('index');
+        Route::get('/export', [IssueReportController::class, 'exportCsv'])->name('export');
+        Route::post('/import', [IssueReportController::class, 'importCsv'])->name('import');
+        Route::patch('/{issueReport:public_id}', [IssueReportController::class, 'update'])->name('update');
+    });
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 });
 // ── Shop owner routes ──────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner'])->group(function () {
+=======
+Route::prefix('shop')->middleware([
+    'auth', 'verified', 'role:owner', 'owner.platform-permissions', 'shop.activity',
+])->group(function () {
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
     Route::get('/dashboard', [ShopOrderController::class, 'displayModules'])->name('shop.dashboard');
     Route::get('/data',      [ShopDataController::class, 'getShop'])->name('shop.data');

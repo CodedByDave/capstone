@@ -17,6 +17,7 @@ import {
     AlertDialogCancel, AlertDialogAction,
 } from '@/components/ui/alert-dialog'
 import {
+<<<<<<< HEAD
     Store, User, CheckCircle, ShieldOff, ShieldCheck,
     Eye, Pencil, Trash2, Search, RefreshCcw,
 } from 'lucide-vue-next'
@@ -29,6 +30,31 @@ interface ShopOwner {
     email: string
     phone: string | null
 }
+=======
+    Archive,
+    ArchiveRestore,
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
+    Download,
+    Eye,
+    Pencil,
+    RefreshCcw,
+    RotateCcw,
+    Search,
+    ShieldCheck,
+    ShieldOff,
+    Trash2,
+} from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
+import Vue3EasyDataTable, {
+    type Header,
+    type ServerOptions,
+} from 'vue3-easy-data-table';
+import 'vue3-easy-data-table/dist/style.css';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 interface ShopItem {
     id: number
@@ -66,7 +92,106 @@ const { shops, stats, filters } = defineProps<{
 
 // ─── Flash ────────────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 const page = usePage()
+=======
+const search = ref(props.filters.search ?? '');
+const status = ref(props.filters.status ?? '');
+const plan = ref(props.filters.plan ?? '');
+const compliance = ref(props.filters.compliance ?? '');
+const activity = ref(props.filters.activity ?? '');
+const subscription = ref(props.filters.subscription ?? '');
+const tableLoading = ref(false);
+const showMoreStats = ref(false);
+const archived = computed(() => Boolean(props.filters.trashed));
+const selectedIds = ref<number[]>([]);
+const disableDialog = ref(false);
+const disableReason = ref('');
+const disableTarget = ref<ShopItem | null>(null);
+const confirmDialog = ref(false);
+const confirmTarget = ref<ShopItem | null>(null);
+const confirmAction = ref<'archive' | 'restore' | 'delete'>('archive');
+
+type ShopSortColumn =
+    | 'shop_name'
+    | 'owner'
+    | 'health_status'
+    | 'compliance_status'
+    | 'subscription'
+    | 'last_activity_at'
+    | 'status';
+
+const headers: Header[] = [
+    { text: '', value: 'selection', width: 48 },
+    { text: 'Shop', value: 'shop_name', width: 210 },
+    { text: 'Owner', value: 'owner', width: 205 },
+    { text: 'Health', value: 'health_status', width: 145 },
+    { text: 'Compliance', value: 'compliance_status', width: 165 },
+    { text: 'Subscription', value: 'subscription', width: 190 },
+    {
+        text: 'Last activity',
+        value: 'last_activity_at',
+        width: 160,
+    },
+    { text: 'Status', value: 'status', width: 145 },
+    { text: 'Actions', value: 'actions', width: 180 },
+];
+
+const serverOptions = ref<ServerOptions>({
+    page: props.shops.current_page,
+    rowsPerPage: props.shops.per_page,
+    sortBy: props.filters.sort_by ?? 'created_at',
+    sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
+});
+
+function toggleSort(column: ShopSortColumn) {
+    if (serverOptions.value.sortBy === column) {
+        serverOptions.value.sortType =
+            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
+        return;
+    }
+
+    serverOptions.value.sortBy = column;
+    serverOptions.value.sortType = 'asc';
+}
+
+function sortIcon(column: ShopSortColumn) {
+    if (serverOptions.value.sortBy !== column) return ArrowUpDown;
+
+    return serverOptions.value.sortType === 'asc' ? ArrowUp : ArrowDown;
+}
+
+const allSelected = computed(
+    () =>
+        props.shops.data.length > 0 &&
+        props.shops.data.every((shop) => selectedIds.value.includes(shop.id)),
+);
+
+const tableItems = computed(() =>
+    props.shops.data.map((shop) => ({
+        ...shop,
+        subscription: shop.subscription_plan ?? 'No plan',
+        actions: '',
+    })),
+);
+
+const statCards = computed(() => [
+    { label: 'Total shops', value: props.stats.total },
+    { label: 'Active shops', value: props.stats.active },
+    { label: 'Disabled shops', value: props.stats.disabled },
+    { label: 'Compliance issues', value: props.stats.compliance_issues },
+    { label: 'Needs attention', value: props.stats.needs_attention },
+]);
+
+const secondaryStats = computed(() => [
+    { label: 'Registered today', value: props.stats.today },
+    { label: 'Archived', value: props.stats.archived },
+    { label: 'Expired permits', value: props.stats.expired_permits },
+    { label: 'Expiring permits', value: props.stats.expiring_permits },
+    { label: 'Inactive 30+ days', value: props.stats.inactive },
+    { label: 'Expired plans', value: props.stats.expired_subscriptions },
+]);
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 onMounted(() => {
     const flash = page.props.toast as { type: string; message: string } | undefined
@@ -118,9 +243,114 @@ function openDisableDialog(shop: ShopItem) {
     disableDialogOpen.value = true
 }
 
+<<<<<<< HEAD
 function confirmDisable() {
     if (!selectedShop.value) return
     router.post(`/admin/shop/${selectedShop.value.id}/disable`, { reason: disableReason.value }, {
+=======
+function exportCsv() {
+    const params = new URLSearchParams();
+    Object.entries(query()).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            params.set(key, String(value));
+        }
+    });
+    window.location.assign(`/admin/shop/export?${params.toString()}`);
+}
+
+function toggleAll() {
+    selectedIds.value = allSelected.value
+        ? []
+        : props.shops.data.map((shop) => shop.id);
+}
+
+function toggleOne(id: number) {
+    if (selectedIds.value.includes(id)) {
+        selectedIds.value = selectedIds.value.filter(
+            (selectedId) => selectedId !== id,
+        );
+        return;
+    }
+
+    selectedIds.value.push(id);
+}
+
+function openDisable(shop: ShopItem | null = null) {
+    disableTarget.value = shop;
+    disableReason.value = '';
+    disableDialog.value = true;
+}
+
+function disableShops() {
+    const url = disableTarget.value
+        ? `/admin/shop/${disableTarget.value.public_id}/disable`
+        : '/admin/shop/bulk-action';
+    const data = disableTarget.value
+        ? { reason: disableReason.value }
+        : {
+              ids: selectedIds.value,
+              action: 'disable',
+              reason: disableReason.value,
+          };
+
+    router.post(
+        url,
+        data,
+        actionOptions(() => {
+            disableDialog.value = false;
+        }),
+    );
+}
+
+function bulkAction(action: 'archive' | 'enable' | 'restore') {
+    if (!selectedIds.value.length) return;
+    router.post(
+        '/admin/shop/bulk-action',
+        { ids: selectedIds.value, action },
+        actionOptions(),
+    );
+}
+
+function enableShop(shop: ShopItem) {
+    router.post(`/admin/shop/${shop.public_id}/enable`, {}, actionOptions());
+}
+
+function openConfirm(shop: ShopItem, action: 'archive' | 'restore' | 'delete') {
+    confirmTarget.value = shop;
+    confirmAction.value = action;
+    confirmDialog.value = true;
+}
+
+function runConfirmedAction() {
+    if (!confirmTarget.value) return;
+    const shop = confirmTarget.value;
+
+    if (confirmAction.value === 'restore') {
+        router.post(
+            `/admin/shop/archive/${shop.public_id}/restore`,
+            {},
+            actionOptions(() => {
+                confirmDialog.value = false;
+            }),
+        );
+        return;
+    }
+
+    const url =
+        confirmAction.value === 'delete'
+            ? `/admin/shop/archive/${shop.public_id}`
+            : `/admin/shop/${shop.public_id}`;
+    router.delete(
+        url,
+        actionOptions(() => {
+            confirmDialog.value = false;
+        }),
+    );
+}
+
+function actionOptions(after?: () => void) {
+    return {
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
         preserveScroll: true,
         onSuccess: () => {
             disableDialogOpen.value = false
@@ -259,6 +489,7 @@ function formatDate(date: string | null) {
                             />
                         </div>
 
+<<<<<<< HEAD
                         <Select v-model="statusFilter" @update:model-value="applyFilters">
                             <SelectTrigger class="w-36">
                                 <SelectValue placeholder="Status" />
@@ -307,6 +538,72 @@ function formatDate(date: string | null) {
                                     v-for="shop in shops.data" :key="shop.id"
                                     class="border-b last:border-0 hover:bg-muted/20 transition-colors"
                                     :class="{ 'bg-red-50/50 dark:bg-red-900/10': shop.status === 'disabled' }"
+=======
+                        <template #header-shop_name="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort shops ${serverOptions.sortBy === 'shop_name' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('shop_name')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('shop_name')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !==
+                                            'shop_name',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
+                        <template #header-owner="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort owners ${serverOptions.sortBy === 'owner' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('owner')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('owner')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !== 'owner',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
+                        <template #header-health_status="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort health ${serverOptions.sortBy === 'health_status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('health_status')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('health_status')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'health_status',
+                                        }"
+                                    />
+                                </button>
+                                <select
+                                    v-model="activity"
+                                    class="column-filter-input"
+                                    aria-label="Filter by shop activity"
+                                    @click.stop
+                                    @change="filterTable"
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                                 >
                                     <td class="px-4 py-3">
                                         <p class="font-medium whitespace-nowrap">{{ shop.shop_name }}</p>
@@ -391,6 +688,7 @@ function formatDate(date: string | null) {
                                     </td>
                                 </tr>
 
+<<<<<<< HEAD
                                 <tr v-if="shops.data.length === 0">
                                     <td colspan="8" class="px-4 py-12 text-center text-sm text-muted-foreground">
                                         <Store class="h-10 w-10 mx-auto mb-2 opacity-20" />
@@ -415,6 +713,160 @@ function formatDate(date: string | null) {
                                 class="h-7 min-w-7 text-xs"
                                 @click="link.url && router.visit(link.url)"
                                 v-html="link.label"
+=======
+                        <template #header-compliance_status="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort compliance ${serverOptions.sortBy === 'compliance_status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('compliance_status')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('compliance_status')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'compliance_status',
+                                        }"
+                                    />
+                                </button>
+                                <select
+                                    v-model="compliance"
+                                    class="column-filter-input"
+                                    aria-label="Filter by compliance"
+                                    @click.stop
+                                    @change="filterTable"
+                                >
+                                    <option value="">All compliance</option>
+                                    <option value="compliant">Compliant</option>
+                                    <option value="expiring">
+                                        Expiring soon
+                                    </option>
+                                    <option value="expired">Expired</option>
+                                    <option value="incomplete">
+                                        Incomplete
+                                    </option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #header-subscription="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort subscriptions ${serverOptions.sortBy === 'subscription' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('subscription')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('subscription')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'subscription',
+                                        }"
+                                    />
+                                </button>
+                                <div class="flex gap-1">
+                                    <select
+                                        v-model="plan"
+                                        class="column-filter-input"
+                                        aria-label="Filter by plan"
+                                        @click.stop
+                                        @change="filterTable"
+                                    >
+                                        <option value="">All plans</option>
+                                        <option value="Basic">Basic</option>
+                                        <option value="Standard">
+                                            Standard
+                                        </option>
+                                        <option value="Premium">Premium</option>
+                                        <option value="none">No plan</option>
+                                    </select>
+                                    <select
+                                        v-model="subscription"
+                                        class="column-filter-input"
+                                        aria-label="Filter by subscription expiry"
+                                        @click.stop
+                                        @change="filterTable"
+                                    >
+                                        <option value="">Any expiry</option>
+                                        <option value="expiring">
+                                            Expiring
+                                        </option>
+                                        <option value="expired">Expired</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template #header-last_activity_at="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort last activity ${serverOptions.sortBy === 'last_activity_at' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('last_activity_at')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('last_activity_at')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !==
+                                            'last_activity_at',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
+                        <template #header-status="{ text }">
+                            <div class="column-filter">
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort status ${serverOptions.sortBy === 'status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('status')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('status')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'status',
+                                        }"
+                                    />
+                                </button>
+                                <select
+                                    v-model="status"
+                                    class="column-filter-input"
+                                    aria-label="Filter by shop status"
+                                    @click.stop
+                                    @change="filterTable"
+                                >
+                                    <option value="">All statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="disabled">Disabled</option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #item-selection="shop">
+                            <input
+                                type="checkbox"
+                                :checked="selectedIds.includes(shop.id)"
+                                :aria-label="`Select ${shop.shop_name}`"
+                                class="rounded"
+                                @change="toggleOne(shop.id)"
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
                             />
                         </div>
                     </div>
@@ -477,3 +929,89 @@ function formatDate(date: string | null) {
 
     </AdminLayout>
 </template>
+<<<<<<< HEAD
+=======
+
+<style scoped>
+.shop-data-table {
+    --easy-table-border: 0;
+    --easy-table-row-border: 1px solid var(--border);
+    --easy-table-header-background-color: var(--muted);
+    --easy-table-header-font-color: var(--muted-foreground);
+    --easy-table-header-font-size: 12px;
+    --easy-table-header-height: 92px;
+    --easy-table-header-item-padding: 10px 12px;
+    --easy-table-body-row-background-color: var(--background);
+    --easy-table-body-even-row-background-color: color-mix(
+        in srgb,
+        var(--muted) 35%,
+        transparent
+    );
+    --easy-table-body-row-font-color: var(--foreground);
+    --easy-table-body-even-row-font-color: var(--foreground);
+    --easy-table-body-row-hover-background-color: color-mix(
+        in srgb,
+        var(--muted) 65%,
+        transparent
+    );
+    --easy-table-body-row-hover-font-color: var(--foreground);
+    --easy-table-body-row-height: 64px;
+    --easy-table-body-item-padding: 10px 12px;
+    --easy-table-message-font-color: var(--muted-foreground);
+    --easy-table-footer-background-color: var(--background);
+    --easy-table-footer-font-color: var(--muted-foreground);
+    --easy-table-footer-font-size: 12px;
+    --easy-table-footer-height: 56px;
+    --easy-table-footer-padding: 0 16px;
+    --easy-table-buttons-pagination-border: 1px solid var(--border);
+    width: 100%;
+}
+
+.sortable-column {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    font: inherit;
+}
+
+.sortable-column:hover {
+    color: var(--foreground);
+}
+
+.column-filter {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.column-filter-input {
+    height: 30px;
+    width: 100%;
+    min-width: 82px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    padding: 0 7px;
+    color: var(--foreground);
+    font-size: 11px;
+    font-weight: 400;
+    outline: none;
+}
+
+.column-filter-input:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+:deep(.vue3-easy-data-table__main) {
+    background: var(--background);
+}
+
+:deep(.vue3-easy-data-table__main table) {
+    min-width: 1470px;
+}
+</style>
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)

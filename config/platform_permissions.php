@@ -1,0 +1,55 @@
+<?php
+
+return [
+    'groups' => [
+        'Account' => [
+            'account.view' => 'View profile',
+            'account.update' => 'Update profile',
+        ],
+        'Customer' => [
+            'marketplace.view' => 'Browse shops',
+            'orders.create' => 'Place orders',
+            'orders.view_own' => 'View own orders',
+            'payments.manage_own' => 'Manage own payments',
+        ],
+        'Shop workspace' => [
+            'shop.dashboard' => 'View shop dashboard',
+            'shop.staff' => 'Manage staff',
+            'shop.operations' => 'Manage operations',
+            'shop.inventory' => 'Manage inventory',
+            'shop.finance' => 'Manage finance',
+            'shop.analytics' => 'View shop reports',
+            'shop.settings' => 'Manage shop settings',
+        ],
+        'Platform administration' => [
+            'admin.users' => 'Manage users',
+            'admin.shops' => 'Manage shops',
+            'admin.orders' => 'Manage subscriptions',
+            'admin.analytics' => 'View platform analytics',
+            'admin.issues' => 'Manage issue reports',
+            'admin.roles' => 'Manage roles and permissions',
+        ],
+    ],
+    'owner_route_permissions' => [
+        'shop/dashboard' => 'shop.dashboard',
+        'shop/data' => 'shop.dashboard',
+        'shop/employee*' => 'shop.staff',
+        'shop/branch*' => 'shop.staff',
+        'shop/attendance*' => 'shop.staff',
+        'shop/payroll*' => 'shop.staff',
+        'shop/permission*' => 'shop.staff',
+        'shop/inventory*' => 'shop.inventory',
+        'shop/supplier*' => 'shop.inventory',
+        'shop/operations*' => 'shop.operations',
+        'shop/orders*' => 'shop.operations',
+        'shop/logistics*' => 'shop.operations',
+        'shop/finance*' => 'shop.finance',
+        'shop/payment-qr*' => 'shop.finance',
+        'shop/reports*' => 'shop.analytics',
+        'shop/logs*' => 'shop.analytics',
+        'shop/settings*' => 'shop.settings',
+        'shop/upgrade*' => 'shop.settings',
+        'shop/checkout*' => 'shop.settings',
+        'shop/payment*' => 'shop.settings',
+    ],
+];

@@ -14,10 +14,23 @@ import { dashboard } from '@/routes'
 import { type NavItem } from '@/types'
 import { Link } from '@inertiajs/vue3'
 import {
+<<<<<<< HEAD
     LayoutGrid, Store, User, ListOrdered,
     ChartNoAxesCombined, Users, ShieldCheck,
 } from 'lucide-vue-next'
 import AppLogo from '@/components/AppLogo.vue'
+=======
+    ChartNoAxesCombined,
+    CircleAlert,
+    KeyRound,
+    LayoutGrid,
+    ListOrdered,
+    ShieldCheck,
+    Store,
+    User,
+    Users,
+} from 'lucide-vue-next';
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 
 const mainNavItems: NavItem[] = [
     {
@@ -57,7 +70,21 @@ const mainNavItems: NavItem[] = [
         href: '#',
         icon: ChartNoAxesCombined,
     },
+<<<<<<< HEAD
 ]
+=======
+    {
+        title: 'Issue Reports',
+        href: '/admin/issue-reports',
+        icon: CircleAlert,
+    },
+    {
+        title: 'Roles & Permissions',
+        href: '/admin/settings/roles-permissions',
+        icon: KeyRound,
+    },
+];
+>>>>>>> 7b1b8656 (feat(admin): added issue reports features for system users and RBAC for giving users access what they can do)
 </script>
 
 <template>
