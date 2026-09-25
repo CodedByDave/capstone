@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,6 +48,7 @@ class Order extends Model
         'dti_expiry_date' => 'date',
         'mayors_expiry_date' => 'date',
         'sanitary_expiry_date' => 'date',
+        'expires_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -70,5 +72,20 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Paid subscriptions are active. Free trials are the only subscriptions
+     * that become active without a payment.
+     */
+    public function scopeActiveSubscription(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query) {
+            $query->where('status', 'paid')
+                ->orWhere(function (Builder $query) {
+                    $query->where('status', 'approved')
+                        ->where('is_trial', true);
+                });
+        });
     }
 }

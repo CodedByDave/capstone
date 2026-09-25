@@ -306,27 +306,32 @@ class CheckoutController extends Controller
                     ) {
                         $paymongoPaymentId = $this->paymongoService->extractPaymentId($session);
 
-                        $payment->update([
-                            'status' => 'paid',
-                            'paid_at' => now(),
-                            'paymongo_payment_id' => $paymongoPaymentId,
-                        ]);
+                        // Do not restart the subscription period when the success page is refreshed.
+                        if ($payment->status !== 'paid' || $order->status !== 'paid') {
+                            $payment->update([
+                                'status' => 'paid',
+                                'paid_at' => now(),
+                                'paymongo_payment_id' => $paymongoPaymentId,
+                            ]);
 
-                        $order?->update(['status' => 'paid']);
+                            $order->update([
+                                'status' => 'paid',
+                                'expires_at' => now()->addMonths((int) $order->billing_months),
+                            ]);
 
-                        // Upgrade orders are auto-approved — no admin review needed.
-                        if ($order && $order->is_upgrade) {
-                            DB::transaction(function () use ($order) {
-                                $order->update(['status' => 'approved']);
+                            $this->orderService->syncApprovedShop($order);
 
-                                // Expire all previously active/paid orders for this user.
-                                Order::where('user_id', $order->user_id)
-                                    ->whereIn('status', ['approved', 'paid'])
-                                    ->where('id', '!=', $order->id)
-                                    ->update(['status' => 'expired']);
+                            // Upgrade orders are auto-approved — no admin review needed.
+                            if ($order->is_upgrade) {
+                                DB::transaction(function () use ($order) {
+                                    // Expire all previously active/paid orders for this user.
+                                    Order::where('user_id', $order->user_id)
+                                        ->activeSubscription()
+                                        ->where('id', '!=', $order->id)
+                                        ->update(['status' => 'expired']);
 
-                                $this->orderService->syncApprovedShop($order);
-                            });
+                                });
+                            }
                         }
 
                         $payment = $payment->fresh();

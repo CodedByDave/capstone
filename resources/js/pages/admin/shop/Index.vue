@@ -19,6 +19,9 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ArchiveRestore,
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
     Download,
     Eye,
     Pencil,
@@ -114,9 +117,18 @@ const confirmDialog = ref(false);
 const confirmTarget = ref<ShopItem | null>(null);
 const confirmAction = ref<'archive' | 'restore' | 'delete'>('archive');
 
+type ShopSortColumn =
+    | 'shop_name'
+    | 'owner'
+    | 'health_status'
+    | 'compliance_status'
+    | 'subscription'
+    | 'last_activity_at'
+    | 'status';
+
 const headers: Header[] = [
     { text: '', value: 'selection', width: 48 },
-    { text: 'Shop', value: 'shop_name', width: 210, sortable: true },
+    { text: 'Shop', value: 'shop_name', width: 210 },
     { text: 'Owner', value: 'owner', width: 205 },
     { text: 'Health', value: 'health_status', width: 145 },
     { text: 'Compliance', value: 'compliance_status', width: 165 },
@@ -125,9 +137,8 @@ const headers: Header[] = [
         text: 'Last activity',
         value: 'last_activity_at',
         width: 160,
-        sortable: true,
     },
-    { text: 'Status', value: 'status', width: 145, sortable: true },
+    { text: 'Status', value: 'status', width: 145 },
     { text: 'Actions', value: 'actions', width: 180 },
 ];
 
@@ -137,6 +148,23 @@ const serverOptions = ref<ServerOptions>({
     sortBy: props.filters.sort_by ?? 'created_at',
     sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
 });
+
+function toggleSort(column: ShopSortColumn) {
+    if (serverOptions.value.sortBy === column) {
+        serverOptions.value.sortType =
+            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
+        return;
+    }
+
+    serverOptions.value.sortBy = column;
+    serverOptions.value.sortType = 'asc';
+}
+
+function sortIcon(column: ShopSortColumn) {
+    if (serverOptions.value.sortBy !== column) return ArrowUpDown;
+
+    return serverOptions.value.sortType === 'asc' ? ArrowUp : ArrowDown;
+}
 
 const allSelected = computed(
     () =>
@@ -155,7 +183,7 @@ const tableItems = computed(() =>
 const statCards = computed(() => [
     { label: 'Total shops', value: props.stats.total },
     { label: 'Active shops', value: props.stats.active },
-    { label: 'Pending approval', value: props.stats.pending },
+    { label: 'Disabled shops', value: props.stats.disabled },
     { label: 'Compliance issues', value: props.stats.compliance_issues },
     { label: 'Needs attention', value: props.stats.needs_attention },
 ]);
@@ -163,7 +191,6 @@ const statCards = computed(() => [
 const secondaryStats = computed(() => [
     { label: 'Registered today', value: props.stats.today },
     { label: 'Archived', value: props.stats.archived },
-    { label: 'Disabled', value: props.stats.disabled },
     { label: 'Expired permits', value: props.stats.expired_permits },
     { label: 'Expiring permits', value: props.stats.expiring_permits },
     { label: 'Inactive 30+ days', value: props.stats.inactive },
@@ -277,11 +304,14 @@ function toggleAll() {
 }
 
 function toggleOne(id: number) {
-    selectedIds.value.includes(id)
-        ? (selectedIds.value = selectedIds.value.filter(
-              (selectedId) => selectedId !== id,
-          ))
-        : selectedIds.value.push(id);
+    if (selectedIds.value.includes(id)) {
+        selectedIds.value = selectedIds.value.filter(
+            (selectedId) => selectedId !== id,
+        );
+        return;
+    }
+
+    selectedIds.value.push(id);
 }
 
 function openDisable(shop: ShopItem | null = null) {
@@ -557,9 +587,64 @@ function badgeClass(type: string) {
                             />
                         </template>
 
+                        <template #header-shop_name="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort shops ${serverOptions.sortBy === 'shop_name' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('shop_name')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('shop_name')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !==
+                                            'shop_name',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
+                        <template #header-owner="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort owners ${serverOptions.sortBy === 'owner' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('owner')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('owner')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !== 'owner',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
                         <template #header-health_status="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort health ${serverOptions.sortBy === 'health_status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('health_status')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('health_status')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'health_status',
+                                        }"
+                                    />
+                                </button>
                                 <select
                                     v-model="activity"
                                     class="column-filter-input"
@@ -577,7 +662,23 @@ function badgeClass(type: string) {
 
                         <template #header-compliance_status="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort compliance ${serverOptions.sortBy === 'compliance_status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('compliance_status')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('compliance_status')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'compliance_status',
+                                        }"
+                                    />
+                                </button>
                                 <select
                                     v-model="compliance"
                                     class="column-filter-input"
@@ -600,7 +701,23 @@ function badgeClass(type: string) {
 
                         <template #header-subscription="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort subscriptions ${serverOptions.sortBy === 'subscription' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('subscription')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('subscription')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'subscription',
+                                        }"
+                                    />
+                                </button>
                                 <div class="flex gap-1">
                                     <select
                                         v-model="plan"
@@ -634,9 +751,45 @@ function badgeClass(type: string) {
                             </div>
                         </template>
 
+                        <template #header-last_activity_at="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort last activity ${serverOptions.sortBy === 'last_activity_at' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('last_activity_at')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('last_activity_at')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !==
+                                            'last_activity_at',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
                         <template #header-status="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort status ${serverOptions.sortBy === 'status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('status')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('status')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'status',
+                                        }"
+                                    />
+                                </button>
                                 <select
                                     v-model="status"
                                     class="column-filter-input"
@@ -955,6 +1108,18 @@ function badgeClass(type: string) {
     --easy-table-footer-padding: 0 16px;
     --easy-table-buttons-pagination-border: 1px solid var(--border);
     width: 100%;
+}
+
+.sortable-column {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    font: inherit;
+}
+
+.sortable-column:hover {
+    color: var(--foreground);
 }
 
 .column-filter {

@@ -7,19 +7,14 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    BadgeDollarSign,
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
     ChevronDown,
-    Clock,
+    Download,
     Eye,
     FileText,
     ListOrdered,
@@ -27,6 +22,7 @@ import {
     Search,
     ShieldCheck,
     ShieldX,
+    Upload,
     X,
 } from 'lucide-vue-next';
 
@@ -85,6 +81,8 @@ interface Paginator {
     current_page: number;
     last_page: number;
     per_page: number;
+    from: number | null;
+    to: number | null;
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
@@ -96,7 +94,6 @@ const props = defineProps<{
     stats: {
         total: number;
         paid: number;
-        approved: number;
         rejected: number;
         pending: number;
         expired: number;
@@ -136,29 +133,133 @@ const breadcrumbs: BreadcrumbItem[] = [
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
 const search = ref(props.filters.search ?? '');
-const status = ref(props.filters.status ?? 'all');
-const plan = ref(props.filters.plan ?? 'all');
+const sortBy = ref(props.filters.sort_by ?? '');
+const sortDirection = ref(
+    props.filters.sort_direction === 'desc' ? 'desc' : 'asc',
+);
+const status = ref(
+    props.filters.status && props.filters.status !== 'all'
+        ? props.filters.status
+        : '',
+);
+const plan = ref(
+    props.filters.plan && props.filters.plan !== 'all'
+        ? props.filters.plan
+        : '',
+);
 const date = ref(props.filters.date ?? '');
+const rowsPerPage = ref(props.orders.per_page);
+const importInput = ref<HTMLInputElement | null>(null);
+const importing = ref(false);
+const showRowsSelector = ref(false);
 
 function applyFilters() {
     router.get(
         '/admin/orders',
         {
             search: search.value || undefined,
-            status: status.value !== 'all' ? status.value : undefined,
-            plan: plan.value !== 'all' ? plan.value : undefined,
+            sort_by: sortBy.value || undefined,
+            sort_direction: sortBy.value ? sortDirection.value : undefined,
+            status: status.value || undefined,
+            plan: plan.value || undefined,
             date: date.value || undefined,
+            per_page: rowsPerPage.value,
         },
-        { preserveState: true, replace: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
     );
 }
 
 function resetFilters() {
     search.value = '';
-    status.value = 'all';
-    plan.value = 'all';
+    sortBy.value = '';
+    sortDirection.value = 'asc';
+    status.value = '';
+    plan.value = '';
     date.value = '';
-    router.get('/admin/orders', {}, { preserveState: true, replace: true });
+    router.get(
+        '/admin/orders',
+        { per_page: rowsPerPage.value },
+        { preserveState: true, replace: true },
+    );
+}
+
+function toggleSort(column: 'shop' | 'owner' | 'total' | 'expires') {
+    if (sortBy.value === column) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortBy.value = column;
+        sortDirection.value = 'asc';
+    }
+
+    applyFilters();
+}
+
+function selectRowsPerPage(size: number) {
+    rowsPerPage.value = size;
+    showRowsSelector.value = false;
+    applyFilters();
+}
+
+function visitPage(url: string | null) {
+    if (!url) return;
+
+    router.visit(url, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+}
+
+function exportCsv() {
+    const params = new URLSearchParams();
+    const filters = {
+        search: search.value || undefined,
+        sort_by: sortBy.value || undefined,
+        sort_direction: sortBy.value ? sortDirection.value : undefined,
+        status: status.value || undefined,
+        plan: plan.value || undefined,
+        date: date.value || undefined,
+    };
+
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined) params.set(key, value);
+    });
+
+    window.location.assign(`/admin/orders/export?${params.toString()}`);
+}
+
+function chooseCsvFile() {
+    importInput.value?.click();
+}
+
+function importCsv(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    router.post(
+        '/admin/orders/import',
+        { file },
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onStart: () => (importing.value = true),
+            onSuccess: () => toast.success('Orders imported successfully.'),
+            onError: (errors) =>
+                toast.error(
+                    String(
+                        errors.file || 'The orders CSV could not be imported.',
+                    ),
+                ),
+            onFinish: () => {
+                importing.value = false;
+                input.value = '';
+            },
+        },
+    );
 }
 
 // ─── Module Dropdown ──────────────────────────────────────────────────────────
@@ -172,6 +273,7 @@ function toggleModules(orderReference: string) {
 
 function handleClickOutside() {
     expandedOrder.value = null;
+    showRowsSelector.value = false;
 }
 
 onMounted(() => document.addEventListener('click', handleClickOutside));
@@ -321,202 +423,204 @@ const statusBadge: Record<string, string> = {
     <AdminLayout :breadcrumbs="breadcrumbs" title="Order Management">
         <div class="space-y-6 px-6">
             <!-- Stats -->
-            <div class="grid grid-cols-2 gap-4 md:grid-cols-5">
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
                 <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Total
-                            </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100"
-                            >
-                                <ListOrdered class="h-4 w-4 text-blue-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold">
+                    <CardContent class="p-4">
+                        <p
+                            class="mb-3 text-xs font-medium text-muted-foreground"
+                        >
+                            Total orders
+                        </p>
+                        <p class="text-2xl font-bold">
                             {{ stats.total.toLocaleString() }}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Approved
-                            </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100"
-                            >
-                                <ShieldCheck class="h-4 w-4 text-emerald-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-emerald-600">
-                            {{ stats.approved.toLocaleString() }}
+                    <CardContent class="p-4">
+                        <p
+                            class="mb-3 text-xs font-medium text-muted-foreground"
+                        >
+                            Paid orders
+                        </p>
+                        <p class="text-2xl font-bold">
+                            {{ stats.paid.toLocaleString() }}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Pending
-                            </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100"
-                            >
-                                <Clock class="h-4 w-4 text-amber-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-amber-600">
+                    <CardContent class="p-4">
+                        <p
+                            class="mb-3 text-xs font-medium text-muted-foreground"
+                        >
+                            Pending orders
+                        </p>
+                        <p class="text-2xl font-bold">
                             {{ stats.pending.toLocaleString() }}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Rejected
-                            </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100"
-                            >
-                                <ShieldX class="h-4 w-4 text-red-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-red-600">
+                    <CardContent class="p-4">
+                        <p
+                            class="mb-3 text-xs font-medium text-muted-foreground"
+                        >
+                            Rejected orders
+                        </p>
+                        <p class="text-2xl font-bold">
                             {{ stats.rejected.toLocaleString() }}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Revenue
-                            </p>
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100"
-                            >
-                                <BadgeDollarSign
-                                    class="h-4 w-4 text-green-600"
-                                />
-                            </div>
-                        </div>
-                        <p class="text-2xl font-bold text-green-600">
+                    <CardContent class="p-4">
+                        <p
+                            class="mb-3 text-xs font-medium text-muted-foreground"
+                        >
+                            Revenue
+                        </p>
+                        <p class="text-2xl font-bold">
                             {{ formatPrice(stats.revenue) }}
                         </p>
                     </CardContent>
                 </Card>
             </div>
 
-            <!-- Table card -->
-            <Card>
-                <CardHeader class="pb-3">
-                    <div
-                        class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
-                    >
-                        <CardTitle class="flex items-center gap-2">
-                            <ListOrdered
-                                class="h-4 w-4 text-muted-foreground"
-                            />
-                            All Orders
-                        </CardTitle>
-                        <Button size="sm" variant="ghost" @click="resetFilters">
-                            <RefreshCcw class="mr-1.5 h-4 w-4" /> Reset
-                        </Button>
-                    </div>
-                </CardHeader>
-
-                <CardContent class="space-y-4">
-                    <!-- Filters -->
-                    <div class="flex flex-wrap gap-2">
-                        <div class="relative min-w-48 flex-1">
-                            <Search
-                                class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                placeholder="Search reference, shop, owner, email..."
-                                class="pl-8"
-                                @keyup.enter="applyFilters"
-                            />
-                        </div>
-
-                        <Select
-                            v-model="status"
-                            @update:model-value="applyFilters"
-                        >
-                            <SelectTrigger class="w-36">
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="paid">Paid</SelectItem>
-                                <SelectItem value="approved"
-                                    >Approved</SelectItem
-                                >
-                                <SelectItem value="rejected"
-                                    >Rejected</SelectItem
-                                >
-                                <SelectItem value="pending">Pending</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Select
-                            v-model="plan"
-                            @update:model-value="applyFilters"
-                        >
-                            <SelectTrigger class="w-36">
-                                <SelectValue placeholder="Plan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Plans</SelectItem>
-                                <SelectItem value="Basic">Basic</SelectItem>
-                                <SelectItem value="Standard"
-                                    >Standard</SelectItem
-                                >
-                                <SelectItem value="Premium">Premium</SelectItem>
-                            </SelectContent>
-                        </Select>
-
+            <!-- Orders table -->
+            <CardContent class="space-y-4">
+                <div class="flex flex-wrap items-center gap-2 pt-6">
+                    <div class="relative min-w-48 flex-1">
+                        <Search
+                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
+                        />
                         <Input
-                            v-model="date"
-                            type="date"
-                            class="w-40"
-                            @change="applyFilters"
+                            v-model="search"
+                            placeholder="Search reference, shop, owner, email..."
+                            class="pl-8"
+                            @keyup.enter="applyFilters"
                         />
                     </div>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
+                        @click="resetFilters"
+                    >
+                        <RefreshCcw class="mr-1.5 h-4 w-4" />
+                        Reset
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                        @click="exportCsv"
+                    >
+                        <Download class="mr-1.5 h-4 w-4" />
+                        Export CSV
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                        :disabled="importing"
+                        @click="chooseCsvFile"
+                    >
+                        <Upload class="mr-1.5 h-4 w-4" />
+                        {{ importing ? 'Importing...' : 'Import CSV' }}
+                    </Button>
+                    <input
+                        ref="importInput"
+                        type="file"
+                        accept=".csv,text/csv"
+                        class="hidden"
+                        @change="importCsv"
+                    />
+                </div>
 
-                    <!-- Table -->
-                    <div class="overflow-visible rounded-lg border">
-                        <table class="w-full text-sm">
+                <!-- Table -->
+                <div class="overflow-hidden rounded-lg border">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[1470px] text-sm">
                             <thead>
                                 <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
+                                    class="h-[92px] border-b bg-muted text-xs text-muted-foreground"
                                 >
                                     <th class="px-4 py-3 text-left font-medium">
                                         Transaction Reference
                                     </th>
                                     <th class="px-4 py-3 text-left font-medium">
-                                        Shop
+                                        <button
+                                            type="button"
+                                            class="sortable-column"
+                                            :aria-label="`Sort shops ${sortBy === 'shop' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
+                                            @click="toggleSort('shop')"
+                                        >
+                                            <span>Shop</span>
+                                            <ArrowUp
+                                                v-if="
+                                                    sortBy === 'shop' &&
+                                                    sortDirection === 'asc'
+                                                "
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowDown
+                                                v-else-if="sortBy === 'shop'"
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowUpDown
+                                                v-else
+                                                class="h-3.5 w-3.5 opacity-60"
+                                            />
+                                        </button>
                                     </th>
                                     <th class="px-4 py-3 text-left font-medium">
-                                        Owner
+                                        <button
+                                            type="button"
+                                            class="sortable-column"
+                                            :aria-label="`Sort owners ${sortBy === 'owner' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
+                                            @click="toggleSort('owner')"
+                                        >
+                                            <span>Owner</span>
+                                            <ArrowUp
+                                                v-if="
+                                                    sortBy === 'owner' &&
+                                                    sortDirection === 'asc'
+                                                "
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowDown
+                                                v-else-if="sortBy === 'owner'"
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowUpDown
+                                                v-else
+                                                class="h-3.5 w-3.5 opacity-60"
+                                            />
+                                        </button>
                                     </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Plan
+                                    <th class="px-3 py-2 text-left font-medium">
+                                        <div class="column-filter">
+                                            <span>Plan</span>
+                                            <select
+                                                v-model="plan"
+                                                class="column-filter-input"
+                                                aria-label="Filter by plan"
+                                                @change="applyFilters"
+                                            >
+                                                <option value="">
+                                                    All plans
+                                                </option>
+                                                <option value="Basic">
+                                                    Basic
+                                                </option>
+                                                <option value="Standard">
+                                                    Standard
+                                                </option>
+                                                <option value="Premium">
+                                                    Premium
+                                                </option>
+                                            </select>
+                                        </div>
                                     </th>
                                     <th class="px-4 py-3 text-left font-medium">
                                         Modules
@@ -525,16 +629,96 @@ const statusBadge: Record<string, string> = {
                                         Payment
                                     </th>
                                     <th class="px-4 py-3 text-left font-medium">
-                                        Total
+                                        <button
+                                            type="button"
+                                            class="sortable-column"
+                                            :aria-label="`Sort totals ${sortBy === 'total' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
+                                            @click="toggleSort('total')"
+                                        >
+                                            <span>Total</span>
+                                            <ArrowUp
+                                                v-if="
+                                                    sortBy === 'total' &&
+                                                    sortDirection === 'asc'
+                                                "
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowDown
+                                                v-else-if="sortBy === 'total'"
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowUpDown
+                                                v-else
+                                                class="h-3.5 w-3.5 opacity-60"
+                                            />
+                                        </button>
+                                    </th>
+                                    <th class="px-3 py-2 text-left font-medium">
+                                        <div class="column-filter">
+                                            <span>Status</span>
+                                            <select
+                                                v-model="status"
+                                                class="column-filter-input"
+                                                aria-label="Filter by order status"
+                                                @change="applyFilters"
+                                            >
+                                                <option value="">
+                                                    All statuses
+                                                </option>
+                                                <option value="paid">
+                                                    Paid
+                                                </option>
+                                                <option value="approved">
+                                                    Approved
+                                                </option>
+                                                <option value="pending">
+                                                    Pending
+                                                </option>
+                                                <option value="rejected">
+                                                    Rejected
+                                                </option>
+                                                <option value="failed">
+                                                    Failed
+                                                </option>
+                                            </select>
+                                        </div>
                                     </th>
                                     <th class="px-4 py-3 text-left font-medium">
-                                        Status
+                                        <button
+                                            type="button"
+                                            class="sortable-column"
+                                            :aria-label="`Sort expiration dates ${sortBy === 'expires' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
+                                            @click="toggleSort('expires')"
+                                        >
+                                            <span>Expires</span>
+                                            <ArrowUp
+                                                v-if="
+                                                    sortBy === 'expires' &&
+                                                    sortDirection === 'asc'
+                                                "
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowDown
+                                                v-else-if="sortBy === 'expires'"
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <ArrowUpDown
+                                                v-else
+                                                class="h-3.5 w-3.5 opacity-60"
+                                            />
+                                        </button>
                                     </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Expires
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Ordered
+                                    <th class="px-3 py-2 text-left font-medium">
+                                        <div class="column-filter">
+                                            <span>Ordered</span>
+                                            <input
+                                                v-model="date"
+                                                type="date"
+                                                class="column-filter-input"
+                                                aria-label="Filter by order date"
+                                                @change="applyFilters"
+                                            />
+                                        </div>
                                     </th>
                                     <th
                                         class="px-4 py-3 text-center font-medium"
@@ -547,7 +731,7 @@ const statusBadge: Record<string, string> = {
                                 <tr
                                     v-for="order in orders.data"
                                     :key="order.public_id"
-                                    class="border-b transition-colors last:border-0 hover:bg-muted/20"
+                                    class="h-16 border-b transition-colors last:border-0 even:bg-muted/35 hover:bg-muted/65"
                                 >
                                     <td
                                         class="px-4 py-3 font-mono text-xs text-muted-foreground"
@@ -757,9 +941,11 @@ const statusBadge: Record<string, string> = {
                                                 />
                                             </Button>
 
-                                            <!-- Approve (only for paid orders) -->
+                                            <!-- Approve (only while awaiting admin review) -->
                                             <Button
-                                                v-if="order.status === 'paid'"
+                                                v-if="
+                                                    order.status === 'pending'
+                                                "
                                                 size="icon"
                                                 variant="ghost"
                                                 title="Approve"
@@ -775,9 +961,11 @@ const statusBadge: Record<string, string> = {
                                                 />
                                             </Button>
 
-                                            <!-- Reject (only for paid orders) -->
+                                            <!-- Reject (only while awaiting admin review) -->
                                             <Button
-                                                v-if="order.status === 'paid'"
+                                                v-if="
+                                                    order.status === 'pending'
+                                                "
                                                 size="icon"
                                                 variant="ghost"
                                                 title="Reject"
@@ -809,29 +997,92 @@ const statusBadge: Record<string, string> = {
                     </div>
 
                     <!-- Pagination -->
-                    <div
-                        v-if="orders.last_page > 1"
-                        class="flex items-center justify-between pt-2"
-                    >
-                        <p class="text-xs text-muted-foreground">
-                            Showing {{ orders.data.length }} of
-                            {{ orders.total }} orders
-                        </p>
-                        <div class="flex gap-1">
-                            <Button
-                                v-for="link in orders.links"
-                                :key="link.label"
-                                size="sm"
-                                :variant="link.active ? 'default' : 'outline'"
-                                :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs"
-                                @click="link.url && router.visit(link.url)"
-                                v-html="link.label"
-                            />
+                    <div class="order-table-footer">
+                        <div class="pagination__rows-per-page">
+                            Rows per page:
+                            <div class="order-rows-selector" @click.stop>
+                                <button
+                                    type="button"
+                                    class="rows-input__wrapper"
+                                    aria-label="Select rows per page"
+                                    @click="
+                                        showRowsSelector = !showRowsSelector
+                                    "
+                                >
+                                    <span>{{ rowsPerPage }}</span>
+                                    <span class="triangle" />
+                                </button>
+                                <ul
+                                    class="select-items"
+                                    :class="{ show: showRowsSelector }"
+                                >
+                                    <li
+                                        v-for="size in [5, 10, 15, 20, 50, 100]"
+                                        :key="size"
+                                        :class="{
+                                            selected: size === rowsPerPage,
+                                        }"
+                                        @click="selectRowsPerPage(size)"
+                                    >
+                                        {{ size }}
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
+                        <div class="pagination__items-index">
+                            {{ orders.from ?? 0 }}–{{ orders.to ?? 0 }} out of
+                            {{ orders.total }}
+                        </div>
+                        <button
+                            type="button"
+                            class="previous-page__click-button"
+                            :class="{ 'first-page': !orders.links[0]?.url }"
+                            aria-label="Previous page"
+                            :disabled="!orders.links[0]?.url"
+                            @click="visitPage(orders.links[0]?.url ?? null)"
+                        >
+                            <span class="arrow arrow-right" />
+                        </button>
+                        <div class="buttons-pagination">
+                            <button
+                                v-for="link in orders.links.slice(1, -1)"
+                                :key="link.label"
+                                type="button"
+                                class="item"
+                                :class="{
+                                    button: link.url !== null,
+                                    active: link.active,
+                                    omission: link.url === null,
+                                }"
+                                :disabled="!link.url || link.active"
+                                @click="visitPage(link.url)"
+                            >
+                                {{ link.label }}
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            class="next-page__click-button"
+                            :class="{
+                                'last-page':
+                                    !orders.links[orders.links.length - 1]?.url,
+                            }"
+                            aria-label="Next page"
+                            :disabled="
+                                !orders.links[orders.links.length - 1]?.url
+                            "
+                            @click="
+                                visitPage(
+                                    orders.links[orders.links.length - 1]
+                                        ?.url ?? null,
+                                )
+                            "
+                        >
+                            <span class="arrow arrow-left" />
+                        </button>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </CardContent>
         </div>
 
         <!-- ── KYC Modal ──────────────────────────────────────────────────────── -->
@@ -1034,3 +1285,196 @@ const statusBadge: Record<string, string> = {
         </Teleport>
     </AdminLayout>
 </template>
+
+<style scoped>
+.sortable-column {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    font: inherit;
+}
+
+.sortable-column:hover {
+    color: var(--foreground);
+}
+
+.column-filter {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.column-filter-input {
+    height: 30px;
+    width: 100%;
+    min-width: 82px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    padding: 0 7px;
+    color: var(--foreground);
+    font-size: 11px;
+    font-weight: 400;
+    outline: none;
+}
+
+.column-filter-input:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+.order-table-footer {
+    box-sizing: border-box;
+    display: flex;
+    height: 56px;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-end;
+    border-top: 1px solid var(--border);
+    background: var(--background);
+    padding: 0 16px;
+    color: var(--muted-foreground);
+    font-size: 12px;
+}
+
+.pagination__rows-per-page {
+    display: flex;
+    align-items: center;
+}
+
+.pagination__items-index {
+    margin: 0 20px 0 10px;
+}
+
+.order-rows-selector {
+    position: relative;
+    display: inline-block;
+    min-width: 45px;
+    margin: 0 10px;
+}
+
+.rows-input__wrapper {
+    display: flex;
+    height: 20px;
+    width: 100%;
+    cursor: pointer;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--muted-foreground);
+    padding: 0 5px;
+}
+
+.triangle {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 6px solid var(--muted-foreground);
+    border-right: 6px solid transparent;
+    border-left: 6px solid transparent;
+}
+
+.select-items {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    z-index: 30;
+    display: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+    box-shadow:
+        0 5px 5px -3px rgb(0 0 0 / 20%),
+        0 8px 10px 1px rgb(0 0 0 / 14%),
+        0 3px 14px 2px rgb(0 0 0 / 12%);
+}
+
+.select-items.show {
+    display: block;
+}
+
+.select-items li {
+    cursor: pointer;
+    background: var(--background);
+    padding: 5px;
+}
+
+.select-items li.selected {
+    background: #42b883;
+    color: white;
+}
+
+.buttons-pagination {
+    display: flex;
+    box-sizing: border-box;
+    padding: 0;
+    border-radius: 4px;
+}
+
+.buttons-pagination .item {
+    box-sizing: border-box;
+    min-width: 21.6px;
+    cursor: pointer;
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    line-height: 21.6px;
+    text-align: center;
+}
+
+.buttons-pagination .item:first-of-type {
+    border-left: 1px solid var(--border);
+    border-radius: 4px 0 0 4px;
+}
+
+.buttons-pagination .item:last-of-type {
+    border-radius: 0 4px 4px 0;
+}
+
+.buttons-pagination .item.active {
+    border-color: #42b883;
+    background: #42b883;
+    color: white;
+}
+
+.buttons-pagination .item:disabled:not(.active) {
+    cursor: default;
+}
+
+.previous-page__click-button,
+.next-page__click-button {
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.previous-page__click-button .arrow,
+.next-page__click-button .arrow {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--foreground);
+    border-left: 2px solid var(--foreground);
+}
+
+.previous-page__click-button .arrow-right {
+    transform: rotate(135deg);
+}
+
+.next-page__click-button .arrow-left {
+    transform: rotate(-45deg);
+}
+
+.previous-page__click-button.first-page,
+.next-page__click-button.last-page {
+    cursor: not-allowed;
+}
+
+.previous-page__click-button.first-page .arrow,
+.next-page__click-button.last-page .arrow {
+    border-color: #e0e0e0;
+}
+</style>

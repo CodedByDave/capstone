@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Shop\Employee\UpdatePermissionRequest;
 use App\Http\Requests\Shop\Employee\ToggleEmployeeRoleRequest;
+use App\Http\Requests\Shop\Employee\UpdatePermissionRequest;
 use App\Models\Employee;
 use App\Models\EmployeeRole;
 use App\Models\Order;
@@ -25,10 +25,10 @@ class PermissionController extends Controller
 
     public function index()
     {
-        $shop  = $this->getShop();
+        $shop = $this->getShop();
 
         $order = Order::where('user_id', $shop->owner_id)
-            ->where('status', 'approved')
+            ->activeSubscription()
             ->with('modules')
             ->latest()
             ->first();
@@ -36,7 +36,7 @@ class PermissionController extends Controller
         $purchasedModules = $order
             ? $order->modules
                 ->map(fn ($m) => [
-                    'name'  => $m->name,
+                    'name' => $m->name,
                     'price' => $m->price,
                 ])
                 ->values()
@@ -47,8 +47,8 @@ class PermissionController extends Controller
             ->with('roles')
             ->get()
             ->map(fn ($e) => [
-                'id'    => $e->id,
-                'name'  => "{$e->first_name} {$e->last_name}",
+                'id' => $e->id,
+                'name' => "{$e->first_name} {$e->last_name}",
                 'email' => $e->email,
                 'roles' => $e->roles->pluck('role')->values()->toArray(),
             ])
@@ -68,16 +68,16 @@ class PermissionController extends Controller
         $roles = ShopRole::where('shop_id', $shop->id)
             ->get()
             ->map(fn ($r) => [
-                'name'      => $r->name,
+                'name' => $r->name,
                 'deletable' => ! $r->is_default,
             ])
             ->toArray();
 
         return Inertia::render('shop/permission/Index', [
             'purchasedModules' => $purchasedModules,
-            'staff'            => $staff,
-            'permissions'      => $permissions,
-            'roles'            => $roles,
+            'staff' => $staff,
+            'permissions' => $permissions,
+            'roles' => $roles,
         ]);
     }
 
@@ -88,9 +88,9 @@ class PermissionController extends Controller
 
         $existing = RolePermission::where([
             'shop_id' => $shop->id,
-            'role'    => $data['role'],
-            'module'  => $data['module'],
-            'action'  => $data['action'],
+            'role' => $data['role'],
+            'module' => $data['module'],
+            'action' => $data['action'],
         ])->first();
 
         if ($existing) {
@@ -99,9 +99,9 @@ class PermissionController extends Controller
         } else {
             RolePermission::create([
                 'shop_id' => $shop->id,
-                'role'    => $data['role'],
-                'module'  => $data['module'],
-                'action'  => $data['action'],
+                'role' => $data['role'],
+                'module' => $data['module'],
+                'action' => $data['action'],
             ]);
             $has = true;
         }
@@ -128,13 +128,13 @@ class PermissionController extends Controller
         }
 
         $role = ShopRole::create([
-            'shop_id'    => $shop->id,
-            'name'       => $name,
+            'shop_id' => $shop->id,
+            'name' => $name,
             'is_default' => false,
         ]);
 
         return response()->json([
-            'name'      => $role->name,
+            'name' => $role->name,
             'deletable' => true,
         ], 201);
     }
@@ -165,8 +165,8 @@ class PermissionController extends Controller
 
     public function toggleEmployeeRole(ToggleEmployeeRoleRequest $request, int $employeeId)
     {
-        $shop     = $this->getShop();
-        $data     = $request->validated();
+        $shop = $this->getShop();
+        $data = $request->validated();
 
         $employee = Employee::where('id', $employeeId)
             ->where('shop_id', $shop->id)
@@ -174,7 +174,7 @@ class PermissionController extends Controller
 
         $existing = EmployeeRole::where([
             'employee_id' => $employee->id,
-            'role'        => $data['role'],
+            'role' => $data['role'],
         ])->first();
 
         if ($existing) {
@@ -203,14 +203,14 @@ class PermissionController extends Controller
 
             EmployeeRole::create([
                 'employee_id' => $employee->id,
-                'role'        => $data['role'],
+                'role' => $data['role'],
             ]);
 
             $has = true;
         }
 
         return response()->json([
-            'has'   => $has,
+            'has' => $has,
             'roles' => $employee->roles()->pluck('role')->values()->toArray(),
         ]);
     }

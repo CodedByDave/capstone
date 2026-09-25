@@ -25,16 +25,16 @@ class OrderObserver
                 ->update(['status' => 'active']);
 
             Log::info('Shop activated, subscription expires at', [
-                'order_id'          => $order->id,
+                'order_id' => $order->id,
                 'subscription_plan' => $order->subscription_plan,
-                'expires_at'        => $expiresAt,
+                'expires_at' => $expiresAt,
             ]);
         }
 
         // When order becomes expired — deactivate the shop only if no other active paid/approved orders
         if ($order->wasChanged('status') && $order->status === 'expired') {
             $hasActivePaidOrder = Order::where('user_id', $order->user_id)
-                ->whereIn('status', ['paid', 'approved'])
+                ->activeSubscription()
                 ->where('expires_at', '>', now())
                 ->exists();
 
@@ -44,7 +44,7 @@ class OrderObserver
 
                 Log::info('Shop deactivated — no active paid orders remaining', [
                     'order_id' => $order->id,
-                    'user_id'  => $order->user_id,
+                    'user_id' => $order->user_id,
                 ]);
             }
         }

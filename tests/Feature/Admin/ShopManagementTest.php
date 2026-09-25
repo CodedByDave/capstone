@@ -52,10 +52,59 @@ test('super admin can view shop health and compliance data', function () {
         );
 });
 
-test('shop table supports server-side sorting and page sizing', function () {
+test('shop table supports sorting across management columns and page sizing', function () {
     $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
-    createManagedShop(['shop_name' => 'Zulu Laundry']);
-    createManagedShop(['shop_name' => 'Alpha Laundry']);
+    $zoe = User::factory()->create([
+        'role' => AccountType::ShopOwner->value,
+        'name' => 'Zoe Santos',
+    ]);
+    $ana = User::factory()->create([
+        'role' => AccountType::ShopOwner->value,
+        'name' => 'Ana Cruz',
+    ]);
+    createManagedShop([
+        'owner_id' => $zoe->id,
+        'shop_name' => 'Alpha Laundry',
+        'status' => 'active',
+        'last_activity_at' => now(),
+    ]);
+    createManagedShop([
+        'owner_id' => $ana->id,
+        'shop_name' => 'Zulu Laundry',
+        'status' => 'disabled',
+        'bir_expiry_date' => now()->subDay(),
+        'last_activity_at' => now()->subDays(40),
+    ]);
+    Order::create([
+        'user_id' => $zoe->id,
+        'shop_name' => 'Alpha Laundry',
+        'owner_name' => $zoe->name,
+        'email' => $zoe->email,
+        'phone' => '09171234567',
+        'municipality' => 'Manila',
+        'barangay' => 'Test Barangay',
+        'postal_code' => '1000',
+        'plan_name' => 'Standard',
+        'billing_months' => 12,
+        'total_price' => 12000,
+        'status' => 'paid',
+        'expires_at' => now()->addYear(),
+    ]);
+    Order::create([
+        'user_id' => $ana->id,
+        'shop_name' => 'Zulu Laundry',
+        'owner_name' => $ana->name,
+        'email' => $ana->email,
+        'phone' => '09171234567',
+        'municipality' => 'Manila',
+        'barangay' => 'Test Barangay',
+        'postal_code' => '1000',
+        'plan_name' => 'Premium',
+        'billing_months' => 12,
+        'total_price' => 18000,
+        'status' => 'paid',
+        'expires_at' => now()->addYear(),
+    ]);
 
     $this->actingAs($admin)
         ->get(route('shop.index', [
@@ -71,9 +120,31 @@ test('shop table supports server-side sorting and page sizing', function () {
             ->where('filters.sort_by', 'shop_name')
             ->where('filters.sort_direction', 'asc')
         );
+
+    $expectedFirstShop = [
+        'owner' => 'Zulu Laundry',
+        'health_status' => 'Zulu Laundry',
+        'compliance_status' => 'Alpha Laundry',
+        'subscription' => 'Zulu Laundry',
+        'last_activity_at' => 'Zulu Laundry',
+        'status' => 'Alpha Laundry',
+    ];
+
+    foreach ($expectedFirstShop as $sortBy => $shopName) {
+        $this->actingAs($admin)
+            ->get(route('shop.index', [
+                'sort_by' => $sortBy,
+                'sort_direction' => 'asc',
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shops.data.0.shop_name', $shopName)
+                ->where('filters.sort_by', $sortBy)
+            );
+    }
 });
 
-test('approving an order syncs permit dates and keeps an optional sanitary permit compliant', function () {
+test('approval allows payment but activation and permit sync wait until payment', function () {
     $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
     $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
     $expiry = now()->addYear()->toDateString();
@@ -102,6 +173,19 @@ test('approving an order syncs permit dates and keeps an optional sanitary permi
     $this->actingAs($admin)
         ->post(route('admin.orders.approve', $order->public_id))
         ->assertRedirect();
+
+    expect($order->fresh()->status)->toBe('approved');
+    $this->assertDatabaseMissing('shops', ['owner_id' => $owner->id]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.orders.approve', $order->public_id))
+        ->assertStatus(409);
+
+    $order->update([
+        'status' => 'paid',
+        'expires_at' => now()->addMonths($order->billing_months),
+    ]);
+    app(\App\Services\OrderService::class)->syncApprovedShop($order);
 
     $this->assertDatabaseHas('shops', [
         'owner_id' => $owner->id,

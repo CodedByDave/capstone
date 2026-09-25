@@ -15,6 +15,9 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ArchiveRestore,
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
     Download,
     Eye,
     FileClock,
@@ -80,9 +83,12 @@ onMounted(() => {
         | { type: string; message: string }
         | undefined;
     if (!flash) return;
-    flash.type === 'error'
-        ? toast.error(flash.message)
-        : toast.success(flash.message);
+    if (flash.type === 'error') {
+        toast.error(flash.message);
+        return;
+    }
+
+    toast.success(flash.message);
 });
 
 const search = ref(props.filters.search ?? '');
@@ -95,16 +101,24 @@ const tableLoading = ref(false);
 const importing = ref(false);
 const importInput = ref<HTMLInputElement | null>(null);
 
+type AuditSortColumn =
+    | 'name'
+    | 'email'
+    | 'category'
+    | 'module'
+    | 'event'
+    | 'occurred_at';
+
 const headers: Header[] = [
     { text: '', value: 'selection', width: 48 },
-    { text: 'User', value: 'name', width: 185, sortable: true },
-    { text: 'Email', value: 'email', width: 210, sortable: true },
+    { text: 'User', value: 'name', width: 185 },
+    { text: 'Email', value: 'email', width: 210 },
     { text: 'Role', value: 'role', width: 125 },
-    { text: 'Type', value: 'category', width: 150, sortable: true },
-    { text: 'Module', value: 'module', width: 155, sortable: true },
-    { text: 'Event', value: 'event', width: 135, sortable: true },
+    { text: 'Type', value: 'category', width: 150 },
+    { text: 'Module', value: 'module', width: 155 },
+    { text: 'Event', value: 'event', width: 135 },
     { text: 'Context', value: 'context', width: 230 },
-    { text: 'Date & Time', value: 'occurred_at', width: 190, sortable: true },
+    { text: 'Date & Time', value: 'occurred_at', width: 190 },
     { text: 'Actions', value: 'actions', width: 105 },
 ];
 
@@ -114,6 +128,23 @@ const serverOptions = ref<ServerOptions>({
     sortBy: props.filters.sort_by ?? 'occurred_at',
     sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
 });
+
+function toggleSort(column: AuditSortColumn) {
+    if (serverOptions.value.sortBy === column) {
+        serverOptions.value.sortType =
+            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
+        return;
+    }
+
+    serverOptions.value.sortBy = column;
+    serverOptions.value.sortType = 'asc';
+}
+
+function sortIcon(column: AuditSortColumn) {
+    if (serverOptions.value.sortBy !== column) return ArrowUpDown;
+
+    return serverOptions.value.sortType === 'asc' ? ArrowUp : ArrowDown;
+}
 
 function queryParams() {
     return {
@@ -537,6 +568,44 @@ const tableItems = computed(() =>
                             />
                         </template>
 
+                        <template #header-name="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort users ${serverOptions.sortBy === 'name' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('name')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('name')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !== 'name',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
+                        <template #header-email="{ text }">
+                            <button
+                                type="button"
+                                class="sortable-column"
+                                :aria-label="`Sort emails ${serverOptions.sortBy === 'email' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                @click="toggleSort('email')"
+                            >
+                                <span>{{ text }}</span>
+                                <component
+                                    :is="sortIcon('email')"
+                                    class="h-3.5 w-3.5"
+                                    :class="{
+                                        'opacity-60':
+                                            serverOptions.sortBy !== 'email',
+                                    }"
+                                />
+                            </button>
+                        </template>
+
                         <template #header-role="{ text }">
                             <div class="column-filter">
                                 <span>{{ text }}</span>
@@ -559,7 +628,23 @@ const tableItems = computed(() =>
 
                         <template #header-category="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort types ${serverOptions.sortBy === 'category' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('category')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('category')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'category',
+                                        }"
+                                    />
+                                </button>
                                 <select
                                     v-model="category"
                                     class="column-filter-input"
@@ -579,7 +664,23 @@ const tableItems = computed(() =>
 
                         <template #header-module="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort modules ${serverOptions.sortBy === 'module' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('module')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('module')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'module',
+                                        }"
+                                    />
+                                </button>
                                 <select
                                     v-model="module"
                                     class="column-filter-input"
@@ -603,7 +704,23 @@ const tableItems = computed(() =>
 
                         <template #header-event="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort events ${serverOptions.sortBy === 'event' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('event')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('event')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'event',
+                                        }"
+                                    />
+                                </button>
                                 <input
                                     v-model="event"
                                     class="column-filter-input"
@@ -616,7 +733,23 @@ const tableItems = computed(() =>
 
                         <template #header-occurred_at="{ text }">
                             <div class="column-filter">
-                                <span>{{ text }}</span>
+                                <button
+                                    type="button"
+                                    class="sortable-column"
+                                    :aria-label="`Sort dates ${serverOptions.sortBy === 'occurred_at' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                                    @click="toggleSort('occurred_at')"
+                                >
+                                    <span>{{ text }}</span>
+                                    <component
+                                        :is="sortIcon('occurred_at')"
+                                        class="h-3.5 w-3.5"
+                                        :class="{
+                                            'opacity-60':
+                                                serverOptions.sortBy !==
+                                                'occurred_at',
+                                        }"
+                                    />
+                                </button>
                                 <input
                                     v-model="date"
                                     type="date"
@@ -801,6 +934,18 @@ const tableItems = computed(() =>
     --easy-table-footer-padding: 0 16px;
     --easy-table-buttons-pagination-border: 1px solid var(--border);
     width: 100%;
+}
+
+.sortable-column {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    font: inherit;
+}
+
+.sortable-column:hover {
+    color: var(--foreground);
 }
 
 .column-filter {

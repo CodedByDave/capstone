@@ -5,15 +5,19 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\Payment;
 use App\Models\Shop;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Repositories\AdminDashboardRepository;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AnalyticsController extends Controller
 {
+    public function __construct(
+        private readonly AdminDashboardRepository $dashboardRepository,
+    ) {}
+
     public function index()
     {
         $now = Carbon::now();
@@ -40,9 +44,9 @@ class AnalyticsController extends Controller
             : ($customersThisMonth > 0 ? 100 : 0);
 
         // Total Revenue (paid payments)
-        $totalRevenue = Payment::where('status', 'paid')->sum('amount');
-        $revenueThisMonth = Payment::where('status', 'paid')->where('paid_at', '>=', $thisMonth)->sum('amount');
-        $revenueLastMonth = Payment::where('status', 'paid')->whereBetween('paid_at', [$lastMonth, $lastMonthEnd])->sum('amount');
+        $totalRevenue = $this->dashboardRepository->totalRevenue();
+        $revenueThisMonth = $this->dashboardRepository->revenueBetween($thisMonth, $now);
+        $revenueLastMonth = $this->dashboardRepository->revenueBetween($lastMonth, $lastMonthEnd);
         $revenueChange = $revenueLastMonth > 0
             ? round((($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100, 1)
             : ($revenueThisMonth > 0 ? 100 : 0);
@@ -55,57 +59,48 @@ class AnalyticsController extends Controller
             ? round((($ordersThisMonth - $ordersLastMonth) / $ordersLastMonth) * 100, 1)
             : ($ordersThisMonth > 0 ? 100 : 0);
 
+        $months = collect(range(0, 11))->map(
+            fn (int $offset) => $now->copy()->subMonths(11 - $offset)->startOfMonth(),
+        );
+        $reportStart = $months->first()->copy()->startOfMonth();
+        $reportEnd = $months->last()->copy()->endOfMonth();
+
         // Revenue Chart last 12 months
-        $revenueChart = Payment::where('status', 'paid')
-            ->where('paid_at', '>=', $now->copy()->subMonths(11)->startOfMonth())
-            ->select(
-                DB::raw("DATE_FORMAT(paid_at, '%b') as month"),
-                DB::raw("DATE_FORMAT(paid_at, '%Y-%m') as month_key"),
-                DB::raw('SUM(amount) as amount')
-            )
-            ->groupBy('month_key', 'month')
-            ->orderBy('month_key')
-            ->get()
-            ->map(fn ($r) => [
-                'month' => $r->month,
-                'amount' => (float) $r->amount,
-            ])
-            ->values();
+        $revenueByMonth = $this->dashboardRepository
+            ->revenueByMonthBetween($reportStart, $reportEnd);
+        $revenueChart = $months->map(fn (Carbon $month) => [
+            'month' => $month->format('M'),
+            'amount' => (float) ($revenueByMonth[$month->format('Y-m')] ?? 0),
+        ]);
 
         // Orders Chart last 12 months
 
-        $ordersChart = Order::where('status', 'paid')
-            ->where('created_at', '>=', $now->copy()->subMonths(11)->startOfMonth())
+        $ordersByMonth = Order::where('status', 'paid')
+            ->whereBetween('created_at', [$reportStart, $reportEnd])
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '%b') as month"),
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month_key"),
                 DB::raw('COUNT(*) as count')
             )
-            ->groupBy('month_key', 'month')
-            ->orderBy('month_key')
-            ->get()
-            ->map(fn ($r) => [
-                'month' => $r->month,
-                'count' => (int) $r->count,
-            ])
-            ->values();
+            ->groupBy('month_key')
+            ->pluck('count', 'month_key');
+        $ordersChart = $months->map(fn (Carbon $month) => [
+            'month' => $month->format('M'),
+            'count' => (int) ($ordersByMonth[$month->format('Y-m')] ?? 0),
+        ]);
 
         // Registration Chart last 12 months
-        $registrationsChart = User::where('role', AccountType::Customer->value)
-            ->where('created_at', '>=', $now->copy()->subMonths(11)->startOfMonth())
+        $registrationsByMonth = User::where('role', AccountType::Customer->value)
+            ->whereBetween('created_at', [$reportStart, $reportEnd])
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '%b') as month"),
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month_key"),
                 DB::raw('COUNT(*) as count')
             )
-            ->groupBy('month_key', 'month')
-            ->orderBy('month_key')
-            ->get()
-            ->map(fn ($r) => [
-                'month' => $r->month,
-                'count' => (int) $r->count,
-            ])
-            ->values();
+            ->groupBy('month_key')
+            ->pluck('count', 'month_key');
+        $registrationsChart = $months->map(fn (Carbon $month) => [
+            'month' => $month->format('M'),
+            'count' => (int) ($registrationsByMonth[$month->format('Y-m')] ?? 0),
+        ]);
 
         // Top Performer shop
         $topShops = Shop::select(

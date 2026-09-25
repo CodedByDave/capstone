@@ -9,13 +9,6 @@ import {
     ArrowLeft,
     Check,
     CreditCard,
-    ListOrdered,
-    Mail,
-    MapPin,
-    Package,
-    Phone,
-    Store,
-    User,
     X,
 } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -25,7 +18,6 @@ import { ref } from 'vue';
 interface Module {
     id: number;
     name: string;
-    price: string;
 }
 
 interface Payment {
@@ -50,7 +42,7 @@ interface Order {
     municipality: string;
     barangay: string;
     postal_code: string;
-    subscription_plan: string | null;
+    plan_name: string | null;
     total_price: string;
     status: string;
     rejection_reason: string | null;
@@ -92,16 +84,34 @@ function formatPrice(p: string | number) {
     return `₱${Number(p).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 }
 
+function moduleBadgeClass(name: string) {
+    const moduleName = name.toLowerCase();
+
+    if (moduleName.includes('hrm')) {
+        return 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/70';
+    }
+    if (moduleName.includes('operations')) {
+        return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/70';
+    }
+    if (moduleName.includes('inventory')) {
+        return 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:hover:bg-amber-900/70';
+    }
+    if (moduleName.includes('finance')) {
+        return 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:hover:bg-violet-900/70';
+    }
+
+    return 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:hover:bg-rose-900/70';
+}
+
 function isExpired(expiresAt: string | null) {
     if (!expiresAt) return false;
     return new Date(expiresAt) < new Date();
 }
 
 const planStyles: Record<string, { label: string; cls: string }> = {
-    monthly: { label: 'Monthly', cls: 'bg-blue-100 text-blue-700' },
-    quarterly: { label: 'Quarterly', cls: 'bg-purple-100 text-purple-700' },
-    semi_annually: { label: 'Semi-Annual', cls: 'bg-green-100 text-green-700' },
-    annually: { label: 'Annually', cls: 'bg-amber-100 text-amber-700' },
+    Basic: { label: 'Basic', cls: 'bg-blue-100 text-blue-700' },
+    Standard: { label: 'Standard', cls: 'bg-violet-100 text-violet-700' },
+    Premium: { label: 'Premium', cls: 'bg-amber-100 text-amber-700' },
 };
 
 function getPlanBadge(p: string | null) {
@@ -186,7 +196,6 @@ function submitReject() {
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="flex items-center gap-2 text-lg font-semibold">
-                        <ListOrdered class="h-5 w-5 text-muted-foreground" />
                         {{ order.transaction_reference }}
                     </h2>
                     <p class="mt-0.5 text-sm text-muted-foreground">
@@ -283,7 +292,6 @@ function submitReject() {
                             <CardTitle
                                 class="flex items-center gap-2 text-sm font-semibold"
                             >
-                                <Store class="h-4 w-4 text-muted-foreground" />
                                 Shop Information
                             </CardTitle>
                         </CardHeader>
@@ -301,9 +309,6 @@ function submitReject() {
                                 <p
                                     class="flex items-center gap-1.5 font-medium"
                                 >
-                                    <User
-                                        class="h-3.5 w-3.5 text-muted-foreground"
-                                    />
                                     {{ order.owner_name }}
                                 </p>
                             </div>
@@ -314,9 +319,6 @@ function submitReject() {
                                 <p
                                     class="flex items-center gap-1.5 font-medium"
                                 >
-                                    <Mail
-                                        class="h-3.5 w-3.5 text-muted-foreground"
-                                    />
                                     {{ order.email }}
                                 </p>
                             </div>
@@ -327,9 +329,6 @@ function submitReject() {
                                 <p
                                     class="flex items-center gap-1.5 font-medium"
                                 >
-                                    <Phone
-                                        class="h-3.5 w-3.5 text-muted-foreground"
-                                    />
                                     {{ order.phone }}
                                 </p>
                             </div>
@@ -340,9 +339,6 @@ function submitReject() {
                                 <p
                                     class="flex items-center gap-1.5 font-medium"
                                 >
-                                    <MapPin
-                                        class="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                                    />
                                     {{
                                         [
                                             order.block_street,
@@ -362,79 +358,12 @@ function submitReject() {
                         </CardContent>
                     </Card>
 
-                    <!-- Modules -->
-                    <Card>
-                        <CardHeader class="pb-3">
-                            <CardTitle
-                                class="flex items-center gap-2 text-sm font-semibold"
-                            >
-                                <Package
-                                    class="h-4 w-4 text-muted-foreground"
-                                />
-                                Subscribed Modules
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="overflow-hidden rounded-lg border">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr
-                                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                        >
-                                            <th
-                                                class="px-4 py-2.5 text-left font-medium"
-                                            >
-                                                Module
-                                            </th>
-                                            <th
-                                                class="px-4 py-2.5 text-right font-medium"
-                                            >
-                                                Price
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="mod in order.modules"
-                                            :key="mod.id"
-                                            class="border-b last:border-0"
-                                        >
-                                            <td class="px-4 py-2.5">
-                                                {{ mod.name }}
-                                            </td>
-                                            <td
-                                                class="px-4 py-2.5 text-right font-medium"
-                                            >
-                                                {{ formatPrice(mod.price) }}
-                                            </td>
-                                        </tr>
-                                        <tr class="bg-muted/20 font-semibold">
-                                            <td class="px-4 py-2.5">Total</td>
-                                            <td
-                                                class="px-4 py-2.5 text-right text-green-600"
-                                            >
-                                                {{
-                                                    formatPrice(
-                                                        order.total_price,
-                                                    )
-                                                }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </CardContent>
-                    </Card>
-
                     <!-- Payment history -->
                     <Card>
                         <CardHeader class="pb-3">
                             <CardTitle
                                 class="flex items-center gap-2 text-sm font-semibold"
                             >
-                                <CreditCard
-                                    class="h-4 w-4 text-muted-foreground"
-                                />
                                 Payment History
                             </CardTitle>
                         </CardHeader>
@@ -552,15 +481,9 @@ function submitReject() {
                                 <p class="text-muted-foreground">Plan</p>
                                 <span
                                     class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                    :class="
-                                        getPlanBadge(order.subscription_plan)
-                                            .cls
-                                    "
+                                    :class="getPlanBadge(order.plan_name).cls"
                                 >
-                                    {{
-                                        getPlanBadge(order.subscription_plan)
-                                            .label
-                                    }}
+                                    {{ getPlanBadge(order.plan_name).label }}
                                 </span>
                             </div>
                             <div class="flex items-center justify-between">
@@ -611,6 +534,35 @@ function submitReject() {
                                         This subscription has expired
                                     </span>
                                 </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Modules -->
+                    <Card>
+                        <CardHeader class="px-4 pt-4 pb-2">
+                            <CardTitle
+                                class="flex items-center gap-2 text-sm font-semibold"
+                            >
+                                Subscribed Modules
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="px-4 pb-4">
+                            <div class="flex flex-wrap gap-2">
+                                <span
+                                    v-for="mod in order.modules"
+                                    :key="mod.id"
+                                    class="rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors"
+                                    :class="moduleBadgeClass(mod.name)"
+                                >
+                                    {{ mod.name }}
+                                </span>
+                                <span
+                                    v-if="order.modules.length === 0"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    No subscribed modules
+                                </span>
                             </div>
                         </CardContent>
                     </Card>

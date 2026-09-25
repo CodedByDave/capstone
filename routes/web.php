@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\IssueReportController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PlatformRoleController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DriverPageController;
@@ -71,6 +73,13 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/settings/profile', fn () => Inertia::render('Admin/Settings'))->name('admin.settings');
+    Route::prefix('settings/roles-permissions')->name('admin.settings.roles-permissions.')->group(function () {
+        Route::get('/', [PlatformRoleController::class, 'index'])->name('index');
+        Route::post('/roles', [PlatformRoleController::class, 'store'])->name('store');
+        Route::patch('/roles/{platformRole}/permissions', [PlatformRoleController::class, 'togglePermission'])
+            ->name('permissions.toggle');
+        Route::delete('/roles/{platformRole}', [PlatformRoleController::class, 'destroy'])->name('destroy');
+    });
 
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
     Route::get('/shop/export', [ShopController::class, 'exportCsv'])->name('shop.export');
@@ -129,6 +138,8 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
     // Orders
     Route::prefix('orders')->name('admin.orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/export', [OrderController::class, 'exportCsv'])->name('export');
+        Route::post('/import', [OrderController::class, 'importCsv'])->name('import');
         Route::get('/{order:public_id}', [OrderController::class, 'show'])->name('show');
         Route::post('/{order:public_id}/approve', [OrderController::class, 'approve'])->name('approve');
         Route::post('/{order:public_id}/reject', [OrderController::class, 'reject'])->name('reject');
@@ -138,11 +149,20 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
+
+    Route::prefix('issue-reports')->name('admin.issue-reports.')->group(function () {
+        Route::get('/', [IssueReportController::class, 'index'])->name('index');
+        Route::get('/export', [IssueReportController::class, 'exportCsv'])->name('export');
+        Route::post('/import', [IssueReportController::class, 'importCsv'])->name('import');
+        Route::patch('/{issueReport:public_id}', [IssueReportController::class, 'update'])->name('update');
+    });
 });
 
 // ── Shop owner routes ──────────────────────────────────────────────────────────
 
-Route::prefix('shop')->middleware(['auth', 'verified', 'role:owner', 'shop.activity'])->group(function () {
+Route::prefix('shop')->middleware([
+    'auth', 'verified', 'role:owner', 'owner.platform-permissions', 'shop.activity',
+])->group(function () {
 
     Route::get('/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
     Route::get('/data', [ShopDataController::class, 'getShop'])->name('shop.data');

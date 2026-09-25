@@ -15,6 +15,7 @@ import { Link } from '@inertiajs/vue3';
 import {
     ChartNoAxesCombined,
     CircleAlert,
+    KeyRound,
     LayoutGrid,
     ListOrdered,
     ShieldCheck,
@@ -62,9 +63,14 @@ const mainNavItems: NavItem[] = [
         icon: ChartNoAxesCombined,
     },
     {
-        title: 'Feedbacks',
-        href: '/admin/feedbacks',
+        title: 'Issue Reports',
+        href: '/admin/issue-reports',
         icon: CircleAlert,
+    },
+    {
+        title: 'Roles & Permissions',
+        href: '/admin/settings/roles-permissions',
+        icon: KeyRound,
     },
 ];
 </script>

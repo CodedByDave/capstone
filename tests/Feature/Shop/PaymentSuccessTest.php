@@ -2,7 +2,9 @@
 
 use App\Enums\AccountType;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\User;
+use App\Services\PaymongoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -58,6 +60,55 @@ test('each order receives a unique transaction reference', function () {
     expect($firstOrder->transaction_reference)
         ->toStartWith('TXN-')
         ->not->toBe($secondOrder->transaction_reference);
+});
+
+test('verified payment activates the order and shop without a second approval', function () {
+    $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
+    $order = createPlanOrderFor($owner);
+
+    Payment::create([
+        'order_id' => $order->id,
+        'payment_method' => 'gcash',
+        'amount' => $order->total_price,
+        'status' => 'pending',
+        'paymongo_session_id' => 'cs_test_paid',
+    ]);
+
+    $paymongo = $this->mock(PaymongoService::class);
+    $paymongo->shouldReceive('getCheckoutSession')
+        ->once()
+        ->with('cs_test_paid')
+        ->andReturn([
+            'data' => [
+                'attributes' => [
+                    'status' => 'completed',
+                    'payment_intent' => ['attributes' => ['status' => 'succeeded']],
+                ],
+            ],
+        ]);
+    $paymongo->shouldReceive('extractPaymentId')
+        ->once()
+        ->andReturn('pay_test_paid');
+
+    $this->actingAs($owner)
+        ->get(route('payment.success', ['order' => $order->public_id]))
+        ->assertOk();
+
+    $order->refresh();
+
+    expect($order->status)->toBe('paid')
+        ->and($order->expires_at)->not->toBeNull();
+
+    $this->assertDatabaseHas('payments', [
+        'order_id' => $order->id,
+        'status' => 'paid',
+        'paymongo_payment_id' => 'pay_test_paid',
+    ]);
+    $this->assertDatabaseHas('shops', [
+        'owner_id' => $owner->id,
+        'shop_name' => $order->shop_name,
+        'status' => 'active',
+    ]);
 });
 
 test('an owner cannot view another owners payment receipt', function () {

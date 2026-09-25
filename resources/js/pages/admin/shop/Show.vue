@@ -20,7 +20,6 @@ import {
     ArrowLeft,
     ExternalLink,
     FileText,
-    Package,
     Pencil,
     ShieldCheck,
     ShieldOff,
@@ -745,8 +744,7 @@ function enableShop() {
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Package class="h-5 w-5" />
-                        Subscription
+                        Subscription Details
                     </CardTitle>
                 </CardHeader>
                 <CardContent v-if="shop.latest_order" class="space-y-5">

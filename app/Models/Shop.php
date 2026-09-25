@@ -73,7 +73,7 @@ class Shop extends Model
     public function latestOrder(): HasOne
     {
         return $this->hasOne(Order::class, 'user_id', 'owner_id')
-            ->whereIn('status', ['paid', 'approved'])
+            ->activeSubscription()
             ->latestOfMany();
     }
 
