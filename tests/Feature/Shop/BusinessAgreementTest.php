@@ -117,7 +117,7 @@ test('starting a trial records the signed agreement atomically', function () {
 
     $this->actingAs($owner)
         ->post(route('trial.start'), trialPayload(agreementSignature()))
-        ->assertRedirect(route('shop.dashboard'));
+        ->assertRedirect(route('shop.setup.show'));
 
     $order = $owner->orders()->where('is_trial', true)->firstOrFail();
 
@@ -130,7 +130,7 @@ test('starting a trial records the signed agreement atomically', function () {
         'signature_method' => 'uploaded',
     ]);
     expect($shop->fresh()->agreementAcceptances()->firstOrFail()->signature_path)->not->toBeNull();
-    expect($shop->fresh()->status)->toBe('active');
+    expect($shop->fresh()->status)->toBe('pending_setup');
 });
 
 test('a paid application cannot bypass agreement acceptance', function () {

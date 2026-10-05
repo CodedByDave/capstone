@@ -16,23 +16,23 @@ class UserDashboardController extends Controller
     public function index(Request $request): Response
     {
         $user = auth()->user();
-        $lat  = $request->float('lat') ?: null;
-        $lng  = $request->float('lng') ?: null;
+        $lat = $request->float('lat') ?: null;
+        $lng = $request->float('lng') ?: null;
 
         $recentOrders = ShopOrder::where('user_id', $user->id)
             ->with(['shop:id,shop_name,municipality,barangay', 'service:id,service_name'])
             ->latest()
             ->take(3)
             ->get()
-            ->map(fn($o) => [
-                'id'             => $o->id,
-                'order_number'   => $o->order_number,
-                'shop_name'      => $o->shop->shop_name ?? '—',
-                'service_name'   => $o->service->service_name ?? '—',
-                'status'         => $o->status,
+            ->map(fn ($o) => [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'shop_name' => $o->shop->shop_name ?? '—',
+                'service_name' => $o->service->service_name ?? '—',
+                'status' => $o->status,
                 'payment_status' => $o->payment_status,
-                'total_amount'   => (float) $o->total_amount,
-                'created_at'     => $o->created_at->toDateString(),
+                'total_amount' => (float) $o->total_amount,
+                'created_at' => $o->created_at->toDateString(),
             ]);
 
         // Nearby shops (only when coordinates are provided)
@@ -41,19 +41,19 @@ class UserDashboardController extends Controller
             $nearbyShops = Shop::where('status', 'active')
                 ->whereNotNull('latitude')
                 ->whereNotNull('longitude')
-                ->with(['services' => fn($q) => $q->where('is_active', true)
+                ->with(['services' => fn ($q) => $q->where('is_active', true)
                     ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg')])
                 ->select('id', 'shop_name', 'branch_name', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo')
                 ->get()
                 ->map(function ($shop) use ($lat, $lng) {
                     return [
-                        'id'             => $shop->id,
-                        'shop_name'      => $shop->shop_name,
-                        'branch_name'    => $shop->branch_name,
-                        'municipality'   => $shop->municipality,
-                        'barangay'       => $shop->barangay,
-                        'cover_photo'    => $this->coverUrl($shop->cover_photo),
-                        'distance_km'    => $this->haversine($lat, $lng, $shop->latitude, $shop->longitude),
+                        'id' => $shop->id,
+                        'shop_name' => $shop->shop_name,
+                        'branch_name' => $shop->branch_name,
+                        'municipality' => $shop->municipality,
+                        'barangay' => $shop->barangay,
+                        'cover_photo' => $this->coverUrl($shop->cover_photo),
+                        'distance_km' => $this->haversine($lat, $lng, $shop->latitude, $shop->longitude),
                         'starting_price' => $shop->services->whereNotNull('price_per_kg')->min('price_per_kg'),
                         'services_count' => $shop->services->count(),
                     ];
@@ -66,10 +66,10 @@ class UserDashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'recentOrders' => $recentOrders,
-            'totalOrders'  => ShopOrder::where('user_id', $user->id)->count(),
-            'nearbyShops'  => $nearbyShops,
-            'userLat'      => $lat,
-            'userLng'      => $lng,
+            'totalOrders' => ShopOrder::where('user_id', $user->id)->count(),
+            'nearbyShops' => $nearbyShops,
+            'userLat' => $lat,
+            'userLng' => $lng,
         ]);
     }
 
@@ -77,13 +77,13 @@ class UserDashboardController extends Controller
 
     public function shops(Request $request): Response
     {
-        $lat    = $request->float('lat');
-        $lng    = $request->float('lng');
+        $lat = $request->float('lat');
+        $lng = $request->float('lng');
         $search = $request->string('search')->trim()->toString();
 
         $query = Shop::where('status', 'active')
             ->with([
-                'services' => fn($q) => $q->where('is_active', true)
+                'services' => fn ($q) => $q->where('is_active', true)
                     ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price', 'bundle_weight_kg'),
             ])
             ->select('id', 'shop_name', 'branch_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo');
@@ -98,8 +98,8 @@ class UserDashboardController extends Controller
 
         $shops = $query->get()->map(function ($shop) use ($lat, $lng) {
             $data = $shop->toArray();
-            $data['cover_photo']  = $this->coverUrl($shop->cover_photo);
-            $data['distance_km']  = ($lat && $lng && $shop->latitude && $shop->longitude)
+            $data['cover_photo'] = $this->coverUrl($shop->cover_photo);
+            $data['distance_km'] = ($lat && $lng && $shop->latitude && $shop->longitude)
                 ? $this->haversine($lat, $lng, $shop->latitude, $shop->longitude)
                 : null;
 
@@ -115,16 +115,16 @@ class UserDashboardController extends Controller
 
         // Sort by distance when available, else by name
         if ($lat && $lng) {
-            $shops = $shops->sortBy(fn($s) => $s['distance_km'] ?? 9999)->values();
+            $shops = $shops->sortBy(fn ($s) => $s['distance_km'] ?? 9999)->values();
         } else {
             $shops = $shops->sortBy('shop_name')->values();
         }
 
         return Inertia::render('user/Shops', [
-            'shops'   => $shops,
+            'shops' => $shops,
             'userLat' => $lat ?: null,
             'userLng' => $lng ?: null,
-            'search'  => $search,
+            'search' => $search,
         ]);
     }
 
@@ -148,7 +148,7 @@ class UserDashboardController extends Controller
                 'price_per_kg',
                 'bundle_weight_kg',
                 'bundle_price',
-                'estimated_hours'
+                'estimated_hours',
             ]);
 
         $distance = ($lat && $lng && $shop->latitude && $shop->longitude)
@@ -157,23 +157,25 @@ class UserDashboardController extends Controller
 
         return Inertia::render('user/ShopDetail', [
             'shop' => [
-                'id'           => $shop->id,
-                'shop_name'    => $shop->shop_name,
-                'branch_name'  => $shop->branch_name,
-                'phone'        => $shop->phone,
+                'id' => $shop->id,
+                'shop_name' => $shop->shop_name,
+                'branch_name' => $shop->branch_name,
+                'phone' => $shop->phone,
                 'block_street' => $shop->block_street,
                 'municipality' => $shop->municipality,
-                'barangay'     => $shop->barangay,
-                'latitude'     => $shop->latitude,
-                'longitude'    => $shop->longitude,
-                'cover_photo'  => $this->coverUrl($shop->cover_photo),
-                'gcash_qr'     => $this->qrUrl($shop->gcash_qr),
-                'maya_qr'      => $this->qrUrl($shop->maya_qr),
-                'distance_km'  => $distance,
+                'barangay' => $shop->barangay,
+                'latitude' => $shop->latitude,
+                'longitude' => $shop->longitude,
+                'cover_photo' => $this->coverUrl($shop->cover_photo),
+                'gcash_qr' => $this->qrUrl($shop->gcash_qr),
+                'maya_qr' => $this->qrUrl($shop->maya_qr),
+                'distance_km' => $distance,
+                'offers_pickup' => (bool) $shop->offers_pickup,
+                'offers_delivery' => (bool) $shop->offers_delivery,
             ],
             'services' => $services,
-            'userLat'  => $lat ?: null,
-            'userLng'  => $lng ?: null,
+            'userLat' => $lat ?: null,
+            'userLng' => $lng ?: null,
         ]);
     }
 
@@ -181,13 +183,19 @@ class UserDashboardController extends Controller
 
     private function qrUrl(?string $value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
+
         return str_starts_with($value, 'http') ? $value : \Storage::disk('public')->url($value);
     }
 
     private function coverUrl(?string $value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
+
         return str_starts_with($value, 'http') ? $value : \Storage::disk('public')->url($value);
     }
 
@@ -195,10 +203,10 @@ class UserDashboardController extends Controller
 
     private function haversine(float $lat1, float $lng1, float $lat2, float $lng2): float
     {
-        $R    = 6371;
+        $R = 6371;
         $dLat = deg2rad($lat2 - $lat1);
         $dLng = deg2rad($lng2 - $lng1);
-        $a    = sin($dLat / 2) ** 2
+        $a = sin($dLat / 2) ** 2
             + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
 
         return round($R * 2 * atan2(sqrt($a), sqrt(1 - $a)), 1);

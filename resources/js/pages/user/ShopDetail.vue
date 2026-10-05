@@ -58,6 +58,8 @@ interface ShopInfo {
     latitude: number | null;
     longitude: number | null;
     distance_km: number | null;
+    offers_pickup: boolean;
+    offers_delivery: boolean;
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -470,8 +472,12 @@ function goBack() {
                             >How will you drop-off?
                             <span class="text-red-500">*</span></label
                         >
-                        <div class="grid grid-cols-2 gap-2">
+                        <div
+                            class="grid gap-2"
+                            :class="shop.offers_pickup ? 'grid-cols-2' : 'grid-cols-1'"
+                        >
                             <button
+                                v-if="shop.offers_pickup"
                                 type="button"
                                 class="rounded-xl border-2 py-2.5 text-sm font-medium transition"
                                 :class="

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
     MapPin, Navigation, Loader2, ExternalLink, Trash2,
-    Building2, CheckCircle2, AlertTriangle, ImagePlus, Upload,
+    Building2, CheckCircle2, AlertTriangle, ImagePlus, Upload, SlidersHorizontal,
 } from 'lucide-vue-next'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -193,6 +193,23 @@ function clearGeo() {
                             </p>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader class="pb-3">
+                    <div class="flex items-center gap-2">
+                        <SlidersHorizontal class="h-4 w-4 text-muted-foreground" />
+                        <CardTitle class="text-sm">Operations Setup</CardTitle>
+                    </div>
+                    <CardDescription class="text-xs">
+                        Control branch management, customer pickup, and delivery without deleting historical records.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button variant="outline" size="sm" @click="router.visit('/shop/setup')">
+                        Review Operations Setup
+                    </Button>
                 </CardContent>
             </Card>
 

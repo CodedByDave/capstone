@@ -754,12 +754,12 @@ const downloadReceipt = async () => {
                                 }}
                             </Button>
                             <Link
-                                :href="'/shop/dashboard'"
+                                :href="'/shop/setup'"
                                 @click="unlockDashboard"
                             >
                                 <Button variant="outline" class="w-full">
                                     <Home class="mr-2 h-4 w-4" />
-                                    Return to Dashboard
+                                    Set Up Your Shop
                                 </Button>
                             </Link>
                         </CardContent>
@@ -782,10 +782,10 @@ const downloadReceipt = async () => {
                         Your payment was successful. Check your email for
                         details.
                     </p>
-                    <Link :href="'/shop/dashboard'" @click="unlockDashboard">
+                    <Link :href="'/shop/setup'" @click="unlockDashboard">
                         <Button>
                             <Home class="mr-2 h-4 w-4" />
-                            Return to Dashboard
+                            Set Up Your Shop
                         </Button>
                     </Link>
                 </CardContent>

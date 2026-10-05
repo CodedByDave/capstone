@@ -50,9 +50,9 @@ class TrialController extends Controller
                 $request->userAgent(),
             );
 
-            return redirect()->route('shop.dashboard')->with('toast', [
+            return redirect()->route('shop.setup.show')->with('toast', [
                 'type' => 'success',
-                'message' => 'Your '.TrialService::TRIAL_DAYS.'-day free trial has started! Explore the platform.',
+                'message' => 'Your '.TrialService::TRIAL_DAYS.'-day free trial has started. Configure how your shop operates.',
             ]);
         } catch (OrderSubmissionException $exception) {
             return back()->with('toast', [

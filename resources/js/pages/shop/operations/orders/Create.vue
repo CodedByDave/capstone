@@ -49,6 +49,12 @@ const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const base = computed(() =>
     isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
 );
+const availablePickupTypes = computed(() =>
+    props.pickupTypes.filter(
+        (type) =>
+            type !== 'pickup' || page.props.shopCapabilities?.offers_pickup,
+    ),
+);
 
 // ─── Form ──────────────────────────────────────────
 
@@ -301,7 +307,7 @@ const submit = () => {
                                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             >
                                 <option
-                                    v-for="t in pickupTypes"
+                                    v-for="t in availablePickupTypes"
                                     :key="t"
                                     :value="t"
                                 >

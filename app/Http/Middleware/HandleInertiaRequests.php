@@ -8,6 +8,7 @@ use App\Models\RolePermission;
 use App\Models\Shop;
 use App\Services\NotificationService;
 use App\Services\PlatformRoleService;
+use App\Services\ShopSetupService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -19,6 +20,7 @@ class HandleInertiaRequests extends Middleware
     public function __construct(
         private readonly PlatformRoleService $platformRoles,
         private readonly NotificationService $notifications,
+        private readonly ShopSetupService $shopSetup,
     ) {}
 
     public function version(Request $request): ?string
@@ -64,6 +66,10 @@ class HandleInertiaRequests extends Middleware
 
             'platformPermissions' => fn () => $this->platformRoles
                 ->permissionsForRole($request->user()?->role),
+
+            'shopCapabilities' => fn () => $request->user()
+                ? $this->shopSetup->capabilitiesForUser($request->user())
+                : null,
 
             'order' => function () use ($request) {
                 $user = $request->user();

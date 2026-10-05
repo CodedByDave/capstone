@@ -63,7 +63,7 @@ test('each order receives a unique transaction reference', function () {
         ->not->toBe($secondOrder->transaction_reference);
 });
 
-test('verified payment activates the order and shop without a second approval', function () {
+test('verified payment activates the order and holds the shop for setup', function () {
     $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
     $order = createPlanOrderFor($owner);
 
@@ -108,7 +108,7 @@ test('verified payment activates the order and shop without a second approval', 
     $this->assertDatabaseHas('shops', [
         'owner_id' => $owner->id,
         'shop_name' => $order->shop_name,
-        'status' => 'active',
+        'status' => 'pending_setup',
     ]);
 });
 

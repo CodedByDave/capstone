@@ -25,8 +25,22 @@ class ShopRepository extends Repository
         return Shop::query()->where('owner_id', $ownerId)->first();
     }
 
+    public function findShopById(int $shopId): ?Shop
+    {
+        return Shop::query()->find($shopId);
+    }
+
+    public function updateSetup(Shop $shop, array $data): Shop
+    {
+        $shop->update($data);
+
+        return $shop->refresh();
+    }
+
     public function syncFromApprovedOrder(Order $order): Shop
     {
+        $existingShop = Shop::withTrashed()->where('owner_id', $order->user_id)->first();
+
         return Shop::withTrashed()->updateOrCreate(
             ['owner_id' => $order->user_id],
             [
@@ -40,7 +54,7 @@ class ShopRepository extends Repository
                 'dti_expiry_date' => $order->dti_expiry_date,
                 'mayors_expiry_date' => $order->mayors_expiry_date,
                 'sanitary_expiry_date' => $order->sanitary_expiry_date,
-                'status' => 'active',
+                'status' => $existingShop?->setup_completed_at ? 'active' : 'pending_setup',
                 'deleted_at' => null,
             ],
         );
@@ -48,6 +62,8 @@ class ShopRepository extends Repository
 
     public function activateForTrial(int $ownerId, array $data): Shop
     {
+        $existingShop = Shop::withTrashed()->where('owner_id', $ownerId)->first();
+
         return Shop::withTrashed()->updateOrCreate(
             ['owner_id' => $ownerId],
             [
@@ -57,7 +73,7 @@ class ShopRepository extends Repository
                 'municipality' => $data['municipality'],
                 'barangay' => $data['barangay'],
                 'postal_code' => $data['postal_code'],
-                'status' => 'active',
+                'status' => $existingShop?->setup_completed_at ? 'active' : 'pending_setup',
                 'deleted_at' => null,
             ],
         );

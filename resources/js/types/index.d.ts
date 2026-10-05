@@ -41,6 +41,13 @@ export interface OrderModule {
     price: number;
 }
 
+export interface ShopCapabilities {
+    setup_completed: boolean;
+    multiple_locations: boolean;
+    offers_pickup: boolean;
+    offers_delivery: boolean;
+}
+
 export type AppPageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
@@ -49,6 +56,7 @@ export type AppPageProps<
     auth: Auth;
     sidebarOpen: boolean;
     order: Order | null;
+    shopCapabilities?: ShopCapabilities | null;
 };
 
 export type BreadcrumbItemType = BreadcrumbItem;

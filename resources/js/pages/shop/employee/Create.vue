@@ -46,6 +46,9 @@ const { branch_names, shop, roles, employment_types, pay_bases } = defineProps<{
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
+const hasMultipleLocations = computed(
+    () => Boolean((page.props as any).shopCapabilities?.multiple_locations),
+);
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -377,7 +380,7 @@ function submit() {
                         </p>
                     </div>
 
-                    <div class="space-y-1">
+                    <div v-if="hasMultipleLocations" class="space-y-1">
                         <label class="text-sm font-medium">Branch</label>
                         <template v-if="branch_names.length > 0">
                             <Select v-model="form.branch_name">

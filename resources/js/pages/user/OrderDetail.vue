@@ -45,6 +45,7 @@ interface Order {
     created_at: string
     completed_at: string | null
     shop_has_paymongo: boolean
+    shop_offers_delivery: boolean
     shop: Shop | null
     service_name: string
     delivery: Delivery | null
@@ -94,6 +95,7 @@ function formatAddress(shop: Shop) {
 }
 
 const canRequestDelivery = computed(() =>
+    props.order.shop_offers_delivery &&
     props.order.status === 'completed' &&
     props.order.payment_status === 'paid' &&
     !props.order.delivery

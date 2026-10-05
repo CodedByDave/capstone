@@ -35,6 +35,7 @@ use App\Http\Controllers\Shop\ShopDashboardController;
 use App\Http\Controllers\Shop\ShopDataController;
 use App\Http\Controllers\Shop\ShopNotificationController;
 use App\Http\Controllers\Shop\ShopSettingsController;
+use App\Http\Controllers\Shop\ShopSetupController;
 use App\Http\Controllers\Shop\TrialController;
 use App\Http\Controllers\Shop\UpgradeController;
 use App\Http\Controllers\Staff\SelfAttendanceController;
@@ -176,10 +177,14 @@ Route::prefix('shop')->middleware([
     Route::post('/agreement', [BusinessAgreementController::class, 'accept'])->name('shop.agreement.accept');
     Route::get('/notifications', [ShopNotificationController::class, 'index'])->name('shop.notifications.index');
     Route::post('/notifications/read-all', [ShopNotificationController::class, 'markAllRead'])->name('shop.notifications.read-all');
+    Route::middleware('business.agreement')->group(function () {
+        Route::get('/setup', [ShopSetupController::class, 'show'])->name('shop.setup.show');
+        Route::put('/setup', [ShopSetupController::class, 'store'])->name('shop.setup.store');
+    });
 });
 
 Route::prefix('shop')->middleware([
-    'auth', 'verified', 'role:owner', 'owner.platform-permissions', 'shop.activity', 'business.agreement',
+    'auth', 'verified', 'role:owner', 'shop.activity', 'business.agreement', 'shop.setup', 'owner.platform-permissions',
 ])->group(function () {
 
     Route::get('/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
@@ -226,15 +231,17 @@ Route::prefix('shop')->middleware([
     Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
 
     // ── Branch ────────────────────────────────────────────────────────────────
-    Route::get('/branch/create', [BranchController::class, 'create'])->name('branch.create');
-    Route::get('/branch/archive', [BranchController::class, 'archive'])->name('branch.archive');
-    Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('branch.restore');
+    Route::middleware('shop.capability:branches')->group(function () {
+        Route::get('/branch/create', [BranchController::class, 'create'])->name('branch.create');
+        Route::get('/branch/archive', [BranchController::class, 'archive'])->name('branch.archive');
+        Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('branch.restore');
 
-    Route::get('/branch', [BranchController::class, 'index'])->name('branch.index');
-    Route::post('/branch', [BranchController::class, 'store'])->name('branch.store');
-    Route::get('/branch/{branch}/edit', [BranchController::class, 'edit'])->name('branch.edit');
-    Route::put('/branch/{branch}', [BranchController::class, 'update'])->name('branch.update');
-    Route::delete('/branch/{branch}', [BranchController::class, 'destroy'])->name('branch.destroy');
+        Route::get('/branch', [BranchController::class, 'index'])->name('branch.index');
+        Route::post('/branch', [BranchController::class, 'store'])->name('branch.store');
+        Route::get('/branch/{branch}/edit', [BranchController::class, 'edit'])->name('branch.edit');
+        Route::put('/branch/{branch}', [BranchController::class, 'update'])->name('branch.update');
+        Route::delete('/branch/{branch}', [BranchController::class, 'destroy'])->name('branch.destroy');
+    });
 
     // ── Roles & Permissions ───────────────────────────────────────────────────
     Route::get('/permission', [PermissionController::class, 'index'])->name('shop.permission');
@@ -280,7 +287,9 @@ Route::prefix('shop')->middleware([
     // Operations Routes
     Route::get('operations/orders', [ShopOrderController::class, 'index'])->name('shop.orders.index');
     Route::get('operations/orders/create', [ShopOrderController::class, 'create'])->name('shop.orders.create');
-    Route::post('operations/orders', [ShopOrderController::class, 'store'])->name('shop.orders.store');
+    Route::post('operations/orders', [ShopOrderController::class, 'store'])
+        ->middleware('shop.capability:pickup')
+        ->name('shop.orders.store');
     Route::get('operations/orders/{order}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
     Route::get('operations/orders/{order}/edit', [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
     Route::put('operations/orders/{order}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
@@ -354,14 +363,16 @@ Route::prefix('shop')->middleware([
     Route::post('/settings/paymongo', [ShopSettingsController::class, 'updatePaymongo'])->name('shop.settings.paymongo');
 
     // ── Logistics ─────────────────────────────────────────────────────────────
-    Route::get('/logistics', [LogisticsController::class, 'index'])->name('shop.logistics');
-    Route::post('/logistics', [LogisticsController::class, 'store'])->name('shop.logistics.store');
-    Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
-    Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
-    Route::get('/logistics/riders', [LogisticsController::class, 'riders'])->name('shop.logistics.riders');
-    Route::post('/logistics/riders', [LogisticsController::class, 'storeRider'])->name('shop.logistics.riders.store');
-    Route::patch('/logistics/riders/{rider}', [LogisticsController::class, 'updateRider'])->name('shop.logistics.riders.update');
-    Route::delete('/logistics/riders/{rider}', [LogisticsController::class, 'destroyRider'])->name('shop.logistics.riders.destroy');
+    Route::middleware('shop.capability:delivery')->group(function () {
+        Route::get('/logistics', [LogisticsController::class, 'index'])->name('shop.logistics');
+        Route::post('/logistics', [LogisticsController::class, 'store'])->name('shop.logistics.store');
+        Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
+        Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
+        Route::get('/logistics/riders', [LogisticsController::class, 'riders'])->name('shop.logistics.riders');
+        Route::post('/logistics/riders', [LogisticsController::class, 'storeRider'])->name('shop.logistics.riders.store');
+        Route::patch('/logistics/riders/{rider}', [LogisticsController::class, 'updateRider'])->name('shop.logistics.riders.update');
+        Route::delete('/logistics/riders/{rider}', [LogisticsController::class, 'destroyRider'])->name('shop.logistics.riders.destroy');
+    });
 });
 
 // ── Staff routes ───────────────────────────────────────────────────────────────
@@ -388,7 +399,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/employee/import', [EmployeeController::class, 'import'])->name('staff.employee.import');
     });
     // Dynamic (wildcard) routes after all static ones
-    Route::middleware('permission:HRM,view')->group(function () {
+    Route::middleware(['permission:HRM,view', 'shop.capability:branches'])->group(function () {
         Route::get('/employee', [EmployeeController::class, 'index'])->name('staff.employee.index');
         Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
     });
@@ -412,16 +423,16 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::middleware('permission:HRM,view')->group(function () {
         Route::get('/branch', [BranchController::class, 'index'])->name('staff.branch.index');
     });
-    Route::middleware('permission:HRM,create')->group(function () {
+    Route::middleware(['permission:HRM,create', 'shop.capability:branches'])->group(function () {
         Route::get('/branch/create', [BranchController::class, 'create'])->name('staff.branch.create');
         Route::post('/branch', [BranchController::class, 'store'])->name('staff.branch.store');
     });
-    Route::middleware('permission:HRM,archive')->group(function () {
+    Route::middleware(['permission:HRM,archive', 'shop.capability:branches'])->group(function () {
         Route::get('/branch/archive', [BranchController::class, 'archive'])->name('staff.branch.archive');
         Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('staff.branch.restore');
         Route::delete('/branch/{branch}', [BranchController::class, 'destroy'])->name('staff.branch.destroy');
     });
-    Route::middleware('permission:HRM,update')->group(function () {
+    Route::middleware(['permission:HRM,update', 'shop.capability:branches'])->group(function () {
         Route::get('/branch/{branch}/edit', [BranchController::class, 'edit'])->name('staff.branch.edit');
         Route::put('/branch/{branch}', [BranchController::class, 'update'])->name('staff.branch.update');
     });
@@ -510,7 +521,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     // Static /create routes MUST come before /{order} wildcard to avoid 404s
     Route::middleware('permission:Operations,create')->group(function () {
         Route::get('/operations/orders/create', [ShopOrderController::class, 'create'])->name('staff.orders.create');
-        Route::post('/operations/orders', [ShopOrderController::class, 'store'])->name('staff.orders.store');
+        Route::post('/operations/orders', [ShopOrderController::class, 'store'])
+            ->middleware('shop.capability:pickup')
+            ->name('staff.orders.store');
         Route::get('/operations/services/create', [ShopServiceController::class, 'create'])->name('staff.services.create');
         Route::post('/operations/services', [ShopServiceController::class, 'store'])->name('staff.services.store');
         Route::get('/operations/promos/create', [PromotionController::class, 'create'])->name('staff.promotions.create');
@@ -600,8 +613,12 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/shops/{shop}', [UserDashboardController::class, 'showShop'])->name('shops.show');
     Route::get('/orders', [UserOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [UserOrderController::class, 'show'])->name('orders.show');
-    Route::post('/orders', [UserOrderController::class, 'store'])->name('orders.store');
-    Route::post('/orders/{order}/request-delivery', [UserOrderController::class, 'requestDelivery'])->name('orders.request-delivery');
+    Route::post('/orders', [UserOrderController::class, 'store'])
+        ->middleware('shop.capability:pickup')
+        ->name('orders.store');
+    Route::post('/orders/{order}/request-delivery', [UserOrderController::class, 'requestDelivery'])
+        ->middleware('shop.capability:delivery')
+        ->name('orders.request-delivery');
     Route::post('/orders/{order}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/pay-online', [UserPaymentController::class, 'pay'])->name('orders.pay-online');
     Route::get('/orders/{order}/payment/success', [UserPaymentController::class, 'success'])->name('orders.payment.success');

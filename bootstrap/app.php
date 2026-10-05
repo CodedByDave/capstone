@@ -3,7 +3,9 @@
 use App\Exceptions\ProtectedPlatformRoleException;
 use App\Http\Middleware\CheckShopSubscription;
 use App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted;
+use App\Http\Middleware\EnsureShopCapability;
 use App\Http\Middleware\EnsureShopNotArchived;
+use App\Http\Middleware\EnsureShopSetupComplete;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Providers\AuthServiceProvider;
@@ -39,6 +41,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'owner.platform-permissions' => \App\Http\Middleware\EnforceOwnerPlatformPermissions::class,
             'shop.activity' => \App\Http\Middleware\TrackShopActivity::class,
             'business.agreement' => EnsureCurrentBusinessAgreementAccepted::class,
+            'shop.setup' => EnsureShopSetupComplete::class,
+            'shop.capability' => EnsureShopCapability::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

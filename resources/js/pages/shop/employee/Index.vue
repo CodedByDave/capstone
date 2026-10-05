@@ -139,11 +139,6 @@ const sortableHeaders: {
     { text: 'Modified By', value: 'updater_name', width: 175 },
 ];
 
-const headers: Header[] = [
-    ...sortableHeaders,
-    { text: 'Actions', value: 'actions', width: 145 },
-];
-
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const { employees, stats, branch_names, employment_types, pay_bases, filters } =
@@ -166,6 +161,16 @@ const { employees, stats, branch_names, employment_types, pay_bases, filters } =
 const page = usePage<AppPageProps>();
 const user = computed(() => page.props.auth.user);
 const isOwner = computed(() => user.value.role === 'owner');
+const hasMultipleLocations = computed(() =>
+    Boolean((page.props as any).shopCapabilities?.multiple_locations),
+);
+const headers = computed<Header[]>(() => [
+    ...sortableHeaders.filter(
+        (header) =>
+            hasMultipleLocations.value || header.value !== 'branch_name',
+    ),
+    { text: 'Actions', value: 'actions', width: 145 },
+]);
 const permissions = computed(() => user.value.permissions ?? {});
 
 function can(module: string, action: string): boolean {
@@ -606,6 +611,7 @@ async function submitImport() {
                     </Select>
 
                     <Select
+                        v-if="hasMultipleLocations"
                         v-model="branchFilter"
                         @update:model-value="filterTable"
                     >

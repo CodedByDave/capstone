@@ -51,6 +51,16 @@ class OrderRepository extends Repository
             ->exists();
     }
 
+    public function findActiveSubscriptionForUser(int $userId): ?Order
+    {
+        return Order::query()
+            ->where('user_id', $userId)
+            ->activeSubscription()
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->first();
+    }
+
     public function countRejectedApplications(int $userId): int
     {
         return Order::query()

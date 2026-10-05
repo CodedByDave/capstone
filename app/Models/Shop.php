@@ -14,6 +14,10 @@ class Shop extends Model
 {
     use SoftDeletes;
 
+    public const LOCATION_SINGLE = 'single';
+
+    public const LOCATION_MULTIPLE = 'multiple';
+
     protected static function booted(): void
     {
         static::creating(function (Shop $shop) {
@@ -26,6 +30,10 @@ class Shop extends Model
         'owner_id',
         'shop_name',
         'branch_name',
+        'location_mode',
+        'offers_pickup',
+        'offers_delivery',
+        'setup_completed_at',
         'phone',
         'block_street',
         'municipality',
@@ -53,6 +61,9 @@ class Shop extends Model
 
     protected $casts = [
         'phone' => PhilippinePhoneCast::class,
+        'offers_pickup' => 'boolean',
+        'offers_delivery' => 'boolean',
+        'setup_completed_at' => 'datetime',
         'deduct_sss' => 'boolean',
         'deduct_philhealth' => 'boolean',
         'deduct_pagibig' => 'boolean',

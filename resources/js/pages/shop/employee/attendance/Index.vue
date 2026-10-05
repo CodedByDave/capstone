@@ -73,6 +73,9 @@ const props = defineProps<{
 const page = usePage<AppPageProps>()
 const selectedBranch = ref(props.filters?.branch ?? 'all')
 const isOwner = computed(() => page.props.auth.user.role === 'owner')
+const hasMultipleLocations = computed(() =>
+    Boolean((page.props as any).shopCapabilities?.multiple_locations),
+)
 const baseRoute = computed(() => isOwner.value ? '/shop' : '/staff')
 
 onMounted(() => {
@@ -358,7 +361,7 @@ function saveModal() {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <Select v-model="selectedBranch">
+                    <Select v-if="hasMultipleLocations" v-model="selectedBranch">
                         <SelectTrigger class="h-9 w-44 text-sm">
                             <SelectValue placeholder="All Branches" />
                         </SelectTrigger>
@@ -412,7 +415,7 @@ function saveModal() {
                                         <p class="font-medium truncate">{{ emp.first_name }} {{ emp.last_name }}</p>
                                         <p class="text-xs text-muted-foreground">
                                             {{ emp.position }}
-                                            <span v-if="emp.branch_name" class="ml-1 text-muted-foreground/60">
+                                            <span v-if="hasMultipleLocations && emp.branch_name" class="ml-1 text-muted-foreground/60">
                                                 · {{ emp.branch_name }}
                                             </span>
                                         </p>

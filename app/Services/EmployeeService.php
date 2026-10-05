@@ -36,6 +36,7 @@ class EmployeeService
     public function __construct(
         private readonly EmployeeRepository $employeeRepository,
         private readonly ActivityLogService $activityLogService,
+        private readonly ShopSetupService $shopSetupService,
     ) {}
 
     /* ─── READ ─────────────────────────── */
@@ -59,10 +60,11 @@ class EmployeeService
 
     public function indexData(Shop $shop, array $filters = []): array
     {
+        $usesBranches = $this->shopSetupService->shopSupports($shop->id, 'branches');
         $filters = [
             'search' => $filters['search'] ?? '',
             'status' => $filters['status'] ?? '',
-            'branch' => $filters['branch'] ?? '',
+            'branch' => $usesBranches ? ($filters['branch'] ?? '') : '',
             'employment_type' => $filters['employment_type'] ?? '',
             'sort_by' => $filters['sort_by'] ?? 'employee_id',
             'sort_direction' => $filters['sort_direction'] ?? 'asc',
@@ -80,9 +82,11 @@ class EmployeeService
                 $isOwner ? null : $user->id,
             ),
             'stats' => $this->employeeRepository->getStatsByShop($shop, $staffBranch),
-            'branch_names' => $staffBranch !== null
+            'branch_names' => ! $usesBranches
+                ? []
+                : ($staffBranch !== null
                 ? [$staffBranch]
-                : $this->employeeRepository->getBranchNames($shop),
+                : $this->employeeRepository->getBranchNames($shop)),
             'employment_types' => EmploymentType::options(),
             'pay_bases' => PayBasis::options(),
             'shop' => $shop,
@@ -99,6 +103,10 @@ class EmployeeService
 
     public function getBranchNames(Shop $shop): array
     {
+        if (! $this->shopSetupService->shopSupports($shop->id, 'branches')) {
+            return [];
+        }
+
         if (auth()->user()->role !== 'owner') {
             $branch = $this->getStaffBranch();
 
@@ -126,6 +134,10 @@ class EmployeeService
 
     public function createEmployee(Shop $shop, array $data): Employee
     {
+        if (! $this->shopSetupService->shopSupports($shop->id, 'branches')) {
+            $data['branch_name'] = null;
+        }
+
         return DB::transaction(function () use ($shop, $data) {
 
             // Always create a login account for every employee.
@@ -186,6 +198,10 @@ class EmployeeService
 
     public function updateEmployee(Employee $employee, array $data): Employee
     {
+        if (! $this->shopSetupService->shopSupports($employee->shop_id, 'branches')) {
+            $data['branch_name'] = null;
+        }
+
         $changes = $this->diffChanges($employee, $data);
 
         $updated = $this->employeeRepository->updateEmployee($employee, [

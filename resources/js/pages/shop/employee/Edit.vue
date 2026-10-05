@@ -76,6 +76,9 @@ const page = usePage<AppPageProps>();
 const user = computed(() => page.props.auth.user);
 const isOwner = computed(() => user.value.role === 'owner');
 const isStaff = computed(() => !isOwner.value);
+const hasMultipleLocations = computed(
+    () => Boolean((page.props as any).shopCapabilities?.multiple_locations),
+);
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
@@ -443,7 +446,10 @@ async function saveSchedule() {
                             {{ errors.employment_type }}
                         </p>
                     </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
+                    <div
+                        v-if="hasMultipleLocations"
+                        class="col-span-12 space-y-1 sm:col-span-3"
+                    >
                         <label class="text-sm font-medium">Branch</label>
                         <template v-if="branch_names.length > 0">
                             <Select v-model="form.branch_name">

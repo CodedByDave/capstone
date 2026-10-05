@@ -76,6 +76,7 @@ class UserOrderController extends Controller
                 'created_at' => $order->created_at->format('M d, Y'),
                 'completed_at' => $order->completed_at?->format('M d, Y'),
                 'shop_has_paymongo' => $order->shop?->hasPaymongo() ?? false,
+                'shop_offers_delivery' => (bool) ($order->shop?->offers_delivery ?? false),
                 'shop' => $order->shop ? [
                     'name' => $order->shop->shop_name,
                     'phone' => $order->shop->phone,
