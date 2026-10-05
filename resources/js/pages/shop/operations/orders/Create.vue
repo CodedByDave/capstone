@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
@@ -40,6 +41,7 @@ const props = defineProps<{
     services?: Service[];
     inventoryItems?: InventoryItem[];
     promotions?: Promotion[];
+    customerAgreement: { title: string; version: string; content: string; effective_at: string };
 }>();
 
 // ─── Base URL ──────────────────────────────────────
@@ -84,6 +86,8 @@ const form = useForm({
         quantity_used: number;
         unit: string;
     }[],
+    customer_agreement_version: props.customerAgreement.version,
+    customer_agreement_accepted: false,
 });
 
 // ─── Helpers ───────────────────────────────────────
@@ -906,6 +910,13 @@ const submit = () => {
                 </div>
 
                 <!-- ── Actions ───────────────────────────── -->
+                <CustomerServiceAgreement
+                    v-model="form.customer_agreement_accepted"
+                    :agreement="customerAgreement"
+                    confirmation-text="I confirm that the customer was shown this agreement and accepted its garment care, damage, refund, compensation, and claim terms before I created the order."
+                />
+                <p v-if="form.errors.customer_agreement_accepted" class="text-xs text-red-500">{{ form.errors.customer_agreement_accepted }}</p>
+
                 <div class="flex items-center justify-end gap-3 border-t pt-4">
                     <button
                         type="button"

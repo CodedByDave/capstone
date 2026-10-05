@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 import UserLayout from '@/layouts/user/UserLayout.vue'
+import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue'
 import {
     ArrowLeft, MapPin, Phone, WashingMachine, CreditCard,
     Package, Clock, CheckCircle2, Loader, Info, Truck, X, AlertTriangle,
@@ -53,7 +54,10 @@ interface Order {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const props = defineProps<{ order: Order }>()
+const props = defineProps<{
+    order: Order
+    customerAgreement: { title: string; version: string; content: string; accepted_at?: string; customer_name?: string } | null
+}>()
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -286,6 +290,8 @@ const deliveryStatusConfig = {
             </div>
 
             <!-- ── Shop info ──────────────────────────────────── -->
+            <CustomerServiceAgreement v-if="customerAgreement" :agreement="customerAgreement" readonly />
+
             <div v-if="order.shop" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-2.5">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Shop</p>
                 <p class="text-sm font-semibold text-gray-800">{{ order.shop.name }}</p>

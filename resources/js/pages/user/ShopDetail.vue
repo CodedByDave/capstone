@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -69,6 +70,7 @@ const props = defineProps<{
     services: ShopService[];
     userLat: number | null;
     userLng: number | null;
+    customerAgreement: { title: string; version: string; content: string; effective_at: string };
 }>();
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -122,12 +124,15 @@ const form = ref({
     payment_method: 'cash' as 'cash' | 'gcash' | 'maya',
     customer_address: '',
     special_instructions: '',
+    customer_agreement_version: props.customerAgreement.version,
+    customer_agreement_accepted: false,
 });
 
 function openOrder(service: ShopService) {
     selectedService.value = service;
     form.value.service_id = service.id;
     isOrderOpen.value = true;
+    form.value.customer_agreement_accepted = false;
 }
 
 function closeOrder() {
@@ -599,6 +604,9 @@ function goBack() {
                             placeholder="e.g. Separate whites, use fabric conditioner..."
                         />
                     </div>
+
+                    <CustomerServiceAgreement v-model="form.customer_agreement_accepted" :agreement="customerAgreement" />
+                    <p v-if="errors.customer_agreement_accepted" class="text-xs text-red-500">{{ errors.customer_agreement_accepted }}</p>
 
                     <!-- Disclaimer -->
                     <div

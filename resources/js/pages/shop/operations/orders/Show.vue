@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue'
+import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { computed, onMounted, ref } from 'vue'
 import { type AppPageProps } from '@/types'
@@ -50,6 +51,7 @@ const props = defineProps<{
     shopOrder: Order
     gcash_qr: string | null
     maya_qr:  string | null
+    customerAgreement: { title: string; version: string; content: string; accepted_at?: string; customer_name?: string } | null
 }>()
 
 const sending = ref(false)
@@ -326,6 +328,8 @@ const statusIcon = (s: string) => ({
                     </Card>
 
                     <!-- GCash / Maya Payment Request -->
+                    <CustomerServiceAgreement v-if="customerAgreement" :agreement="customerAgreement" readonly />
+
                     <Card v-if="isDigitalPayment">
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">

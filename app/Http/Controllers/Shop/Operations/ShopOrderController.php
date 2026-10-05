@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
 use App\Models\Employee;
+use App\Models\Inventory;
 use App\Models\Promotion;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
-use App\Models\Inventory;
 use App\Notifications\OrderNotification;
+use App\Services\CustomerAgreementService;
 use App\Services\ShopOrderService;
 use App\Traits\BranchScoped;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +24,10 @@ class ShopOrderController extends Controller
 {
     use BranchScoped;
 
-    public function __construct(protected ShopOrderService $service) {}
+    public function __construct(
+        protected ShopOrderService $service,
+        private readonly CustomerAgreementService $customerAgreementService,
+    ) {}
 
     private function getShopId(): int
     {
@@ -31,6 +35,7 @@ class ShopOrderController extends Controller
         if ($user->role === 'owner') {
             return $user->shop->id;
         }
+
         return Employee::where('user_id', $user->id)->value('shop_id');
     }
 
@@ -41,8 +46,8 @@ class ShopOrderController extends Controller
 
     public function index(Request $request): Response
     {
-        $shopId      = $this->getShopId();
-        $branch      = $this->getStaffBranch();
+        $shopId = $this->getShopId();
+        $branch = $this->getStaffBranch();
         $showTrashed = $request->boolean('archived');
 
         $orders = $this->service->getPaginatedOrders(
@@ -54,10 +59,10 @@ class ShopOrderController extends Controller
         );
 
         return Inertia::render('shop/operations/orders/Index', [
-            'orders'        => $orders,
+            'orders' => $orders,
             'statusSummary' => $this->service->getStatusSummary($shopId, $branch),
-            'filters'       => $request->only(['status', 'payment_status', 'search']),
-            'showArchived'  => $showTrashed,
+            'filters' => $request->only(['status', 'payment_status', 'search']),
+            'showArchived' => $showTrashed,
         ]);
     }
 
@@ -66,10 +71,10 @@ class ShopOrderController extends Controller
         $shopId = $this->getShopId();
 
         return Inertia::render('shop/operations/orders/Create', [
-            'shopId'         => $shopId,
-            'pickupTypes'    => ShopOrder::PICKUP_TYPES,
+            'shopId' => $shopId,
+            'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
-            'services'       => ShopService::where('shop_id', $shopId)
+            'services' => ShopService::where('shop_id', $shopId)
                 ->where('is_active', true)
                 ->orderBy('service_name')
                 ->get(),
@@ -82,20 +87,26 @@ class ShopOrderController extends Controller
                 ->valid()
                 ->orderBy('name')
                 ->get(['id', 'name', 'type', 'value', 'min_order_amount']),
+            'customerAgreement' => $this->customerAgreementService->agreementDataForShopId($shopId),
         ]);
     }
 
     public function store(StoreShopOrderRequest $request): RedirectResponse
     {
-        $order = $this->service->createOrder([
-            ...$request->validated(),
-            'shop_id'     => $this->getShopId(),
-            'branch_name' => $this->getStaffBranch(),
-        ]);
+        $order = $this->service->createOrder(
+            [
+                ...$request->validated(),
+                'shop_id' => $this->getShopId(),
+                'branch_name' => $this->getStaffBranch(),
+            ],
+            $request->user(),
+            $request->ip(),
+            $request->userAgent(),
+        );
 
         return redirect("{$this->base()}/operations/orders")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => "Order {$order->order_number} created successfully.",
             ]);
     }
@@ -104,13 +115,14 @@ class ShopOrderController extends Controller
     {
         $order->load(['service', 'supplies', 'shop']);
 
-        $shop   = $order->shop;
-        $qrUrl  = fn(?string $path) => $path ? Storage::disk('public')->url($path) : null;
+        $shop = $order->shop;
+        $qrUrl = fn (?string $path) => $path ? Storage::disk('public')->url($path) : null;
 
         return Inertia::render('shop/operations/orders/Show', [
             'shopOrder' => $order,
-            'gcash_qr'  => $qrUrl($shop->gcash_qr),
-            'maya_qr'   => $qrUrl($shop->maya_qr),
+            'customerAgreement' => $this->customerAgreementService->acceptanceData($order),
+            'gcash_qr' => $qrUrl($shop->gcash_qr),
+            'maya_qr' => $qrUrl($shop->maya_qr),
         ]);
     }
 
@@ -118,7 +130,7 @@ class ShopOrderController extends Controller
     {
         if (! in_array($order->payment_method, ['gcash', 'maya'])) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Payment request can only be sent for GCash or Maya orders.',
             ]);
         }
@@ -127,19 +139,19 @@ class ShopOrderController extends Controller
 
         if (! $customer) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'This order has no linked customer account to notify.',
             ]);
         }
 
-        $shop  = $order->shop;
+        $shop = $order->shop;
         $qrPath = $order->payment_method === 'gcash' ? $shop->gcash_qr : $shop->maya_qr;
-        $qrUrl  = $qrPath ? Storage::disk('public')->url($qrPath) : null;
+        $qrUrl = $qrPath ? Storage::disk('public')->url($qrPath) : null;
 
         $customer->notify(new OrderNotification($order, 'payment_request', $qrUrl));
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Payment request sent to customer.',
         ]);
     }
@@ -150,12 +162,12 @@ class ShopOrderController extends Controller
         $order->load(['service', 'supplies']);
 
         return Inertia::render('shop/operations/orders/Edit', [
-            'shopOrder'      => $order,
-            'shopId'         => $shopId,
-            'pickupTypes'    => ShopOrder::PICKUP_TYPES,
+            'shopOrder' => $order,
+            'shopId' => $shopId,
+            'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
-            'statuses'       => ShopOrder::STATUSES,
-            'services'       => ShopService::where('shop_id', $shopId)
+            'statuses' => ShopOrder::STATUSES,
+            'services' => ShopService::where('shop_id', $shopId)
                 ->where('is_active', true)
                 ->orderBy('service_name')
                 ->get(),
@@ -177,7 +189,7 @@ class ShopOrderController extends Controller
 
         return redirect("{$this->base()}/operations/orders")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Order updated successfully.',
             ]);
     }
@@ -185,13 +197,13 @@ class ShopOrderController extends Controller
     public function updateStatus(Request $request, ShopOrder $order): RedirectResponse
     {
         $request->validate([
-            'status' => ['required', 'in:' . implode(',', ShopOrder::STATUSES)],
+            'status' => ['required', 'in:'.implode(',', ShopOrder::STATUSES)],
         ]);
 
         $this->service->updateStatus($order, $request->input('status'));
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Order status updated successfully.',
         ]);
     }
@@ -199,14 +211,14 @@ class ShopOrderController extends Controller
     public function updatePayment(Request $request, ShopOrder $order): RedirectResponse
     {
         $request->validate([
-            'payment_method' => ['required', 'in:' . implode(',', ShopOrder::PAYMENT_METHODS)],
-            'amount_paid'    => ['required', 'numeric', 'min:0'],
+            'payment_method' => ['required', 'in:'.implode(',', ShopOrder::PAYMENT_METHODS)],
+            'amount_paid' => ['required', 'numeric', 'min:0'],
         ]);
 
         $this->service->updatePayment($order, $request->only(['payment_method', 'amount_paid']));
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Order payment updated successfully.',
         ]);
     }
@@ -217,7 +229,7 @@ class ShopOrderController extends Controller
 
         return redirect("{$this->base()}/operations/orders")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Order archived successfully.',
             ]);
     }
@@ -229,7 +241,7 @@ class ShopOrderController extends Controller
 
         return redirect("{$this->base()}/operations/orders?archived=true")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => "Order {$order->order_number} restored successfully.",
             ]);
     }
@@ -242,7 +254,7 @@ class ShopOrderController extends Controller
 
         return redirect("{$this->base()}/operations/orders?archived=true")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'All archived orders restored.',
             ]);
     }

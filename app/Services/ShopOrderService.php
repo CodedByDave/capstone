@@ -2,17 +2,22 @@
 
 namespace App\Services;
 
-use App\Models\ShopOrder;
 use App\Models\Inventory;
+use App\Models\ShopOrder;
+use App\Models\User;
 use App\Notifications\OrderNotification;
 use App\Repositories\ShopOrderRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ShopOrderService
 {
-    public function __construct(protected ShopOrderRepository $repository) {}
+    public function __construct(
+        protected ShopOrderRepository $repository,
+        private readonly CustomerAgreementService $customerAgreementService,
+    ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
 
@@ -33,24 +38,30 @@ class ShopOrderService
 
     // ─── Create ───────────────────────────────────────────────────────────────
 
-    public function createOrder(array $data): ShopOrder
+    public function createOrder(array $data, User $actor, ?string $ipAddress = null, ?string $userAgent = null): ShopOrder
     {
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data, $actor, $ipAddress, $userAgent) {
             $supplies = $data['supplies'] ?? [];
+            $agreementVersion = $data['customer_agreement_version'];
             unset($data['supplies']);
+            unset($data['customer_agreement_version'], $data['customer_agreement_accepted']);
 
             $data['order_number'] = $this->generateOrderNumber();
 
-            $order = ShopOrder::create($data);
+            $order = $this->repository->create($data);
 
             foreach ($supplies as $supply) {
-                if (empty($supply['inventory_id'])) continue;
+                if (empty($supply['inventory_id'])) {
+                    continue;
+                }
 
                 $item = Inventory::where('id', $supply['inventory_id'])
                     ->where('shop_id', $order->shop_id)
                     ->first();
 
-                if (!$item) continue;
+                if (! $item) {
+                    continue;
+                }
 
                 if ($item->quantity < $supply['quantity_used']) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
@@ -61,11 +72,63 @@ class ShopOrderService
                 // ← use attach() not create()
                 $order->supplies()->attach($supply['inventory_id'], [
                     'quantity_used' => $supply['quantity_used'],
-                    'unit'          => $supply['unit'],
+                    'unit' => $supply['unit'],
                 ]);
 
                 $item->decrement('quantity', (float) $supply['quantity_used']);
             }
+
+            $order->load('shop');
+            $this->customerAgreementService->record($order, $actor, $agreementVersion, 'staff_attestation', $ipAddress, $userAgent);
+
+            return $order;
+        });
+    }
+
+    public function createCustomerOrder(User $customer, array $data, ?string $ipAddress, ?string $userAgent): ShopOrder
+    {
+        return DB::transaction(function () use ($customer, $data, $ipAddress, $userAgent) {
+            $shop = $this->repository->findActiveShop((int) $data['shop_id']);
+            if (! $shop) {
+                throw ValidationException::withMessages(['shop_id' => 'The selected shop is unavailable.']);
+            }
+            $service = $this->repository->findActiveServiceForShop((int) $data['service_id'], $shop->id);
+            if (! $service) {
+                throw ValidationException::withMessages(['service_id' => 'The selected service is unavailable.']);
+            }
+
+            $estimatedTotal = $service->pricing_model === 'per_kg'
+                ? round((float) $service->price_per_kg * (float) $data['estimated_weight_kg'], 2)
+                : (float) ($service->bundle_price ?? 0);
+
+            $order = $this->repository->create([
+                'shop_id' => $shop->id,
+                'user_id' => $customer->id,
+                'order_source' => 'online',
+                'service_id' => $service->id,
+                'order_number' => $this->generateOrderNumber('ONL'),
+                'customer_name' => $data['customer_name'],
+                'customer_phone' => $data['customer_phone'],
+                'customer_address' => $data['customer_address'] ?? null,
+                'special_instructions' => $data['special_instructions'] ?? null,
+                'estimated_weight_kg' => $data['estimated_weight_kg'],
+                'pickup_type' => $data['pickup_type'],
+                'pricing_model' => $service->pricing_model,
+                'price_per_kg' => $service->price_per_kg,
+                'bundle_weight_kg' => $service->bundle_weight_kg,
+                'bundle_price' => $service->bundle_price,
+                'additional_charges' => 0,
+                'discount_amount' => 0,
+                'total_amount' => $estimatedTotal,
+                'payment_method' => $data['payment_method'],
+                'payment_status' => 'unpaid',
+                'amount_paid' => 0,
+                'status' => 'pending',
+            ]);
+
+            $order->setRelation('shop', $shop);
+            $this->customerAgreementService->record($order, $customer, $data['customer_agreement_version'], 'online_checkbox', $ipAddress, $userAgent);
+            $customer->notify(new OrderNotification($order, 'placed'));
 
             return $order;
         });
@@ -94,13 +157,17 @@ class ShopOrderService
 
             // Re-attach new supplies and deduct inventory
             foreach ($newSupplies as $supply) {
-                if (empty($supply['inventory_id'])) continue;
+                if (empty($supply['inventory_id'])) {
+                    continue;
+                }
 
                 $item = Inventory::where('id', $supply['inventory_id'])
                     ->where('shop_id', $order->shop_id)
                     ->first();
 
-                if (!$item) continue;
+                if (! $item) {
+                    continue;
+                }
 
                 if ($item->quantity < $supply['quantity_used']) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
@@ -111,7 +178,7 @@ class ShopOrderService
                 // ← use attach() not create()
                 $order->supplies()->attach($supply['inventory_id'], [
                     'quantity_used' => $supply['quantity_used'],
-                    'unit'          => $supply['unit'],
+                    'unit' => $supply['unit'],
                 ]);
 
                 $item->decrement('quantity', (float) $supply['quantity_used']);
@@ -147,9 +214,9 @@ class ShopOrderService
         $amountPaid = $data['amount_paid'] ?? $order->amount_paid;
 
         $data['payment_status'] = match (true) {
-            $amountPaid <= 0                   => 'unpaid',
+            $amountPaid <= 0 => 'unpaid',
             $amountPaid < $order->total_amount => 'partial',
-            default                            => 'paid',
+            default => 'paid',
         };
 
         if ($data['payment_status'] === 'paid') {
@@ -189,10 +256,10 @@ class ShopOrderService
 
     // ─── Private Helpers ──────────────────────────────────────────────────────
 
-    private function generateOrderNumber(): string
+    private function generateOrderNumber(string $prefix = 'ORD'): string
     {
         do {
-            $number = 'ORD-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
+            $number = $prefix.'-'.now()->format('Ymd').'-'.strtoupper(Str::random(5));
         } while ($this->repository->findByOrderNumber($number));
 
         return $number;

@@ -87,6 +87,8 @@ class StoreShopOrderRequest extends FormRequest
             'payment_status' => ['required', Rule::in(ShopOrder::PAYMENT_STATUSES)],
             'amount_paid' => ['nullable', 'numeric', 'min:0'],
             'estimated_completion_at' => ['nullable', 'date'],
+            'customer_agreement_version' => ['required', 'string', 'max:30'],
+            'customer_agreement_accepted' => ['required', 'accepted'],
 
             // ─── Supplies ──────────────────────────────────
             'supplies' => ['nullable', 'array'],
@@ -104,6 +106,7 @@ class StoreShopOrderRequest extends FormRequest
             'supplies.*.inventory_id.exists' => 'One or more selected supplies do not exist in inventory.',
             'supplies.*.quantity_used.min' => 'Quantity used must be at least 0.01.',
             'estimated_completion_at.after' => 'Estimated completion date must be in the future.',
+            'customer_agreement_accepted.accepted' => 'Confirm that the customer reviewed and accepted the laundry service agreement.',
         ];
     }
 }

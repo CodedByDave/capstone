@@ -5,12 +5,15 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\ShopOrder;
+use App\Services\CustomerAgreementService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserDashboardController extends Controller
 {
+    public function __construct(private readonly CustomerAgreementService $customerAgreementService) {}
+
     // ─── Dashboard ────────────────────────────────────────────────────────────
 
     public function index(Request $request): Response
@@ -174,6 +177,7 @@ class UserDashboardController extends Controller
                 'offers_delivery' => (bool) $shop->offers_delivery,
             ],
             'services' => $services,
+            'customerAgreement' => $this->customerAgreementService->agreementData($shop),
             'userLat' => $lat ?: null,
             'userLng' => $lng ?: null,
         ]);

@@ -5,19 +5,23 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserOrderRequest;
 use App\Models\Delivery;
-use App\Models\Shop;
 use App\Models\ShopOrder;
-use App\Models\ShopService;
 use App\Notifications\DeliveryNotification;
 use App\Notifications\OrderNotification;
+use App\Services\CustomerAgreementService;
+use App\Services\ShopOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserOrderController extends Controller
 {
+    public function __construct(
+        private readonly ShopOrderService $orderService,
+        private readonly CustomerAgreementService $customerAgreementService,
+    ) {}
+
     // ─── List orders ──────────────────────────────────────────────────────────
 
     public function index(): Response
@@ -58,6 +62,7 @@ class UserOrderController extends Controller
         $delivery = $order->delivery;
 
         return Inertia::render('user/OrderDetail', [
+            'customerAgreement' => $this->customerAgreementService->acceptanceData($order),
             'order' => [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
@@ -101,57 +106,16 @@ class UserOrderController extends Controller
 
     public function store(StoreUserOrderRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
-
-        $shop = Shop::where('id', $validated['shop_id'])->where('status', 'active')->firstOrFail();
-
-        $service = ShopService::where('id', $validated['service_id'])
-            ->where('shop_id', $shop->id)
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        // Estimate total (actual weight & charges will be set by shop)
-        $estimatedTotal = 0;
-        if ($service->pricing_model === 'per_kg') {
-            $estimatedTotal = round((float) $service->price_per_kg * (float) $validated['estimated_weight_kg'], 2);
-        } else {
-            $estimatedTotal = (float) $service->bundle_price ?? 0;
-        }
-
-        $orderNumber = $this->generateOrderNumber();
-
-        $newOrder = ShopOrder::create([
-            'shop_id' => $shop->id,
-            'user_id' => auth()->id(),
-            'order_source' => 'online',
-            'service_id' => $service->id,
-            'order_number' => $orderNumber,
-            'customer_name' => $validated['customer_name'],
-            'customer_phone' => $validated['customer_phone'],
-            'customer_address' => $validated['customer_address'] ?? null,
-            'special_instructions' => $validated['special_instructions'] ?? null,
-            'estimated_weight_kg' => $validated['estimated_weight_kg'],
-            'actual_weight_kg' => null,
-            'pickup_type' => $validated['pickup_type'],
-            'pricing_model' => $service->pricing_model,
-            'price_per_kg' => $service->price_per_kg,
-            'bundle_weight_kg' => $service->bundle_weight_kg,
-            'bundle_price' => $service->bundle_price,
-            'additional_charges' => 0,
-            'discount_amount' => 0,
-            'total_amount' => $estimatedTotal,
-            'payment_method' => $validated['payment_method'],
-            'payment_status' => 'unpaid',
-            'amount_paid' => 0,
-            'status' => 'pending',
-        ]);
-
-        $newOrder->load('shop');
-        auth()->user()->notify(new OrderNotification($newOrder, 'placed'));
+        $newOrder = $this->orderService->createCustomerOrder(
+            $request->user(),
+            $request->validated(),
+            $request->ip(),
+            $request->userAgent(),
+        );
 
         return redirect()->route('user.orders.index')->with('toast', [
             'type' => 'success',
-            'message' => "Order {$orderNumber} placed! The shop will confirm and process it shortly.",
+            'message' => "Order {$newOrder->order_number} placed! The shop will confirm and process it shortly.",
         ]);
     }
 
@@ -218,12 +182,4 @@ class UserOrderController extends Controller
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    private function generateOrderNumber(): string
-    {
-        do {
-            $number = 'ONL-'.now()->format('Ymd').'-'.strtoupper(Str::random(5));
-        } while (ShopOrder::where('order_number', $number)->exists());
-
-        return $number;
-    }
 }

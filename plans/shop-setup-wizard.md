@@ -443,13 +443,13 @@ The downgrade rule should be finalized before implementation if plan downgrades 
 ### Phase 5: Verification and rollout
 
 - Run the complete test and build checks.
-- Verify Trial, Basic, Standard, and Premium manually.
+- Verify Trial, Basic, ndard, and Premium manually.
 - Verify upgrades, renewals, expiration, and existing-shop compatibility.
 - Deploy with monitoring for redirect loops and forbidden capability requests.
 
 ## Review decisions required before execution
 
-1. Confirm whether multiple locations should be Premium-only. This plan recommends yes because the current Premium marketing describes it as the multi-branch plan.
+1. Confirm whether multiple locations should be Premium-only. This plan recommends yes because the current Premium markeStating describes it as the multi-branch plan.
 2. Confirm whether Trial should allow testing multiple locations. This plan recommends yes.
 3. Confirm whether Basic and Standard should both be allowed to enable pickup and delivery. This plan recommends yes because all current plans include Operations.
 4. Confirm whether an existing in-progress delivery remains editable after delivery is disabled. This plan recommends allowing completion while blocking new deliveries.

@@ -87,6 +87,11 @@ class ShopOrder extends Model
         return $this->hasOne(Delivery::class, 'shop_order_id');
     }
 
+    public function customerAgreementAcceptance(): HasOne
+    {
+        return $this->hasOne(CustomerAgreementAcceptance::class);
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');

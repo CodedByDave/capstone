@@ -24,6 +24,15 @@ class StoreUserOrderRequest extends FormRequest
             'payment_method' => ['required', 'in:cash,gcash,maya,online'],
             'customer_address' => ['required_if:pickup_type,pickup', 'nullable', 'string', 'max:500'],
             'special_instructions' => ['nullable', 'string', 'max:500'],
+            'customer_agreement_version' => ['required', 'string', 'max:30'],
+            'customer_agreement_accepted' => ['required', 'accepted'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'customer_agreement_accepted.accepted' => 'You must review and accept the laundry service agreement before placing the order.',
         ];
     }
 }
