@@ -1,35 +1,60 @@
 <script setup lang="ts">
-import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router, usePage } from '@inertiajs/vue3'
-import { type BreadcrumbItem } from '@/types'
-import { ref, computed, onMounted, watch } from 'vue'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
+import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, ref, watch } from 'vue';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2 } from 'lucide-vue-next'
+import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Loader2 } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface PsgcItem { code: string; name: string }
+interface PsgcItem {
+    code: string;
+    name: string;
+}
+
+interface ManagerOption {
+    id: number;
+    employee_id: string;
+    name: string;
+}
 
 interface Branch {
-    id: number
-    branch_code: string
-    name: string
-    phone: string | null
-    email: string | null
-    manager_name: string | null
-    address: string | null
-    opened_at: string | null
-    status: 'Active' | 'Inactive'
+    id: number;
+    branch_code: string;
+    name: string;
+    phone: string | null;
+    email: string | null;
+    manager_name: string | null;
+    address: string | null;
+    opened_at: string | null;
+    status: 'Active' | 'Inactive';
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { branch } = defineProps<{ branch: Branch }>()
+const { branch, managers } = defineProps<{
+    branch: Branch;
+    managers: ManagerOption[];
+}>();
+const UNASSIGNED_MANAGER = 'unassigned';
+const CURRENT_MANAGER = 'current-manager';
+const matchingManager = managers.find(
+    (manager) => manager.name === branch.manager_name,
+);
+const hasLegacyManager = Boolean(branch.manager_name && !matchingManager);
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
@@ -37,124 +62,153 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Employee Management', href: '/shop/employee' },
     { title: 'Branch Management', href: '/shop/branch' },
     { title: 'Edit Branch', href: `/shop/branch/${branch.id}/edit` },
-]
+];
 
-const errors = computed(() => usePage().props.errors as Record<string, string>)
+const errors = computed(() => usePage().props.errors as Record<string, string>);
 
 // ─── PSGC cascading address ───────────────────────────────────────────────────
 
-const BASE = 'https://psgc.cloud/api'
+const BASE = 'https://psgc.cloud/api';
 
-const provinces        = ref<PsgcItem[]>([])
-const cities           = ref<PsgcItem[]>([])
-const barangays        = ref<PsgcItem[]>([])
-const loadingProvinces = ref(false)
-const loadingCities    = ref(false)
-const loadingBarangays = ref(false)
-const selectedProvince = ref('')
-const selectedCity     = ref('')
-const selectedBarangay = ref('')
-const streetInput      = ref('')
+const provinces = ref<PsgcItem[]>([]);
+const cities = ref<PsgcItem[]>([]);
+const barangays = ref<PsgcItem[]>([]);
+const loadingProvinces = ref(false);
+const loadingCities = ref(false);
+const loadingBarangays = ref(false);
+const selectedProvince = ref('');
+const selectedCity = ref('');
+const selectedBarangay = ref('');
+const streetInput = ref('');
 
 // Whether the user has started re-selecting address (to replace stored one)
-const addressChanged = ref(false)
+const addressChanged = ref(false);
 
 onMounted(async () => {
-    loadingProvinces.value = true
+    loadingProvinces.value = true;
     try {
-        const res  = await fetch(`${BASE}/provinces`)
-        const data = await res.json()
+        const res = await fetch(`${BASE}/provinces`);
+        const data = await res.json();
         provinces.value = data
             .map((p: any) => ({ code: p.code, name: p.name }))
-            .sort((a: PsgcItem, b: PsgcItem) => a.name.localeCompare(b.name))
+            .sort((a: PsgcItem, b: PsgcItem) => a.name.localeCompare(b.name));
     } finally {
-        loadingProvinces.value = false
+        loadingProvinces.value = false;
     }
-})
+});
 
 watch(selectedProvince, async (code) => {
-    selectedCity.value     = ''
-    selectedBarangay.value = ''
-    cities.value           = []
-    barangays.value        = []
-    if (!code) return
-    addressChanged.value = true
-    loadingCities.value  = true
+    selectedCity.value = '';
+    selectedBarangay.value = '';
+    cities.value = [];
+    barangays.value = [];
+    if (!code) return;
+    addressChanged.value = true;
+    loadingCities.value = true;
     try {
         const [citRes, munRes] = await Promise.all([
             fetch(`${BASE}/provinces/${code}/cities`),
             fetch(`${BASE}/provinces/${code}/municipalities`),
-        ])
-        const citData = await citRes.json()
-        const munData = await munRes.json()
+        ]);
+        const citData = await citRes.json();
+        const munData = await munRes.json();
         cities.value = [...(citData || []), ...(munData || [])]
             .map((c: any) => ({ code: c.code, name: c.name }))
-            .sort((a: PsgcItem, b: PsgcItem) => a.name.localeCompare(b.name))
+            .sort((a: PsgcItem, b: PsgcItem) => a.name.localeCompare(b.name));
     } finally {
-        loadingCities.value = false
+        loadingCities.value = false;
     }
-})
+});
 
 watch(selectedCity, async (code) => {
-    selectedBarangay.value = ''
-    barangays.value        = []
-    if (!code) return
-    loadingBarangays.value = true
+    selectedBarangay.value = '';
+    barangays.value = [];
+    if (!code) return;
+    loadingBarangays.value = true;
     try {
-        const res  = await fetch(`${BASE}/cities-municipalities/${code}/barangays`)
-        const data = await res.json()
+        const res = await fetch(
+            `${BASE}/cities-municipalities/${code}/barangays`,
+        );
+        const data = await res.json();
         barangays.value = (data || [])
             .map((b: any) => ({ code: b.code, name: b.name }))
-            .sort((a: PsgcItem, b: PsgcItem) => a.name.localeCompare(b.name))
+            .sort((a: PsgcItem, b: PsgcItem) => a.name.localeCompare(b.name));
     } finally {
-        loadingBarangays.value = false
+        loadingBarangays.value = false;
     }
-})
+});
 
 // Assembled address from new PSGC selection
 const newAddress = computed(() => {
     const parts = [
         streetInput.value.trim(),
-        barangays.value.find(b => b.code === selectedBarangay.value)?.name ?? '',
-        cities.value.find(c => c.code === selectedCity.value)?.name ?? '',
-        provinces.value.find(p => p.code === selectedProvince.value)?.name ?? '',
-    ].filter(Boolean)
-    return parts.join(', ')
-})
+        barangays.value.find((b) => b.code === selectedBarangay.value)?.name ??
+            '',
+        cities.value.find((c) => c.code === selectedCity.value)?.name ?? '',
+        provinces.value.find((p) => p.code === selectedProvince.value)?.name ??
+            '',
+    ].filter(Boolean);
+    return parts.join(', ');
+});
 
 // What gets submitted — new selection if changed, otherwise keep stored value
 const resolvedAddress = computed(() =>
-    addressChanged.value ? (newAddress.value || null) : branch.address
-)
+    addressChanged.value ? newAddress.value || null : branch.address,
+);
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
 const form = ref({
-    branch_code:  branch.branch_code,
-    name:         branch.name,
-    phone:        branch.phone        ?? '',
-    email:        branch.email        ?? '',
-    manager_name: branch.manager_name ?? '',
-    opened_at:    branch.opened_at    ? branch.opened_at.slice(0, 10) : '',
-    status:       branch.status,
-})
+    branch_code: branch.branch_code,
+    name: branch.name,
+    phone: branch.phone ?? '',
+    email: branch.email ?? '',
+    manager_employee_id: matchingManager
+        ? String(matchingManager.id)
+        : hasLegacyManager
+          ? CURRENT_MANAGER
+          : UNASSIGNED_MANAGER,
+    opened_at: branch.opened_at ? branch.opened_at.slice(0, 10) : '',
+    status: branch.status,
+});
 
-const isSubmitting = ref(false)
+const isSubmitting = ref(false);
 
 function submit() {
-    isSubmitting.value = true
-    router.put(`/shop/branch/${branch.id}`, {
-        ...form.value,
-        address: resolvedAddress.value,
-    }, {
-        preserveScroll: true,
-        onError: () => {
-            toast.error('Failed to update branch', {
-                description: 'Please check the form for errors and try again.',
-            })
+    const managerName =
+        form.value.manager_employee_id === CURRENT_MANAGER
+            ? branch.manager_name
+            : (managers.find(
+                  (manager) =>
+                      String(manager.id) === form.value.manager_employee_id,
+              )?.name ?? null);
+
+    isSubmitting.value = true;
+    router.put(
+        `/shop/branch/${branch.id}`,
+        {
+            branch_code: form.value.branch_code,
+            name: form.value.name,
+            phone: form.value.phone,
+            email: form.value.email,
+            manager_name: managerName,
+            opened_at: form.value.opened_at,
+            status: form.value.status,
+            address: resolvedAddress.value,
         },
-        onFinish: () => { isSubmitting.value = false },
-    })
+        {
+            preserveScroll: true,
+            onError: () => {
+                toast.error('Failed to update branch', {
+                    description:
+                        'Please check the form for errors and try again.',
+                });
+            },
+            onFinish: () => {
+                isSubmitting.value = false;
+            },
+        },
+    );
 }
 </script>
 
@@ -162,75 +216,164 @@ function submit() {
     <Head title="Edit Branch" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Edit Branch">
-        <div class="px-6 space-y-8">
-
+        <div class="space-y-8 px-6">
             <div>
                 <h2 class="text-lg font-semibold">Edit Branch</h2>
                 <p class="text-sm text-muted-foreground">
                     Update the details for
-                    <span class="font-medium text-foreground">{{ branch.name }}</span>.
+                    <span class="font-medium text-foreground">{{
+                        branch.name
+                    }}</span
+                    >.
                 </p>
             </div>
 
             <!-- ── Branch Info ───────────────────────────────────────────── -->
             <div class="space-y-4">
-                <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Branch Info</p>
+                <p
+                    class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+                >
+                    Branch Info
+                </p>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Branch Code <span class="text-red-500">*</span></label>
-                        <Input v-model="form.branch_code" placeholder="e.g. BR-001"
-                            class="font-mono uppercase" :class="{ 'border-red-500': errors.branch_code }" />
-                        <p v-if="errors.branch_code" class="text-xs text-red-500">{{ errors.branch_code }}</p>
+                        <label class="text-sm font-medium"
+                            >Branch Code
+                            <span class="text-red-500">*</span></label
+                        >
+                        <Input
+                            v-model="form.branch_code"
+                            placeholder="e.g. BR-001"
+                            class="font-mono uppercase"
+                            :class="{ 'border-red-500': errors.branch_code }"
+                        />
+                        <p
+                            v-if="errors.branch_code"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.branch_code }}
+                        </p>
                     </div>
                     <div class="space-y-1 sm:col-span-2">
-                        <label class="text-sm font-medium">Branch Name <span class="text-red-500">*</span></label>
-                        <Input v-model="form.name" placeholder="e.g. Makati Branch"
-                            :class="{ 'border-red-500': errors.name }" />
-                        <p v-if="errors.name" class="text-xs text-red-500">{{ errors.name }}</p>
+                        <label class="text-sm font-medium"
+                            >Branch Name
+                            <span class="text-red-500">*</span></label
+                        >
+                        <Input
+                            v-model="form.name"
+                            placeholder="e.g. Makati Branch"
+                            :class="{ 'border-red-500': errors.name }"
+                        />
+                        <p v-if="errors.name" class="text-xs text-red-500">
+                            {{ errors.name }}
+                        </p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Manager Name</label>
-                        <Input v-model="form.manager_name" placeholder="e.g. Juan dela Cruz"
-                            :class="{ 'border-red-500': errors.manager_name }" />
-                        <p v-if="errors.manager_name" class="text-xs text-red-500">{{ errors.manager_name }}</p>
+                        <label class="text-sm font-medium">Manager</label>
+                        <Select v-model="form.manager_employee_id">
+                            <SelectTrigger
+                                :class="{
+                                    'border-red-500': errors.manager_name,
+                                }"
+                            >
+                                <SelectValue placeholder="Select a manager" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="UNASSIGNED_MANAGER"
+                                    >Unassigned</SelectItem
+                                >
+                                <SelectItem
+                                    v-if="hasLegacyManager"
+                                    :value="CURRENT_MANAGER"
+                                >
+                                    {{ branch.manager_name }} (Current
+                                    assignment)
+                                </SelectItem>
+                                <SelectItem
+                                    v-for="manager in managers"
+                                    :key="manager.id"
+                                    :value="String(manager.id)"
+                                >
+                                    {{ manager.name }} ({{
+                                        manager.employee_id
+                                    }})
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p
+                            v-if="managers.length === 0"
+                            class="text-xs text-muted-foreground"
+                        >
+                            Add an active employee with the Manager position to
+                            assign one here.
+                        </p>
+                        <p
+                            v-if="errors.manager_name"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.manager_name }}
+                        </p>
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Phone</label>
-                        <Input v-model="form.phone" placeholder="02-XXXX-XXXX or 09XX"
-                            :class="{ 'border-red-500': errors.phone }" />
-                        <p v-if="errors.phone" class="text-xs text-red-500">{{ errors.phone }}</p>
+                        <PhilippinePhoneInput
+                            v-model="form.phone"
+                            :class="{ 'border-red-500': errors.phone }"
+                        />
+                        <p v-if="errors.phone" class="text-xs text-red-500">
+                            {{ errors.phone }}
+                        </p>
                     </div>
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Email</label>
-                        <Input v-model="form.email" type="email" placeholder="branch@example.com"
-                            :class="{ 'border-red-500': errors.email }" />
-                        <p v-if="errors.email" class="text-xs text-red-500">{{ errors.email }}</p>
+                        <Input
+                            v-model="form.email"
+                            type="email"
+                            placeholder="branch@example.com"
+                            :class="{ 'border-red-500': errors.email }"
+                        />
+                        <p v-if="errors.email" class="text-xs text-red-500">
+                            {{ errors.email }}
+                        </p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div class="space-y-1">
                         <label class="text-sm font-medium">Date Opened</label>
-                        <Input v-model="form.opened_at" type="date"
-                            :class="{ 'border-red-500': errors.opened_at }" />
-                        <p v-if="errors.opened_at" class="text-xs text-red-500">{{ errors.opened_at }}</p>
+                        <Input
+                            v-model="form.opened_at"
+                            type="date"
+                            :class="{ 'border-red-500': errors.opened_at }"
+                        />
+                        <p v-if="errors.opened_at" class="text-xs text-red-500">
+                            {{ errors.opened_at }}
+                        </p>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-sm font-medium">Status <span class="text-red-500">*</span></label>
+                        <label class="text-sm font-medium"
+                            >Status <span class="text-red-500">*</span></label
+                        >
                         <Select v-model="form.status">
-                            <SelectTrigger :class="{ 'border-red-500': errors.status }">
+                            <SelectTrigger
+                                :class="{ 'border-red-500': errors.status }"
+                            >
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Active">Active</SelectItem>
-                                <SelectItem value="Inactive">Inactive</SelectItem>
+                                <SelectItem value="Inactive"
+                                    >Inactive</SelectItem
+                                >
                             </SelectContent>
                         </Select>
-                        <p v-if="errors.status" class="text-xs text-red-500">{{ errors.status }}</p>
+                        <p v-if="errors.status" class="text-xs text-red-500">
+                            {{ errors.status }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -238,7 +381,11 @@ function submit() {
             <!-- ── Address ───────────────────────────────────────────────── -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Address</p>
+                    <p
+                        class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+                    >
+                        Address
+                    </p>
                     <button
                         v-if="!addressChanged && branch.address"
                         type="button"
@@ -250,78 +397,163 @@ function submit() {
                 </div>
 
                 <!-- Show stored address if not changing -->
-                <div v-if="!addressChanged && branch.address"
-                    class="rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                <div
+                    v-if="!addressChanged && branch.address"
+                    class="rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
+                >
                     {{ branch.address }}
                 </div>
 
                 <!-- PSGC selectors — shown when changing or no stored address -->
                 <template v-if="addressChanged || !branch.address">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div class="space-y-1">
-                            <label class="text-sm font-medium">Province <span class="text-red-500">*</span></label>
-                            <Select v-model="selectedProvince" :disabled="loadingProvinces">
+                            <label class="text-sm font-medium"
+                                >Province
+                                <span class="text-red-500">*</span></label
+                            >
+                            <Select
+                                v-model="selectedProvince"
+                                :disabled="loadingProvinces"
+                            >
                                 <SelectTrigger class="w-full">
                                     <SelectValue>
-                                        <span v-if="loadingProvinces" class="flex items-center gap-1.5 text-muted-foreground">
-                                            <Loader2 class="h-3 w-3 animate-spin" /> Loading...
+                                        <span
+                                            v-if="loadingProvinces"
+                                            class="flex items-center gap-1.5 text-muted-foreground"
+                                        >
+                                            <Loader2
+                                                class="h-3 w-3 animate-spin"
+                                            />
+                                            Loading...
                                         </span>
-                                        <span v-else-if="!selectedProvince" class="text-muted-foreground">Select province</span>
-                                        <span v-else>{{ provinces.find(p => p.code === selectedProvince)?.name }}</span>
+                                        <span
+                                            v-else-if="!selectedProvince"
+                                            class="text-muted-foreground"
+                                            >Select province</span
+                                        >
+                                        <span v-else>{{
+                                            provinces.find(
+                                                (p) =>
+                                                    p.code === selectedProvince,
+                                            )?.name
+                                        }}</span>
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent class="max-h-60">
-                                    <SelectItem v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</SelectItem>
+                                    <SelectItem
+                                        v-for="p in provinces"
+                                        :key="p.code"
+                                        :value="p.code"
+                                        >{{ p.name }}</SelectItem
+                                    >
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-sm font-medium">City / Municipality <span class="text-red-500">*</span></label>
-                            <Select v-model="selectedCity" :disabled="!selectedProvince || loadingCities">
+                            <label class="text-sm font-medium"
+                                >City / Municipality
+                                <span class="text-red-500">*</span></label
+                            >
+                            <Select
+                                v-model="selectedCity"
+                                :disabled="!selectedProvince || loadingCities"
+                            >
                                 <SelectTrigger class="w-full">
                                     <SelectValue>
-                                        <span v-if="loadingCities" class="flex items-center gap-1.5 text-muted-foreground">
-                                            <Loader2 class="h-3 w-3 animate-spin" /> Loading...
+                                        <span
+                                            v-if="loadingCities"
+                                            class="flex items-center gap-1.5 text-muted-foreground"
+                                        >
+                                            <Loader2
+                                                class="h-3 w-3 animate-spin"
+                                            />
+                                            Loading...
                                         </span>
-                                        <span v-else-if="!selectedCity" class="text-muted-foreground">Select city/municipality</span>
-                                        <span v-else>{{ cities.find(c => c.code === selectedCity)?.name }}</span>
+                                        <span
+                                            v-else-if="!selectedCity"
+                                            class="text-muted-foreground"
+                                            >Select city/municipality</span
+                                        >
+                                        <span v-else>{{
+                                            cities.find(
+                                                (c) => c.code === selectedCity,
+                                            )?.name
+                                        }}</span>
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent class="max-h-60">
-                                    <SelectItem v-for="c in cities" :key="c.code" :value="c.code">{{ c.name }}</SelectItem>
+                                    <SelectItem
+                                        v-for="c in cities"
+                                        :key="c.code"
+                                        :value="c.code"
+                                        >{{ c.name }}</SelectItem
+                                    >
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-sm font-medium">Barangay <span class="text-red-500">*</span></label>
-                            <Select v-model="selectedBarangay" :disabled="!selectedCity || loadingBarangays">
+                            <label class="text-sm font-medium"
+                                >Barangay
+                                <span class="text-red-500">*</span></label
+                            >
+                            <Select
+                                v-model="selectedBarangay"
+                                :disabled="!selectedCity || loadingBarangays"
+                            >
                                 <SelectTrigger class="w-full">
                                     <SelectValue>
-                                        <span v-if="loadingBarangays" class="flex items-center gap-1.5 text-muted-foreground">
-                                            <Loader2 class="h-3 w-3 animate-spin" /> Loading...
+                                        <span
+                                            v-if="loadingBarangays"
+                                            class="flex items-center gap-1.5 text-muted-foreground"
+                                        >
+                                            <Loader2
+                                                class="h-3 w-3 animate-spin"
+                                            />
+                                            Loading...
                                         </span>
-                                        <span v-else-if="!selectedBarangay" class="text-muted-foreground">Select barangay</span>
-                                        <span v-else>{{ barangays.find(b => b.code === selectedBarangay)?.name }}</span>
+                                        <span
+                                            v-else-if="!selectedBarangay"
+                                            class="text-muted-foreground"
+                                            >Select barangay</span
+                                        >
+                                        <span v-else>{{
+                                            barangays.find(
+                                                (b) =>
+                                                    b.code === selectedBarangay,
+                                            )?.name
+                                        }}</span>
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent class="max-h-60">
-                                    <SelectItem v-for="b in barangays" :key="b.code" :value="b.code">{{ b.name }}</SelectItem>
+                                    <SelectItem
+                                        v-for="b in barangays"
+                                        :key="b.code"
+                                        :value="b.code"
+                                        >{{ b.name }}</SelectItem
+                                    >
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div class="space-y-1 sm:col-span-3">
-                            <label class="text-sm font-medium">Street / Building / Unit No.</label>
-                            <Input v-model="streetInput" placeholder="e.g. 3F Ayala Tower, Ayala Ave." />
+                            <label class="text-sm font-medium"
+                                >Street / Building / Unit No.</label
+                            >
+                            <Input
+                                v-model="streetInput"
+                                placeholder="e.g. 3F Ayala Tower, Ayala Ave."
+                            />
                         </div>
                     </div>
 
                     <p v-if="newAddress" class="text-xs text-muted-foreground">
-                        <span class="font-medium">Full address:</span> {{ newAddress }}
+                        <span class="font-medium">Full address:</span>
+                        {{ newAddress }}
                     </p>
 
                     <!-- Cancel address change (revert to stored) -->
@@ -329,27 +561,47 @@ function submit() {
                         v-if="addressChanged && branch.address"
                         type="button"
                         class="text-xs text-muted-foreground hover:underline"
-                        @click="addressChanged = false; selectedProvince = ''; selectedCity = ''; selectedBarangay = ''; streetInput = ''"
+                        @click="
+                            addressChanged = false;
+                            selectedProvince = '';
+                            selectedCity = '';
+                            selectedBarangay = '';
+                            streetInput = '';
+                        "
                     >
                         ← Keep existing address
                     </button>
                 </template>
 
-                <p v-if="errors.address" class="text-xs text-red-500">{{ errors.address }}</p>
+                <p v-if="errors.address" class="text-xs text-red-500">
+                    {{ errors.address }}
+                </p>
             </div>
 
             <!-- ── Actions ───────────────────────────────────────────────── -->
-            <div class="flex items-center justify-end gap-3 pt-4 border-t">
-                <Button type="button" variant="outline" :disabled="isSubmitting"
-                    @click="router.visit('/shop/branch')">
+            <div class="flex items-center justify-end gap-3 border-t pt-4">
+                <Button
+                    type="button"
+                    variant="outline"
+                    :disabled="isSubmitting"
+                    @click="router.visit('/shop/branch')"
+                >
                     Cancel
                 </Button>
-                <Button type="button" :disabled="isSubmitting" @click="submit">
-                    <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
+                <Button
+                    type="button"
+                    :disabled="isSubmitting"
+                    @click="submit"
+                    variant="outline"
+                    class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                >
+                    <Loader2
+                        v-if="isSubmitting"
+                        class="mr-2 h-4 w-4 animate-spin"
+                    />
                     {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
                 </Button>
             </div>
-
         </div>
     </ShopLayout>
 </template>

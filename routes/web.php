@@ -8,7 +8,9 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PlatformRoleController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BusinessAgreementSignatureController;
 use App\Http\Controllers\DriverPageController;
+use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
 use App\Http\Controllers\Shop\Employee\AttendanceController;
@@ -31,6 +33,7 @@ use App\Http\Controllers\Shop\PaymentQrController;
 use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\ShopDashboardController;
 use App\Http\Controllers\Shop\ShopDataController;
+use App\Http\Controllers\Shop\ShopNotificationController;
 use App\Http\Controllers\Shop\ShopSettingsController;
 use App\Http\Controllers\Shop\TrialController;
 use App\Http\Controllers\Shop\UpgradeController;
@@ -59,6 +62,10 @@ Route::post('/checkout/select', [CheckoutController::class, 'select']);
 Route::get('/plans', [CheckoutController::class, 'plans'])->name('plans');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/business-agreement-acceptances/{acceptancePublicId}/signature', [BusinessAgreementSignatureController::class, 'show'])
+        ->name('business-agreement.signature');
+    Route::get('/business-agreement-platform-signatures/{signaturePublicId}', [BusinessAgreementSignatureController::class, 'platformShow'])
+        ->name('business-agreement.platform-signature');
     Route::get('/checkout/confirm', [CheckoutController::class, 'confirm'])->name('checkout.confirm');
     Route::post('/checkout/process', [CheckoutController::class, 'checkout'])->name('checkout.process');
     Route::post('/shop/payment/pay', [CheckoutController::class, 'pay'])->name('shop.payment.pay');
@@ -161,7 +168,18 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 // ── Shop owner routes ──────────────────────────────────────────────────────────
 
 Route::prefix('shop')->middleware([
-    'auth', 'verified', 'role:owner', 'owner.platform-permissions', 'shop.activity',
+    'auth', 'verified', 'role:owner', 'shop.activity',
+])->group(function () {
+    // This must remain reachable when a configurable owner role does not have
+    // the shop.settings permission; otherwise agreement gating can deadlock.
+    Route::get('/agreement', [BusinessAgreementController::class, 'show'])->name('shop.agreement.show');
+    Route::post('/agreement', [BusinessAgreementController::class, 'accept'])->name('shop.agreement.accept');
+    Route::get('/notifications', [ShopNotificationController::class, 'index'])->name('shop.notifications.index');
+    Route::post('/notifications/read-all', [ShopNotificationController::class, 'markAllRead'])->name('shop.notifications.read-all');
+});
+
+Route::prefix('shop')->middleware([
+    'auth', 'verified', 'role:owner', 'owner.platform-permissions', 'shop.activity', 'business.agreement',
 ])->group(function () {
 
     Route::get('/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');

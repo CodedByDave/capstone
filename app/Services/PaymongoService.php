@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\ShopOrder;
+use App\Support\PhilippinePhone;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -38,11 +39,11 @@ class PaymongoService
         }
 
         $methodMap = [
-            'gcash'    => 'gcash',
-            'maya'     => 'paymaya',
-            'card'     => 'card',
+            'gcash' => 'gcash',
+            'maya' => 'paymaya',
+            'card' => 'card',
             'grab_pay' => 'grab_pay',
-            'dob'      => 'dob',
+            'dob' => 'dob',
             'billease' => 'billease',
         ];
 
@@ -55,47 +56,47 @@ class PaymongoService
             'data' => [
                 'attributes' => [
                     'send_email_receipt' => true,
-                    'show_description'   => true,
-                    'show_line_items'    => true,
-                    'billing'            => [
-                        'name'  => $order->owner_name,
+                    'show_description' => true,
+                    'show_line_items' => true,
+                    'billing' => [
+                        'name' => $order->owner_name,
                         'email' => $order->email,
-                        'phone' => $order->phone,
+                        'phone' => PhilippinePhone::e164($order->phone),
                     ],
                     'line_items' => [
                         [
                             'currency' => 'PHP',
-                            'amount'   => $amount,
-                            'name'     => "Laundry Modules for {$order->shop_name}",
+                            'amount' => $amount,
+                            'name' => "Laundry Modules for {$order->shop_name}",
                             'quantity' => 1,
-                        ]
+                        ],
                     ],
                     'payment_method_types' => $paymentMethods,
-                    'success_url'          => route('payment.success', ['order' => $order->public_id]),
-                    'cancel_url'           => url('/shop/payment/cancel'),
-                    'description'          => "Order #{$order->id} - {$order->shop_name}",
-                    'metadata'             => [
-                        'order_id'   => (string) $order->id,
-                        'shop_name'  => $order->shop_name,
+                    'success_url' => route('payment.success', ['order' => $order->public_id]),
+                    'cancel_url' => url('/shop/payment/cancel'),
+                    'description' => "Order #{$order->id} - {$order->shop_name}",
+                    'metadata' => [
+                        'order_id' => (string) $order->id,
+                        'shop_name' => $order->shop_name,
                         'owner_name' => $order->owner_name,
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
 
         Log::info('PayMongo Checkout Request', [
-            'order_id'        => $order->id,
-            'amount_php'      => $order->total_price,
+            'order_id' => $order->id,
+            'amount_php' => $order->total_price,
             'amount_centavos' => $amount,
-            'payment_method'  => $order->payment_method,
-            'payload'         => $payload,
+            'payment_method' => $order->payment_method,
+            'payload' => $payload,
         ]);
 
         $response = $this->client()->post('/checkout_sessions', $payload);
 
         Log::info('PayMongo Checkout Response', [
             'status' => $response->status(),
-            'body'   => $response->json(),
+            'body' => $response->json(),
         ]);
 
         if ($response->failed()) {
@@ -103,8 +104,8 @@ class PaymongoService
 
             Log::error('PayMongo Checkout Failed', [
                 'order_id' => $order->id,
-                'status'   => $response->status(),
-                'error'    => $error,
+                'status' => $response->status(),
+                'error' => $error,
             ]);
 
             $errorMessage = 'Failed to create checkout session';
@@ -132,7 +133,7 @@ class PaymongoService
 
             Log::error('Failed to retrieve checkout session', [
                 'session_id' => $checkoutSessionId,
-                'error'      => $error,
+                'error' => $error,
             ]);
 
             throw new \Exception('Failed to retrieve checkout session');
@@ -153,31 +154,31 @@ class PaymongoService
     /**
      * Issue a refund for a PayMongo payment.
      *
-     * @param  string $paymentId      The PayMongo payment ID (pay_xxxx)
-     * @param  int    $amountCentavos Amount in centavos (₱1 = 100 centavos)
-     * @param  string $reason         'duplicate' | 'fraudulent' | 'others'
+     * @param  string  $paymentId  The PayMongo payment ID (pay_xxxx)
+     * @param  int  $amountCentavos  Amount in centavos (₱1 = 100 centavos)
+     * @param  string  $reason  'duplicate' | 'fraudulent' | 'others'
      */
     public function refund(string $paymentId, int $amountCentavos, string $reason = 'others'): array
     {
         Log::info('PayMongo Refund Request', [
             'payment_id' => $paymentId,
-            'amount'     => $amountCentavos,
-            'reason'     => $reason,
+            'amount' => $amountCentavos,
+            'reason' => $reason,
         ]);
 
         $response = $this->client()->post('/refunds', [
             'data' => [
                 'attributes' => [
-                    'amount'     => $amountCentavos,
+                    'amount' => $amountCentavos,
                     'payment_id' => $paymentId,
-                    'reason'     => $reason,
+                    'reason' => $reason,
                 ],
             ],
         ]);
 
         Log::info('PayMongo Refund Response', [
             'status' => $response->status(),
-            'body'   => $response->json(),
+            'body' => $response->json(),
         ]);
 
         if ($response->failed()) {
@@ -185,8 +186,8 @@ class PaymongoService
 
             Log::error('PayMongo Refund Failed', [
                 'payment_id' => $paymentId,
-                'status'     => $response->status(),
-                'error'      => $error,
+                'status' => $response->status(),
+                'error' => $error,
             ]);
 
             $message = $error['errors'][0]['detail'] ?? $error['errors'][0]['code'] ?? 'Refund request failed';
@@ -212,32 +213,32 @@ class PaymongoService
             'data' => [
                 'attributes' => [
                     'send_email_receipt' => false,
-                    'show_description'   => true,
-                    'show_line_items'    => true,
+                    'show_description' => true,
+                    'show_line_items' => true,
                     'line_items' => [
                         [
                             'currency' => 'PHP',
-                            'amount'   => $amount,
-                            'name'     => "Laundry Order {$order->order_number}",
+                            'amount' => $amount,
+                            'name' => "Laundry Order {$order->order_number}",
                             'quantity' => 1,
                         ],
                     ],
                     'payment_method_types' => ['gcash', 'paymaya', 'card', 'grab_pay', 'dob'],
                     'success_url' => url("/user/orders/{$order->id}/payment/success"),
-                    'cancel_url'  => url("/user/orders/{$order->id}/payment/cancel"),
+                    'cancel_url' => url("/user/orders/{$order->id}/payment/cancel"),
                     'description' => "Order {$order->order_number} — {$order->customer_name}",
-                    'metadata'    => [
-                        'order_id'     => (string) $order->id,
+                    'metadata' => [
+                        'order_id' => (string) $order->id,
                         'order_number' => $order->order_number,
-                        'shop_id'      => (string) $order->shop_id,
+                        'shop_id' => (string) $order->shop_id,
                     ],
                 ],
             ],
         ];
 
         Log::info('PayMongo ShopOrder Checkout Request', [
-            'order_id'        => $order->id,
-            'amount_php'      => $order->total_amount,
+            'order_id' => $order->id,
+            'amount_php' => $order->total_amount,
             'amount_centavos' => $amount,
         ]);
 
@@ -245,16 +246,16 @@ class PaymongoService
 
         Log::info('PayMongo ShopOrder Checkout Response', [
             'status' => $response->status(),
-            'body'   => $response->json(),
+            'body' => $response->json(),
         ]);
 
         if ($response->failed()) {
-            $error        = $response->json();
+            $error = $response->json();
             $errorMessage = $error['errors'][0]['detail'] ?? $error['errors'][0]['code'] ?? 'Failed to create checkout session';
 
             Log::error('PayMongo ShopOrder Checkout Failed', [
                 'order_id' => $order->id,
-                'error'    => $error,
+                'error' => $error,
             ]);
 
             throw new \Exception($errorMessage);
@@ -271,6 +272,7 @@ class PaymongoService
     {
         try {
             $response = $this->clientWithKey($key)->get('/events?limit=1');
+
             return $response->status() !== 401;
         } catch (\Exception $e) {
             return false;
@@ -287,7 +289,7 @@ class PaymongoService
         if ($response->failed()) {
             Log::error('Failed to retrieve ShopOrder checkout session', [
                 'session_id' => $sessionId,
-                'error'      => $response->json(),
+                'error' => $response->json(),
             ]);
 
             throw new \Exception('Failed to retrieve checkout session');

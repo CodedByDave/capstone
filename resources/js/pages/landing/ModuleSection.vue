@@ -13,7 +13,7 @@ const plans = [
         savings: null,
         modules: [
             { name: 'Human Resource Managament', icon: Users, included: true },
-            { name: 'Operations Management', icon: ClipboardList, included: true },
+            { name: 'Operation Management', icon: ClipboardList, included: true },
             { name: 'Inventory Management', icon: Package, included: false },
             { name: 'Finance Management', icon: Banknote, included: false },
             { name: 'Reports & Analytics', icon: BarChart3, included: false },
@@ -27,7 +27,7 @@ const plans = [
         savings: 1900,
         modules: [
             { name: 'Human Resource Managament', icon: Users, included: true },
-            { name: 'Operations Management', icon: ClipboardList, included: true },
+            { name: 'Operation Management', icon: ClipboardList, included: true },
             { name: 'Inventory Management', icon: Package, included: true },
             { name: 'Finance Management', icon: Banknote, included: true },
             { name: 'Reports & Analytics', icon: BarChart3, included: false },
@@ -41,7 +41,7 @@ const plans = [
         savings: 3500,
         modules: [
             { name: 'Human Resource Managament', icon: Users, included: true },
-            { name: 'Operations Management', icon: ClipboardList, included: true },
+            { name: 'Operation Management', icon: ClipboardList, included: true },
             { name: 'Inventory Management', icon: Package, included: true },
             { name: 'Finance Management', icon: Banknote, included: true },
             { name: 'Reports & Analytics', icon: BarChart3, included: true },

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\AccountType;
+use App\Enums\EmploymentType;
+use App\Enums\PayBasis;
 use App\Mail\EmployeeCredentialsMail;
 use App\Models\Employee;
 use App\Models\EmployeeRole;
@@ -10,7 +12,6 @@ use App\Models\Shop;
 use App\Models\ShopRole;
 use App\Models\User;
 use App\Repositories\EmployeeRepository;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -24,9 +25,11 @@ class EmployeeService
         'phone',
         'address',
         'position',
+        'employment_type',
+        'pay_rate',
+        'pay_basis',
         'branch_name',
         'hire_date',
-        'salary',
         'status',
     ];
 
@@ -49,33 +52,42 @@ class EmployeeService
             return null;
         }
 
-        $branch = Employee::where('user_id', $user->id)->value('branch_name');
+        $branch = $this->employeeRepository->branchNameForUser($user->id);
 
         return ($branch !== null && $branch !== '') ? $branch : null;
     }
 
-    public function getEmployees(Shop $shop, int $perPage = 10): LengthAwarePaginator
+    public function indexData(Shop $shop, array $filters = []): array
     {
-        $query = Employee::with(['creator:id,name', 'updater:id,name'])
-            ->where('shop_id', $shop->id);
+        $filters = [
+            'search' => $filters['search'] ?? '',
+            'status' => $filters['status'] ?? '',
+            'branch' => $filters['branch'] ?? '',
+            'employment_type' => $filters['employment_type'] ?? '',
+            'sort_by' => $filters['sort_by'] ?? 'employee_id',
+            'sort_direction' => $filters['sort_direction'] ?? 'asc',
+            'per_page' => (int) ($filters['per_page'] ?? 10),
+        ];
+        $user = auth()->user();
+        $isOwner = $user->role === 'owner';
+        $staffBranch = $isOwner ? null : $this->getStaffBranch();
 
-        if (auth()->user()->role !== 'owner') {
-            $branch = $this->getStaffBranch();
-
-            // Always exclude the staff member's own employee record
-            $query->where(function ($q) {
-                $q->where('user_id', '!=', auth()->id())
-                    ->orWhereNull('user_id');
-            });
-
-            // Restrict to their branch only if they have one assigned
-            if ($branch !== null) {
-                $query->where('branch_name', $branch);
-            }
-            // No branch → see all shop employees (except themselves)
-        }
-
-        return $query->latest()->paginate($perPage);
+        return [
+            'employees' => $this->employeeRepository->paginateForShop(
+                $shop,
+                $filters,
+                $staffBranch,
+                $isOwner ? null : $user->id,
+            ),
+            'stats' => $this->employeeRepository->getStatsByShop($shop, $staffBranch),
+            'branch_names' => $staffBranch !== null
+                ? [$staffBranch]
+                : $this->employeeRepository->getBranchNames($shop),
+            'employment_types' => EmploymentType::options(),
+            'pay_bases' => PayBasis::options(),
+            'shop' => $shop,
+            'filters' => $filters,
+        ];
     }
 
     public function getStats(Shop $shop): array
@@ -213,7 +225,7 @@ class EmployeeService
         if (! empty($changes)) {
             $action = isset($changes['status'])
                 ? 'status_changed'
-                : (isset($changes['salary']) ? 'salary_changed' : 'updated');
+                : (isset($changes['pay_rate']) || isset($changes['pay_basis']) ? 'salary_changed' : 'updated');
 
             $this->activityLogService->log(
                 subject: $updated,

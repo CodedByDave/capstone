@@ -14,21 +14,23 @@ class EmployeeObserver
     {
         if (! $employee->isForceDeleting()) {
             EmployeeArchive::create([
-                'shop_id'             => $employee->shop_id,
-                'user_id'             => auth()->id(),
-                'employee_id_ref'     => $employee->id,
-                'employee_id'         => $employee->employee_id,
-                'first_name'          => $employee->first_name,
-                'last_name'           => $employee->last_name,
-                'phone'               => $employee->phone,
-                'address'             => $employee->address,
-                'branch_name'         => $employee->branch_name,
-                'position'            => $employee->position,
-                'hire_date'           => $employee->hire_date,
-                'salary'              => $employee->salary,
-                'status'              => 'Archived',
+                'shop_id' => $employee->shop_id,
+                'user_id' => auth()->id(),
+                'employee_id_ref' => $employee->id,
+                'employee_id' => $employee->employee_id,
+                'first_name' => $employee->first_name,
+                'last_name' => $employee->last_name,
+                'phone' => $employee->phone,
+                'address' => $employee->address,
+                'branch_name' => $employee->branch_name,
+                'position' => $employee->position,
+                'employment_type' => $employee->employment_type,
+                'pay_rate' => $employee->pay_rate,
+                'pay_basis' => $employee->pay_basis,
+                'hire_date' => $employee->hire_date,
+                'status' => 'Archived',
                 'original_created_at' => $employee->created_at,
-                'archived_at'         => now(),
+                'archived_at' => now(),
             ]);
         }
     }

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Order extends Model
@@ -42,6 +44,7 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'phone' => PhilippinePhoneCast::class,
         'is_upgrade' => 'boolean',
         'is_trial' => 'boolean',
         'bir_expiry_date' => 'date',
@@ -67,6 +70,11 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function agreementAcceptance(): HasOne
+    {
+        return $this->hasOne(BusinessAgreementAcceptance::class);
     }
 
     public function user()

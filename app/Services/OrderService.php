@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
+use App\Exceptions\OrderSubmissionException;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
+use App\Notifications\BusinessAgreementExecutedNotification;
 use App\Repositories\OrderRepository;
+use App\Repositories\ShopRepository;
+use App\Repositories\UserRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
@@ -15,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    public const MAX_RESUBMISSIONS = 3;
+
     private const PLAN_MODULES = [
         'Basic' => [
             'HRM',
@@ -36,8 +42,125 @@ class OrderService
     ];
 
     public function __construct(
-        protected OrderRepository $orderRepository
+        protected OrderRepository $orderRepository,
+        protected UserRepository $userRepository,
+        protected ShopRepository $shopRepository,
+        protected BusinessAgreementService $businessAgreementService,
     ) {}
+
+    public function hasOpenApplication(int $userId): bool
+    {
+        return $this->orderRepository->hasOpenApplication($userId);
+    }
+
+    public function checkoutConfirmationData(User $user, array $checkout): array
+    {
+        $shop = $this->shopRepository->findByOwnerId($user->id);
+        $municipalityMap = [
+            'Cavite City' => 'City of Cavite',
+            'Dasmariñas' => 'City of Dasmariñas',
+            'Bacoor' => 'City of Bacoor',
+            'Imus' => 'City of Imus',
+            'Trece Martires' => 'City of Trece Martires',
+            'General Trias' => 'City of General Trias',
+        ];
+        $municipality = $shop?->municipality ?? '';
+
+        return [
+            'planName' => $checkout['plan_name'] ?? 'Standard',
+            'billingMonths' => (int) ($checkout['billing_months'] ?? 12),
+            'vatPct' => 12,
+            'user' => ['name' => $user->name, 'email' => $user->email],
+            'shop' => [
+                'phone' => $shop?->phone ?? '',
+                'shop_name' => $shop?->shop_name ?? '',
+                'block_street' => $shop?->block_street ?? '',
+                'municipality' => $municipalityMap[$municipality] ?? $municipality,
+                'barangay' => $shop?->barangay ?? '',
+                'postal_code' => $shop?->postal_code ?? '',
+            ],
+        ];
+    }
+
+    public function submitApplication(
+        User $user,
+        array $data,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
+    ): Order {
+        return DB::transaction(function () use ($user, $data, $ipAddress, $userAgent) {
+            // Serialize submissions for one owner so concurrent requests cannot
+            // create duplicate pending applications or bypass the retry cap.
+            $this->userRepository->lockForOrderSubmission($user->id);
+
+            if ($this->orderRepository->hasOpenApplication($user->id)) {
+                throw new OrderSubmissionException('You already have an active plan or pending order.');
+            }
+
+            if (! $this->resubmissionStatus($user->id)['can_resubmit']) {
+                throw new OrderSubmissionException(
+                    'You have reached the maximum of '.self::MAX_RESUBMISSIONS.' order resubmissions. Please contact support for assistance.'
+                );
+            }
+
+            $planName = $data['plan_name'];
+            $billingMonths = (int) $data['billing_months'];
+            $grandTotal = $this->calculateGrandTotal($planName, $billingMonths);
+
+            $order = $this->create([
+                ...$data,
+                'owner_name' => $user->name,
+                'email' => $user->email,
+                'user_id' => $user->id,
+                'total_price' => $grandTotal,
+            ]);
+
+            $kycPaths = [];
+            foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {
+                if (! empty($data[$key])) {
+                    $kycPaths[$key] = $data[$key]->store("kyc/{$order->id}", 'private');
+                }
+            }
+
+            if ($kycPaths !== []) {
+                $this->orderRepository->updateKycDocuments($order, $kycPaths);
+            }
+
+            $this->businessAgreementService->acceptForOrder(
+                $user,
+                $order,
+                $data,
+                $ipAddress,
+                $userAgent,
+            );
+
+            return $order->refresh()->load('modules');
+        });
+    }
+
+    public function resubmissionStatus(int $userId): array
+    {
+        $rejectedApplications = $this->orderRepository->countRejectedApplications($userId);
+        $used = min(self::MAX_RESUBMISSIONS, max(0, $rejectedApplications - 1));
+
+        return [
+            'used' => $used,
+            'max' => self::MAX_RESUBMISSIONS,
+            'remaining' => self::MAX_RESUBMISSIONS - $used,
+            // One initial submission plus three resubmissions are allowed.
+            'can_resubmit' => $rejectedApplications <= self::MAX_RESUBMISSIONS,
+        ];
+    }
+
+    private function calculateGrandTotal(string $planName, int $billingMonths): float
+    {
+        $planPrices = ['Basic' => 3800, 'Standard' => 6300, 'Premium' => 8000];
+        $discounts = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
+        $discountPct = $discounts[$billingMonths] ?? 0;
+        $subtotal = $planPrices[$planName] * (1 - $discountPct / 100) * $billingMonths;
+
+        return round($subtotal + ($subtotal * 0.12));
+    }
 
     public function create(array $data): Order
     {
@@ -69,36 +192,48 @@ class OrderService
             'payment_method' => $data['payment_method'] ?? null,
         ]);
 
-        $modules = self::PLAN_MODULES[$planName] ?? [];
-        foreach ($modules as $moduleName) {
-            $order->modules()->create([
-                'name' => $moduleName,
-                'price' => 0,
-            ]);
-        }
+        $this->orderRepository->addModules($order, self::PLAN_MODULES[$planName] ?? []);
 
         return $order->load('modules');
     }
 
     public function syncApprovedShop(Order $order): Shop
     {
-        return Shop::withTrashed()->updateOrCreate(
-            ['owner_id' => $order->user_id],
-            [
-                'shop_name' => $order->shop_name,
-                'phone' => $order->phone,
-                'block_street' => $order->block_street,
-                'municipality' => $order->municipality,
-                'barangay' => $order->barangay,
-                'postal_code' => $order->postal_code,
-                'bir_expiry_date' => $order->bir_expiry_date,
-                'dti_expiry_date' => $order->dti_expiry_date,
-                'mayors_expiry_date' => $order->mayors_expiry_date,
-                'sanitary_expiry_date' => $order->sanitary_expiry_date,
-                'status' => 'active',
-                'deleted_at' => null,
-            ],
-        );
+        return $this->shopRepository->syncFromApprovedOrder($order);
+    }
+
+    public function approveWithPlatformSignature(
+        User $admin,
+        Order $order,
+        array $data,
+        ?string $ipAddress,
+        ?string $userAgent,
+    ): Order {
+        [$approvedOrder, $acceptance] = DB::transaction(function () use ($admin, $order, $data, $ipAddress, $userAgent) {
+            $lockedOrder = $this->orderRepository->findForApproval($order->id);
+
+            if ($lockedOrder->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'order' => 'Only pending orders can be approved.',
+                ]);
+            }
+
+            $acceptance = $this->businessAgreementService->countersignForOrder(
+                $admin,
+                $lockedOrder,
+                $data,
+                $ipAddress,
+                $userAgent,
+            );
+
+            $this->orderRepository->markApproved($lockedOrder);
+
+            return [$this->orderRepository->refresh($lockedOrder), $acceptance];
+        });
+
+        $approvedOrder->user?->notify(new BusinessAgreementExecutedNotification($acceptance));
+
+        return $approvedOrder;
     }
 
     public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
@@ -282,5 +417,10 @@ class OrderService
     public function find(int $id): Order
     {
         return $this->orderRepository->findWithRelations($id);
+    }
+
+    public function adminDetails(Order $order): Order
+    {
+        return $this->orderRepository->loadAdminDetails($order);
     }
 }

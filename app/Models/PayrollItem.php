@@ -11,6 +11,8 @@ class PayrollItem extends Model
         'payroll_id',
         'employee_id',
         'basic_salary',
+        'pay_rate',
+        'pay_basis',
         'days_worked',
         'days_absent',
         'days_late',
@@ -26,14 +28,15 @@ class PayrollItem extends Model
     ];
 
     protected $casts = [
-        'basic_salary'            => 'decimal:2',
-        'deductions'              => 'decimal:2',
-        'sss_contribution'        => 'decimal:2',
+        'basic_salary' => 'decimal:2',
+        'pay_rate' => 'decimal:2',
+        'deductions' => 'decimal:2',
+        'sss_contribution' => 'decimal:2',
         'philhealth_contribution' => 'decimal:2',
-        'pagibig_contribution'    => 'decimal:2',
-        'withholding_tax'         => 'decimal:2',
-        'bonuses'                 => 'decimal:2',
-        'net_pay'                 => 'decimal:2',
+        'pagibig_contribution' => 'decimal:2',
+        'withholding_tax' => 'decimal:2',
+        'bonuses' => 'decimal:2',
+        'net_pay' => 'decimal:2',
     ];
 
     public function payroll(): BelongsTo

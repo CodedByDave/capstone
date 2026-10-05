@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterUserRequest extends FormRequest
@@ -25,7 +26,7 @@ class RegisterUserRequest extends FormRequest
             'first_name' => 'required|string|min:2|max:50',
             'last_name' => 'required|string|min:2|max:50',
             'email' => 'required|email|unique:users,email',
-            'phone_number' => 'required|regex:/^(09|\+639)\d{9}$/|unique:users,phone_number',
+            'phone_number' => ['required', new PhilippineMobileNumber, 'unique:users,phone_number'],
             'password' => 'required|string|min:6|confirmed',
         ];
     }
@@ -33,7 +34,7 @@ class RegisterUserRequest extends FormRequest
     public function messages()
     {
         return [
-            'phone_number.regex' => 'Enter a valid Philippine number (e.g., 09123456789)',
+            'phone_number' => 'Enter a valid Philippine number (e.g., +63-912-3456-789).',
         ];
     }
 }

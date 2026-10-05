@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\ShopService;
-use App\Models\User;
+use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -50,19 +49,20 @@ class ShopOrder extends Model
     ];
 
     protected $casts = [
-        'estimated_weight_kg'     => 'decimal:2',
-        'actual_weight_kg'        => 'decimal:2',
-        'price_per_kg'            => 'decimal:2',
-        'bundle_weight_kg'        => 'decimal:2',
-        'bundle_price'            => 'decimal:2',
-        'bundle_quantity'         => 'integer',
-        'additional_charges'      => 'decimal:2',
-        'discount_amount'         => 'decimal:2',
-        'total_amount'            => 'decimal:2',
-        'amount_paid'             => 'decimal:2',
-        'paid_at'                 => 'datetime',
+        'customer_phone' => PhilippinePhoneCast::class,
+        'estimated_weight_kg' => 'decimal:2',
+        'actual_weight_kg' => 'decimal:2',
+        'price_per_kg' => 'decimal:2',
+        'bundle_weight_kg' => 'decimal:2',
+        'bundle_price' => 'decimal:2',
+        'bundle_quantity' => 'integer',
+        'additional_charges' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'total_amount' => 'decimal:2',
+        'amount_paid' => 'decimal:2',
+        'paid_at' => 'datetime',
         'estimated_completion_at' => 'datetime',
-        'completed_at'            => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     // ─── Enums ────────────────────────────────────────────────────────────────
@@ -173,15 +173,15 @@ class ShopOrder extends Model
     {
         $this->update([
             'payment_status' => 'paid',
-            'amount_paid'    => $this->total_amount,
-            'paid_at'        => now(),
+            'amount_paid' => $this->total_amount,
+            'paid_at' => now(),
         ]);
     }
 
     public function markAsCompleted(): void
     {
         $this->update([
-            'status'       => 'completed',
+            'status' => 'completed',
             'completed_at' => now(),
         ]);
     }

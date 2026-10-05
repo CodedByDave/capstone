@@ -1,52 +1,55 @@
 <script setup lang="ts">
-import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
-import { type BreadcrumbItem } from '@/types'
+import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router, useForm } from '@inertiajs/vue3';
 
 // shadcn components
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 // icons
-import { ArrowLeft, Calendar } from 'lucide-vue-next'
+import { ArrowLeft, Calendar } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Employee {
-    id: number
-    employee_id: string
-    first_name: string
-    last_name: string
-    position: string
-    hire_date: string
+    id: number;
+    employee_id: string;
+    first_name: string;
+    last_name: string;
+    position: string;
+    hire_date: string;
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { employee } = defineProps<{ employee: Employee }>()
+const { employee } = defineProps<{ employee: Employee }>();
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Employee Management', href: '/shop/employee' },
-    { title: `${employee.first_name} ${employee.last_name}`, href: `/shop/employee/${employee.id}` },
+    {
+        title: `${employee.first_name} ${employee.last_name}`,
+        href: `/shop/employee/${employee.id}`,
+    },
     { title: 'Add Schedule', href: '#' },
-]
+];
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
 const form = useForm({
-    work_date:  employee.hire_date,
+    work_date: employee.hire_date,
     start_time: '',
-    end_time:   '',
-})
+    end_time: '',
+});
 
 function submit() {
     form.post(`/shop/employee/${employee.id}/schedule`, {
         preserveScroll: true,
-    })
+    });
 }
 </script>
 
@@ -54,13 +57,15 @@ function submit() {
     <Head title="Add Schedule" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Add Schedule">
-        <div class="px-6 space-y-6">
-
+        <div class="space-y-6 px-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
-                <Button type="button" variant="outline"
-                    @click="router.visit(`/shop/employee/${employee.id}`)">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="router.visit(`/shop/employee/${employee.id}`)"
+                >
+                    <ArrowLeft class="mr-2 h-4 w-4" />
                     Back to Employee
                 </Button>
             </div>
@@ -68,13 +73,14 @@ function submit() {
             <!-- Form Card -->
             <Card>
                 <CardHeader class="pb-3">
-                    <CardTitle class="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CardTitle
+                        class="flex items-center gap-2 text-sm font-semibold tracking-widest text-muted-foreground uppercase"
+                    >
                         <Calendar class="h-4 w-4" /> Schedule Details
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
-
                         <!-- Work Date -->
                         <div class="space-y-2">
                             <Label for="work_date">Work Date</Label>
@@ -82,9 +88,14 @@ function submit() {
                                 id="work_date"
                                 type="date"
                                 v-model="form.work_date"
-                                :class="{ 'border-red-500': form.errors.work_date }"
+                                :class="{
+                                    'border-red-500': form.errors.work_date,
+                                }"
                             />
-                            <p v-if="form.errors.work_date" class="text-xs text-red-500">
+                            <p
+                                v-if="form.errors.work_date"
+                                class="text-xs text-red-500"
+                            >
                                 {{ form.errors.work_date }}
                             </p>
                         </div>
@@ -96,9 +107,14 @@ function submit() {
                                 id="start_time"
                                 type="time"
                                 v-model="form.start_time"
-                                :class="{ 'border-red-500': form.errors.start_time }"
+                                :class="{
+                                    'border-red-500': form.errors.start_time,
+                                }"
                             />
-                            <p v-if="form.errors.start_time" class="text-xs text-red-500">
+                            <p
+                                v-if="form.errors.start_time"
+                                class="text-xs text-red-500"
+                            >
                                 {{ form.errors.start_time }}
                             </p>
                         </div>
@@ -110,29 +126,47 @@ function submit() {
                                 id="end_time"
                                 type="time"
                                 v-model="form.end_time"
-                                :class="{ 'border-red-500': form.errors.end_time }"
+                                :class="{
+                                    'border-red-500': form.errors.end_time,
+                                }"
                             />
-                            <p v-if="form.errors.end_time" class="text-xs text-red-500">
+                            <p
+                                v-if="form.errors.end_time"
+                                class="text-xs text-red-500"
+                            >
                                 {{ form.errors.end_time }}
                             </p>
                         </div>
 
                         <!-- Actions -->
                         <div class="flex items-center justify-end gap-3 pt-2">
-                            <Button type="button" variant="outline"
-                                @click="router.visit(`/shop/employee/${employee.id}`)">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                @click="
+                                    router.visit(
+                                        `/shop/employee/${employee.id}`,
+                                    )
+                                "
+                            >
                                 Cancel
                             </Button>
-                            <Button type="submit" class="bg-blue-500 hover:bg-blue-700"
-                                :disabled="form.processing">
-                                {{ form.processing ? 'Saving...' : 'Save Schedule' }}
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                                :disabled="form.processing"
+                            >
+                                {{
+                                    form.processing
+                                        ? 'Saving...'
+                                        : 'Save Schedule'
+                                }}
                             </Button>
                         </div>
-
                     </form>
                 </CardContent>
             </Card>
-
         </div>
     </ShopLayout>
 </template>

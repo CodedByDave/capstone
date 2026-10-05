@@ -11,6 +11,12 @@ class IssueReport extends Model
 {
     use HasFactory;
 
+    public const CATEGORIES = ['bug', 'account', 'billing', 'feature_request', 'general'];
+
+    public const PRIORITIES = ['low', 'medium', 'high', 'critical'];
+
+    public const STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
+
     protected $fillable = [
         'user_id',
         'subject',

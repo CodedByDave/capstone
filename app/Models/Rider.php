@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Rider extends Model
 {
     protected $fillable = ['shop_id', 'name', 'phone', 'vehicle_type', 'status'];
+
+    protected $casts = [
+        'phone' => PhilippinePhoneCast::class,
+    ];
 
     public function shop(): BelongsTo
     {

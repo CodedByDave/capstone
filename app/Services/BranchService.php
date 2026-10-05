@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\Branch;
-use App\Services\ActivityLogService;
 use App\Repositories\BranchRepository;
+use App\Repositories\EmployeeRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -19,16 +19,26 @@ class BranchService
 
     public function __construct(
         protected BranchRepository $repository,
+        private readonly EmployeeRepository $employeeRepository,
         private readonly ActivityLogService $activityLogService,
     ) {}
 
     /* ─── READ ─────────────────────────────────── */
 
-    public function indexData(int $shopId, ?string $branch = null): array
+    public function indexData(int $shopId, array $filters = [], ?string $branch = null): array
     {
+        $filters = [
+            'search' => $filters['search'] ?? '',
+            'status' => $filters['status'] ?? '',
+            'sort_by' => $filters['sort_by'] ?? 'branch_code',
+            'sort_direction' => $filters['sort_direction'] ?? 'asc',
+            'per_page' => (int) ($filters['per_page'] ?? 15),
+        ];
+
         return [
-            'branches' => $this->repository->paginateForShop($shopId, 15, $branch),
-            'stats'    => $this->repository->statsForShop($shopId, $branch),
+            'branches' => $this->repository->paginateForShop($shopId, $filters, $branch),
+            'stats' => $this->repository->statsForShop($shopId, $branch),
+            'filters' => $filters,
         ];
     }
 
@@ -42,13 +52,18 @@ class BranchService
         return $this->repository->activeBranchNamesForShop($shopId);
     }
 
+    public function managerOptionsForShop(int $shopId): array
+    {
+        return $this->employeeRepository->activeManagerOptionsForShop($shopId);
+    }
+
     /* ─── WRITE ─────────────────────────────────── */
 
     public function create(array $validated, int $shopId): Branch
     {
         $branch = $this->repository->create([
             ...$validated,
-            'shop_id'    => $shopId,
+            'shop_id' => $shopId,
             'created_by' => Auth::id(),
             'updated_by' => Auth::id(),
         ]);
@@ -56,8 +71,8 @@ class BranchService
         // Log creation
         $this->activityLogService->log(
             subject: $branch,
-            action:  'created',
-            shopId:  $shopId,
+            action: 'created',
+            shopId: $shopId,
         );
 
         return $branch;
@@ -73,12 +88,12 @@ class BranchService
         ]);
 
         // Only log if something actually changed
-        if ($result && !empty($changes)) {
+        if ($result && ! empty($changes)) {
             $this->activityLogService->log(
                 subject: $branch->fresh(), // fresh() gets updated values
-                action:  'updated',
+                action: 'updated',
                 changes: $changes,
-                shopId:  $branch->shop_id,
+                shopId: $branch->shop_id,
             );
         }
 
@@ -90,8 +105,8 @@ class BranchService
         // Log BEFORE delete so subject still exists
         $this->activityLogService->log(
             subject: $branch,
-            action:  'archived',
-            shopId:  $branch->shop_id,
+            action: 'archived',
+            shopId: $branch->shop_id,
         );
 
         return $this->repository->delete($branch);
@@ -106,8 +121,8 @@ class BranchService
         // Log AFTER restore so subject is active again
         $this->activityLogService->log(
             subject: $branch,
-            action:  'restored',
-            shopId:  $branch->shop_id,
+            action: 'restored',
+            shopId: $branch->shop_id,
         );
     }
 
@@ -118,18 +133,23 @@ class BranchService
         $changes = [];
 
         foreach (self::TRACKED_FIELDS as $field) {
-            if (!array_key_exists($field, $data)) continue;
+            if (! array_key_exists($field, $data)) {
+                continue;
+            }
 
             $old = (string) $branch->getAttribute($field);
             $new = (string) $data[$field];
 
-            if ($old === $new) continue;
-            if (empty($old) && empty($new)) continue;
+            if ($old === $new) {
+                continue;
+            }
+            if (empty($old) && empty($new)) {
+                continue;
+            }
 
             $changes[$field] = ['old' => $old, 'new' => $new];
         }
 
         return $changes;
     }
-
 }

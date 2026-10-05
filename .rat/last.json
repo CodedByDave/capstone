@@ -1,30 +1,30 @@
 {
-  "generated_at": "2026-09-12T12:46:30+00:00",
+  "generated_at": "2026-09-25T18:01:57+00:00",
   "stats": {
-    "routes": 325,
-    "files": 288,
+    "routes": 346,
+    "files": 331,
     "by_type": {
-      "Controller": 59,
-      "Other": 141,
+      "Controller": 61,
+      "Other": 177,
       "Middleware": 1,
       "Mail": 2,
-      "Model": 31,
+      "Model": 34,
       "Notification": 3,
       "Observer": 2,
-      "Service": 49
+      "Service": 51
     },
     "graph": {
-      "nodes": 542,
-      "edges": 1400,
+      "nodes": 600,
+      "edges": 1628,
       "by_type": {
-        "Route": 234,
-        "Controller": 57,
-        "Service": 70,
-        "Model": 32,
-        "Other": 137,
+        "Route": 248,
+        "Controller": 59,
+        "Service": 73,
+        "Model": 35,
+        "Other": 173,
         "Database": 1,
-        "Event": 1,
         "Filesystem": 1,
+        "Event": 1,
         "Middleware": 1,
         "Mail": 2,
         "Notification": 3,
@@ -122,16 +122,16 @@
       "description": "Model lifecycle triggers hidden execution path (observer/event/job).",
       "severity": "medium",
       "confidence": "high",
-      "entry": "OrderNotification",
-      "source": "OrderNotification",
+      "entry": "IssueReport",
+      "source": "IssueReport",
       "sink": "Hidden execution path",
       "flow": [
-        "OrderNotification",
-        "OrderNotification",
+        "IssueReport",
+        "IssueReport",
         "Observer / Event",
         "Job / Event / Notification"
       ],
-      "file": "app\\Notifications\\OrderNotification.php",
+      "file": "app\\Models\\IssueReport.php",
       "line": 1,
       "recommendations": [
         "Document the side effect for teammates",
@@ -139,7 +139,7 @@
         "Verify authorization propagates to async jobs"
       ],
       "category": "hidden_behavior",
-      "why": "File app\\Notifications\\OrderNotification.php participates in a hidden execution chain (observer/event/listener/job). Use `rat why OrderNotification` to see the full trail."
+      "why": "File app\\Models\\IssueReport.php participates in a hidden execution chain (observer/event/listener/job). Use `rat why IssueReport` to see the full trail."
     },
     {
       "id": "RAT-004",
@@ -147,16 +147,16 @@
       "description": "Model lifecycle triggers hidden execution path (observer/event/job).",
       "severity": "medium",
       "confidence": "high",
-      "entry": "PlanRejectedNotification",
-      "source": "PlanRejectedNotification",
+      "entry": "GET /analytics",
+      "source": "Order",
       "sink": "Hidden execution path",
       "flow": [
-        "PlanRejectedNotification",
-        "PlanRejectedNotification",
+        "GET /analytics",
+        "Order",
         "Observer / Event",
         "Job / Event / Notification"
       ],
-      "file": "app\\Notifications\\PlanRejectedNotification.php",
+      "file": "app\\Models\\Order.php",
       "line": 1,
       "recommendations": [
         "Document the side effect for teammates",
@@ -164,7 +164,7 @@
         "Verify authorization propagates to async jobs"
       ],
       "category": "hidden_behavior",
-      "why": "File app\\Notifications\\PlanRejectedNotification.php participates in a hidden execution chain (observer/event/listener/job). Use `rat why PlanRejectedNotification` to see the full trail."
+      "why": "File app\\Models\\Order.php participates in a hidden execution chain (observer/event/listener/job). Use `rat why Order` to see the full trail."
     },
     {
       "id": "RAT-006",
@@ -219,7 +219,7 @@
         "type": "Route",
         "name": "GET /driver/{token}",
         "file": "routes\\web.php",
-        "line": 46,
+        "line": 48,
         "meta": {
           "action": "DriverPageController@show"
         }
@@ -237,7 +237,7 @@
         "type": "Route",
         "name": "PATCH /driver/{token}/status",
         "file": "routes\\web.php",
-        "line": 47,
+        "line": 49,
         "meta": {
           "action": "DriverPageController@updateStatus"
         }
@@ -247,7 +247,7 @@
         "type": "Route",
         "name": "GET /",
         "file": "routes\\web.php",
-        "line": 49,
+        "line": 51,
         "meta": {
           "action": "Closure"
         }
@@ -257,7 +257,7 @@
         "type": "Route",
         "name": "GET /shop/checkout/{plan}",
         "file": "routes\\web.php",
-        "line": 55,
+        "line": 57,
         "meta": {
           "action": "CheckoutController@show"
         }
@@ -275,7 +275,7 @@
         "type": "Route",
         "name": "POST /checkout/select",
         "file": "routes\\web.php",
-        "line": 56,
+        "line": 58,
         "meta": {
           "action": "CheckoutController@select"
         }
@@ -285,7 +285,7 @@
         "type": "Route",
         "name": "GET /plans",
         "file": "routes\\web.php",
-        "line": 57,
+        "line": 59,
         "meta": {
           "action": "CheckoutController@plans"
         }
@@ -295,7 +295,7 @@
         "type": "Route",
         "name": "GET /checkout/confirm",
         "file": "routes\\web.php",
-        "line": 60,
+        "line": 62,
         "meta": {
           "action": "CheckoutController@confirm"
         }
@@ -305,7 +305,7 @@
         "type": "Route",
         "name": "POST /checkout/process",
         "file": "routes\\web.php",
-        "line": 61,
+        "line": 63,
         "meta": {
           "action": "CheckoutController@checkout"
         }
@@ -315,7 +315,7 @@
         "type": "Route",
         "name": "POST /shop/payment/pay",
         "file": "routes\\web.php",
-        "line": 62,
+        "line": 64,
         "meta": {
           "action": "CheckoutController@pay"
         }
@@ -325,7 +325,7 @@
         "type": "Route",
         "name": "GET /trial",
         "file": "routes\\web.php",
-        "line": 64,
+        "line": 66,
         "meta": {
           "action": "TrialController@show"
         }
@@ -343,7 +343,7 @@
         "type": "Route",
         "name": "POST /trial",
         "file": "routes\\web.php",
-        "line": 65,
+        "line": 67,
         "meta": {
           "action": "TrialController@start"
         }
@@ -353,7 +353,7 @@
         "type": "Route",
         "name": "GET /dashboard",
         "file": "routes\\web.php",
-        "line": 72,
+        "line": 74,
         "meta": {
           "action": "AdminDashboardController@index"
         }
@@ -371,9 +371,47 @@
         "type": "Route",
         "name": "GET /settings/profile",
         "file": "routes\\web.php",
-        "line": 73,
+        "line": 75,
         "meta": {
-          "action": "Closure"
+          "action": "fn () => Inertia::render('Admin/Settings'))->name('admin.settings'"
+        }
+      },
+      {
+        "id": "controller:PlatformRoleController",
+        "type": "Controller",
+        "name": "PlatformRoleController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:POST:/roles",
+        "type": "Route",
+        "name": "POST /roles",
+        "file": "routes\\web.php",
+        "line": 78,
+        "meta": {
+          "action": "PlatformRoleController@store"
+        }
+      },
+      {
+        "id": "route:PATCH:/roles/{platformRole}/permissions",
+        "type": "Route",
+        "name": "PATCH /roles/{platformRole}/permissions",
+        "file": "routes\\web.php",
+        "line": 79,
+        "meta": {
+          "action": "PlatformRoleController@togglePermission"
+        }
+      },
+      {
+        "id": "route:DELETE:/roles/{platformRole}",
+        "type": "Route",
+        "name": "DELETE /roles/{platformRole}",
+        "file": "routes\\web.php",
+        "line": 81,
+        "meta": {
+          "action": "PlatformRoleController@destroy"
         }
       },
       {
@@ -381,7 +419,7 @@
         "type": "Route",
         "name": "GET /shop",
         "file": "routes\\web.php",
-        "line": 75,
+        "line": 84,
         "meta": {
           "action": "ShopController@index"
         }
@@ -395,61 +433,101 @@
         "meta": {}
       },
       {
-        "id": "route:GET:/shop/{shop}",
+        "id": "route:GET:/shop/export",
         "type": "Route",
-        "name": "GET /shop/{shop}",
+        "name": "GET /shop/export",
         "file": "routes\\web.php",
-        "line": 76,
+        "line": 85,
+        "meta": {
+          "action": "ShopController@exportCsv"
+        }
+      },
+      {
+        "id": "route:POST:/shop/bulk-action",
+        "type": "Route",
+        "name": "POST /shop/bulk-action",
+        "file": "routes\\web.php",
+        "line": 86,
+        "meta": {
+          "action": "ShopController@bulkAction"
+        }
+      },
+      {
+        "id": "route:POST:/shop/archive/{publicId}/restore",
+        "type": "Route",
+        "name": "POST /shop/archive/{publicId}/restore",
+        "file": "routes\\web.php",
+        "line": 87,
+        "meta": {
+          "action": "ShopController@restore"
+        }
+      },
+      {
+        "id": "route:DELETE:/shop/archive/{publicId}",
+        "type": "Route",
+        "name": "DELETE /shop/archive/{publicId}",
+        "file": "routes\\web.php",
+        "line": 88,
+        "meta": {
+          "action": "ShopController@forceDelete"
+        }
+      },
+      {
+        "id": "route:GET:/shop/{shop:public_id}",
+        "type": "Route",
+        "name": "GET /shop/{shop:public_id}",
+        "file": "routes\\web.php",
+        "line": 89,
         "meta": {
           "action": "ShopController@show"
         }
       },
       {
-        "id": "route:GET:/shop/{shop}/edit",
+        "id": "route:GET:/shop/{shop:public_id}/edit",
         "type": "Route",
-        "name": "GET /shop/{shop}/edit",
+        "name": "GET /shop/{shop:public_id}/edit",
         "file": "routes\\web.php",
-        "line": 77,
+        "line": 90,
         "meta": {
           "action": "ShopController@edit"
         }
       },
       {
-        "id": "route:PUT:/shop/{shop}",
+        "id": "route:PUT:/shop/{shop:public_id}",
         "type": "Route",
-        "name": "PUT /shop/{shop}",
+        "name": "PUT /shop/{shop:public_id}",
         "file": "routes\\web.php",
-        "line": 78,
+        "line": 91,
         "meta": {
           "action": "ShopController@update"
         }
       },
       {
-        "id": "route:DELETE:/shop/{shop}",
+        "id": "route:DELETE:/shop/{shop:public_id}",
         "type": "Route",
-        "name": "DELETE /shop/{shop}",
+        "name": "DELETE /shop/{shop:public_id}",
         "file": "routes\\web.php",
-        "line": 79,
+        "line": 92,
         "meta": {
           "action": "ShopController@destroy"
         }
       },
       {
-        "id": "route:POST:/shop/{shop}/disable",
+        "id": "route:POST:/shop/{shop:public_id}/disable",
         "type": "Route",
-        "name": "POST /shop/{shop}/disable",
+        "name": "POST /shop/{shop:public_id}/disable",
         "file": "routes\\web.php",
-        "line": 80,
+        "line": 93,
         "meta": {
           "action": "ShopController@disable"
         }
       },
       {
-        "id": "route:POST:/shop/{shop}/enable",
+        "id": "route:POST:/shop/{shop:public_id}/enable",
         "type": "Route",
-        "name": "POST /shop/{shop}/enable",
+        "name": "POST /shop/{shop:public_id}/enable",
         "file": "routes\\web.php",
-        "line": 81,
+        "line": 94,
         "meta": {
           "action": "ShopController@enable"
         }
@@ -463,11 +541,31 @@
         "meta": {}
       },
       {
+        "id": "route:GET:/export",
+        "type": "Route",
+        "name": "GET /export",
+        "file": "routes\\web.php",
+        "line": 99,
+        "meta": {
+          "action": "UserController@exportCsv"
+        }
+      },
+      {
+        "id": "route:POST:/import",
+        "type": "Route",
+        "name": "POST /import",
+        "file": "routes\\web.php",
+        "line": 100,
+        "meta": {
+          "action": "UserController@importCsv"
+        }
+      },
+      {
         "id": "route:POST:/bulk-archive",
         "type": "Route",
         "name": "POST /bulk-archive",
         "file": "routes\\web.php",
-        "line": 87,
+        "line": 101,
         "meta": {
           "action": "UserController@bulkArchive"
         }
@@ -477,7 +575,7 @@
         "type": "Route",
         "name": "POST /{id}/restore",
         "file": "routes\\web.php",
-        "line": 91,
+        "line": 105,
         "meta": {
           "action": "UserController@restore"
         }
@@ -487,7 +585,7 @@
         "type": "Route",
         "name": "POST /bulk-restore",
         "file": "routes\\web.php",
-        "line": 92,
+        "line": 106,
         "meta": {
           "action": "UserController@bulkRestore"
         }
@@ -497,17 +595,17 @@
         "type": "Route",
         "name": "DELETE /{id}",
         "file": "routes\\web.php",
-        "line": 93,
+        "line": 107,
         "meta": {
           "action": "UserController@forceDelete"
         }
       },
       {
-        "id": "route:GET:/{user}",
+        "id": "route:GET:/{user:public_id}",
         "type": "Route",
-        "name": "GET /{user}",
+        "name": "GET /{user:public_id}",
         "file": "routes\\web.php",
-        "line": 96,
+        "line": 110,
         "meta": {
           "action": "UserController@show"
         }
@@ -517,7 +615,7 @@
         "type": "Route",
         "name": "DELETE /{user}",
         "file": "routes\\web.php",
-        "line": 97,
+        "line": 111,
         "meta": {
           "action": "UserController@destroy"
         }
@@ -531,13 +629,43 @@
         "meta": {}
       },
       {
-        "id": "route:DELETE:/{loginLog}",
+        "id": "route:POST:/{category}/{id}/restore",
         "type": "Route",
-        "name": "DELETE /{loginLog}",
+        "name": "POST /{category}/{id}/restore",
         "file": "routes\\web.php",
-        "line": 102,
+        "line": 122,
         "meta": {
-          "action": "LoginLogController@destroy"
+          "action": "LoginLogController@restore"
+        }
+      },
+      {
+        "id": "route:DELETE:/{category}/{id}",
+        "type": "Route",
+        "name": "DELETE /{category}/{id}",
+        "file": "routes\\web.php",
+        "line": 124,
+        "meta": {
+          "action": "LoginLogController@forceDelete"
+        }
+      },
+      {
+        "id": "route:GET:/{category}/{id}",
+        "type": "Route",
+        "name": "GET /{category}/{id}",
+        "file": "routes\\web.php",
+        "line": 127,
+        "meta": {
+          "action": "LoginLogController@show"
+        }
+      },
+      {
+        "id": "route:GET:/login-logs",
+        "type": "Route",
+        "name": "GET /login-logs",
+        "file": "routes\\web.php",
+        "line": 136,
+        "meta": {
+          "action": "fn () => redirect()->route('admin.audit-logs.index'"
         }
       },
       {
@@ -549,31 +677,31 @@
         "meta": {}
       },
       {
-        "id": "route:GET:/{id}",
+        "id": "route:GET:/{order:public_id}",
         "type": "Route",
-        "name": "GET /{id}",
+        "name": "GET /{order:public_id}",
         "file": "routes\\web.php",
-        "line": 116,
+        "line": 143,
         "meta": {
           "action": "OrderController@show"
         }
       },
       {
-        "id": "route:POST:/{id}/approve",
+        "id": "route:POST:/{order:public_id}/approve",
         "type": "Route",
-        "name": "POST /{id}/approve",
+        "name": "POST /{order:public_id}/approve",
         "file": "routes\\web.php",
-        "line": 117,
+        "line": 144,
         "meta": {
           "action": "OrderController@approve"
         }
       },
       {
-        "id": "route:POST:/{id}/reject",
+        "id": "route:POST:/{order:public_id}/reject",
         "type": "Route",
-        "name": "POST /{id}/reject",
+        "name": "POST /{order:public_id}/reject",
         "file": "routes\\web.php",
-        "line": 118,
+        "line": 145,
         "meta": {
           "action": "OrderController@reject"
         }
@@ -583,7 +711,7 @@
         "type": "Route",
         "name": "GET /kyc-file",
         "file": "routes\\web.php",
-        "line": 121,
+        "line": 148,
         "meta": {
           "action": "OrderController@serveKyc"
         }
@@ -593,7 +721,7 @@
         "type": "Route",
         "name": "GET /analytics",
         "file": "routes\\web.php",
-        "line": 124,
+        "line": 151,
         "meta": {
           "action": "AnalyticsController@index"
         }
@@ -605,6 +733,24 @@
         "file": "",
         "line": 0,
         "meta": {}
+      },
+      {
+        "id": "controller:IssueReportController",
+        "type": "Controller",
+        "name": "IssueReportController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:PATCH:/{issueReport:public_id}",
+        "type": "Route",
+        "name": "PATCH /{issueReport:public_id}",
+        "file": "routes\\web.php",
+        "line": 157,
+        "meta": {
+          "action": "IssueReportController@update"
+        }
       },
       {
         "id": "controller:ShopDashboardController",
@@ -619,7 +765,7 @@
         "type": "Route",
         "name": "GET /data",
         "file": "routes\\web.php",
-        "line": 132,
+        "line": 168,
         "meta": {
           "action": "ShopDataController@getShop"
         }
@@ -637,17 +783,17 @@
         "type": "Route",
         "name": "POST /checkout",
         "file": "routes\\web.php",
-        "line": 134,
+        "line": 170,
         "meta": {
           "action": "CheckoutController@checkout"
         }
       },
       {
-        "id": "route:GET:/payment/success",
+        "id": "route:GET:/payment/success/{order:public_id}",
         "type": "Route",
-        "name": "GET /payment/success",
+        "name": "GET /payment/success/{order:public_id}",
         "file": "routes\\web.php",
-        "line": 135,
+        "line": 171,
         "meta": {
           "action": "CheckoutController@success"
         }
@@ -657,7 +803,7 @@
         "type": "Route",
         "name": "GET /payment/cancel",
         "file": "routes\\web.php",
-        "line": 136,
+        "line": 172,
         "meta": {
           "action": "CheckoutController@cancel"
         }
@@ -667,7 +813,7 @@
         "type": "Route",
         "name": "GET /logs",
         "file": "routes\\web.php",
-        "line": 138,
+        "line": 174,
         "meta": {
           "action": "ActivityLogsController@index"
         }
@@ -685,7 +831,7 @@
         "type": "Route",
         "name": "GET /employee/create",
         "file": "routes\\web.php",
-        "line": 141,
+        "line": 177,
         "meta": {
           "action": "EmployeeController@create"
         }
@@ -703,7 +849,7 @@
         "type": "Route",
         "name": "GET /employee/archive",
         "file": "routes\\web.php",
-        "line": 142,
+        "line": 178,
         "meta": {
           "action": "EmployeeController@archive"
         }
@@ -713,7 +859,7 @@
         "type": "Route",
         "name": "GET /employee/import-template",
         "file": "routes\\web.php",
-        "line": 143,
+        "line": 179,
         "meta": {
           "action": "EmployeeController@importTemplate"
         }
@@ -723,7 +869,7 @@
         "type": "Route",
         "name": "POST /employee/import",
         "file": "routes\\web.php",
-        "line": 144,
+        "line": 180,
         "meta": {
           "action": "EmployeeController@import"
         }
@@ -733,7 +879,7 @@
         "type": "Route",
         "name": "POST /employee/bulk-restore",
         "file": "routes\\web.php",
-        "line": 145,
+        "line": 181,
         "meta": {
           "action": "EmployeeController@bulkRestore"
         }
@@ -743,7 +889,7 @@
         "type": "Route",
         "name": "GET /employee",
         "file": "routes\\web.php",
-        "line": 147,
+        "line": 183,
         "meta": {
           "action": "EmployeeController@index"
         }
@@ -753,7 +899,7 @@
         "type": "Route",
         "name": "POST /employee",
         "file": "routes\\web.php",
-        "line": 148,
+        "line": 184,
         "meta": {
           "action": "EmployeeController@store"
         }
@@ -763,7 +909,7 @@
         "type": "Route",
         "name": "GET /employee/{employee}",
         "file": "routes\\web.php",
-        "line": 149,
+        "line": 185,
         "meta": {
           "action": "EmployeeController@show"
         }
@@ -773,7 +919,7 @@
         "type": "Route",
         "name": "GET /employee/{employee}/edit",
         "file": "routes\\web.php",
-        "line": 150,
+        "line": 186,
         "meta": {
           "action": "EmployeeController@edit"
         }
@@ -783,7 +929,7 @@
         "type": "Route",
         "name": "PUT /employee/{employee}",
         "file": "routes\\web.php",
-        "line": 151,
+        "line": 187,
         "meta": {
           "action": "EmployeeController@update"
         }
@@ -793,7 +939,7 @@
         "type": "Route",
         "name": "DELETE /employee/{employee}",
         "file": "routes\\web.php",
-        "line": 152,
+        "line": 188,
         "meta": {
           "action": "EmployeeController@destroy"
         }
@@ -803,7 +949,7 @@
         "type": "Route",
         "name": "POST /employee/{id}/restore",
         "file": "routes\\web.php",
-        "line": 153,
+        "line": 189,
         "meta": {
           "action": "EmployeeController@restore"
         }
@@ -813,7 +959,7 @@
         "type": "Route",
         "name": "PUT /employee/{employee}/schedule",
         "file": "routes\\web.php",
-        "line": 156,
+        "line": 192,
         "meta": {
           "action": "ScheduleController@sync"
         }
@@ -831,7 +977,7 @@
         "type": "Route",
         "name": "DELETE /employee/{employee}/schedule/{schedule}",
         "file": "routes\\web.php",
-        "line": 157,
+        "line": 193,
         "meta": {
           "action": "ScheduleController@destroy"
         }
@@ -841,7 +987,7 @@
         "type": "Route",
         "name": "GET /attendance",
         "file": "routes\\web.php",
-        "line": 160,
+        "line": 196,
         "meta": {
           "action": "AttendanceController@index"
         }
@@ -859,7 +1005,7 @@
         "type": "Route",
         "name": "POST /attendance",
         "file": "routes\\web.php",
-        "line": 161,
+        "line": 197,
         "meta": {
           "action": "AttendanceController@store"
         }
@@ -869,7 +1015,7 @@
         "type": "Route",
         "name": "PUT /attendance/{attendance}",
         "file": "routes\\web.php",
-        "line": 162,
+        "line": 198,
         "meta": {
           "action": "AttendanceController@update"
         }
@@ -879,7 +1025,7 @@
         "type": "Route",
         "name": "GET /payroll",
         "file": "routes\\web.php",
-        "line": 165,
+        "line": 201,
         "meta": {
           "action": "PayrollController@index"
         }
@@ -897,7 +1043,7 @@
         "type": "Route",
         "name": "POST /payroll",
         "file": "routes\\web.php",
-        "line": 166,
+        "line": 202,
         "meta": {
           "action": "PayrollController@store"
         }
@@ -907,7 +1053,7 @@
         "type": "Route",
         "name": "PUT /payroll/settings",
         "file": "routes\\web.php",
-        "line": 167,
+        "line": 203,
         "meta": {
           "action": "PayrollController@updateSettings"
         }
@@ -917,7 +1063,7 @@
         "type": "Route",
         "name": "GET /payroll/{payroll}",
         "file": "routes\\web.php",
-        "line": 168,
+        "line": 204,
         "meta": {
           "action": "PayrollController@show"
         }
@@ -927,7 +1073,7 @@
         "type": "Route",
         "name": "PUT /payroll/{payrollItem}/item",
         "file": "routes\\web.php",
-        "line": 169,
+        "line": 205,
         "meta": {
           "action": "PayrollController@updateItem"
         }
@@ -937,7 +1083,7 @@
         "type": "Route",
         "name": "POST /payroll/{payroll}/recalculate",
         "file": "routes\\web.php",
-        "line": 170,
+        "line": 206,
         "meta": {
           "action": "PayrollController@recalculate"
         }
@@ -947,7 +1093,7 @@
         "type": "Route",
         "name": "POST /payroll/{payroll}/finalize",
         "file": "routes\\web.php",
-        "line": 171,
+        "line": 207,
         "meta": {
           "action": "PayrollController@finalize"
         }
@@ -957,7 +1103,7 @@
         "type": "Route",
         "name": "DELETE /payroll/{payroll}",
         "file": "routes\\web.php",
-        "line": 172,
+        "line": 208,
         "meta": {
           "action": "PayrollController@destroy"
         }
@@ -967,7 +1113,7 @@
         "type": "Route",
         "name": "GET /branch/create",
         "file": "routes\\web.php",
-        "line": 175,
+        "line": 211,
         "meta": {
           "action": "BranchController@create"
         }
@@ -985,7 +1131,7 @@
         "type": "Route",
         "name": "GET /branch/archive",
         "file": "routes\\web.php",
-        "line": 176,
+        "line": 212,
         "meta": {
           "action": "BranchController@archive"
         }
@@ -995,7 +1141,7 @@
         "type": "Route",
         "name": "POST /branch/{id}/restore",
         "file": "routes\\web.php",
-        "line": 177,
+        "line": 213,
         "meta": {
           "action": "BranchController@restore"
         }
@@ -1005,7 +1151,7 @@
         "type": "Route",
         "name": "GET /branch",
         "file": "routes\\web.php",
-        "line": 179,
+        "line": 215,
         "meta": {
           "action": "BranchController@index"
         }
@@ -1015,7 +1161,7 @@
         "type": "Route",
         "name": "POST /branch",
         "file": "routes\\web.php",
-        "line": 180,
+        "line": 216,
         "meta": {
           "action": "BranchController@store"
         }
@@ -1025,7 +1171,7 @@
         "type": "Route",
         "name": "GET /branch/{branch}/edit",
         "file": "routes\\web.php",
-        "line": 181,
+        "line": 217,
         "meta": {
           "action": "BranchController@edit"
         }
@@ -1035,7 +1181,7 @@
         "type": "Route",
         "name": "PUT /branch/{branch}",
         "file": "routes\\web.php",
-        "line": 182,
+        "line": 218,
         "meta": {
           "action": "BranchController@update"
         }
@@ -1045,7 +1191,7 @@
         "type": "Route",
         "name": "DELETE /branch/{branch}",
         "file": "routes\\web.php",
-        "line": 183,
+        "line": 219,
         "meta": {
           "action": "BranchController@destroy"
         }
@@ -1055,7 +1201,7 @@
         "type": "Route",
         "name": "GET /permission",
         "file": "routes\\web.php",
-        "line": 186,
+        "line": 222,
         "meta": {
           "action": "PermissionController@index"
         }
@@ -1073,7 +1219,7 @@
         "type": "Route",
         "name": "POST /permission/update",
         "file": "routes\\web.php",
-        "line": 187,
+        "line": 223,
         "meta": {
           "action": "PermissionController@updatePermission"
         }
@@ -1083,7 +1229,7 @@
         "type": "Route",
         "name": "POST /permission/roles",
         "file": "routes\\web.php",
-        "line": 188,
+        "line": 224,
         "meta": {
           "action": "PermissionController@storeRole"
         }
@@ -1093,7 +1239,7 @@
         "type": "Route",
         "name": "DELETE /permission/roles/{role}",
         "file": "routes\\web.php",
-        "line": 189,
+        "line": 225,
         "meta": {
           "action": "PermissionController@destroyRole"
         }
@@ -1103,7 +1249,7 @@
         "type": "Route",
         "name": "POST /permission/employee/{employeeId}/toggle-role",
         "file": "routes\\web.php",
-        "line": 190,
+        "line": 226,
         "meta": {
           "action": "PermissionController@toggleEmployeeRole"
         }
@@ -1113,7 +1259,7 @@
         "type": "Route",
         "name": "GET /inventory/category",
         "file": "routes\\web.php",
-        "line": 193,
+        "line": 229,
         "meta": {
           "action": "InventoryCategoryController@index"
         }
@@ -1131,7 +1277,7 @@
         "type": "Route",
         "name": "POST /inventory/category",
         "file": "routes\\web.php",
-        "line": 194,
+        "line": 230,
         "meta": {
           "action": "InventoryCategoryController@store"
         }
@@ -1141,7 +1287,7 @@
         "type": "Route",
         "name": "GET /inventory/category/{inventoryCategory}/edit",
         "file": "routes\\web.php",
-        "line": 195,
+        "line": 231,
         "meta": {
           "action": "InventoryCategoryController@edit"
         }
@@ -1151,7 +1297,7 @@
         "type": "Route",
         "name": "PUT /inventory/category/{inventoryCategory}",
         "file": "routes\\web.php",
-        "line": 196,
+        "line": 232,
         "meta": {
           "action": "InventoryCategoryController@update"
         }
@@ -1161,7 +1307,7 @@
         "type": "Route",
         "name": "DELETE /inventory/category/{inventoryCategory}",
         "file": "routes\\web.php",
-        "line": 197,
+        "line": 233,
         "meta": {
           "action": "InventoryCategoryController@destroy"
         }
@@ -1171,7 +1317,7 @@
         "type": "Route",
         "name": "GET /inventory/category/archive",
         "file": "routes\\web.php",
-        "line": 198,
+        "line": 234,
         "meta": {
           "action": "InventoryCategoryController@archive"
         }
@@ -1181,7 +1327,7 @@
         "type": "Route",
         "name": "POST /inventory/category/{id}/restore",
         "file": "routes\\web.php",
-        "line": 199,
+        "line": 235,
         "meta": {
           "action": "InventoryCategoryController@restore"
         }
@@ -1191,7 +1337,7 @@
         "type": "Route",
         "name": "GET /inventory/alerts",
         "file": "routes\\web.php",
-        "line": 202,
+        "line": 238,
         "meta": {
           "action": "LowStockAlertController@index"
         }
@@ -1209,7 +1355,7 @@
         "type": "Route",
         "name": "POST /inventory/alerts/mark-all-read",
         "file": "routes\\web.php",
-        "line": 203,
+        "line": 239,
         "meta": {
           "action": "LowStockAlertController@markAllRead"
         }
@@ -1219,7 +1365,7 @@
         "type": "Route",
         "name": "PATCH /inventory/alerts/{lowStockAlert}",
         "file": "routes\\web.php",
-        "line": 204,
+        "line": 240,
         "meta": {
           "action": "LowStockAlertController@update"
         }
@@ -1229,7 +1375,7 @@
         "type": "Route",
         "name": "GET /inventory",
         "file": "routes\\web.php",
-        "line": 207,
+        "line": 243,
         "meta": {
           "action": "InventoryController@index"
         }
@@ -1247,7 +1393,7 @@
         "type": "Route",
         "name": "GET /inventory/create",
         "file": "routes\\web.php",
-        "line": 208,
+        "line": 244,
         "meta": {
           "action": "InventoryController@create"
         }
@@ -1257,7 +1403,7 @@
         "type": "Route",
         "name": "POST /inventory",
         "file": "routes\\web.php",
-        "line": 209,
+        "line": 245,
         "meta": {
           "action": "InventoryController@store"
         }
@@ -1267,7 +1413,7 @@
         "type": "Route",
         "name": "GET /inventory/{inventory}",
         "file": "routes\\web.php",
-        "line": 210,
+        "line": 246,
         "meta": {
           "action": "InventoryController@show"
         }
@@ -1277,7 +1423,7 @@
         "type": "Route",
         "name": "GET /inventory/{inventory}/edit",
         "file": "routes\\web.php",
-        "line": 211,
+        "line": 247,
         "meta": {
           "action": "InventoryController@edit"
         }
@@ -1287,7 +1433,7 @@
         "type": "Route",
         "name": "PUT /inventory/{inventory}",
         "file": "routes\\web.php",
-        "line": 212,
+        "line": 248,
         "meta": {
           "action": "InventoryController@update"
         }
@@ -1297,7 +1443,7 @@
         "type": "Route",
         "name": "DELETE /inventory/{inventory}",
         "file": "routes\\web.php",
-        "line": 213,
+        "line": 249,
         "meta": {
           "action": "InventoryController@destroy"
         }
@@ -1307,7 +1453,7 @@
         "type": "Route",
         "name": "POST /inventory/{inventory}/adjust",
         "file": "routes\\web.php",
-        "line": 214,
+        "line": 250,
         "meta": {
           "action": "InventoryController@adjustStock"
         }
@@ -1317,7 +1463,7 @@
         "type": "Route",
         "name": "GET /supplier",
         "file": "routes\\web.php",
-        "line": 217,
+        "line": 253,
         "meta": {
           "action": "SupplierController@index"
         }
@@ -1335,7 +1481,7 @@
         "type": "Route",
         "name": "GET /supplier/create",
         "file": "routes\\web.php",
-        "line": 218,
+        "line": 254,
         "meta": {
           "action": "SupplierController@create"
         }
@@ -1345,7 +1491,7 @@
         "type": "Route",
         "name": "POST /supplier",
         "file": "routes\\web.php",
-        "line": 219,
+        "line": 255,
         "meta": {
           "action": "SupplierController@store"
         }
@@ -1355,7 +1501,7 @@
         "type": "Route",
         "name": "GET /supplier/{supplier}/edit",
         "file": "routes\\web.php",
-        "line": 220,
+        "line": 256,
         "meta": {
           "action": "SupplierController@edit"
         }
@@ -1365,7 +1511,7 @@
         "type": "Route",
         "name": "PUT /supplier/{supplier}",
         "file": "routes\\web.php",
-        "line": 221,
+        "line": 257,
         "meta": {
           "action": "SupplierController@update"
         }
@@ -1375,7 +1521,7 @@
         "type": "Route",
         "name": "DELETE /supplier/{supplier}",
         "file": "routes\\web.php",
-        "line": 222,
+        "line": 258,
         "meta": {
           "action": "SupplierController@destroy"
         }
@@ -1385,7 +1531,7 @@
         "type": "Route",
         "name": "GET /supplier/archive",
         "file": "routes\\web.php",
-        "line": 223,
+        "line": 259,
         "meta": {
           "action": "SupplierController@archive"
         }
@@ -1395,7 +1541,7 @@
         "type": "Route",
         "name": "POST /supplier/{id}/restore",
         "file": "routes\\web.php",
-        "line": 224,
+        "line": 260,
         "meta": {
           "action": "SupplierController@restore"
         }
@@ -1405,7 +1551,7 @@
         "type": "Route",
         "name": "GET operations/orders",
         "file": "routes\\web.php",
-        "line": 227,
+        "line": 263,
         "meta": {
           "action": "ShopOrderController@index"
         }
@@ -1423,7 +1569,7 @@
         "type": "Route",
         "name": "GET operations/orders/create",
         "file": "routes\\web.php",
-        "line": 228,
+        "line": 264,
         "meta": {
           "action": "ShopOrderController@create"
         }
@@ -1433,7 +1579,7 @@
         "type": "Route",
         "name": "POST operations/orders",
         "file": "routes\\web.php",
-        "line": 229,
+        "line": 265,
         "meta": {
           "action": "ShopOrderController@store"
         }
@@ -1443,7 +1589,7 @@
         "type": "Route",
         "name": "GET operations/orders/{order}",
         "file": "routes\\web.php",
-        "line": 230,
+        "line": 266,
         "meta": {
           "action": "ShopOrderController@show"
         }
@@ -1453,7 +1599,7 @@
         "type": "Route",
         "name": "GET operations/orders/{order}/edit",
         "file": "routes\\web.php",
-        "line": 231,
+        "line": 267,
         "meta": {
           "action": "ShopOrderController@edit"
         }
@@ -1463,7 +1609,7 @@
         "type": "Route",
         "name": "PUT operations/orders/{order}",
         "file": "routes\\web.php",
-        "line": 232,
+        "line": 268,
         "meta": {
           "action": "ShopOrderController@update"
         }
@@ -1473,7 +1619,7 @@
         "type": "Route",
         "name": "DELETE operations/orders/{order}",
         "file": "routes\\web.php",
-        "line": 233,
+        "line": 269,
         "meta": {
           "action": "ShopOrderController@destroy"
         }
@@ -1483,7 +1629,7 @@
         "type": "Route",
         "name": "POST operations/orders/{order}/payment-request",
         "file": "routes\\web.php",
-        "line": 234,
+        "line": 270,
         "meta": {
           "action": "ShopOrderController@sendPaymentRequest"
         }
@@ -1493,7 +1639,7 @@
         "type": "Route",
         "name": "GET operations/services",
         "file": "routes\\web.php",
-        "line": 237,
+        "line": 273,
         "meta": {
           "action": "ShopServiceController@index"
         }
@@ -1511,7 +1657,7 @@
         "type": "Route",
         "name": "GET operations/services/create",
         "file": "routes\\web.php",
-        "line": 238,
+        "line": 274,
         "meta": {
           "action": "ShopServiceController@create"
         }
@@ -1521,7 +1667,7 @@
         "type": "Route",
         "name": "POST operations/services",
         "file": "routes\\web.php",
-        "line": 239,
+        "line": 275,
         "meta": {
           "action": "ShopServiceController@store"
         }
@@ -1531,7 +1677,7 @@
         "type": "Route",
         "name": "POST operations/services/restore-all",
         "file": "routes\\web.php",
-        "line": 240,
+        "line": 276,
         "meta": {
           "action": "ShopServiceController@restoreAll"
         }
@@ -1541,7 +1687,7 @@
         "type": "Route",
         "name": "GET operations/services/{service}/edit",
         "file": "routes\\web.php",
-        "line": 241,
+        "line": 277,
         "meta": {
           "action": "ShopServiceController@edit"
         }
@@ -1551,7 +1697,7 @@
         "type": "Route",
         "name": "PUT operations/services/{service}",
         "file": "routes\\web.php",
-        "line": 242,
+        "line": 278,
         "meta": {
           "action": "ShopServiceController@update"
         }
@@ -1561,7 +1707,7 @@
         "type": "Route",
         "name": "DELETE operations/services/{service}",
         "file": "routes\\web.php",
-        "line": 243,
+        "line": 279,
         "meta": {
           "action": "ShopServiceController@destroy"
         }
@@ -1571,7 +1717,7 @@
         "type": "Route",
         "name": "PATCH operations/services/{service}/toggle",
         "file": "routes\\web.php",
-        "line": 244,
+        "line": 280,
         "meta": {
           "action": "ShopServiceController@toggleActive"
         }
@@ -1581,7 +1727,7 @@
         "type": "Route",
         "name": "PATCH operations/services/{service}/restore",
         "file": "routes\\web.php",
-        "line": 245,
+        "line": 281,
         "meta": {
           "action": "ShopServiceController@restore"
         }
@@ -1591,7 +1737,7 @@
         "type": "Route",
         "name": "GET operations/promos",
         "file": "routes\\web.php",
-        "line": 248,
+        "line": 284,
         "meta": {
           "action": "PromotionController@index"
         }
@@ -1609,7 +1755,7 @@
         "type": "Route",
         "name": "GET operations/promos/create",
         "file": "routes\\web.php",
-        "line": 249,
+        "line": 285,
         "meta": {
           "action": "PromotionController@create"
         }
@@ -1619,7 +1765,7 @@
         "type": "Route",
         "name": "POST operations/promos",
         "file": "routes\\web.php",
-        "line": 250,
+        "line": 286,
         "meta": {
           "action": "PromotionController@store"
         }
@@ -1629,7 +1775,7 @@
         "type": "Route",
         "name": "GET operations/promos/{promotion}/edit",
         "file": "routes\\web.php",
-        "line": 251,
+        "line": 287,
         "meta": {
           "action": "PromotionController@edit"
         }
@@ -1639,7 +1785,7 @@
         "type": "Route",
         "name": "PUT operations/promos/{promotion}",
         "file": "routes\\web.php",
-        "line": 252,
+        "line": 288,
         "meta": {
           "action": "PromotionController@update"
         }
@@ -1649,7 +1795,7 @@
         "type": "Route",
         "name": "PATCH operations/promos/{promotion}/toggle",
         "file": "routes\\web.php",
-        "line": 253,
+        "line": 289,
         "meta": {
           "action": "PromotionController@toggleActive"
         }
@@ -1659,7 +1805,7 @@
         "type": "Route",
         "name": "DELETE operations/promos/{promotion}",
         "file": "routes\\web.php",
-        "line": 254,
+        "line": 290,
         "meta": {
           "action": "PromotionController@destroy"
         }
@@ -1669,7 +1815,7 @@
         "type": "Route",
         "name": "PATCH operations/promos/{promotion}/restore",
         "file": "routes\\web.php",
-        "line": 255,
+        "line": 291,
         "meta": {
           "action": "PromotionController@restore"
         }
@@ -1679,7 +1825,7 @@
         "type": "Route",
         "name": "POST operations/orders/restore-all",
         "file": "routes\\web.php",
-        "line": 257,
+        "line": 293,
         "meta": {
           "action": "ShopOrderController@restoreAll"
         }
@@ -1689,7 +1835,7 @@
         "type": "Route",
         "name": "PATCH operations/orders/{order}/restore",
         "file": "routes\\web.php",
-        "line": 258,
+        "line": 294,
         "meta": {
           "action": "ShopOrderController@restore"
         }
@@ -1699,7 +1845,7 @@
         "type": "Route",
         "name": "PATCH orders/{order}/status",
         "file": "routes\\web.php",
-        "line": 261,
+        "line": 297,
         "meta": {
           "action": "ShopOrderController@updateStatus"
         }
@@ -1709,7 +1855,7 @@
         "type": "Route",
         "name": "PATCH orders/{order}/payment",
         "file": "routes\\web.php",
-        "line": 262,
+        "line": 298,
         "meta": {
           "action": "ShopOrderController@updatePayment"
         }
@@ -1727,7 +1873,7 @@
         "type": "Route",
         "name": "GET /finance",
         "file": "routes\\web.php",
-        "line": 272,
+        "line": 308,
         "meta": {
           "action": "FinanceDashboardController@index"
         }
@@ -1745,7 +1891,7 @@
         "type": "Route",
         "name": "GET /finance/income",
         "file": "routes\\web.php",
-        "line": 273,
+        "line": 309,
         "meta": {
           "action": "FinanceDashboardController@income"
         }
@@ -1755,7 +1901,7 @@
         "type": "Route",
         "name": "GET /finance/transactions",
         "file": "routes\\web.php",
-        "line": 274,
+        "line": 310,
         "meta": {
           "action": "FinanceDashboardController@transactions"
         }
@@ -1765,7 +1911,7 @@
         "type": "Route",
         "name": "GET /finance/expenses/archive",
         "file": "routes\\web.php",
-        "line": 275,
+        "line": 311,
         "meta": {
           "action": "ExpenseController@archive"
         }
@@ -1783,7 +1929,7 @@
         "type": "Route",
         "name": "GET /finance/expenses",
         "file": "routes\\web.php",
-        "line": 276,
+        "line": 312,
         "meta": {
           "action": "ExpenseController@index"
         }
@@ -1793,7 +1939,7 @@
         "type": "Route",
         "name": "POST /finance/expenses",
         "file": "routes\\web.php",
-        "line": 277,
+        "line": 313,
         "meta": {
           "action": "ExpenseController@store"
         }
@@ -1803,7 +1949,7 @@
         "type": "Route",
         "name": "PUT /finance/expenses/{expense}",
         "file": "routes\\web.php",
-        "line": 278,
+        "line": 314,
         "meta": {
           "action": "ExpenseController@update"
         }
@@ -1813,7 +1959,7 @@
         "type": "Route",
         "name": "DELETE /finance/expenses/{expense}",
         "file": "routes\\web.php",
-        "line": 279,
+        "line": 315,
         "meta": {
           "action": "ExpenseController@destroy"
         }
@@ -1823,7 +1969,7 @@
         "type": "Route",
         "name": "POST /finance/expenses/{id}/restore",
         "file": "routes\\web.php",
-        "line": 280,
+        "line": 316,
         "meta": {
           "action": "ExpenseController@restore"
         }
@@ -1833,7 +1979,7 @@
         "type": "Route",
         "name": "POST /finance/categories",
         "file": "routes\\web.php",
-        "line": 281,
+        "line": 317,
         "meta": {
           "action": "ExpenseController@storeCategory"
         }
@@ -1843,7 +1989,7 @@
         "type": "Route",
         "name": "DELETE /finance/categories/{category}",
         "file": "routes\\web.php",
-        "line": 282,
+        "line": 318,
         "meta": {
           "action": "ExpenseController@destroyCategory"
         }
@@ -1853,7 +1999,7 @@
         "type": "Route",
         "name": "GET /payment-qr",
         "file": "routes\\web.php",
-        "line": 285,
+        "line": 321,
         "meta": {
           "action": "PaymentQrController@index"
         }
@@ -1871,7 +2017,7 @@
         "type": "Route",
         "name": "POST /payment-qr",
         "file": "routes\\web.php",
-        "line": 286,
+        "line": 322,
         "meta": {
           "action": "PaymentQrController@update"
         }
@@ -1881,7 +2027,7 @@
         "type": "Route",
         "name": "GET /upgrade",
         "file": "routes\\web.php",
-        "line": 290,
+        "line": 326,
         "meta": {
           "action": "UpgradeController@show"
         }
@@ -1899,7 +2045,7 @@
         "type": "Route",
         "name": "POST /upgrade/select",
         "file": "routes\\web.php",
-        "line": 291,
+        "line": 327,
         "meta": {
           "action": "UpgradeController@select"
         }
@@ -1909,7 +2055,7 @@
         "type": "Route",
         "name": "GET /upgrade/confirm",
         "file": "routes\\web.php",
-        "line": 292,
+        "line": 328,
         "meta": {
           "action": "UpgradeController@confirm"
         }
@@ -1919,7 +2065,7 @@
         "type": "Route",
         "name": "POST /upgrade/process",
         "file": "routes\\web.php",
-        "line": 293,
+        "line": 329,
         "meta": {
           "action": "UpgradeController@process"
         }
@@ -1929,7 +2075,7 @@
         "type": "Route",
         "name": "GET /settings",
         "file": "routes\\web.php",
-        "line": 295,
+        "line": 331,
         "meta": {
           "action": "ShopSettingsController@index"
         }
@@ -1947,7 +2093,7 @@
         "type": "Route",
         "name": "POST /settings/geo",
         "file": "routes\\web.php",
-        "line": 296,
+        "line": 332,
         "meta": {
           "action": "ShopSettingsController@updateGeo"
         }
@@ -1957,7 +2103,7 @@
         "type": "Route",
         "name": "POST /settings/geo/clear",
         "file": "routes\\web.php",
-        "line": 297,
+        "line": 333,
         "meta": {
           "action": "ShopSettingsController@clearGeo"
         }
@@ -1967,7 +2113,7 @@
         "type": "Route",
         "name": "POST /settings/cover-photo",
         "file": "routes\\web.php",
-        "line": 298,
+        "line": 334,
         "meta": {
           "action": "ShopSettingsController@updateCoverPhoto"
         }
@@ -1977,7 +2123,7 @@
         "type": "Route",
         "name": "POST /settings/cover-photo/clear",
         "file": "routes\\web.php",
-        "line": 299,
+        "line": 335,
         "meta": {
           "action": "ShopSettingsController@removeCoverPhoto"
         }
@@ -1987,7 +2133,7 @@
         "type": "Route",
         "name": "POST /settings/paymongo",
         "file": "routes\\web.php",
-        "line": 300,
+        "line": 336,
         "meta": {
           "action": "ShopSettingsController@updatePaymongo"
         }
@@ -1997,7 +2143,7 @@
         "type": "Route",
         "name": "GET /logistics",
         "file": "routes\\web.php",
-        "line": 303,
+        "line": 339,
         "meta": {
           "action": "LogisticsController@index"
         }
@@ -2015,7 +2161,7 @@
         "type": "Route",
         "name": "POST /logistics",
         "file": "routes\\web.php",
-        "line": 304,
+        "line": 340,
         "meta": {
           "action": "LogisticsController@store"
         }
@@ -2025,7 +2171,7 @@
         "type": "Route",
         "name": "PATCH /logistics/{delivery}/status",
         "file": "routes\\web.php",
-        "line": 305,
+        "line": 341,
         "meta": {
           "action": "LogisticsController@updateStatus"
         }
@@ -2035,7 +2181,7 @@
         "type": "Route",
         "name": "DELETE /logistics/{delivery}",
         "file": "routes\\web.php",
-        "line": 306,
+        "line": 342,
         "meta": {
           "action": "LogisticsController@destroy"
         }
@@ -2045,7 +2191,7 @@
         "type": "Route",
         "name": "GET /logistics/riders",
         "file": "routes\\web.php",
-        "line": 307,
+        "line": 343,
         "meta": {
           "action": "LogisticsController@riders"
         }
@@ -2055,7 +2201,7 @@
         "type": "Route",
         "name": "POST /logistics/riders",
         "file": "routes\\web.php",
-        "line": 308,
+        "line": 344,
         "meta": {
           "action": "LogisticsController@storeRider"
         }
@@ -2065,7 +2211,7 @@
         "type": "Route",
         "name": "PATCH /logistics/riders/{rider}",
         "file": "routes\\web.php",
-        "line": 309,
+        "line": 345,
         "meta": {
           "action": "LogisticsController@updateRider"
         }
@@ -2075,7 +2221,7 @@
         "type": "Route",
         "name": "DELETE /logistics/riders/{rider}",
         "file": "routes\\web.php",
-        "line": 310,
+        "line": 346,
         "meta": {
           "action": "LogisticsController@destroyRider"
         }
@@ -2093,7 +2239,7 @@
         "type": "Route",
         "name": "POST /attendance/clock-in",
         "file": "routes\\web.php",
-        "line": 320,
+        "line": 356,
         "meta": {
           "action": "SelfAttendanceController@clockIn"
         }
@@ -2111,7 +2257,7 @@
         "type": "Route",
         "name": "POST /attendance/clock-out",
         "file": "routes\\web.php",
-        "line": 321,
+        "line": 357,
         "meta": {
           "action": "SelfAttendanceController@clockOut"
         }
@@ -2121,7 +2267,7 @@
         "type": "Route",
         "name": "POST /employee/{employee}/schedule",
         "file": "routes\\web.php",
-        "line": 352,
+        "line": 388,
         "meta": {
           "action": "ScheduleController@store"
         }
@@ -2131,7 +2277,7 @@
         "type": "Route",
         "name": "PUT /employee/{employee}/schedule/{schedule}",
         "file": "routes\\web.php",
-        "line": 353,
+        "line": 389,
         "meta": {
           "action": "ScheduleController@update"
         }
@@ -2141,7 +2287,7 @@
         "type": "Route",
         "name": "GET /operations/orders/create",
         "file": "routes\\web.php",
-        "line": 458,
+        "line": 494,
         "meta": {
           "action": "ShopOrderController@create"
         }
@@ -2151,7 +2297,7 @@
         "type": "Route",
         "name": "POST /operations/orders",
         "file": "routes\\web.php",
-        "line": 459,
+        "line": 495,
         "meta": {
           "action": "ShopOrderController@store"
         }
@@ -2161,7 +2307,7 @@
         "type": "Route",
         "name": "GET /operations/services/create",
         "file": "routes\\web.php",
-        "line": 460,
+        "line": 496,
         "meta": {
           "action": "ShopServiceController@create"
         }
@@ -2171,7 +2317,7 @@
         "type": "Route",
         "name": "POST /operations/services",
         "file": "routes\\web.php",
-        "line": 461,
+        "line": 497,
         "meta": {
           "action": "ShopServiceController@store"
         }
@@ -2181,7 +2327,7 @@
         "type": "Route",
         "name": "GET /operations/promos/create",
         "file": "routes\\web.php",
-        "line": 462,
+        "line": 498,
         "meta": {
           "action": "PromotionController@create"
         }
@@ -2191,7 +2337,7 @@
         "type": "Route",
         "name": "POST /operations/promos",
         "file": "routes\\web.php",
-        "line": 463,
+        "line": 499,
         "meta": {
           "action": "PromotionController@store"
         }
@@ -2201,7 +2347,7 @@
         "type": "Route",
         "name": "GET /operations/orders",
         "file": "routes\\web.php",
-        "line": 467,
+        "line": 503,
         "meta": {
           "action": "ShopOrderController@index"
         }
@@ -2211,7 +2357,7 @@
         "type": "Route",
         "name": "GET /operations/orders/{order}",
         "file": "routes\\web.php",
-        "line": 468,
+        "line": 504,
         "meta": {
           "action": "ShopOrderController@show"
         }
@@ -2221,7 +2367,7 @@
         "type": "Route",
         "name": "GET /operations/services",
         "file": "routes\\web.php",
-        "line": 469,
+        "line": 505,
         "meta": {
           "action": "ShopServiceController@index"
         }
@@ -2231,7 +2377,7 @@
         "type": "Route",
         "name": "GET /operations/promos",
         "file": "routes\\web.php",
-        "line": 470,
+        "line": 506,
         "meta": {
           "action": "PromotionController@index"
         }
@@ -2241,7 +2387,7 @@
         "type": "Route",
         "name": "GET /operations/orders/{order}/edit",
         "file": "routes\\web.php",
-        "line": 473,
+        "line": 509,
         "meta": {
           "action": "ShopOrderController@edit"
         }
@@ -2251,7 +2397,7 @@
         "type": "Route",
         "name": "PUT /operations/orders/{order}",
         "file": "routes\\web.php",
-        "line": 474,
+        "line": 510,
         "meta": {
           "action": "ShopOrderController@update"
         }
@@ -2261,7 +2407,7 @@
         "type": "Route",
         "name": "PATCH /operations/orders/{order}/restore",
         "file": "routes\\web.php",
-        "line": 475,
+        "line": 511,
         "meta": {
           "action": "ShopOrderController@restore"
         }
@@ -2271,7 +2417,7 @@
         "type": "Route",
         "name": "POST /operations/orders/restore-all",
         "file": "routes\\web.php",
-        "line": 476,
+        "line": 512,
         "meta": {
           "action": "ShopOrderController@restoreAll"
         }
@@ -2281,7 +2427,7 @@
         "type": "Route",
         "name": "DELETE /operations/orders/{order}",
         "file": "routes\\web.php",
-        "line": 477,
+        "line": 513,
         "meta": {
           "action": "ShopOrderController@destroy"
         }
@@ -2291,7 +2437,7 @@
         "type": "Route",
         "name": "PATCH /operations/orders/{order}/status",
         "file": "routes\\web.php",
-        "line": 478,
+        "line": 514,
         "meta": {
           "action": "ShopOrderController@updateStatus"
         }
@@ -2301,7 +2447,7 @@
         "type": "Route",
         "name": "PATCH /operations/orders/{order}/payment",
         "file": "routes\\web.php",
-        "line": 479,
+        "line": 515,
         "meta": {
           "action": "ShopOrderController@updatePayment"
         }
@@ -2311,7 +2457,7 @@
         "type": "Route",
         "name": "POST /operations/orders/{order}/payment-request",
         "file": "routes\\web.php",
-        "line": 480,
+        "line": 516,
         "meta": {
           "action": "ShopOrderController@sendPaymentRequest"
         }
@@ -2321,7 +2467,7 @@
         "type": "Route",
         "name": "GET /operations/services/{service}/edit",
         "file": "routes\\web.php",
-        "line": 481,
+        "line": 517,
         "meta": {
           "action": "ShopServiceController@edit"
         }
@@ -2331,7 +2477,7 @@
         "type": "Route",
         "name": "PUT /operations/services/{service}",
         "file": "routes\\web.php",
-        "line": 482,
+        "line": 518,
         "meta": {
           "action": "ShopServiceController@update"
         }
@@ -2341,7 +2487,7 @@
         "type": "Route",
         "name": "PATCH /operations/services/{service}/toggle",
         "file": "routes\\web.php",
-        "line": 483,
+        "line": 519,
         "meta": {
           "action": "ShopServiceController@toggleActive"
         }
@@ -2351,7 +2497,7 @@
         "type": "Route",
         "name": "PATCH /operations/services/{service}/restore",
         "file": "routes\\web.php",
-        "line": 484,
+        "line": 520,
         "meta": {
           "action": "ShopServiceController@restore"
         }
@@ -2361,7 +2507,7 @@
         "type": "Route",
         "name": "POST /operations/services/restore-all",
         "file": "routes\\web.php",
-        "line": 485,
+        "line": 521,
         "meta": {
           "action": "ShopServiceController@restoreAll"
         }
@@ -2371,7 +2517,7 @@
         "type": "Route",
         "name": "DELETE /operations/services/{service}",
         "file": "routes\\web.php",
-        "line": 486,
+        "line": 522,
         "meta": {
           "action": "ShopServiceController@destroy"
         }
@@ -2381,7 +2527,7 @@
         "type": "Route",
         "name": "GET /operations/promos/{promotion}/edit",
         "file": "routes\\web.php",
-        "line": 487,
+        "line": 523,
         "meta": {
           "action": "PromotionController@edit"
         }
@@ -2391,7 +2537,7 @@
         "type": "Route",
         "name": "PUT /operations/promos/{promotion}",
         "file": "routes\\web.php",
-        "line": 488,
+        "line": 524,
         "meta": {
           "action": "PromotionController@update"
         }
@@ -2401,7 +2547,7 @@
         "type": "Route",
         "name": "PATCH /operations/promos/{promotion}/toggle",
         "file": "routes\\web.php",
-        "line": 489,
+        "line": 525,
         "meta": {
           "action": "PromotionController@toggleActive"
         }
@@ -2411,7 +2557,7 @@
         "type": "Route",
         "name": "PATCH /operations/promos/{promotion}/restore",
         "file": "routes\\web.php",
-        "line": 490,
+        "line": 526,
         "meta": {
           "action": "PromotionController@restore"
         }
@@ -2421,7 +2567,7 @@
         "type": "Route",
         "name": "DELETE /operations/promos/{promotion}",
         "file": "routes\\web.php",
-        "line": 491,
+        "line": 527,
         "meta": {
           "action": "PromotionController@destroy"
         }
@@ -2439,7 +2585,7 @@
         "type": "Route",
         "name": "GET /shops",
         "file": "routes\\web.php",
-        "line": 545,
+        "line": 581,
         "meta": {
           "action": "UserDashboardController@shops"
         }
@@ -2449,7 +2595,7 @@
         "type": "Route",
         "name": "GET /shops/{shop}",
         "file": "routes\\web.php",
-        "line": 546,
+        "line": 582,
         "meta": {
           "action": "UserDashboardController@showShop"
         }
@@ -2459,7 +2605,7 @@
         "type": "Route",
         "name": "GET /orders",
         "file": "routes\\web.php",
-        "line": 547,
+        "line": 583,
         "meta": {
           "action": "UserOrderController@index"
         }
@@ -2477,7 +2623,7 @@
         "type": "Route",
         "name": "GET /orders/{order}",
         "file": "routes\\web.php",
-        "line": 548,
+        "line": 584,
         "meta": {
           "action": "UserOrderController@show"
         }
@@ -2487,7 +2633,7 @@
         "type": "Route",
         "name": "POST /orders",
         "file": "routes\\web.php",
-        "line": 549,
+        "line": 585,
         "meta": {
           "action": "UserOrderController@store"
         }
@@ -2497,7 +2643,7 @@
         "type": "Route",
         "name": "POST /orders/{order}/request-delivery",
         "file": "routes\\web.php",
-        "line": 550,
+        "line": 586,
         "meta": {
           "action": "UserOrderController@requestDelivery"
         }
@@ -2507,7 +2653,7 @@
         "type": "Route",
         "name": "POST /orders/{order}/cancel",
         "file": "routes\\web.php",
-        "line": 551,
+        "line": 587,
         "meta": {
           "action": "UserOrderController@cancel"
         }
@@ -2517,7 +2663,7 @@
         "type": "Route",
         "name": "POST /orders/{order}/pay-online",
         "file": "routes\\web.php",
-        "line": 552,
+        "line": 588,
         "meta": {
           "action": "UserPaymentController@pay"
         }
@@ -2535,7 +2681,7 @@
         "type": "Route",
         "name": "GET /orders/{order}/payment/success",
         "file": "routes\\web.php",
-        "line": 553,
+        "line": 589,
         "meta": {
           "action": "UserPaymentController@success"
         }
@@ -2545,7 +2691,7 @@
         "type": "Route",
         "name": "GET /orders/{order}/payment/cancel",
         "file": "routes\\web.php",
-        "line": 554,
+        "line": 590,
         "meta": {
           "action": "UserPaymentController@cancel"
         }
@@ -2555,7 +2701,7 @@
         "type": "Route",
         "name": "GET /notifications",
         "file": "routes\\web.php",
-        "line": 556,
+        "line": 592,
         "meta": {
           "action": "UserNotificationController@index"
         }
@@ -2573,7 +2719,7 @@
         "type": "Route",
         "name": "GET /notifications/poll",
         "file": "routes\\web.php",
-        "line": 557,
+        "line": 593,
         "meta": {
           "action": "UserNotificationController@poll"
         }
@@ -2583,7 +2729,7 @@
         "type": "Route",
         "name": "POST /notifications/read-all",
         "file": "routes\\web.php",
-        "line": 558,
+        "line": 594,
         "meta": {
           "action": "UserNotificationController@markAllRead"
         }
@@ -2593,9 +2739,9 @@
         "type": "Route",
         "name": "GET /profile",
         "file": "routes\\web.php",
-        "line": 560,
+        "line": 596,
         "meta": {
-          "action": "Closure"
+          "action": "fn () => inertia('user/Profile'))->name('profile'"
         }
       },
       {
@@ -2721,11 +2867,21 @@
         "meta": {}
       },
       {
+        "id": "route:GET:/two-factor-challenge",
+        "type": "Route",
+        "name": "GET /two-factor-challenge",
+        "file": "routes\\auth.php",
+        "line": 44,
+        "meta": {
+          "action": "fn () => Inertia::render('auth/TwoFactorChallenge'))\n        ->name('two-factor.login'"
+        }
+      },
+      {
         "id": "route:GET:/register/shop",
         "type": "Route",
         "name": "GET /register/shop",
         "file": "routes\\auth.php",
-        "line": 45,
+        "line": 47,
         "meta": {
           "action": "ShopRegisterController@show"
         }
@@ -2743,7 +2899,7 @@
         "type": "Route",
         "name": "POST /register/shop",
         "file": "routes\\auth.php",
-        "line": 46,
+        "line": 48,
         "meta": {
           "action": "ShopRegisterController@store"
         }
@@ -2753,7 +2909,7 @@
         "type": "Route",
         "name": "GET /register",
         "file": "routes\\auth.php",
-        "line": 50,
+        "line": 52,
         "meta": {
           "action": "UserRegisterController@create"
         }
@@ -2771,7 +2927,7 @@
         "type": "Route",
         "name": "GET /forgot-password",
         "file": "routes\\auth.php",
-        "line": 55,
+        "line": 57,
         "meta": {
           "action": "ForgotPasswordController@show"
         }
@@ -2789,7 +2945,7 @@
         "type": "Route",
         "name": "POST /forgot-password",
         "file": "routes\\auth.php",
-        "line": 56,
+        "line": 58,
         "meta": {
           "action": "ForgotPasswordController@send"
         }
@@ -2799,7 +2955,7 @@
         "type": "Route",
         "name": "GET /reset-password/{token}",
         "file": "routes\\auth.php",
-        "line": 60,
+        "line": 62,
         "meta": {
           "action": "ResetPasswordController@show"
         }
@@ -2817,7 +2973,7 @@
         "type": "Route",
         "name": "POST /reset-password",
         "file": "routes\\auth.php",
-        "line": 61,
+        "line": 63,
         "meta": {
           "action": "ResetPasswordController@update"
         }
@@ -2827,7 +2983,7 @@
         "type": "Route",
         "name": "GET /verify-otp",
         "file": "routes\\auth.php",
-        "line": 63,
+        "line": 65,
         "meta": {
           "action": "OtpVerificationController@show"
         }
@@ -2845,7 +3001,7 @@
         "type": "Route",
         "name": "POST /verify-otp",
         "file": "routes\\auth.php",
-        "line": 64,
+        "line": 66,
         "meta": {
           "action": "OtpVerificationController@verify"
         }
@@ -2855,7 +3011,7 @@
         "type": "Route",
         "name": "POST /resend-otp",
         "file": "routes\\auth.php",
-        "line": 67,
+        "line": 69,
         "meta": {
           "action": "OtpVerificationController@resend"
         }
@@ -3171,11 +3327,19 @@
         "meta": {}
       },
       {
-        "id": "model:Payment",
-        "type": "Model",
-        "name": "Payment",
-        "file": "",
-        "line": 0,
+        "id": "other:AccountType",
+        "type": "Other",
+        "name": "AccountType",
+        "file": "app\\Enums\\AccountType.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProtectedPlatformRoleException",
+        "type": "Other",
+        "name": "ProtectedPlatformRoleException",
+        "file": "app\\Exceptions\\ProtectedPlatformRoleException.php",
+        "line": 1,
         "meta": {}
       },
       {
@@ -3195,17 +3359,25 @@
         "meta": {}
       },
       {
-        "id": "log:Log",
+        "id": "str:Str",
         "type": "Service",
-        "name": "Log",
+        "name": "Str",
         "file": "",
         "line": 0,
         "meta": {}
       },
       {
-        "id": "str:Str",
+        "id": "storage:Storage",
+        "type": "Filesystem",
+        "name": "Storage",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "log:Log",
         "type": "Service",
-        "name": "Str",
+        "name": "Log",
         "file": "",
         "line": 0,
         "meta": {}
@@ -3227,17 +3399,17 @@
         "meta": {}
       },
       {
-        "id": "service:ShopService",
-        "type": "Service",
-        "name": "ShopService",
+        "id": "model:Payment",
+        "type": "Model",
+        "name": "Payment",
         "file": "",
         "line": 0,
         "meta": {}
       },
       {
-        "id": "storage:Storage",
-        "type": "Filesystem",
-        "name": "Storage",
+        "id": "service:ShopService",
+        "type": "Service",
+        "name": "ShopService",
         "file": "",
         "line": 0,
         "meta": {}
@@ -3263,6 +3435,14 @@
         "type": "Other",
         "name": "CheckShopSubscription",
         "file": "app\\Http\\Middleware\\CheckShopSubscription.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:EnforceOwnerPlatformPermissions",
+        "type": "Other",
+        "name": "EnforceOwnerPlatformPermissions",
+        "file": "app\\Http\\Middleware\\EnforceOwnerPlatformPermissions.php",
         "line": 1,
         "meta": {}
       },
@@ -3299,6 +3479,14 @@
         "meta": {}
       },
       {
+        "id": "other:TrackShopActivity",
+        "type": "Other",
+        "name": "TrackShopActivity",
+        "file": "app\\Http\\Middleware\\TrackShopActivity.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
         "id": "other:TrustProxies",
         "type": "Other",
         "name": "TrustProxies",
@@ -3319,6 +3507,30 @@
         "type": "Other",
         "name": "BulkUserRequest",
         "file": "app\\Http\\Requests\\Admin\\BulkUserRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:DeletePlatformRoleRequest",
+        "type": "Other",
+        "name": "DeletePlatformRoleRequest",
+        "file": "app\\Http\\Requests\\Admin\\DeletePlatformRoleRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:StorePlatformRoleRequest",
+        "type": "Other",
+        "name": "StorePlatformRoleRequest",
+        "file": "app\\Http\\Requests\\Admin\\StorePlatformRoleRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:TogglePlatformPermissionRequest",
+        "type": "Other",
+        "name": "TogglePlatformPermissionRequest",
+        "file": "app\\Http\\Requests\\Admin\\TogglePlatformPermissionRequest.php",
         "line": 1,
         "meta": {}
       },
@@ -3755,6 +3967,14 @@
         "meta": {}
       },
       {
+        "id": "model:IssueReport",
+        "type": "Model",
+        "name": "IssueReport",
+        "file": "app\\Models\\IssueReport.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
         "id": "model:LoginLog",
         "type": "Model",
         "name": "LoginLog",
@@ -3807,6 +4027,22 @@
         "type": "Model",
         "name": "Plan",
         "file": "app\\Models\\Plan.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "model:PlatformRole",
+        "type": "Model",
+        "name": "PlatformRole",
+        "file": "app\\Models\\PlatformRole.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "model:PlatformRolePermission",
+        "type": "Model",
+        "name": "PlatformRolePermission",
+        "file": "app\\Models\\PlatformRolePermission.php",
         "line": 1,
         "meta": {}
       },
@@ -3939,6 +4175,14 @@
         "meta": {}
       },
       {
+        "id": "service:PlatformRoleRepository",
+        "type": "Service",
+        "name": "PlatformRoleRepository",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
         "id": "service:AuthServiceProvider",
         "type": "Service",
         "name": "AuthServiceProvider",
@@ -3963,14 +4207,6 @@
         "meta": {}
       },
       {
-        "id": "service:UserRepository",
-        "type": "Service",
-        "name": "UserRepository",
-        "file": "app\\Repositories\\Api\\UserRepository.php",
-        "line": 1,
-        "meta": {}
-      },
-      {
         "id": "service:AttendanceRepository",
         "type": "Service",
         "name": "AttendanceRepository",
@@ -3983,6 +4219,14 @@
         "type": "Service",
         "name": "BranchRepository",
         "file": "app\\Repositories\\BranchRepository.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:PlatformRoleRepositoryInterface",
+        "type": "Other",
+        "name": "PlatformRoleRepositoryInterface",
+        "file": "app\\Repositories\\Contracts\\PlatformRoleRepositoryInterface.php",
         "line": 1,
         "meta": {}
       },
@@ -4115,6 +4359,14 @@
         "meta": {}
       },
       {
+        "id": "service:UserRepository",
+        "type": "Service",
+        "name": "UserRepository",
+        "file": "app\\Repositories\\UserRepository.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
         "id": "service:ActivityLogService",
         "type": "Service",
         "name": "ActivityLogService",
@@ -4143,6 +4395,14 @@
         "type": "Service",
         "name": "AttendanceService",
         "file": "app\\Services\\AttendanceService.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "service:AuditLogService",
+        "type": "Service",
+        "name": "AuditLogService",
+        "file": "app\\Services\\AuditLogService.php",
         "line": 1,
         "meta": {}
       },
@@ -4247,6 +4507,14 @@
         "type": "Service",
         "name": "PayrollService",
         "file": "app\\Services\\PayrollService.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "service:PlatformRoleService",
+        "type": "Service",
+        "name": "PlatformRoleService",
+        "file": "app\\Services\\PlatformRoleService.php",
         "line": 1,
         "meta": {}
       },
@@ -4415,6 +4683,14 @@
         "type": "Other",
         "name": "mail",
         "file": "config\\mail.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:platform_permissions",
+        "type": "Other",
+        "name": "platform_permissions",
+        "file": "config\\platform_permissions.php",
         "line": 1,
         "meta": {}
       },
@@ -4803,10 +5079,114 @@
         "meta": {}
       },
       {
-        "id": "other:2026_09_10_172350_add_last_activity_at_to_shops_table",
+        "id": "other:2026_09_18_013920_add_public_id_to_orders_table",
         "type": "Other",
-        "name": "2026_09_10_172350_add_last_activity_at_to_shops_table",
-        "file": "database\\migrations\\2026_09_10_172350_add_last_activity_at_to_shops_table.php",
+        "name": "2026_09_18_013920_add_public_id_to_orders_table",
+        "file": "database\\migrations\\2026_09_18_013920_add_public_id_to_orders_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "type": "Other",
+        "name": "2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "file": "database\\migrations\\2026_09_19_000001_migrate_manager_accounts_to_staff.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_19_000002_use_email_verified_at_for_users",
+        "type": "Other",
+        "name": "2026_09_19_000002_use_email_verified_at_for_users",
+        "file": "database\\migrations\\2026_09_19_000002_use_email_verified_at_for_users.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_21_000001_add_public_id_to_users_table",
+        "type": "Other",
+        "name": "2026_09_21_000001_add_public_id_to_users_table",
+        "file": "database\\migrations\\2026_09_21_000001_add_public_id_to_users_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_21_000002_allow_admin_activity_logs_without_shop",
+        "type": "Other",
+        "name": "2026_09_21_000002_allow_admin_activity_logs_without_shop",
+        "file": "database\\migrations\\2026_09_21_000002_allow_admin_activity_logs_without_shop.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_21_000003_add_deleted_at_to_activity_logs",
+        "type": "Other",
+        "name": "2026_09_21_000003_add_deleted_at_to_activity_logs",
+        "file": "database\\migrations\\2026_09_21_000003_add_deleted_at_to_activity_logs.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "type": "Other",
+        "name": "2026_09_21_000004_add_query_optimization_indexes",
+        "file": "database\\migrations\\2026_09_21_000004_add_query_optimization_indexes.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_22_000001_backfill_shop_permit_expiry_dates",
+        "type": "Other",
+        "name": "2026_09_22_000001_backfill_shop_permit_expiry_dates",
+        "file": "database\\migrations\\2026_09_22_000001_backfill_shop_permit_expiry_dates.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_22_000002_backfill_shop_last_activity_at",
+        "type": "Other",
+        "name": "2026_09_22_000002_backfill_shop_last_activity_at",
+        "file": "database\\migrations\\2026_09_22_000002_backfill_shop_last_activity_at.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_22_000003_add_public_id_to_shops_table",
+        "type": "Other",
+        "name": "2026_09_22_000003_add_public_id_to_shops_table",
+        "file": "database\\migrations\\2026_09_22_000003_add_public_id_to_shops_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "type": "Other",
+        "name": "2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "file": "database\\migrations\\2026_09_22_000004_add_transaction_reference_to_orders_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_25_000001_create_issue_reports_table",
+        "type": "Other",
+        "name": "2026_09_25_000001_create_issue_reports_table",
+        "file": "database\\migrations\\2026_09_25_000001_create_issue_reports_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_25_000002_create_platform_roles_tables",
+        "type": "Other",
+        "name": "2026_09_25_000002_create_platform_roles_tables",
+        "file": "database\\migrations\\2026_09_25_000002_create_platform_roles_tables.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_26_000001_remove_staff_from_platform_roles",
+        "type": "Other",
+        "name": "2026_09_26_000001_remove_staff_from_platform_roles",
+        "file": "database\\migrations\\2026_09_26_000001_remove_staff_from_platform_roles.php",
         "line": 1,
         "meta": {}
       },
@@ -4815,6 +5195,14 @@
         "type": "Other",
         "name": "DatabaseSeeder",
         "file": "database\\seeders\\DatabaseSeeder.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:IssueReportSeeder",
+        "type": "Other",
+        "name": "IssueReportSeeder",
+        "file": "database\\seeders\\IssueReportSeeder.php",
         "line": 1,
         "meta": {}
       },
@@ -4907,6 +5295,70 @@
         "meta": {}
       },
       {
+        "id": "other:AnalyticsOverviewTest",
+        "type": "Other",
+        "name": "AnalyticsOverviewTest",
+        "file": "tests\\Feature\\Admin\\AnalyticsOverviewTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:AuditLogTest",
+        "type": "Other",
+        "name": "AuditLogTest",
+        "file": "tests\\Feature\\Admin\\AuditLogTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:IssueReportManagementTest",
+        "type": "Other",
+        "name": "IssueReportManagementTest",
+        "file": "tests\\Feature\\Admin\\IssueReportManagementTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:OrderManagementTest",
+        "type": "Other",
+        "name": "OrderManagementTest",
+        "file": "tests\\Feature\\Admin\\OrderManagementTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:PlatformRoleManagementTest",
+        "type": "Other",
+        "name": "PlatformRoleManagementTest",
+        "file": "tests\\Feature\\Admin\\PlatformRoleManagementTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ShopManagementTest",
+        "type": "Other",
+        "name": "ShopManagementTest",
+        "file": "tests\\Feature\\Admin\\ShopManagementTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:UserShowTest",
+        "type": "Other",
+        "name": "UserShowTest",
+        "file": "tests\\Feature\\Admin\\UserShowTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:UserVerificationTest",
+        "type": "Other",
+        "name": "UserVerificationTest",
+        "file": "tests\\Feature\\Admin\\UserVerificationTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
         "id": "other:AuthenticationTest",
         "type": "Other",
         "name": "AuthenticationTest",
@@ -4979,6 +5431,14 @@
         "meta": {}
       },
       {
+        "id": "other:QueryOptimizationTest",
+        "type": "Other",
+        "name": "QueryOptimizationTest",
+        "file": "tests\\Feature\\QueryOptimizationTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
         "id": "other:PasswordUpdateTest",
         "type": "Other",
         "name": "PasswordUpdateTest",
@@ -5003,6 +5463,22 @@
         "meta": {}
       },
       {
+        "id": "other:PaymentSuccessTest",
+        "type": "Other",
+        "name": "PaymentSuccessTest",
+        "file": "tests\\Feature\\Shop\\PaymentSuccessTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:TrackShopActivityTest",
+        "type": "Other",
+        "name": "TrackShopActivityTest",
+        "file": "tests\\Feature\\Shop\\TrackShopActivityTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
         "id": "other:Pest",
         "type": "Other",
         "name": "Pest",
@@ -5015,6 +5491,22 @@
         "type": "Other",
         "name": "TestCase",
         "file": "tests\\TestCase.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:AccountTypeTest",
+        "type": "Other",
+        "name": "AccountTypeTest",
+        "file": "tests\\Unit\\AccountTypeTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:PlatformRoleServiceTest",
+        "type": "Other",
+        "name": "PlatformRoleServiceTest",
+        "file": "tests\\Unit\\Services\\PlatformRoleServiceTest.php",
         "line": 1,
         "meta": {}
       }
@@ -5098,6 +5590,34 @@
         "meta": {}
       },
       {
+        "from": "route:GET:/",
+        "to": "controller:PlatformRoleController",
+        "kind": "CALLS",
+        "label": "PlatformRoleController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/roles",
+        "to": "controller:PlatformRoleController",
+        "kind": "CALLS",
+        "label": "PlatformRoleController@store",
+        "meta": {}
+      },
+      {
+        "from": "route:PATCH:/roles/{platformRole}/permissions",
+        "to": "controller:PlatformRoleController",
+        "kind": "CALLS",
+        "label": "PlatformRoleController@togglePermission",
+        "meta": {}
+      },
+      {
+        "from": "route:DELETE:/roles/{platformRole}",
+        "to": "controller:PlatformRoleController",
+        "kind": "CALLS",
+        "label": "PlatformRoleController@destroy",
+        "meta": {}
+      },
+      {
         "from": "route:GET:/shop",
         "to": "controller:ShopController",
         "kind": "CALLS",
@@ -5105,42 +5625,70 @@
         "meta": {}
       },
       {
-        "from": "route:GET:/shop/{shop}",
+        "from": "route:GET:/shop/export",
+        "to": "controller:ShopController",
+        "kind": "CALLS",
+        "label": "ShopController@exportCsv",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/shop/bulk-action",
+        "to": "controller:ShopController",
+        "kind": "CALLS",
+        "label": "ShopController@bulkAction",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/shop/archive/{publicId}/restore",
+        "to": "controller:ShopController",
+        "kind": "CALLS",
+        "label": "ShopController@restore",
+        "meta": {}
+      },
+      {
+        "from": "route:DELETE:/shop/archive/{publicId}",
+        "to": "controller:ShopController",
+        "kind": "CALLS",
+        "label": "ShopController@forceDelete",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/shop/{shop:public_id}",
         "to": "controller:ShopController",
         "kind": "CALLS",
         "label": "ShopController@show",
         "meta": {}
       },
       {
-        "from": "route:GET:/shop/{shop}/edit",
+        "from": "route:GET:/shop/{shop:public_id}/edit",
         "to": "controller:ShopController",
         "kind": "CALLS",
         "label": "ShopController@edit",
         "meta": {}
       },
       {
-        "from": "route:PUT:/shop/{shop}",
+        "from": "route:PUT:/shop/{shop:public_id}",
         "to": "controller:ShopController",
         "kind": "CALLS",
         "label": "ShopController@update",
         "meta": {}
       },
       {
-        "from": "route:DELETE:/shop/{shop}",
+        "from": "route:DELETE:/shop/{shop:public_id}",
         "to": "controller:ShopController",
         "kind": "CALLS",
         "label": "ShopController@destroy",
         "meta": {}
       },
       {
-        "from": "route:POST:/shop/{shop}/disable",
+        "from": "route:POST:/shop/{shop:public_id}/disable",
         "to": "controller:ShopController",
         "kind": "CALLS",
         "label": "ShopController@disable",
         "meta": {}
       },
       {
-        "from": "route:POST:/shop/{shop}/enable",
+        "from": "route:POST:/shop/{shop:public_id}/enable",
         "to": "controller:ShopController",
         "kind": "CALLS",
         "label": "ShopController@enable",
@@ -5151,6 +5699,20 @@
         "to": "controller:UserController",
         "kind": "CALLS",
         "label": "UserController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/export",
+        "to": "controller:UserController",
+        "kind": "CALLS",
+        "label": "UserController@exportCsv",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/import",
+        "to": "controller:UserController",
+        "kind": "CALLS",
+        "label": "UserController@importCsv",
         "meta": {}
       },
       {
@@ -5189,7 +5751,7 @@
         "meta": {}
       },
       {
-        "from": "route:GET:/{user}",
+        "from": "route:GET:/{user:public_id}",
         "to": "controller:UserController",
         "kind": "CALLS",
         "label": "UserController@show",
@@ -5210,10 +5772,17 @@
         "meta": {}
       },
       {
-        "from": "route:DELETE:/{loginLog}",
+        "from": "route:GET:/export",
         "to": "controller:LoginLogController",
         "kind": "CALLS",
-        "label": "LoginLogController@destroy",
+        "label": "LoginLogController@exportCsv",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/import",
+        "to": "controller:LoginLogController",
+        "kind": "CALLS",
+        "label": "LoginLogController@importCsv",
         "meta": {}
       },
       {
@@ -5231,7 +5800,7 @@
         "meta": {}
       },
       {
-        "from": "route:POST:/{id}/restore",
+        "from": "route:POST:/{category}/{id}/restore",
         "to": "controller:LoginLogController",
         "kind": "CALLS",
         "label": "LoginLogController@restore",
@@ -5245,10 +5814,24 @@
         "meta": {}
       },
       {
-        "from": "route:DELETE:/{id}",
+        "from": "route:DELETE:/{category}/{id}",
         "to": "controller:LoginLogController",
         "kind": "CALLS",
         "label": "LoginLogController@forceDelete",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/{category}/{id}",
+        "to": "controller:LoginLogController",
+        "kind": "CALLS",
+        "label": "LoginLogController@show",
+        "meta": {}
+      },
+      {
+        "from": "route:DELETE:/{category}/{id}",
+        "to": "controller:LoginLogController",
+        "kind": "CALLS",
+        "label": "LoginLogController@destroy",
         "meta": {}
       },
       {
@@ -5259,21 +5842,35 @@
         "meta": {}
       },
       {
-        "from": "route:GET:/{id}",
+        "from": "route:GET:/export",
+        "to": "controller:OrderController",
+        "kind": "CALLS",
+        "label": "OrderController@exportCsv",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/import",
+        "to": "controller:OrderController",
+        "kind": "CALLS",
+        "label": "OrderController@importCsv",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/{order:public_id}",
         "to": "controller:OrderController",
         "kind": "CALLS",
         "label": "OrderController@show",
         "meta": {}
       },
       {
-        "from": "route:POST:/{id}/approve",
+        "from": "route:POST:/{order:public_id}/approve",
         "to": "controller:OrderController",
         "kind": "CALLS",
         "label": "OrderController@approve",
         "meta": {}
       },
       {
-        "from": "route:POST:/{id}/reject",
+        "from": "route:POST:/{order:public_id}/reject",
         "to": "controller:OrderController",
         "kind": "CALLS",
         "label": "OrderController@reject",
@@ -5291,6 +5888,34 @@
         "to": "controller:AnalyticsController",
         "kind": "CALLS",
         "label": "AnalyticsController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/",
+        "to": "controller:IssueReportController",
+        "kind": "CALLS",
+        "label": "IssueReportController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/export",
+        "to": "controller:IssueReportController",
+        "kind": "CALLS",
+        "label": "IssueReportController@exportCsv",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/import",
+        "to": "controller:IssueReportController",
+        "kind": "CALLS",
+        "label": "IssueReportController@importCsv",
+        "meta": {}
+      },
+      {
+        "from": "route:PATCH:/{issueReport:public_id}",
+        "to": "controller:IssueReportController",
+        "kind": "CALLS",
+        "label": "IssueReportController@update",
         "meta": {}
       },
       {
@@ -5315,7 +5940,7 @@
         "meta": {}
       },
       {
-        "from": "route:GET:/payment/success",
+        "from": "route:GET:/payment/success/{order:public_id}",
         "to": "controller:CheckoutController",
         "kind": "CALLS",
         "label": "CheckoutController@success",
@@ -8935,44 +9560,9 @@
       },
       {
         "from": "controller:AnalyticsController",
-        "to": "model:User",
+        "to": "model:Order",
         "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
+        "label": "Order",
         "meta": {}
       },
       {
@@ -8998,48 +9588,6 @@
       },
       {
         "from": "controller:AnalyticsController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
         "to": "db:DB",
         "kind": "DEPENDS_ON",
         "label": "DB::",
@@ -9061,86 +9609,79 @@
       },
       {
         "from": "controller:AnalyticsController",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "controller:AnalyticsController",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "controller:AnalyticsController",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "controller:AnalyticsController",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "controller:IssueReportController",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "controller:IssueReportController",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "controller:IssueReportController",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "controller:IssueReportController",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
         "meta": {}
       },
       {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:Payment",
+        "from": "controller:IssueReportController",
+        "to": "model:User",
         "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "model:Payment",
-        "kind": "WRITES",
-        "label": "Payment",
-        "meta": {}
-      },
-      {
-        "from": "controller:AnalyticsController",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
+        "label": "User",
         "meta": {}
       },
       {
         "from": "controller:OrderController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
+        "to": "storage:Storage",
+        "kind": "DEPENDS_ON",
+        "label": "Storage::",
         "meta": {}
       },
       {
         "from": "controller:OrderController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
+        "to": "storage:Storage",
+        "kind": "DEPENDS_ON",
+        "label": "Storage::",
         "meta": {}
       },
       {
@@ -9152,27 +9693,48 @@
       },
       {
         "from": "controller:ShopController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
+        "to": "storage:Storage",
+        "kind": "DEPENDS_ON",
+        "label": "Storage::",
         "meta": {}
       },
       {
         "from": "controller:ShopController",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "controller:MobileAuthController",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
         "meta": {}
       },
       {
-        "from": "controller:MobileAuthController",
+        "from": "controller:ShopController",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "controller:UserController",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "controller:UserController",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "controller:UserController",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "controller:UserController",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
@@ -10131,6 +10693,13 @@
         "meta": {}
       },
       {
+        "from": "other:StorePlatformRoleRequest",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
         "from": "other:ProfileUpdateRequest",
         "to": "model:User",
         "kind": "WRITES",
@@ -10264,10 +10833,45 @@
         "meta": {}
       },
       {
+        "from": "model:IssueReport",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "model:IssueReport",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
         "from": "model:LoginLog",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "model:Order",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "model:Order",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "model:Order",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
         "meta": {}
       },
       {
@@ -10303,6 +10907,20 @@
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "model:PlatformRole",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "model:Shop",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
         "meta": {}
       },
       {
@@ -10349,6 +10967,13 @@
       },
       {
         "from": "other:User",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:User",
         "to": "model:Order",
         "kind": "WRITES",
         "label": "Order",
@@ -10373,6 +10998,13 @@
         "to": "log:Log",
         "kind": "DEPENDS_ON",
         "label": "Log::",
+        "meta": {}
+      },
+      {
+        "from": "service:AppServiceProvider",
+        "to": "service:PlatformRoleRepository",
+        "kind": "CALLS",
+        "label": "PlatformRoleRepository",
         "meta": {}
       },
       {
@@ -10412,13 +11044,6 @@
       },
       {
         "from": "service:AdminDashboardRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:AdminDashboardRepository",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
@@ -10517,9 +11142,142 @@
       },
       {
         "from": "service:AdminDashboardRepository",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
         "to": "model:Order",
         "kind": "WRITES",
         "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:AdminDashboardRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderRepository",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "service:Repository",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:Repository",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:Repository",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:ShopServiceRepository",
+        "to": "service:ShopService",
+        "kind": "CALLS",
+        "label": "ShopService",
+        "meta": {}
+      },
+      {
+        "from": "service:ShopServiceRepository",
+        "to": "service:ShopService",
+        "kind": "CALLS",
+        "label": "ShopService",
+        "meta": {}
+      },
+      {
+        "from": "service:ShopServiceRepository",
+        "to": "service:ShopService",
+        "kind": "CALLS",
+        "label": "ShopService",
         "meta": {}
       },
       {
@@ -10534,111 +11292,6 @@
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:OrderRepository",
-        "to": "model:Order",
-        "kind": "WRITES",
-        "label": "Order",
-        "meta": {}
-      },
-      {
-        "from": "service:Repository",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "service:Repository",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "service:Repository",
-        "to": "db:DB",
-        "kind": "DEPENDS_ON",
-        "label": "DB::",
-        "meta": {}
-      },
-      {
-        "from": "service:ShopServiceRepository",
-        "to": "service:ShopService",
-        "kind": "CALLS",
-        "label": "ShopService",
-        "meta": {}
-      },
-      {
-        "from": "service:ShopServiceRepository",
-        "to": "service:ShopService",
-        "kind": "CALLS",
-        "label": "ShopService",
-        "meta": {}
-      },
-      {
-        "from": "service:ShopServiceRepository",
-        "to": "service:ShopService",
-        "kind": "CALLS",
-        "label": "ShopService",
         "meta": {}
       },
       {
@@ -10740,31 +11393,10 @@
         "meta": {}
       },
       {
-        "from": "service:AdminDashboardService",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "service:AdminDashboardService",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "service:AdminDashboardService",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
-        "meta": {}
-      },
-      {
-        "from": "service:AdminDashboardService",
-        "to": "model:User",
-        "kind": "WRITES",
-        "label": "User",
+        "from": "service:AttendanceService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
         "meta": {}
       },
       {
@@ -10782,7 +11414,126 @@
         "meta": {}
       },
       {
-        "from": "service:AttendanceService",
+        "from": "service:AuditLogService",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:AuditLogService",
         "to": "db:DB",
         "kind": "DEPENDS_ON",
         "label": "DB::",
@@ -10898,6 +11649,34 @@
         "to": "db:DB",
         "kind": "DEPENDS_ON",
         "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderService",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderService",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:OrderService",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
         "meta": {}
       },
       {
@@ -11003,6 +11782,27 @@
         "to": "db:DB",
         "kind": "DEPENDS_ON",
         "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:PlatformRoleService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:PlatformRoleService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:PlatformRoleService",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
         "meta": {}
       },
       {
@@ -11090,10 +11890,31 @@
         "meta": {}
       },
       {
-        "from": "service:UserService",
+        "from": "service:UserManagementService",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "service:UserManagementService",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:UserManagementService",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:UserManagementService",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
         "meta": {}
       },
       {
@@ -11867,31 +12688,514 @@
         "meta": {}
       },
       {
-        "from": "other:2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "from": "other:2026_09_18_013920_add_public_id_to_orders_table",
         "to": "schema:Schema",
         "kind": "DEPENDS_ON",
         "label": "Schema::",
         "meta": {}
       },
       {
-        "from": "other:2026_09_07_174408_add_bir_expiry_date_to_orders_and_shops_tables",
+        "from": "other:2026_09_18_013920_add_public_id_to_orders_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_18_013920_add_public_id_to_orders_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_18_013920_add_public_id_to_orders_table",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_18_013920_add_public_id_to_orders_table",
         "to": "schema:Schema",
         "kind": "DEPENDS_ON",
         "label": "Schema::",
         "meta": {}
       },
       {
-        "from": "other:2026_09_10_172350_add_last_activity_at_to_shops_table",
+        "from": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000001_migrate_manager_accounts_to_staff",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000002_use_email_verified_at_for_users",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000002_use_email_verified_at_for_users",
         "to": "schema:Schema",
         "kind": "DEPENDS_ON",
         "label": "Schema::",
         "meta": {}
       },
       {
-        "from": "other:2026_09_10_172350_add_last_activity_at_to_shops_table",
+        "from": "other:2026_09_19_000002_use_email_verified_at_for_users",
         "to": "schema:Schema",
         "kind": "DEPENDS_ON",
         "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_19_000002_use_email_verified_at_for_users",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000001_add_public_id_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000001_add_public_id_to_users_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000001_add_public_id_to_users_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000001_add_public_id_to_users_table",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000001_add_public_id_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000002_allow_admin_activity_logs_without_shop",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000002_allow_admin_activity_logs_without_shop",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000002_allow_admin_activity_logs_without_shop",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000003_add_deleted_at_to_activity_logs",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000003_add_deleted_at_to_activity_logs",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_21_000004_add_query_optimization_indexes",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000001_backfill_shop_permit_expiry_dates",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000001_backfill_shop_permit_expiry_dates",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000001_backfill_shop_permit_expiry_dates",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000002_backfill_shop_last_activity_at",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000002_backfill_shop_last_activity_at",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000002_backfill_shop_last_activity_at",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000003_add_public_id_to_shops_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000003_add_public_id_to_shops_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000003_add_public_id_to_shops_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000003_add_public_id_to_shops_table",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000003_add_public_id_to_shops_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_22_000004_add_transaction_reference_to_orders_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000001_create_issue_reports_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000001_create_issue_reports_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000002_create_platform_roles_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000002_create_platform_roles_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000002_create_platform_roles_tables",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000002_create_platform_roles_tables",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000002_create_platform_roles_tables",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000002_create_platform_roles_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_25_000002_create_platform_roles_tables",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_26_000001_remove_staff_from_platform_roles",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_26_000001_remove_staff_from_platform_roles",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportSeeder",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
         "meta": {}
       },
       {
@@ -12105,7 +13409,7 @@
         "meta": {}
       },
       {
-        "from": "controller:settings",
+        "from": "controller:auth",
         "to": "route:Route",
         "kind": "DEPENDS_ON",
         "label": "Route::",
@@ -12168,6 +13472,167 @@
         "meta": {}
       },
       {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
         "from": "controller:web",
         "to": "route:Route",
         "kind": "DEPENDS_ON",
@@ -14591,9 +16056,457 @@
       },
       {
         "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "other:AnalyticsOverviewTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AnalyticsOverviewTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AnalyticsOverviewTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:AnalyticsOverviewTest",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "other:AnalyticsOverviewTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "service:AuditLogService",
+        "kind": "CALLS",
+        "label": "AuditLogService",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuditLogTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:IssueReportManagementTest",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:OrderManagementTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
+        "to": "service:PlatformRoleService",
+        "kind": "CALLS",
+        "label": "PlatformRoleService",
+        "meta": {}
+      },
+      {
+        "from": "other:PlatformRoleManagementTest",
         "to": "route:Route",
         "kind": "DEPENDS_ON",
         "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "service:OrderService",
+        "kind": "CALLS",
+        "label": "OrderService",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ShopManagementTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserShowTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserShowTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserShowTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserShowTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserShowTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserShowTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserVerificationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserVerificationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:UserVerificationTest",
+        "to": "service:UserRepository",
+        "kind": "CALLS",
+        "label": "UserRepository",
         "meta": {}
       },
       {
@@ -14737,7 +16650,84 @@
         "meta": {}
       },
       {
-        "from": "other:PasswordUpdateTest",
+        "from": "other:QueryOptimizationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "service:DashboardService",
+        "kind": "CALLS",
+        "label": "DashboardService",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "service:DashboardService",
+        "kind": "CALLS",
+        "label": "DashboardService",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:QueryOptimizationTest",
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
@@ -14758,6 +16748,13 @@
         "meta": {}
       },
       {
+        "from": "other:PasswordUpdateTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
         "from": "other:ProfileUpdateTest",
         "to": "model:User",
         "kind": "WRITES",
@@ -14818,21 +16815,112 @@
         "to": "model:User",
         "kind": "WRITES",
         "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "model:Order",
+        "kind": "WRITES",
+        "label": "Order",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "model:Payment",
+        "kind": "WRITES",
+        "label": "Payment",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "service:PaymongoService",
+        "kind": "CALLS",
+        "label": "PaymongoService",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PaymentSuccessTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:TrackShopActivityTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:TrackShopActivityTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:TrackShopActivityTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:TrackShopActivityTest",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "other:TrackShopActivityTest",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
         "meta": {}
       }
     ],
     "stats": {
-      "nodes": 542,
-      "edges": 1400,
+      "nodes": 600,
+      "edges": 1628,
       "by_type": {
-        "Route": 234,
-        "Controller": 57,
-        "Service": 70,
-        "Model": 32,
-        "Other": 137,
+        "Route": 248,
+        "Controller": 59,
+        "Service": 73,
+        "Model": 35,
+        "Other": 173,
         "Database": 1,
-        "Event": 1,
         "Filesystem": 1,
+        "Event": 1,
         "Middleware": 1,
         "Mail": 2,
         "Notification": 3,

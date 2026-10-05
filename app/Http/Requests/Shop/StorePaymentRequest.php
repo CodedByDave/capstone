@@ -8,14 +8,13 @@ class StorePaymentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     public function rules(): array
     {
         return [
-            'payment_method' => 'required|string',
-            'amount' => 'required|numeric|min:1'
+            'payment_method' => ['required', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
         ];
     }
 }

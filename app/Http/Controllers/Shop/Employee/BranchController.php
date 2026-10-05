@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Employee\IndexBranchRequest;
 use App\Http\Requests\Shop\Employee\StoreBranchRequest;
 use App\Http\Requests\Shop\Employee\UpdateBranchRequest;
 use App\Models\Branch;
@@ -30,6 +31,7 @@ class BranchController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -43,19 +45,23 @@ class BranchController extends Controller
         return Auth::user()->role === 'owner' ? 'branch.index' : 'staff.branch.index';
     }
 
-    public function index(): Response
+    public function index(IndexBranchRequest $request): Response
     {
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $branch = $this->getStaffBranch();
 
         return Inertia::render('shop/employee/branch/Index',
-            $this->service->indexData($shop->id, $branch)
+            $this->service->indexData($shop->id, $request->validated(), $branch)
         );
     }
 
     public function create(): Response
     {
-        return Inertia::render('shop/employee/branch/Create');
+        $shopId = $this->getShopId();
+
+        return Inertia::render('shop/employee/branch/Create', [
+            'managers' => $this->service->managerOptionsForShop($shopId),
+        ]);
     }
 
     public function store(StoreBranchRequest $request): RedirectResponse
@@ -71,7 +77,10 @@ class BranchController extends Controller
     {
         abort_if($branch->shop_id !== $this->getShopId(), 403);
 
-        return Inertia::render('shop/employee/branch/Edit', compact('branch'));
+        return Inertia::render('shop/employee/branch/Edit', [
+            'branch' => $branch,
+            'managers' => $this->service->managerOptionsForShop($branch->shop_id),
+        ]);
     }
 
     public function update(UpdateBranchRequest $request, Branch $branch): RedirectResponse

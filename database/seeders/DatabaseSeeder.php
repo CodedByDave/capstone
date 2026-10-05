@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SuperAdminSeeder::class,
             ModuleSeeder::class,
+            OfflineTestAccountSeeder::class,
             TestLocationSeeder::class,
             IssueReportSeeder::class,
         ]);

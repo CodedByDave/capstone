@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Logistics\StoreDeliveryRequest;
+use App\Http\Requests\Shop\Logistics\StoreRiderRequest;
+use App\Http\Requests\Shop\Logistics\UpdateRiderRequest;
 use App\Models\Delivery;
 use App\Models\Rider;
 use App\Models\Shop;
@@ -69,17 +72,9 @@ class LogisticsController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreDeliveryRequest $request)
     {
-        $data = $request->validate([
-            'shop_order_id' => ['nullable', 'exists:shop_orders,id'],
-            'customer_name' => ['required', 'string', 'max:100'],
-            'customer_phone' => ['nullable', 'string', 'max:20'],
-            'customer_email' => ['nullable', 'email', 'max:255'],
-            'delivery_address' => ['nullable', 'string', 'max:500'],
-            'rider_id' => ['nullable', 'exists:riders,id'],
-            'notes' => ['nullable', 'string', 'max:500'],
-        ]);
+        $data = $request->validated();
 
         $shop = $this->getShop();
 
@@ -153,13 +148,9 @@ class LogisticsController extends Controller
         ]);
     }
 
-    public function storeRider(Request $request)
+    public function storeRider(StoreRiderRequest $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'vehicle_type' => ['nullable', 'string', 'max:50'],
-        ]);
+        $data = $request->validated();
 
         $shop = $this->getShop();
         Rider::create(array_merge($data, ['shop_id' => $shop->id]));
@@ -167,14 +158,9 @@ class LogisticsController extends Controller
         return back()->with('toast', ['type' => 'success', 'message' => 'Rider added successfully.']);
     }
 
-    public function updateRider(Request $request, Rider $rider)
+    public function updateRider(UpdateRiderRequest $request, Rider $rider)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'vehicle_type' => ['nullable', 'string', 'max:50'],
-            'status' => ['required', 'in:active,inactive'],
-        ]);
+        $data = $request->validated();
 
         $rider->update($data);
 

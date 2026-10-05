@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterShopRequest extends FormRequest
@@ -19,15 +20,23 @@ class RegisterShopRequest extends FormRequest
             'password' => 'required|confirmed|min:8',
 
             'shop_name' => 'required|string|max:150',
-            'phone' => 'required|string|max:20',
+            'phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
             'branch_name' => 'nullable|string|max:150',
             'block_street' => 'nullable|string|max:255',
             'municipality' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
             'postal_code' => 'required|string|max:10',
-            'latitude'    => 'nullable|numeric',
-            'longitude'   => 'nullable|numeric',
-            'google_id' => 'nullable|string'
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'google_id' => 'nullable|string',
+            'agree' => 'required|accepted',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'agree.accepted' => 'You must agree to the Terms and Privacy Policy before registering.',
         ];
     }
 }

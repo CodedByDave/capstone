@@ -27,7 +27,7 @@ import {
     Building2,
     CalendarClock,
     ChevronRight,
-    ClipboardList,
+    ClipboardCheck,
     Clock,
     CreditCard,
     FileText,
@@ -44,6 +44,7 @@ import {
     ShoppingCart,
     Tag,
     Truck,
+    UserRoundCog,
     Users,
     Wallet,
 } from 'lucide-vue-next';
@@ -269,7 +270,7 @@ const moduleIconMap: Record<
     { icon: any; ownerHref: string; staffHref: string }
 > = {
     HRM: {
-        icon: Users,
+        icon: UserRoundCog,
         ownerHref: '/shop/employee',
         staffHref: '/staff/employee',
     },
@@ -279,7 +280,7 @@ const moduleIconMap: Record<
         staffHref: '/staff/inventory',
     },
     Operations: {
-        icon: ClipboardList,
+        icon: ClipboardCheck,
         ownerHref: '/shop/operations/orders',
         staffHref: '/staff/operations/orders',
     },
@@ -293,6 +294,11 @@ const moduleIconMap: Record<
         ownerHref: '/shop/reports',
         staffHref: '/staff/reports',
     },
+};
+
+const moduleDisplayNameMap: Record<string, string> = {
+    HRM: 'Human Resource',
+    Operations: 'Operation Management',
 };
 
 function getHref(name: string): string {
@@ -437,6 +443,7 @@ function isSubActive(href: string): boolean {
    NAV ITEMS
 ───────────────────────────────────────── */
 interface ModuleNavItem {
+    moduleName: string;
     title: string;
     href: string;
     icon: any;
@@ -464,7 +471,8 @@ const moduleNavItems = computed<ModuleNavItem[]>(() => {
         )
         .map(
             (m: any): ModuleNavItem => ({
-                title: m.name,
+                moduleName: m.name,
+                title: moduleDisplayNameMap[m.name] ?? m.name,
                 href: getHref(m.name),
                 icon: moduleIconMap[m.name]?.icon ?? Package,
                 active: areaChecks[m.name]?.(currentUrl.value) ?? false,
@@ -515,10 +523,10 @@ const hasOwnerAdministration = computed(() =>
         <NavMain :items="dashboardItem" />
 
         <SidebarMenu class="mt-1 px-2">
-            <template v-for="mod in moduleNavItems" :key="mod.title">
+            <template v-for="mod in moduleNavItems" :key="mod.moduleName">
                 <!-- Collapsible module -->
                 <template v-if="mod.hasSubMenu">
-                    <Collapsible :open="openModules[mod.title] ?? false">
+                    <Collapsible :open="openModules[mod.moduleName] ?? false">
                         <SidebarMenuItem>
                             <SidebarMenuButton
                                 class="flex w-full cursor-pointer items-center justify-between"
@@ -527,7 +535,7 @@ const hasOwnerAdministration = computed(() =>
                                         ? 'bg-muted/60 text-foreground'
                                         : 'hover:bg-muted/40'
                                 "
-                                @click="toggleCollapsible(mod.title)"
+                                @click="toggleCollapsible(mod.moduleName)"
                             >
                                 <span class="flex items-center gap-2">
                                     <component
@@ -539,13 +547,13 @@ const hasOwnerAdministration = computed(() =>
                                 <CollapsibleTrigger as-child>
                                     <span
                                         @click.stop="
-                                            toggleCollapsible(mod.title)
+                                            toggleCollapsible(mod.moduleName)
                                         "
                                     >
                                         <ChevronRight
                                             class="h-4 w-4 transition-transform duration-200"
                                             :class="
-                                                (openModules[mod.title] ??
+                                                (openModules[mod.moduleName] ??
                                                 false)
                                                     ? 'rotate-90'
                                                     : ''
@@ -560,7 +568,9 @@ const hasOwnerAdministration = computed(() =>
                                     class="mt-0.5 ml-4 border-l border-muted/50"
                                 >
                                     <SidebarMenuSubItem
-                                        v-for="sub in getSubActions(mod.title)"
+                                        v-for="sub in getSubActions(
+                                            mod.moduleName,
+                                        )"
                                         :key="sub.title"
                                     >
                                         <SidebarMenuSubButton
@@ -683,6 +693,20 @@ const hasOwnerAdministration = computed(() =>
                         >
                             <Settings class="h-4 w-4" />
                             <span>Shop Settings</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem v-if="ownerCan('shop.settings')">
+                    <SidebarMenuButton
+                        as-child
+                        :is-active="currentUrl.startsWith('/shop/agreement')"
+                    >
+                        <Link
+                            href="/shop/agreement"
+                            class="flex w-full items-center gap-2"
+                        >
+                            <FileText class="h-4 w-4" />
+                            <span>Legal Documents</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

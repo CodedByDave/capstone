@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
 use App\Services\ActivityLogService;
+use App\Services\BusinessAgreementService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ class ShopController extends Controller
 
     public function __construct(
         private readonly ActivityLogService $activityLogService,
+        private readonly BusinessAgreementService $businessAgreementService,
     ) {}
 
     public function index(Request $request)
@@ -184,6 +186,7 @@ class ShopController extends Controller
                     'status' => $kycOrder->status,
                     'submitted_at' => $kycOrder->created_at,
                 ] : null,
+                'business_agreement' => $this->businessAgreementService->currentAgreementDataForShop($shop),
             ]),
         ]);
     }

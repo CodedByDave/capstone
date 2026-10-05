@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -51,6 +52,7 @@ class Shop extends Model
     ];
 
     protected $casts = [
+        'phone' => PhilippinePhoneCast::class,
         'deduct_sss' => 'boolean',
         'deduct_philhealth' => 'boolean',
         'deduct_pagibig' => 'boolean',
@@ -100,6 +102,11 @@ class Shop extends Model
     public function shopOrders(): HasMany
     {
         return $this->hasMany(ShopOrder::class);
+    }
+
+    public function agreementAcceptances(): HasMany
+    {
+        return $this->hasMany(BusinessAgreementAcceptance::class);
     }
 
     public function getBranchNames(): array

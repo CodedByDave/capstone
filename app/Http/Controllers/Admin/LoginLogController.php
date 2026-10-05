@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\InvalidAuditLogCsvException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AuditLogEntryRequest;
+use App\Http\Requests\Admin\AuditLogFilterRequest;
+use App\Http\Requests\Admin\BulkAuditLogRequest;
+use App\Http\Requests\Admin\ImportAuditLogsRequest;
 use App\Services\AuditLogService;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LoginLogController extends Controller
 {
@@ -13,74 +21,30 @@ class LoginLogController extends Controller
         private readonly AuditLogService $auditLogService,
     ) {}
 
-    // ── Index ─────────────────────────────────────────────────────────────────
-
-    public function index(Request $request)
+    public function index(AuditLogFilterRequest $request): Response
     {
-        $filters = $request->only([
-            'search',
-            'category',
-            'role',
-            'module',
-            'event',
-            'date',
-            'sort_by',
-            'sort_direction',
-        ]);
-        $perPage = min(max($request->integer('per_page', 20), 5), 100);
-        $filters['per_page'] = (string) $perPage;
-
-        return Inertia::render('admin/logs/Index', [
-            'logs' => $this->auditLogService->getPaginated($filters, $perPage),
-            'stats' => $this->auditLogService->getStats(),
-            'modules' => $this->auditLogService->getModules(),
-            'filters' => $filters,
-        ]);
+        return Inertia::render(
+            'admin/logs/Index',
+            $this->auditLogService->getIndexData($request->filters()),
+        );
     }
 
-    public function exportCsv(Request $request)
+    public function exportCsv(AuditLogFilterRequest $request): StreamedResponse
     {
-        $filters = $request->only([
-            'search', 'category', 'role', 'module', 'event', 'date',
-        ]);
-        $logs = $this->auditLogService->getForCsvExport($filters);
-
-        return response()->streamDownload(function () use ($logs) {
-            $output = fopen('php://output', 'w');
-            fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, [
-                'type', 'user', 'email', 'role', 'module', 'event',
-                'shop', 'ip_address', 'user_agent', 'details', 'occurred_at',
-            ], ',', '"', '');
-
-            foreach ($logs as $log) {
-                fputcsv($output, [
-                    $log->category,
-                    $log->name,
-                    $log->email,
-                    $log->role,
-                    $log->module,
-                    $log->event,
-                    $log->shop_name,
-                    $log->ip_address,
-                    $log->user_agent,
-                    $log->details,
-                    $log->occurred_at,
-                ], ',', '"', '');
-            }
-
-            fclose($output);
-        }, 'audit-logs-'.now()->format('Y-m-d-His').'.csv', [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+        return response()->streamDownload(
+            fn () => $this->auditLogService->writeCsvExport($request->filters()),
+            'audit-logs-'.now()->format('Y-m-d-His').'.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8'],
+        );
     }
 
-    public function importCsv(Request $request)
+    public function importCsv(ImportAuditLogsRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:10240'],
-        ]);
-        $result = $this->auditLogService->importCsv($validated['file']);
+        try {
+            $result = $this->auditLogService->importCsv($request->uploadedFile());
+        } catch (InvalidAuditLogCsvException $exception) {
+            throw ValidationException::withMessages(['file' => $exception->getMessage()]);
+        }
 
         return back()->with('toast', [
             'type' => 'success',
@@ -88,16 +52,14 @@ class LoginLogController extends Controller
         ]);
     }
 
-    public function show(string $category, int $id)
+    public function show(string $category, int $id): Response
     {
         return Inertia::render('admin/logs/Show', [
             'log' => $this->auditLogService->find($category, $id),
         ]);
     }
 
-    // ── Archive single ────────────────────────────────────────────────────────
-
-    public function destroy(string $category, int $id)
+    public function destroy(AuditLogEntryRequest $request, string $category, int $id): RedirectResponse
     {
         $this->auditLogService->archive($category, $id);
 
@@ -107,11 +69,9 @@ class LoginLogController extends Controller
         ]);
     }
 
-    // ── Bulk archive ──────────────────────────────────────────────────────────
-
-    public function bulkArchive(Request $request)
+    public function bulkArchive(BulkAuditLogRequest $request): RedirectResponse
     {
-        $entries = $this->validatedEntries($request);
+        $entries = $request->entries();
         $this->auditLogService->bulkArchive($entries);
 
         return back()->with('toast', [
@@ -120,23 +80,15 @@ class LoginLogController extends Controller
         ]);
     }
 
-    // ── Archive index ─────────────────────────────────────────────────────────
-
-    public function archiveIndex(Request $request)
+    public function archiveIndex(AuditLogFilterRequest $request): Response
     {
-        $filters = $request->only(['search', 'category', 'role', 'module', 'event', 'date']);
-        $perPage = min(max($request->integer('per_page', 20), 5), 100);
-
-        return Inertia::render('admin/logs/Archive', [
-            'logs' => $this->auditLogService->getArchivedPaginated($filters, $perPage),
-            'total' => $this->auditLogService->getStats()['archived'],
-            'filters' => $filters,
-        ]);
+        return Inertia::render(
+            'admin/logs/Archive',
+            $this->auditLogService->getArchiveData($request->filters()),
+        );
     }
 
-    // ── Restore ───────────────────────────────────────────────────────────────
-
-    public function restore(string $category, int $id)
+    public function restore(AuditLogEntryRequest $request, string $category, int $id): RedirectResponse
     {
         $this->auditLogService->restore($category, $id);
 
@@ -146,11 +98,9 @@ class LoginLogController extends Controller
         ]);
     }
 
-    // ── Bulk restore ──────────────────────────────────────────────────────────
-
-    public function bulkRestore(Request $request)
+    public function bulkRestore(BulkAuditLogRequest $request): RedirectResponse
     {
-        $entries = $this->validatedEntries($request);
+        $entries = $request->entries();
         $this->auditLogService->bulkRestore($entries);
 
         return back()->with('toast', [
@@ -159,9 +109,7 @@ class LoginLogController extends Controller
         ]);
     }
 
-    // ── Force delete ──────────────────────────────────────────────────────────
-
-    public function forceDelete(string $category, int $id)
+    public function forceDelete(AuditLogEntryRequest $request, string $category, int $id): RedirectResponse
     {
         $this->auditLogService->forceDelete($category, $id);
 
@@ -169,14 +117,5 @@ class LoginLogController extends Controller
             'type' => 'success',
             'message' => 'Log permanently deleted.',
         ]);
-    }
-
-    private function validatedEntries(Request $request): array
-    {
-        return $request->validate([
-            'entries' => ['required', 'array', 'min:1'],
-            'entries.*.category' => ['required', 'string', 'in:authentication,activity'],
-            'entries.*.id' => ['required', 'integer', 'min:1'],
-        ])['entries'];
     }
 }

@@ -328,6 +328,11 @@ const confirmModal = ref<{
 });
 
 function openConfirm(action: 'approve' | 'reject', order: OrderItem) {
+    if (action === 'approve') {
+        router.visit(`/admin/orders/${order.public_id}`);
+        return;
+    }
+
     confirmModal.value = {
         open: true,
         action,

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ApproveOrderRequest;
 use App\Models\Order;
 use App\Notifications\PlanRejectedNotification;
+use App\Services\BusinessAgreementService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +17,7 @@ class OrderController extends Controller
 {
     public function __construct(
         private readonly OrderService $orderService,
+        private readonly BusinessAgreementService $businessAgreementService,
     ) {}
 
     public function index(Request $request)
@@ -90,23 +93,32 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show(Order $order)
+    public function show(Request $request, Order $order)
     {
         return Inertia::render('admin/orders/Show', [
-            'order' => $order->load(['user', 'modules', 'payments']),
+            'order' => $this->orderService->adminDetails($order),
+            'agreementAcceptance' => $this->businessAgreementService->acceptanceDataForOrder($order),
+            'platformSigner' => [
+                'name' => $request->user()->name,
+                'role' => 'Authorized Platform Representative',
+            ],
         ]);
     }
 
-    public function approve(Order $order)
+    public function approve(ApproveOrderRequest $request, Order $order)
     {
-        abort_unless($order->status === 'pending', 409, 'Only pending orders can be approved.');
-
-        $order->update(['status' => 'approved']);
+        $this->orderService->approveWithPlatformSignature(
+            $request->user(),
+            $order,
+            $request->validated(),
+            $request->ip(),
+            $request->userAgent(),
+        );
 
         return redirect()->back()
             ->with('toast', [
                 'type' => 'success',
-                'message' => "{$order->shop_name} has been approved and can now proceed to payment.",
+                'message' => "{$order->shop_name} has been approved. The agreement is fully executed and ready for download.",
             ]);
     }
 

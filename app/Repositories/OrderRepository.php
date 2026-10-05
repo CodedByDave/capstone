@@ -20,9 +20,102 @@ class OrderRepository extends Repository
         return $this->update($order, ['status' => 'paid']);
     }
 
+    public function findForApproval(int $orderId): Order
+    {
+        return Order::query()
+            ->with('user')
+            ->lockForUpdate()
+            ->findOrFail($orderId);
+    }
+
+    public function markApproved(Order $order): void
+    {
+        $order->update(['status' => 'approved']);
+    }
+
+    public function refresh(Order $order): Order
+    {
+        return $order->refresh()->load('user');
+    }
+
     public function create(array $data): Order
     {
         return Order::create(collect($data)->except('modules')->toArray());
+    }
+
+    public function hasOpenApplication(int $userId): bool
+    {
+        return Order::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', ['approved', 'paid', 'pending'])
+            ->exists();
+    }
+
+    public function countRejectedApplications(int $userId): int
+    {
+        return Order::query()
+            ->where('user_id', $userId)
+            ->where('status', 'rejected')
+            ->where('is_upgrade', false)
+            ->where('is_trial', false)
+            ->count();
+    }
+
+    public function addModules(Order $order, array $moduleNames): void
+    {
+        foreach ($moduleNames as $moduleName) {
+            $order->modules()->create([
+                'name' => $moduleName,
+                'price' => 0,
+            ]);
+        }
+    }
+
+    public function updateKycDocuments(Order $order, array $paths): void
+    {
+        $order->update($paths);
+    }
+
+    public function findLatestApprovedPayableForUser(int $userId): Order
+    {
+        return Order::query()
+            ->where('user_id', $userId)
+            ->where('status', 'approved')
+            ->where('is_trial', false)
+            ->latest()
+            ->firstOrFail();
+    }
+
+    public function setPaymentMethod(Order $order, string $paymentMethod): void
+    {
+        $order->update(['payment_method' => $paymentMethod]);
+    }
+
+    public function findWithModules(int $orderId): Order
+    {
+        return Order::query()->with('modules')->findOrFail($orderId);
+    }
+
+    public function markPaidWithExpiry(Order $order): void
+    {
+        $order->update([
+            'status' => 'paid',
+            'expires_at' => now()->addMonths((int) $order->billing_months),
+        ]);
+    }
+
+    public function expireOtherActiveSubscriptions(Order $order): void
+    {
+        Order::query()
+            ->where('user_id', $order->user_id)
+            ->activeSubscription()
+            ->where('id', '!=', $order->id)
+            ->update(['status' => 'expired']);
+    }
+
+    public function refreshWithModules(Order $order): Order
+    {
+        return $order->fresh()->load('modules');
     }
 
     // ── Admin index ───────────────────────────────────────────────────────────
@@ -121,5 +214,10 @@ class OrderRepository extends Repository
     public function findWithRelations(int $id): Order
     {
         return Order::with(['user', 'modules', 'payments'])->findOrFail($id);
+    }
+
+    public function loadAdminDetails(Order $order): Order
+    {
+        return $order->load(['user', 'modules', 'payments']);
     }
 }

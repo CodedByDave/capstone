@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Shop\Inventory;
 
+use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSupplierRequest extends FormRequest
@@ -14,13 +15,13 @@ class UpdateSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'           => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'contact_person' => ['nullable', 'string', 'max:255'],
-            'email'          => ['nullable', 'email', 'max:255'],
-            'phone'          => ['nullable', 'string', 'max:50'],
-            'address'        => ['nullable', 'string', 'max:1000'],
-            'status'         => ['required', 'in:active,inactive'],
-            'notes'          => ['nullable', 'string', 'max:2000'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'status' => ['required', 'in:active,inactive'],
+            'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

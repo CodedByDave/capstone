@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateShopRequest extends FormRequest
@@ -16,7 +17,7 @@ class UpdateShopRequest extends FormRequest
         return [
             'shop_name' => ['required', 'string', 'max:255'],
             'branch_name' => ['nullable', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
             'block_street' => ['nullable', 'string', 'max:255'],
             'municipality' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],

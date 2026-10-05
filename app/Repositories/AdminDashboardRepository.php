@@ -72,6 +72,20 @@ class AdminDashboardRepository extends Repository
         return User::where('role', $role)->count();
     }
 
+    public function usersCountByRoleSince(string $role, Carbon $date): int
+    {
+        return User::where('role', $role)
+            ->where('created_at', '>=', $date)
+            ->count();
+    }
+
+    public function usersCountByRoleBetween(string $role, Carbon $start, Carbon $end): int
+    {
+        return User::where('role', $role)
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+    }
+
     public function usersCountSince(Carbon $date): int
     {
         return User::where('created_at', '>=', $date)->count();
@@ -123,6 +137,92 @@ class AdminDashboardRepository extends Repository
     public function ordersCountBetween(Carbon $start, Carbon $end): int
     {
         return Order::whereBetween('created_at', [$start, $end])->count();
+    }
+
+    public function ordersCountByStatus(string $status): int
+    {
+        return Order::where('status', $status)->count();
+    }
+
+    public function ordersCountByStatusSince(string $status, Carbon $date): int
+    {
+        return Order::where('status', $status)
+            ->where('created_at', '>=', $date)
+            ->count();
+    }
+
+    public function ordersCountByStatusBetween(
+        string $status,
+        Carbon $start,
+        Carbon $end,
+    ): int {
+        return Order::where('status', $status)
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+    }
+
+    public function ordersByMonthBetween(string $status, Carbon $start, Carbon $end): Collection
+    {
+        return Order::where('status', $status)
+            ->whereBetween('created_at', [$start, $end])
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as count")
+            ->groupBy('month_key')
+            ->pluck('count', 'month_key');
+    }
+
+    public function usersByMonthForRoleBetween(
+        string $role,
+        Carbon $start,
+        Carbon $end,
+    ): Collection {
+        return User::where('role', $role)
+            ->whereBetween('created_at', [$start, $end])
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as count")
+            ->groupBy('month_key')
+            ->pluck('count', 'month_key');
+    }
+
+    public function getTopPerformingShops(
+        Carbon $thisMonth,
+        Carbon $lastMonth,
+        Carbon $lastMonthEnd,
+        int $limit = 5,
+    ): Collection {
+        return Shop::select(
+            'shops.id',
+            'shops.owner_id',
+            'shops.shop_name',
+            'shops.municipality',
+            'shops.barangay',
+        )
+            ->selectRaw('COALESCE(SUM(p.amount), 0) as revenue')
+            ->selectRaw('COUNT(DISTINCT o.id) as orders')
+            ->selectRaw(
+                'COALESCE(SUM(CASE WHEN p.paid_at >= ? THEN p.amount ELSE 0 END), 0) as revenue_this_month',
+                [$thisMonth],
+            )
+            ->selectRaw(
+                'COALESCE(SUM(CASE WHEN p.paid_at BETWEEN ? AND ? THEN p.amount ELSE 0 END), 0) as revenue_last_month',
+                [$lastMonth, $lastMonthEnd],
+            )
+            ->leftJoin('orders as o', function ($join) {
+                $join->on('o.user_id', '=', 'shops.owner_id')
+                    ->where('o.status', '=', 'paid');
+            })
+            ->leftJoin('payments as p', function ($join) {
+                $join->on('p.order_id', '=', 'o.id')
+                    ->where('p.status', '=', 'paid');
+            })
+            ->groupBy(
+                'shops.id',
+                'shops.owner_id',
+                'shops.shop_name',
+                'shops.municipality',
+                'shops.barangay',
+            )
+            ->orderByDesc('revenue')
+            ->limit($limit)
+            ->get();
     }
 
     // Active subscription breakdown by plan name.

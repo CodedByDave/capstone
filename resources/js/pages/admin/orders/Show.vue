@@ -1,14 +1,20 @@
 <script setup lang="ts">
+import AgreementSignatureInput from '@/components/business/AgreementSignatureInput.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
+import { downloadBusinessAgreementPdf } from '@/lib/businessAgreementPdf';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     ArrowLeft,
     Check,
     CreditCard,
+    Download,
+    FileSignature,
     X,
 } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -52,9 +58,53 @@ interface Order {
     payments: Payment[];
 }
 
+interface AgreementAcceptance {
+    public_id: string;
+    business_name: string;
+    signer_name: string;
+    signer_role: string;
+    accepted_at: string;
+    content_hash: string;
+    signature_method: 'drawn' | 'uploaded' | null;
+    signature_url: string | null;
+    execution_status: 'awaiting_platform_signature' | 'fully_executed';
+    platform_signature: {
+        public_id: string;
+        signer_name: string;
+        signer_role: string;
+        signed_at: string;
+        signature_method: 'drawn' | 'uploaded';
+        signature_url: string;
+    } | null;
+    agreement: {
+        title: string;
+        version: string;
+        content: string;
+        effective_at: string;
+    };
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { order } = defineProps<{ order: Order }>();
+const { order, agreementAcceptance, platformSigner } = defineProps<{
+    order: Order;
+    agreementAcceptance: AgreementAcceptance | null;
+    platformSigner: { name: string; role: string };
+}>();
+
+const downloadingAgreement = ref(false);
+
+async function downloadAgreement() {
+    if (!agreementAcceptance || downloadingAgreement.value) return;
+
+    downloadingAgreement.value = true;
+
+    try {
+        await downloadBusinessAgreementPdf(agreementAcceptance);
+    } finally {
+        downloadingAgreement.value = false;
+    }
+}
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
@@ -146,20 +196,35 @@ const paymentStatusLabel: Record<string, string> = {
 // ─── Approve / Reject ─────────────────────────────────────────────────────────
 
 const showRejectDialog = ref(false);
+const showApprovalDialog = ref(false);
 const rejectionReason = ref('');
 const submitting = ref(false);
+const approvalForm = useForm({
+    platform_signer_name: platformSigner.name,
+    platform_signer_role: platformSigner.role,
+    platform_signature_method: 'drawn' as 'drawn' | 'uploaded',
+    platform_signature_image: null as File | null,
+    platform_signer_authority_confirmed: false,
+});
 
 function approveOrder() {
-    submitting.value = true;
-    router.post(
-        `/admin/orders/${order.public_id}/approve`,
-        {},
-        {
-            onFinish: () => {
-                submitting.value = false;
-            },
+    if (!agreementAcceptance) return;
+    approvalForm.clearErrors();
+    showApprovalDialog.value = true;
+}
+
+function submitApproval() {
+    approvalForm.post(`/admin/orders/${order.public_id}/approve`, {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            showApprovalDialog.value = false;
+            approvalForm.reset(
+                'platform_signature_image',
+                'platform_signer_authority_confirmed',
+            );
         },
-    );
+    });
 }
 
 function openRejectDialog() {
@@ -216,10 +281,10 @@ function submitReject() {
                         <Button
                             size="sm"
                             class="bg-emerald-600 text-white hover:bg-emerald-700"
-                            :disabled="submitting"
+                            :disabled="submitting || !agreementAcceptance"
                             @click="approveOrder"
                         >
-                            <Check class="mr-1.5 h-4 w-4" /> Approve
+                            Approve and sign
                         </Button>
                         <Button
                             size="sm"
@@ -227,7 +292,7 @@ function submitReject() {
                             :disabled="submitting"
                             @click="openRejectDialog"
                         >
-                            <X class="mr-1.5 h-4 w-4" /> Reject
+                            Reject
                         </Button>
                     </template>
                     <Button
@@ -538,6 +603,119 @@ function submitReject() {
                         </CardContent>
                     </Card>
 
+                    <!-- Business agreement -->
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <CardTitle
+                                class="flex items-center gap-2 text-sm font-semibold"
+                            >
+                                <FileSignature class="h-4 w-4" /> Business
+                                Agreement
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent
+                            v-if="agreementAcceptance"
+                            class="space-y-3 text-sm"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span class="text-muted-foreground"
+                                    >Version</span
+                                >
+                                <span class="font-medium">{{
+                                    agreementAcceptance.agreement.version
+                                }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-muted-foreground"
+                                    >Status</span
+                                >
+                                <span
+                                    class="rounded-full px-2 py-1 text-xs font-medium"
+                                    :class="
+                                        agreementAcceptance.execution_status ===
+                                        'fully_executed'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-amber-100 text-amber-700'
+                                    "
+                                >
+                                    {{
+                                        agreementAcceptance.execution_status ===
+                                        'fully_executed'
+                                            ? 'Fully Executed'
+                                            : 'Awaiting Platform Signature'
+                                    }}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-xs text-muted-foreground">
+                                    Signed by
+                                </p>
+                                <p class="font-medium">
+                                    {{ agreementAcceptance.signer_name }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    {{ agreementAcceptance.signer_role }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-muted-foreground">
+                                    Accepted
+                                </p>
+                                <p class="font-medium">
+                                    {{
+                                        formatDate(
+                                            agreementAcceptance.accepted_at,
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                            <div v-if="agreementAcceptance.platform_signature">
+                                <p class="text-xs text-muted-foreground">
+                                    Platform representative
+                                </p>
+                                <p class="font-medium">
+                                    {{
+                                        agreementAcceptance.platform_signature
+                                            .signer_name
+                                    }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    {{
+                                        agreementAcceptance.platform_signature
+                                            .signer_role
+                                    }}
+                                    ·
+                                    {{
+                                        formatDate(
+                                            agreementAcceptance
+                                                .platform_signature.signed_at,
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                            <Button
+                                v-if="
+                                    agreementAcceptance.execution_status ===
+                                    'fully_executed'
+                                "
+                                variant="outline"
+                                size="sm"
+                                class="w-full gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
+                                :disabled="downloadingAgreement"
+                                @click="downloadAgreement"
+
+                            >
+                                <Download class="h-4 w-4" /> Download agreement
+                            </Button>
+                        </CardContent>
+                        <CardContent
+                            v-else
+                            class="text-sm text-muted-foreground"
+                        >
+                            No agreement acceptance is linked to this order.
+                        </CardContent>
+                    </Card>
+
                     <!-- Modules -->
                     <Card>
                         <CardHeader class="px-4 pt-4 pb-2">
@@ -569,6 +747,137 @@ function submitReject() {
                 </div>
             </div>
         </div>
+
+        <!-- Approval and platform signature dialog -->
+        <Teleport to="body">
+            <div
+                v-if="showApprovalDialog"
+                class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
+            >
+                <div
+                    class="fixed inset-0 bg-black/50"
+                    @click="showApprovalDialog = false"
+                />
+                <form
+                    class="relative z-10 my-8 w-full max-w-2xl space-y-5 bg-background p-6 shadow-xl"
+                    @submit.prevent="submitApproval"
+                >
+                    <div>
+                        <h3 class="text-lg font-semibold">
+                            Approve and countersign agreement
+                        </h3>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            Approval records your signature for LaundryHub and
+                            makes the agreement fully executed.
+                        </p>
+                    </div>
+
+                    <div
+                        v-if="
+                            approvalForm.errors.agreement ||
+                            approvalForm.errors.order
+                        "
+                        class="border-y border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
+                    >
+                        {{
+                            approvalForm.errors.agreement ||
+                            approvalForm.errors.order
+                        }}
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <Label class="mb-1.5">Printed full name</Label>
+                            <Input
+                                v-model="approvalForm.platform_signer_name"
+                            />
+                            <p
+                                v-if="approvalForm.errors.platform_signer_name"
+                                class="mt-1 text-xs text-red-600"
+                            >
+                                {{ approvalForm.errors.platform_signer_name }}
+                            </p>
+                        </div>
+                        <div>
+                            <Label class="mb-1.5"
+                                >Position / signing capacity</Label
+                            >
+                            <Input
+                                v-model="approvalForm.platform_signer_role"
+                            />
+                            <p
+                                v-if="approvalForm.errors.platform_signer_role"
+                                class="mt-1 text-xs text-red-600"
+                            >
+                                {{ approvalForm.errors.platform_signer_role }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <AgreementSignatureInput
+                        v-model="approvalForm.platform_signature_image"
+                        label="LaundryHub representative signature"
+                        description="Draw your authorized platform signature or upload a clear signature image."
+                        file-name="platform-signature.png"
+                        :disabled="approvalForm.processing"
+                        :error="approvalForm.errors.platform_signature_image"
+                        @update:method="
+                            approvalForm.platform_signature_method = $event
+                        "
+                    />
+
+                    <label
+                        class="flex cursor-pointer items-start gap-2 text-sm"
+                    >
+                        <input
+                            v-model="
+                                approvalForm.platform_signer_authority_confirmed
+                            "
+                            type="checkbox"
+                            class="mt-1 accent-emerald-600"
+                        />
+                        <span>
+                            I confirm that I am authorized to approve this order
+                            and bind LaundryHub to this agreement.
+                        </span>
+                    </label>
+                    <p
+                        v-if="
+                            approvalForm.errors
+                                .platform_signer_authority_confirmed
+                        "
+                        class="text-xs text-red-600"
+                    >
+                        {{
+                            approvalForm.errors
+                                .platform_signer_authority_confirmed
+                        }}
+                    </p>
+
+                    <div class="flex justify-end gap-2 border-t pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :disabled="approvalForm.processing"
+                            @click="showApprovalDialog = false"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            class="bg-emerald-600 text-white hover:bg-emerald-700"
+                            :disabled="
+                                approvalForm.processing ||
+                                !approvalForm.platform_signature_image ||
+                                !approvalForm.platform_signer_authority_confirmed
+                            "
+                        >
+                            Approve and sign
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </Teleport>
 
         <!-- Reject dialog -->
         <Teleport to="body">

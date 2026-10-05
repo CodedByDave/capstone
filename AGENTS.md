@@ -114,3 +114,25 @@ Do not rewrite unrelated legacy features solely to enforce this architecture. Wh
 ### Limited exceptions
 
 Migrations, seeders, factories, console-only maintenance scripts, and framework configuration may use the database directly when that is their intended responsibility. Any other exception must be explicitly justified in the implementation notes and kept as narrow as possible.
+
+## Frontend Table and KPI Layout Standards
+
+When the user asks to create, change, update, improve, or refactor a table layout without naming a different visual reference, use the admin **Shop Management** table in `resources/js/pages/admin/shop/Index.vue` as the canonical layout and styling reference.
+
+- Every new or materially modified user-facing data table must use `vue3-easy-data-table` (`EasyDataTable`). Do not build data grids with the shadcn `Table` components or custom table markup unless the user explicitly requests an exception or `EasyDataTable` cannot support a required behavior.
+- Match its overall table presentation, including the container, toolbar, search and filters, spacing, typography, borders, status badges, row actions, empty state, responsive behavior, and pagination where applicable.
+- Define columns through `EasyDataTable` headers and use named header/item slots when custom rendering is needed.
+- Sortable columns must show a visible sorting arrow at all times, matching the neutral, ascending, and descending arrow states used by the admin tables. The active sort column and direction must remain visually clear.
+- For backend-paginated data, use `EasyDataTable` server options and perform searching, filtering, sorting, and pagination through the backend query flow instead of sorting only the currently loaded page.
+- Include consistent loading and empty states, rows-per-page controls, and pagination behavior where the dataset supports them.
+- Adapt the columns, labels, filters, actions, and data to the feature being changed; do not copy Shop Management-specific behavior that does not apply.
+- Preserve the target feature's authorization, routes, and business behavior.
+- Reuse the admin table classes, shared slots, and UI components where available instead of duplicating table behavior unnecessarily.
+- If the user explicitly identifies another table or design as the reference, follow that instruction instead.
+
+When the user asks to create, change, update, improve, or refactor KPI cards without naming a different visual reference, use the KPI section on the admin **Shop Management** page in `resources/js/pages/admin/shop/Index.vue` as the canonical layout and styling reference.
+
+- Match its compact card grid, card treatment, spacing, typography, labels, and value hierarchy.
+- Include only the KPIs needed for the target page and avoid decorative, redundant, or low-value metrics.
+- Adapt the KPI labels and values to the target feature while preserving its data scope and permissions.
+- If the user explicitly identifies another KPI design as the reference, follow that instruction instead.

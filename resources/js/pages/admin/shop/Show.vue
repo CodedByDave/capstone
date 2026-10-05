@@ -93,6 +93,15 @@ interface ShopDetails {
         status: string;
         submitted_at: string;
     } | null;
+    business_agreement: {
+        version: string;
+        accepted: boolean;
+        acceptance: {
+            signer_name: string;
+            signer_role: string;
+            accepted_at: string;
+        } | null;
+    };
 }
 
 const { shop } = defineProps<{ shop: ShopDetails }>();
@@ -331,6 +340,57 @@ function enableShop() {
                     </p>
                 </div>
             </div>
+
+            <Card>
+                <CardHeader class="pb-3">
+                    <CardTitle class="flex items-center gap-2 text-base">
+                        <FileText class="h-4 w-4" /> Platform–Business Agreement
+                    </CardTitle>
+                </CardHeader>
+                <CardContent class="grid gap-4 text-sm sm:grid-cols-3">
+                    <div>
+                        <p class="detail-label">Current version</p>
+                        <p class="font-medium">
+                            {{ shop.business_agreement.version }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="detail-label">Status</p>
+                        <span
+                            class="rounded-full px-2 py-0.5 text-xs font-medium"
+                            :class="
+                                shop.business_agreement.accepted
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700'
+                            "
+                        >
+                            {{
+                                shop.business_agreement.accepted
+                                    ? 'Accepted'
+                                    : 'Acceptance required'
+                            }}
+                        </span>
+                    </div>
+                    <div v-if="shop.business_agreement.acceptance">
+                        <p class="detail-label">Signature</p>
+                        <p class="font-medium">
+                            {{ shop.business_agreement.acceptance.signer_name }}
+                        </p>
+                        <p class="text-xs text-muted-foreground">
+                            {{
+                                shop.business_agreement.acceptance.signer_role
+                            }}
+                            ·
+                            {{
+                                formatDateTime(
+                                    shop.business_agreement.acceptance
+                                        .accepted_at,
+                                )
+                            }}
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardContent class="p-5">

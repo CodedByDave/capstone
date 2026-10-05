@@ -3,6 +3,7 @@ import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 
+import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -126,7 +127,7 @@ function submit() {
             <!-- Phone -->
             <div class="space-y-1">
                 <label class="text-sm font-medium">Phone Number</label>
-                <Input v-model="form.phone" />
+                <PhilippinePhoneInput v-model="form.phone" />
                 <p v-if="form.errors.phone" class="text-xs text-red-500">
                     {{ form.errors.phone }}
                 </p>

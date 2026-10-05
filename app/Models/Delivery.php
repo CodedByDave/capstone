@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -23,7 +24,8 @@ class Delivery extends Model
     }
 
     protected $casts = [
-        'assigned_at'  => 'datetime',
+        'customer_phone' => PhilippinePhoneCast::class,
+        'assigned_at' => 'datetime',
         'picked_up_at' => 'datetime',
         'delivered_at' => 'datetime',
     ];

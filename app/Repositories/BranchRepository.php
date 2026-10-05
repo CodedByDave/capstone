@@ -13,17 +13,51 @@ class BranchRepository extends Repository
         parent::__construct($model);
     }
 
-    //Branch-specific queries
+    // Branch-specific queries
 
-    public function paginateForShop(int $shopId, int $perPage = 15, ?string $branch = null): LengthAwarePaginator
+    public function paginateForShop(int $shopId, array $filters = [], ?string $branch = null): LengthAwarePaginator
     {
-        return $this->query()
+        $query = $this->query()
             ->with(['creator:id,name', 'updater:id,name'])
             ->withCount('employees')
             ->where('shop_id', $shopId)
-            ->when($branch !== null, fn($q) => $q->where('name', $branch))
-            ->latest()
-            ->paginate($perPage)
+            ->when($branch !== null, fn ($q) => $q->where('name', $branch))
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($query) use ($search) {
+                    $query
+                        ->where('branch_code', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('manager_name', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status));
+
+        $sortBy = $filters['sort_by'] ?? 'branch_code';
+        $sortDirection = $filters['sort_direction'] ?? 'asc';
+
+        if ($sortBy === 'creator_name') {
+            $query->orderBy(
+                \App\Models\User::query()
+                    ->select('name')
+                    ->whereColumn('users.id', 'branches.created_by'),
+                $sortDirection,
+            );
+        } elseif ($sortBy === 'updater_name') {
+            $query->orderBy(
+                \App\Models\User::query()
+                    ->select('name')
+                    ->whereColumn('users.id', 'branches.updated_by'),
+                $sortDirection,
+            );
+        } else {
+            $query->orderBy($sortBy, $sortDirection);
+        }
+
+        return $query
+            ->paginate((int) ($filters['per_page'] ?? 15))
             ->withQueryString();
     }
 
@@ -50,11 +84,11 @@ class BranchRepository extends Repository
     public function statsForShop(int $shopId, ?string $branch = null): array
     {
         $base = $this->query()->where('shop_id', $shopId)
-            ->when($branch !== null, fn($q) => $q->where('name', $branch));
+            ->when($branch !== null, fn ($q) => $q->where('name', $branch));
 
         return [
-            'total'    => (clone $base)->count(),
-            'active'   => (clone $base)->where('status', 'Active')->count(),
+            'total' => (clone $base)->count(),
+            'active' => (clone $base)->where('status', 'Active')->count(),
             'inactive' => (clone $base)->where('status', 'Inactive')->count(),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,17 +19,20 @@ class EmployeeArchive extends Model
         'address',
         'branch_name',
         'position',
+        'employment_type',
+        'pay_rate',
+        'pay_basis',
         'hire_date',
-        'salary',
         'status',
         'original_created_at',
         'archived_at',
     ];
 
     protected $casts = [
-        'hire_date'           => 'date',
-        'salary'              => 'decimal:2',
-        'archived_at'         => 'datetime',
+        'phone' => PhilippinePhoneCast::class,
+        'hire_date' => 'date',
+        'pay_rate' => 'decimal:2',
+        'archived_at' => 'datetime',
         'original_created_at' => 'datetime',
     ];
 

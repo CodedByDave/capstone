@@ -2,9 +2,14 @@
 
 use App\Enums\AccountType;
 use App\Models\ActivityLog;
+use App\Models\BusinessAgreement;
+use App\Models\BusinessAgreementAcceptance;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 function createManagedShop(array $attributes = []): Shop
@@ -145,6 +150,8 @@ test('shop table supports sorting across management columns and page sizing', fu
 });
 
 test('approval allows payment but activation and permit sync wait until payment', function () {
+    Storage::fake('private');
+    Notification::fake();
     $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
     $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
     $expiry = now()->addYear()->toDateString();
@@ -170,16 +177,43 @@ test('approval allows payment but activation and permit sync wait until payment'
         'sanitary_expiry_date' => null,
     ]);
 
+    $agreement = BusinessAgreement::query()->where('is_active', true)->firstOrFail();
+    $shopSignaturePath = 'agreements/test/shop-signature.png';
+    Storage::disk('private')->put($shopSignaturePath, 'signature');
+    BusinessAgreementAcceptance::create([
+        'business_agreement_id' => $agreement->id,
+        'user_id' => $owner->id,
+        'order_id' => $order->id,
+        'business_name' => $order->shop_name,
+        'signer_name' => $owner->name,
+        'signer_role' => 'Owner',
+        'signature_method' => 'uploaded',
+        'signature_path' => $shopSignaturePath,
+        'accepted_at' => now(),
+        'content_hash' => $agreement->content_hash,
+    ]);
+
+    $approvalPayload = fn () => [
+        'platform_signer_name' => $admin->name,
+        'platform_signer_role' => 'Authorized Platform Representative',
+        'platform_signature_method' => 'uploaded',
+        'platform_signature_image' => UploadedFile::fake()->createWithContent(
+            'platform-signature.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='),
+        ),
+        'platform_signer_authority_confirmed' => true,
+    ];
+
     $this->actingAs($admin)
-        ->post(route('admin.orders.approve', $order->public_id))
+        ->post(route('admin.orders.approve', $order->public_id), $approvalPayload())
         ->assertRedirect();
 
     expect($order->fresh()->status)->toBe('approved');
     $this->assertDatabaseMissing('shops', ['owner_id' => $owner->id]);
 
     $this->actingAs($admin)
-        ->post(route('admin.orders.approve', $order->public_id))
-        ->assertStatus(409);
+        ->post(route('admin.orders.approve', $order->public_id), $approvalPayload())
+        ->assertSessionHasErrors('order');
 
     $order->update([
         'status' => 'paid',

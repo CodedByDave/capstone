@@ -20,7 +20,7 @@ class PayrollRepository
 
     public function find(int $id, Shop $shop): Payroll
     {
-        return Payroll::with(['items.employee:id,employee_id,first_name,last_name,position,branch_name,salary', 'creator:id,name'])
+        return Payroll::with(['items.employee:id,employee_id,first_name,last_name,position,branch_name,pay_rate,pay_basis', 'creator:id,name'])
             ->where('shop_id', $shop->id)
             ->findOrFail($id);
     }
@@ -33,6 +33,7 @@ class PayrollRepository
     public function update(Payroll $payroll, array $data): Payroll
     {
         $payroll->update($data);
+
         return $payroll->fresh();
     }
 

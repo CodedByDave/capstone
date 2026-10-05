@@ -2,26 +2,27 @@
 
 namespace App\Http\Controllers\Shop\Employee;
 
+use App\Enums\EmploymentType;
+use App\Enums\PayBasis;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Employee\BulkEmployeeRequest;
+use App\Http\Requests\Shop\Employee\IndexEmployeeRequest;
 use App\Http\Requests\Shop\Employee\StoreEmployeeRequest;
 use App\Http\Requests\Shop\Employee\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Models\EmployeeArchive;
 use App\Models\Shop;
 use App\Models\ShopRole;
-use App\Models\EmployeeRole;
 use App\Repositories\BranchRepository;
 use App\Services\EmployeeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class EmployeeController extends Controller
 {
     public function __construct(
-        private readonly EmployeeService  $employeeService,
+        private readonly EmployeeService $employeeService,
         private readonly BranchRepository $branchRepository,
     ) {}
 
@@ -36,6 +37,7 @@ class EmployeeController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -62,16 +64,14 @@ class EmployeeController extends Controller
 
     // Index of employee table
 
-    public function index(Request $request)
+    public function index(IndexEmployeeRequest $request)
     {
         $shop = $this->getShop();
 
-        return Inertia::render('shop/employee/Index', [
-            'employees'    => $this->employeeService->getEmployees($shop, $request->integer('perPage', 10)),
-            'stats'        => $this->employeeService->getStats($shop),
-            'branch_names' => $this->employeeService->getBranchNames($shop),
-            'shop'         => $shop,
-        ]);
+        return Inertia::render(
+            'shop/employee/Index',
+            $this->employeeService->indexData($shop, $request->validated()),
+        );
     }
 
     public function show(Employee $employee)
@@ -82,7 +82,7 @@ class EmployeeController extends Controller
         $this->employeeService->authorizeEmployee($employee, $shop);
 
         return Inertia::render('shop/employee/Show', [
-            'employee'  => $employee->load(['creator:id,name', 'updater:id,name']),
+            'employee' => $employee->load(['creator:id,name', 'updater:id,name']),
             'schedules' => $employee->schedules()->get(),
         ]);
     }
@@ -92,9 +92,11 @@ class EmployeeController extends Controller
         $shop = $this->getShop();
 
         return Inertia::render('shop/employee/Create', [
-            'roles'        => $this->getRoles($shop),
+            'roles' => $this->getRoles($shop),
             'branch_names' => $this->employeeService->getBranchNames($shop),
-            'shop'         => $shop,
+            'shop' => $shop,
+            'employment_types' => EmploymentType::options(),
+            'pay_bases' => PayBasis::options(),
         ]);
     }
 
@@ -107,29 +109,33 @@ class EmployeeController extends Controller
 
         \Log::info('=== EDIT BEFORE RENDER ===', [
             'user_id_value' => $employee->user_id,
-            'user_id_type'  => gettype($employee->user_id),
+            'user_id_type' => gettype($employee->user_id),
         ]);
 
         return Inertia::render('shop/employee/Edit', [
             // Explicit array so no extra Eloquent attributes/relations bleed into the prop
             'employee' => [
-                'id'          => $employee->id,
+                'id' => $employee->id,
                 'employee_id' => $employee->employee_id,
-                'user_id'     => $employee->user_id,
-                'first_name'  => $employee->first_name,
-                'last_name'   => $employee->last_name,
-                'email'       => $employee->email,
-                'phone'       => $employee->phone,
-                'address'     => $employee->address,
-                'position'    => $employee->position,
+                'user_id' => $employee->user_id,
+                'first_name' => $employee->first_name,
+                'last_name' => $employee->last_name,
+                'email' => $employee->email,
+                'phone' => $employee->phone,
+                'address' => $employee->address,
+                'position' => $employee->position,
+                'employment_type' => $employee->employment_type,
+                'pay_rate' => $employee->pay_rate,
+                'pay_basis' => $employee->pay_basis,
                 'branch_name' => $employee->branch_name,
-                'hire_date'   => $employee->getRawOriginal('hire_date'),
-                'salary'      => $employee->salary,
-                'status'      => $employee->status,
+                'hire_date' => $employee->getRawOriginal('hire_date'),
+                'status' => $employee->status,
             ],
             'branch_names' => $this->employeeService->getBranchNames($shop),
-            'roles'        => $this->getRoles($shop),
-            'schedules'    => $employee->schedules()->get(),
+            'roles' => $this->getRoles($shop),
+            'employment_types' => EmploymentType::options(),
+            'pay_bases' => PayBasis::options(),
+            'schedules' => $employee->schedules()->get(),
         ]);
     }
 
@@ -186,7 +192,7 @@ class EmployeeController extends Controller
 
     public function restore(int $id)
     {
-        $shop     = $this->getShop();
+        $shop = $this->getShop();
         $employee = $shop->employees()->onlyTrashed()->findOrFail($id);
 
         Gate::authorize('restore', $employee);
@@ -199,7 +205,7 @@ class EmployeeController extends Controller
 
     public function bulkRestore(BulkEmployeeRequest $request)
     {
-        $shop      = $this->getShop();
+        $shop = $this->getShop();
         $employees = $shop->employees()->onlyTrashed()->whereIn('id', $request->ids)->get();
 
         foreach ($employees as $employee) {
@@ -209,8 +215,8 @@ class EmployeeController extends Controller
 
         return redirect()->route('employee.archive')
             ->with('toast', [
-                'type'    => 'success',
-                'message' => count($employees) . ' employee(s) restored successfully.',
+                'type' => 'success',
+                'message' => count($employees).' employee(s) restored successfully.',
             ]);
     }
 
@@ -227,8 +233,10 @@ class EmployeeController extends Controller
             'address',
             'branch_name',
             'position',
+            'employment_type',
+            'pay_rate',
+            'pay_basis',
             'hire_date',
-            'salary',
             'status',
         ];
 
@@ -239,7 +247,7 @@ class EmployeeController extends Controller
         };
 
         return response()->stream($callback, 200, [
-            'Content-Type'        => 'text/csv',
+            'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="employee_import_template.csv"',
         ]);
     }
@@ -249,10 +257,10 @@ class EmployeeController extends Controller
     {
         $request->validate(['csv_file' => ['required', 'file', 'mimes:csv,txt']]);
 
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $errors = $this->employeeService->importFromCsv($shop, $request->file('csv_file'));
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             return response()->json(['errors' => $errors], 422);
         }
 

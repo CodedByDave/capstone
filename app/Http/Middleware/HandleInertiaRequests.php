@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\Order;
 use App\Models\RolePermission;
 use App\Models\Shop;
+use App\Services\NotificationService;
 use App\Services\PlatformRoleService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class HandleInertiaRequests extends Middleware
 
     public function __construct(
         private readonly PlatformRoleService $platformRoles,
+        private readonly NotificationService $notifications,
     ) {}
 
     public function version(Request $request): ?string
@@ -132,8 +134,8 @@ class HandleInertiaRequests extends Middleware
                 return null;
             },
 
-            'unreadNotifications' => fn () => $request->user()?->role === 'user'
-                ? $request->user()->unreadNotifications()->count()
+            'unreadNotifications' => fn () => $request->user()
+                ? $this->notifications->unreadCount($request->user())
                 : 0,
 
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

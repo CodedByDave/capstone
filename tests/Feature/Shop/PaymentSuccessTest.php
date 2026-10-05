@@ -20,6 +20,7 @@ function createPlanOrderFor(User $owner): Order
         'phone' => '09171234567',
         'municipality' => 'Manila',
         'barangay' => 'Ermita',
+        'postal_code' => '1000',
         'plan_name' => 'Standard',
         'billing_months' => 1,
         'total_price' => 1000,

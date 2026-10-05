@@ -19,6 +19,11 @@ class UserRepository extends Repository
         return User::create($data);
     }
 
+    public function lockForOrderSubmission(int $userId): User
+    {
+        return User::query()->lockForUpdate()->findOrFail($userId);
+    }
+
     // ── Index ─────────────────────────────────────────────────────────────────
 
     public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator

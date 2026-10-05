@@ -1,4 +1,5 @@
 <?php
+
 // app/Http/Controllers/Shop/Employee/PayrollController.php
 
 namespace App\Http\Controllers\Shop\Employee;
@@ -30,6 +31,7 @@ class PayrollController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -44,11 +46,11 @@ class PayrollController extends Controller
 
         return Inertia::render('shop/employee/payroll/Index', [
             'payrolls' => $this->payrollService->paginate($shop),
-            'stats'    => $this->payrollService->getStats($shop),
+            'stats' => $this->payrollService->getStats($shop),
             'settings' => [
-                'deduct_sss'             => (bool) $shop->deduct_sss,
-                'deduct_philhealth'      => (bool) $shop->deduct_philhealth,
-                'deduct_pagibig'         => (bool) $shop->deduct_pagibig,
+                'deduct_sss' => (bool) $shop->deduct_sss,
+                'deduct_philhealth' => (bool) $shop->deduct_philhealth,
+                'deduct_pagibig' => (bool) $shop->deduct_pagibig,
                 'deduct_withholding_tax' => (bool) $shop->deduct_withholding_tax,
             ],
         ]);
@@ -60,9 +62,9 @@ class PayrollController extends Controller
         $user = $request->user();
 
         if ($user->role !== 'owner') {
-            $employee   = Employee::where('user_id', $user->id)->with('roles')->first();
-            $roles      = $employee?->roles->pluck('role')->toArray() ?? [];
-            $permitted  = !empty($roles) && RolePermission::where('shop_id', $shop->id)
+            $employee = Employee::where('user_id', $user->id)->with('roles')->first();
+            $roles = $employee?->roles->pluck('role')->toArray() ?? [];
+            $permitted = ! empty($roles) && RolePermission::where('shop_id', $shop->id)
                 ->whereIn('role', $roles)
                 ->where('module', 'HRM')
                 ->where('action', 'update')
@@ -82,7 +84,7 @@ class PayrollController extends Controller
         $shop = $this->getShop();
         abort_if($payroll->shop_id !== $shop->id, 403);
 
-        $payroll->load(['items.employee:id,user_id,employee_id,first_name,last_name,position,branch_name,salary', 'creator:id,name']);
+        $payroll->load(['items.employee:id,user_id,employee_id,first_name,last_name,position,branch_name,pay_rate,pay_basis', 'creator:id,name']);
 
         // Non-owners see only their own branch's items, excluding themselves
         if (auth()->user()->role !== 'owner') {
@@ -91,6 +93,7 @@ class PayrollController extends Controller
 
             $payroll->setRelation('items', $payroll->items->filter(function ($item) use ($branch, $userId) {
                 $emp = $item->employee;
+
                 return $emp
                     && $emp->branch_name === $branch
                     && ($emp->user_id === null || $emp->user_id !== $userId);

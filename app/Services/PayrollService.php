@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\PayBasis;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Payroll;
@@ -97,8 +98,11 @@ class PayrollService
             'remarks' => $data['remarks'] ?? $item->remarks,
         ]);
 
-        $dailyRate = $this->calculateDailyRate($item->employee);
-        $grossPay = ($dailyRate * $item->days_worked) + (($dailyRate / 2) * $item->days_half_day);
+        $payBasis = PayBasis::tryFrom($item->pay_basis) ?? PayBasis::Monthly;
+        $dailyRate = $this->calculateDailyRateFrom((float) $item->pay_rate, $payBasis);
+        $grossPay = $payBasis === PayBasis::FixedContract
+            ? (float) $item->pay_rate
+            : ($dailyRate * $item->days_worked) + (($dailyRate / 2) * $item->days_half_day);
 
         $netPay = max(0, round(
             $grossPay
@@ -255,9 +259,32 @@ class PayrollService
 
     private function calculateDailyRate(Employee $employee): float
     {
-        $monthlySalary = (float) ($employee->salary ?? 0);
+        $payRate = (float) ($employee->pay_rate ?? 0);
+        $basis = PayBasis::tryFrom($employee->pay_basis ?? '') ?? PayBasis::Monthly;
 
-        return round($monthlySalary / 26, 2); // 26 working days
+        return $this->calculateDailyRateFrom($payRate, $basis);
+    }
+
+    private function calculateDailyRateFrom(float $payRate, PayBasis $basis): float
+    {
+        return round(match ($basis) {
+            PayBasis::Monthly => $payRate / 26,
+            PayBasis::Daily, PayBasis::PerShift => $payRate,
+            PayBasis::Hourly => $payRate * 8,
+            PayBasis::FixedContract => 0,
+        }, 2);
+    }
+
+    private function calculateMonthlyEquivalent(Employee $employee): float
+    {
+        $payRate = (float) ($employee->pay_rate ?? 0);
+        $basis = PayBasis::tryFrom($employee->pay_basis ?? '') ?? PayBasis::Monthly;
+
+        return round(match ($basis) {
+            PayBasis::Monthly, PayBasis::FixedContract => $payRate,
+            PayBasis::Daily, PayBasis::PerShift => $payRate * 26,
+            PayBasis::Hourly => $payRate * 8 * 26,
+        }, 2);
     }
 
     /**
@@ -334,21 +361,29 @@ class PayrollService
     private function calculatePayrollItem(Employee $employee, array $attendance, string $periodStart, string $periodEnd, Shop $shop): array
     {
         $dailyRate = $this->calculateDailyRate($employee);
-        $monthlySalary = (float) ($employee->salary ?? 0);
+        $payRate = (float) ($employee->pay_rate ?? 0);
+        $payBasis = PayBasis::tryFrom($employee->pay_basis ?? '') ?? PayBasis::Monthly;
+        $monthlyEquivalent = $this->calculateMonthlyEquivalent($employee);
         $periodFactor = $this->getPeriodFactor($periodStart, $periodEnd);
 
-        // Gross pay: only pay for days actually worked/partially worked
-        $grossPay = $dailyRate * $attendance['present'];
-        $halfDayPay = ($dailyRate / 2) * $attendance['half_day'];
-        $lateDeduction = ($dailyRate * 0.05) * $attendance['late'];
+        if ($payBasis === PayBasis::FixedContract) {
+            $totalGross = round($payRate, 2);
+            $attendanceDeduction = 0.0;
+        } else {
+            // Attendance records represent one workday or shift. Hourly rates
+            // use the standard eight-hour workday until time-clock hours exist.
+            $grossPay = $dailyRate * $attendance['present'];
+            $halfDayPay = ($dailyRate / 2) * $attendance['half_day'];
+            $lateDeduction = ($dailyRate * 0.05) * $attendance['late'];
 
-        $totalGross = round($grossPay + $halfDayPay, 2);
-        $attendanceDeduction = round($lateDeduction, 2);
+            $totalGross = round($grossPay + $halfDayPay, 2);
+            $attendanceDeduction = round($lateDeduction, 2);
+        }
 
         // Government contributions (pro-rated by period, only if enabled for the shop)
-        $sssMonthly = $this->calculateSSS($monthlySalary);
-        $philhealthMonthly = $this->calculatePhilHealth($monthlySalary);
-        $pagibigMonthly = $this->calculatePagIbig($monthlySalary);
+        $sssMonthly = $this->calculateSSS($monthlyEquivalent);
+        $philhealthMonthly = $this->calculatePhilHealth($monthlyEquivalent);
+        $pagibigMonthly = $this->calculatePagIbig($monthlyEquivalent);
 
         $sss = $shop->deduct_sss ? round($sssMonthly * $periodFactor, 2) : 0.0;
         $philhealth = $shop->deduct_philhealth ? round($philhealthMonthly * $periodFactor, 2) : 0.0;
@@ -363,7 +398,9 @@ class PayrollService
         $netPay = max(0, round($totalGross - $attendanceDeduction - $sss - $philhealth - $pagibig - $withholdingTax, 2));
 
         return [
-            'basic_salary' => $monthlySalary,
+            'basic_salary' => $monthlyEquivalent,
+            'pay_rate' => $payRate,
+            'pay_basis' => $payBasis->value,
             'days_worked' => $attendance['present'],
             'days_absent' => $attendance['absent'],
             'days_late' => $attendance['late'],

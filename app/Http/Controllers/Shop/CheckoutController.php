@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Shop;
 
+use App\Exceptions\OrderSubmissionException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\SelectPlanRequest;
 use App\Http\Requests\Shop\StoreOrderRequest;
+use App\Http\Requests\Shop\StorePaymentRequest;
 use App\Models\Order;
-use App\Models\Payment;
+use App\Services\BusinessAgreementService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
-use App\Services\PaymongoService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -22,7 +23,7 @@ class CheckoutController extends Controller
     public function __construct(
         protected OrderService $orderService,
         protected PaymentService $paymentService,
-        protected PaymongoService $paymongoService
+        protected BusinessAgreementService $businessAgreementService,
     ) {}
 
     // ── Plan selection page ────────────────────────────────────────────────────
@@ -41,11 +42,7 @@ class CheckoutController extends Controller
 
     public function plans(): Response|RedirectResponse
     {
-        $hasActiveOrder = Order::where('user_id', auth()->id())
-            ->whereIn('status', ['approved', 'paid', 'pending'])
-            ->exists();
-
-        if ($hasActiveOrder) {
+        if (auth()->check() && $this->orderService->hasOpenApplication(auth()->id())) {
             return redirect()->route('shop.dashboard')->with('toast', [
                 'type' => 'error',
                 'message' => 'You already have an active plan.',
@@ -57,38 +54,16 @@ class CheckoutController extends Controller
 
     // ── Store selected plan + billing period in session ────────────────────────
 
-    public function select(Request $request): RedirectResponse
+    public function select(SelectPlanRequest $request): RedirectResponse
     {
-        $request->validate([
-            'plan_name' => 'required|string|in:Basic,Standard,Premium',
-            'billing_months' => 'required|integer|in:1,12,24,48',
-            'discount_pct' => 'required|integer',
-            'monthly_price' => 'required|integer',
-            'total_amount' => 'required|integer',
-        ]);
-
-        if (auth()->check()) {
-            $hasActiveOrder = Order::where('user_id', auth()->id())
-                ->whereIn('status', ['approved', 'paid', 'pending'])
-                ->exists();
-
-            if ($hasActiveOrder) {
-                return redirect()->route('shop.dashboard')->with('toast', [
-                    'type' => 'error',
-                    'message' => 'You already have an active plan.',
-                ]);
-            }
+        if ($request->user() && $this->orderService->hasOpenApplication($request->user()->id)) {
+            return redirect()->route('shop.dashboard')->with('toast', [
+                'type' => 'error',
+                'message' => 'You already have an active plan.',
+            ]);
         }
 
-        session([
-            'checkout' => [
-                'plan_name' => $request->plan_name,
-                'billing_months' => $request->billing_months,
-                'discount_pct' => $request->discount_pct,
-                'monthly_price' => $request->monthly_price,
-                'total_amount' => $request->total_amount,
-            ],
-        ]);
+        session(['checkout' => $request->validated()]);
 
         if (auth()->check()) {
             return redirect()->route('checkout.confirm');
@@ -113,106 +88,23 @@ class CheckoutController extends Controller
             ]);
         }
 
-        $user = auth()->user();
-        $shop = Shop::where('owner_id', $user->id)->first();
-
-        $billingMonths = (int) ($checkout['billing_months'] ?? 12);
-
-        $municipalityMap = [
-            'Cavite City' => 'City of Cavite',
-            'Dasmariñas' => 'City of Dasmariñas',
-            'Bacoor' => 'City of Bacoor',
-            'Imus' => 'City of Imus',
-            'Trece Martires' => 'City of Trece Martires',
-            'General Trias' => 'City of General Trias',
-        ];
-
-        $savedMunicipality = $shop?->municipality ?? '';
-        $mappedMunicipality = $municipalityMap[$savedMunicipality] ?? $savedMunicipality;
-
-        return Inertia::render('shop/CheckoutConfirm', [
-            'planName' => $checkout['plan_name'] ?? 'Standard',
-            'billingMonths' => $billingMonths,
-            'vatPct' => 12,
-            'user' => [
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-            'shop' => [
-                'phone' => $shop?->phone ?? '',
-                'shop_name' => $shop?->shop_name ?? '',
-                'block_street' => $shop?->block_street ?? '',
-                'municipality' => $mappedMunicipality,
-                'barangay' => $shop?->barangay ?? '',
-                'postal_code' => $shop?->postal_code ?? '',
-            ],
-        ]);
+        return Inertia::render('shop/CheckoutConfirm', array_merge(
+            $this->orderService->checkoutConfirmationData(auth()->user(), $checkout ?? []),
+            ['agreement' => $this->businessAgreementService->currentAgreementData(auth()->user())],
+        ));
     }
 
     // ── Process order (no payment — admin reviews first) ──────────────────────
 
     public function checkout(StoreOrderRequest $request): RedirectResponse|SymfonyResponse
     {
-        Log::info('CHECKOUT HIT', $request->all());
-
         try {
-            $user = auth()->user();
-
-            $hasActiveOrder = Order::where('user_id', $user->id)
-                ->whereIn('status', ['approved', 'paid', 'pending'])
-                ->exists();
-
-            if ($hasActiveOrder) {
-                return back()->with('toast', [
-                    'type' => 'error',
-                    'message' => 'You already have an active plan or pending order.',
-                ]);
-            }
-
-            $planName = $request->validated()['plan_name'];
-            $billingMonths = (int) $request->validated()['billing_months'];
-
-            $planPrices = ['Basic' => 3800, 'Standard' => 6300, 'Premium' => 8000];
-            $discounts = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
-
-            $basePrice = $planPrices[$planName];
-            $discountPct = $discounts[$billingMonths] ?? 0;
-            $monthlyPrice = $basePrice * (1 - $discountPct / 100);
-            $subtotal = $monthlyPrice * $billingMonths;
-            $vatAmount = round($subtotal * 0.12);
-            $grandTotal = $subtotal + $vatAmount;
-
-            $order = DB::transaction(function () use ($request, $user, $planName, $billingMonths, $grandTotal) {
-                return $this->orderService->create([
-                    'shop_name' => $request->validated()['shop_name'],
-                    'phone' => $request->validated()['phone'],
-                    'block_street' => $request->validated()['block_street'],
-                    'municipality' => $request->validated()['municipality'],
-                    'barangay' => $request->validated()['barangay'],
-                    'postal_code' => $request->validated()['postal_code'],
-                    'bir_expiry_date' => $request->validated()['bir_expiry_date'],
-                    'dti_expiry_date' => $request->validated()['dti_expiry_date'],
-                    'mayors_expiry_date' => $request->validated()['mayors_expiry_date'],
-                    'sanitary_expiry_date' => $request->validated()['sanitary_expiry_date'] ?? null,
-                    'owner_name' => $user->name,
-                    'email' => $user->email,
-                    'user_id' => $user->id,
-                    'plan_name' => $planName,
-                    'billing_months' => $billingMonths,
-                    'total_price' => $grandTotal,
-                ]);
-            });
-
-            // Store KYC documents
-            $kycPaths = [];
-            foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {
-                if ($request->hasFile($key)) {
-                    $kycPaths[$key] = $request->file($key)->store("kyc/{$order->id}", 'private');
-                }
-            }
-            if (! empty($kycPaths)) {
-                Order::where('id', $order->id)->update($kycPaths);
-            }
+            $this->orderService->submitApplication(
+                $request->user(),
+                $request->validated(),
+                $request->ip(),
+                $request->userAgent(),
+            );
 
             session()->flash('toast', [
                 'type' => 'success',
@@ -223,6 +115,13 @@ class CheckoutController extends Controller
             // with fresh props (pending_order). An XHR-based redirect would keep
             // the same component instance alive and leave the stale props in place.
             return Inertia::location(route('shop.dashboard'));
+        } catch (OrderSubmissionException $exception) {
+            return back()->with('toast', [
+                'type' => 'error',
+                'message' => $exception->getMessage(),
+            ]);
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (\Exception $e) {
             Log::error('=== CHECKOUT FAILED ===', [
                 'error' => $e->getMessage(),
@@ -239,36 +138,16 @@ class CheckoutController extends Controller
 
     // ── Initiate payment for an admin-approved order ───────────────────────────
 
-    public function pay(Request $request): RedirectResponse
+    public function pay(StorePaymentRequest $request): RedirectResponse
     {
-        $request->validate([
-            'payment_method' => ['required', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
-        ]);
-
-        $user = auth()->user();
-        $order = Order::where('user_id', $user->id)
-            ->where('status', 'approved')
-            ->where('is_trial', false)
-            ->latest()
-            ->firstOrFail();
-
         try {
-            $order->update(['payment_method' => $request->payment_method]);
+            $result = $this->paymentService->initiateApprovedOrderPayment(
+                $request->user(),
+                $request->validated('payment_method'),
+            );
+            session(['pending_order_id' => $result['order_id']]);
 
-            $payment = $this->paymentService->createForOrder($order, [
-                'payment_method' => $request->payment_method,
-                'amount' => $order->total_price,
-            ]);
-
-            $session = $this->paymongoService->createCheckoutSession($order);
-
-            Payment::where('order_id', $order->id)->update([
-                'paymongo_session_id' => $session['data']['id'],
-            ]);
-
-            session(['pending_order_id' => $order->id]);
-
-            return redirect($session['data']['attributes']['checkout_url']);
+            return redirect()->away($result['checkout_url']);
         } catch (\Exception $e) {
             Log::error('=== PAY INITIATION FAILED ===', [
                 'error' => $e->getMessage(),
@@ -285,97 +164,14 @@ class CheckoutController extends Controller
 
     public function success(Order $order): Response
     {
-        abort_unless($order->user_id === auth()->id(), 403);
-
-        $orderId = $order->id;
         session()->forget('pending_order_id');
 
-        if ($orderId) {
-            $order = Order::with('modules')->find($orderId);
-            $payment = Payment::where('order_id', $orderId)->first();
-
-            if ($payment && $payment->paymongo_session_id) {
-                try {
-                    $session = $this->paymongoService->getCheckoutSession($payment->paymongo_session_id);
-                    $sessionStatus = $session['data']['attributes']['status'] ?? null;
-                    $paymentStatus = $session['data']['attributes']['payment_intent']['attributes']['status'] ?? null;
-
-                    if (
-                        in_array($sessionStatus, ['completed', 'paid']) ||
-                        in_array($paymentStatus, ['paid', 'succeeded'])
-                    ) {
-                        $paymongoPaymentId = $this->paymongoService->extractPaymentId($session);
-
-                        // Do not restart the subscription period when the success page is refreshed.
-                        if ($payment->status !== 'paid' || $order->status !== 'paid') {
-                            $payment->update([
-                                'status' => 'paid',
-                                'paid_at' => now(),
-                                'paymongo_payment_id' => $paymongoPaymentId,
-                            ]);
-
-                            $order->update([
-                                'status' => 'paid',
-                                'expires_at' => now()->addMonths((int) $order->billing_months),
-                            ]);
-
-                            $this->orderService->syncApprovedShop($order);
-
-                            // Upgrade orders are auto-approved — no admin review needed.
-                            if ($order->is_upgrade) {
-                                DB::transaction(function () use ($order) {
-                                    // Expire all previously active/paid orders for this user.
-                                    Order::where('user_id', $order->user_id)
-                                        ->activeSubscription()
-                                        ->where('id', '!=', $order->id)
-                                        ->update(['status' => 'expired']);
-
-                                });
-                            }
-                        }
-
-                        $payment = $payment->fresh();
-                        $order = $order->fresh()->load('modules');
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Failed to verify PayMongo session on success', [
-                        'order_id' => $orderId,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
-
-            return Inertia::render('shop/payment/PaymentSuccess', [
-                'order' => $order ? [
-                    'public_id' => $order->public_id,
-                    'transaction_reference' => $order->transaction_reference,
-                    'status' => $order->status,
-                    'shop_name' => $order->shop_name,
-                    'owner_name' => $order->owner_name,
-                    'email' => $order->email,
-                    'phone' => $order->phone,
-                    'block_street' => $order->block_street,
-                    'municipality' => $order->municipality,
-                    'barangay' => $order->barangay,
-                    'postal_code' => $order->postal_code,
-                    'total_price' => $order->total_price,
-                    'payment_method' => $order->payment_method,
-                    'plan_name' => $order->plan_name,
-                    'billing_months' => $order->billing_months,
-                    'expires_at' => $order->expires_at,
-                    'created_at' => $order->created_at,
-                    'modules' => $order->modules->map(fn ($m) => [
-                        'name' => $m->name,
-                        'price' => $m->price,
-                    ]),
-                ] : null,
-            ]);
-        }
-
-        return Inertia::render('shop/payment/PaymentSuccess');
+        return Inertia::render('shop/payment/PaymentSuccess', [
+            'order' => $this->paymentService->verifiedReceipt(auth()->user(), $order),
+        ]);
     }
 
-    // ── Payment cancel ─────────────────────────────────────────────────────────
+    // ── Payment cancel ────────────────────────────────────────────────────────
 
     public function cancel(): Response
     {
