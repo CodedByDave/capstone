@@ -11,8 +11,8 @@ class ShopServiceRepository
     {
         return ShopService::query()
             ->where('shop_id', $shopId)
-            ->when($activeOnly, fn($q) => $q->where('is_active', true))
-            ->when($onlyTrashed, fn($q) => $q->onlyTrashed())
+            ->when($activeOnly, fn ($q) => $q->where('is_active', true))
+            ->when($onlyTrashed, fn ($q) => $q->onlyTrashed())
             ->orderBy('service_name')
             ->get();
     }
@@ -30,6 +30,7 @@ class ShopServiceRepository
     public function update(ShopService $service, array $data): ShopService
     {
         $service->update($data);
+
         return $service->fresh();
     }
 

@@ -21,18 +21,18 @@ class DriverController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'id'               => $delivery->id,
-            'status'           => $delivery->status,
-            'customer_name'    => $delivery->customer_name,
-            'customer_phone'   => $delivery->customer_phone,
+            'id' => $delivery->id,
+            'status' => $delivery->status,
+            'customer_name' => $delivery->customer_name,
+            'customer_phone' => $delivery->customer_phone,
             'delivery_address' => $delivery->delivery_address,
-            'notes'            => $delivery->notes,
-            'order_number'     => $delivery->order?->order_number,
-            'shop_name'        => $delivery->shop?->shop_name,
-            'rider'            => $delivery->rider,
-            'assigned_at'      => $delivery->assigned_at?->toISOString(),
-            'picked_up_at'     => $delivery->picked_up_at?->toISOString(),
-            'delivered_at'     => $delivery->delivered_at?->toISOString(),
+            'notes' => $delivery->notes,
+            'order_number' => $delivery->order?->order_number,
+            'shop_name' => $delivery->shop?->shop_name,
+            'rider' => $delivery->rider,
+            'assigned_at' => $delivery->assigned_at?->toISOString(),
+            'picked_up_at' => $delivery->picked_up_at?->toISOString(),
+            'delivered_at' => $delivery->delivered_at?->toISOString(),
         ]);
     }
 
@@ -48,13 +48,13 @@ class DriverController extends Controller
 
         $data = $request->validate([
             'status' => ['required', 'in:picked_up,delivered,failed'],
-            'notes'  => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         // Prevent going backwards
         $order = ['assigned', 'picked_up', 'delivered', 'failed'];
         $currentIndex = array_search($delivery->status, $order);
-        $newIndex     = array_search($data['status'], $order);
+        $newIndex = array_search($data['status'], $order);
 
         if ($newIndex === false || $newIndex <= $currentIndex) {
             return response()->json([
@@ -63,16 +63,16 @@ class DriverController extends Controller
         }
 
         $timestamps = [];
-        if ($data['status'] === 'picked_up' && !$delivery->picked_up_at) {
+        if ($data['status'] === 'picked_up' && ! $delivery->picked_up_at) {
             $timestamps['picked_up_at'] = now();
         }
-        if ($data['status'] === 'delivered' && !$delivery->delivered_at) {
+        if ($data['status'] === 'delivered' && ! $delivery->delivered_at) {
             $timestamps['delivered_at'] = now();
         }
 
         $delivery->update(array_merge([
             'status' => $data['status'],
-            'notes'  => $data['notes'] ?? $delivery->notes,
+            'notes' => $data['notes'] ?? $delivery->notes,
         ], $timestamps));
 
         // Notify the customer
@@ -83,7 +83,7 @@ class DriverController extends Controller
 
         return response()->json([
             'message' => 'Status updated.',
-            'status'  => $delivery->status,
+            'status' => $delivery->status,
         ]);
     }
 }

@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Models\Inventory;
-use App\Models\Shop;
+use App\Repositories\InventoryMovementRepository;
 use App\Repositories\InventoryRepository;
 use App\Repositories\LowStockAlertRepository;
-use App\Repositories\InventoryMovementRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -14,9 +13,9 @@ use Illuminate\Support\Facades\DB;
 class InventoryService
 {
     public function __construct(
-        private readonly InventoryRepository       $inventoryRepository,
+        private readonly InventoryRepository $inventoryRepository,
         private readonly InventoryMovementRepository $movementRepository,
-        private readonly LowStockAlertRepository   $alertRepository,
+        private readonly LowStockAlertRepository $alertRepository,
     ) {}
 
     public function paginate(int $shopId, int $perPage = 15, array $filters = []): LengthAwarePaginator
@@ -87,10 +86,10 @@ class InventoryService
      */
     public function adjustStock(
         Inventory $inventory,
-        string    $type,
-        int       $quantity,
-        ?string   $referenceNumber = null,
-        ?string   $notes = null,
+        string $type,
+        int $quantity,
+        ?string $referenceNumber = null,
+        ?string $notes = null,
     ): Inventory {
         return DB::transaction(function () use ($inventory, $type, $quantity, $referenceNumber, $notes) {
             $newQuantity = $inventory->quantity + $quantity;
@@ -98,7 +97,7 @@ class InventoryService
             // Prevent stock going negative
             if ($newQuantity < 0) {
                 throw new \InvalidArgumentException(
-                    "Insufficient stock. Available: {$inventory->quantity}, requested: " . abs($quantity)
+                    "Insufficient stock. Available: {$inventory->quantity}, requested: ".abs($quantity)
                 );
             }
 

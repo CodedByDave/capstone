@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Shop;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Shop;
 
 class EnsureShopNotArchived
 {
@@ -28,7 +28,7 @@ class EnsureShopNotArchived
                 }
 
                 return redirect()->route('login')->with('toast', [
-                    'type'    => 'error',
+                    'type' => 'error',
                     'message' => 'Your shop has been archived. Please contact support.',
                 ]);
             }

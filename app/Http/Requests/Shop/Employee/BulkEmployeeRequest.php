@@ -14,7 +14,7 @@ class BulkEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'ids'   => ['required', 'array', 'min:1'],
+            'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['required', 'integer', 'exists:employees,id'],
         ];
     }
@@ -22,11 +22,11 @@ class BulkEmployeeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'ids.required'  => 'No employees were selected.',
-            'ids.array'     => 'Invalid selection format.',
-            'ids.min'       => 'Please select at least one employee.',
+            'ids.required' => 'No employees were selected.',
+            'ids.array' => 'Invalid selection format.',
+            'ids.min' => 'Please select at least one employee.',
             'ids.*.integer' => 'Invalid employee ID.',
-            'ids.*.exists'  => 'One or more selected employees do not exist.',
+            'ids.*.exists' => 'One or more selected employees do not exist.',
         ];
     }
 }

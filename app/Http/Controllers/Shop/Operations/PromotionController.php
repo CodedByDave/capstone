@@ -25,6 +25,7 @@ class PromotionController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -35,14 +36,14 @@ class PromotionController extends Controller
 
     public function index(Request $request)
     {
-        $shop     = $this->getShop();
+        $shop = $this->getShop();
         $archived = $request->boolean('archived');
 
         return Inertia::render('shop/operations/promotions/Index', [
             'promotions' => $archived
                 ? $this->promotionService->archived($shop)
                 : $this->promotionService->paginate($shop),
-            'stats'    => $this->promotionService->getStats($shop),
+            'stats' => $this->promotionService->getStats($shop),
             'archived' => $archived,
         ]);
     }
@@ -57,14 +58,14 @@ class PromotionController extends Controller
         $shop = $this->getShop();
 
         $data = $request->validate([
-            'name'             => ['required', 'string', 'max:100'],
-            'description'      => ['nullable', 'string', 'max:500'],
-            'type'             => ['required', 'in:percentage,fixed'],
-            'value'            => ['required', 'numeric', 'min:0.01'],
+            'name' => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'type' => ['required', 'in:percentage,fixed'],
+            'value' => ['required', 'numeric', 'min:0.01'],
             'min_order_amount' => ['nullable', 'numeric', 'min:0'],
-            'is_active'        => ['boolean'],
-            'starts_at'        => ['nullable', 'date'],
-            'ends_at'          => ['nullable', 'date', 'after_or_equal:starts_at'],
+            'is_active' => ['boolean'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
         ]);
 
         $this->promotionService->create($shop, $data);
@@ -89,14 +90,14 @@ class PromotionController extends Controller
         abort_if($promotion->shop_id !== $shop->id, 403);
 
         $data = $request->validate([
-            'name'             => ['required', 'string', 'max:100'],
-            'description'      => ['nullable', 'string', 'max:500'],
-            'type'             => ['required', 'in:percentage,fixed'],
-            'value'            => ['required', 'numeric', 'min:0.01'],
+            'name' => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'type' => ['required', 'in:percentage,fixed'],
+            'value' => ['required', 'numeric', 'min:0.01'],
             'min_order_amount' => ['nullable', 'numeric', 'min:0'],
-            'is_active'        => ['boolean'],
-            'starts_at'        => ['nullable', 'date'],
-            'ends_at'          => ['nullable', 'date', 'after_or_equal:starts_at'],
+            'is_active' => ['boolean'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
         ]);
 
         $this->promotionService->update($promotion, $data);
@@ -128,7 +129,7 @@ class PromotionController extends Controller
 
     public function restore(int $id)
     {
-        $shop      = $this->getShop();
+        $shop = $this->getShop();
         $promotion = Promotion::withTrashed()->where('shop_id', $shop->id)->findOrFail($id);
 
         $this->promotionService->restore($promotion);

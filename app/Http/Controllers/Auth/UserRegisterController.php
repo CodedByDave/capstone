@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
 use App\Mail\OtpVerificationMail;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class UserRegisterController extends Controller
@@ -35,11 +35,11 @@ class UserRegisterController extends Controller
             if ($request->filled('google_id')) {
                 session([
                     'pending_registration' => [
-                        'name'              => $request->name,
-                        'email'             => $request->email,
-                        'password'          => null,
-                        'google_id'         => $request->google_id,
-                        'otp_verified'      => true,
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'password' => null,
+                        'google_id' => $request->google_id,
+                        'otp_verified' => true,
                         'registration_type' => 'user',
                     ],
                 ]);
@@ -49,7 +49,7 @@ class UserRegisterController extends Controller
                 Log::info('Google user registration — OTP skipped', ['email' => $request->email]);
 
                 return redirect()->route('otp.verify.page')->with('toast', [
-                    'type'    => 'success',
+                    'type' => 'success',
                     'message' => 'Google account verified. Completing your registration...',
                 ]);
             }
@@ -59,11 +59,11 @@ class UserRegisterController extends Controller
 
             session([
                 'pending_registration' => [
-                    'name'              => $request->name,
-                    'email'             => $request->email,
-                    'password'          => $request->password,
-                    'otp_code'          => $otp,
-                    'otp_expires_at'    => now()->addMinutes(10)->toDateTimeString(),
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => $request->password,
+                    'otp_code' => $otp,
+                    'otp_expires_at' => now()->addMinutes(10)->toDateTimeString(),
                     'registration_type' => 'user',
                 ],
             ]);
@@ -87,7 +87,7 @@ class UserRegisterController extends Controller
             }
 
             return redirect()->route('otp.verify.page')->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'OTP has been sent to your email. Please verify your account.',
             ]);
         } catch (\Exception $e) {

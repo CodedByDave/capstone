@@ -121,16 +121,20 @@ const allSelected = computed(
 );
 
 function toggleAll() {
-    allSelected.value
-        ? (selected.value = [])
-        : (selected.value = props.logs.data.map(entryKey));
+    if (allSelected.value) {
+        selected.value = [];
+    } else {
+        selected.value = props.logs.data.map(entryKey);
+    }
 }
 
 function toggleOne(log: AuditLog) {
     const key = entryKey(log);
-    selected.value.includes(key)
-        ? (selected.value = selected.value.filter((item) => item !== key))
-        : selected.value.push(key);
+    if (selected.value.includes(key)) {
+        selected.value = selected.value.filter((item) => item !== key);
+    } else {
+        selected.value.push(key);
+    }
 }
 
 // ─── Restore ──────────────────────────────────────────────────────────────────
@@ -486,8 +490,9 @@ const roleBadge: Record<string, string> = {
                                 :disabled="!link.url"
                                 class="h-7 min-w-7 text-xs"
                                 @click="link.url && router.visit(link.url)"
-                                v-html="link.label"
-                            />
+                            >
+                                <span v-html="link.label" />
+                            </Button>
                         </div>
                     </div>
                 </CardContent>

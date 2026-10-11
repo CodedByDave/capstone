@@ -19,13 +19,13 @@ class ActivityLogService
         ?string $module = null,
     ): void {
         ActivityLog::create([
-            'module'       => $module ?? class_basename($subject),
-            'action'       => $action,
+            'module' => $module ?? class_basename($subject),
+            'action' => $action,
             'subject_type' => $subject->getMorphClass(),
-            'subject_id'   => $subject->getKey(),
+            'subject_id' => $subject->getKey(),
             'performed_by' => auth()->id(),
-            'shop_id'      => $shopId,
-            'changes'      => $changes,
+            'shop_id' => $shopId,
+            'changes' => $changes,
         ]);
     }
 
@@ -33,36 +33,32 @@ class ActivityLogService
     {
         return ActivityLog::query()
             ->where('shop_id', $shop->id)
-            ->when($performerIds !== null, fn($q) => $q->whereIn('performed_by', $performerIds))
+            ->when($performerIds !== null, fn ($q) => $q->whereIn('performed_by', $performerIds))
             ->with(['subject', 'performer:id,name'])
-            ->when($request->action ?? null,       fn($q) => $q->where('action', $request->action))
-            ->when($request->performed_by ?? null, fn($q) => $q->where('performed_by', (int) $request->performed_by))
-            ->when($request->module ?? null,       fn($q) => $q->where('module', $request->module))
-            ->when($request->date_from ?? null, fn($q) => $q->where(
+            ->when($request->action ?? null, fn ($q) => $q->where('action', $request->action))
+            ->when($request->performed_by ?? null, fn ($q) => $q->where('performed_by', (int) $request->performed_by))
+            ->when($request->module ?? null, fn ($q) => $q->where('module', $request->module))
+            ->when($request->date_from ?? null, fn ($q) => $q->where(
                 'created_at',
                 '>=',
                 \Carbon\Carbon::parse($request->date_from, 'Asia/Manila')->startOfDay()->utc()
             ))
-            ->when($request->date_to ?? null,   fn($q) => $q->where(
+            ->when($request->date_to ?? null, fn ($q) => $q->where(
                 'created_at',
                 '<=',
                 \Carbon\Carbon::parse($request->date_to, 'Asia/Manila')->endOfDay()->utc()
             ))
             ->when(
                 $request->search ?? null,
-                fn($q) =>
-                $q->whereHasMorph(
+                fn ($q) => $q->whereHasMorph(
                     'subject',
                     '*',
-                    fn($sq, $type) => match (true) {
-                        str_ends_with($type, 'Employee') =>
-                        $sq->where(
-                            fn($s) =>
-                            $s->where('first_name', 'like', "%{$request->search}%")
-                                ->orWhere('last_name',  'like', "%{$request->search}%")
+                    fn ($sq, $type) => match (true) {
+                        str_ends_with($type, 'Employee') => $sq->where(
+                            fn ($s) => $s->where('first_name', 'like', "%{$request->search}%")
+                                ->orWhere('last_name', 'like', "%{$request->search}%")
                         ),
-                        default =>
-                        $sq->where('name', 'like', "%{$request->search}%"),
+                        default => $sq->where('name', 'like', "%{$request->search}%"),
                     }
                 )
             )
@@ -76,7 +72,7 @@ class ActivityLogService
         return User::whereIn(
             'id',
             ActivityLog::where('shop_id', $shop->id)
-                ->when($performerIds !== null, fn($q) => $q->whereIn('performed_by', $performerIds))
+                ->when($performerIds !== null, fn ($q) => $q->whereIn('performed_by', $performerIds))
                 ->whereNotNull('performed_by')
                 ->distinct()
                 ->pluck('performed_by')
@@ -86,7 +82,7 @@ class ActivityLogService
     public function getModules(Shop $shop, ?array $performerIds = null): Collection
     {
         return ActivityLog::where('shop_id', $shop->id)
-            ->when($performerIds !== null, fn($q) => $q->whereIn('performed_by', $performerIds))
+            ->when($performerIds !== null, fn ($q) => $q->whereIn('performed_by', $performerIds))
             ->distinct()
             ->pluck('module');
     }

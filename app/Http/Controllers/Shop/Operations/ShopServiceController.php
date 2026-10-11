@@ -9,9 +9,9 @@ use App\Models\Employee;
 use App\Models\ShopService;
 use App\Services\ShopServiceService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\Request;
 
 class ShopServiceController extends Controller
 {
@@ -25,6 +25,7 @@ class ShopServiceController extends Controller
         if ($user->role === 'owner') {
             return $user->shop->id;
         }
+
         return Employee::where('user_id', $user->id)->value('shop_id');
     }
 
@@ -35,13 +36,13 @@ class ShopServiceController extends Controller
 
     public function index(Request $request): Response
     {
-        $shopId      = $this->getShopId();
+        $shopId = $this->getShopId();
         $showTrashed = $request->boolean('archived');
 
         return Inertia::render('shop/operations/services/Index', [
-            'services'      => $this->service->getAll($shopId, onlyTrashed: $showTrashed),
+            'services' => $this->service->getAll($shopId, onlyTrashed: $showTrashed),
             'pricingModels' => ShopService::PRICING_MODELS,
-            'showArchived'  => $showTrashed,
+            'showArchived' => $showTrashed,
         ]);
     }
 
@@ -61,7 +62,7 @@ class ShopServiceController extends Controller
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Service created successfully.',
             ]);
     }
@@ -69,7 +70,7 @@ class ShopServiceController extends Controller
     public function edit(ShopService $service): Response
     {
         return Inertia::render('shop/operations/services/Edit', [
-            'service'       => $service,
+            'service' => $service,
             'pricingModels' => ShopService::PRICING_MODELS,
         ]);
     }
@@ -80,7 +81,7 @@ class ShopServiceController extends Controller
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Service updated successfully.',
             ]);
     }
@@ -91,7 +92,7 @@ class ShopServiceController extends Controller
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Service archived successfully.',
             ]);
     }
@@ -102,7 +103,7 @@ class ShopServiceController extends Controller
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => $updated->is_active ? 'Service activated.' : 'Service deactivated.',
             ]);
     }
@@ -114,7 +115,7 @@ class ShopServiceController extends Controller
 
         return redirect("{$this->base()}/operations/services?archived=true")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => "{$service->service_name} restored successfully.",
             ]);
     }
@@ -125,7 +126,7 @@ class ShopServiceController extends Controller
 
         return redirect("{$this->base()}/operations/services?archived=true")
             ->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'All archived services restored.',
             ]);
     }

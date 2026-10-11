@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Shop\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Inventory\UpdateLowStockAlertRequest;
+use App\Models\Employee;
 use App\Models\LowStockAlert;
 use App\Models\Shop;
-use App\Models\Employee;
 use App\Services\LowStockAlertService;
 use Inertia\Inertia;
 
@@ -25,6 +25,7 @@ class LowStockAlertController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -33,7 +34,7 @@ class LowStockAlertController extends Controller
         $shop = $this->getShop();
 
         return Inertia::render('shop/inventory/alert/Index', [
-            'alerts'      => $this->alertService->paginate($shop->id),
+            'alerts' => $this->alertService->paginate($shop->id),
             'unreadCount' => $this->alertService->unreadCount($shop->id),
         ]);
     }
@@ -41,8 +42,8 @@ class LowStockAlertController extends Controller
     public function update(UpdateLowStockAlertRequest $request, LowStockAlert $lowStockAlert)
     {
         match ($request->validated('status')) {
-            'read'      => $this->alertService->markAsRead($lowStockAlert),
-            'resolved'  => $this->alertService->resolve($lowStockAlert),
+            'read' => $this->alertService->markAsRead($lowStockAlert),
+            'resolved' => $this->alertService->resolve($lowStockAlert),
             'dismissed' => $this->alertService->dismiss($lowStockAlert),
         };
 

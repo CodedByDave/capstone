@@ -15,7 +15,10 @@ class PaymentQrController extends Controller
 {
     private function qrUrl(?string $value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
+
         return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
     }
 
@@ -28,6 +31,7 @@ class PaymentQrController extends Controller
         }
 
         $shopId = Employee::where('user_id', $user->id)->value('shop_id');
+
         return Shop::findOrFail($shopId);
     }
 
@@ -45,7 +49,7 @@ class PaymentQrController extends Controller
     {
         $request->validate([
             'gcash_qr' => ['nullable', 'image', 'max:2048'],
-            'maya_qr'  => ['nullable', 'image', 'max:2048'],
+            'maya_qr' => ['nullable', 'image', 'max:2048'],
         ]);
 
         $shop = $this->getShop();
@@ -72,7 +76,7 @@ class PaymentQrController extends Controller
         $shop->save();
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Payment QR codes updated.',
         ]);
     }

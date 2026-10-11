@@ -42,9 +42,9 @@ class ModuleSeeder extends Seeder
                 ['name' => $module['name']],
                 [
                     'description' => $module['description'],
-                    'price'       => $module['price'],
-                    'updated_at'  => now(),
-                    'created_at'  => now(),
+                    'price' => $module['price'],
+                    'updated_at' => now(),
+                    'created_at' => now(),
                 ]
             );
         }

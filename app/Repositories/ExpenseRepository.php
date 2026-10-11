@@ -15,9 +15,9 @@ class ExpenseRepository
         return Expense::with(['category:id,name', 'creator:id,name'])
             ->where('shop_id', $shop->id)
             ->when($filters['category_id'] ?? null, fn ($q, $v) => $q->where('category_id', $v))
-            ->when($filters['date_from'] ?? null,   fn ($q, $v) => $q->where('expense_date', '>=', $v))
-            ->when($filters['date_to'] ?? null,     fn ($q, $v) => $q->where('expense_date', '<=', $v))
-            ->when($filters['search'] ?? null,      fn ($q, $v) => $q->where('title', 'like', "%{$v}%"))
+            ->when($filters['date_from'] ?? null, fn ($q, $v) => $q->where('expense_date', '>=', $v))
+            ->when($filters['date_to'] ?? null, fn ($q, $v) => $q->where('expense_date', '<=', $v))
+            ->when($filters['search'] ?? null, fn ($q, $v) => $q->where('title', 'like', "%{$v}%"))
             ->latest('expense_date')
             ->latest('id')
             ->paginate($perPage)
@@ -42,6 +42,7 @@ class ExpenseRepository
     public function update(Expense $expense, array $data): Expense
     {
         $expense->update($data);
+
         return $expense->fresh(['category:id,name']);
     }
 

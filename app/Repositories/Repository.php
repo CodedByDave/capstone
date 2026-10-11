@@ -3,9 +3,8 @@
 namespace App\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 abstract class Repository
@@ -66,6 +65,7 @@ abstract class Repository
                     $model->$relation()->create($relationData);
                 }
             }
+
             return $model;
         });
     }
@@ -82,6 +82,7 @@ abstract class Repository
                     );
                 }
             }
+
             return $model;
         });
     }

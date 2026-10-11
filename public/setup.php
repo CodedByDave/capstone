@@ -1,5 +1,8 @@
 <?php
-if ($_GET['key'] !== 'laundry2026') die('Unauthorized');
+
+if ($_GET['key'] !== 'laundry2026') {
+    exit('Unauthorized');
+}
 chdir(dirname(__DIR__)); // ← go up one level to project root
 $commands = [
     'php artisan key:generate --force 2>&1',
@@ -11,6 +14,6 @@ $commands = [
     'chmod -R 775 storage bootstrap/cache 2>&1',
 ];
 foreach ($commands as $cmd) {
-    echo "<pre>\$ $cmd\n" . shell_exec($cmd) . "</pre>";
+    echo "<pre>\$ $cmd\n".shell_exec($cmd).'</pre>';
 }
-echo "<b>Done!</b>";
+echo '<b>Done!</b>';

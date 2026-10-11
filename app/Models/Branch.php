@@ -20,6 +20,17 @@ class Branch extends Model
         'email',
         'manager_name',
         'address',
+        'block_street',
+        'municipality',
+        'barangay',
+        'postal_code',
+        'mayors_permit_number',
+        'mayors_permit_path',
+        'mayors_expiry_date',
+        'sanitary_permit_number',
+        'sanitary_permit_path',
+        'sanitary_expiry_date',
+        'permit_status',
         'opened_at',
         'status',
         'created_by',
@@ -29,6 +40,8 @@ class Branch extends Model
     protected $casts = [
         'phone' => PhilippinePhoneCast::class,
         'opened_at' => 'date',
+        'mayors_expiry_date' => 'date',
+        'sanitary_expiry_date' => 'date',
     ];
 
     // Relationship

@@ -27,12 +27,13 @@ class ActivityLogsController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
     public function index(ActivityLogRequest $request)
     {
-        $shop   = $this->getShop();
+        $shop = $this->getShop();
         $branch = $this->getStaffBranch(); // null for owners
 
         // For staff: only show logs performed by employees in their branch
@@ -46,10 +47,10 @@ class ActivityLogsController extends Controller
         }
 
         return Inertia::render('shop/employee/logs/Index', [
-            'logs'       => $this->activityLogService->getPaginatedLogs($shop, $request, $performerIds),
+            'logs' => $this->activityLogService->getPaginatedLogs($shop, $request, $performerIds),
             'performers' => $this->activityLogService->getPerformers($shop, $performerIds),
-            'modules'    => $this->activityLogService->getModules($shop, $performerIds),
-            'filters'    => $request->filters(),
+            'modules' => $this->activityLogService->getModules($shop, $performerIds),
+            'filters' => $request->filters(),
         ]);
     }
 }

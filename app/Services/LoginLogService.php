@@ -23,14 +23,14 @@ class LoginLogService
         string $userAgent,
     ): void {
         $this->loginLogRepository->create([
-            'user_id'    => $userId,
-            'email'      => $email,
-            'name'       => $name,
-            'role'       => $role,
+            'user_id' => $userId,
+            'email' => $email,
+            'name' => $name,
+            'role' => $role,
             'ip_address' => $ip,
             'user_agent' => $userAgent,
-            'status'     => 'success',
-            'logged_at'  => now(),
+            'status' => 'success',
+            'logged_at' => now(),
         ]);
     }
 
@@ -43,15 +43,15 @@ class LoginLogService
         string $userAgent,
     ): void {
         $this->loginLogRepository->create([
-            'user_id'        => $userId,
-            'email'          => $email,
-            'name'           => $name,
-            'role'           => $role,
-            'ip_address'     => $ip,
-            'user_agent'     => $userAgent,
-            'status'         => 'failed',
+            'user_id' => $userId,
+            'email' => $email,
+            'name' => $name,
+            'role' => $role,
+            'ip_address' => $ip,
+            'user_agent' => $userAgent,
+            'status' => 'failed',
             'failure_reason' => 'Invalid credentials',
-            'logged_at'      => now(),
+            'logged_at' => now(),
         ]);
     }
 
@@ -64,14 +64,14 @@ class LoginLogService
         string $userAgent,
     ): void {
         $this->loginLogRepository->create([
-            'user_id'    => $userId,
-            'email'      => $email,
-            'name'       => $name,
-            'role'       => $role,
+            'user_id' => $userId,
+            'email' => $email,
+            'name' => $name,
+            'role' => $role,
             'ip_address' => $ip,
             'user_agent' => $userAgent,
-            'status'     => 'logout',
-            'logged_at'  => now(),
+            'status' => 'logout',
+            'logged_at' => now(),
         ]);
     }
 

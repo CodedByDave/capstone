@@ -17,18 +17,18 @@ class SelfAttendanceController extends Controller
     public function clockIn(Request $request)
     {
         $request->validate([
-            'latitude'  => ['nullable', 'numeric', 'between:-90,90'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $employee = Employee::where('user_id', auth()->id())->firstOrFail();
-        $shop     = Shop::findOrFail($employee->shop_id);
+        $shop = Shop::findOrFail($employee->shop_id);
 
         // Prevent double clock-in on the same day
         $existing = $this->attendanceService->todayFor($employee);
         if ($existing && $existing->time_in !== null) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'You have already clocked in today.',
             ]);
         }
@@ -36,7 +36,7 @@ class SelfAttendanceController extends Controller
         $attendance = $this->attendanceService->selfClockIn(
             $employee,
             $shop,
-            $request->latitude  ? (float) $request->latitude  : null,
+            $request->latitude ? (float) $request->latitude : null,
             $request->longitude ? (float) $request->longitude : null,
         );
 
@@ -45,7 +45,7 @@ class SelfAttendanceController extends Controller
             : 'Clock-in recorded successfully.';
 
         return back()->with('toast', [
-            'type'    => $attendance->status === 'absent' ? 'error' : 'success',
+            'type' => $attendance->status === 'absent' ? 'error' : 'success',
             'message' => $message,
         ]);
     }
@@ -53,25 +53,25 @@ class SelfAttendanceController extends Controller
     public function clockOut(Request $request)
     {
         $request->validate([
-            'latitude'  => ['nullable', 'numeric', 'between:-90,90'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $employee = Employee::where('user_id', auth()->id())->firstOrFail();
-        $shop     = Shop::findOrFail($employee->shop_id);
+        $shop = Shop::findOrFail($employee->shop_id);
 
         $existing = $this->attendanceService->todayFor($employee);
 
-        if (!$existing || $existing->time_in === null) {
+        if (! $existing || $existing->time_in === null) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'You have not clocked in yet today.',
             ]);
         }
 
         if ($existing->time_out !== null) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'You have already clocked out today.',
             ]);
         }
@@ -79,12 +79,12 @@ class SelfAttendanceController extends Controller
         $this->attendanceService->selfClockOut(
             $employee,
             $shop,
-            $request->latitude  ? (float) $request->latitude  : null,
+            $request->latitude ? (float) $request->latitude : null,
             $request->longitude ? (float) $request->longitude : null,
         );
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Clock-out recorded successfully.',
         ]);
     }

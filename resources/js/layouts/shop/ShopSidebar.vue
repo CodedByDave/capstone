@@ -61,18 +61,19 @@ const isPaid = computed(() =>
 const platformPermissions = computed<string[]>(
     () => ((props as any).platformPermissions as string[] | undefined) ?? [],
 );
-const shopCapabilities = computed(() =>
-    ((props as any).shopCapabilities ?? {
-        setup_completed: false,
-        multiple_locations: false,
-        offers_pickup: false,
-        offers_delivery: false,
-    }) as {
-        setup_completed: boolean;
-        multiple_locations: boolean;
-        offers_pickup: boolean;
-        offers_delivery: boolean;
-    },
+const shopCapabilities = computed(
+    () =>
+        ((props as any).shopCapabilities ?? {
+            setup_completed: false,
+            multiple_locations: false,
+            offers_pickup: false,
+            offers_delivery: false,
+        }) as {
+            setup_completed: boolean;
+            multiple_locations: boolean;
+            offers_pickup: boolean;
+            offers_delivery: boolean;
+        },
 );
 const ownerCan = (permission: string) =>
     !isOwner.value || platformPermissions.value.includes(permission);
@@ -640,7 +641,10 @@ const hasOwnerAdministration = computed(() =>
             </p>
             <SidebarMenu>
                 <SidebarMenuItem
-                    v-if="ownerCan('shop.operations') && shopCapabilities.offers_delivery"
+                    v-if="
+                        ownerCan('shop.operations') &&
+                        shopCapabilities.offers_delivery
+                    "
                 >
                     <SidebarMenuButton
                         as-child

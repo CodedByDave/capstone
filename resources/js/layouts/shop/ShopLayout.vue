@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import ShopSidebar from './ShopSidebar.vue'
-import ShopNavbar from './ShopNavbar.vue'
-import { type BreadcrumbItem } from '@/types'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { type BreadcrumbItem } from '@/types';
+import ShopNavbar from './ShopNavbar.vue';
+import ShopSidebar from './ShopSidebar.vue';
 
 defineProps<{
-    title: string
-    breadcrumbs?: BreadcrumbItem[]
-}>()
+    title: string;
+    breadcrumbs?: BreadcrumbItem[];
+}>();
 </script>
 
 <template>
-    <SidebarProvider :default-open="true" storage-key="shop-sidebar" :breadcrumbs="breadcrumbs">
+    <SidebarProvider
+        :default-open="true"
+        storage-key="shop-sidebar"
+        :breadcrumbs="breadcrumbs"
+    >
         <ShopSidebar />
 
         <SidebarInset>

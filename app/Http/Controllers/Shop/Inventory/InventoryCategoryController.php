@@ -26,6 +26,7 @@ class InventoryCategoryController extends Controller
 
         // Staff: get shop via employee record
         $employee = \App\Models\Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -48,12 +49,12 @@ class InventoryCategoryController extends Controller
      */
     public function store(StoreInventoryCategoryRequest $request)
     {
-        $shop     = $this->getShop();
+        $shop = $this->getShop();
         $category = $this->categoryService->create($shop->id, $request->validated());
 
         return response()->json([
-            'id'          => $category->id,
-            'name'        => $category->name,
+            'id' => $category->id,
+            'name' => $category->name,
             'description' => $category->description,
         ], 201);
     }
@@ -73,8 +74,8 @@ class InventoryCategoryController extends Controller
         $this->categoryService->update($inventoryCategory, $request->validated());
 
         return response()->json([
-            'id'          => $inventoryCategory->id,
-            'name'        => $inventoryCategory->name,
+            'id' => $inventoryCategory->id,
+            'name' => $inventoryCategory->name,
             'description' => $inventoryCategory->description,
         ]);
     }
@@ -92,6 +93,7 @@ class InventoryCategoryController extends Controller
     public function archive()
     {
         $shop = $this->getShop();
+
         return Inertia::render('shop/inventory/category/Archive', [
             'archived' => $this->categoryService->archived($shop->id),
         ]);
@@ -100,6 +102,7 @@ class InventoryCategoryController extends Controller
     public function restore(int $id)
     {
         $this->categoryService->restore($id);
+
         return response()->json(['success' => true]);
     }
 }

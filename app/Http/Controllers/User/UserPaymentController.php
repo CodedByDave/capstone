@@ -24,16 +24,16 @@ class UserPaymentController extends Controller
 
         $shop = $order->shop;
 
-        if (!$shop || !$shop->hasPaymongo()) {
+        if (! $shop || ! $shop->hasPaymongo()) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Online payment is not set up for this shop.',
             ]);
         }
 
         if ((float) $order->total_amount < 100) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Order total must be at least ₱100 to pay online.',
             ]);
         }
@@ -43,21 +43,21 @@ class UserPaymentController extends Controller
         } catch (\Exception $e) {
             Log::error('ShopOrder PayMongo session creation failed', [
                 'order_id' => $order->id,
-                'error'    => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             return back()->with('toast', [
-                'type'    => 'error',
-                'message' => 'Could not initiate payment: ' . $e->getMessage(),
+                'type' => 'error',
+                'message' => 'Could not initiate payment: '.$e->getMessage(),
             ]);
         }
 
         $checkoutUrl = $session['data']['attributes']['checkout_url'];
-        $sessionId   = $session['data']['id'];
+        $sessionId = $session['data']['id'];
 
         $order->update([
             'paymongo_session_id' => $sessionId,
-            'payment_method'      => 'online',
+            'payment_method' => 'online',
         ]);
 
         return redirect($checkoutUrl);
@@ -72,57 +72,57 @@ class UserPaymentController extends Controller
 
         if ($order->payment_status === 'paid') {
             return redirect()->route('user.orders.show', $order)->with('toast', [
-                'type'    => 'success',
+                'type' => 'success',
                 'message' => 'Payment already confirmed.',
             ]);
         }
 
         $shop = $order->shop;
 
-        if (!$shop || !$shop->hasPaymongo() || !$order->paymongo_session_id) {
+        if (! $shop || ! $shop->hasPaymongo() || ! $order->paymongo_session_id) {
             return redirect()->route('user.orders.show', $order)->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Could not verify payment. Please contact the shop.',
             ]);
         }
 
         try {
-            $session   = $this->paymongo->getShopOrderSession($order->paymongo_session_id, $shop->paymongo_secret_key);
-            $status    = $session['data']['attributes']['status'] ?? null;
+            $session = $this->paymongo->getShopOrderSession($order->paymongo_session_id, $shop->paymongo_secret_key);
+            $status = $session['data']['attributes']['status'] ?? null;
             $paymentId = $this->paymongo->extractPaymentId($session);
 
             if ($status === 'completed') {
                 $order->update([
-                    'payment_status'      => 'paid',
-                    'amount_paid'         => $order->total_amount,
-                    'paid_at'             => now(),
+                    'payment_status' => 'paid',
+                    'amount_paid' => $order->total_amount,
+                    'paid_at' => now(),
                     'paymongo_payment_id' => $paymentId,
                 ]);
 
                 Log::info('ShopOrder paid via PayMongo', [
-                    'order_id'   => $order->id,
+                    'order_id' => $order->id,
                     'payment_id' => $paymentId,
                 ]);
 
                 return redirect()->route('user.orders.show', $order)->with('toast', [
-                    'type'    => 'success',
+                    'type' => 'success',
                     'message' => 'Payment successful! Your order is now paid.',
                 ]);
             }
 
             return redirect()->route('user.orders.show', $order)->with('toast', [
-                'type'    => 'warning',
+                'type' => 'warning',
                 'message' => 'Payment is still processing. Please wait a moment and refresh.',
             ]);
 
         } catch (\Exception $e) {
             Log::error('ShopOrder PayMongo verification failed', [
                 'order_id' => $order->id,
-                'error'    => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             return redirect()->route('user.orders.show', $order)->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Could not verify payment. Please contact the shop.',
             ]);
         }
@@ -136,7 +136,7 @@ class UserPaymentController extends Controller
         abort_if($order->user_id !== auth()->id(), 403);
 
         return redirect()->route('user.orders.show', $order)->with('toast', [
-            'type'    => 'warning',
+            'type' => 'warning',
             'message' => 'Payment was cancelled. You can try again anytime.',
         ]);
     }

@@ -89,7 +89,6 @@ function triggerPulse() {
 
 // ─── Echo real-time ───────────────────────────────────────────────────────────
 
-let channel: any = null;
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
 function refreshLiveData() {
@@ -122,10 +121,10 @@ onMounted(() => {
     refreshTimer = setInterval(refreshWhenVisible, 10000);
     document.addEventListener('visibilitychange', refreshWhenVisible);
 
-    // @ts-ignore
+    // @ts-expect-error Echo is registered globally by the bootstrap module.
     if (!window.Echo) return;
-    // @ts-ignore
-    channel = window.Echo.channel('admin.dashboard')
+    // @ts-expect-error Echo is registered globally by the bootstrap module.
+    window.Echo.channel('admin.dashboard')
         .listen('.dashboard.updated', (data: any) => {
             if (data.kpis) liveKpis.value = { ...liveKpis.value, ...data.kpis };
             lastUpdated.value = new Date();
@@ -142,7 +141,7 @@ onMounted(() => {
 onUnmounted(() => {
     if (refreshTimer) clearInterval(refreshTimer);
     document.removeEventListener('visibilitychange', refreshWhenVisible);
-    // @ts-ignore
+    // @ts-expect-error Echo is registered globally by the bootstrap module.
     window.Echo?.leaveChannel('admin.dashboard');
 });
 
@@ -285,14 +284,6 @@ const systemAlerts = computed(() => {
 
     return list;
 });
-
-const alertStyle: Record<string, string> = {
-    critical:
-        'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 text-red-800 dark:text-red-300',
-    warning:
-        'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300',
-    info: 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300',
-};
 
 // ─── Charts ───────────────────────────────────────────────────────────────────
 

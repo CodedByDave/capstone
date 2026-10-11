@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Employee\ScheduleRequest;
 use App\Models\Employee;
 use App\Models\EmployeeSchedule;
 use App\Services\ScheduleService;
-use App\Http\Requests\Shop\Employee\ScheduleRequest;
 use Inertia\Inertia;
 
 class ScheduleController extends Controller

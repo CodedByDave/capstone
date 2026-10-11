@@ -40,6 +40,7 @@ class SupplierService
     {
         return DB::transaction(function () use ($supplier, $data) {
             $this->supplierRepository->update($supplier, $data);
+
             return $supplier->fresh();
         });
     }

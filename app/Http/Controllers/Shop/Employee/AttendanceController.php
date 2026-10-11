@@ -17,6 +17,7 @@ use Inertia\Inertia;
 class AttendanceController extends Controller
 {
     use BranchScoped;
+
     public function __construct(
         private readonly AttendanceService $attendanceService,
     ) {}
@@ -30,13 +31,14 @@ class AttendanceController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
     public function index(Request $request)
     {
-        $shop        = $this->getShop();
-        $date        = $request->get('date', now()->toDateString());
+        $shop = $this->getShop();
+        $date = $request->get('date', now()->toDateString());
         $staffBranch = $this->getStaffBranch(); // null for owners
 
         $query = Employee::where('shop_id', $shop->id)
@@ -46,10 +48,10 @@ class AttendanceController extends Controller
         // Branch isolation: staff can only see their own branch, excluding themselves
         if ($staffBranch !== null) {
             $query->where('branch_name', $staffBranch)
-                  ->where(function ($q) {
-                      $q->where('user_id', '!=', auth()->id())
+                ->where(function ($q) {
+                    $q->where('user_id', '!=', auth()->id())
                         ->orWhereNull('user_id');
-                  });
+                });
         } elseif ($request->filled('branch')) {
             // Owner can filter by branch via query param
             $branch = $request->get('branch');
@@ -60,10 +62,10 @@ class AttendanceController extends Controller
             }
         }
 
-        $employees   = $query->get(['id', 'employee_id', 'first_name', 'last_name', 'position', 'branch_name']);
+        $employees = $query->get(['id', 'employee_id', 'first_name', 'last_name', 'position', 'branch_name']);
 
         $excludeUserId = $staffBranch !== null ? auth()->id() : null;
-        $attendances   = $this->attendanceService->getByDate($shop, $date, $staffBranch, $excludeUserId);
+        $attendances = $this->attendanceService->getByDate($shop, $date, $staffBranch, $excludeUserId);
 
         // For owners, show all branches; staff see only their own branch
         $branches = $staffBranch !== null
@@ -81,14 +83,14 @@ class AttendanceController extends Controller
             ->get(['employee_id', 'day', 'start_time', 'end_time']);
 
         return Inertia::render('shop/employee/attendance/Index', [
-            'employees'   => $employees,
+            'employees' => $employees,
             'attendances' => $attendances,
-            'stats'       => $this->attendanceService->getStats($shop, $date, $staffBranch, $excludeUserId),
-            'date'        => $date,
-            'branches'    => $branches,
-            'filters'     => $request->only(['date', 'status', 'search', 'branch']),
-            'schedules'   => $schedules,
-            'can_edit'    => auth()->user()->role === 'owner',
+            'stats' => $this->attendanceService->getStats($shop, $date, $staffBranch, $excludeUserId),
+            'date' => $date,
+            'branches' => $branches,
+            'filters' => $request->only(['date', 'status', 'search', 'branch']),
+            'schedules' => $schedules,
+            'can_edit' => auth()->user()->role === 'owner',
         ]);
     }
 
@@ -100,7 +102,7 @@ class AttendanceController extends Controller
         $this->attendanceService->bulkMark($shop, $data['date'], $data['entries']);
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Attendance saved successfully.',
         ]);
     }
@@ -110,7 +112,7 @@ class AttendanceController extends Controller
         $this->attendanceService->updateAttendance($attendance, $request->validated());
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Attendance updated.',
         ]);
     }

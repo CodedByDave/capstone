@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import UserInfo from '@/components/UserInfo.vue';
 import {
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -16,6 +10,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
@@ -32,8 +32,8 @@ defineProps<Props>();
 const logoutDialogOpen = ref(false);
 
 const handleLogout = () => {
-    router.post(logout.url())
-}
+    router.post(logout.url());
+};
 </script>
 
 <template>
@@ -45,14 +45,22 @@ const handleLogout = () => {
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full cursor-pointer" :href="edit.url()" prefetch>
+            <Link
+                class="block w-full cursor-pointer"
+                :href="edit.url()"
+                prefetch
+            >
                 <Settings class="mr-2 h-4 w-4" />
                 Settings
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
-    <DropdownMenuItem class="cursor-pointer" data-test="logout-button" @select.prevent="logoutDialogOpen = true">
+    <DropdownMenuItem
+        class="cursor-pointer"
+        data-test="logout-button"
+        @select.prevent="logoutDialogOpen = true"
+    >
         <LogOut class="mr-2 h-4 w-4" />
         Log out
     </DropdownMenuItem>
@@ -67,8 +75,10 @@ const handleLogout = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction class="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
-                    @click="handleLogout">
+                <AlertDialogAction
+                    class="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+                    @click="handleLogout"
+                >
                     Log out
                 </AlertDialogAction>
             </AlertDialogFooter>

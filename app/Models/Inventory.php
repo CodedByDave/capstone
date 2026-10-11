@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Inventory extends Model
 {
     use SoftDeletes;
+
     protected $table = 'inventory';
 
     protected $fillable = [
@@ -29,11 +30,11 @@ class Inventory extends Model
     ];
 
     protected $casts = [
-        'unit_price'    => 'decimal:2',
+        'unit_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
-        'quantity'      => 'integer',
-        'min_stock'     => 'integer',
-        'max_stock'     => 'integer',
+        'quantity' => 'integer',
+        'min_stock' => 'integer',
+        'max_stock' => 'integer',
     ];
 
     // Relationships
@@ -72,9 +73,16 @@ class Inventory extends Model
 
     public function getStockStatusAttribute(): string
     {
-        if ($this->quantity === 0) return 'out_of_stock';
-        if ($this->quantity <= $this->min_stock) return 'low';
-        if ($this->max_stock && $this->quantity >= $this->max_stock) return 'overstock';
+        if ($this->quantity === 0) {
+            return 'out_of_stock';
+        }
+        if ($this->quantity <= $this->min_stock) {
+            return 'low';
+        }
+        if ($this->max_stock && $this->quantity >= $this->max_stock) {
+            return 'overstock';
+        }
+
         return 'normal';
     }
 
@@ -110,19 +118,19 @@ class Inventory extends Model
         ?string $notes = null
     ): InventoryMovement {
         $before = $this->quantity;
-        $after  = $before + $quantity;
+        $after = $before + $quantity;
 
         $this->update(['quantity' => $after]);
 
         $movement = $this->movements()->create([
-            'shop_id'          => $this->shop_id,
-            'user_id'          => $userId,
-            'type'             => $type,
-            'quantity'         => $quantity,
-            'quantity_before'  => $before,
-            'quantity_after'   => $after,
+            'shop_id' => $this->shop_id,
+            'user_id' => $userId,
+            'type' => $type,
+            'quantity' => $quantity,
+            'quantity_before' => $before,
+            'quantity_after' => $after,
             'reference_number' => $referenceNumber,
-            'notes'            => $notes,
+            'notes' => $notes,
         ]);
 
         // Trigger low stock alert if threshold crossed
@@ -130,11 +138,11 @@ class Inventory extends Model
             LowStockAlert::firstOrCreate(
                 [
                     'inventory_id' => $this->id,
-                    'status'       => 'unread',
+                    'status' => 'unread',
                 ],
                 [
-                    'shop_id'            => $this->shop_id,
-                    'quantity_at_alert'  => $after,
+                    'shop_id' => $this->shop_id,
+                    'quantity_at_alert' => $after,
                     'min_stock_at_alert' => $this->min_stock,
                 ]
             );

@@ -26,6 +26,7 @@ class SupplierController extends Controller
 
         // Staff: get shop via employee record
         $employee = \App\Models\Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -83,6 +84,7 @@ class SupplierController extends Controller
     public function archive()
     {
         $shop = $this->getShop();
+
         return Inertia::render('shop/inventory/supplier/Archive', [
             'archived' => $this->supplierService->archived($shop->id),
         ]);

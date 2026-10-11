@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
@@ -8,40 +13,35 @@ import {
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
-} from '@/components/ui/sidebar'
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { useActiveUrl } from '@/composables/useActiveUrl'
-import { type NavItem } from '@/types'
-import { Link } from '@inertiajs/vue3'
-import { ChevronDown } from 'lucide-vue-next'
-import { ref } from 'vue'
+} from '@/components/ui/sidebar';
+import { useActiveUrl } from '@/composables/useActiveUrl';
+import { type NavItem } from '@/types';
+import { Link } from '@inertiajs/vue3';
+import { ChevronDown } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 defineProps<{
-    items: NavItem[]
-}>()
+    items: NavItem[];
+}>();
 
-const { urlIsActive } = useActiveUrl()
+const { urlIsActive } = useActiveUrl();
 
 function isGroupActive(item: NavItem): boolean {
-    return item.children?.some(child => urlIsActive(child.href)) ?? false
+    return item.children?.some((child) => urlIsActive(child.href)) ?? false;
 }
 
 // Initialize open state — open if a child is active
-const openItems = ref<Record<string, boolean>>({})
+const openItems = ref<Record<string, boolean>>({});
 
 function getOpen(item: NavItem): boolean {
     if (!(item.title in openItems.value)) {
-        openItems.value[item.title] = isGroupActive(item)
+        openItems.value[item.title] = isGroupActive(item);
     }
-    return openItems.value[item.title]
+    return openItems.value[item.title];
 }
 
 function setOpen(title: string, val: boolean) {
-    openItems.value[title] = val
+    openItems.value[title] = val;
 }
 </script>
 
@@ -50,7 +50,6 @@ function setOpen(title: string, val: boolean) {
         <SidebarGroupLabel>Platform</SidebarGroupLabel>
         <SidebarMenu>
             <template v-for="item in items" :key="item.title">
-
                 <!-- ── Collapsible group ── -->
                 <Collapsible
                     v-if="item.children?.length"
@@ -59,7 +58,6 @@ function setOpen(title: string, val: boolean) {
                     @update:open="(val) => setOpen(item.title, val)"
                 >
                     <SidebarMenuItem>
-
                         <!-- The entire row is the trigger -->
                         <CollapsibleTrigger as-child>
                             <SidebarMenuButton
@@ -86,14 +84,16 @@ function setOpen(title: string, val: boolean) {
                                         :is-active="urlIsActive(child.href)"
                                     >
                                         <Link :href="child.href">
-                                            <component v-if="child.icon" :is="child.icon" />
+                                            <component
+                                                v-if="child.icon"
+                                                :is="child.icon"
+                                            />
                                             <span>{{ child.title }}</span>
                                         </Link>
                                     </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                             </SidebarMenuSub>
                         </CollapsibleContent>
-
                     </SidebarMenuItem>
                 </Collapsible>
 
@@ -110,7 +110,6 @@ function setOpen(title: string, val: boolean) {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-
             </template>
         </SidebarMenu>
     </SidebarGroup>

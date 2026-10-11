@@ -18,6 +18,12 @@ class Shop extends Model
 
     public const LOCATION_MULTIPLE = 'multiple';
 
+    public const OWNERSHIP_INDEPENDENT = 'independent';
+
+    public const OWNERSHIP_COMPANY = 'company_owned';
+
+    public const OWNERSHIP_FRANCHISEE = 'franchisee';
+
     protected static function booted(): void
     {
         static::creating(function (Shop $shop) {
@@ -30,6 +36,9 @@ class Shop extends Model
         'owner_id',
         'shop_name',
         'branch_name',
+        'ownership_type',
+        'franchise_brand_name',
+        'franchisor_name',
         'location_mode',
         'offers_pickup',
         'offers_delivery',

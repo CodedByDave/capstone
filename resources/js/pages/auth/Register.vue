@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { Form, Head, usePage } from '@inertiajs/vue3';
-import { watch, ref, computed } from 'vue';
-import { Eye, EyeOff } from 'lucide-vue-next';
 import { store } from '@/routes/register/user';
-
-const page = usePage();
+import { Form, Head } from '@inertiajs/vue3';
+import { Eye, EyeOff } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 /* ---------------- PASSWORD STATE ---------------- */
 const password = ref('');
@@ -26,16 +23,16 @@ const rules = {
     special: (v: string) => /[^A-Za-z0-9]/.test(v),
 };
 
-const isPasswordValid = computed(() =>
-    rules.length(password.value) &&
-    rules.alphaNumeric(password.value) &&
-    rules.special(password.value)
+const isPasswordValid = computed(
+    () =>
+        rules.length(password.value) &&
+        rules.alphaNumeric(password.value) &&
+        rules.special(password.value),
 );
 
 const passwordError = computed(() => {
     if (!password.value) return null;
-    if (!rules.length(password.value))
-        return 'At least 8 characters required.';
+    if (!rules.length(password.value)) return 'At least 8 characters required.';
     if (!rules.alphaNumeric(password.value))
         return 'Must include letters and numbers.';
     if (!rules.special(password.value))
@@ -131,7 +128,9 @@ const passwordError = computed(() => {
                         <Input
                             id="password_confirmation"
                             name="password_confirmation"
-                            :type="showPasswordConfirmation ? 'text' : 'password'"
+                            :type="
+                                showPasswordConfirmation ? 'text' : 'password'
+                            "
                             required
                             autocomplete="new-password"
                             placeholder="Confirm password"
@@ -142,9 +141,15 @@ const passwordError = computed(() => {
                         <button
                             type="button"
                             class="absolute inset-y-0 right-3 flex items-center text-muted-foreground"
-                            @click="showPasswordConfirmation = !showPasswordConfirmation"
+                            @click="
+                                showPasswordConfirmation =
+                                    !showPasswordConfirmation
+                            "
                         >
-                            <Eye v-if="!showPasswordConfirmation" class="h-4 w-4" />
+                            <Eye
+                                v-if="!showPasswordConfirmation"
+                                class="h-4 w-4"
+                            />
                             <EyeOff v-else class="h-4 w-4" />
                         </button>
                     </div>

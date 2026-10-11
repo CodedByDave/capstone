@@ -17,9 +17,9 @@ class LowStockAlert extends Model
     ];
 
     protected $casts = [
-        'quantity_at_alert'  => 'integer',
+        'quantity_at_alert' => 'integer',
         'min_stock_at_alert' => 'integer',
-        'resolved_at'        => 'datetime',
+        'resolved_at' => 'datetime',
     ];
 
     // Relationships
@@ -34,7 +34,7 @@ class LowStockAlert extends Model
         return $this->belongsTo(Shop::class);
     }
 
-    //Scopes
+    // Scopes
 
     public function scopeUnread($query)
     {
@@ -56,7 +56,7 @@ class LowStockAlert extends Model
     public function resolve(): void
     {
         $this->update([
-            'status'      => 'resolved',
+            'status' => 'resolved',
             'resolved_at' => now(),
         ]);
     }

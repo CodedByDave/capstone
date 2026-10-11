@@ -18,10 +18,10 @@ class UserNotificationController extends Controller
             ->latest()
             ->take(50)
             ->get()
-            ->map(fn($n) => [
-                'id'         => $n->id,
-                'data'       => $n->data,
-                'read_at'    => $n->read_at?->toISOString(),
+            ->map(fn ($n) => [
+                'id' => $n->id,
+                'data' => $n->data,
+                'read_at' => $n->read_at?->toISOString(),
                 'created_at' => $n->created_at->diffForHumans(),
             ]);
 
@@ -35,21 +35,21 @@ class UserNotificationController extends Controller
 
     public function poll(): JsonResponse
     {
-        $user  = auth()->user();
+        $user = auth()->user();
         $unread = $user->unreadNotifications()
             ->latest()
             ->take(10)
             ->get()
-            ->map(fn($n) => [
-                'id'   => $n->id,
+            ->map(fn ($n) => [
+                'id' => $n->id,
                 'type' => $n->data['type'] ?? null,
                 'title' => $n->data['title'] ?? '',
-                'body'  => $n->data['body'] ?? '',
+                'body' => $n->data['body'] ?? '',
             ]);
 
         return response()->json([
-            'count'   => $unread->count(),
-            'unread'  => $unread->values(),
+            'count' => $unread->count(),
+            'unread' => $unread->values(),
         ]);
     }
 

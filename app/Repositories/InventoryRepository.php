@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Models\Inventory;
-use App\Models\Shop;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -24,26 +23,26 @@ class InventoryRepository extends Repository
             ->with(['category', 'supplier'])
             ->orderBy('name');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('name', 'like', "%{$filters['search']}%")
-                  ->orWhere('sku', 'like', "%{$filters['search']}%");
+                    ->orWhere('sku', 'like', "%{$filters['search']}%");
             });
         }
 
-        if (!empty($filters['category_id'])) {
+        if (! empty($filters['category_id'])) {
             $query->where('inventory_categories_id', $filters['category_id']);
         }
 
-        if (!empty($filters['supplier_id'])) {
+        if (! empty($filters['supplier_id'])) {
             $query->where('supplier_id', $filters['supplier_id']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['stock']) && $filters['stock'] === 'low') {
+        if (! empty($filters['stock']) && $filters['stock'] === 'low') {
             $query->whereColumn('quantity', '<=', 'min_stock');
         }
 

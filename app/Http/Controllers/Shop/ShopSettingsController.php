@@ -18,7 +18,10 @@ class ShopSettingsController extends Controller
 
     private function coverPhotoUrl(?string $value): ?string
     {
-        if (!$value) return null;
+        if (! $value) {
+            return null;
+        }
+
         return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
     }
 
@@ -28,16 +31,16 @@ class ShopSettingsController extends Controller
 
         return Inertia::render('shop/Settings', [
             'shop' => [
-                'shop_name'             => $shop->shop_name,
-                'phone'                 => $shop->phone,
-                'block_street'          => $shop->block_street,
-                'municipality'          => $shop->municipality,
-                'barangay'              => $shop->barangay,
-                'postal_code'           => $shop->postal_code,
-                'latitude'              => $shop->latitude,
-                'longitude'             => $shop->longitude,
-                'status'                => $shop->status,
-                'cover_photo'           => $this->coverPhotoUrl($shop->cover_photo),
+                'shop_name' => $shop->shop_name,
+                'phone' => $shop->phone,
+                'block_street' => $shop->block_street,
+                'municipality' => $shop->municipality,
+                'barangay' => $shop->barangay,
+                'postal_code' => $shop->postal_code,
+                'latitude' => $shop->latitude,
+                'longitude' => $shop->longitude,
+                'status' => $shop->status,
+                'cover_photo' => $this->coverPhotoUrl($shop->cover_photo),
             ],
         ]);
     }
@@ -56,9 +59,9 @@ class ShopSettingsController extends Controller
         $publicKey = $data['paymongo_public_key'] ?: null;
 
         // Verify the secret key against PayMongo before saving
-        if ($secretKey && !$paymongo->verifySecretKey($secretKey)) {
+        if ($secretKey && ! $paymongo->verifySecretKey($secretKey)) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Invalid secret key. Please check your PayMongo Developer Dashboard and try again.',
             ]);
         }
@@ -70,7 +73,7 @@ class ShopSettingsController extends Controller
         ]);
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => $secretKey ? 'PayMongo connected successfully.' : 'PayMongo disconnected.',
         ]);
     }
@@ -93,7 +96,7 @@ class ShopSettingsController extends Controller
         }
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Cover photo updated.',
         ]);
     }
@@ -109,7 +112,7 @@ class ShopSettingsController extends Controller
         }
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Cover photo removed.',
         ]);
     }
@@ -117,18 +120,18 @@ class ShopSettingsController extends Controller
     public function updateGeo(Request $request)
     {
         $data = $request->validate([
-            'latitude'  => ['nullable', 'numeric', 'between:-90,90'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $shop = $this->getShop();
         $shop->update([
-            'latitude'  => $data['latitude']  !== null ? (float) $data['latitude']  : null,
+            'latitude' => $data['latitude'] !== null ? (float) $data['latitude'] : null,
             'longitude' => $data['longitude'] !== null ? (float) $data['longitude'] : null,
         ]);
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Shop location updated successfully.',
         ]);
     }
@@ -139,7 +142,7 @@ class ShopSettingsController extends Controller
         $shop->update(['latitude' => null, 'longitude' => null]);
 
         return back()->with('toast', [
-            'type'    => 'success',
+            'type' => 'success',
             'message' => 'Shop location cleared.',
         ]);
     }

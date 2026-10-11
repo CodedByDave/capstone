@@ -7,7 +7,9 @@ interface BeforeInstallPromptEvent extends Event {
 
 const deferredPrompt = ref<BeforeInstallPromptEvent | null>(null);
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+const isInStandaloneMode = window.matchMedia(
+    '(display-mode: standalone)',
+).matches;
 
 export const showIOSBanner = ref(isIOS && !isInStandaloneMode);
 

@@ -4,7 +4,7 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-} from '@/components/ui/sidebar'
+} from '@/components/ui/sidebar';
 </script>
 
 <template>

@@ -34,6 +34,7 @@ class InventoryCategoryService
     {
         return DB::transaction(function () use ($category, $data) {
             $this->categoryRepository->update($category, $data);
+
             return $category->fresh();
         });
     }

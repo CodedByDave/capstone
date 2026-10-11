@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\AuthViewController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\OtpVerificationController;
@@ -33,6 +34,13 @@ Route::post('/logout', function (LoginLogService $loginLogService) {
 
     return redirect('/');
 })->middleware('auth')->name('logout');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [AuthViewController::class, 'verificationNotice'])
+        ->name('verification.notice');
+    Route::get('/confirm-password', [AuthViewController::class, 'confirmPassword'])
+        ->name('password.confirm');
+});
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');

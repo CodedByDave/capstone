@@ -6,8 +6,8 @@ use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Shop;
 use App\Repositories\AttendanceRepository;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceService
 {
@@ -37,14 +37,14 @@ class AttendanceService
             $attendance = Attendance::updateOrCreate(
                 [
                     'employee_id' => $data['employee_id'],
-                    'date'        => $data['date'],
+                    'date' => $data['date'],
                 ],
                 [
-                    'shop_id'   => $shop->id,
-                    'status'    => $data['status'],
-                    'time_in'   => $data['time_in'] ?? null,
-                    'time_out'  => $data['time_out'] ?? null,
-                    'remarks'   => $data['remarks'] ?? null,
+                    'shop_id' => $shop->id,
+                    'status' => $data['status'],
+                    'time_in' => $data['time_in'] ?? null,
+                    'time_out' => $data['time_out'] ?? null,
+                    'remarks' => $data['remarks'] ?? null,
                     'marked_by' => auth()->id(),
                 ]
             );
@@ -55,7 +55,7 @@ class AttendanceService
                 subject: $employee,
                 action: 'attendance_marked',
                 changes: [
-                    'date'   => ['old' => '', 'new' => $data['date']],
+                    'date' => ['old' => '', 'new' => $data['date']],
                     'status' => ['old' => '', 'new' => $data['status']],
                 ],
                 shopId: $shop->id,
@@ -74,11 +74,11 @@ class AttendanceService
             foreach ($entries as $entry) {
                 $results[] = $this->markAttendance($shop, [
                     'employee_id' => $entry['employee_id'],
-                    'date'        => $date,
-                    'status'      => $entry['status'],
-                    'time_in'     => $entry['time_in'] ?? null,
-                    'time_out'    => $entry['time_out'] ?? null,
-                    'remarks'     => $entry['remarks'] ?? null,
+                    'date' => $date,
+                    'status' => $entry['status'],
+                    'time_in' => $entry['time_in'] ?? null,
+                    'time_out' => $entry['time_out'] ?? null,
+                    'remarks' => $entry['remarks'] ?? null,
                 ]);
             }
 
@@ -92,10 +92,10 @@ class AttendanceService
             $oldStatus = $attendance->status;
 
             $attendance->update([
-                'status'    => $data['status'],
-                'time_in'   => $data['time_in'] ?? $attendance->time_in,
-                'time_out'  => $data['time_out'] ?? $attendance->time_out,
-                'remarks'   => $data['remarks'] ?? $attendance->remarks,
+                'status' => $data['status'],
+                'time_in' => $data['time_in'] ?? $attendance->time_in,
+                'time_out' => $data['time_out'] ?? $attendance->time_out,
+                'remarks' => $data['remarks'] ?? $attendance->remarks,
                 'marked_by' => auth()->id(),
             ]);
 
@@ -108,6 +108,7 @@ class AttendanceService
                 shopId: $attendance->shop_id,
                 module: 'Attendance',
             );
+
             return $attendance->fresh();
         });
     }
@@ -129,25 +130,25 @@ class AttendanceService
     {
         return DB::transaction(function () use ($employee, $shop, $lat, $lng) {
             $today = now()->toDateString();
-            $now   = now()->format('H:i:s');
+            $now = now()->format('H:i:s');
 
             // Geo-validation: auto-absent when out of range
             $withinRange = $this->isWithinRange($shop, $lat, $lng);
-            $status      = $withinRange ? 'present' : 'absent';
-            $remarks     = $withinRange
+            $status = $withinRange ? 'present' : 'absent';
+            $remarks = $withinRange
                 ? null
                 : 'Auto-marked absent: location was outside the allowed range of the shop.';
 
             $attendance = Attendance::updateOrCreate(
                 ['employee_id' => $employee->id, 'date' => $today],
                 [
-                    'shop_id'       => $shop->id,
-                    'status'        => $status,
-                    'time_in'       => $withinRange ? $now : null,
-                    'check_in_lat'  => $lat,
-                    'check_in_lng'  => $lng,
-                    'remarks'       => $remarks,
-                    'marked_by'     => $employee->user_id,
+                    'shop_id' => $shop->id,
+                    'status' => $status,
+                    'time_in' => $withinRange ? $now : null,
+                    'check_in_lat' => $lat,
+                    'check_in_lng' => $lng,
+                    'remarks' => $remarks,
+                    'marked_by' => $employee->user_id,
                 ]
             );
 
@@ -155,8 +156,8 @@ class AttendanceService
                 subject: $employee,
                 action: 'clock_in',
                 changes: [
-                    'status'   => ['old' => '', 'new' => $status],
-                    'time_in'  => ['old' => '', 'new' => $now],
+                    'status' => ['old' => '', 'new' => $status],
+                    'time_in' => ['old' => '', 'new' => $now],
                 ],
                 shopId: $shop->id,
                 module: 'Attendance',
@@ -174,17 +175,17 @@ class AttendanceService
     {
         return DB::transaction(function () use ($employee, $shop, $lat, $lng) {
             $today = now()->toDateString();
-            $now   = now()->format('H:i:s');
+            $now = now()->format('H:i:s');
 
             $attendance = Attendance::where('employee_id', $employee->id)
                 ->where('date', $today)
                 ->firstOrFail();
 
             $attendance->update([
-                'time_out'      => $now,
+                'time_out' => $now,
                 'check_out_lat' => $lat,
                 'check_out_lng' => $lng,
-                'marked_by'     => $employee->user_id,
+                'marked_by' => $employee->user_id,
             ]);
 
             $this->activityLogService->log(
@@ -217,8 +218,12 @@ class AttendanceService
      */
     private function isWithinRange(Shop $shop, ?float $lat, ?float $lng): bool
     {
-        if ($shop->latitude === null || $shop->longitude === null) return true;
-        if ($lat === null || $lng === null) return false;
+        if ($shop->latitude === null || $shop->longitude === null) {
+            return true;
+        }
+        if ($lat === null || $lng === null) {
+            return false;
+        }
 
         return $this->haversineMetres($shop->latitude, $shop->longitude, $lat, $lng)
             <= self::GEO_RADIUS_METRES;
@@ -229,11 +234,11 @@ class AttendanceService
      */
     private function haversineMetres(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
-        $R   = 6_371_000; // Earth radius in metres
-        $φ1  = deg2rad($lat1);
-        $φ2  = deg2rad($lat2);
-        $Δφ  = deg2rad($lat2 - $lat1);
-        $Δλ  = deg2rad($lon2 - $lon1);
+        $R = 6_371_000; // Earth radius in metres
+        $φ1 = deg2rad($lat1);
+        $φ2 = deg2rad($lat2);
+        $Δφ = deg2rad($lat2 - $lat1);
+        $Δλ = deg2rad($lon2 - $lon1);
 
         $a = sin($Δφ / 2) ** 2 + cos($φ1) * cos($φ2) * sin($Δλ / 2) ** 2;
 

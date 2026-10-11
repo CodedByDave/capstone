@@ -6,6 +6,8 @@ use App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 function setupOwnerWithPlan(string $plan = 'Basic', bool $trial = false): array
 {
@@ -37,6 +39,24 @@ function setupOwnerWithPlan(string $plan = 'Basic', bool $trial = false): array
     ]);
 
     return compact('owner', 'shop', 'order');
+}
+
+function setupBranchPayload(): array
+{
+    return [
+        'name' => 'Molino Branch',
+        'phone' => '09181234567',
+        'block_street' => '2 Molino Road',
+        'municipality' => 'Bacoor',
+        'barangay' => 'Molino I',
+        'postal_code' => '4102',
+        'mayors_permit_number' => 'BAC-2026-100',
+        'mayors_permit' => UploadedFile::fake()->create('mayors.pdf', 100, 'application/pdf'),
+        'mayors_expiry_date' => now()->addYear()->toDateString(),
+        'sanitary_permit_number' => 'SAN-2026-100',
+        'sanitary_permit' => UploadedFile::fake()->create('sanitary.pdf', 100, 'application/pdf'),
+        'sanitary_expiry_date' => now()->addYear()->toDateString(),
+    ];
 }
 
 beforeEach(function () {
@@ -91,21 +111,52 @@ test('basic and standard plans cannot enable multiple locations', function (stri
 })->with(['Basic', 'Standard']);
 
 test('premium and trial plans can enable multiple locations', function (string $plan, bool $trial) {
+    Storage::fake('private');
     ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan($plan, $trial);
 
     $this->actingAs($owner)
-        ->put(route('shop.setup.store'), [
+        ->post(route('shop.setup.store'), [
+            '_method' => 'put',
             'location_mode' => 'multiple',
+            'ownership_type' => 'company_owned',
+            'branches' => [setupBranchPayload()],
             'offers_pickup' => true,
             'offers_delivery' => true,
         ])
         ->assertRedirect(route('shop.dashboard'));
 
-    expect($shop->fresh()->location_mode)->toBe('multiple');
+    expect($shop->fresh()->location_mode)->toBe('multiple')
+        ->and($shop->fresh()->ownership_type)->toBe('company_owned');
+
+    $this->assertDatabaseHas('branches', [
+        'shop_id' => $shop->id,
+        'name' => 'Molino Branch',
+        'mayors_permit_number' => 'BAC-2026-100',
+    ]);
 })->with([
     'premium' => ['Premium', false],
     'trial' => ['Standard', true],
 ]);
+
+test('franchise setup records the brand separately from account ownership', function () {
+    ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan();
+
+    $this->actingAs($owner)
+        ->put(route('shop.setup.store'), [
+            'ownership_type' => 'franchisee',
+            'franchise_brand_name' => 'CleanWave',
+            'franchisor_name' => 'CleanWave Franchising Corporation',
+            'location_mode' => 'single',
+            'offers_pickup' => false,
+            'offers_delivery' => false,
+        ])
+        ->assertRedirect(route('shop.dashboard'));
+
+    $shop->refresh();
+    expect($shop->ownership_type)->toBe('franchisee')
+        ->and($shop->franchise_brand_name)->toBe('CleanWave')
+        ->and($shop->franchisor_name)->toBe('CleanWave Franchising Corporation');
+});
 
 test('single location shop cannot access branch management', function () {
     ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan('Premium');

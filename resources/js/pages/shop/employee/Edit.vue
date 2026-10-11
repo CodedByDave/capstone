@@ -76,8 +76,8 @@ const page = usePage<AppPageProps>();
 const user = computed(() => page.props.auth.user);
 const isOwner = computed(() => user.value.role === 'owner');
 const isStaff = computed(() => !isOwner.value);
-const hasMultipleLocations = computed(
-    () => Boolean((page.props as any).shopCapabilities?.multiple_locations),
+const hasMultipleLocations = computed(() =>
+    Boolean((page.props as any).shopCapabilities?.multiple_locations),
 );
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 

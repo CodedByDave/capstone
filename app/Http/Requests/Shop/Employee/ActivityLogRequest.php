@@ -22,13 +22,13 @@ class ActivityLogRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'action'       => ['nullable', 'string', 'in:created,updated,status_changed,salary_changed,archived,restored,imported'],
+            'action' => ['nullable', 'string', 'in:created,updated,status_changed,salary_changed,archived,restored,imported'],
             'performed_by' => ['nullable', 'integer'],
-            'module'       => ['nullable', 'string'],
-            'date_from'    => ['nullable', 'date'],
-            'date_to'      => ['nullable', 'date'],
-            'search'       => ['nullable', 'string', 'max:100'],
-            'page'         => ['nullable', 'integer', 'min:1'],
+            'module' => ['nullable', 'string'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
 

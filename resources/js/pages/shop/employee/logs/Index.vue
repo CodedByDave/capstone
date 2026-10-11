@@ -282,9 +282,11 @@ const formatDate = (val: string) =>
 const expandedRows = ref<Set<number>>(new Set());
 
 function toggleRow(id: number) {
-    expandedRows.value.has(id)
-        ? expandedRows.value.delete(id)
-        : expandedRows.value.add(id);
+    if (expandedRows.value.has(id)) {
+        expandedRows.value.delete(id);
+    } else {
+        expandedRows.value.add(id);
+    }
 }
 </script>
 

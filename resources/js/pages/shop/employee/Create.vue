@@ -46,8 +46,8 @@ const { branch_names, shop, roles, employment_types, pay_bases } = defineProps<{
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
-const hasMultipleLocations = computed(
-    () => Boolean((page.props as any).shopCapabilities?.multiple_locations),
+const hasMultipleLocations = computed(() =>
+    Boolean((page.props as any).shopCapabilities?.multiple_locations),
 );
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 

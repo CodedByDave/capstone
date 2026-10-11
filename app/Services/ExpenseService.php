@@ -36,7 +36,7 @@ class ExpenseService
     {
         $expense = $this->expenseRepository->create([
             ...$data,
-            'shop_id'    => $shop->id,
+            'shop_id' => $shop->id,
             'created_by' => auth()->id(),
             'updated_by' => auth()->id(),
         ]);
@@ -110,17 +110,17 @@ class ExpenseService
 
     public function getStats(Shop $shop): array
     {
-        $now        = now();
+        $now = now();
         $monthStart = $now->copy()->startOfMonth()->toDateString();
-        $monthEnd   = $now->copy()->endOfMonth()->toDateString();
+        $monthEnd = $now->copy()->endOfMonth()->toDateString();
 
         return [
-            'total_expenses'      => (float) Expense::where('shop_id', $shop->id)->sum('amount'),
+            'total_expenses' => (float) Expense::where('shop_id', $shop->id)->sum('amount'),
             'this_month_expenses' => (float) Expense::where('shop_id', $shop->id)
                 ->whereBetween('expense_date', [$monthStart, $monthEnd])
                 ->sum('amount'),
-            'total_count'         => Expense::where('shop_id', $shop->id)->count(),
-            'this_month_count'    => Expense::where('shop_id', $shop->id)
+            'total_count' => Expense::where('shop_id', $shop->id)->count(),
+            'this_month_count' => Expense::where('shop_id', $shop->id)
                 ->whereBetween('expense_date', [$monthStart, $monthEnd])
                 ->count(),
         ];
@@ -128,9 +128,9 @@ class ExpenseService
 
     public function getDashboardData(Shop $shop): array
     {
-        $now        = now();
+        $now = now();
         $monthStart = $now->copy()->startOfMonth();
-        $monthEnd   = $now->copy()->endOfMonth();
+        $monthEnd = $now->copy()->endOfMonth();
 
         // ── Revenue from shop orders ───────────────────────────────────────────
         $revenueThisMonth = (float) ShopOrder::where('shop_id', $shop->id)
@@ -156,7 +156,7 @@ class ExpenseService
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
             $mStart = $now->copy()->subMonths($i)->startOfMonth();
-            $mEnd   = $now->copy()->subMonths($i)->endOfMonth();
+            $mEnd = $now->copy()->subMonths($i)->endOfMonth();
 
             $rev = (float) ShopOrder::where('shop_id', $shop->id)
                 ->whereBetween('created_at', [$mStart, $mEnd])
@@ -167,10 +167,10 @@ class ExpenseService
                 ->sum('amount');
 
             $chartData[] = [
-                'month'    => $mStart->format('M Y'),
-                'revenue'  => $rev,
+                'month' => $mStart->format('M Y'),
+                'revenue' => $rev,
                 'expenses' => $exp,
-                'profit'   => $rev - $exp,
+                'profit' => $rev - $exp,
             ];
         }
 
@@ -184,7 +184,7 @@ class ExpenseService
             ->limit(5)
             ->get()
             ->map(fn ($e) => [
-                'name'  => $e->category?->name ?? 'Uncategorized',
+                'name' => $e->category?->name ?? 'Uncategorized',
                 'total' => (float) $e->total,
             ])
             ->values()
@@ -199,16 +199,16 @@ class ExpenseService
             ->get();
 
         return [
-            'revenue_this_month'  => $revenueThisMonth,
+            'revenue_this_month' => $revenueThisMonth,
             'expenses_this_month' => $expensesThisMonth,
-            'profit_this_month'   => $revenueThisMonth - $expensesThisMonth,
-            'total_revenue'       => $totalRevenue,
-            'total_expenses'      => $totalExpenses,
-            'total_profit'        => $totalRevenue - $totalExpenses,
-            'unpaid_amount'       => $unpaidAmount,
-            'chart_data'          => $chartData,
-            'top_categories'      => $topCategories,
-            'recent_expenses'     => $recentExpenses,
+            'profit_this_month' => $revenueThisMonth - $expensesThisMonth,
+            'total_revenue' => $totalRevenue,
+            'total_expenses' => $totalExpenses,
+            'total_profit' => $totalRevenue - $totalExpenses,
+            'unpaid_amount' => $unpaidAmount,
+            'chart_data' => $chartData,
+            'top_categories' => $topCategories,
+            'recent_expenses' => $recentExpenses,
         ];
     }
 }

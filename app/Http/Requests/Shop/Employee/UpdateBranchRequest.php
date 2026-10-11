@@ -4,6 +4,7 @@ namespace App\Http\Requests\Shop\Employee;
 
 use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateBranchRequest extends FormRequest
 {
@@ -15,6 +16,7 @@ class UpdateBranchRequest extends FormRequest
     public function rules(): array
     {
         $branchId = $this->route('branch')?->id;
+        $branch = $this->route('branch');
 
         return [
             'branch_code' => ['required', 'string', 'max:20', "unique:branches,branch_code,{$branchId}"],
@@ -25,6 +27,12 @@ class UpdateBranchRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:500'],
             'opened_at' => ['nullable', 'date'],
             'status' => ['required', 'in:Active,Inactive'],
+            'mayors_permit_number' => ['required', 'string', 'max:100'],
+            'mayors_permit' => [Rule::requiredIf(! $branch?->mayors_permit_path), 'nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'mayors_expiry_date' => ['required', 'date', 'after:today'],
+            'sanitary_permit_number' => ['nullable', 'string', 'max:100'],
+            'sanitary_permit' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'sanitary_expiry_date' => ['nullable', 'date', 'after:today', 'required_with:sanitary_permit'],
         ];
     }
 
@@ -37,6 +45,8 @@ class UpdateBranchRequest extends FormRequest
             'status.required' => 'Status is required.',
             'status.in' => 'Status must be Active or Inactive.',
             'email.email' => 'Please enter a valid email address.',
+            'mayors_permit.required' => "Upload this branch's Mayor's permit.",
+            'mayors_expiry_date.after' => "The Mayor's permit expiry date must be in the future.",
         ];
     }
 }

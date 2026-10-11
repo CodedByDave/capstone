@@ -8,7 +8,7 @@ class EmployeeRole extends Model
 {
     protected $fillable = [
         'employee_id',
-        'role'
+        'role',
     ];
 
     public function employee()

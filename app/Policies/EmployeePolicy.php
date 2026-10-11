@@ -11,14 +11,22 @@ class EmployeePolicy
     /** Owners always pass; staff pass when they hold the required HRM permission. */
     private function staffCan(User $user, string $action): bool
     {
-        if ($user->role === 'owner') return true;
-        if ($user->role !== 'staff') return false;
+        if ($user->role === 'owner') {
+            return true;
+        }
+        if ($user->role !== 'staff') {
+            return false;
+        }
 
         $employee = Employee::where('user_id', $user->id)->with('roles')->first();
-        if (! $employee) return false;
+        if (! $employee) {
+            return false;
+        }
 
         $roles = $employee->roles->pluck('role')->toArray();
-        if (empty($roles)) return false;
+        if (empty($roles)) {
+            return false;
+        }
 
         return RolePermission::where('shop_id', $employee->shop_id)
             ->whereIn('role', $roles)

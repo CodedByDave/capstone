@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import {
-    SidebarProvider,
-    SidebarInset,
-} from '@/components/ui/sidebar'
-import AdminSidebar from './AdminSidebar.vue'
-import AdminNavbar from './AdminNavbar.vue'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import AdminNavbar from './AdminNavbar.vue';
+import AdminSidebar from './AdminSidebar.vue';
 
 defineProps<{
-    title: string
-}>()
+    title: string;
+}>();
 </script>
 
 <template>

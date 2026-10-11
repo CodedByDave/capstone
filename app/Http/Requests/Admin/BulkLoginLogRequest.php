@@ -14,7 +14,7 @@ class BulkLoginLogRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'ids'   => 'required|array|min:1',
+            'ids' => 'required|array|min:1',
             'ids.*' => 'required|integer|exists:login_logs,id',
         ];
     }

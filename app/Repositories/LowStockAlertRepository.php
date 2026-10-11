@@ -49,11 +49,11 @@ class LowStockAlertRepository extends Repository
         return $this->updateOrCreate(
             [
                 'inventory_id' => $inventoryId,
-                'status'       => 'unread',
+                'status' => 'unread',
             ],
             [
-                'shop_id'            => $shopId,
-                'quantity_at_alert'  => $quantityAtAlert,
+                'shop_id' => $shopId,
+                'quantity_at_alert' => $quantityAtAlert,
                 'min_stock_at_alert' => $minStockAtAlert,
             ]
         );

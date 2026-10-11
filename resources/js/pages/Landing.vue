@@ -8,7 +8,7 @@ import { dashboard, login, register} from '@/routes'
                  -->
 
 <script setup lang="ts">
-import LandingPage from './landing/LandingPage.vue'
+import LandingPage from './landing/LandingPage.vue';
 </script>
 
 <template>

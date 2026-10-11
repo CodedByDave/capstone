@@ -70,7 +70,12 @@ const props = defineProps<{
     services: ShopService[];
     userLat: number | null;
     userLng: number | null;
-    customerAgreement: { title: string; version: string; content: string; effective_at: string };
+    customerAgreement: {
+        title: string;
+        version: string;
+        content: string;
+        effective_at: string;
+    };
 }>();
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -479,7 +484,11 @@ function goBack() {
                         >
                         <div
                             class="grid gap-2"
-                            :class="shop.offers_pickup ? 'grid-cols-2' : 'grid-cols-1'"
+                            :class="
+                                shop.offers_pickup
+                                    ? 'grid-cols-2'
+                                    : 'grid-cols-1'
+                            "
                         >
                             <button
                                 v-if="shop.offers_pickup"
@@ -605,8 +614,16 @@ function goBack() {
                         />
                     </div>
 
-                    <CustomerServiceAgreement v-model="form.customer_agreement_accepted" :agreement="customerAgreement" />
-                    <p v-if="errors.customer_agreement_accepted" class="text-xs text-red-500">{{ errors.customer_agreement_accepted }}</p>
+                    <CustomerServiceAgreement
+                        v-model="form.customer_agreement_accepted"
+                        :agreement="customerAgreement"
+                    />
+                    <p
+                        v-if="errors.customer_agreement_accepted"
+                        class="text-xs text-red-500"
+                    >
+                        {{ errors.customer_agreement_accepted }}
+                    </p>
 
                     <!-- Disclaimer -->
                     <div

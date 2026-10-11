@@ -10,6 +10,6 @@ class RolePermission extends Model
         'shop_id',
         'role',
         'module',
-        'action'
+        'action',
     ];
 }

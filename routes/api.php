@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\MobileAuthController;
 use App\Http\Controllers\Api\DriverController;
 use App\Http\Controllers\Shop\CheckoutController;
+use Illuminate\Support\Facades\Route;
 
 // Checkout route
 Route::post('/paymongo/checkout', [CheckoutController::class, 'create']);

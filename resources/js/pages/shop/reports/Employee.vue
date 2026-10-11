@@ -1,160 +1,229 @@
 <script setup lang="ts">
-import ShopLayout from '@/layouts/shop/ShopLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
-import { type BreadcrumbItem } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Users, Building2, Calendar, TrendingUp, BarChart3, Package, Download, FileDown, Loader2 } from 'lucide-vue-next'
-import { usePermissions } from '@/composables/usePermissions'
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-    LineElement, PointElement, ArcElement, Title, Tooltip, Legend,
-} from 'chart.js'
-import { Bar, Doughnut } from 'vue-chartjs'
-import html2pdf from 'html2pdf.js'
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { usePermissions } from '@/composables/usePermissions';
+import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import {
+    ArcElement,
+    BarElement,
+    CategoryScale,
+    Chart as ChartJS,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Title,
+    Tooltip,
+} from 'chart.js';
+import html2pdf from 'html2pdf.js';
+import {
+    BarChart3,
+    Building2,
+    Calendar,
+    Download,
+    FileDown,
+    Loader2,
+    Package,
+    TrendingUp,
+    Users,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { Bar, Doughnut } from 'vue-chartjs';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend)
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend,
+);
 
-const { isOwner } = usePermissions()
-const base = computed(() => isOwner.value ? '/shop/reports' : '/staff/reports')
+const { isOwner } = usePermissions();
+const base = computed(() =>
+    isOwner.value ? '/shop/reports' : '/staff/reports',
+);
 
-const reportContent = ref<HTMLElement | null>(null)
-const downloading   = ref(false)
+const reportContent = ref<HTMLElement | null>(null);
+const downloading = ref(false);
 
 async function downloadPDF() {
-    if (!reportContent.value || downloading.value) return
-    downloading.value = true
+    if (!reportContent.value || downloading.value) return;
+    downloading.value = true;
     try {
-        await html2pdf().set({
-            margin:      [10, 10, 10, 10],
-            filename:    `employee-report-${new Date().toISOString().slice(0, 10)}.pdf`,
-            image:       { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        }).from(reportContent.value).save()
+        await html2pdf()
+            .set({
+                margin: [10, 10, 10, 10],
+                filename: `employee-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            })
+            .from(reportContent.value)
+            .save();
     } finally {
-        downloading.value = false
+        downloading.value = false;
     }
 }
 
 function exportCSV() {
-    const date    = new Date().toISOString().slice(0, 10)
-    const headers = ['Name', 'Email', 'Branch', 'Joined']
-    const rows    = props.recentEmployees.map(e => [e.name, e.email, e.branch, e.created_at])
-    const escape  = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
+    const date = new Date().toISOString().slice(0, 10);
+    const headers = ['Name', 'Email', 'Branch', 'Joined'];
+    const rows = props.recentEmployees.map((e) => [
+        e.name,
+        e.email,
+        e.branch,
+        e.created_at,
+    ]);
+    const escape = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`;
 
     const lines = [
         ['Employee Report', date],
         [],
         headers.map(escape).join(','),
-        ...rows.map(r => r.map(escape).join(',')),
-    ].map(r => Array.isArray(r) ? r.join(',') : r)
+        ...rows.map((r) => r.map(escape).join(',')),
+    ].map((r) => (Array.isArray(r) ? r.join(',') : r));
 
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `employee-report-${date}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    const blob = new Blob([lines.join('\n')], {
+        type: 'text/csv;charset=utf-8;',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `employee-report-${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 const props = defineProps<{
-    period: string
+    period: string;
     stats: {
-        total_employees: number
-        total_branches: number
-        new_employees: number
-        scheduled_week: number
-    }
-    employeesByBranch: { name: string; count: number }[]
-    employeeGrowth:    { month: string; count: number }[]
-    recentEmployees:   { name: string; email: string; branch: string; created_at: string }[]
-    employeesByRole:   { role: string; count: number }[]
-}>()
+        total_employees: number;
+        total_branches: number;
+        new_employees: number;
+        scheduled_week: number;
+    };
+    employeesByBranch: { name: string; count: number }[];
+    employeeGrowth: { month: string; count: number }[];
+    recentEmployees: {
+        name: string;
+        email: string;
+        branch: string;
+        created_at: string;
+    }[];
+    employeesByRole: { role: string; count: number }[];
+}>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Reports',   href: base.value },
+    { title: 'Reports', href: base.value },
     { title: 'Employees', href: `${base.value}/employee` },
-]
+];
 
-const period = ref(props.period)
+const period = ref(props.period);
 
 function applyPeriod(val: string) {
-    period.value = val
-    router.get(`${base.value}/employee`, { period: val }, { preserveState: true, replace: true })
+    period.value = val;
+    router.get(
+        `${base.value}/employee`,
+        { period: val },
+        { preserveState: true, replace: true },
+    );
 }
 
 const branchChartData = computed(() => ({
-    labels: props.employeesByBranch.map(b => b.name),
-    datasets: [{
-        label: 'Employees',
-        data: props.employeesByBranch.map(b => b.count),
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-        borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 2,
-    }],
-}))
+    labels: props.employeesByBranch.map((b) => b.name),
+    datasets: [
+        {
+            label: 'Employees',
+            data: props.employeesByBranch.map((b) => b.count),
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            borderColor: 'rgb(59, 130, 246)',
+            borderWidth: 2,
+        },
+    ],
+}));
 
 const growthChartData = computed(() => ({
-    labels: props.employeeGrowth.map(g => g.month),
-    datasets: [{
-        label: 'New Employees',
-        data: props.employeeGrowth.map(g => g.count),
-        backgroundColor: 'rgba(16, 185, 129, 0.5)',
-        borderColor: 'rgb(16, 185, 129)',
-        borderWidth: 2,
-        tension: 0.4,
-        fill: true,
-    }],
-}))
+    labels: props.employeeGrowth.map((g) => g.month),
+    datasets: [
+        {
+            label: 'New Employees',
+            data: props.employeeGrowth.map((g) => g.count),
+            backgroundColor: 'rgba(16, 185, 129, 0.5)',
+            borderColor: 'rgb(16, 185, 129)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+        },
+    ],
+}));
 
 const roleChartData = computed(() => ({
-    labels: props.employeesByRole.map(r => r.role),
-    datasets: [{
-        data: props.employeesByRole.map(r => r.count),
-        backgroundColor: [
-            'rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)',
-            'rgba(245, 158, 11, 0.8)', 'rgba(139, 92, 246, 0.8)',
-            'rgba(239, 68, 68, 0.8)',
-        ],
-    }],
-}))
+    labels: props.employeesByRole.map((r) => r.role),
+    datasets: [
+        {
+            data: props.employeesByRole.map((r) => r.count),
+            backgroundColor: [
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(139, 92, 246, 0.8)',
+                'rgba(239, 68, 68, 0.8)',
+            ],
+        },
+    ],
+}));
 
 const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
-}
+};
 
 const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
-}
+};
 
 const doughnutOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { position: 'bottom' as const } },
-}
+};
 </script>
 
 <template>
     <Head title="Reports — Employees" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Employee Report">
-        <div ref="reportContent" class="px-6 space-y-6">
-
-            <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div ref="reportContent" class="space-y-6 px-6">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <h2 class="text-lg font-semibold">Employee Report</h2>
-                    <p class="text-sm text-muted-foreground">Headcount, branches and growth overview.</p>
+                    <p class="text-sm text-muted-foreground">
+                        Headcount, branches and growth overview.
+                    </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Select :model-value="period" @update:model-value="applyPeriod">
-                        <SelectTrigger class="w-36"><SelectValue placeholder="Period" /></SelectTrigger>
+                    <Select
+                        :model-value="period"
+                        @update:model-value="applyPeriod"
+                    >
+                        <SelectTrigger class="w-36"
+                            ><SelectValue placeholder="Period"
+                        /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="today">Today</SelectItem>
                             <SelectItem value="week">This Week</SelectItem>
@@ -162,11 +231,25 @@ const doughnutOptions = {
                             <SelectItem value="year">This Year</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button size="sm" variant="outline" @click="exportCSV" class="gap-1.5">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        @click="exportCSV"
+                        class="gap-1.5"
+                    >
                         <FileDown class="h-3.5 w-3.5" /> Export CSV
                     </Button>
-                    <Button size="sm" variant="outline" :disabled="downloading" @click="downloadPDF" class="gap-1.5">
-                        <Loader2 v-if="downloading" class="h-3.5 w-3.5 animate-spin" />
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        :disabled="downloading"
+                        @click="downloadPDF"
+                        class="gap-1.5"
+                    >
+                        <Loader2
+                            v-if="downloading"
+                            class="h-3.5 w-3.5 animate-spin"
+                        />
                         <Download v-else class="h-3.5 w-3.5" />
                         {{ downloading ? 'Generating…' : 'Download PDF' }}
                     </Button>
@@ -174,93 +257,155 @@ const doughnutOptions = {
             </div>
 
             <!-- Report nav -->
-            <div class="flex gap-2 flex-wrap">
+            <div class="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" @click="router.visit(base)">
-                    <BarChart3 class="h-4 w-4 mr-1.5" /> Overview
+                    <BarChart3 class="mr-1.5 h-4 w-4" /> Overview
                 </Button>
-                <Button variant="outline" size="sm" @click="router.visit(`${base}/inventory`)">
-                    <Package class="h-4 w-4 mr-1.5" /> Inventory
+                <Button
+                    variant="outline"
+                    size="sm"
+                    @click="router.visit(`${base}/inventory`)"
+                >
+                    <Package class="mr-1.5 h-4 w-4" /> Inventory
                 </Button>
-                <Button variant="default" size="sm" @click="router.visit(`${base}/employee`)">
-                    <Users class="h-4 w-4 mr-1.5" /> Employees
+                <Button
+                    variant="default"
+                    size="sm"
+                    @click="router.visit(`${base}/employee`)"
+                >
+                    <Users class="mr-1.5 h-4 w-4" /> Employees
                 </Button>
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Total</p>
-                            <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Total
+                            </p>
+                            <div
+                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100"
+                            >
                                 <Users class="h-4 w-4 text-blue-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold">{{ stats.total_employees }}</p>
+                        <p class="text-3xl font-bold">
+                            {{ stats.total_employees }}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Branches</p>
-                            <div class="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Branches
+                            </p>
+                            <div
+                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100"
+                            >
                                 <Building2 class="h-4 w-4 text-purple-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-purple-600">{{ stats.total_branches }}</p>
+                        <p class="text-3xl font-bold text-purple-600">
+                            {{ stats.total_branches }}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">New This Period</p>
-                            <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                New This Period
+                            </p>
+                            <div
+                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100"
+                            >
                                 <TrendingUp class="h-4 w-4 text-green-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-green-600">{{ stats.new_employees }}</p>
+                        <p class="text-3xl font-bold text-green-600">
+                            {{ stats.new_employees }}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="pt-5">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs text-muted-foreground uppercase tracking-widest font-medium">Scheduled</p>
-                            <div class="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                Scheduled
+                            </p>
+                            <div
+                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100"
+                            >
                                 <Calendar class="h-4 w-4 text-amber-600" />
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-amber-600">{{ stats.scheduled_week }}</p>
-                        <p class="text-xs text-muted-foreground mt-1">this week</p>
+                        <p class="text-3xl font-bold text-amber-600">
+                            {{ stats.scheduled_week }}
+                        </p>
+                        <p class="mt-1 text-xs text-muted-foreground">
+                            this week
+                        </p>
                     </CardContent>
                 </Card>
             </div>
 
             <!-- Charts row 1 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle class="text-sm flex items-center gap-2">
-                            <Building2 class="h-4 w-4 text-muted-foreground" /> Employees by Branch
+                        <CardTitle class="flex items-center gap-2 text-sm">
+                            <Building2 class="h-4 w-4 text-muted-foreground" />
+                            Employees by Branch
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div class="h-56">
-                            <Bar v-if="employeesByBranch.length > 0" :data="branchChartData" :options="barOptions" />
-                            <div v-else class="h-full flex items-center justify-center text-sm text-muted-foreground">No branches.</div>
+                            <Bar
+                                v-if="employeesByBranch.length > 0"
+                                :data="branchChartData"
+                                :options="barOptions"
+                            />
+                            <div
+                                v-else
+                                class="flex h-full items-center justify-center text-sm text-muted-foreground"
+                            >
+                                No branches.
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle class="text-sm flex items-center gap-2">
-                            <Users class="h-4 w-4 text-muted-foreground" /> Employees by Role
+                        <CardTitle class="flex items-center gap-2 text-sm">
+                            <Users class="h-4 w-4 text-muted-foreground" />
+                            Employees by Role
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div class="h-56">
-                            <Doughnut v-if="employeesByRole.length > 0" :data="roleChartData" :options="doughnutOptions" />
-                            <div v-else class="h-full flex items-center justify-center text-sm text-muted-foreground">No roles assigned.</div>
+                            <Doughnut
+                                v-if="employeesByRole.length > 0"
+                                :data="roleChartData"
+                                :options="doughnutOptions"
+                            />
+                            <div
+                                v-else
+                                class="flex h-full items-center justify-center text-sm text-muted-foreground"
+                            >
+                                No roles assigned.
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -269,8 +414,9 @@ const doughnutOptions = {
             <!-- Growth chart -->
             <Card>
                 <CardHeader>
-                    <CardTitle class="text-sm flex items-center gap-2">
-                        <TrendingUp class="h-4 w-4 text-muted-foreground" /> Employee Growth (Last 6 Months)
+                    <CardTitle class="flex items-center gap-2 text-sm">
+                        <TrendingUp class="h-4 w-4 text-muted-foreground" />
+                        Employee Growth (Last 6 Months)
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -283,37 +429,70 @@ const doughnutOptions = {
             <!-- Recent employees -->
             <Card>
                 <CardHeader>
-                    <CardTitle class="text-sm flex items-center gap-2">
-                        <Users class="h-4 w-4 text-muted-foreground" /> Recently Added Employees
+                    <CardTitle class="flex items-center gap-2 text-sm">
+                        <Users class="h-4 w-4 text-muted-foreground" /> Recently
+                        Added Employees
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div class="rounded-lg border overflow-hidden">
+                    <div class="overflow-hidden rounded-lg border">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="bg-muted/40 text-xs text-muted-foreground border-b">
-                                    <th class="text-left px-4 py-3 font-medium">Name</th>
-                                    <th class="text-left px-4 py-3 font-medium">Email</th>
-                                    <th class="text-left px-4 py-3 font-medium">Branch</th>
-                                    <th class="text-left px-4 py-3 font-medium">Joined</th>
+                                <tr
+                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
+                                >
+                                    <th class="px-4 py-3 text-left font-medium">
+                                        Name
+                                    </th>
+                                    <th class="px-4 py-3 text-left font-medium">
+                                        Email
+                                    </th>
+                                    <th class="px-4 py-3 text-left font-medium">
+                                        Branch
+                                    </th>
+                                    <th class="px-4 py-3 text-left font-medium">
+                                        Joined
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="e in recentEmployees" :key="e.email" class="border-b last:border-0">
-                                    <td class="px-4 py-3 font-medium">{{ e.name }}</td>
-                                    <td class="px-4 py-3 text-xs text-muted-foreground">{{ e.email }}</td>
-                                    <td class="px-4 py-3 text-xs text-muted-foreground">{{ e.branch }}</td>
-                                    <td class="px-4 py-3 text-xs text-muted-foreground">{{ e.created_at }}</td>
+                                <tr
+                                    v-for="e in recentEmployees"
+                                    :key="e.email"
+                                    class="border-b last:border-0"
+                                >
+                                    <td class="px-4 py-3 font-medium">
+                                        {{ e.name }}
+                                    </td>
+                                    <td
+                                        class="px-4 py-3 text-xs text-muted-foreground"
+                                    >
+                                        {{ e.email }}
+                                    </td>
+                                    <td
+                                        class="px-4 py-3 text-xs text-muted-foreground"
+                                    >
+                                        {{ e.branch }}
+                                    </td>
+                                    <td
+                                        class="px-4 py-3 text-xs text-muted-foreground"
+                                    >
+                                        {{ e.created_at }}
+                                    </td>
                                 </tr>
                                 <tr v-if="recentEmployees.length === 0">
-                                    <td colspan="4" class="px-4 py-8 text-center text-muted-foreground text-sm">No employees yet.</td>
+                                    <td
+                                        colspan="4"
+                                        class="px-4 py-8 text-center text-sm text-muted-foreground"
+                                    >
+                                        No employees yet.
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </CardContent>
             </Card>
-
         </div>
     </ShopLayout>
 </template>

@@ -377,9 +377,7 @@ function enableShop() {
                             {{ shop.business_agreement.acceptance.signer_name }}
                         </p>
                         <p class="text-xs text-muted-foreground">
-                            {{
-                                shop.business_agreement.acceptance.signer_role
-                            }}
+                            {{ shop.business_agreement.acceptance.signer_role }}
                             ·
                             {{
                                 formatDateTime(

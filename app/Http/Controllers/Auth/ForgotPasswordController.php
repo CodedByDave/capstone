@@ -3,17 +3,16 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use Illuminate\Support\Facades\Password;
+use Inertia\Inertia;
 
 class ForgotPasswordController extends Controller
 {
     public function show()
     {
-        return Inertia::render('auth/ForgotPassword',[
-            'status' => session('status')
+        return Inertia::render('auth/ForgotPassword', [
+            'status' => session('status'),
         ]);
     }
 

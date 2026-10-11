@@ -18,27 +18,27 @@ class AttendanceRepository extends Repository
         $query = Attendance::with(['employee', 'marker:id,name'])
             ->where('shop_id', $shop->id);
 
-        if (!empty($filters['date'])) {
+        if (! empty($filters['date'])) {
             $query->whereDate('date', $filters['date']);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('date', '>=', $filters['date_from']);
         }
 
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('date', '<=', $filters['date_to']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['employee_id'])) {
+        if (! empty($filters['employee_id'])) {
             $query->where('employee_id', $filters['employee_id']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->whereHas('employee', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
@@ -64,7 +64,7 @@ class AttendanceRepository extends Repository
                 if ($excludeUserId !== null) {
                     $q->where(function ($inner) use ($excludeUserId) {
                         $inner->where('user_id', '!=', $excludeUserId)
-                              ->orWhereNull('user_id');
+                            ->orWhereNull('user_id');
                     });
                 }
             });
@@ -85,16 +85,16 @@ class AttendanceRepository extends Repository
                 if ($excludeUserId !== null) {
                     $q->where(function ($inner) use ($excludeUserId) {
                         $inner->where('user_id', '!=', $excludeUserId)
-                              ->orWhereNull('user_id');
+                            ->orWhereNull('user_id');
                     });
                 }
             });
         }
 
         return [
-            'present'  => (clone $base)->where('status', 'present')->count(),
-            'absent'   => (clone $base)->where('status', 'absent')->count(),
-            'late'     => (clone $base)->where('status', 'late')->count(),
+            'present' => (clone $base)->where('status', 'present')->count(),
+            'absent' => (clone $base)->where('status', 'absent')->count(),
+            'late' => (clone $base)->where('status', 'late')->count(),
             'half_day' => (clone $base)->where('status', 'half_day')->count(),
         ];
     }

@@ -16,7 +16,7 @@ class EmployeeSchedule extends Model
 
     protected $casts = [
         'start_time' => 'datetime:H:i',
-        'end_time'   => 'datetime:H:i',
+        'end_time' => 'datetime:H:i',
     ];
 
     /**

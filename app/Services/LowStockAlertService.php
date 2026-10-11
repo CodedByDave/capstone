@@ -36,7 +36,7 @@ class LowStockAlertService
     public function resolve(LowStockAlert $alert): void
     {
         $this->alertRepository->update($alert, [
-            'status'      => 'resolved',
+            'status' => 'resolved',
             'resolved_at' => now(),
         ]);
     }

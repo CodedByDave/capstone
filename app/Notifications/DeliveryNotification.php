@@ -19,15 +19,15 @@ class DeliveryNotification extends Notification
     public function toDatabase(object $notifiable): array
     {
         $delivery = $this->delivery;
-        $order    = $delivery->order;
+        $order = $delivery->order;
 
         return [
-            'title'           => $this->statusTitle($delivery->status),
-            'body'            => $this->statusBody($delivery),
-            'type'            => 'delivery_updated',
-            'delivery_id'     => $delivery->id,
-            'order_id'        => $order?->id,
-            'order_number'    => $order?->order_number,
+            'title' => $this->statusTitle($delivery->status),
+            'body' => $this->statusBody($delivery),
+            'type' => 'delivery_updated',
+            'delivery_id' => $delivery->id,
+            'order_id' => $order?->id,
+            'order_number' => $order?->order_number,
             'delivery_status' => $delivery->status,
         ];
     }
@@ -35,26 +35,26 @@ class DeliveryNotification extends Notification
     private function statusTitle(string $status): string
     {
         return match ($status) {
-            'assigned'  => 'Rider assigned',
+            'assigned' => 'Rider assigned',
             'picked_up' => 'Order picked up',
             'delivered' => 'Order delivered!',
-            'failed'    => 'Delivery failed',
-            default     => 'Delivery update',
+            'failed' => 'Delivery failed',
+            default => 'Delivery update',
         };
     }
 
     private function statusBody(Delivery $delivery): string
     {
-        $order  = $delivery->order;
-        $ref    = $order ? "Order #{$order->order_number}" : 'Your order';
-        $rider  = $delivery->rider?->name ?? 'our rider';
+        $order = $delivery->order;
+        $ref = $order ? "Order #{$order->order_number}" : 'Your order';
+        $rider = $delivery->rider?->name ?? 'our rider';
 
         return match ($delivery->status) {
-            'assigned'  => "{$ref} has been assigned to {$rider} and will be picked up shortly.",
+            'assigned' => "{$ref} has been assigned to {$rider} and will be picked up shortly.",
             'picked_up' => "{$ref} has been picked up by {$rider} and is on the way to you.",
             'delivered' => "{$ref} has been delivered. Thank you for choosing us!",
-            'failed'    => "{$ref} could not be delivered. Please contact the shop for assistance.",
-            default     => "{$ref} delivery status has been updated to {$delivery->status}.",
+            'failed' => "{$ref} could not be delivered. Please contact the shop for assistance.",
+            default => "{$ref} delivery status has been updated to {$delivery->status}.",
         };
     }
 }

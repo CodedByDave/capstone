@@ -16,7 +16,7 @@ class GeneratePayrollRequest extends FormRequest
         return [
             'period_label' => ['required', 'string', 'max:100'],
             'period_start' => ['required', 'date'],
-            'period_end'   => ['required', 'date', 'after_or_equal:period_start'],
+            'period_end' => ['required', 'date', 'after_or_equal:period_start'],
         ];
     }
 }

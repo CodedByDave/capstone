@@ -21,12 +21,14 @@ class ShopServiceService
     public function create(array $data): ShopService
     {
         $this->validatePricingFields($data);
+
         return $this->repo->create($data);
     }
 
     public function update(ShopService $service, array $data): ShopService
     {
         $this->validatePricingFields($data);
+
         return $this->repo->update($service, $data);
     }
 

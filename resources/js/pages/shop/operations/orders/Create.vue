@@ -41,7 +41,12 @@ const props = defineProps<{
     services?: Service[];
     inventoryItems?: InventoryItem[];
     promotions?: Promotion[];
-    customerAgreement: { title: string; version: string; content: string; effective_at: string };
+    customerAgreement: {
+        title: string;
+        version: string;
+        content: string;
+        effective_at: string;
+    };
 }>();
 
 // ─── Base URL ──────────────────────────────────────
@@ -915,7 +920,12 @@ const submit = () => {
                     :agreement="customerAgreement"
                     confirmation-text="I confirm that the customer was shown this agreement and accepted its garment care, damage, refund, compensation, and claim terms before I created the order."
                 />
-                <p v-if="form.errors.customer_agreement_accepted" class="text-xs text-red-500">{{ form.errors.customer_agreement_accepted }}</p>
+                <p
+                    v-if="form.errors.customer_agreement_accepted"
+                    class="text-xs text-red-500"
+                >
+                    {{ form.errors.customer_agreement_accepted }}
+                </p>
 
                 <div class="flex items-center justify-end gap-3 border-t pt-4">
                     <button

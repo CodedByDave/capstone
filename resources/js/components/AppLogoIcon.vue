@@ -16,8 +16,6 @@ defineProps<Props>();
     <img
         src="/laundryhub.png"
         alt="LaundryHub Logo"
-        class="h-10 w-10 object-cover rounded-full"
+        class="h-10 w-10 rounded-full object-cover"
     />
 </template>
-
-

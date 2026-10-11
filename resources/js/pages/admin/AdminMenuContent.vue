@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import UserInfo from '@/components/UserInfo.vue';
 import {
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -16,6 +10,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
@@ -72,7 +72,9 @@ defineProps<Props>();
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction @click="handleLogout">Log out</AlertDialogAction>
+                <AlertDialogAction @click="handleLogout"
+                    >Log out</AlertDialogAction
+                >
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>

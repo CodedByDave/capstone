@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -12,6 +10,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
@@ -74,7 +74,9 @@ const handleLogout = () => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction @click="handleLogout">Log out</AlertDialogAction>
+                    <AlertDialogAction @click="handleLogout"
+                        >Log out</AlertDialogAction
+                    >
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

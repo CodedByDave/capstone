@@ -26,6 +26,7 @@ class ExpenseController extends Controller
         }
 
         $employee = Employee::where('user_id', $user->id)->firstOrFail();
+
         return Shop::findOrFail($employee->shop_id);
     }
 
@@ -36,14 +37,14 @@ class ExpenseController extends Controller
 
     public function index(Request $request)
     {
-        $shop    = $this->getShop();
+        $shop = $this->getShop();
         $filters = $request->only(['search', 'category_id', 'date_from', 'date_to']);
 
         return Inertia::render('shop/finance/expenses/Index', [
-            'expenses'   => $this->expenseService->paginate($shop, $filters),
-            'stats'      => $this->expenseService->getStats($shop),
+            'expenses' => $this->expenseService->paginate($shop, $filters),
+            'stats' => $this->expenseService->getStats($shop),
             'categories' => $this->expenseService->getCategories($shop),
-            'filters'    => $filters,
+            'filters' => $filters,
         ]);
     }
 
@@ -59,11 +60,11 @@ class ExpenseController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'            => ['required', 'string', 'max:255'],
-            'amount'           => ['required', 'numeric', 'min:0.01'],
-            'expense_date'     => ['required', 'date'],
-            'category_id'      => ['nullable', 'integer'],
-            'description'      => ['nullable', 'string', 'max:1000'],
+            'title' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'expense_date' => ['required', 'date'],
+            'category_id' => ['nullable', 'integer'],
+            'description' => ['nullable', 'string', 'max:1000'],
             'reference_number' => ['nullable', 'string', 'max:100'],
         ]);
 
@@ -79,11 +80,11 @@ class ExpenseController extends Controller
         abort_if($expense->shop_id !== $shop->id, 403);
 
         $data = $request->validate([
-            'title'            => ['required', 'string', 'max:255'],
-            'amount'           => ['required', 'numeric', 'min:0.01'],
-            'expense_date'     => ['required', 'date'],
-            'category_id'      => ['nullable', 'integer'],
-            'description'      => ['nullable', 'string', 'max:1000'],
+            'title' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'expense_date' => ['required', 'date'],
+            'category_id' => ['nullable', 'integer'],
+            'description' => ['nullable', 'string', 'max:1000'],
             'reference_number' => ['nullable', 'string', 'max:100'],
         ]);
 
@@ -113,7 +114,7 @@ class ExpenseController extends Controller
     public function storeCategory(Request $request)
     {
         $request->validate([
-            'name'        => ['required', 'string', 'max:100'],
+            'name' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:255'],
         ]);
 

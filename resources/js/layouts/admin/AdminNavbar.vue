@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { type BreadcrumbItem } from '@/types'
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { type BreadcrumbItem } from '@/types';
 
 defineProps<{
-    title: string
-    breadcrumbs?: BreadcrumbItem[]
-}>()
+    title: string;
+    breadcrumbs?: BreadcrumbItem[];
+}>();
 </script>
 
 <template>
-    <header class="flex h-16 items-center gap-3 border-b
-        border-sidebar-border bg-background px-4">
+    <header
+        class="flex h-16 items-center gap-3 border-b border-sidebar-border bg-background px-4"
+    >
         <!-- Sidebar toggle -->
         <SidebarTrigger />
 

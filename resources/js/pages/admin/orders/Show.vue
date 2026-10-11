@@ -11,7 +11,6 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     ArrowLeft,
-    Check,
     CreditCard,
     Download,
     FileSignature,
@@ -703,7 +702,6 @@ function submitReject() {
                                 class="w-full gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                                 :disabled="downloadingAgreement"
                                 @click="downloadAgreement"
-
                             >
                                 <Download class="h-4 w-4" /> Download agreement
                             </Button>

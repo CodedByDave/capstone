@@ -9,7 +9,7 @@ class LoginLogRepository extends Repository
 {
     public function __construct()
     {
-        parent::__construct(new LoginLog());
+        parent::__construct(new LoginLog);
     }
 
     // ── Active logs ───────────────────────────────────────────────────────────
@@ -20,23 +20,23 @@ class LoginLogRepository extends Repository
             ->whereNull('deleted_at')
             ->latest('logged_at');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('email',      'like', "%{$filters['search']}%")
-                    ->orWhere('name',      'like', "%{$filters['search']}%")
+                $q->where('email', 'like', "%{$filters['search']}%")
+                    ->orWhere('name', 'like', "%{$filters['search']}%")
                     ->orWhere('ip_address', 'like', "%{$filters['search']}%");
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['role'])) {
+        if (! empty($filters['role'])) {
             $query->where('role', $filters['role']);
         }
 
-        if (!empty($filters['date'])) {
+        if (! empty($filters['date'])) {
             $query->whereDate('logged_at', $filters['date']);
         }
 
@@ -46,10 +46,10 @@ class LoginLogRepository extends Repository
     public function getStats(): array
     {
         return [
-            'total'    => $this->query()->whereNull('deleted_at')->count(),
-            'success'  => $this->query()->whereNull('deleted_at')->where('status', 'success')->count(),
-            'failed'   => $this->query()->whereNull('deleted_at')->where('status', 'failed')->count(),
-            'logout'   => $this->query()->whereNull('deleted_at')->where('status', 'logout')->count(),
+            'total' => $this->query()->whereNull('deleted_at')->count(),
+            'success' => $this->query()->whereNull('deleted_at')->where('status', 'success')->count(),
+            'failed' => $this->query()->whereNull('deleted_at')->where('status', 'failed')->count(),
+            'logout' => $this->query()->whereNull('deleted_at')->where('status', 'logout')->count(),
             'archived' => LoginLog::onlyTrashed()->count(),
         ];
     }
@@ -70,14 +70,14 @@ class LoginLogRepository extends Repository
     {
         $query = LoginLog::onlyTrashed()->latest('logged_at');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('email', 'like', "%{$filters['search']}%")
-                    ->orWhere('name',  'like', "%{$filters['search']}%");
+                    ->orWhere('name', 'like', "%{$filters['search']}%");
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 

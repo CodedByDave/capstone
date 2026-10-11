@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class Promotion extends Model
 {
@@ -25,11 +25,11 @@ class Promotion extends Model
     ];
 
     protected $casts = [
-        'value'            => 'decimal:2',
+        'value' => 'decimal:2',
         'min_order_amount' => 'decimal:2',
-        'is_active'        => 'boolean',
-        'starts_at'        => 'date:Y-m-d',
-        'ends_at'          => 'date:Y-m-d',
+        'is_active' => 'boolean',
+        'starts_at' => 'date:Y-m-d',
+        'ends_at' => 'date:Y-m-d',
     ];
 
     public function shop(): BelongsTo
@@ -50,6 +50,7 @@ class Promotion extends Model
     public function scopeValid($query)
     {
         $today = Carbon::today()->toDateString();
+
         return $query->where(function ($q) use ($today) {
             $q->whereNull('starts_at')->orWhere('starts_at', '<=', $today);
         })->where(function ($q) use ($today) {
@@ -75,11 +76,17 @@ class Promotion extends Model
 
     public function isValid(): bool
     {
-        if (!$this->is_active) return false;
+        if (! $this->is_active) {
+            return false;
+        }
 
         $today = Carbon::today();
-        if ($this->starts_at && $today->lt($this->starts_at)) return false;
-        if ($this->ends_at && $today->gt($this->ends_at)) return false;
+        if ($this->starts_at && $today->lt($this->starts_at)) {
+            return false;
+        }
+        if ($this->ends_at && $today->gt($this->ends_at)) {
+            return false;
+        }
 
         return true;
     }

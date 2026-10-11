@@ -19,6 +19,11 @@ class UserRepository extends Repository
         return User::create($data);
     }
 
+    public function updatePassword(User $user, string $password): void
+    {
+        $user->update(['password' => $password]);
+    }
+
     public function lockForOrderSubmission(int $userId): User
     {
         return User::query()->lockForUpdate()->findOrFail($userId);

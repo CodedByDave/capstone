@@ -6,8 +6,11 @@ use App\Models\Branch;
 use App\Repositories\BranchRepository;
 use App\Repositories\EmployeeRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class BranchService
 {
@@ -15,6 +18,8 @@ class BranchService
         'name', 'phone', 'email',
         'manager_name', 'address',
         'status', 'opened_at',
+        'mayors_permit_number', 'mayors_expiry_date',
+        'sanitary_permit_number', 'sanitary_expiry_date',
     ];
 
     public function __construct(
@@ -61,43 +66,58 @@ class BranchService
 
     public function create(array $validated, int $shopId): Branch
     {
-        $branch = $this->repository->create([
-            ...$validated,
-            'shop_id' => $shopId,
-            'created_by' => Auth::id(),
-            'updated_by' => Auth::id(),
-        ]);
+        return DB::transaction(function () use ($validated, $shopId): Branch {
+            $branch = $this->repository->create([
+                ...$this->withoutPermitFiles($validated),
+                'permit_status' => 'submitted',
+                'shop_id' => $shopId,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
 
-        // Log creation
-        $this->activityLogService->log(
-            subject: $branch,
-            action: 'created',
-            shopId: $shopId,
-        );
+            $permitPaths = $this->storePermitFiles($branch, $validated);
+            if ($permitPaths !== []) {
+                $this->repository->update($branch, $permitPaths);
+            }
 
-        return $branch;
+            $this->activityLogService->log(
+                subject: $branch,
+                action: 'created',
+                shopId: $shopId,
+            );
+
+            return $branch->refresh();
+        });
     }
 
     public function update(Branch $branch, array $validated): bool
     {
-        $changes = $this->diffChanges($branch, $validated);
+        return DB::transaction(function () use ($branch, $validated): bool {
+            $changes = $this->diffChanges($branch, $validated);
+            $permitPaths = $this->storePermitFiles($branch, $validated);
+            $attributes = [
+                ...$this->withoutPermitFiles($validated),
+                ...$permitPaths,
+                'updated_by' => Auth::id(),
+            ];
 
-        $result = $this->repository->update($branch, [
-            ...$validated,
-            'updated_by' => Auth::id(),
-        ]);
+            if ($permitPaths !== []) {
+                $attributes['permit_status'] = 'submitted';
+            }
 
-        // Only log if something actually changed
-        if ($result && ! empty($changes)) {
-            $this->activityLogService->log(
-                subject: $branch->fresh(), // fresh() gets updated values
-                action: 'updated',
-                changes: $changes,
-                shopId: $branch->shop_id,
-            );
-        }
+            $result = $this->repository->update($branch, $attributes);
 
-        return $result;
+            if ($result && (! empty($changes) || $permitPaths !== [])) {
+                $this->activityLogService->log(
+                    subject: $branch->fresh(),
+                    action: 'updated',
+                    changes: $changes,
+                    shopId: $branch->shop_id,
+                );
+            }
+
+            return $result;
+        });
     }
 
     public function archive(Branch $branch): bool
@@ -151,5 +171,33 @@ class BranchService
         }
 
         return $changes;
+    }
+
+    private function withoutPermitFiles(array $data): array
+    {
+        unset($data['mayors_permit'], $data['sanitary_permit']);
+
+        return $data;
+    }
+
+    private function storePermitFiles(Branch $branch, array $data): array
+    {
+        $paths = [];
+
+        foreach (['mayors_permit', 'sanitary_permit'] as $permit) {
+            $file = $data[$permit] ?? null;
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
+
+            $path = $file->store("branch-permits/{$branch->id}", 'private');
+            if (! $path) {
+                throw new RuntimeException('A branch permit could not be stored. Please try again.');
+            }
+
+            $paths["{$permit}_path"] = $path;
+        }
+
+        return $paths;
     }
 }

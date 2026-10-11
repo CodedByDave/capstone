@@ -6,10 +6,13 @@ use App\Exceptions\ShopSetupException;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
+use App\Repositories\BranchRepository;
 use App\Repositories\EmployeeRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\ShopRepository;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ShopSetupService
 {
@@ -17,6 +20,7 @@ class ShopSetupService
         private readonly ShopRepository $shops,
         private readonly OrderRepository $orders,
         private readonly EmployeeRepository $employees,
+        private readonly BranchRepository $branches,
     ) {}
 
     public function pageData(User $owner): array
@@ -40,6 +44,10 @@ class ShopSetupService
                     : Shop::LOCATION_SINGLE,
                 'offers_pickup' => (bool) ($shop->offers_pickup ?? false),
                 'offers_delivery' => (bool) ($shop->offers_delivery ?? false),
+                'ownership_type' => $shop->ownership_type ?? Shop::OWNERSHIP_INDEPENDENT,
+                'franchise_brand_name' => $shop->franchise_brand_name ?? '',
+                'franchisor_name' => $shop->franchisor_name ?? '',
+                'branches_count' => $this->branches->countForShop($shop->id),
                 'setup_completed' => $shop->setup_completed_at !== null,
             ],
             'plan' => [
@@ -60,13 +68,32 @@ class ShopSetupService
             throw new ShopSetupException('Multiple locations are available on the Premium plan.');
         }
 
-        return DB::transaction(fn () => $this->shops->updateSetup($shop, [
-            'location_mode' => $data['location_mode'],
-            'offers_pickup' => (bool) $data['offers_pickup'],
-            'offers_delivery' => (bool) $data['offers_delivery'],
-            'setup_completed_at' => $shop->setup_completed_at ?? now(),
-            'status' => 'active',
-        ]));
+        $newBranches = $data['branches'] ?? [];
+        if ($data['location_mode'] === Shop::LOCATION_MULTIPLE
+            && $this->branches->countForShop($shop->id) === 0
+            && $newBranches === []) {
+            throw new ShopSetupException('Add at least one branch with its location and permits.');
+        }
+
+        return DB::transaction(function () use ($shop, $owner, $data, $newBranches): Shop {
+            $isFranchise = $data['ownership_type'] === Shop::OWNERSHIP_FRANCHISEE;
+            $updatedShop = $this->shops->updateSetup($shop, [
+                'ownership_type' => $data['ownership_type'],
+                'franchise_brand_name' => $isFranchise ? $data['franchise_brand_name'] : null,
+                'franchisor_name' => $isFranchise ? $data['franchisor_name'] : null,
+                'location_mode' => $data['location_mode'],
+                'offers_pickup' => (bool) $data['offers_pickup'],
+                'offers_delivery' => (bool) $data['offers_delivery'],
+                'setup_completed_at' => $shop->setup_completed_at ?? now(),
+                'status' => 'active',
+            ]);
+
+            foreach ($newBranches as $branchData) {
+                $this->createBranch($shop->id, $owner->id, $branchData);
+            }
+
+            return $updatedShop;
+        });
     }
 
     public function needsSetup(User $owner): bool
@@ -144,5 +171,48 @@ class ShopSetupService
     private function allowsMultipleLocations(Order $order): bool
     {
         return $order->is_trial || $order->plan_name === 'Premium';
+    }
+
+    private function createBranch(int $shopId, int $ownerId, array $data): void
+    {
+        $branch = $this->branches->createForShop($shopId, [
+            'branch_code' => 'B-'.Str::upper(Str::random(10)),
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?? null,
+            'address' => collect([
+                $data['block_street'],
+                $data['barangay'],
+                $data['municipality'],
+                $data['postal_code'],
+            ])->filter()->implode(', '),
+            'block_street' => $data['block_street'],
+            'municipality' => $data['municipality'],
+            'barangay' => $data['barangay'],
+            'postal_code' => $data['postal_code'],
+            'mayors_permit_number' => $data['mayors_permit_number'],
+            'mayors_expiry_date' => $data['mayors_expiry_date'],
+            'sanitary_permit_number' => $data['sanitary_permit_number'] ?? null,
+            'sanitary_expiry_date' => $data['sanitary_expiry_date'] ?? null,
+            'permit_status' => 'submitted',
+            'status' => 'Active',
+            'created_by' => $ownerId,
+            'updated_by' => $ownerId,
+        ]);
+
+        $paths = [];
+        foreach (['mayors_permit', 'sanitary_permit'] as $permit) {
+            $file = $data[$permit] ?? null;
+            if ($file instanceof UploadedFile) {
+                $path = $file->store("branch-permits/{$branch->id}", 'private');
+                if (! $path) {
+                    throw new ShopSetupException('A branch permit could not be stored. Please try again.');
+                }
+                $paths["{$permit}_path"] = $path;
+            }
+        }
+
+        if ($paths !== []) {
+            $this->branches->update($branch, $paths);
+        }
     }
 }

@@ -33,15 +33,15 @@ class PromotionService
     public function create(Shop $shop, array $data): Promotion
     {
         $promotion = $this->repo->create([
-            'shop_id'          => $shop->id,
-            'name'             => $data['name'],
-            'description'      => $data['description'] ?? null,
-            'type'             => $data['type'],
-            'value'            => $data['value'],
+            'shop_id' => $shop->id,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'type' => $data['type'],
+            'value' => $data['value'],
             'min_order_amount' => $data['min_order_amount'] ?? null,
-            'is_active'        => $data['is_active'] ?? true,
-            'starts_at'        => $data['starts_at'] ?? null,
-            'ends_at'          => $data['ends_at'] ?? null,
+            'is_active' => $data['is_active'] ?? true,
+            'starts_at' => $data['starts_at'] ?? null,
+            'ends_at' => $data['ends_at'] ?? null,
         ]);
 
         $this->activityLogService->log(
@@ -57,14 +57,14 @@ class PromotionService
     public function update(Promotion $promotion, array $data): Promotion
     {
         $updated = $this->repo->update($promotion, [
-            'name'             => $data['name'],
-            'description'      => $data['description'] ?? null,
-            'type'             => $data['type'],
-            'value'            => $data['value'],
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'type' => $data['type'],
+            'value' => $data['value'],
             'min_order_amount' => $data['min_order_amount'] ?? null,
-            'is_active'        => $data['is_active'] ?? $promotion->is_active,
-            'starts_at'        => $data['starts_at'] ?? null,
-            'ends_at'          => $data['ends_at'] ?? null,
+            'is_active' => $data['is_active'] ?? $promotion->is_active,
+            'starts_at' => $data['starts_at'] ?? null,
+            'ends_at' => $data['ends_at'] ?? null,
         ]);
 
         $this->activityLogService->log(
@@ -79,7 +79,8 @@ class PromotionService
 
     public function toggleActive(Promotion $promotion): Promotion
     {
-        $this->repo->update($promotion, ['is_active' => !$promotion->is_active]);
+        $this->repo->update($promotion, ['is_active' => ! $promotion->is_active]);
+
         return $promotion->fresh();
     }
 
@@ -112,11 +113,11 @@ class PromotionService
         $all = Promotion::where('shop_id', $shop->id);
 
         return [
-            'total'      => (clone $all)->count(),
-            'active'     => (clone $all)->where('is_active', true)->count(),
-            'inactive'   => (clone $all)->where('is_active', false)->count(),
+            'total' => (clone $all)->count(),
+            'active' => (clone $all)->where('is_active', true)->count(),
+            'inactive' => (clone $all)->where('is_active', false)->count(),
             'percentage' => (clone $all)->where('type', 'percentage')->count(),
-            'fixed'      => (clone $all)->where('type', 'fixed')->count(),
+            'fixed' => (clone $all)->where('type', 'fixed')->count(),
         ];
     }
 }

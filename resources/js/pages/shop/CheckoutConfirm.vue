@@ -71,6 +71,9 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
+const signatureImageError = computed(
+    () => page.props.errors?.signature_image as string | undefined,
+);
 watch(
     () => (page.props.flash as any)?.checkout_url,
     (url) => {
@@ -1059,11 +1062,7 @@ function proceedToPayment() {
 
                         <AgreementSignatureInput
                             v-model="signatureImage"
-                            :error="
-                                page.props.errors?.signature_image as
-                                    | string
-                                    | undefined
-                            "
+                            :error="signatureImageError"
                             @update:method="signatureMethod = $event"
                         />
 

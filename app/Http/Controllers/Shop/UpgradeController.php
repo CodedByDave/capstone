@@ -22,7 +22,7 @@ class UpgradeController extends Controller
     private const PLAN_RANK = ['Basic' => 1, 'Standard' => 2, 'Premium' => 3];
 
     public function __construct(
-        protected OrderService   $orderService,
+        protected OrderService $orderService,
         protected PaymentService $paymentService,
         protected PaymongoService $paymongoService
     ) {}
@@ -40,14 +40,14 @@ class UpgradeController extends Controller
 
         $currentPlan = $currentOrder?->plan_name ?? null;
         $currentRank = self::PLAN_RANK[$currentPlan ?? ''] ?? 0;
-        $isExpired   = $currentOrder?->status === 'expired';
-        $isTrial     = (bool) ($currentOrder?->is_trial ?? false);
+        $isExpired = $currentOrder?->status === 'expired';
+        $isTrial = (bool) ($currentOrder?->is_trial ?? false);
 
         // Trial (expired or active): all plans available — user is choosing their first paid plan
         // Expired paid plan: allow renewing same plan (rank >=) or upgrading
         // Active paid plan: only allow upgrading to a strictly higher plan (rank >)
         $availableUpgrades = array_keys(
-            array_filter(self::PLAN_RANK, fn($rank) => ($isTrial || $isExpired && $isTrial)
+            array_filter(self::PLAN_RANK, fn ($rank) => ($isTrial || $isExpired && $isTrial)
                 ? true                    // trial → any plan
                 : ($isExpired
                     ? $rank >= $currentRank   // renew same or upgrade
@@ -57,12 +57,12 @@ class UpgradeController extends Controller
         );
 
         return Inertia::render('shop/Upgrade', [
-            'currentPlan'       => $currentPlan,
-            'currentExpiresAt'  => $currentOrder?->expires_at,
+            'currentPlan' => $currentPlan,
+            'currentExpiresAt' => $currentOrder?->expires_at,
             'availableUpgrades' => $availableUpgrades,
-            'isExpired'         => $isExpired,
-            'isTrial'           => $isTrial,
-            'vatPct'            => 12,
+            'isExpired' => $isExpired,
+            'isTrial' => $isTrial,
+            'vatPct' => 12,
         ]);
     }
 
@@ -71,22 +71,22 @@ class UpgradeController extends Controller
     public function select(Request $request): RedirectResponse
     {
         $request->validate([
-            'plan_name'      => 'required|string|in:Basic,Standard,Premium',
+            'plan_name' => 'required|string|in:Basic,Standard,Premium',
             'billing_months' => 'required|integer|in:1,12,24,48',
-            'discount_pct'   => 'required|integer',
-            'monthly_price'  => 'required|integer',
-            'total_amount'   => 'required|integer',
+            'discount_pct' => 'required|integer',
+            'monthly_price' => 'required|integer',
+            'total_amount' => 'required|integer',
         ]);
 
-        $user         = auth()->user();
+        $user = auth()->user();
         $currentOrder = Order::where('user_id', $user->id)
             ->whereNotIn('status', ['rejected'])
             ->latest()
             ->first();
 
-        $isExpired    = $currentOrder?->status === 'expired';
-        $isTrial      = (bool) ($currentOrder?->is_trial ?? false);
-        $currentRank  = self::PLAN_RANK[$currentOrder?->plan_name ?? ''] ?? 0;
+        $isExpired = $currentOrder?->status === 'expired';
+        $isTrial = (bool) ($currentOrder?->is_trial ?? false);
+        $currentRank = self::PLAN_RANK[$currentOrder?->plan_name ?? ''] ?? 0;
         $selectedRank = self::PLAN_RANK[$request->plan_name] ?? 0;
 
         // Trial → any plan is valid. Expired → same or higher. Active → strictly higher.
@@ -94,19 +94,19 @@ class UpgradeController extends Controller
 
         if ($invalid) {
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'You can only upgrade to a higher plan.',
             ]);
         }
 
         session([
             'upgrade_checkout' => [
-                'plan_name'      => $request->plan_name,
+                'plan_name' => $request->plan_name,
                 'billing_months' => $request->billing_months,
-                'discount_pct'   => $request->discount_pct,
-                'monthly_price'  => $request->monthly_price,
-                'total_amount'   => $request->total_amount,
-            ]
+                'discount_pct' => $request->discount_pct,
+                'monthly_price' => $request->monthly_price,
+                'total_amount' => $request->total_amount,
+            ],
         ]);
 
         return redirect()->route('shop.upgrade.confirm');
@@ -119,11 +119,11 @@ class UpgradeController extends Controller
         // If payment was just processed, forward to PayMongo (paid→upgrade path only)
         if (session('upgrade_checkout_url')) {
             return Inertia::render('shop/UpgradeConfirm', [
-                'planName'      => session('upgrade_plan_name', 'Standard'),
+                'planName' => session('upgrade_plan_name', 'Standard'),
                 'billingMonths' => session('upgrade_billing_months', 1),
-                'vatPct'        => 12,
-                'checkoutUrl'   => session('upgrade_checkout_url'),
-                'requiresKyc'   => false,
+                'vatPct' => 12,
+                'checkoutUrl' => session('upgrade_checkout_url'),
+                'requiresKyc' => false,
             ]);
         }
 
@@ -131,13 +131,13 @@ class UpgradeController extends Controller
 
         if (! $checkout) {
             return redirect()->route('shop.upgrade')->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'No upgrade plan selected.',
             ]);
         }
 
-        $user         = auth()->user();
-        $shop         = Shop::where('owner_id', $user->id)->first();
+        $user = auth()->user();
+        $shop = Shop::where('owner_id', $user->id)->first();
         $currentOrder = Order::where('user_id', $user->id)
             ->whereNotIn('status', ['rejected'])
             ->latest()
@@ -145,22 +145,22 @@ class UpgradeController extends Controller
         $isTrial = (bool) ($currentOrder?->is_trial ?? false);
 
         return Inertia::render('shop/UpgradeConfirm', [
-            'planName'      => $checkout['plan_name'],
+            'planName' => $checkout['plan_name'],
             'billingMonths' => (int) $checkout['billing_months'],
-            'vatPct'        => 12,
-            'checkoutUrl'   => null,
-            'requiresKyc'   => $isTrial,
+            'vatPct' => 12,
+            'checkoutUrl' => null,
+            'requiresKyc' => $isTrial,
             'user' => [
-                'name'  => $user->name,
+                'name' => $user->name,
                 'email' => $user->email,
             ],
             'shop' => $shop ? [
-                'shop_name'    => $shop->shop_name,
-                'phone'        => $shop->phone ?? '',
+                'shop_name' => $shop->shop_name,
+                'phone' => $shop->phone ?? '',
                 'block_street' => $shop->block_street ?? '',
                 'municipality' => $shop->municipality ?? '',
-                'barangay'     => $shop->barangay ?? '',
-                'postal_code'  => $shop->postal_code ?? '',
+                'barangay' => $shop->barangay ?? '',
+                'postal_code' => $shop->postal_code ?? '',
             ] : null,
         ]);
     }
@@ -170,37 +170,37 @@ class UpgradeController extends Controller
     public function process(StoreUpgradeRequest $request): RedirectResponse
     {
         try {
-            $user         = auth()->user();
+            $user = auth()->user();
             $currentOrder = Order::where('user_id', $user->id)
                 ->whereNotIn('status', ['rejected'])
                 ->latest()
                 ->first();
 
-            $planName      = $request->validated()['plan_name'];
+            $planName = $request->validated()['plan_name'];
             $billingMonths = (int) $request->validated()['billing_months'];
 
-            $isExpired    = $currentOrder?->status === 'expired';
-            $isTrial      = (bool) ($currentOrder?->is_trial ?? false);
-            $currentRank  = self::PLAN_RANK[$currentOrder?->plan_name ?? ''] ?? 0;
+            $isExpired = $currentOrder?->status === 'expired';
+            $isTrial = (bool) ($currentOrder?->is_trial ?? false);
+            $currentRank = self::PLAN_RANK[$currentOrder?->plan_name ?? ''] ?? 0;
             $selectedRank = self::PLAN_RANK[$planName] ?? 0;
 
             $invalid = $isTrial ? false : ($isExpired ? $selectedRank < $currentRank : $selectedRank <= $currentRank);
 
             if ($invalid) {
                 return back()->with('toast', [
-                    'type'    => 'error',
+                    'type' => 'error',
                     'message' => 'You can only upgrade to a higher plan.',
                 ]);
             }
 
-            $planPrices   = ['Basic' => 3800, 'Standard' => 6300, 'Premium' => 8000];
-            $discounts    = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
-            $basePrice    = $planPrices[$planName];
-            $discountPct  = $discounts[$billingMonths] ?? 0;
+            $planPrices = ['Basic' => 3800, 'Standard' => 6300, 'Premium' => 8000];
+            $discounts = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
+            $basePrice = $planPrices[$planName];
+            $discountPct = $discounts[$billingMonths] ?? 0;
             $monthlyPrice = $basePrice * (1 - $discountPct / 100);
-            $subtotal     = $monthlyPrice * $billingMonths;
-            $vatAmount    = round($subtotal * 0.12);
-            $grandTotal   = $subtotal + $vatAmount;
+            $subtotal = $monthlyPrice * $billingMonths;
+            $vatAmount = round($subtotal * 0.12);
+            $grandTotal = $subtotal + $vatAmount;
 
             $shop = Shop::where('owner_id', $user->id)->firstOrFail();
 
@@ -209,22 +209,22 @@ class UpgradeController extends Controller
                 // Do NOT auto-approve or go to PayMongo yet.
                 $order = DB::transaction(function () use ($request, $user, $shop, $planName, $billingMonths, $grandTotal) {
                     $order = $this->orderService->create([
-                        'shop_name'          => $shop->shop_name,
-                        'phone'              => $shop->phone ?? '',
-                        'block_street'       => $shop->block_street ?? '',
-                        'municipality'       => $shop->municipality ?? '',
-                        'barangay'           => $shop->barangay ?? '',
-                        'postal_code'        => $shop->postal_code ?? '',
-                        'owner_name'         => $user->name,
-                        'email'              => $user->email,
-                        'user_id'            => $user->id,
-                        'plan_name'          => $planName,
-                        'billing_months'     => $billingMonths,
-                        'total_price'        => $grandTotal,
-                        'bir_expiry_date'     => $request->validated()['bir_expiry_date'],
-                        'dti_expiry_date'     => $request->validated()['dti_expiry_date'],
-                        'mayors_expiry_date'  => $request->validated()['mayors_expiry_date'],
-                        'sanitary_expiry_date'=> $request->validated()['sanitary_expiry_date'] ?? null,
+                        'shop_name' => $shop->shop_name,
+                        'phone' => $shop->phone ?? '',
+                        'block_street' => $shop->block_street ?? '',
+                        'municipality' => $shop->municipality ?? '',
+                        'barangay' => $shop->barangay ?? '',
+                        'postal_code' => $shop->postal_code ?? '',
+                        'owner_name' => $user->name,
+                        'email' => $user->email,
+                        'user_id' => $user->id,
+                        'plan_name' => $planName,
+                        'billing_months' => $billingMonths,
+                        'total_price' => $grandTotal,
+                        'bir_expiry_date' => $request->validated()['bir_expiry_date'],
+                        'dti_expiry_date' => $request->validated()['dti_expiry_date'],
+                        'mayors_expiry_date' => $request->validated()['mayors_expiry_date'],
+                        'sanitary_expiry_date' => $request->validated()['sanitary_expiry_date'] ?? null,
                     ]);
 
                     $kycPaths = [];
@@ -233,7 +233,7 @@ class UpgradeController extends Controller
                             $kycPaths[$key] = $request->file($key)->store("kyc/{$order->id}", 'private');
                         }
                     }
-                    if (!empty($kycPaths)) {
+                    if (! empty($kycPaths)) {
                         Order::where('id', $order->id)->update($kycPaths);
                     }
 
@@ -243,9 +243,9 @@ class UpgradeController extends Controller
                 session()->forget('upgrade_checkout');
 
                 Log::info('Trial → paid plan submitted for admin review', [
-                    'user_id'  => $user->id,
+                    'user_id' => $user->id,
                     'order_id' => $order->id,
-                    'plan'     => $planName,
+                    'plan' => $planName,
                 ]);
 
                 return Inertia::location(route('shop.dashboard'));
@@ -254,18 +254,18 @@ class UpgradeController extends Controller
             // ── Paid → upgrade: auto-approve after PayMongo payment ───────────
             [$order, $payment] = DB::transaction(function () use ($request, $user, $shop, $planName, $billingMonths, $grandTotal) {
                 $order = $this->orderService->create([
-                    'shop_name'      => $shop->shop_name,
-                    'phone'          => $shop->phone ?? '',
-                    'block_street'   => $shop->block_street ?? '',
-                    'municipality'   => $shop->municipality ?? '',
-                    'barangay'       => $shop->barangay ?? '',
-                    'postal_code'    => $shop->postal_code ?? '',
-                    'owner_name'     => $user->name,
-                    'email'          => $user->email,
-                    'user_id'        => $user->id,
-                    'plan_name'      => $planName,
+                    'shop_name' => $shop->shop_name,
+                    'phone' => $shop->phone ?? '',
+                    'block_street' => $shop->block_street ?? '',
+                    'municipality' => $shop->municipality ?? '',
+                    'barangay' => $shop->barangay ?? '',
+                    'postal_code' => $shop->postal_code ?? '',
+                    'owner_name' => $user->name,
+                    'email' => $user->email,
+                    'user_id' => $user->id,
+                    'plan_name' => $planName,
                     'billing_months' => $billingMonths,
-                    'total_price'    => $grandTotal,
+                    'total_price' => $grandTotal,
                     'payment_method' => $request->validated()['payment_method'],
                 ]);
 
@@ -273,7 +273,7 @@ class UpgradeController extends Controller
 
                 $payment = $this->paymentService->createForOrder($order, [
                     'payment_method' => $request->validated()['payment_method'],
-                    'amount'         => $grandTotal,
+                    'amount' => $grandTotal,
                 ]);
 
                 return [$order, $payment];
@@ -287,22 +287,22 @@ class UpgradeController extends Controller
 
             session()->forget('upgrade_checkout');
             session([
-                'upgrade_checkout_url'   => $session['data']['attributes']['checkout_url'],
-                'upgrade_plan_name'      => $planName,
+                'upgrade_checkout_url' => $session['data']['attributes']['checkout_url'],
+                'upgrade_plan_name' => $planName,
                 'upgrade_billing_months' => $billingMonths,
-                'pending_order_id'       => $order->id,
+                'pending_order_id' => $order->id,
             ]);
 
             return redirect()->route('shop.upgrade.confirm');
         } catch (\Exception $e) {
             Log::error('=== UPGRADE FAILED ===', [
                 'error' => $e->getMessage(),
-                'file'  => $e->getFile(),
-                'line'  => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return back()->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'Something went wrong. Please try again.',
             ]);
         }

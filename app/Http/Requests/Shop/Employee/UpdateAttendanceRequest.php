@@ -14,10 +14,10 @@ class UpdateAttendanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status'   => ['required', 'string', 'in:present,absent,late,half_day'],
-            'time_in'  => ['nullable', 'date_format:H:i'],
+            'status' => ['required', 'string', 'in:present,absent,late,half_day'],
+            'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
-            'remarks'  => ['nullable', 'string', 'max:255'],
+            'remarks' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

@@ -134,6 +134,12 @@ const form = ref({
     manager_employee_id: UNASSIGNED_MANAGER,
     opened_at: '',
     status: 'Active' as 'Active' | 'Inactive',
+    mayors_permit_number: '',
+    mayors_permit: null as File | null,
+    mayors_expiry_date: '',
+    sanitary_permit_number: '',
+    sanitary_permit: null as File | null,
+    sanitary_expiry_date: '',
 });
 
 const isSubmitting = ref(false);
@@ -156,8 +162,15 @@ function submit() {
             opened_at: form.value.opened_at,
             status: form.value.status,
             address: fullAddress.value || null,
+            mayors_permit_number: form.value.mayors_permit_number,
+            mayors_permit: form.value.mayors_permit,
+            mayors_expiry_date: form.value.mayors_expiry_date,
+            sanitary_permit_number: form.value.sanitary_permit_number,
+            sanitary_permit: form.value.sanitary_permit,
+            sanitary_expiry_date: form.value.sanitary_expiry_date,
         },
         {
+            forceFormData: true,
             preserveScroll: true,
             onError: () => {
                 toast.error('Failed to create branch', {
@@ -478,6 +491,151 @@ function submit() {
                 <p v-if="errors.address" class="text-xs text-red-500">
                     {{ errors.address }}
                 </p>
+            </div>
+
+            <div class="space-y-4 rounded-lg border p-4">
+                <div>
+                    <p
+                        class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+                    >
+                        Branch Permits
+                    </p>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Upload the permits issued for this specific branch
+                        location. PDF, JPG, or PNG; maximum 5 MB each.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium"
+                            >Mayor's Permit Number
+                            <span class="text-red-500">*</span></label
+                        >
+                        <Input
+                            v-model="form.mayors_permit_number"
+                            :class="{
+                                'border-red-500': errors.mayors_permit_number,
+                            }"
+                        />
+                        <p
+                            v-if="errors.mayors_permit_number"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.mayors_permit_number }}
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium"
+                            >Mayor's Permit File
+                            <span class="text-red-500">*</span></label
+                        >
+                        <Input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            :class="{
+                                'border-red-500': errors.mayors_permit,
+                            }"
+                            @change="
+                                form.mayors_permit =
+                                    ($event.target as HTMLInputElement)
+                                        .files?.[0] ?? null
+                            "
+                        />
+                        <p
+                            v-if="errors.mayors_permit"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.mayors_permit }}
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium"
+                            >Expiry Date
+                            <span class="text-red-500">*</span></label
+                        >
+                        <Input
+                            v-model="form.mayors_expiry_date"
+                            type="date"
+                            :class="{
+                                'border-red-500': errors.mayors_expiry_date,
+                            }"
+                        />
+                        <p
+                            v-if="errors.mayors_expiry_date"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.mayors_expiry_date }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium"
+                            >Sanitary Permit Number
+                            <span class="text-muted-foreground"
+                                >(optional)</span
+                            ></label
+                        >
+                        <Input
+                            v-model="form.sanitary_permit_number"
+                            :class="{
+                                'border-red-500': errors.sanitary_permit_number,
+                            }"
+                        />
+                        <p
+                            v-if="errors.sanitary_permit_number"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.sanitary_permit_number }}
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium"
+                            >Sanitary Permit File
+                            <span class="text-muted-foreground"
+                                >(optional)</span
+                            ></label
+                        >
+                        <Input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            :class="{
+                                'border-red-500': errors.sanitary_permit,
+                            }"
+                            @change="
+                                form.sanitary_permit =
+                                    ($event.target as HTMLInputElement)
+                                        .files?.[0] ?? null
+                            "
+                        />
+                        <p
+                            v-if="errors.sanitary_permit"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.sanitary_permit }}
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium"
+                            >Sanitary Permit Expiry</label
+                        >
+                        <Input
+                            v-model="form.sanitary_expiry_date"
+                            type="date"
+                            :class="{
+                                'border-red-500': errors.sanitary_expiry_date,
+                            }"
+                        />
+                        <p
+                            v-if="errors.sanitary_expiry_date"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.sanitary_expiry_date }}
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <!-- ── Actions ───────────────────────────────────────────────── -->

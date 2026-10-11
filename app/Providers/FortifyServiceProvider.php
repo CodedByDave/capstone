@@ -16,6 +16,7 @@ use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Contracts\RegisterResponse;
+use Laravel\Fortify\Contracts\VerifyEmailResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -26,7 +27,8 @@ class FortifyServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(RegisterResponse::class, \App\Http\Responses\RegisterResponse::class);
-        $this->app->singleton(LoginResponse::class,    \App\Http\Responses\LoginResponse::class);
+        $this->app->singleton(LoginResponse::class, \App\Http\Responses\LoginResponse::class);
+        $this->app->singleton(VerifyEmailResponse::class, \App\Http\Responses\VerifyEmailResponse::class);
     }
 
     // ── Boot ──────────────────────────────────────────────────────────────────
@@ -66,28 +68,28 @@ class FortifyServiceProvider extends ServiceProvider
 
     private function configureViews(): void
     {
-        Fortify::loginView(fn(Request $request) => Inertia::render('auth/Login', [
+        Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister'      => Features::enabled(Features::registration()),
-            'status'           => $request->session()->get('status'),
+            'canRegister' => Features::enabled(Features::registration()),
+            'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::resetPasswordView(fn(Request $request) => Inertia::render('auth/ResetPassword', [
+        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/ResetPassword', [
             'email' => $request->email,
             'token' => $request->route('token'),
         ]));
 
-        Fortify::requestPasswordResetLinkView(fn(Request $request) => Inertia::render('auth/ForgotPassword', [
+        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/ForgotPassword', [
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::verifyEmailView(fn(Request $request) => Inertia::render('auth/VerifyEmail', [
+        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/VerifyEmail', [
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn() => Inertia::render('auth/Register'));
-        Fortify::twoFactorChallengeView(fn() => Inertia::render('auth/TwoFactorChallenge'));
-        Fortify::confirmPasswordView(fn() => Inertia::render('auth/ConfirmPassword'));
+        Fortify::registerView(fn () => Inertia::render('auth/Register'));
+        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
+        Fortify::confirmPasswordView(fn () => Inertia::render('auth/ConfirmPassword'));
     }
 
     // ── Rate Limiting ─────────────────────────────────────────────────────────
@@ -100,15 +102,15 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(
-                Str::lower($request->input(Fortify::username())) . '|' . $request->ip()
+                Str::lower($request->input(Fortify::username())).'|'.$request->ip()
             );
 
             $attempts = RateLimiter::attempts($throttleKey);
 
             $minutes = match (true) {
                 $attempts >= 10 => 10,
-                $attempts >= 5  => 5,
-                default         => 1,
+                $attempts >= 5 => 5,
+                default => 1,
             };
 
             return Limit::perMinutes($minutes, 5)->by($throttleKey);

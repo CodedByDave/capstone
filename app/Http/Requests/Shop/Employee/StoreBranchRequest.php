@@ -23,6 +23,12 @@ class StoreBranchRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:500'],
             'opened_at' => ['nullable', 'date'],
             'status' => ['required', 'in:Active,Inactive'],
+            'mayors_permit_number' => ['required', 'string', 'max:100'],
+            'mayors_permit' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'mayors_expiry_date' => ['required', 'date', 'after:today'],
+            'sanitary_permit_number' => ['nullable', 'string', 'max:100'],
+            'sanitary_permit' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'sanitary_expiry_date' => ['nullable', 'date', 'after:today', 'required_with:sanitary_permit'],
         ];
     }
 
@@ -35,6 +41,8 @@ class StoreBranchRequest extends FormRequest
             'status.required' => 'Status is required.',
             'status.in' => 'Status must be Active or Inactive.',
             'email.email' => 'Please enter a valid email address.',
+            'mayors_permit.required' => "Upload this branch's Mayor's permit.",
+            'mayors_expiry_date.after' => "The Mayor's permit expiry date must be in the future.",
         ];
     }
 }

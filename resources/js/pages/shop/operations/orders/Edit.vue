@@ -555,9 +555,7 @@ const submit = () => {
                                 v-if="selectedPromotion && promoDiscount > 0"
                                 class="text-xs text-green-600"
                             >
-                                Discount: ₱{{
-                                    promoDiscount.toFixed(2)
-                                }}
+                                Discount: ₱{{ promoDiscount.toFixed(2) }}
                                 applied
                             </p>
                             <p

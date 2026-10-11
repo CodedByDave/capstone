@@ -34,18 +34,18 @@ class InventoryMovementRepository extends Repository
         ?string $notes = null
     ): InventoryMovement {
         $before = $inventory->quantity;
-        $after  = $before + $quantity;
+        $after = $before + $quantity;
 
         return $this->create([
-            'inventory_id'     => $inventory->id,
-            'shop_id'          => $inventory->shop_id,
-            'user_id'          => $userId,
-            'type'             => $type,
-            'quantity'         => $quantity,
-            'quantity_before'  => $before,
-            'quantity_after'   => $after,
+            'inventory_id' => $inventory->id,
+            'shop_id' => $inventory->shop_id,
+            'user_id' => $userId,
+            'type' => $type,
+            'quantity' => $quantity,
+            'quantity_before' => $before,
+            'quantity_after' => $after,
             'reference_number' => $referenceNumber,
-            'notes'            => $notes,
+            'notes' => $notes,
         ]);
     }
 

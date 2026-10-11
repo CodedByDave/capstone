@@ -14,14 +14,18 @@ class CheckPermission
     {
         $user = $request->user();
 
-        if (!$user) return redirect()->route('login');
-        if ($user->role === 'owner') return $next($request);
+        if (! $user) {
+            return redirect()->route('login');
+        }
+        if ($user->role === 'owner') {
+            return $next($request);
+        }
 
         $employee = Employee::where('user_id', $user->id)->with('roles')->first();
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('staff.dashboard')->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'No employee record found.',
             ]);
         }
@@ -30,7 +34,7 @@ class CheckPermission
 
         if (empty($roles)) {
             return redirect()->route('staff.dashboard')->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'No roles assigned to your account.',
             ]);
         }
@@ -42,17 +46,17 @@ class CheckPermission
             ->exists();
 
         Log::info('CheckPermission debug', [
-            'user_id'        => $user->id,
-            'module'         => $module,
-            'action'         => $action,
-            'roles'          => $roles,
-            'shop_id'        => $employee->shop_id,
+            'user_id' => $user->id,
+            'module' => $module,
+            'action' => $action,
+            'roles' => $roles,
+            'shop_id' => $employee->shop_id,
             'has_permission' => $hasPermission,
         ]);
 
-        if (!$hasPermission) {
+        if (! $hasPermission) {
             return redirect()->route('staff.dashboard')->with('toast', [
-                'type'    => 'error',
+                'type' => 'error',
                 'message' => 'You do not have permission to access this page.',
             ]);
         }

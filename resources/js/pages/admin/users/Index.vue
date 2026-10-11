@@ -31,7 +31,6 @@ import {
     Search,
     Trash2,
     Upload,
-    User,
     Users,
 } from 'lucide-vue-next';
 
@@ -253,15 +252,19 @@ const allSelected = computed(
 );
 
 function toggleAll() {
-    allSelected.value
-        ? (selected.value = [])
-        : (selected.value = props.users.data.map((u) => u.id));
+    if (allSelected.value) {
+        selected.value = [];
+    } else {
+        selected.value = props.users.data.map((u) => u.id);
+    }
 }
 
 function toggleOne(id: number) {
-    selected.value.includes(id)
-        ? (selected.value = selected.value.filter((i) => i !== id))
-        : selected.value.push(id);
+    if (selected.value.includes(id)) {
+        selected.value = selected.value.filter((i) => i !== id);
+    } else {
+        selected.value.push(id);
+    }
 }
 
 // ─── Archive single ───────────────────────────────────────────────────────────
@@ -655,7 +658,10 @@ const tableItems = computed(() =>
                     <Button variant="outline" @click="cancelArchive"
                         >Cancel</Button
                     >
-                    <Button variant="outline" @click="confirmArchive" class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                    <Button
+                        variant="outline"
+                        @click="confirmArchive"
+                        class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
                         >Archive</Button
                     >
                 </AlertDialogFooter>

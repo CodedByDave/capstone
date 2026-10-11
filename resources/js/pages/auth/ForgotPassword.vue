@@ -20,7 +20,10 @@ defineProps<{
     >
         <Head title="Forgot password" />
 
-        <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
+        <div
+            v-if="status"
+            class="mb-4 text-center text-sm font-medium text-green-600"
+        >
             {{ status }}
         </div>
 
@@ -40,7 +43,11 @@ defineProps<{
                 </div>
 
                 <div class="my-6 flex items-center justify-start">
-                    <Button class="w-full" :disabled="processing" data-test="email-password-reset-link-button">
+                    <Button
+                        class="w-full"
+                        :disabled="processing"
+                        data-test="email-password-reset-link-button"
+                    >
                         <Spinner v-if="processing" />
                         Email password reset link
                     </Button>
@@ -49,8 +56,10 @@ defineProps<{
 
             <div class="space-x-1 text-center text-sm text-muted-foreground">
                 <span>Or, return to</span>
-                <a @click.prevent="router.visit('/login')"
-                    class="underline text-primary hover:text-primary/80 cursor-pointer">
+                <a
+                    @click.prevent="router.visit('/login')"
+                    class="cursor-pointer text-primary underline hover:text-primary/80"
+                >
                     log in
                 </a>
             </div>

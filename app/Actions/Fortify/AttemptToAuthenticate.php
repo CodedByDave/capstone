@@ -2,15 +2,13 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\User;
 use App\Services\LoginLogService;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Contracts\Auth\StatefulGuard;
-use Illuminate\Validation\ValidationException;
-use Laravel\Fortify\Actions\AttemptToAuthenticate as FortifyAttemptToAuthenticate;
-use Laravel\Fortify\Fortify;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Fortify;
 
 class AttemptToAuthenticate
 {
@@ -23,7 +21,7 @@ class AttemptToAuthenticate
     {
         $credentials = [
             Fortify::username() => $request->input(Fortify::username()),
-            'password'          => $request->input('password'),
+            'password' => $request->input('password'),
         ];
 
         if ($this->guard->attempt($credentials, $request->boolean('remember'))) {

@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ShopService extends Model
 {
@@ -26,10 +26,10 @@ class ShopService extends Model
     ];
 
     protected $casts = [
-        'is_active'        => 'boolean',
-        'price_per_kg'     => 'decimal:2',
+        'is_active' => 'boolean',
+        'price_per_kg' => 'decimal:2',
         'bundle_weight_kg' => 'decimal:2',
-        'bundle_price'     => 'decimal:2',
+        'bundle_price' => 'decimal:2',
     ];
 
     const PRICING_MODELS = ['per_kg', 'per_bundle'];

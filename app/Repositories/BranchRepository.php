@@ -81,6 +81,16 @@ class BranchRepository extends Repository
             ->pluck('name');
     }
 
+    public function countForShop(int $shopId): int
+    {
+        return $this->query()->where('shop_id', $shopId)->count();
+    }
+
+    public function createForShop(int $shopId, array $data): Branch
+    {
+        return $this->query()->create([...$data, 'shop_id' => $shopId]);
+    }
+
     public function statsForShop(int $shopId, ?string $branch = null): array
     {
         $base = $this->query()->where('shop_id', $shopId)

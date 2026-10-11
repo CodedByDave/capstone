@@ -9,7 +9,7 @@ class ShopRole extends Model
     protected $fillable = [
         'shop_id',
         'name',
-        'is_default'
+        'is_default',
     ];
 
     public function shop()
