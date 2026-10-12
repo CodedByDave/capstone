@@ -95,6 +95,12 @@ function openNotification(notification: ShopNotification) {
                             "
                             class="h-5 w-5"
                         />
+                        <CheckCircle2
+                            v-else-if="
+                                notification.data.type === 'order_approved'
+                            "
+                            class="h-5 w-5"
+                        />
                         <Bell v-else class="h-5 w-5" />
                     </span>
                     <span class="min-w-0 flex-1">

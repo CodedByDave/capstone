@@ -10,7 +10,9 @@ return new class extends Migration
     public function up(): void
     {
         // Extend payment_method enum to include 'online' (PayMongo-processed)
-        DB::statement("ALTER TABLE shop_orders MODIFY payment_method ENUM('cash','gcash','maya','online') NULL DEFAULT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE shop_orders MODIFY payment_method ENUM('cash','gcash','maya','online') NULL DEFAULT NULL");
+        }
 
         Schema::table('shop_orders', function (Blueprint $table) {
             $table->string('paymongo_session_id')->nullable()->after('paid_at');
@@ -24,6 +26,8 @@ return new class extends Migration
             $table->dropColumn(['paymongo_session_id', 'paymongo_payment_id']);
         });
 
-        DB::statement("ALTER TABLE shop_orders MODIFY payment_method ENUM('cash','gcash','maya') NULL DEFAULT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE shop_orders MODIFY payment_method ENUM('cash','gcash','maya') NULL DEFAULT NULL");
+        }
     }
 };

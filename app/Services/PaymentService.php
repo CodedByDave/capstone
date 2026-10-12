@@ -83,7 +83,52 @@ class PaymentService
             }
         }
 
-        return $this->receiptData($order);
+        return $this->receiptData($order, $payment);
+    }
+
+    public function historyFor(User $user, array $filters): array
+    {
+        $payments = $this->paymentRepository->paidHistoryForUser($user->id, $filters);
+        $payments->through(fn (Payment $payment) => [
+            'id' => $payment->id,
+            'transaction_reference' => $payment->order->transaction_reference,
+            'order_public_id' => $payment->order->public_id,
+            'shop_name' => $payment->order->shop_name,
+            'plan_name' => $payment->order->plan_name,
+            'billing_months' => $payment->order->billing_months,
+            'payment_method' => $payment->payment_method,
+            'amount' => (float) $payment->amount,
+            'paid_at' => $payment->paid_at?->toIso8601String(),
+            'expires_at' => $payment->order->expires_at?->toIso8601String(),
+        ]);
+
+        return [
+            'payments' => $payments,
+            'summary' => $this->paymentRepository->paidSummaryForUser($user->id),
+            'filters' => [
+                'search' => $filters['search'] ?? '',
+                'payment_method' => $filters['payment_method'] ?? '',
+                'sort_by' => $filters['sort_by'] ?? 'paid_at',
+                'sort_direction' => $filters['sort_direction'] ?? 'desc',
+            ],
+        ];
+    }
+
+    public function historicalReceipt(User $user, Order $routeOrder): array
+    {
+        if ($routeOrder->user_id !== $user->id) {
+            throw new AuthorizationException;
+        }
+
+        $payment = $this->paymentRepository->findPaidForOrder($routeOrder->id);
+
+        if (! $payment) {
+            abort(404);
+        }
+
+        $order = $this->orderRepository->findWithModules($routeOrder->id);
+
+        return $this->receiptData($order, $payment);
     }
 
     private function completeVerifiedPayment(Order $order, Payment $payment, ?string $paymongoPaymentId): void
@@ -105,12 +150,12 @@ class PaymentService
         });
     }
 
-    private function receiptData(Order $order): array
+    private function receiptData(Order $order, ?Payment $payment = null): array
     {
         return [
             'public_id' => $order->public_id,
             'transaction_reference' => $order->transaction_reference,
-            'status' => $order->status,
+            'status' => $payment?->status === 'paid' ? 'paid' : $order->status,
             'shop_name' => $order->shop_name,
             'owner_name' => $order->owner_name,
             'email' => $order->email,
@@ -119,8 +164,10 @@ class PaymentService
             'municipality' => $order->municipality,
             'barangay' => $order->barangay,
             'postal_code' => $order->postal_code,
-            'total_price' => $order->total_price,
-            'payment_method' => $order->payment_method,
+            'total_price' => $payment?->amount ?? $order->total_price,
+            'payment_method' => $payment?->payment_method ?? $order->payment_method,
+            'paid_at' => $payment?->paid_at,
+            'paymongo_payment_id' => $payment?->paymongo_payment_id,
             'plan_name' => $order->plan_name,
             'billing_months' => $order->billing_months,
             'expires_at' => $order->expires_at,

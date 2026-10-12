@@ -29,6 +29,7 @@ use App\Http\Controllers\Shop\LogisticsController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
+use App\Http\Controllers\Shop\PaymentHistoryController;
 use App\Http\Controllers\Shop\PaymentQrController;
 use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\ShopDashboardController;
@@ -177,6 +178,10 @@ Route::prefix('shop')->middleware([
     Route::post('/agreement', [BusinessAgreementController::class, 'accept'])->name('shop.agreement.accept');
     Route::get('/notifications', [ShopNotificationController::class, 'index'])->name('shop.notifications.index');
     Route::post('/notifications/read-all', [ShopNotificationController::class, 'markAllRead'])->name('shop.notifications.read-all');
+    Route::middleware('owner.platform-permissions')->group(function () {
+        Route::get('/payment-history', [PaymentHistoryController::class, 'index'])->name('shop.payment-history.index');
+        Route::get('/payment-history/{order:public_id}', [PaymentHistoryController::class, 'show'])->name('shop.payment-history.show');
+    });
     Route::middleware('business.agreement')->group(function () {
         Route::get('/setup', [ShopSetupController::class, 'show'])->name('shop.setup.show');
         Route::put('/setup', [ShopSetupController::class, 'store'])->name('shop.setup.store');

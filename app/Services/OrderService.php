@@ -6,7 +6,7 @@ use App\Exceptions\OrderSubmissionException;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
-use App\Notifications\BusinessAgreementExecutedNotification;
+use App\Notifications\OrderApprovedNotification;
 use App\Repositories\OrderRepository;
 use App\Repositories\ShopRepository;
 use App\Repositories\UserRepository;
@@ -209,7 +209,7 @@ class OrderService
         ?string $ipAddress,
         ?string $userAgent,
     ): Order {
-        [$approvedOrder, $acceptance] = DB::transaction(function () use ($admin, $order, $data, $ipAddress, $userAgent) {
+        $approvedOrder = DB::transaction(function () use ($admin, $order, $data, $ipAddress, $userAgent) {
             $lockedOrder = $this->orderRepository->findForApproval($order->id);
 
             if ($lockedOrder->status !== 'pending') {
@@ -218,7 +218,7 @@ class OrderService
                 ]);
             }
 
-            $acceptance = $this->businessAgreementService->countersignForOrder(
+            $this->businessAgreementService->countersignForOrder(
                 $admin,
                 $lockedOrder,
                 $data,
@@ -228,10 +228,10 @@ class OrderService
 
             $this->orderRepository->markApproved($lockedOrder);
 
-            return [$this->orderRepository->refresh($lockedOrder), $acceptance];
+            return $this->orderRepository->refresh($lockedOrder);
         });
 
-        $approvedOrder->user?->notify(new BusinessAgreementExecutedNotification($acceptance));
+        $approvedOrder->user?->notify(new OrderApprovedNotification($approvedOrder));
 
         return $approvedOrder;
     }

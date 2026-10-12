@@ -61,7 +61,8 @@ class PaymongoService
                     'billing' => [
                         'name' => $order->owner_name,
                         'email' => $order->email,
-                        'phone' => PhilippinePhone::e164($order->phone),
+                        // PayMongo's checkout field already renders the +63 prefix.
+                        'phone' => PhilippinePhone::mobileDigits($order->phone),
                     ],
                     'line_items' => [
                         [

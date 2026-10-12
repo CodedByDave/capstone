@@ -536,6 +536,26 @@ const hasOwnerAdministration = computed(() =>
 
         <NavMain :items="dashboardItem" />
 
+        <SidebarMenu
+            v-if="isOwner && ownerCan('payments.manage_own')"
+            class="mt-1 px-2"
+        >
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    as-child
+                    :is-active="currentUrl.startsWith('/shop/payment-history')"
+                >
+                    <Link
+                        href="/shop/payment-history"
+                        class="flex w-full items-center gap-2"
+                    >
+                        <Receipt class="h-4 w-4 shrink-0" />
+                        <span>Payment History</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </SidebarMenu>
+
         <SidebarMenu class="mt-1 px-2">
             <template v-for="mod in moduleNavItems" :key="mod.moduleName">
                 <!-- Collapsible module -->

@@ -28,11 +28,15 @@ import { nextTick, onMounted, ref } from 'vue';
 
 const props = defineProps<{
     order?: any;
+    history?: boolean;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/shop/dashboard' },
-    { title: 'Payment Success', href: '#' },
+    props.history
+        ? { title: 'Payment History', href: '/shop/payment-history' }
+        : { title: 'Payment Success', href: '#' },
+    ...(props.history ? [{ title: 'Receipt', href: '#' }] : []),
 ];
 
 // -------------------- Barcode --------------------
@@ -189,12 +193,22 @@ const downloadReceipt = async () => {
         y += 8;
 
         doc.text('Invoice Date:', 20, y);
-        doc.text(formatDate(props.order?.created_at || ''), 60, y);
+        doc.text(
+            formatDate(props.order?.paid_at || props.order?.created_at || ''),
+            60,
+            y,
+        );
         y += 8;
 
         doc.text('Payment Method:', 20, y);
         doc.text((props.order?.payment_method || 'N/A').toUpperCase(), 60, y);
         y += 8;
+
+        if (props.order?.paymongo_payment_id) {
+            doc.text('Provider Reference:', 20, y);
+            doc.text(props.order.paymongo_payment_id, 60, y);
+            y += 8;
+        }
 
         doc.text('Plan:', 20, y);
         doc.text(props.order?.plan_name || 'N/A', 60, y);
@@ -339,7 +353,7 @@ const downloadReceipt = async () => {
         doc.setFont(undefined, 'normal');
         doc.setTextColor(75, 85, 99);
         doc.text(
-            `Paid on ${formatDate(props.order?.created_at || '')}`,
+            `Paid on ${formatDate(props.order?.paid_at || props.order?.created_at || '')}`,
             20,
             y + 6,
         );
@@ -380,9 +394,12 @@ const downloadReceipt = async () => {
 </script>
 
 <template>
-    <Head title="Payment Successful" />
+    <Head :title="history ? 'Payment Receipt' : 'Payment Successful'" />
 
-    <ShopLayout :breadcrumbs="breadcrumbs" title="Payment Success">
+    <ShopLayout
+        :breadcrumbs="breadcrumbs"
+        :title="history ? 'Payment Receipt' : 'Payment Success'"
+    >
         <div class="space-y-6 p-4">
             <!-- Success Header -->
             <div class="space-y-4 py-8 text-center">
@@ -397,10 +414,18 @@ const downloadReceipt = async () => {
                     <h1
                         class="text-3xl font-bold text-gray-900 dark:text-white"
                     >
-                        Payment Successful!
+                        {{
+                            history
+                                ? 'Official Payment Receipt'
+                                : 'Payment Successful!'
+                        }}
                     </h1>
                     <p class="mt-2 text-gray-600 dark:text-gray-400">
-                        Thank you for your order. We've received your payment.
+                        {{
+                            history
+                                ? 'This receipt confirms your successful LaundryHub subscription payment.'
+                                : "Thank you for your order. We've received your payment."
+                        }}
                     </p>
                 </div>
             </div>
@@ -448,7 +473,12 @@ const downloadReceipt = async () => {
                                         Order Date
                                     </p>
                                     <p class="font-semibold">
-                                        {{ formatDate(order.created_at) }}
+                                        {{
+                                            formatDate(
+                                                order.paid_at ||
+                                                    order.created_at,
+                                            )
+                                        }}
                                     </p>
                                 </div>
                             </div>
@@ -652,6 +682,17 @@ const downloadReceipt = async () => {
                                     {{ order.payment_method ?? 'N/A' }}
                                 </p>
                             </div>
+                            <div v-if="order.paymongo_payment_id">
+                                <p
+                                    class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                                >
+                                    <CreditCard class="h-4 w-4" /> Provider
+                                    Reference
+                                </p>
+                                <p class="ml-6 font-mono text-xs break-all">
+                                    {{ order.paymongo_payment_id }}
+                                </p>
+                            </div>
                             <div>
                                 <p
                                     class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
@@ -702,14 +743,18 @@ const downloadReceipt = async () => {
                                     <Clock class="h-4 w-4" /> Paid At
                                 </p>
                                 <p class="ml-6 text-sm font-medium">
-                                    {{ formatDate(order.created_at) }}
+                                    {{
+                                        formatDate(
+                                            order.paid_at || order.created_at,
+                                        )
+                                    }}
                                 </p>
                             </div>
                         </CardContent>
                     </Card>
 
                     <!-- Next Steps -->
-                    <Card>
+                    <Card v-if="!history">
                         <CardHeader>
                             <CardTitle class="text-lg">What's Next?</CardTitle>
                         </CardHeader>
@@ -754,12 +799,20 @@ const downloadReceipt = async () => {
                                 }}
                             </Button>
                             <Link
-                                :href="'/shop/setup'"
+                                :href="
+                                    history
+                                        ? '/shop/payment-history'
+                                        : '/shop/setup'
+                                "
                                 @click="unlockDashboard"
                             >
                                 <Button variant="outline" class="w-full">
                                     <Home class="mr-2 h-4 w-4" />
-                                    Set Up Your Shop
+                                    {{
+                                        history
+                                            ? 'Back to Payment History'
+                                            : 'Set Up Your Shop'
+                                    }}
                                 </Button>
                             </Link>
                         </CardContent>

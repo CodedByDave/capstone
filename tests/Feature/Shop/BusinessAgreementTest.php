@@ -280,7 +280,10 @@ test('admin approval countersigns the agreement and notifies the shop owner', fu
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('shop/Notifications')
-            ->where('notifications.0.data.type', 'business_agreement_executed'));
+            ->where('notifications.0.data.type', 'order_approved')
+            ->where('notifications.0.data.title', 'Order approved')
+            ->where('notifications.0.data.order_public_id', $order->public_id)
+            ->where('notifications.0.data.url', route('shop.dashboard')));
 });
 
 test('approval cannot proceed without the platform signature', function () {

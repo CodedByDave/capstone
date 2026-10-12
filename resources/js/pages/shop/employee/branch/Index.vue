@@ -432,11 +432,11 @@ function confirmArchive() {
                     </Button>
 
                     <Button
-    size="sm"
-    variant="default"
-    @click="router.visit('/shop/branch/create')"
-    class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
->
+                        size="sm"
+                        variant="default"
+                        @click="router.visit('/shop/branch/create')"
+                        class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
+                    >
                         <Plus class="mr-1.5 h-4 w-4" />
                         Add Branch
                     </Button>
