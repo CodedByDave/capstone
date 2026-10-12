@@ -9,6 +9,8 @@ use Tests\TestCase;
 uses(TestCase::class);
 
 it('sends the national mobile number because PayMongo supplies the country prefix', function () {
+    config()->set('services.paymongo.secret_key', 'sk_test_ci');
+
     Http::fake([
         'https://api.paymongo.com/v1/checkout_sessions' => Http::response([
             'data' => [
