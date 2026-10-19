@@ -1,0 +1,2064 @@
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/shop/operations/orders'
+ */
+const index3046662a2b56aac3a381595943a566e4 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index3046662a2b56aac3a381595943a566e4.url(options),
+    method: 'get',
+})
+
+index3046662a2b56aac3a381595943a566e4.definition = {
+    methods: ["get","head"],
+    url: '/shop/operations/orders',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/shop/operations/orders'
+ */
+index3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
+    return index3046662a2b56aac3a381595943a566e4.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/shop/operations/orders'
+ */
+index3046662a2b56aac3a381595943a566e4.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index3046662a2b56aac3a381595943a566e4.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/shop/operations/orders'
+ */
+index3046662a2b56aac3a381595943a566e4.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: index3046662a2b56aac3a381595943a566e4.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/shop/operations/orders'
+ */
+    const index3046662a2b56aac3a381595943a566e4Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: index3046662a2b56aac3a381595943a566e4.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/shop/operations/orders'
+ */
+        index3046662a2b56aac3a381595943a566e4Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index3046662a2b56aac3a381595943a566e4.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/shop/operations/orders'
+ */
+        index3046662a2b56aac3a381595943a566e4Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index3046662a2b56aac3a381595943a566e4.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    index3046662a2b56aac3a381595943a566e4.form = index3046662a2b56aac3a381595943a566e4Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/staff/operations/orders'
+ */
+const index1ca873fe54e10e608543305c9bad9bf6 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index1ca873fe54e10e608543305c9bad9bf6.url(options),
+    method: 'get',
+})
+
+index1ca873fe54e10e608543305c9bad9bf6.definition = {
+    methods: ["get","head"],
+    url: '/staff/operations/orders',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/staff/operations/orders'
+ */
+index1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
+    return index1ca873fe54e10e608543305c9bad9bf6.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/staff/operations/orders'
+ */
+index1ca873fe54e10e608543305c9bad9bf6.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index1ca873fe54e10e608543305c9bad9bf6.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/staff/operations/orders'
+ */
+index1ca873fe54e10e608543305c9bad9bf6.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: index1ca873fe54e10e608543305c9bad9bf6.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/staff/operations/orders'
+ */
+    const index1ca873fe54e10e608543305c9bad9bf6Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: index1ca873fe54e10e608543305c9bad9bf6.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/staff/operations/orders'
+ */
+        index1ca873fe54e10e608543305c9bad9bf6Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index1ca873fe54e10e608543305c9bad9bf6.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:47
+ * @route '/staff/operations/orders'
+ */
+        index1ca873fe54e10e608543305c9bad9bf6Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index1ca873fe54e10e608543305c9bad9bf6.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    index1ca873fe54e10e608543305c9bad9bf6.form = index1ca873fe54e10e608543305c9bad9bf6Form
+
+export const index = {
+    '/shop/operations/orders': index3046662a2b56aac3a381595943a566e4,
+    '/staff/operations/orders': index1ca873fe54e10e608543305c9bad9bf6,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/shop/operations/orders/create'
+ */
+const create203d115f540b6dfaa806642627917908 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: create203d115f540b6dfaa806642627917908.url(options),
+    method: 'get',
+})
+
+create203d115f540b6dfaa806642627917908.definition = {
+    methods: ["get","head"],
+    url: '/shop/operations/orders/create',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/shop/operations/orders/create'
+ */
+create203d115f540b6dfaa806642627917908.url = (options?: RouteQueryOptions) => {
+    return create203d115f540b6dfaa806642627917908.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/shop/operations/orders/create'
+ */
+create203d115f540b6dfaa806642627917908.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: create203d115f540b6dfaa806642627917908.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/shop/operations/orders/create'
+ */
+create203d115f540b6dfaa806642627917908.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: create203d115f540b6dfaa806642627917908.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/shop/operations/orders/create'
+ */
+    const create203d115f540b6dfaa806642627917908Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: create203d115f540b6dfaa806642627917908.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/shop/operations/orders/create'
+ */
+        create203d115f540b6dfaa806642627917908Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: create203d115f540b6dfaa806642627917908.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/shop/operations/orders/create'
+ */
+        create203d115f540b6dfaa806642627917908Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: create203d115f540b6dfaa806642627917908.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    create203d115f540b6dfaa806642627917908.form = create203d115f540b6dfaa806642627917908Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/staff/operations/orders/create'
+ */
+const createba311394b42e87ea949046d6a4ae45c8 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: createba311394b42e87ea949046d6a4ae45c8.url(options),
+    method: 'get',
+})
+
+createba311394b42e87ea949046d6a4ae45c8.definition = {
+    methods: ["get","head"],
+    url: '/staff/operations/orders/create',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/staff/operations/orders/create'
+ */
+createba311394b42e87ea949046d6a4ae45c8.url = (options?: RouteQueryOptions) => {
+    return createba311394b42e87ea949046d6a4ae45c8.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/staff/operations/orders/create'
+ */
+createba311394b42e87ea949046d6a4ae45c8.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: createba311394b42e87ea949046d6a4ae45c8.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/staff/operations/orders/create'
+ */
+createba311394b42e87ea949046d6a4ae45c8.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: createba311394b42e87ea949046d6a4ae45c8.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/staff/operations/orders/create'
+ */
+    const createba311394b42e87ea949046d6a4ae45c8Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: createba311394b42e87ea949046d6a4ae45c8.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/staff/operations/orders/create'
+ */
+        createba311394b42e87ea949046d6a4ae45c8Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: createba311394b42e87ea949046d6a4ae45c8.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:69
+ * @route '/staff/operations/orders/create'
+ */
+        createba311394b42e87ea949046d6a4ae45c8Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: createba311394b42e87ea949046d6a4ae45c8.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    createba311394b42e87ea949046d6a4ae45c8.form = createba311394b42e87ea949046d6a4ae45c8Form
+
+export const create = {
+    '/shop/operations/orders/create': create203d115f540b6dfaa806642627917908,
+    '/staff/operations/orders/create': createba311394b42e87ea949046d6a4ae45c8,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/shop/operations/orders'
+ */
+const store3046662a2b56aac3a381595943a566e4 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: store3046662a2b56aac3a381595943a566e4.url(options),
+    method: 'post',
+})
+
+store3046662a2b56aac3a381595943a566e4.definition = {
+    methods: ["post"],
+    url: '/shop/operations/orders',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/shop/operations/orders'
+ */
+store3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
+    return store3046662a2b56aac3a381595943a566e4.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/shop/operations/orders'
+ */
+store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: store3046662a2b56aac3a381595943a566e4.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/shop/operations/orders'
+ */
+    const store3046662a2b56aac3a381595943a566e4Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: store3046662a2b56aac3a381595943a566e4.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/shop/operations/orders'
+ */
+        store3046662a2b56aac3a381595943a566e4Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: store3046662a2b56aac3a381595943a566e4.url(options),
+            method: 'post',
+        })
+    
+    store3046662a2b56aac3a381595943a566e4.form = store3046662a2b56aac3a381595943a566e4Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/staff/operations/orders'
+ */
+const store1ca873fe54e10e608543305c9bad9bf6 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: store1ca873fe54e10e608543305c9bad9bf6.url(options),
+    method: 'post',
+})
+
+store1ca873fe54e10e608543305c9bad9bf6.definition = {
+    methods: ["post"],
+    url: '/staff/operations/orders',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/staff/operations/orders'
+ */
+store1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
+    return store1ca873fe54e10e608543305c9bad9bf6.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/staff/operations/orders'
+ */
+store1ca873fe54e10e608543305c9bad9bf6.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: store1ca873fe54e10e608543305c9bad9bf6.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/staff/operations/orders'
+ */
+    const store1ca873fe54e10e608543305c9bad9bf6Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: store1ca873fe54e10e608543305c9bad9bf6.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:94
+ * @route '/staff/operations/orders'
+ */
+        store1ca873fe54e10e608543305c9bad9bf6Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: store1ca873fe54e10e608543305c9bad9bf6.url(options),
+            method: 'post',
+        })
+    
+    store1ca873fe54e10e608543305c9bad9bf6.form = store1ca873fe54e10e608543305c9bad9bf6Form
+
+export const store = {
+    '/shop/operations/orders': store3046662a2b56aac3a381595943a566e4,
+    '/staff/operations/orders': store1ca873fe54e10e608543305c9bad9bf6,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/shop/operations/orders/{order}'
+ */
+const show27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+    method: 'get',
+})
+
+show27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
+    methods: ["get","head"],
+    url: '/shop/operations/orders/{order}',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/shop/operations/orders/{order}'
+ */
+show27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return show27635f40a22aa7da9bdd32cbbfd0f9c0.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/shop/operations/orders/{order}'
+ */
+show27635f40a22aa7da9bdd32cbbfd0f9c0.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/shop/operations/orders/{order}'
+ */
+show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: show27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/shop/operations/orders/{order}'
+ */
+    const show27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: show27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/shop/operations/orders/{order}'
+ */
+        show27635f40a22aa7da9bdd32cbbfd0f9c0Form.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: show27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/shop/operations/orders/{order}'
+ */
+        show27635f40a22aa7da9bdd32cbbfd0f9c0Form.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: show27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    show27635f40a22aa7da9bdd32cbbfd0f9c0.form = show27635f40a22aa7da9bdd32cbbfd0f9c0Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/staff/operations/orders/{order}'
+ */
+const show9b2a634ffe9535792984c712b770b227 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show9b2a634ffe9535792984c712b770b227.url(args, options),
+    method: 'get',
+})
+
+show9b2a634ffe9535792984c712b770b227.definition = {
+    methods: ["get","head"],
+    url: '/staff/operations/orders/{order}',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/staff/operations/orders/{order}'
+ */
+show9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return show9b2a634ffe9535792984c712b770b227.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/staff/operations/orders/{order}'
+ */
+show9b2a634ffe9535792984c712b770b227.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show9b2a634ffe9535792984c712b770b227.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/staff/operations/orders/{order}'
+ */
+show9b2a634ffe9535792984c712b770b227.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: show9b2a634ffe9535792984c712b770b227.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/staff/operations/orders/{order}'
+ */
+    const show9b2a634ffe9535792984c712b770b227Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: show9b2a634ffe9535792984c712b770b227.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/staff/operations/orders/{order}'
+ */
+        show9b2a634ffe9535792984c712b770b227Form.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: show9b2a634ffe9535792984c712b770b227.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:114
+ * @route '/staff/operations/orders/{order}'
+ */
+        show9b2a634ffe9535792984c712b770b227Form.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: show9b2a634ffe9535792984c712b770b227.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    show9b2a634ffe9535792984c712b770b227.form = show9b2a634ffe9535792984c712b770b227Form
+
+export const show = {
+    '/shop/operations/orders/{order}': show27635f40a22aa7da9bdd32cbbfd0f9c0,
+    '/staff/operations/orders/{order}': show9b2a634ffe9535792984c712b770b227,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/shop/operations/orders/{order}/edit'
+ */
+const edit8553c4209e292d88c8408c54f41397fe = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edit8553c4209e292d88c8408c54f41397fe.url(args, options),
+    method: 'get',
+})
+
+edit8553c4209e292d88c8408c54f41397fe.definition = {
+    methods: ["get","head"],
+    url: '/shop/operations/orders/{order}/edit',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/shop/operations/orders/{order}/edit'
+ */
+edit8553c4209e292d88c8408c54f41397fe.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return edit8553c4209e292d88c8408c54f41397fe.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/shop/operations/orders/{order}/edit'
+ */
+edit8553c4209e292d88c8408c54f41397fe.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edit8553c4209e292d88c8408c54f41397fe.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/shop/operations/orders/{order}/edit'
+ */
+edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: edit8553c4209e292d88c8408c54f41397fe.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/shop/operations/orders/{order}/edit'
+ */
+    const edit8553c4209e292d88c8408c54f41397feForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: edit8553c4209e292d88c8408c54f41397fe.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/shop/operations/orders/{order}/edit'
+ */
+        edit8553c4209e292d88c8408c54f41397feForm.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edit8553c4209e292d88c8408c54f41397fe.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/shop/operations/orders/{order}/edit'
+ */
+        edit8553c4209e292d88c8408c54f41397feForm.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edit8553c4209e292d88c8408c54f41397fe.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    edit8553c4209e292d88c8408c54f41397fe.form = edit8553c4209e292d88c8408c54f41397feForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/staff/operations/orders/{order}/edit'
+ */
+const edit223e40850db6d7ee7cc15c6cb055c2ad = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edit223e40850db6d7ee7cc15c6cb055c2ad.url(args, options),
+    method: 'get',
+})
+
+edit223e40850db6d7ee7cc15c6cb055c2ad.definition = {
+    methods: ["get","head"],
+    url: '/staff/operations/orders/{order}/edit',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/staff/operations/orders/{order}/edit'
+ */
+edit223e40850db6d7ee7cc15c6cb055c2ad.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return edit223e40850db6d7ee7cc15c6cb055c2ad.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/staff/operations/orders/{order}/edit'
+ */
+edit223e40850db6d7ee7cc15c6cb055c2ad.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edit223e40850db6d7ee7cc15c6cb055c2ad.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/staff/operations/orders/{order}/edit'
+ */
+edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: edit223e40850db6d7ee7cc15c6cb055c2ad.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/staff/operations/orders/{order}/edit'
+ */
+    const edit223e40850db6d7ee7cc15c6cb055c2adForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: edit223e40850db6d7ee7cc15c6cb055c2ad.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/staff/operations/orders/{order}/edit'
+ */
+        edit223e40850db6d7ee7cc15c6cb055c2adForm.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edit223e40850db6d7ee7cc15c6cb055c2ad.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:159
+ * @route '/staff/operations/orders/{order}/edit'
+ */
+        edit223e40850db6d7ee7cc15c6cb055c2adForm.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edit223e40850db6d7ee7cc15c6cb055c2ad.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    edit223e40850db6d7ee7cc15c6cb055c2ad.form = edit223e40850db6d7ee7cc15c6cb055c2adForm
+
+export const edit = {
+    '/shop/operations/orders/{order}/edit': edit8553c4209e292d88c8408c54f41397fe,
+    '/staff/operations/orders/{order}/edit': edit223e40850db6d7ee7cc15c6cb055c2ad,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/shop/operations/orders/{order}'
+ */
+const update27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: update27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+    method: 'put',
+})
+
+update27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
+    methods: ["put"],
+    url: '/shop/operations/orders/{order}',
+} satisfies RouteDefinition<["put"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/shop/operations/orders/{order}'
+ */
+update27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return update27635f40a22aa7da9bdd32cbbfd0f9c0.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/shop/operations/orders/{order}'
+ */
+update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: update27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+    method: 'put',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/shop/operations/orders/{order}'
+ */
+    const update27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: update27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PUT',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/shop/operations/orders/{order}'
+ */
+        update27635f40a22aa7da9bdd32cbbfd0f9c0Form.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: update27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PUT',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    update27635f40a22aa7da9bdd32cbbfd0f9c0.form = update27635f40a22aa7da9bdd32cbbfd0f9c0Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/staff/operations/orders/{order}'
+ */
+const update9b2a634ffe9535792984c712b770b227 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: update9b2a634ffe9535792984c712b770b227.url(args, options),
+    method: 'put',
+})
+
+update9b2a634ffe9535792984c712b770b227.definition = {
+    methods: ["put"],
+    url: '/staff/operations/orders/{order}',
+} satisfies RouteDefinition<["put"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/staff/operations/orders/{order}'
+ */
+update9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return update9b2a634ffe9535792984c712b770b227.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/staff/operations/orders/{order}'
+ */
+update9b2a634ffe9535792984c712b770b227.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: update9b2a634ffe9535792984c712b770b227.url(args, options),
+    method: 'put',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/staff/operations/orders/{order}'
+ */
+    const update9b2a634ffe9535792984c712b770b227Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: update9b2a634ffe9535792984c712b770b227.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PUT',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:186
+ * @route '/staff/operations/orders/{order}'
+ */
+        update9b2a634ffe9535792984c712b770b227Form.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: update9b2a634ffe9535792984c712b770b227.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PUT',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    update9b2a634ffe9535792984c712b770b227.form = update9b2a634ffe9535792984c712b770b227Form
+
+export const update = {
+    '/shop/operations/orders/{order}': update27635f40a22aa7da9bdd32cbbfd0f9c0,
+    '/staff/operations/orders/{order}': update9b2a634ffe9535792984c712b770b227,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/shop/operations/orders/{order}'
+ */
+const destroy27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+    method: 'delete',
+})
+
+destroy27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
+    methods: ["delete"],
+    url: '/shop/operations/orders/{order}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/shop/operations/orders/{order}'
+ */
+destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return destroy27635f40a22aa7da9bdd32cbbfd0f9c0.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/shop/operations/orders/{order}'
+ */
+destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, options),
+    method: 'delete',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/shop/operations/orders/{order}'
+ */
+    const destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'DELETE',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/shop/operations/orders/{order}'
+ */
+        destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'DELETE',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    destroy27635f40a22aa7da9bdd32cbbfd0f9c0.form = destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/staff/operations/orders/{order}'
+ */
+const destroy9b2a634ffe9535792984c712b770b227 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy9b2a634ffe9535792984c712b770b227.url(args, options),
+    method: 'delete',
+})
+
+destroy9b2a634ffe9535792984c712b770b227.definition = {
+    methods: ["delete"],
+    url: '/staff/operations/orders/{order}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/staff/operations/orders/{order}'
+ */
+destroy9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return destroy9b2a634ffe9535792984c712b770b227.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/staff/operations/orders/{order}'
+ */
+destroy9b2a634ffe9535792984c712b770b227.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy9b2a634ffe9535792984c712b770b227.url(args, options),
+    method: 'delete',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/staff/operations/orders/{order}'
+ */
+    const destroy9b2a634ffe9535792984c712b770b227Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: destroy9b2a634ffe9535792984c712b770b227.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'DELETE',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:226
+ * @route '/staff/operations/orders/{order}'
+ */
+        destroy9b2a634ffe9535792984c712b770b227Form.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: destroy9b2a634ffe9535792984c712b770b227.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'DELETE',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    destroy9b2a634ffe9535792984c712b770b227.form = destroy9b2a634ffe9535792984c712b770b227Form
+
+export const destroy = {
+    '/shop/operations/orders/{order}': destroy27635f40a22aa7da9bdd32cbbfd0f9c0,
+    '/staff/operations/orders/{order}': destroy9b2a634ffe9535792984c712b770b227,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/shop/operations/orders/{order}/payment-request'
+ */
+const sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.url(args, options),
+    method: 'post',
+})
+
+sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.definition = {
+    methods: ["post"],
+    url: '/shop/operations/orders/{order}/payment-request',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/shop/operations/orders/{order}/payment-request'
+ */
+sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/shop/operations/orders/{order}/payment-request'
+ */
+sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/shop/operations/orders/{order}/payment-request'
+ */
+    const sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cacForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/shop/operations/orders/{order}/payment-request'
+ */
+        sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cacForm.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.url(args, options),
+            method: 'post',
+        })
+    
+    sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.form = sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cacForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/staff/operations/orders/{order}/payment-request'
+ */
+const sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.url(args, options),
+    method: 'post',
+})
+
+sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.definition = {
+    methods: ["post"],
+    url: '/staff/operations/orders/{order}/payment-request',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/staff/operations/orders/{order}/payment-request'
+ */
+sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/staff/operations/orders/{order}/payment-request'
+ */
+sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/staff/operations/orders/{order}/payment-request'
+ */
+    const sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:129
+ * @route '/staff/operations/orders/{order}/payment-request'
+ */
+        sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62Form.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.url(args, options),
+            method: 'post',
+        })
+    
+    sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.form = sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62Form
+
+export const sendPaymentRequest = {
+    '/shop/operations/orders/{order}/payment-request': sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac,
+    '/staff/operations/orders/{order}/payment-request': sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/shop/operations/orders/restore-all'
+ */
+const restoreAll05359cba787ad6011630036e5678dbd3 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restoreAll05359cba787ad6011630036e5678dbd3.url(options),
+    method: 'post',
+})
+
+restoreAll05359cba787ad6011630036e5678dbd3.definition = {
+    methods: ["post"],
+    url: '/shop/operations/orders/restore-all',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/shop/operations/orders/restore-all'
+ */
+restoreAll05359cba787ad6011630036e5678dbd3.url = (options?: RouteQueryOptions) => {
+    return restoreAll05359cba787ad6011630036e5678dbd3.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/shop/operations/orders/restore-all'
+ */
+restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restoreAll05359cba787ad6011630036e5678dbd3.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/shop/operations/orders/restore-all'
+ */
+    const restoreAll05359cba787ad6011630036e5678dbd3Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restoreAll05359cba787ad6011630036e5678dbd3.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/shop/operations/orders/restore-all'
+ */
+        restoreAll05359cba787ad6011630036e5678dbd3Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restoreAll05359cba787ad6011630036e5678dbd3.url(options),
+            method: 'post',
+        })
+    
+    restoreAll05359cba787ad6011630036e5678dbd3.form = restoreAll05359cba787ad6011630036e5678dbd3Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/staff/operations/orders/restore-all'
+ */
+const restoreAllb53e8d9bd0c80a798445ffd326144dac = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restoreAllb53e8d9bd0c80a798445ffd326144dac.url(options),
+    method: 'post',
+})
+
+restoreAllb53e8d9bd0c80a798445ffd326144dac.definition = {
+    methods: ["post"],
+    url: '/staff/operations/orders/restore-all',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/staff/operations/orders/restore-all'
+ */
+restoreAllb53e8d9bd0c80a798445ffd326144dac.url = (options?: RouteQueryOptions) => {
+    return restoreAllb53e8d9bd0c80a798445ffd326144dac.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/staff/operations/orders/restore-all'
+ */
+restoreAllb53e8d9bd0c80a798445ffd326144dac.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restoreAllb53e8d9bd0c80a798445ffd326144dac.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/staff/operations/orders/restore-all'
+ */
+    const restoreAllb53e8d9bd0c80a798445ffd326144dacForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restoreAllb53e8d9bd0c80a798445ffd326144dac.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:249
+ * @route '/staff/operations/orders/restore-all'
+ */
+        restoreAllb53e8d9bd0c80a798445ffd326144dacForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restoreAllb53e8d9bd0c80a798445ffd326144dac.url(options),
+            method: 'post',
+        })
+    
+    restoreAllb53e8d9bd0c80a798445ffd326144dac.form = restoreAllb53e8d9bd0c80a798445ffd326144dacForm
+
+export const restoreAll = {
+    '/shop/operations/orders/restore-all': restoreAll05359cba787ad6011630036e5678dbd3,
+    '/staff/operations/orders/restore-all': restoreAllb53e8d9bd0c80a798445ffd326144dac,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/shop/operations/orders/{order}/restore'
+ */
+const restore7e2cbae9ec08c3398f3896c88ccc477c = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: restore7e2cbae9ec08c3398f3896c88ccc477c.url(args, options),
+    method: 'patch',
+})
+
+restore7e2cbae9ec08c3398f3896c88ccc477c.definition = {
+    methods: ["patch"],
+    url: '/shop/operations/orders/{order}/restore',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/shop/operations/orders/{order}/restore'
+ */
+restore7e2cbae9ec08c3398f3896c88ccc477c.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return restore7e2cbae9ec08c3398f3896c88ccc477c.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/shop/operations/orders/{order}/restore'
+ */
+restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: restore7e2cbae9ec08c3398f3896c88ccc477c.url(args, options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/shop/operations/orders/{order}/restore'
+ */
+    const restore7e2cbae9ec08c3398f3896c88ccc477cForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restore7e2cbae9ec08c3398f3896c88ccc477c.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/shop/operations/orders/{order}/restore'
+ */
+        restore7e2cbae9ec08c3398f3896c88ccc477cForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restore7e2cbae9ec08c3398f3896c88ccc477c.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    restore7e2cbae9ec08c3398f3896c88ccc477c.form = restore7e2cbae9ec08c3398f3896c88ccc477cForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/staff/operations/orders/{order}/restore'
+ */
+const restore7ecbb9f0c73a6910b6185bd2204974f6 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: restore7ecbb9f0c73a6910b6185bd2204974f6.url(args, options),
+    method: 'patch',
+})
+
+restore7ecbb9f0c73a6910b6185bd2204974f6.definition = {
+    methods: ["patch"],
+    url: '/staff/operations/orders/{order}/restore',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/staff/operations/orders/{order}/restore'
+ */
+restore7ecbb9f0c73a6910b6185bd2204974f6.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return restore7ecbb9f0c73a6910b6185bd2204974f6.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/staff/operations/orders/{order}/restore'
+ */
+restore7ecbb9f0c73a6910b6185bd2204974f6.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: restore7ecbb9f0c73a6910b6185bd2204974f6.url(args, options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/staff/operations/orders/{order}/restore'
+ */
+    const restore7ecbb9f0c73a6910b6185bd2204974f6Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restore7ecbb9f0c73a6910b6185bd2204974f6.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:237
+ * @route '/staff/operations/orders/{order}/restore'
+ */
+        restore7ecbb9f0c73a6910b6185bd2204974f6Form.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restore7ecbb9f0c73a6910b6185bd2204974f6.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    restore7ecbb9f0c73a6910b6185bd2204974f6.form = restore7ecbb9f0c73a6910b6185bd2204974f6Form
+
+export const restore = {
+    '/shop/operations/orders/{order}/restore': restore7e2cbae9ec08c3398f3896c88ccc477c,
+    '/staff/operations/orders/{order}/restore': restore7ecbb9f0c73a6910b6185bd2204974f6,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/shop/orders/{order}/status'
+ */
+const updateStatus923621f100b9b8119e887ba70c01a46a = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, options),
+    method: 'patch',
+})
+
+updateStatus923621f100b9b8119e887ba70c01a46a.definition = {
+    methods: ["patch"],
+    url: '/shop/orders/{order}/status',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/shop/orders/{order}/status'
+ */
+updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return updateStatus923621f100b9b8119e887ba70c01a46a.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/shop/orders/{order}/status'
+ */
+updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/shop/orders/{order}/status'
+ */
+    const updateStatus923621f100b9b8119e887ba70c01a46aForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/shop/orders/{order}/status'
+ */
+        updateStatus923621f100b9b8119e887ba70c01a46aForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    updateStatus923621f100b9b8119e887ba70c01a46a.form = updateStatus923621f100b9b8119e887ba70c01a46aForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/staff/operations/orders/{order}/status'
+ */
+const updateStatus1408d9eab3157e71b3908eed25954ec5 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus1408d9eab3157e71b3908eed25954ec5.url(args, options),
+    method: 'patch',
+})
+
+updateStatus1408d9eab3157e71b3908eed25954ec5.definition = {
+    methods: ["patch"],
+    url: '/staff/operations/orders/{order}/status',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/staff/operations/orders/{order}/status'
+ */
+updateStatus1408d9eab3157e71b3908eed25954ec5.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return updateStatus1408d9eab3157e71b3908eed25954ec5.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/staff/operations/orders/{order}/status'
+ */
+updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus1408d9eab3157e71b3908eed25954ec5.url(args, options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/staff/operations/orders/{order}/status'
+ */
+    const updateStatus1408d9eab3157e71b3908eed25954ec5Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updateStatus1408d9eab3157e71b3908eed25954ec5.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:197
+ * @route '/staff/operations/orders/{order}/status'
+ */
+        updateStatus1408d9eab3157e71b3908eed25954ec5Form.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updateStatus1408d9eab3157e71b3908eed25954ec5.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    updateStatus1408d9eab3157e71b3908eed25954ec5.form = updateStatus1408d9eab3157e71b3908eed25954ec5Form
+
+export const updateStatus = {
+    '/shop/orders/{order}/status': updateStatus923621f100b9b8119e887ba70c01a46a,
+    '/staff/operations/orders/{order}/status': updateStatus1408d9eab3157e71b3908eed25954ec5,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/shop/orders/{order}/payment'
+ */
+const updatePayment95eb2d36fe84988c671f8c54a664e52e = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, options),
+    method: 'patch',
+})
+
+updatePayment95eb2d36fe84988c671f8c54a664e52e.definition = {
+    methods: ["patch"],
+    url: '/shop/orders/{order}/payment',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/shop/orders/{order}/payment'
+ */
+updatePayment95eb2d36fe84988c671f8c54a664e52e.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return updatePayment95eb2d36fe84988c671f8c54a664e52e.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/shop/orders/{order}/payment'
+ */
+updatePayment95eb2d36fe84988c671f8c54a664e52e.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/shop/orders/{order}/payment'
+ */
+    const updatePayment95eb2d36fe84988c671f8c54a664e52eForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/shop/orders/{order}/payment'
+ */
+        updatePayment95eb2d36fe84988c671f8c54a664e52eForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    updatePayment95eb2d36fe84988c671f8c54a664e52e.form = updatePayment95eb2d36fe84988c671f8c54a664e52eForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/staff/operations/orders/{order}/payment'
+ */
+const updatePayment41547d144c1f760c1a289d397322b7bc = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, options),
+    method: 'patch',
+})
+
+updatePayment41547d144c1f760c1a289d397322b7bc.definition = {
+    methods: ["patch"],
+    url: '/staff/operations/orders/{order}/payment',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/staff/operations/orders/{order}/payment'
+ */
+updatePayment41547d144c1f760c1a289d397322b7bc.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return updatePayment41547d144c1f760c1a289d397322b7bc.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/staff/operations/orders/{order}/payment'
+ */
+updatePayment41547d144c1f760c1a289d397322b7bc.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/staff/operations/orders/{order}/payment'
+ */
+    const updatePayment41547d144c1f760c1a289d397322b7bcForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
+ * @route '/staff/operations/orders/{order}/payment'
+ */
+        updatePayment41547d144c1f760c1a289d397322b7bcForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    updatePayment41547d144c1f760c1a289d397322b7bc.form = updatePayment41547d144c1f760c1a289d397322b7bcForm
+
+export const updatePayment = {
+    '/shop/orders/{order}/payment': updatePayment95eb2d36fe84988c671f8c54a664e52e,
+    '/staff/operations/orders/{order}/payment': updatePayment41547d144c1f760c1a289d397322b7bc,
+}
+
+const ShopOrderController = { index, create, store, show, edit, update, destroy, sendPaymentRequest, restoreAll, restore, updateStatus, updatePayment }
+
+export default ShopOrderController

@@ -1,9 +1,12 @@
+
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+const isHostingerBuild = process.env.HOSTINGER_BUILD === 'true';
 
 export default defineConfig({
     plugins: [
@@ -12,10 +15,19 @@ export default defineConfig({
             ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
+
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
+
+        // Generate Wayfinder types locally, but use committed generated files
+        // when Hostinger builds in its Node-only environment.
+        ...(!isHostingerBuild
+            ? [
+                  wayfinder({
+                      formVariants: true,
+                  }),
+              ]
+            : []),
+
         vue({
             template: {
                 transformAssetUrls: {
@@ -24,6 +36,7 @@ export default defineConfig({
                 },
             },
         }),
+
         VitePWA({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
