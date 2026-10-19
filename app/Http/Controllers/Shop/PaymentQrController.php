@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Shop;
+use App\Services\ShopPaymentSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -35,14 +36,9 @@ class PaymentQrController extends Controller
         return Shop::findOrFail($shopId);
     }
 
-    public function index(): Response
+    public function index(ShopPaymentSettingsService $paymentSettings): Response
     {
-        $shop = $this->getShop();
-
-        return Inertia::render('shop/PaymentQr', [
-            'paymongo_configured' => $shop->hasPaymongo(),
-            'paymongo_public_key' => $shop->paymongo_public_key,
-        ]);
+        return Inertia::render('shop/PaymentQr', $paymentSettings->pageData(request()->user()));
     }
 
     public function update(Request $request): RedirectResponse

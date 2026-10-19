@@ -91,5 +91,11 @@ test('users are rate limited', function () {
         'password' => 'wrong-password',
     ]);
 
-    $response->assertTooManyRequests();
+    $response
+        ->assertRedirect()
+        ->assertSessionHas('toast.type', 'error')
+        ->assertSessionHas('toast.message', fn (string $message) => str_starts_with(
+            $message,
+            'Too many attempts. Please try again in ',
+        ));
 });

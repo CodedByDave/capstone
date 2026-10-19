@@ -37,6 +37,9 @@ return [
     'paymongo' => [
         'secret_key' => env('PAYMONGO_SECRET_KEY'),
         'public_key' => env('PAYMONGO_PUBLIC_KEY'),
+        'demo_enabled' => env('PAYMONGO_DEMO_ENABLED', env('APP_ENV', 'production') !== 'production'),
+        'demo_secret_key' => env('PAYMONGO_DEMO_SECRET_KEY', 'sk_test_demoLaundryHubPanel2026'),
+        'demo_public_key' => env('PAYMONGO_DEMO_PUBLIC_KEY', 'pk_test_demoLaundryHubPanel2026'),
     ],
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),

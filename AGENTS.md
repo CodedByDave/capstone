@@ -115,7 +115,28 @@ Do not rewrite unrelated legacy features solely to enforce this architecture. Wh
 
 Migrations, seeders, factories, console-only maintenance scripts, and framework configuration may use the database directly when that is their intended responsibility. Any other exception must be explicitly justified in the implementation notes and kept as narrow as possible.
 
+## Sensitive URL Identifier Standards
+
+Never expose sequential database IDs in URLs for sensitive or user-owned resources such as payments, receipts, invoices, orders, account records, private documents, invitations, password-related actions, or administrative operations.
+
+Choose the protection that fits the use case:
+
+- Use a ULID or UUID as a stable public identifier when a resource needs a shareable, bookmarkable route. Store it in a dedicated unique indexed column and resolve it together with the authenticated owner's or tenant's scope.
+- Use a signed URL when the URL grants permission to perform an action or access a time-limited resource. Prefer temporary signed routes for email actions, downloads, approvals, and other expiring links.
+- Use authenticated encryption when the original internal value must be recovered from the route parameter. Validate decryption failures safely and never treat successful decryption as authorization.
+- Use a cryptographically random token or keyed HMAC when a one-way lookup or verification token is appropriate. Do not use predictable hashes of sequential IDs, unsalted checksums, Base64 encoding, or reversible obfuscation as security controls.
+
+Identifier protection never replaces authorization. Every sensitive lookup must also be scoped to the authenticated user, shop, tenant, role, or policy at the repository/query boundary, following the principle of least privilege. For resources outside the caller's scope, return the same not-found response used for nonexistent identifiers so the URL cannot be used to enumerate records. Do not include secrets, API keys, payment session credentials, personal data, or authorization claims in URLs or query strings.
+
 ## Frontend Table and KPI Layout Standards
+
+### Icon preservation
+
+- Do not remove existing meaningful icons when creating, updating, or refactoring frontend layouts, tables, cards, forms, navigation, buttons, statuses, or actions.
+- Preserve icons that help users recognize an action, category, status, payment method, or feature. Reposition or restyle them when required by the target layout, but keep their meaning and accessibility intact.
+- When adding a new action or information element that benefits from an icon, use the project's existing icon library and visual conventions.
+- Icons must support the accompanying text or accessible label and must not replace essential text when doing so would make the interface unclear.
+- Remove an icon only when the user explicitly requests its removal, it is misleading or duplicated, or retaining it would create an accessibility or functional problem. Document that exception in the implementation notes.
 
 When the user asks to create, change, update, improve, or refactor a table layout without naming a different visual reference, use the admin **Shop Management** table in `resources/js/pages/admin/shop/Index.vue` as the canonical layout and styling reference.
 

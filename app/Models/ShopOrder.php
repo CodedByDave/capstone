@@ -8,10 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class ShopOrder extends Model
 {
     use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (ShopOrder $order): void {
+            $order->payment_public_id ??= (string) Str::ulid();
+        });
+    }
 
     protected $fillable = [
         'shop_id',
@@ -69,7 +77,7 @@ class ShopOrder extends Model
 
     const PICKUP_TYPES = ['walk_in', 'pickup'];
 
-    const PAYMENT_METHODS = ['cash', 'gcash', 'maya', 'online'];
+    const PAYMENT_METHODS = ['cash', 'gcash', 'maya', 'card', 'grabpay', 'online'];
 
     const PAYMENT_STATUSES = ['unpaid', 'partial', 'paid'];
 

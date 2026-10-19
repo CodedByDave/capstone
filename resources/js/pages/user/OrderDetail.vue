@@ -12,12 +12,15 @@ import {
     Loader,
     MapPin,
     Phone,
+    ReceiptText,
     Smartphone,
     Truck,
     WashingMachine,
     X,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,6 +43,7 @@ interface Delivery {
 
 interface Order {
     id: number;
+    payment_public_id: string;
     order_number: string;
     status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
     payment_status: 'unpaid' | 'partial' | 'paid';
@@ -56,7 +60,9 @@ interface Order {
     created_at: string;
     completed_at: string | null;
     shop_has_paymongo: boolean;
+    shop_uses_demo_payment: boolean;
     shop_offers_delivery: boolean;
+    payment_ready: boolean;
     shop: Shop | null;
     service_name: string;
     delivery: Delivery | null;
@@ -111,7 +117,7 @@ const cancelling = ref(false);
 function confirmCancel() {
     cancelling.value = true;
     router.post(
-        `/user/orders/${props.order.id}/cancel`,
+        `/user/orders/${props.order.payment_public_id}/cancel`,
         {},
         {
             preserveScroll: true,
@@ -149,21 +155,68 @@ const canRequestDelivery = computed(
 // ─── Pay Online ───────────────────────────────────────────────────────────────
 
 const payingOnline = ref(false);
+const onlinePaymentMethods = [
+    {
+        value: 'gcash',
+        label: 'GCash',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/5/52/GCash_logo.svg',
+    },
+    {
+        value: 'maya',
+        label: 'Maya',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Maya_logo.svg',
+    },
+    {
+        value: 'card',
+        label: 'Card',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Visa_Inc._logo_%282005%E2%80%932014%29.svg',
+    },
+    {
+        value: 'grabpay',
+        label: 'GrabPay',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Grab_Logo.svg',
+    },
+] as const;
+const selectedOnlineMethod = ref<'gcash' | 'maya' | 'card' | 'grabpay'>(
+    onlinePaymentMethods.some(
+        (method) => method.value === props.order.payment_method,
+    )
+        ? (props.order.payment_method as 'gcash' | 'maya' | 'card' | 'grabpay')
+        : 'gcash',
+);
 
 const canPayOnline = computed(
     () =>
         props.order.shop_has_paymongo &&
         props.order.payment_status !== 'paid' &&
         props.order.status !== 'cancelled' &&
-        props.order.total_amount >= 100,
+        props.order.payment_ready &&
+        (props.order.shop_uses_demo_payment || props.order.total_amount >= 100),
 );
 
 function payOnline() {
     payingOnline.value = true;
     router.post(
-        `/user/orders/${props.order.id}/pay-online`,
-        {},
+        `/user/orders/${props.order.payment_public_id}/pay-online`,
+        { payment_method: selectedOnlineMethod.value },
         {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                const flash = page.props.toast as
+                    | { type: string; message: string }
+                    | undefined;
+                if (flash?.type === 'error') toast.error(flash.message);
+                else if (flash?.type === 'warning')
+                    toast.warning(flash.message);
+            },
+            onError: (errors) => {
+                toast.error(
+                    String(
+                        errors.payment_method ??
+                            'Checkout could not be opened. Please try again.',
+                    ),
+                );
+            },
             onFinish: () => {
                 payingOnline.value = false;
             },
@@ -177,12 +230,15 @@ const deliveryForm = useForm({
 });
 
 function submitDelivery() {
-    deliveryForm.post(`/user/orders/${props.order.id}/request-delivery`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            showDeliveryForm.value = false;
+    deliveryForm.post(
+        `/user/orders/${props.order.payment_public_id}/request-delivery`,
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showDeliveryForm.value = false;
+            },
         },
-    });
+    );
 }
 
 const deliveryStatusConfig = {
@@ -394,7 +450,9 @@ const deliveryStatusConfig = {
                 <div
                     class="flex items-center justify-between border-t border-gray-100 py-3"
                 >
-                    <span class="text-sm text-gray-500">Total amount</span>
+                    <span class="text-sm text-gray-500">{{
+                        order.payment_ready ? 'Final amount' : 'Estimated amount'
+                    }}</span>
                     <span class="text-base font-bold text-gray-800">{{
                         currency(order.total_amount)
                     }}</span>
@@ -409,8 +467,52 @@ const deliveryStatusConfig = {
                     }}</span>
                 </div>
 
+                <button
+                    v-if="order.payment_status === 'paid'"
+                    type="button"
+                    class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                    @click="
+                        router.visit(
+                            `/user/orders/${order.payment_public_id}/payment/receipt`,
+                        )
+                    "
+                >
+                    <ReceiptText class="h-4 w-4" />
+                    View Invoice Receipt
+                </button>
+
                 <!-- Pay Online button (shown when shop has PayMongo and order is unpaid) -->
                 <div v-if="canPayOnline" class="mt-3 space-y-2">
+                    <div>
+                        <p class="mb-2 text-xs font-semibold text-gray-600">
+                            Choose payment method
+                        </p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button
+                                v-for="method in onlinePaymentMethods"
+                                :key="method.value"
+                                type="button"
+                                class="flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 bg-white px-3 py-2 transition"
+                                :class="
+                                    selectedOnlineMethod === method.value
+                                        ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                "
+                                @click="selectedOnlineMethod = method.value"
+                            >
+                                <img
+                                    :src="method.image"
+                                    :alt="`${method.label} logo`"
+                                    class="h-6 max-w-16 object-contain"
+                                />
+                                <span
+                                    class="text-xs font-semibold text-gray-700"
+                                >
+                                    {{ method.label }}
+                                </span>
+                            </button>
+                        </div>
+                    </div>
                     <button
                         :disabled="payingOnline"
                         class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
@@ -424,7 +526,7 @@ const deliveryStatusConfig = {
                         {{
                             payingOnline
                                 ? 'Redirecting to payment…'
-                                : 'Pay Online'
+                                : `Pay with ${onlinePaymentMethods.find((method) => method.value === selectedOnlineMethod)?.label}`
                         }}
                     </button>
                     <p class="text-center text-xs text-muted-foreground">
@@ -437,8 +539,15 @@ const deliveryStatusConfig = {
                     class="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-xs text-amber-700"
                 >
                     <Info class="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    Total is finalised by the shop after weighing. Payment is
-                    made at the shop.
+                    <span v-if="!order.payment_ready">
+                        Awaiting the shop's actual weight. The amount shown is
+                        only an estimate; online payment will unlock after the
+                        final weight and price are confirmed.
+                    </span>
+                    <span v-else>
+                        Online payment is unavailable for this order. Please
+                        coordinate payment with the shop.
+                    </span>
                 </div>
             </div>
 

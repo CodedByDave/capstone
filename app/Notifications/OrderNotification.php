@@ -9,7 +9,7 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string $event, // placed | status_changed | payment_updated | payment_request | cancelled
+        public readonly string $event, // placed | weight_confirmed | status_changed | payment_updated | payment_request | cancelled
         public readonly ?string $qrUrl = null,
     ) {}
 
@@ -27,6 +27,7 @@ class OrderNotification extends Notification
                 'title' => 'Order placed!',
                 'body' => "Your order #{$order->order_number} at {$order->shop->shop_name} has been received. We'll notify you when it's in progress.",
                 'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'placed',
             ],
@@ -34,14 +35,28 @@ class OrderNotification extends Notification
                 'title' => $this->statusTitle($order->status),
                 'body' => $this->statusBody($order),
                 'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'status_changed',
                 'status' => $order->status,
+            ],
+            'weight_confirmed' => [
+                'title' => 'Final weight confirmed',
+                'body' => 'Your laundry weighs '.number_format((float) $order->actual_weight_kg, 2)
+                    .' kg. The final amount for order #'.$order->order_number.' is ₱'
+                    .number_format((float) $order->total_amount, 2).'. You can now pay online.',
+                'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
+                'order_number' => $order->order_number,
+                'type' => 'weight_confirmed',
+                'actual_weight_kg' => $order->actual_weight_kg,
+                'amount' => $order->total_amount,
             ],
             'payment_updated' => [
                 'title' => 'Payment updated',
                 'body' => "Payment for order #{$order->order_number} is now {$order->payment_status}.",
                 'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'payment_updated',
                 'payment_status' => $order->payment_status,
@@ -50,6 +65,7 @@ class OrderNotification extends Notification
                 'title' => 'Payment request from '.$order->shop->shop_name,
                 'body' => 'Please pay ₱'.number_format($order->total_amount, 2)." for order #{$order->order_number} via ".strtoupper($order->payment_method).'.',
                 'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'payment_request',
                 'amount' => $order->total_amount,
@@ -59,6 +75,7 @@ class OrderNotification extends Notification
                 'title' => 'Order cancelled',
                 'body' => "Order #{$order->order_number} has been cancelled by the customer.",
                 'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'cancelled',
             ],

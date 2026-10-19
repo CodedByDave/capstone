@@ -2,6 +2,10 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    serviceCategories,
+    type ServiceCategory,
+} from '@/constants/serviceCategories';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
@@ -10,6 +14,7 @@ import { computed } from 'vue';
 
 interface ShopService {
     id: number;
+    category: ServiceCategory;
     service_name: string;
     description: string | null;
     is_active: boolean;
@@ -32,6 +37,7 @@ const base = computed(() =>
 );
 
 const form = useForm({
+    category: props.service.category,
     service_name: props.service.service_name,
     description: props.service.description ?? '',
     is_active: props.service.is_active,
@@ -43,6 +49,9 @@ const form = useForm({
 });
 
 const isPerKg = computed(() => form.pricing_model === 'per_kg');
+const selectedCategory = computed(() =>
+    serviceCategories.find((category) => category.value === form.category),
+);
 
 const onModelChange = () => {
     if (form.pricing_model === 'per_kg') {
@@ -85,6 +94,37 @@ const submit = () => {
                         Basic Information
                     </p>
                     <div class="grid grid-cols-12 gap-x-6 gap-y-5">
+                        <div class="col-span-12 space-y-1">
+                            <label class="text-sm font-medium">
+                                Service Category
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <select
+                                v-model="form.category"
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                :class="{
+                                    'border-red-500': form.errors.category,
+                                }"
+                            >
+                                <option
+                                    v-for="category in serviceCategories"
+                                    :key="category.value"
+                                    :value="category.value"
+                                >
+                                    {{ category.label }}
+                                </option>
+                            </select>
+                            <p class="text-xs leading-5 text-muted-foreground">
+                                {{ selectedCategory?.description }}
+                            </p>
+                            <p
+                                v-if="form.errors.category"
+                                class="text-xs text-red-500"
+                            >
+                                {{ form.errors.category }}
+                            </p>
+                        </div>
+
                         <div class="col-span-12 space-y-1 sm:col-span-5">
                             <label class="text-sm font-medium"
                                 >Service Name

@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\UpdatePaymongoSettingsRequest;
 use App\Models\Shop;
-use App\Services\PaymongoService;
+use App\Services\ShopPaymentSettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -45,37 +46,11 @@ class ShopSettingsController extends Controller
         ]);
     }
 
-    public function updatePaymongo(Request $request, PaymongoService $paymongo)
-    {
-        $data = $request->validate([
-            'paymongo_secret_key' => ['nullable', 'string', 'max:300', 'regex:/^sk_(test|live)_[A-Za-z0-9]+$/'],
-            'paymongo_public_key' => ['nullable', 'string', 'max:300', 'regex:/^pk_(test|live)_[A-Za-z0-9]+$/'],
-        ], [
-            'paymongo_secret_key.regex' => 'Account Code must start with sk_test_ or sk_live_.',
-            'paymongo_public_key.regex' => 'Account ID must start with pk_test_ or pk_live_.',
-        ]);
-
-        $secretKey = $data['paymongo_secret_key'] ?: null;
-        $publicKey = $data['paymongo_public_key'] ?: null;
-
-        // Verify the secret key against PayMongo before saving
-        if ($secretKey && ! $paymongo->verifySecretKey($secretKey)) {
-            return back()->with('toast', [
-                'type' => 'error',
-                'message' => 'Invalid secret key. Please check your PayMongo Developer Dashboard and try again.',
-            ]);
-        }
-
-        $shop = $this->getShop();
-        $shop->update([
-            'paymongo_secret_key' => $secretKey,
-            'paymongo_public_key' => $publicKey,
-        ]);
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => $secretKey ? 'PayMongo connected successfully.' : 'PayMongo disconnected.',
-        ]);
+    public function updatePaymongo(
+        UpdatePaymongoSettingsRequest $request,
+        ShopPaymentSettingsService $paymentSettings,
+    ) {
+        return back()->with('toast', $paymentSettings->update($request->user(), $request->validated()));
     }
 
     public function updateCoverPhoto(Request $request)

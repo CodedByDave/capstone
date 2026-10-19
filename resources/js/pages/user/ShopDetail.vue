@@ -10,6 +10,10 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import {
+    serviceCategoryLabel,
+    type ServiceCategory,
+} from '@/constants/serviceCategories';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import type { AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -17,15 +21,12 @@ import {
     ArrowLeft,
     Banknote,
     CheckCircle2,
-    ChevronRight,
     Clock,
-    CreditCard,
     Info,
     Loader2,
     MapPin,
     Package,
     Phone,
-    Smartphone,
     WashingMachine,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -36,6 +37,7 @@ import 'vue3-toastify/dist/index.css';
 
 interface ShopService {
     id: number;
+    category: ServiceCategory;
     service_name: string;
     description: string | null;
     pricing_model: 'per_kg' | 'per_bundle';
@@ -103,19 +105,22 @@ const paymentOptions = [
         value: 'cash',
         label: 'Pay at Shop',
         icon: Banknote,
+        image: null,
         note: 'Pay cash when you drop off or pick up.',
     },
     {
         value: 'gcash',
         label: 'GCash',
-        icon: Smartphone,
-        note: 'Shop will send a GCash payment request.',
+        icon: null,
+        image: 'https://upload.wikimedia.org/wikipedia/commons/5/52/GCash_logo.svg',
+        note: 'Pay after the shop confirms the actual weight and final amount.',
     },
     {
         value: 'maya',
         label: 'Maya',
-        icon: CreditCard,
-        note: 'Shop will send a Maya payment request.',
+        icon: null,
+        image: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Maya_logo.svg',
+        note: 'Pay after the shop confirms the actual weight and final amount.',
     },
 ];
 
@@ -193,17 +198,6 @@ function formatServicePrice(svc: ShopService) {
     if (svc.pricing_model === 'per_bundle' && svc.bundle_price)
         return `₱${parseFloat(svc.bundle_price).toFixed(0)} / ${svc.bundle_weight_kg}kg bundle`;
     return '—';
-}
-
-// Service type icon colour
-const serviceColours = [
-    'bg-blue-100 text-blue-600',
-    'bg-teal-100 text-teal-600',
-    'bg-violet-100 text-violet-600',
-    'bg-amber-100 text-amber-600',
-];
-function svcColour(idx: number) {
-    return serviceColours[idx % serviceColours.length];
 }
 
 function goBack() {
@@ -303,75 +297,59 @@ function goBack() {
                     <p class="text-sm">No services available at this time.</p>
                 </div>
 
-                <div v-else class="space-y-3">
-                    <div
-                        v-for="(svc, idx) in services"
+                <div v-else class="grid gap-4 sm:grid-cols-2">
+                    <article
+                        v-for="svc in services"
                         :key="svc.id"
-                        class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+                        class="flex min-h-80 flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
                     >
-                        <div class="p-4">
-                            <div class="flex items-start gap-3">
-                                <!-- Icon -->
-                                <div
-                                    :class="`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${svcColour(idx)}`"
+                        <div>
+                            <span
+                                class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"
+                            >
+                                {{ serviceCategoryLabel(svc.category) }}
+                            </span>
+                            <h3 class="text-lg font-bold text-gray-900">
+                                {{ svc.service_name }}
+                            </h3>
+                            <p class="mt-1.5 text-sm leading-6 text-gray-500">
+                                {{
+                                    svc.description ||
+                                    'Professional laundry service handled with care.'
+                                }}
+                            </p>
+
+                            <p
+                                class="mt-4 text-xl font-extrabold text-blue-600"
+                            >
+                                {{ formatServicePrice(svc) }}
+                            </p>
+
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <span
+                                    v-if="svc.estimated_hours"
+                                    class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600"
                                 >
-                                    <WashingMachine class="h-5 w-5" />
-                                </div>
-
-                                <div class="min-w-0 flex-1">
-                                    <div
-                                        class="flex items-start justify-between gap-2"
-                                    >
-                                        <div>
-                                            <p
-                                                class="text-sm font-semibold text-gray-800"
-                                            >
-                                                {{ svc.service_name }}
-                                            </p>
-                                            <p
-                                                v-if="svc.description"
-                                                class="mt-0.5 line-clamp-2 text-xs text-gray-500"
-                                            >
-                                                {{ svc.description }}
-                                            </p>
-                                        </div>
-                                        <p
-                                            class="shrink-0 text-base font-extrabold text-blue-600"
-                                        >
-                                            {{ formatServicePrice(svc) }}
-                                        </p>
-                                    </div>
-
-                                    <div class="mt-2.5 flex items-center gap-2">
-                                        <div
-                                            v-if="svc.estimated_hours"
-                                            class="flex items-center gap-1 rounded-full bg-gray-50 px-2 py-1 text-[11px] text-gray-400"
-                                        >
-                                            <Clock class="h-3 w-3" />
-                                            ~{{ svc.estimated_hours }}h
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[11px] text-amber-600"
-                                        >
-                                            <Info class="h-3 w-3" />
-                                            Final price based on actual weight
-                                        </div>
-                                    </div>
-                                </div>
+                                    <Clock class="h-3.5 w-3.5" />
+                                    About {{ svc.estimated_hours }} hours
+                                </span>
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs text-amber-700"
+                                >
+                                    <Info class="h-3.5 w-3.5" />
+                                    Final price after weighing
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Order CTA bar -->
                         <button
-                            class="flex w-full items-center justify-between bg-blue-600 px-4 py-3 text-white transition hover:bg-blue-700 active:bg-blue-800"
+                            type="button"
+                            class="mt-auto w-full rounded-xl border-2 border-blue-600 px-4 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-600 hover:text-white active:bg-blue-700"
                             @click="openOrder(svc)"
                         >
-                            <span class="text-sm font-semibold"
-                                >Place Order</span
-                            >
-                            <ChevronRight class="h-4 w-4" />
+                            Place an order
                         </button>
-                    </div>
+                    </article>
                 </div>
             </div>
         </div>
@@ -566,9 +544,16 @@ function goBack() {
                                         | 'maya'
                                 "
                             >
+                                <img
+                                    v-if="opt.image"
+                                    :src="opt.image"
+                                    :alt="`${opt.label} logo`"
+                                    class="h-7 w-12 shrink-0 object-contain"
+                                />
                                 <component
                                     :is="opt.icon"
-                                    class="h-4 w-4 shrink-0"
+                                    v-else
+                                    class="h-5 w-5 shrink-0"
                                     :class="
                                         form.payment_method === opt.value
                                             ? 'text-blue-600'
@@ -629,11 +614,11 @@ function goBack() {
                     <div
                         class="rounded-xl bg-amber-50 p-3 text-xs text-amber-700"
                     >
-                        <strong>Note:</strong> Estimated total is indicative —
-                        the shop will weigh your items and confirm the final
-                        price. Payment via
-                        <strong>{{ selectedPayment?.label }}</strong> will be
-                        collected once the shop sets the final amount.
+                        <strong>Note:</strong> The amount above is only an
+                        estimate. The shop will weigh your laundry and confirm
+                        the final amount. If you selected
+                        <strong>{{ selectedPayment?.label }}</strong
+                        >, online payment will become available afterward.
                     </div>
                 </div>
 

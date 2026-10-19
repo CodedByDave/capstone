@@ -97,9 +97,14 @@ class ShopOrderService
                 throw ValidationException::withMessages(['service_id' => 'The selected service is unavailable.']);
             }
 
+            $estimatedBundles = $service->pricing_model === 'per_bundle'
+                ? max(1, (int) ceil(
+                    (float) $data['estimated_weight_kg'] / max((float) $service->bundle_weight_kg, 0.01),
+                ))
+                : null;
             $estimatedTotal = $service->pricing_model === 'per_kg'
                 ? round((float) $service->price_per_kg * (float) $data['estimated_weight_kg'], 2)
-                : (float) ($service->bundle_price ?? 0);
+                : round($estimatedBundles * (float) ($service->bundle_price ?? 0), 2);
 
             $order = $this->repository->create([
                 'shop_id' => $shop->id,
@@ -117,6 +122,7 @@ class ShopOrderService
                 'price_per_kg' => $service->price_per_kg,
                 'bundle_weight_kg' => $service->bundle_weight_kg,
                 'bundle_price' => $service->bundle_price,
+                'bundle_quantity' => $estimatedBundles,
                 'additional_charges' => 0,
                 'discount_amount' => 0,
                 'total_amount' => $estimatedTotal,
@@ -139,8 +145,68 @@ class ShopOrderService
     public function updateOrder(ShopOrder $order, array $data): ShopOrder
     {
         return DB::transaction(function () use ($order, $data) {
+            if ($order->payment_status === 'paid'
+                && array_key_exists('actual_weight_kg', $data)
+                && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg) {
+                throw ValidationException::withMessages([
+                    'actual_weight_kg' => 'The actual weight cannot be changed after payment.',
+                ]);
+            }
+
+            $service = $this->repository->findActiveServiceForShop(
+                (int) $data['service_id'],
+                $order->shop_id,
+            );
+
+            if (! $service) {
+                throw ValidationException::withMessages([
+                    'service_id' => 'The selected service is unavailable for this shop.',
+                ]);
+            }
+
+            $previousActualWeight = $order->actual_weight_kg;
             $newSupplies = $data['supplies'] ?? [];
             unset($data['supplies']);
+
+            $data['pricing_model'] = $service->pricing_model;
+            $data['price_per_kg'] = $service->price_per_kg;
+            $data['bundle_weight_kg'] = $service->bundle_weight_kg;
+            $data['bundle_price'] = $service->bundle_price;
+
+            if ($service->pricing_model === 'per_bundle' && ! empty($data['actual_weight_kg'])) {
+                $data['bundle_quantity'] = max(1, (int) ceil(
+                    (float) $data['actual_weight_kg'] / max((float) $service->bundle_weight_kg, 0.01),
+                ));
+            }
+
+            $baseAmount = $service->pricing_model === 'per_kg'
+                ? (float) ($data['actual_weight_kg'] ?? 0) * (float) $service->price_per_kg
+                : (float) ($data['bundle_quantity'] ?? 1) * (float) $service->bundle_price;
+            $data['total_amount'] = round(max(
+                0,
+                $baseAmount
+                    + (float) ($data['additional_charges'] ?? 0)
+                    - (float) ($data['discount_amount'] ?? 0),
+            ), 2);
+
+            if (empty($data['actual_weight_kg'])) {
+                $estimatedBaseAmount = $service->pricing_model === 'per_kg'
+                    ? (float) ($data['estimated_weight_kg'] ?? 0) * (float) $service->price_per_kg
+                    : max(1, (int) ceil(
+                        (float) ($data['estimated_weight_kg'] ?? 0) / max((float) $service->bundle_weight_kg, 0.01),
+                    )) * (float) $service->bundle_price;
+                $data['total_amount'] = round(max(0, $estimatedBaseAmount), 2);
+            }
+
+            $amountPaid = (float) ($data['amount_paid'] ?? $order->amount_paid);
+            $data['payment_status'] = match (true) {
+                $amountPaid <= 0 => 'unpaid',
+                $amountPaid < $data['total_amount'] => 'partial',
+                default => 'paid',
+            };
+            $data['paid_at'] = $data['payment_status'] === 'paid'
+                ? ($order->paid_at ?? now())
+                : null;
 
             // Restore old supply quantities back to inventory
             foreach ($order->supplies as $oldSupply) {
@@ -152,8 +218,8 @@ class ShopOrderService
             // Detach all old supplies from pivot
             $order->supplies()->detach();
 
-            // Update order fields
-            $order->update($data);
+            // Persist the authoritative pricing and weight values.
+            $this->repository->update($order, $data);
 
             // Re-attach new supplies and deduct inventory
             foreach ($newSupplies as $supply) {
@@ -184,7 +250,15 @@ class ShopOrderService
                 $item->decrement('quantity', (float) $supply['quantity_used']);
             }
 
-            return $order->fresh(['service', 'supplies']);
+            $updated = $order->fresh(['service', 'supplies', 'shop', 'customer']);
+
+            if ($updated->user_id
+                && $previousActualWeight === null
+                && $updated->actual_weight_kg !== null) {
+                $updated->customer?->notify(new OrderNotification($updated, 'weight_confirmed'));
+            }
+
+            return $updated;
         });
     }
 

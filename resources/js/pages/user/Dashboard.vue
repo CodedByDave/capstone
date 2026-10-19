@@ -19,6 +19,7 @@ import 'vue3-toastify/dist/index.css';
 
 interface RecentOrder {
     id: number;
+    payment_public_id: string;
     order_number: string;
     shop_name: string;
     service_name: string;
@@ -238,7 +239,11 @@ function currency(val: number) {
                         v-for="order in recentOrders"
                         :key="order.id"
                         class="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3.5 text-left shadow-sm transition hover:shadow-md active:scale-[0.98]"
-                        @click="router.visit(`/user/orders/${order.id}`)"
+                        @click="
+                            router.visit(
+                                `/user/orders/${order.payment_public_id}`,
+                            )
+                        "
                     >
                         <div
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100"

@@ -30,6 +30,16 @@ class ShopRepository extends Repository
         return Shop::query()->find($shopId);
     }
 
+    public function updatePaymongoCredentials(Shop $shop, ?string $secretKey, ?string $publicKey): Shop
+    {
+        $shop->update([
+            'paymongo_secret_key' => $secretKey,
+            'paymongo_public_key' => $publicKey,
+        ]);
+
+        return $shop->refresh();
+    }
+
     public function updateSetup(Shop $shop, array $data): Shop
     {
         $shop->update($data);

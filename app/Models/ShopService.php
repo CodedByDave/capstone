@@ -16,6 +16,7 @@ class ShopService extends Model
     protected $fillable = [
         'shop_id',
         'service_name',
+        'category',
         'description',
         'is_active',
         'pricing_model',
@@ -33,6 +34,15 @@ class ShopService extends Model
     ];
 
     const PRICING_MODELS = ['per_kg', 'per_bundle'];
+
+    const CATEGORIES = [
+        'self_service',
+        'full_service',
+        'dry_cleaning',
+        'ironing_pressing',
+        'pickup_delivery',
+        'specialty_bulk',
+    ];
 
     // ─── Relationships ─────────────────────────────────
 

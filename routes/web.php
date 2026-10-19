@@ -617,17 +617,20 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/shops', [UserDashboardController::class, 'shops'])->name('shops');
     Route::get('/shops/{shop}', [UserDashboardController::class, 'showShop'])->name('shops.show');
     Route::get('/orders', [UserOrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [UserOrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order:payment_public_id}', [UserOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders', [UserOrderController::class, 'store'])
         ->middleware('shop.capability:pickup')
         ->name('orders.store');
-    Route::post('/orders/{order}/request-delivery', [UserOrderController::class, 'requestDelivery'])
+    Route::post('/orders/{order:payment_public_id}/request-delivery', [UserOrderController::class, 'requestDelivery'])
         ->middleware('shop.capability:delivery')
         ->name('orders.request-delivery');
-    Route::post('/orders/{order}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
-    Route::post('/orders/{order}/pay-online', [UserPaymentController::class, 'pay'])->name('orders.pay-online');
-    Route::get('/orders/{order}/payment/success', [UserPaymentController::class, 'success'])->name('orders.payment.success');
-    Route::get('/orders/{order}/payment/cancel', [UserPaymentController::class, 'cancel'])->name('orders.payment.cancel');
+    Route::post('/orders/{order:payment_public_id}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{paymentPublicId}/pay-online', [UserPaymentController::class, 'pay'])->whereUlid('paymentPublicId')->name('orders.pay-online');
+    Route::get('/orders/{paymentPublicId}/payment/demo', [UserPaymentController::class, 'demo'])->whereUlid('paymentPublicId')->name('orders.payment.demo');
+    Route::post('/orders/{paymentPublicId}/payment/demo/complete', [UserPaymentController::class, 'completeDemo'])->whereUlid('paymentPublicId')->name('orders.payment.demo.complete');
+    Route::get('/orders/{paymentPublicId}/payment/receipt', [UserPaymentController::class, 'receipt'])->whereUlid('paymentPublicId')->name('orders.payment.receipt');
+    Route::get('/orders/{paymentPublicId}/payment/success', [UserPaymentController::class, 'success'])->whereUlid('paymentPublicId')->name('orders.payment.success');
+    Route::get('/orders/{paymentPublicId}/payment/cancel', [UserPaymentController::class, 'cancel'])->whereUlid('paymentPublicId')->name('orders.payment.cancel');
 
     Route::get('/notifications', [UserNotificationController::class, 'index'])->name('notifications');
     Route::get('/notifications/poll', [UserNotificationController::class, 'poll'])->name('notifications.poll');

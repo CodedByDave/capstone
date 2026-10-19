@@ -27,6 +27,7 @@ class DeliveryNotification extends Notification
             'type' => 'delivery_updated',
             'delivery_id' => $delivery->id,
             'order_id' => $order?->id,
+            'payment_public_id' => $order?->payment_public_id,
             'order_number' => $order?->order_number,
             'delivery_status' => $delivery->status,
         ];

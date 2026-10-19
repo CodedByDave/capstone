@@ -190,16 +190,6 @@ const computedTotal = computed(() => {
     return Math.max(0, baseTotal.value + charges - discount);
 });
 
-watch(
-    computedTotal,
-    (val) => {
-        if (form.payment_status !== 'paid') {
-            form.amount_paid = String(val);
-        }
-    },
-    { immediate: true },
-);
-
 const formatServiceLabel = (svc: Service) => {
     if (svc.pricing_model === 'per_kg')
         return `${svc.service_name} — ₱${svc.price_per_kg}/kg`;
@@ -433,6 +423,16 @@ const submit = () => {
                                     min="0.1"
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 />
+                                <p class="text-xs text-muted-foreground">
+                                    Enter the scale reading to finalize the
+                                    amount and unlock customer payment.
+                                </p>
+                                <p
+                                    v-if="form.errors.actual_weight_kg"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.actual_weight_kg }}
+                                </p>
                             </div>
                             <div class="col-span-12 space-y-1 sm:col-span-4">
                                 <label class="text-sm font-medium"

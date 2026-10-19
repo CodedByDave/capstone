@@ -11,6 +11,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Providers\AuthServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 
@@ -48,6 +49,26 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (ThrottleRequestsException $exception, Request $request) {
+            if (! $request->routeIs([
+                'login.store',
+                'register.user.store',
+                'register.shop.store',
+            ])) {
+                return null;
+            }
+
+            $retryAfter = max(1, (int) ($exception->getHeaders()['Retry-After'] ?? 60));
+            $waitTime = $retryAfter === 1 ? '1 second' : "{$retryAfter} seconds";
+
+            return back()
+                ->with('toast', [
+                    'type' => 'error',
+                    'message' => "Too many attempts. Please try again in {$waitTime}.",
+                ])
+                ->withHeaders($exception->getHeaders());
+        });
+
         $exceptions->render(function (ProtectedPlatformRoleException $exception, Request $request) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $exception->getMessage()], 422);

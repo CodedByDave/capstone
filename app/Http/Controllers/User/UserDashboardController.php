@@ -29,6 +29,7 @@ class UserDashboardController extends Controller
             ->get()
             ->map(fn ($o) => [
                 'id' => $o->id,
+                'payment_public_id' => $o->payment_public_id,
                 'order_number' => $o->order_number,
                 'shop_name' => $o->shop->shop_name ?? '—',
                 'service_name' => $o->service->service_name ?? '—',
@@ -146,6 +147,7 @@ class UserDashboardController extends Controller
                 'id',
                 'shop_id',
                 'service_name',
+                'category',
                 'description',
                 'pricing_model',
                 'price_per_kg',

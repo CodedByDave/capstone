@@ -16,6 +16,7 @@ import 'vue3-toastify/dist/index.css';
 
 interface Order {
     id: number;
+    payment_public_id: string;
     order_number: string;
     shop: { name: string; location: string } | null;
     service_name: string;
@@ -119,7 +120,11 @@ function currency(val: number) {
                     v-for="order in orders.data"
                     :key="order.id"
                     class="w-full overflow-hidden rounded-2xl border border-gray-100 bg-white text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
-                    @click="router.visit(`/user/orders/${order.id}`)"
+                    @click="
+                        router.visit(
+                            `/user/orders/${order.payment_public_id}`,
+                        )
+                    "
                 >
                     <!-- Coloured status strip -->
                     <div

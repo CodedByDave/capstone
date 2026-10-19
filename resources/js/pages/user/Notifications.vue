@@ -20,6 +20,7 @@ interface NotificationData {
     title: string;
     body: string;
     order_id?: number;
+    payment_public_id?: string;
     order_number?: string;
     type:
         | 'placed'
@@ -100,8 +101,10 @@ function handleNotifClick(n: Notification) {
         toggleQr(n.id);
         return;
     }
-    if (n.data.order_id) {
-        router.visit(`/user/orders/${n.data.order_id}`);
+    if (n.data.payment_public_id) {
+        router.visit(`/user/orders/${n.data.payment_public_id}`);
+    } else if (n.data.order_id) {
+        router.visit('/user/orders');
     }
 }
 </script>

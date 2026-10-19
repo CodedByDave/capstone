@@ -49,6 +49,24 @@ class ShopOrderRepository
         return $this->model->with(['service', 'supplies'])->find($id);
     }
 
+    public function findForCustomerOnlinePayment(string $paymentPublicId, int $customerId): ?ShopOrder
+    {
+        return $this->model->newQuery()
+            ->with(['shop', 'customer'])
+            ->where('payment_public_id', $paymentPublicId)
+            ->where('user_id', $customerId)
+            ->first();
+    }
+
+    public function findForCustomerReceipt(string $paymentPublicId, int $customerId): ?ShopOrder
+    {
+        return $this->model->newQuery()
+            ->with(['shop', 'service'])
+            ->where('payment_public_id', $paymentPublicId)
+            ->where('user_id', $customerId)
+            ->first();
+    }
+
     public function findByOrderNumber(string $orderNumber): ?ShopOrder
     {
         return $this->model->where('order_number', $orderNumber)->first();

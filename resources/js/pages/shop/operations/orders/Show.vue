@@ -82,6 +82,10 @@ const isDigitalPayment = computed(() =>
     ['gcash', 'maya'].includes(props.shopOrder.payment_method),
 );
 
+const isAwaitingWeight = computed(
+    () => props.shopOrder.actual_weight_kg === null,
+);
+
 function sendPaymentRequest() {
     sending.value = true;
     router.post(
@@ -204,6 +208,31 @@ const statusIcon = (s: string) =>
                 <span class="text-sm text-muted-foreground">{{
                     formatDate(shopOrder.created_at)
                 }}</span>
+            </div>
+
+            <div
+                v-if="isAwaitingWeight"
+                class="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <div class="flex items-start gap-3">
+                    <Clock class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                    <div>
+                        <p class="font-semibold text-amber-900">
+                            Actual weight required
+                        </p>
+                        <p class="text-sm text-amber-700">
+                            Weigh the laundry and record the scale reading. The
+                            system will calculate the final amount and unlock
+                            customer payment.
+                        </p>
+                    </div>
+                </div>
+                <Button
+                    class="shrink-0"
+                    @click="router.visit(`${base}/${shopOrder.id}/edit`)"
+                >
+                    Record Actual Weight
+                </Button>
             </div>
 
             <div class="grid grid-cols-12 gap-6">
@@ -471,7 +500,9 @@ const statusIcon = (s: string) =>
                                 <span>
                                     <template
                                         v-if="
-                                            shopOrder.pricing_model === 'per_kg'
+                                            shopOrder.pricing_model ===
+                                                'per_kg' &&
+                                            shopOrder.actual_weight_kg
                                         "
                                     >
                                         {{ shopOrder.actual_weight_kg }}kg ×
@@ -480,6 +511,9 @@ const statusIcon = (s: string) =>
                                                 shopOrder.price_per_kg,
                                             )
                                         }}
+                                    </template>
+                                    <template v-else-if="isAwaitingWeight">
+                                        Awaiting scale reading
                                     </template>
                                     <template v-else>
                                         {{ shopOrder.bundle_quantity }} ×
@@ -603,6 +637,7 @@ const statusIcon = (s: string) =>
                                 class="w-full"
                                 :disabled="
                                     sending ||
+                                    isAwaitingWeight ||
                                     shopOrder.payment_status === 'paid'
                                 "
                                 @click="sendPaymentRequest"
@@ -618,6 +653,13 @@ const statusIcon = (s: string) =>
                                         : 'Send Payment Request to Customer'
                                 }}
                             </Button>
+                            <p
+                                v-if="isAwaitingWeight"
+                                class="text-center text-xs text-amber-600"
+                            >
+                                Record the actual weight before requesting
+                                payment.
+                            </p>
                             <p
                                 v-if="shopOrder.payment_status === 'paid'"
                                 class="text-center text-xs text-emerald-600"

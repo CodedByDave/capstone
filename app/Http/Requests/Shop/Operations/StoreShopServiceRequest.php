@@ -17,6 +17,7 @@ class StoreShopServiceRequest extends FormRequest
     {
         return [
             'service_name' => ['required', 'string', 'max:255'],
+            'category' => ['required', Rule::in(ShopService::CATEGORIES)],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
@@ -43,6 +44,8 @@ class StoreShopServiceRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'category.required' => 'Please select a service category.',
+            'category.in' => 'Please select a valid service category.',
             'price_per_kg.required_if' => 'Price per kg is required for per-kg pricing.',
             'price_per_kg.min' => 'Price per kg must be at least ₱1.',
             'price_per_kg.max' => 'Price per kg cannot exceed ₱9,999.',

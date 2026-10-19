@@ -512,9 +512,13 @@ const ownerHomeHref = computed(() =>
     ownerCan('shop.dashboard') ? '/shop/dashboard' : '/',
 );
 const hasOwnerAdministration = computed(() =>
-    ['shop.operations', 'shop.staff', 'shop.settings', 'shop.finance'].some(
-        ownerCan,
-    ),
+    [
+        'shop.operations',
+        'shop.staff',
+        'shop.settings',
+        'shop.finance',
+        'payments.manage_own',
+    ].some(ownerCan),
 );
 </script>
 
@@ -535,26 +539,6 @@ const hasOwnerAdministration = computed(() =>
         </template>
 
         <NavMain :items="dashboardItem" />
-
-        <SidebarMenu
-            v-if="isOwner && ownerCan('payments.manage_own')"
-            class="mt-1 px-2"
-        >
-            <SidebarMenuItem>
-                <SidebarMenuButton
-                    as-child
-                    :is-active="currentUrl.startsWith('/shop/payment-history')"
-                >
-                    <Link
-                        href="/shop/payment-history"
-                        class="flex w-full items-center gap-2"
-                    >
-                        <Receipt class="h-4 w-4 shrink-0" />
-                        <span>Payment History</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-        </SidebarMenu>
 
         <SidebarMenu class="mt-1 px-2">
             <template v-for="mod in moduleNavItems" :key="mod.moduleName">
@@ -704,6 +688,22 @@ const hasOwnerAdministration = computed(() =>
                         >
                             <ArrowUp class="h-4 w-4" />
                             <span>Upgrade Plan</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem v-if="ownerCan('payments.manage_own')">
+                    <SidebarMenuButton
+                        as-child
+                        :is-active="
+                            currentUrl.startsWith('/shop/payment-history')
+                        "
+                    >
+                        <Link
+                            href="/shop/payment-history"
+                            class="flex w-full items-center gap-2"
+                        >
+                            <Receipt class="h-4 w-4" />
+                            <span>Payment History</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

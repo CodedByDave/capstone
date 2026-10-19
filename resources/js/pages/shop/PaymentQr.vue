@@ -4,32 +4,50 @@ import { Input } from '@/components/ui/input';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
-    AlertCircle,
+    Check,
     CheckCircle2,
     Copy,
     CreditCard,
-    ExternalLink,
     Eye,
     EyeOff,
+    FlaskConical,
     Loader2,
-    Plug,
     PlugZap,
+    ShieldCheck,
     Unplug,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+type DemoCredentials = {
+    secret_key: string;
+    public_key: string;
+};
 
 const props = defineProps<{
     paymongo_configured: boolean;
     paymongo_public_key: string | null;
+    payment_mode: 'demo' | 'paymongo' | null;
+    demo_enabled: boolean;
+    demo_credentials: DemoCredentials | null;
 }>();
 
-// ─── Flash ────────────────────────────────────────────────────────────────────
-
 const page = usePage();
+const showForm = ref(!props.paymongo_configured);
+const showSecret = ref(false);
+const saving = ref(false);
+const secretKey = ref('');
+const publicKey = ref(props.paymongo_public_key ?? '');
+const copied = ref<string | null>(null);
+
+const maskedPublicKey = computed(() => {
+    const key = props.paymongo_public_key ?? '';
+    return key.length > 12
+        ? `${key.slice(0, 10)}••••••••${key.slice(-4)}`
+        : key;
+});
+
 onMounted(() => {
     const flash = (page.props as any).toast as
         | { type: string; message: string }
@@ -40,42 +58,50 @@ onMounted(() => {
     else toast(flash.message);
 });
 
-// ─── State ────────────────────────────────────────────────────────────────────
+function useDemoKeys() {
+    if (!props.demo_credentials) return;
+    secretKey.value = props.demo_credentials.secret_key;
+    publicKey.value = props.demo_credentials.public_key;
+    showSecret.value = true;
+    showForm.value = true;
+    toast.info('Demo keys filled in. Click Connect Demo Gateway.');
+}
 
-const showForm = ref(!props.paymongo_configured);
-const showCode = ref(false);
-const saving = ref(false);
-const accountCode = ref(''); // secret key — called "Account Code" for owners
-const accountId = ref(props.paymongo_public_key ?? ''); // public key — called "Account ID"
-
-const maskedAccountId = computed(() => {
-    const k = props.paymongo_public_key ?? '';
-    return k.length > 8 ? k.slice(0, 8) + '••••••••' + k.slice(-4) : k;
-});
-
-// ─── Actions ──────────────────────────────────────────────────────────────────
+async function copyValue(value: string, field: string) {
+    await navigator.clipboard.writeText(value);
+    copied.value = field;
+    setTimeout(() => (copied.value = null), 1500);
+}
 
 function connect() {
-    if (!accountCode.value.trim() || !accountId.value.trim()) {
-        toast.error('Please fill in both your Account Code and Account ID.');
+    if (!secretKey.value.trim() || !publicKey.value.trim()) {
+        toast.error('Enter both the secret key and public key.');
         return;
     }
+
     saving.value = true;
     router.post(
         '/shop/settings/paymongo',
         {
-            paymongo_secret_key: accountCode.value.trim(),
-            paymongo_public_key: accountId.value.trim(),
+            paymongo_secret_key: secretKey.value.trim(),
+            paymongo_public_key: publicKey.value.trim(),
         },
         {
             preserveScroll: true,
             onSuccess: () => {
-                accountCode.value = '';
+                secretKey.value = '';
                 showForm.value = false;
             },
-            onFinish: () => {
-                saving.value = false;
+            onError: (errors) => {
+                toast.error(
+                    String(
+                        errors.paymongo_secret_key ??
+                            errors.paymongo_public_key ??
+                            'Could not connect the payment gateway.',
+                    ),
+                );
             },
+            onFinish: () => (saving.value = false),
         },
     );
 }
@@ -84,314 +110,397 @@ function disconnect() {
     saving.value = true;
     router.post(
         '/shop/settings/paymongo',
-        {
-            paymongo_secret_key: null,
-            paymongo_public_key: null,
-        },
+        { paymongo_secret_key: null, paymongo_public_key: null },
         {
             preserveScroll: true,
-            onFinish: () => {
-                saving.value = false;
-            },
+            onFinish: () => (saving.value = false),
         },
     );
 }
 </script>
 
 <template>
-    <Head title="Online Payments" />
+    <Head title="Payment Settings" />
     <ShopLayout>
-        <div class="mx-auto max-w-xl space-y-5 px-4 py-8">
-            <!-- Header -->
+        <div class="mx-auto max-w-2xl space-y-5 px-4 py-8">
             <div>
-                <h1
-                    class="flex items-center gap-2 text-xl font-bold text-gray-900"
-                >
+                <div class="flex items-center gap-2">
                     <CreditCard class="h-5 w-5 text-blue-600" />
-                    Online Payments
-                </h1>
+                    <h1 class="text-xl font-bold text-gray-900">
+                        Payment Settings
+                    </h1>
+                </div>
                 <p class="mt-1 text-sm text-gray-500">
-                    Let your customers pay online using GCash, Maya, credit
-                    card, and more. Money goes directly into your account.
+                    Configure online payment for this shop. Thesis demo mode
+                    opens PayMongo's hosted test checkout using LaundryHub's
+                    test account, so no real money is charged.
                 </p>
             </div>
 
-            <!-- ══ CONNECTED ══ -->
-            <template v-if="paymongo_configured && !showForm">
-                <div
-                    class="flex items-start gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5"
-                >
-                    <div
-                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100"
-                    >
-                        <PlugZap class="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-semibold text-emerald-800">
-                            Account Connected
+            <div
+                v-if="
+                    demo_enabled &&
+                    demo_credentials &&
+                    paymongo_configured &&
+                    !showForm
+                "
+                class="rounded-2xl border border-violet-200 bg-violet-50 p-5"
+            >
+                <div class="flex items-start gap-3">
+                    <FlaskConical
+                        class="mt-0.5 h-5 w-5 shrink-0 text-violet-600"
+                    />
+                    <div>
+                        <p class="font-semibold text-violet-950">
+                            How to set up PayMongo test payments
                         </p>
-                        <p class="mt-0.5 text-sm text-emerald-700">
-                            Your customers can now pay online. Payments go
-                            straight to your PayMongo account.
-                        </p>
-                        <p
-                            v-if="maskedAccountId"
-                            class="mt-2 font-mono text-xs tracking-wide text-emerald-600"
+                        <ol
+                            class="mt-2 list-decimal space-y-1 pl-5 text-sm text-violet-800"
                         >
-                            Account ID: {{ maskedAccountId }}
-                        </p>
+                            <li>
+                                Copy the simulation secret and public keys
+                                below.
+                            </li>
+                            <li>
+                                Click Use simulation keys to open and fill the
+                                credentials form.
+                            </li>
+                            <li>
+                                Click Connect Demo Gateway to save the shop's
+                                test-payment setup.
+                            </li>
+                            <li>
+                                After weighing, customers can select GCash,
+                                Maya, Card, or GrabPay at PayMongo's test
+                                checkout.
+                            </li>
+                        </ol>
                     </div>
                 </div>
 
-                <!-- Accepted methods -->
-                <div
-                    class="space-y-3 rounded-2xl border border-gray-100 bg-white p-5"
-                >
-                    <p
-                        class="text-xs font-semibold tracking-wide text-gray-400 uppercase"
+                <div class="mt-4 space-y-3">
+                    <div
+                        class="rounded-xl border border-violet-200 bg-white p-3"
                     >
-                        Accepted Payment Methods
-                    </p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div
-                            v-for="m in [
-                                'GCash',
-                                'Maya',
-                                'Credit / Debit Card',
-                                'GrabPay',
-                                'Online Banking',
-                            ]"
-                            :key="m"
-                            class="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2"
-                        >
-                            <CheckCircle2
-                                class="h-3.5 w-3.5 shrink-0 text-emerald-500"
-                            />
-                            <span class="text-xs font-medium text-gray-700">{{
-                                m
-                            }}</span>
+                        <p class="text-xs font-medium text-gray-500">
+                            Simulation secret key (SK)
+                        </p>
+                        <div class="mt-1 flex items-center gap-2">
+                            <code
+                                class="min-w-0 flex-1 text-sm break-all text-gray-800"
+                                >{{ demo_credentials.secret_key }}</code
+                            >
+                            <button
+                                class="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                                type="button"
+                                aria-label="Copy simulation secret key"
+                                @click="
+                                    copyValue(
+                                        demo_credentials.secret_key,
+                                        'secret',
+                                    )
+                                "
+                            >
+                                <Check
+                                    v-if="copied === 'secret'"
+                                    class="h-4 w-4 text-emerald-600"
+                                />
+                                <Copy v-else class="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
+                    <div
+                        class="rounded-xl border border-violet-200 bg-white p-3"
+                    >
+                        <p class="text-xs font-medium text-gray-500">
+                            Simulation public key (PK)
+                        </p>
+                        <div class="mt-1 flex items-center gap-2">
+                            <code
+                                class="min-w-0 flex-1 text-sm break-all text-gray-800"
+                                >{{ demo_credentials.public_key }}</code
+                            >
+                            <button
+                                class="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                                type="button"
+                                aria-label="Copy simulation public key"
+                                @click="
+                                    copyValue(
+                                        demo_credentials.public_key,
+                                        'public',
+                                    )
+                                "
+                            >
+                                <Check
+                                    v-if="copied === 'public'"
+                                    class="h-4 w-4 text-emerald-600"
+                                />
+                                <Copy v-else class="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                    <Button
+                        class="w-full bg-violet-600 text-white hover:bg-violet-700"
+                        @click="useDemoKeys"
+                    >
+                        <FlaskConical class="mr-2 h-4 w-4" />
+                        Use simulation keys
+                    </Button>
+                </div>
+            </div>
+
+            <div v-if="paymongo_configured && !showForm" class="space-y-4">
+                <div
+                    :class="[
+                        'flex items-start gap-4 rounded-2xl border p-5',
+                        payment_mode === 'demo'
+                            ? 'border-violet-200 bg-violet-50'
+                            : 'border-emerald-200 bg-emerald-50',
+                    ]"
+                >
+                    <div
+                        :class="[
+                            'flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
+                            payment_mode === 'demo'
+                                ? 'bg-violet-100'
+                                : 'bg-emerald-100',
+                        ]"
+                    >
+                        <FlaskConical
+                            v-if="payment_mode === 'demo'"
+                            class="h-5 w-5 text-violet-600"
+                        />
+                        <PlugZap v-else class="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <p
+                                :class="[
+                                    'font-semibold',
+                                    payment_mode === 'demo'
+                                        ? 'text-violet-900'
+                                        : 'text-emerald-900',
+                                ]"
+                            >
+                                {{
+                                    payment_mode === 'demo'
+                                        ? 'Demo Gateway Connected'
+                                        : 'PayMongo Connected'
+                                }}
+                            </p>
+                            <span
+                                v-if="payment_mode === 'demo'"
+                                class="rounded-full bg-violet-200 px-2 py-0.5 text-[10px] font-bold tracking-wide text-violet-800 uppercase"
+                            >
+                                PayMongo test mode
+                            </span>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-600">
+                            {{
+                                payment_mode === 'demo'
+                                    ? "Customers are redirected to PayMongo's hosted test checkout. Transactions use LaundryHub's test account and no real money is charged."
+                                    : 'Customers can pay through the connected PayMongo account.'
+                            }}
+                        </p>
+                        <p class="mt-2 font-mono text-xs text-gray-500">
+                            Public key: {{ maskedPublicKey }}
+                        </p>
+                    </div>
                 </div>
 
-                <div class="flex gap-3">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="showForm = true"
+                <div
+                    class="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-white p-5 sm:grid-cols-4"
+                >
+                    <div
+                        v-for="method in ['GCash', 'Maya', 'Card', 'GrabPay']"
+                        :key="method"
+                        class="flex items-center gap-2 rounded-xl bg-gray-50 px-3 py-2.5"
                     >
-                        Update Connection
+                        <CheckCircle2 class="h-4 w-4 text-emerald-500" />
+                        <span class="text-xs font-medium text-gray-700">{{
+                            method
+                        }}</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <Button variant="outline" @click="showForm = true">
+                        Change keys
                     </Button>
                     <Button
                         variant="outline"
-                        size="sm"
                         class="border-red-200 text-red-600 hover:bg-red-50"
                         :disabled="saving"
                         @click="disconnect"
                     >
                         <Loader2
                             v-if="saving"
-                            class="mr-1.5 h-3.5 w-3.5 animate-spin"
+                            class="mr-2 h-4 w-4 animate-spin"
                         />
-                        <Unplug v-else class="mr-1.5 h-3.5 w-3.5" />
-                        {{ saving ? 'Disconnecting…' : 'Disconnect Account' }}
+                        <Unplug v-else class="mr-2 h-4 w-4" />
+                        Disconnect
                     </Button>
                 </div>
-            </template>
+            </div>
 
-            <!-- ══ SETUP WIZARD ══ -->
-            <template v-else>
-                <!-- Not connected banner -->
+            <div v-else class="space-y-5">
                 <div
-                    v-if="!paymongo_configured"
-                    class="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4"
+                    v-if="demo_enabled && demo_credentials"
+                    class="rounded-2xl border border-violet-200 bg-violet-50 p-5"
                 >
-                    <AlertCircle
-                        class="mt-0.5 h-5 w-5 shrink-0 text-amber-500"
-                    />
-                    <p class="text-sm text-amber-700">
-                        Your account is not connected yet. Follow the 3 steps
-                        below to start accepting online payments.
+                    <div class="flex items-start gap-3">
+                        <FlaskConical
+                            class="mt-0.5 h-5 w-5 shrink-0 text-violet-600"
+                        />
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <p class="font-semibold text-violet-950">
+                                    Thesis demonstration keys
+                                </p>
+                                <span
+                                    class="rounded-full bg-violet-200 px-2 py-0.5 text-[10px] font-bold text-violet-800 uppercase"
+                                >
+                                    No real payment
+                                </span>
+                            </div>
+                            <p class="mt-1 text-sm text-violet-800">
+                                Use this same pair for any registered demo shop.
+                                It opens PayMongo's hosted test checkout through
+                                LaundryHub's test account.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 space-y-3">
+                        <div
+                            class="rounded-xl border border-violet-200 bg-white p-3"
+                        >
+                            <p class="text-xs font-medium text-gray-500">
+                                Demo secret key (SK)
+                            </p>
+                            <div class="mt-1 flex items-center gap-2">
+                                <code
+                                    class="min-w-0 flex-1 text-sm break-all text-gray-800"
+                                    >{{ demo_credentials.secret_key }}</code
+                                >
+                                <button
+                                    class="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                                    type="button"
+                                    aria-label="Copy demo secret key"
+                                    @click="
+                                        copyValue(
+                                            demo_credentials.secret_key,
+                                            'secret',
+                                        )
+                                    "
+                                >
+                                    <Check
+                                        v-if="copied === 'secret'"
+                                        class="h-4 w-4 text-emerald-600"
+                                    />
+                                    <Copy v-else class="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                        <div
+                            class="rounded-xl border border-violet-200 bg-white p-3"
+                        >
+                            <p class="text-xs font-medium text-gray-500">
+                                Demo public key (PK)
+                            </p>
+                            <div class="mt-1 flex items-center gap-2">
+                                <code
+                                    class="min-w-0 flex-1 text-sm break-all text-gray-800"
+                                    >{{ demo_credentials.public_key }}</code
+                                >
+                                <button
+                                    class="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                                    type="button"
+                                    aria-label="Copy demo public key"
+                                    @click="
+                                        copyValue(
+                                            demo_credentials.public_key,
+                                            'public',
+                                        )
+                                    "
+                                >
+                                    <Check
+                                        v-if="copied === 'public'"
+                                        class="h-4 w-4 text-emerald-600"
+                                    />
+                                    <Copy v-else class="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                        <Button
+                            class="w-full bg-violet-600 text-white hover:bg-violet-700"
+                            @click="useDemoKeys"
+                        >
+                            <FlaskConical class="mr-2 h-4 w-4" />
+                            Use demo keys
+                        </Button>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-gray-200 bg-white p-5">
+                    <div class="flex items-center gap-2">
+                        <ShieldCheck class="h-5 w-5 text-blue-600" />
+                        <h2 class="font-semibold text-gray-900">
+                            Connect payment credentials
+                        </h2>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">
+                        For the defense demo, click “Use demo keys” above. Real
+                        PayMongo test/live credentials are also supported.
                     </p>
-                </div>
 
-                <!-- Step 1 -->
-                <div
-                    class="space-y-3 rounded-2xl border border-gray-100 bg-white p-5"
-                >
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
-                        >
-                            1
-                        </div>
-                        <p class="text-sm font-semibold text-gray-800">
-                            Open your PayMongo account
-                        </p>
-                    </div>
-                    <p class="ml-10 text-sm text-gray-500">
-                        Don't have one yet? Sign up for free — it only takes a
-                        few minutes. Your laundry payments will be deposited
-                        directly into this account.
-                    </p>
-                    <div class="ml-10">
-                        <a
-                            href="https://dashboard.paymongo.com"
-                            target="_blank"
-                        >
-                            <Button variant="outline" size="sm" class="gap-1.5">
-                                Open PayMongo
-                                <ExternalLink class="h-3.5 w-3.5" />
-                            </Button>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Step 2 -->
-                <div
-                    class="space-y-3 rounded-2xl border border-gray-100 bg-white p-5"
-                >
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
-                        >
-                            2
-                        </div>
-                        <p class="text-sm font-semibold text-gray-800">
-                            Find your Account Code and Account ID
-                        </p>
-                    </div>
-                    <div class="ml-10 space-y-2 text-sm text-gray-500">
-                        <p>Inside your PayMongo dashboard:</p>
-                        <ol class="ml-4 space-y-1.5">
-                            <li class="flex items-start gap-2">
-                                <span
-                                    class="shrink-0 font-semibold text-gray-700"
-                                    >①</span
-                                >
-                                Click
-                                <span class="font-medium text-gray-700"
-                                    >Developers</span
-                                >
-                                on the left menu
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span
-                                    class="shrink-0 font-semibold text-gray-700"
-                                    >②</span
-                                >
-                                Click
-                                <span class="font-medium text-gray-700"
-                                    >API Keys</span
-                                >
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span
-                                    class="shrink-0 font-semibold text-gray-700"
-                                    >③</span
-                                >
-                                You will see two codes — copy both and paste
-                                them in Step 3
-                            </li>
-                        </ol>
-                    </div>
-                    <div class="ml-10">
-                        <a
-                            href="https://dashboard.paymongo.com/developers"
-                            target="_blank"
-                        >
-                            <Button variant="outline" size="sm" class="gap-1.5">
-                                Go to Developers section
-                                <ExternalLink class="h-3.5 w-3.5" />
-                            </Button>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Step 3 — Input -->
-                <div
-                    class="space-y-4 rounded-2xl border border-blue-200 bg-blue-50/50 p-5"
-                >
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
-                        >
-                            3
-                        </div>
-                        <p class="text-sm font-semibold text-gray-800">
-                            Paste your codes below
-                        </p>
-                    </div>
-
-                    <div class="ml-10 space-y-4">
-                        <!-- Account Code (secret key) -->
+                    <div class="mt-4 space-y-4">
                         <div class="space-y-1.5">
-                            <label
-                                class="flex items-center gap-1.5 text-xs font-semibold text-gray-700"
-                            >
-                                <Copy class="h-3.5 w-3.5 text-gray-400" />
-                                Account Code
-                                <span class="font-normal text-gray-400"
-                                    >(the longer code starting with
-                                    <span class="font-mono">sk_</span>)</span
-                                >
+                            <label class="text-xs font-semibold text-gray-700">
+                                Secret key (SK)
                             </label>
                             <div class="relative">
                                 <Input
-                                    v-model="accountCode"
-                                    :type="showCode ? 'text' : 'password'"
-                                    placeholder="Paste your Account Code here…"
-                                    class="h-10 pr-10 text-sm"
+                                    v-model="secretKey"
+                                    :type="showSecret ? 'text' : 'password'"
+                                    placeholder="sk_test_..."
+                                    class="pr-10 font-mono text-sm"
                                 />
                                 <button
                                     type="button"
                                     class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    @click="showCode = !showCode"
+                                    @click="showSecret = !showSecret"
                                 >
-                                    <EyeOff v-if="showCode" class="h-4 w-4" />
+                                    <EyeOff v-if="showSecret" class="h-4 w-4" />
                                     <Eye v-else class="h-4 w-4" />
                                 </button>
                             </div>
-                            <p class="text-xs text-gray-400">
-                                This code is private — keep it safe like a
-                                password.
-                            </p>
                         </div>
-
-                        <!-- Account ID (public key) -->
                         <div class="space-y-1.5">
-                            <label
-                                class="flex items-center gap-1.5 text-xs font-semibold text-gray-700"
-                            >
-                                <Copy class="h-3.5 w-3.5 text-gray-400" />
-                                Account ID
-                                <span class="font-normal text-gray-400"
-                                    >(the other code starting with
-                                    <span class="font-mono">pk_</span>)</span
-                                >
+                            <label class="text-xs font-semibold text-gray-700">
+                                Public key (PK)
                             </label>
                             <Input
-                                v-model="accountId"
-                                placeholder="Paste your Account ID here…"
-                                class="h-10 text-sm"
+                                v-model="publicKey"
+                                placeholder="pk_test_..."
+                                class="font-mono text-sm"
                             />
                         </div>
 
-                        <div class="flex gap-3 pt-1">
-                            <Button
-                                :disabled="saving"
-                                class="gap-2 bg-blue-600 text-white hover:bg-blue-700"
-                                @click="connect"
-                            >
+                        <div class="flex flex-wrap gap-3">
+                            <Button :disabled="saving" @click="connect">
                                 <Loader2
                                     v-if="saving"
-                                    class="h-4 w-4 animate-spin"
+                                    class="mr-2 h-4 w-4 animate-spin"
                                 />
-                                <Plug v-else class="h-4 w-4" />
+                                <PlugZap v-else class="mr-2 h-4 w-4" />
                                 {{
                                     saving
-                                        ? 'Connecting your account…'
-                                        : 'Connect My Account'
+                                        ? 'Connecting…'
+                                        : secretKey ===
+                                            demo_credentials?.secret_key
+                                          ? 'Connect Demo Gateway'
+                                          : 'Connect Payment Gateway'
                                 }}
                             </Button>
                             <Button
@@ -402,14 +511,9 @@ function disconnect() {
                                 Cancel
                             </Button>
                         </div>
-
-                        <p class="text-xs text-gray-400">
-                            We'll verify your account automatically. If there's
-                            an issue, we'll let you know right away.
-                        </p>
                     </div>
                 </div>
-            </template>
+            </div>
         </div>
     </ShopLayout>
 </template>

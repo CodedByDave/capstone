@@ -27,7 +27,8 @@ class PaymongoService
             ->accept('application/json')
             ->contentType('application/json')
             ->baseUrl($this->baseUrl)
-            ->timeout(30);
+            ->connectTimeout(5)
+            ->timeout(15);
     }
 
     public function createCheckoutSession(Order $order): array
@@ -213,9 +214,15 @@ class PaymongoService
         $payload = [
             'data' => [
                 'attributes' => [
-                    'send_email_receipt' => false,
+                    'send_email_receipt' => true,
                     'show_description' => true,
                     'show_line_items' => true,
+                    'billing' => [
+                        'name' => $order->customer_name,
+                        'email' => $order->customer?->email,
+                        // PayMongo already renders the +63 prefix in checkout.
+                        'phone' => PhilippinePhone::mobileDigits($order->customer_phone),
+                    ],
                     'line_items' => [
                         [
                             'currency' => 'PHP',
@@ -224,9 +231,15 @@ class PaymongoService
                             'quantity' => 1,
                         ],
                     ],
-                    'payment_method_types' => ['gcash', 'paymaya', 'card', 'grab_pay', 'dob'],
-                    'success_url' => url("/user/orders/{$order->id}/payment/success"),
-                    'cancel_url' => url("/user/orders/{$order->id}/payment/cancel"),
+                    'payment_method_types' => match ($order->payment_method) {
+                        'gcash' => ['gcash'],
+                        'maya' => ['paymaya'],
+                        'card' => ['card'],
+                        'grabpay', 'grab_pay' => ['grab_pay'],
+                        default => ['gcash', 'paymaya', 'card', 'grab_pay'],
+                    },
+                    'success_url' => route('user.orders.payment.success', $order->payment_public_id),
+                    'cancel_url' => route('user.orders.payment.cancel', $order->payment_public_id),
                     'description' => "Order {$order->order_number} — {$order->customer_name}",
                     'metadata' => [
                         'order_id' => (string) $order->id,
