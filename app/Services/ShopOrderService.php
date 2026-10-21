@@ -179,24 +179,26 @@ class ShopOrderService
                 ));
             }
 
-            $baseAmount = $service->pricing_model === 'per_kg'
-                ? (float) ($data['actual_weight_kg'] ?? 0) * (float) $service->price_per_kg
-                : (float) ($data['bundle_quantity'] ?? 1) * (float) $service->bundle_price;
+            // Base price comes from the actual weight once weighed, otherwise from the estimate.
+            // Additional charges and discounts apply to either, so they are added in one place.
+            if (empty($data['actual_weight_kg'])) {
+                $baseAmount = $service->pricing_model === 'per_kg'
+                    ? (float) ($data['estimated_weight_kg'] ?? 0) * (float) $service->price_per_kg
+                    : max(1, (int) ceil(
+                        (float) ($data['estimated_weight_kg'] ?? 0) / max((float) $service->bundle_weight_kg, 0.01),
+                    )) * (float) $service->bundle_price;
+            } else {
+                $baseAmount = $service->pricing_model === 'per_kg'
+                    ? (float) $data['actual_weight_kg'] * (float) $service->price_per_kg
+                    : (float) ($data['bundle_quantity'] ?? 1) * (float) $service->bundle_price;
+            }
+
             $data['total_amount'] = round(max(
                 0,
                 $baseAmount
                     + (float) ($data['additional_charges'] ?? 0)
                     - (float) ($data['discount_amount'] ?? 0),
             ), 2);
-
-            if (empty($data['actual_weight_kg'])) {
-                $estimatedBaseAmount = $service->pricing_model === 'per_kg'
-                    ? (float) ($data['estimated_weight_kg'] ?? 0) * (float) $service->price_per_kg
-                    : max(1, (int) ceil(
-                        (float) ($data['estimated_weight_kg'] ?? 0) / max((float) $service->bundle_weight_kg, 0.01),
-                    )) * (float) $service->bundle_price;
-                $data['total_amount'] = round(max(0, $estimatedBaseAmount), 2);
-            }
 
             $amountPaid = (float) ($data['amount_paid'] ?? $order->amount_paid);
             $data['payment_status'] = match (true) {
