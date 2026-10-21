@@ -141,8 +141,7 @@ test('customer can switch the online payment method before checkout', function (
         ->assertHeader('X-Inertia-Location', 'https://checkout.paymongo.test/customer-order');
 
     expect($order->refresh()->payment_method)->toBe('maya');
-    Http::assertSent(fn ($request) =>
-        data_get($request->data(), 'data.attributes.payment_method_types') === ['paymaya']
+    Http::assertSent(fn ($request) => data_get($request->data(), 'data.attributes.payment_method_types') === ['paymaya']
     );
 });
 

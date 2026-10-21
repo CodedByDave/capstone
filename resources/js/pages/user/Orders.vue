@@ -121,9 +121,7 @@ function currency(val: number) {
                     :key="order.id"
                     class="w-full overflow-hidden rounded-2xl border border-gray-100 bg-white text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
                     @click="
-                        router.visit(
-                            `/user/orders/${order.payment_public_id}`,
-                        )
+                        router.visit(`/user/orders/${order.payment_public_id}`)
                     "
                 >
                     <!-- Coloured status strip -->

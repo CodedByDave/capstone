@@ -134,5 +134,4 @@ class UserPaymentController extends Controller
                 ->with('toast', ['type' => 'error', 'message' => $exception->getMessage()]);
         }
     }
-
 }
