@@ -617,6 +617,7 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/shops', [UserDashboardController::class, 'shops'])->name('shops');
     Route::get('/shops/{shop}', [UserDashboardController::class, 'showShop'])->name('shops.show');
     Route::get('/orders', [UserOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/estimate', [UserOrderController::class, 'estimate'])->middleware('throttle:60,1')->name('orders.estimate');
     Route::get('/orders/{order:payment_public_id}', [UserOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders', [UserOrderController::class, 'store'])
         ->middleware('shop.capability:pickup')

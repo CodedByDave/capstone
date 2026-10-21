@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\EstimateOrderBreakdownRequest;
 use App\Http\Requests\User\StoreUserOrderRequest;
 use App\Models\Delivery;
 use App\Models\ShopOrder;
@@ -10,7 +11,9 @@ use App\Notifications\DeliveryNotification;
 use App\Notifications\OrderNotification;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerOrderPlacementService;
+use App\Services\OrderBillingBreakdownService;
 use App\Services\ShopPaymentSettingsService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -23,6 +26,7 @@ class UserOrderController extends Controller
         private readonly CustomerOrderPlacementService $orderPlacement,
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly ShopPaymentSettingsService $paymentSettings,
+        private readonly OrderBillingBreakdownService $billing,
     ) {}
 
     // ─── List orders ──────────────────────────────────────────────────────────
@@ -76,6 +80,7 @@ class UserOrderController extends Controller
                 'payment_method' => $order->payment_method,
                 'total_amount' => (float) $order->total_amount,
                 'amount_paid' => (float) $order->amount_paid,
+                'billing' => $this->billing->forOrder($order),
                 'estimated_weight_kg' => $order->estimated_weight_kg,
                 'actual_weight_kg' => $order->actual_weight_kg,
                 'pickup_type' => $order->pickup_type,
@@ -109,6 +114,19 @@ class UserOrderController extends Controller
                 ] : null,
             ],
         ]);
+    }
+
+    // ─── Estimate before ordering ─────────────────────────────────────────────
+
+    public function estimate(EstimateOrderBreakdownRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        return response()->json($this->billing->estimateFor(
+            (int) $data['shop_id'],
+            (int) $data['service_id'],
+            (float) $data['estimated_weight_kg'],
+        ));
     }
 
     // ─── Place order ──────────────────────────────────────────────────────────

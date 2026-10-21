@@ -17,6 +17,7 @@ class ShopOrderService
     public function __construct(
         protected ShopOrderRepository $repository,
         private readonly CustomerAgreementService $customerAgreementService,
+        private readonly OrderBillingBreakdownService $billing,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -97,14 +98,11 @@ class ShopOrderService
                 throw ValidationException::withMessages(['service_id' => 'The selected service is unavailable.']);
             }
 
+            $estimate = $this->billing->estimate($service, (float) $data['estimated_weight_kg']);
             $estimatedBundles = $service->pricing_model === 'per_bundle'
-                ? max(1, (int) ceil(
-                    (float) $data['estimated_weight_kg'] / max((float) $service->bundle_weight_kg, 0.01),
-                ))
+                ? (int) $estimate['service']['quantity']
                 : null;
-            $estimatedTotal = $service->pricing_model === 'per_kg'
-                ? round((float) $service->price_per_kg * (float) $data['estimated_weight_kg'], 2)
-                : round($estimatedBundles * (float) ($service->bundle_price ?? 0), 2);
+            $estimatedTotal = $estimate['total'];
 
             $order = $this->repository->create([
                 'shop_id' => $shop->id,

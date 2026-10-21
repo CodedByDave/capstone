@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import BillingBreakdown, {
+    type BillingBreakdown as BillingBreakdownData,
+} from '@/components/customer/BillingBreakdown.vue';
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
@@ -50,6 +53,7 @@ interface Order {
     payment_method: string;
     total_amount: number;
     amount_paid: number;
+    billing: BillingBreakdownData;
     estimated_weight_kg: number;
     actual_weight_kg: number | null;
     pickup_type: string;
@@ -133,10 +137,6 @@ const paymentConfig = {
     partial: { label: 'Partial', classes: 'bg-orange-50 text-orange-600' },
     paid: { label: 'Paid', classes: 'bg-emerald-50 text-emerald-700' },
 };
-
-function currency(val: number) {
-    return `₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
-}
 
 function formatAddress(shop: Shop) {
     return [shop.block_street, shop.barangay, shop.municipality]
@@ -447,25 +447,7 @@ const deliveryStatusConfig = {
                     </span>
                 </div>
 
-                <div
-                    class="flex items-center justify-between border-t border-gray-100 py-3"
-                >
-                    <span class="text-sm text-gray-500">{{
-                        order.payment_ready ? 'Final amount' : 'Estimated amount'
-                    }}</span>
-                    <span class="text-base font-bold text-gray-800">{{
-                        currency(order.total_amount)
-                    }}</span>
-                </div>
-                <div
-                    v-if="order.amount_paid > 0"
-                    class="flex items-center justify-between text-sm text-gray-500"
-                >
-                    <span>Amount paid</span>
-                    <span class="font-semibold text-emerald-600">{{
-                        currency(order.amount_paid)
-                    }}</span>
-                </div>
+                <BillingBreakdown :breakdown="order.billing" />
 
                 <button
                     v-if="order.payment_status === 'paid'"

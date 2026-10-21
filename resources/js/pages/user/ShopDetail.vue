@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import BillingBreakdown, {
+    type BillingBreakdown as BillingBreakdownData,
+} from '@/components/customer/BillingBreakdown.vue';
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +23,6 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Banknote,
-    CheckCircle2,
     Clock,
     Info,
     Loader2,
@@ -29,7 +31,7 @@ import {
     Phone,
     WashingMachine,
 } from 'lucide-vue-next';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -154,21 +156,56 @@ const selectedPayment = computed(() =>
     paymentOptions.find((o) => o.value === form.value.payment_method),
 );
 
-const estimatedTotal = computed(() => {
-    if (!selectedService.value) return null;
-    const svc = selectedService.value;
-    const wt = parseFloat(form.value.estimated_weight_kg);
-    if (!wt || wt <= 0) return null;
-    if (svc.pricing_model === 'per_kg' && svc.price_per_kg)
-        return (parseFloat(svc.price_per_kg) * wt).toFixed(2);
-    if (svc.pricing_model === 'per_bundle' && svc.bundle_price) {
-        const bundleSize = svc.bundle_weight_kg
-            ? parseFloat(svc.bundle_weight_kg)
-            : 1;
-        const bundles = Math.ceil(wt / bundleSize);
-        return (bundles * parseFloat(svc.bundle_price)).toFixed(2);
+// The server prices the estimate so it always matches what the order stores.
+const estimate = ref<BillingBreakdownData | null>(null);
+let estimateTimer: ReturnType<typeof setTimeout> | undefined;
+let estimateRequest: AbortController | null = null;
+
+async function loadEstimate() {
+    estimateRequest?.abort();
+    const request = new AbortController();
+    estimateRequest = request;
+
+    const query = new URLSearchParams({
+        shop_id: String(props.shop.id),
+        service_id: String(form.value.service_id),
+        estimated_weight_kg: form.value.estimated_weight_kg,
+    });
+
+    try {
+        const response = await fetch(`/user/orders/estimate?${query}`, {
+            signal: request.signal,
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        estimate.value = response.ok ? await response.json() : null;
+    } catch {
+        if (!request.signal.aborted) estimate.value = null;
     }
-    return null;
+}
+
+watch(
+    () => [form.value.service_id, form.value.estimated_weight_kg],
+    () => {
+        clearTimeout(estimateTimer);
+
+        const weight = parseFloat(form.value.estimated_weight_kg);
+        if (!form.value.service_id || !(weight >= 0.5 && weight <= 100)) {
+            estimateRequest?.abort();
+            estimate.value = null;
+            return;
+        }
+
+        estimateTimer = setTimeout(loadEstimate, 300);
+    },
+);
+
+onBeforeUnmount(() => {
+    clearTimeout(estimateTimer);
+    estimateRequest?.abort();
 });
 
 function submitOrder() {
@@ -443,15 +480,11 @@ function goBack() {
                         >
                             {{ errors.estimated_weight_kg }}
                         </p>
-                        <div
-                            v-if="estimatedTotal"
-                            class="flex items-center gap-1.5 rounded-lg bg-green-50 p-2 text-xs text-green-700"
-                        >
-                            <CheckCircle2 class="h-3.5 w-3.5 shrink-0" />
-                            Estimated total:
-                            <strong>₱{{ estimatedTotal }}</strong>
-                            <span class="opacity-70">(indicative)</span>
-                        </div>
+                        <BillingBreakdown
+                            v-if="estimate"
+                            :breakdown="estimate"
+                            :show-payment="false"
+                        />
                     </div>
 
                     <!-- Pickup type -->
