@@ -1,5 +1,5 @@
 ---
-name: task-workflow
+name: debug-workflow
 description: Standard five-step workflow (investigate, plan, implement, verify, review and report) for bug fixes, features, and changes in this repository. Use when starting or handing off any code change.
 ---
 
