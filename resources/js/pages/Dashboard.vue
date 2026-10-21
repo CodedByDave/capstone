@@ -40,6 +40,7 @@ interface NearbyShop {
     cover_photo: string | null;
     distance_km: number;
     starting_price: string | null;
+    starting_price_unit: 'kg' | 'bundle' | null;
     services_count: number;
 }
 
@@ -414,7 +415,11 @@ function shopGradient(id: number) {
                                 >
                                     From ₱{{
                                         Number(shop.starting_price).toFixed(0)
-                                    }}/kg
+                                    }}{{
+                                        shop.starting_price_unit === 'bundle'
+                                            ? ' / bundle'
+                                            : '/kg'
+                                    }}
                                 </span>
                                 <span v-else class="text-[10px] text-gray-400"
                                     >{{ shop.services_count }} services</span

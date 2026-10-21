@@ -37,6 +37,7 @@ interface Shop {
     longitude: number | null;
     distance_km: number | null;
     starting_price: number | null;
+    starting_price_unit: 'kg' | 'bundle' | null;
     services_count: number;
     services: ShopService[];
 }
@@ -104,7 +105,7 @@ function formatAddress(shop: Shop) {
 
 function formatPrice(shop: Shop) {
     if (shop.starting_price)
-        return `From ₱${Number(shop.starting_price).toFixed(0)}/kg`;
+        return `From ₱${Number(shop.starting_price).toFixed(0)}${shop.starting_price_unit === 'bundle' ? ' / bundle' : '/kg'}`;
     return shop.services_count > 0
         ? `${shop.services_count} service${shop.services_count !== 1 ? 's' : ''}`
         : 'No services';

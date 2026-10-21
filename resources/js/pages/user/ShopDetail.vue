@@ -65,6 +65,10 @@ interface ShopInfo {
     distance_km: number | null;
     offers_pickup: boolean;
     offers_delivery: boolean;
+    payment_options: Record<
+        'cash' | 'gcash' | 'maya',
+        'at_shop' | 'online' | 'qr' | 'unavailable'
+    >;
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -108,23 +112,50 @@ const paymentOptions = [
         label: 'Pay at Shop',
         icon: Banknote,
         image: null,
-        note: 'Pay cash when you drop off or pick up.',
     },
     {
         value: 'gcash',
         label: 'GCash',
         icon: null,
         image: 'https://upload.wikimedia.org/wikipedia/commons/5/52/GCash_logo.svg',
-        note: 'Pay after the shop confirms the actual weight and final amount.',
     },
     {
         value: 'maya',
         label: 'Maya',
         icon: null,
         image: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Maya_logo.svg',
-        note: 'Pay after the shop confirms the actual weight and final amount.',
     },
 ];
+
+// How this shop takes each payment method, as decided by the server.
+function paymentNote(method: string): { text: string; warn: boolean } {
+    if (method === 'cash') {
+        return { text: 'Pay cash when you drop off or pick up.', warn: false };
+    }
+
+    const key = method as 'gcash' | 'maya';
+    const label = key === 'gcash' ? 'GCash' : 'Maya';
+    const mode = props.shop.payment_options[key];
+
+    if (mode === 'online') {
+        return {
+            text: 'Pay online after the shop confirms the actual weight and final amount.',
+            warn: false,
+        };
+    }
+
+    if (mode === 'qr') {
+        return {
+            text: `The shop sends its ${label} QR code once the final amount is confirmed.`,
+            warn: false,
+        };
+    }
+
+    return {
+        text: `This shop has not set up ${label} yet. Ask the shop first, or pay at the shop.`,
+        warn: true,
+    };
+}
 
 const form = ref({
     shop_id: props.shop.id,
@@ -604,8 +635,15 @@ function goBack() {
                                     >
                                         {{ opt.label }}
                                     </p>
-                                    <p class="truncate text-xs text-gray-400">
-                                        {{ opt.note }}
+                                    <p
+                                        class="text-xs"
+                                        :class="
+                                            paymentNote(opt.value).warn
+                                                ? 'text-amber-600'
+                                                : 'text-gray-400'
+                                        "
+                                    >
+                                        {{ paymentNote(opt.value).text }}
                                     </p>
                                 </div>
                             </button>

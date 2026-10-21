@@ -6,13 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Services\CustomerAgreementService;
+use App\Services\CustomerShopCatalogService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserDashboardController extends Controller
 {
-    public function __construct(private readonly CustomerAgreementService $customerAgreementService) {}
+    public function __construct(
+        private readonly CustomerAgreementService $customerAgreementService,
+        private readonly CustomerShopCatalogService $catalog,
+    ) {}
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
 
@@ -46,10 +50,12 @@ class UserDashboardController extends Controller
                 ->whereNotNull('latitude')
                 ->whereNotNull('longitude')
                 ->with(['services' => fn ($q) => $q->where('is_active', true)
-                    ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg')])
+                    ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price')])
                 ->select('id', 'shop_name', 'branch_name', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo')
                 ->get()
                 ->map(function ($shop) use ($lat, $lng) {
+                    $startingPrice = $this->catalog->startingPrice($shop->services);
+
                     return [
                         'id' => $shop->id,
                         'shop_name' => $shop->shop_name,
@@ -58,7 +64,8 @@ class UserDashboardController extends Controller
                         'barangay' => $shop->barangay,
                         'cover_photo' => $this->coverUrl($shop->cover_photo),
                         'distance_km' => $this->haversine($lat, $lng, $shop->latitude, $shop->longitude),
-                        'starting_price' => $shop->services->whereNotNull('price_per_kg')->min('price_per_kg'),
+                        'starting_price' => $startingPrice['amount'],
+                        'starting_price_unit' => $startingPrice['unit'],
                         'services_count' => $shop->services->count(),
                     ];
                 })
@@ -107,11 +114,9 @@ class UserDashboardController extends Controller
                 ? $this->haversine($lat, $lng, $shop->latitude, $shop->longitude)
                 : null;
 
-            // Lowest starting price from active services
-            $minPrice = $shop->services
-                ->whereNotNull('price_per_kg')
-                ->min('price_per_kg');
-            $data['starting_price'] = $minPrice ? (float) $minPrice : null;
+            $startingPrice = $this->catalog->startingPrice($shop->services);
+            $data['starting_price'] = $startingPrice['amount'];
+            $data['starting_price_unit'] = $startingPrice['unit'];
             $data['services_count'] = $shop->services->count();
 
             return $data;
@@ -174,6 +179,7 @@ class UserDashboardController extends Controller
                 'cover_photo' => $this->coverUrl($shop->cover_photo),
                 'gcash_qr' => $this->qrUrl($shop->gcash_qr),
                 'maya_qr' => $this->qrUrl($shop->maya_qr),
+                'payment_options' => $this->catalog->paymentOptions($shop),
                 'distance_km' => $distance,
                 'offers_pickup' => (bool) $shop->offers_pickup,
                 'offers_delivery' => (bool) $shop->offers_delivery,
