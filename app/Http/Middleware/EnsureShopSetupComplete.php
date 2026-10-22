@@ -25,6 +25,15 @@ class EnsureShopSetupComplete
             ]);
         }
 
+        if ($user?->role === 'owner'
+            && ! $request->routeIs('shop.setup.*', 'shop.settings', 'shop.settings.*', 'shop.upgrade*', 'shop.payment.*', 'payment.*')
+            && $this->setup->needsDeliveryPricing($user)) {
+            return redirect()->route('shop.settings')->with('toast', [
+                'type' => 'info',
+                'message' => 'Your shop offers delivery. Set your delivery pricing to continue.',
+            ]);
+        }
+
         return $next($request);
     }
 }

@@ -55,6 +55,7 @@ class Shop extends Model
         'delivery_free_km',
         'delivery_min_fee',
         'delivery_max_km',
+        'delivery_pricing_set_at',
         'setup_completed_at',
         'phone',
         'block_street',
@@ -91,6 +92,7 @@ class Shop extends Model
         'delivery_free_km' => 'decimal:2',
         'delivery_min_fee' => 'decimal:2',
         'delivery_max_km' => 'decimal:2',
+        'delivery_pricing_set_at' => 'datetime',
         'setup_completed_at' => 'datetime',
         'deduct_sss' => 'boolean',
         'deduct_philhealth' => 'boolean',
@@ -109,6 +111,23 @@ class Shop extends Model
     public function hasCoordinates(): bool
     {
         return $this->latitude !== null && $this->longitude !== null;
+    }
+
+    public function hasDeliveryPricing(): bool
+    {
+        return $this->delivery_pricing_set_at !== null;
+    }
+
+    /** The shop chose to deliver but has not set what delivery costs yet. */
+    public function needsDeliveryPricing(): bool
+    {
+        return (bool) $this->offers_delivery && ! $this->hasDeliveryPricing();
+    }
+
+    /** Delivery is available only once the pricing is set, so no run is ever given away free. */
+    public function canDeliver(): bool
+    {
+        return (bool) $this->offers_delivery && $this->hasDeliveryPricing();
     }
 
     public function hasPaymongo(): bool

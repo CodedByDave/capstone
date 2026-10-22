@@ -11,13 +11,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { formatPeso } from '@/lib/maps';
 import { router, useForm } from '@inertiajs/vue3';
-import { Banknote, Info, Loader2, MapPin, Route, Truck } from 'lucide-vue-next';
-import { computed } from 'vue';
+import {
+    AlertTriangle,
+    Banknote,
+    Info,
+    Loader2,
+    MapPin,
+    Route,
+    Truck,
+} from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 export interface DeliveryPricing {
     offers_delivery: boolean;
     has_location: boolean;
+    is_configured: boolean;
+    pricing_required: boolean;
     delivery_fee_mode: 'fixed' | 'per_km';
     delivery_fixed_fee: number;
     delivery_base_fee: number;
@@ -56,6 +66,17 @@ const modes = [
         icon: Route,
     },
 ];
+
+// An owner sent here because pricing is required lands on this card.
+const cardEl = ref<{ $el: HTMLElement } | null>(null);
+onMounted(() => {
+    if (props.pricing.pricing_required) {
+        cardEl.value?.$el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+        });
+    }
+});
 
 function num(value: string): number {
     const parsed = parseFloat(value);
@@ -100,7 +121,7 @@ function save() {
 </script>
 
 <template>
-    <Card>
+    <Card ref="cardEl">
         <CardHeader class="pb-3">
             <div class="flex items-center gap-2">
                 <Truck class="h-4 w-4 text-muted-foreground" />
@@ -132,6 +153,19 @@ function save() {
         </CardContent>
 
         <CardContent v-else class="space-y-4">
+            <div
+                v-if="pricing.pricing_required"
+                class="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+                role="alert"
+            >
+                <AlertTriangle class="mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                    <strong>Required.</strong> Your shop offers delivery, so you
+                    must set what it costs before you can use the rest of the
+                    app. Deliveries, pickups and delivery requests stay off
+                    until you save a fee above ₱0.
+                </p>
+            </div>
             <div
                 v-if="!pricing.has_location"
                 class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"

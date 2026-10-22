@@ -28,8 +28,8 @@ class StoreShopOrderRequest extends FormRequest
     {
         $validator->after(function (\Illuminate\Validation\Validator $validator) {
             if ($this->boolean('deliver_to_customer')
-                && ! \App\Models\Shop::query()->whereKey($this->input('shop_id'))->where('offers_delivery', true)->exists()) {
-                $validator->errors()->add('deliver_to_customer', 'This shop does not offer delivery.');
+                && ! \App\Models\Shop::query()->whereKey($this->input('shop_id'))->where('offers_delivery', true)->whereNotNull('delivery_pricing_set_at')->exists()) {
+                $validator->errors()->add('deliver_to_customer', 'Delivery is not available until the shop sets its delivery pricing.');
             }
         });
     }

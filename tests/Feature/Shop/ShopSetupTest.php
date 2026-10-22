@@ -123,7 +123,7 @@ test('premium and trial plans can enable multiple locations', function (string $
             'offers_pickup' => true,
             'offers_delivery' => true,
         ])
-        ->assertRedirect(route('shop.dashboard'));
+        ->assertRedirect(route('shop.settings'));
 
     expect($shop->fresh()->location_mode)->toBe('multiple')
         ->and($shop->fresh()->ownership_type)->toBe('company_owned');

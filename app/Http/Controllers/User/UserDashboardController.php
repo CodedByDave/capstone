@@ -182,7 +182,7 @@ class UserDashboardController extends Controller
                 'payment_options' => $this->catalog->paymentOptions($shop),
                 'distance_km' => $distance,
                 'offers_pickup' => (bool) $shop->offers_pickup,
-                'offers_delivery' => (bool) $shop->offers_delivery,
+                'offers_delivery' => $shop->canDeliver(),
             ],
             'services' => $services,
             'customerAgreement' => $this->customerAgreementService->agreementData($shop),

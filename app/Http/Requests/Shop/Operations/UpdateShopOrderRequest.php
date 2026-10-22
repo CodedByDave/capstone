@@ -20,8 +20,8 @@ class UpdateShopOrderRequest extends FormRequest
             $order = $this->route('order');
 
             if ($this->boolean('deliver_to_customer')
-                && ! $order?->shop()->where('offers_delivery', true)->exists()) {
-                $validator->errors()->add('deliver_to_customer', 'This shop does not offer delivery.');
+                && ! $order?->shop()->where('offers_delivery', true)->whereNotNull('delivery_pricing_set_at')->exists()) {
+                $validator->errors()->add('deliver_to_customer', 'Delivery is not available until the shop sets its delivery pricing.');
             }
         });
     }

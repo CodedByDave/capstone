@@ -100,7 +100,7 @@ class UserOrderController extends Controller
                 'shop_uses_demo_payment' => $order->shop
                     ? $this->paymentSettings->usesDemoCredentials($order->shop)
                     : false,
-                'shop_offers_delivery' => (bool) ($order->shop?->offers_delivery ?? false),
+                'shop_offers_delivery' => (bool) ($order->shop?->canDeliver() ?? false),
                 'shop' => $order->shop ? [
                     'name' => $order->shop->shop_name,
                     'phone' => $order->shop->phone,

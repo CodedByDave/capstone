@@ -22,6 +22,7 @@ function pricingOwnerShop(array $overrides = []): array
         'location_mode' => 'single',
         'setup_completed_at' => now(),
         'offers_delivery' => true,
+        'delivery_pricing_set_at' => now(),
         'latitude' => 14.4296,
         'longitude' => 120.9367,
     ], $overrides));

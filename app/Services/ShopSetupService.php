@@ -105,6 +105,15 @@ class ShopSetupService
             && $this->orders->findActiveSubscriptionForUser($owner->id) !== null;
     }
 
+    public function needsDeliveryPricing(User $owner): bool
+    {
+        $shop = $this->shops->findByOwnerId($owner->id);
+
+        return $shop !== null
+            && $shop->setup_completed_at !== null
+            && $shop->needsDeliveryPricing();
+    }
+
     public function capabilitiesForOwner(User $owner): ?array
     {
         $shop = $this->shops->findByOwnerId($owner->id);
@@ -136,7 +145,8 @@ class ShopSetupService
             'setup_completed' => $shop->setup_completed_at !== null,
             'multiple_locations' => $shop->location_mode === Shop::LOCATION_MULTIPLE,
             'offers_pickup' => (bool) $shop->offers_pickup,
-            'offers_delivery' => (bool) $shop->offers_delivery,
+            'offers_delivery' => $shop->canDeliver(),
+            'delivery_pricing_required' => $shop->needsDeliveryPricing(),
         ];
     }
 
@@ -151,7 +161,10 @@ class ShopSetupService
         return match ($capability) {
             'branches' => $shop->location_mode === Shop::LOCATION_MULTIPLE,
             'pickup' => (bool) $shop->offers_pickup,
-            'delivery' => (bool) $shop->offers_delivery,
+            // Delivery runs only once its pricing is set, so no delivery is given away free.
+            'delivery' => $shop->canDeliver(),
+            // Setting the pricing itself needs only the choice to deliver.
+            'delivery-setup' => (bool) $shop->offers_delivery,
             default => false,
         };
     }

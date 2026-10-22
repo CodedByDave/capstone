@@ -30,6 +30,10 @@ class DeliveryFeeService
             throw new DeliveryNotAvailableException('This shop does not offer delivery.');
         }
 
+        if (! $shop->hasDeliveryPricing()) {
+            throw new DeliveryNotAvailableException('This shop has not set its delivery pricing yet.');
+        }
+
         if (! $shop->hasCoordinates()) {
             throw new DeliveryNotAvailableException(
                 'Delivery quotes are unavailable because the shop has not set its location yet.',

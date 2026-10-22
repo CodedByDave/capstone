@@ -374,7 +374,7 @@ Route::prefix('shop')->middleware([
     Route::post('/settings/cover-photo/clear', [ShopSettingsController::class, 'removeCoverPhoto'])->name('shop.settings.cover-photo.clear');
     Route::post('/settings/paymongo', [ShopSettingsController::class, 'updatePaymongo'])->name('shop.settings.paymongo');
     Route::patch('/settings/delivery-pricing', [ShopSettingsController::class, 'updateDeliveryPricing'])
-        ->middleware('shop.capability:delivery')
+        ->middleware('shop.capability:delivery-setup')
         ->name('shop.settings.delivery-pricing');
 
     // ── Logistics ─────────────────────────────────────────────────────────────

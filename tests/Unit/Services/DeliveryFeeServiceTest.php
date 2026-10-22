@@ -12,6 +12,7 @@ function feeShop(array $attributes = []): Shop
     return new Shop(array_merge([
         'shop_name' => 'Fee Laundry',
         'offers_delivery' => true,
+        'delivery_pricing_set_at' => now(),
         'latitude' => 14.4296,
         'longitude' => 120.9367,
         'delivery_fee_mode' => 'fixed',

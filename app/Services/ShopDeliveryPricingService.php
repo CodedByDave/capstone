@@ -29,6 +29,8 @@ class ShopDeliveryPricingService
         return [
             'offers_delivery' => (bool) $shop->offers_delivery,
             'has_location' => $shop->hasCoordinates(),
+            'is_configured' => $shop->hasDeliveryPricing(),
+            'pricing_required' => $shop->needsDeliveryPricing(),
             'delivery_fee_mode' => $shop->delivery_fee_mode ?: Shop::DELIVERY_FEE_FIXED,
             'delivery_fixed_fee' => (float) $shop->delivery_fixed_fee,
             'delivery_base_fee' => (float) $shop->delivery_base_fee,
@@ -50,6 +52,8 @@ class ShopDeliveryPricingService
         $values = [
             'delivery_fee_mode' => $data['delivery_fee_mode'],
             'delivery_max_km' => isset($data['delivery_max_km']) ? round((float) $data['delivery_max_km'], 2) : null,
+            // Keep the first time it was set; later edits do not reset it.
+            'delivery_pricing_set_at' => $shop->delivery_pricing_set_at ?? now(),
         ];
 
         foreach (self::AMOUNT_FIELDS as $field) {

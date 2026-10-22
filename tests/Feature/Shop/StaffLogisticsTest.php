@@ -30,6 +30,7 @@ function dispatchShop(array $overrides = []): Shop
         'postal_code' => '4103',
         'status' => 'active',
         'offers_delivery' => true,
+        'delivery_pricing_set_at' => now(),
         'setup_completed_at' => now(),
     ], $overrides));
 }

@@ -43,6 +43,8 @@ export interface ShopCapabilities {
     multiple_locations: boolean;
     offers_pickup: boolean;
     offers_delivery: boolean;
+    /** The shop delivers but has not set its delivery pricing yet. */
+    delivery_pricing_required?: boolean;
 }
 
 export type AppPageProps<

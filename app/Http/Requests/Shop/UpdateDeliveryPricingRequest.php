@@ -28,6 +28,22 @@ class UpdateDeliveryPricingRequest extends FormRequest
             ->all());
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator) {
+            if ($this->input('delivery_fee_mode') === Shop::DELIVERY_FEE_FIXED
+                && (float) $this->input('delivery_fixed_fee') <= 0) {
+                $validator->errors()->add('delivery_fixed_fee', 'Enter a delivery fee above ₱0. Riders should not deliver for free.');
+            }
+
+            if ($this->input('delivery_fee_mode') === Shop::DELIVERY_FEE_PER_KM
+                && (float) $this->input('delivery_base_fee') <= 0
+                && (float) $this->input('delivery_per_km_rate') <= 0) {
+                $validator->errors()->add('delivery_per_km_rate', 'Charge a base fee or a rate per kilometer above ₱0.');
+            }
+        });
+    }
+
     public function rules(): array
     {
         $perKm = 'required_if:delivery_fee_mode,'.Shop::DELIVERY_FEE_PER_KM;

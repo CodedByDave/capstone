@@ -30,7 +30,14 @@ class ShopSetupController extends Controller
     public function store(StoreShopSetupRequest $request): RedirectResponse
     {
         try {
-            $this->service->complete($request->user(), $request->validated());
+            $shop = $this->service->complete($request->user(), $request->validated());
+
+            if ($shop->needsDeliveryPricing()) {
+                return redirect()->route('shop.settings')->with('toast', [
+                    'type' => 'info',
+                    'message' => 'Setup saved. Set your delivery pricing to start delivering.',
+                ]);
+            }
 
             return redirect()->route('shop.dashboard')->with('toast', [
                 'type' => 'success',

@@ -128,6 +128,10 @@ class LogisticsService
             throw ValidationException::withMessages(['delivery' => 'This shop does not offer delivery.']);
         }
 
+        if (! $order->shop->hasDeliveryPricing()) {
+            throw ValidationException::withMessages(['delivery' => 'Set the delivery pricing in Settings before sending an order for delivery.']);
+        }
+
         if ($order->status !== 'completed') {
             throw ValidationException::withMessages(['delivery' => 'Only completed orders can be sent for delivery.']);
         }
@@ -155,8 +159,8 @@ class LogisticsService
         $order->loadMissing(['shop', 'delivery']);
 
         return [
-            'offers_delivery' => (bool) $order->shop?->offers_delivery,
-            'can_send' => $order->shop?->offers_delivery
+            'offers_delivery' => (bool) $order->shop?->canDeliver(),
+            'can_send' => $order->shop?->canDeliver()
                 && $order->status === 'completed'
                 && $order->delivery === null,
             'delivery_status' => $order->delivery?->status,
@@ -175,7 +179,7 @@ class LogisticsService
             || ($type === Delivery::TYPE_DELIVERY && ($force || $order->deliver_to_customer));
 
         if (! $wanted
-            || ! $order->shop?->offers_delivery
+            || ! $order->shop?->canDeliver()
             || $this->deliveries->existsForOrder($order->id, $type)) {
             return null;
         }

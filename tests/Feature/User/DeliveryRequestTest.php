@@ -26,6 +26,7 @@ function dlvShop(array $overrides = []): Shop
         'location_mode' => 'single',
         'setup_completed_at' => now(),
         'offers_delivery' => true,
+        'delivery_pricing_set_at' => now(),
         'latitude' => 14.4296,
         'longitude' => 120.9367,
         'delivery_fee_mode' => 'per_km',
