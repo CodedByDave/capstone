@@ -59,7 +59,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-export const destroy = (args: { category: number | { id: number } } | [category: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -74,13 +74,13 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-destroy.url = (args: { category: number | { id: number } } | [category: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { category: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { category: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'public_id' in args) {
+            args = { category: args.public_id }
         }
     
     if (Array.isArray(args)) {
@@ -93,7 +93,7 @@ destroy.url = (args: { category: number | { id: number } } | [category: number |
 
     const parsedArgs = {
                         category: typeof args.category === 'object'
-                ? args.category.id
+                ? args.category.public_id
                 : args.category,
                 }
 
@@ -107,7 +107,7 @@ destroy.url = (args: { category: number | { id: number } } | [category: number |
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-destroy.delete = (args: { category: number | { id: number } } | [category: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -117,7 +117,7 @@ destroy.delete = (args: { category: number | { id: number } } | [category: numbe
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-    const destroyForm = (args: { category: number | { id: number } } | [category: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -132,7 +132,7 @@ destroy.delete = (args: { category: number | { id: number } } | [category: numbe
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-        destroyForm.delete = (args: { category: number | { id: number } } | [category: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

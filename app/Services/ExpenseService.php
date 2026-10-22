@@ -82,9 +82,9 @@ class ExpenseService
         $this->expenseRepository->delete($expense);
     }
 
-    public function restore(int $id, Shop $shop): Expense
+    public function restore(string $publicId, Shop $shop): Expense
     {
-        $expense = $this->expenseRepository->restore($id, $shop);
+        $expense = $this->expenseRepository->restore($publicId, $shop);
 
         $this->activityLogService->log(
             subject: $expense,

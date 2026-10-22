@@ -70,7 +70,7 @@ test('permitted staff can assign a rider to a delivery', function () {
     $delivery = Delivery::create(['shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'pending']);
 
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$delivery->id}/status", ['status' => 'assigned', 'rider_id' => $rider->id])
+        ->patch("/staff/logistics/{$delivery->public_id}/status", ['status' => 'assigned', 'rider_id' => $rider->id])
         ->assertRedirect();
 
     expect($delivery->fresh())
@@ -86,7 +86,7 @@ test('staff without the Logistics permission are turned away', function () {
 
     $this->actingAs($staff)->get('/staff/logistics')->assertRedirect(route('staff.dashboard'));
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$delivery->id}/status", ['status' => 'delivered'])
+        ->patch("/staff/logistics/{$delivery->public_id}/status", ['status' => 'delivered'])
         ->assertRedirect(route('staff.dashboard'));
 
     expect($delivery->fresh()->status)->toBe('pending');
@@ -98,9 +98,9 @@ test('view-only staff cannot assign riders or remove deliveries', function () {
     $delivery = Delivery::create(['shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'pending']);
 
     $this->actingAs($staff)->get('/staff/logistics')->assertOk();
-    $this->actingAs($staff)->patch("/staff/logistics/{$delivery->id}/status", ['status' => 'assigned'])
+    $this->actingAs($staff)->patch("/staff/logistics/{$delivery->public_id}/status", ['status' => 'assigned'])
         ->assertRedirect(route('staff.dashboard'));
-    $this->actingAs($staff)->delete("/staff/logistics/{$delivery->id}")
+    $this->actingAs($staff)->delete("/staff/logistics/{$delivery->public_id}")
         ->assertRedirect(route('staff.dashboard'));
 
     expect(Delivery::find($delivery->id))->not->toBeNull();
@@ -115,11 +115,11 @@ test('staff cannot reach another shop\'s deliveries or assign its riders', funct
     $ownDelivery = Delivery::create(['shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'pending']);
 
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$foreignDelivery->id}/status", ['status' => 'assigned'])
+        ->patch("/staff/logistics/{$foreignDelivery->public_id}/status", ['status' => 'assigned'])
         ->assertForbidden();
 
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$ownDelivery->id}/status", ['status' => 'assigned', 'rider_id' => $foreignRider->id])
+        ->patch("/staff/logistics/{$ownDelivery->public_id}/status", ['status' => 'assigned', 'rider_id' => $foreignRider->id])
         ->assertSessionHasErrors('rider_id');
 
     expect($foreignDelivery->fresh()->status)->toBe('pending')
@@ -255,7 +255,7 @@ test('a delivery can be handed to Lalamove with the booking details and no shop 
     $delivery = Delivery::create(['shop_id' => $shop->id, 'rider_id' => $rider->id, 'customer_name' => 'Ana', 'status' => 'assigned']);
 
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$delivery->id}/status", [
+        ->patch("/staff/logistics/{$delivery->public_id}/status", [
             'status' => 'assigned',
             'rider_id' => $rider->id,
             'courier' => 'lalamove',
@@ -283,11 +283,11 @@ test('a Lalamove booking needs its reference once it is booked, and only a secur
     $delivery = Delivery::create(['shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'pending']);
 
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$delivery->id}/status", ['status' => 'assigned', 'courier' => 'lalamove'])
+        ->patch("/staff/logistics/{$delivery->public_id}/status", ['status' => 'assigned', 'courier' => 'lalamove'])
         ->assertSessionHasErrors('courier_reference');
 
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$delivery->id}/status", [
+        ->patch("/staff/logistics/{$delivery->public_id}/status", [
             'status' => 'pending',
             'courier' => 'lalamove',
             'courier_tracking_url' => 'http://insecure.example/track',
@@ -307,7 +307,7 @@ test('going back to an own rider clears the courier details', function () {
     ]);
 
     $this->actingAs($staff)
-        ->patch("/staff/logistics/{$delivery->id}/status", [
+        ->patch("/staff/logistics/{$delivery->public_id}/status", [
             'status' => 'assigned', 'courier' => 'own_rider', 'rider_id' => $rider->id,
         ])
         ->assertSessionHasNoErrors();
@@ -348,7 +348,7 @@ test('permitted staff upload proof photos at any delivery status and the custome
     $staff = dispatcher($shop, ['view', 'update']);
 
     $this->actingAs($staff)
-        ->post("/staff/logistics/{$delivery->id}/photos", [
+        ->post("/staff/logistics/{$delivery->public_id}/photos", [
             'photos' => [proofImage('door.png'), proofImage('bag.png')],
         ])
         ->assertSessionHasNoErrors();
@@ -364,7 +364,7 @@ test('permitted staff upload proof photos at any delivery status and the custome
 test('proof photos stay private to the shop and the orders customer', function () {
     [$shop, , $delivery] = proofSetup();
     $staff = dispatcher($shop, ['view', 'update']);
-    $this->actingAs($staff)->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [proofImage('a.png')]]);
+    $this->actingAs($staff)->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('a.png')]]);
     $photo = $delivery->photos()->first();
 
     $otherCustomer = User::factory()->create(['role' => AccountType::Customer->value]);
@@ -373,7 +373,7 @@ test('proof photos stay private to the shop and the orders customer', function (
     $this->actingAs($otherCustomer)->get("/user/orders/delivery-photos/{$photo->public_id}")->assertNotFound();
     $this->actingAs($otherStaff)->get("/staff/logistics/photos/{$photo->public_id}")->assertNotFound();
     $this->actingAs($otherStaff)
-        ->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [proofImage('b.png')]])
+        ->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('b.png')]])
         ->assertForbidden();
 });
 
@@ -382,21 +382,21 @@ test('proof uploads accept only small images, a few at a time', function () {
     $staff = dispatcher($shop, ['view', 'update']);
 
     $this->actingAs($staff)
-        ->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [UploadedFile::fake()->create('proof.pdf', 100, 'application/pdf')]])
+        ->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [UploadedFile::fake()->create('proof.pdf', 100, 'application/pdf')]])
         ->assertSessionHasErrors('photos.0');
 
     $this->actingAs($staff)
-        ->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [proofImage('big.png', 6000)]])
+        ->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('big.png', 6000)]])
         ->assertSessionHasErrors('photos.0');
 
     foreach (range(1, 2) as $i) {
-        $this->actingAs($staff)->post("/staff/logistics/{$delivery->id}/photos", ['photos' => array_map(
+        $this->actingAs($staff)->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => array_map(
             fn ($n) => proofImage("p{$i}{$n}.png"), range(1, 4),
         )])->assertSessionHasNoErrors();
     }
 
     $this->actingAs($staff)
-        ->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [proofImage('extra.png')]])
+        ->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('extra.png')]])
         ->assertSessionHasErrors('photos');
 
     expect($delivery->photos()->count())->toBe(8);
@@ -407,12 +407,12 @@ test('only staff with the update permission upload and only with delete permissi
     $viewer = dispatcher($shop, ['view']);
 
     $this->actingAs($viewer)
-        ->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [proofImage('a.png')]])
+        ->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('a.png')]])
         ->assertRedirect(route('staff.dashboard'));
     expect($delivery->photos()->count())->toBe(0);
 
     $uploader = dispatcher($shop, ['view', 'update'], 'uploader');
-    $this->actingAs($uploader)->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [proofImage('a.png')]]);
+    $this->actingAs($uploader)->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('a.png')]]);
     $photo = $delivery->photos()->first();
 
     $this->actingAs($uploader)->delete("/staff/logistics/photos/{$photo->public_id}")->assertRedirect(route('staff.dashboard'));
@@ -428,10 +428,10 @@ test('only staff with the update permission upload and only with delete permissi
 test('removing a delivery removes its proof files', function () {
     [$shop, , $delivery] = proofSetup();
     $staff = dispatcher($shop, ['view', 'update', 'archive']);
-    $this->actingAs($staff)->post("/staff/logistics/{$delivery->id}/photos", ['photos' => [proofImage('a.png')]]);
+    $this->actingAs($staff)->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('a.png')]]);
     $path = $delivery->photos()->first()->path;
 
-    $this->actingAs($staff)->delete("/staff/logistics/{$delivery->id}")->assertSessionHasNoErrors();
+    $this->actingAs($staff)->delete("/staff/logistics/{$delivery->public_id}")->assertSessionHasNoErrors();
 
     Storage::disk('private')->assertMissing($path);
 });
@@ -549,7 +549,7 @@ test('staff send a completed walk-in order for delivery in one click', function 
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed']);
 
     $this->actingAs($staff)
-        ->post("/staff/operations/orders/{$order->id}/send-for-delivery")
+        ->post("/staff/operations/orders/{$order->payment_public_id}/send-for-delivery")
         ->assertSessionHasNoErrors();
 
     expect(Delivery::where('shop_order_id', $order->id)->first())
@@ -567,12 +567,12 @@ test('an order with no address needs one and saves it on the order', function ()
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'customer_address' => null]);
 
     $this->actingAs($staff)
-        ->post("/staff/operations/orders/{$order->id}/send-for-delivery")
+        ->post("/staff/operations/orders/{$order->payment_public_id}/send-for-delivery")
         ->assertSessionHasErrors('delivery_address');
     expect(Delivery::count())->toBe(0);
 
     $this->actingAs($staff)
-        ->post("/staff/operations/orders/{$order->id}/send-for-delivery", ['delivery_address' => '5 Mabini St, Bacoor'])
+        ->post("/staff/operations/orders/{$order->payment_public_id}/send-for-delivery", ['delivery_address' => '5 Mabini St, Bacoor'])
         ->assertSessionHasNoErrors();
 
     expect($order->fresh()->customer_address)->toBe('5 Mabini St, Bacoor')
@@ -585,11 +585,11 @@ test('only a completed order without a delivery can be sent', function () {
     $open = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress']);
     $done = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed']);
 
-    $this->actingAs($staff)->post("/staff/operations/orders/{$open->id}/send-for-delivery")
+    $this->actingAs($staff)->post("/staff/operations/orders/{$open->payment_public_id}/send-for-delivery")
         ->assertSessionHasErrors('delivery');
 
-    $this->actingAs($staff)->post("/staff/operations/orders/{$done->id}/send-for-delivery")->assertSessionHasNoErrors();
-    $this->actingAs($staff)->post("/staff/operations/orders/{$done->id}/send-for-delivery")
+    $this->actingAs($staff)->post("/staff/operations/orders/{$done->payment_public_id}/send-for-delivery")->assertSessionHasNoErrors();
+    $this->actingAs($staff)->post("/staff/operations/orders/{$done->payment_public_id}/send-for-delivery")
         ->assertSessionHasErrors('delivery');
 
     expect(Delivery::count())->toBe(1);
@@ -600,16 +600,16 @@ test('send for delivery is limited to the shops own staff, with the order permis
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed']);
 
     $this->actingAs(orderManager(dispatchShop(['shop_name' => 'Other Laundry'])))
-        ->post("/staff/operations/orders/{$order->id}/send-for-delivery")
-        ->assertForbidden();
+        ->post("/staff/operations/orders/{$order->payment_public_id}/send-for-delivery")
+        ->assertNotFound();
 
     $this->actingAs(dispatcher($shop, ['view', 'update'], 'no-order-access'))
-        ->post("/staff/operations/orders/{$order->id}/send-for-delivery")
+        ->post("/staff/operations/orders/{$order->payment_public_id}/send-for-delivery")
         ->assertRedirect(route('staff.dashboard'));
 
     $noDelivery = dispatchShop(['offers_delivery' => false, 'shop_name' => 'No Delivery']);
     $this->actingAs(orderManager($noDelivery))
-        ->post('/staff/operations/orders/'.autoOrder($noDelivery, ['status' => 'completed'])->id.'/send-for-delivery')
+        ->post('/staff/operations/orders/'.autoOrder($noDelivery, ['status' => 'completed'])->payment_public_id.'/send-for-delivery')
         ->assertForbidden();
 
     expect(Delivery::count())->toBe(0);
@@ -624,7 +624,7 @@ test('the order page tells staff when delivery can be sent', function () {
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed']);
 
     $this->actingAs($shop->owner)
-        ->get("/shop/operations/orders/{$order->id}")
+        ->get("/shop/operations/orders/{$order->payment_public_id}")
         ->assertInertia(fn ($page) => $page
             ->where('deliveryOption.can_send', true)
             ->where('deliveryOption.has_address', true));
@@ -632,7 +632,7 @@ test('the order page tells staff when delivery can be sent', function () {
     app(LogisticsService::class)->sendOrderForDelivery($shop->owner, $order, null);
 
     $this->actingAs($shop->owner)
-        ->get("/shop/operations/orders/{$order->id}")
+        ->get("/shop/operations/orders/{$order->payment_public_id}")
         ->assertInertia(fn ($page) => $page
             ->where('deliveryOption.can_send', false)
             ->where('deliveryOption.delivery_status', 'pending'));
@@ -674,7 +674,7 @@ test('completing a pickup order in the Edit form creates its return delivery', f
     $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->id}", editPayload($order, ['status' => 'completed']))
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['status' => 'completed']))
         ->assertSessionHasNoErrors();
 
     expect($order->fresh()->status)->toBe('completed')
@@ -691,7 +691,7 @@ test('completing a walk-in order marked for delivery in the Edit form creates th
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress']);
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->id}", editPayload($order, [
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, [
             'status' => 'completed',
             'deliver_to_customer' => true,
         ]))
@@ -708,7 +708,7 @@ test('switching an open order to pickup in the Edit form creates the pickup run'
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'pending']);
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->id}", editPayload($order, ['pickup_type' => 'pickup']))
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['pickup_type' => 'pickup']))
         ->assertSessionHasNoErrors();
 
     expect(Delivery::where('shop_order_id', $order->id)->first())
@@ -722,13 +722,13 @@ test('the Edit form needs an address to deliver to and a shop that delivers', fu
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress', 'customer_address' => null]);
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->id}", editPayload($order, ['deliver_to_customer' => true]))
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['deliver_to_customer' => true]))
         ->assertSessionHasErrors('customer_address');
 
     $noDelivery = dispatchShop(['offers_delivery' => false, 'shop_name' => 'No Delivery']);
     $other = autoOrder($noDelivery, ['pickup_type' => 'walk_in', 'status' => 'in_progress']);
     $this->actingAs(orderManager($noDelivery))
-        ->put("/staff/operations/orders/{$other->id}", editPayload($other, ['deliver_to_customer' => true]))
+        ->put("/staff/operations/orders/{$other->payment_public_id}", editPayload($other, ['deliver_to_customer' => true]))
         ->assertSessionHasErrors('deliver_to_customer');
 
     expect($order->fresh()->deliver_to_customer)->toBeFalse()
@@ -741,8 +741,8 @@ test('saving an already completed order again does not create another delivery',
     $order = autoOrder($shop, ['status' => 'in_progress']);
 
     $payload = editPayload($order, ['status' => 'completed']);
-    $this->actingAs($staff)->put("/staff/operations/orders/{$order->id}", $payload)->assertSessionHasNoErrors();
-    $this->actingAs($staff)->put("/staff/operations/orders/{$order->id}", $payload)->assertSessionHasNoErrors();
+    $this->actingAs($staff)->put("/staff/operations/orders/{$order->payment_public_id}", $payload)->assertSessionHasNoErrors();
+    $this->actingAs($staff)->put("/staff/operations/orders/{$order->payment_public_id}", $payload)->assertSessionHasNoErrors();
 
     expect(Delivery::where('shop_order_id', $order->id)->where('type', 'delivery')->count())->toBe(1);
 });

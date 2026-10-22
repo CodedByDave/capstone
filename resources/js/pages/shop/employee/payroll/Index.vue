@@ -42,6 +42,7 @@ import {
 
 interface Payroll {
     id: number;
+    public_id: string;
     period_label: string;
     period_start: string;
     period_end: string;
@@ -196,13 +197,16 @@ function openDelete(p: Payroll) {
 
 function confirmDelete() {
     if (!payrollToDelete.value) return;
-    router.delete(`${baseRoute.value}/payroll/${payrollToDelete.value.id}`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            isDeleteOpen.value = false;
-            payrollToDelete.value = null;
+    router.delete(
+        `${baseRoute.value}/payroll/${payrollToDelete.value.public_id}`,
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                isDeleteOpen.value = false;
+                payrollToDelete.value = null;
+            },
         },
-    });
+    );
 }
 
 // ─── Settings Dialog ──────────────────────────────────────────────────────────
@@ -442,7 +446,7 @@ const visiblePages = computed(() => {
                                         variant="ghost"
                                         @click="
                                             router.visit(
-                                                `${baseRoute}/payroll/${p.id}`,
+                                                `${baseRoute}/payroll/${p.public_id}`,
                                             )
                                         "
                                     >

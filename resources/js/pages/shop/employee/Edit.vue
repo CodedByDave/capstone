@@ -23,6 +23,7 @@ import { Loader2, X } from 'lucide-vue-next';
 
 interface Employee {
     id: number;
+    public_id: string;
     employee_id: string;
     user_id: number | null;
     first_name: string;
@@ -87,9 +88,12 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     { title: 'Employee Management', href: `${baseRoute.value}/employee` },
     {
         title: `${employee.first_name} ${employee.last_name}`,
-        href: `${baseRoute.value}/employee/${employee.id}`,
+        href: `${baseRoute.value}/employee/${employee.public_id}`,
     },
-    { title: 'Edit', href: `${baseRoute.value}/employee/${employee.id}/edit` },
+    {
+        title: 'Edit',
+        href: `${baseRoute.value}/employee/${employee.public_id}/edit`,
+    },
 ]);
 
 const errors = computed(() => page.props.errors as Record<string, string>);
@@ -219,7 +223,7 @@ function submit() {
     form.value.address = fullAddress.value;
     isSubmitting.value = true;
     router.put(
-        `${baseRoute.value}/employee/${employee.id}`,
+        `${baseRoute.value}/employee/${employee.public_id}`,
         {
             ...form.value,
             branch_name:
@@ -284,7 +288,7 @@ async function saveSchedule() {
     savingSchedule.value = true;
     scheduleError.value = null;
     try {
-        await axios.put(`/shop/employee/${employee.id}/schedule`, {
+        await axios.put(`/shop/employee/${employee.public_id}/schedule`, {
             schedules: active.map((d) => ({
                 day: d.day,
                 start_time: d.start_time,

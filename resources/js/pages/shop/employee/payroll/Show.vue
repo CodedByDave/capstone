@@ -52,6 +52,7 @@ interface Employee {
 
 interface PayrollItem {
     id: number;
+    public_id: string;
     payroll_id: number;
     employee_id: number;
     employee: Employee;
@@ -74,6 +75,7 @@ interface PayrollItem {
 
 interface Payroll {
     id: number;
+    public_id: string;
     period_label: string;
     period_start: string;
     period_end: string;
@@ -122,7 +124,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Payroll', href: '/shop/payroll' },
     {
         title: props.payroll.period_label,
-        href: `/shop/payroll/${props.payroll.id}`,
+        href: `/shop/payroll/${props.payroll.public_id}`,
     },
 ];
 
@@ -176,7 +178,7 @@ function submitEdit() {
     if (!editItem.value) return;
     saving.value = true;
     router.put(
-        `${baseRoute.value}/payroll/${editItem.value.id}/item`,
+        `${baseRoute.value}/payroll/${editItem.value.public_id}/item`,
         editForm.value,
         {
             preserveScroll: true,
@@ -193,7 +195,7 @@ function submitEdit() {
 
 function recalculate() {
     router.post(
-        `${baseRoute.value}/payroll/${props.payroll.id}/recalculate`,
+        `${baseRoute.value}/payroll/${props.payroll.public_id}/recalculate`,
         {},
         {
             preserveScroll: true,
@@ -209,7 +211,7 @@ const finalizing = ref(false);
 function confirmFinalize() {
     finalizing.value = true;
     router.post(
-        `${baseRoute.value}/payroll/${props.payroll.id}/finalize`,
+        `${baseRoute.value}/payroll/${props.payroll.public_id}/finalize`,
         {},
         {
             preserveScroll: true,

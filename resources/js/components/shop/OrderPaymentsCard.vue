@@ -34,7 +34,7 @@ export interface OrderPayment {
 
 const props = defineProps<{
     order: {
-        id: number;
+        payment_public_id: string;
         status: string;
         payment_status: string;
         total_amount: string;
@@ -161,7 +161,7 @@ function submitPayment() {
     saving.value = true;
     errors.value = {};
     router.post(
-        `${props.base}/${props.order.id}/payments`,
+        `${props.base}/${props.order.payment_public_id}/payments`,
         {
             amount: form.value.amount,
             method: form.value.method,
@@ -201,7 +201,7 @@ function submitVoid() {
     voiding.value = true;
     voidError.value = '';
     router.post(
-        `${props.base}/${props.order.id}/payments/${voidTarget.value.id}/void`,
+        `${props.base}/${props.order.payment_public_id}/payments/${voidTarget.value.id}/void`,
         { reason: voidReason.value },
         {
             preserveScroll: true,
@@ -225,7 +225,7 @@ const checking = ref(false);
 function checkStatus() {
     checking.value = true;
     router.post(
-        `${props.base}/${props.order.id}/payments/check`,
+        `${props.base}/${props.order.payment_public_id}/payments/check`,
         {},
         {
             preserveScroll: true,

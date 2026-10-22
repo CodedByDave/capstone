@@ -51,11 +51,12 @@ class ExpenseRepository
         $expense->delete();
     }
 
-    public function restore(int $id, Shop $shop): Expense
+    public function restore(string $publicId, Shop $shop): Expense
     {
         $expense = Expense::onlyTrashed()
             ->where('shop_id', $shop->id)
-            ->findOrFail($id);
+            ->where('public_id', $publicId)
+            ->firstOrFail();
 
         $expense->restore();
 

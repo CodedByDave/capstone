@@ -223,7 +223,7 @@ Route::prefix('shop')->middleware([
     Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
     Route::put('/employee/{employee}', [EmployeeController::class, 'update'])->name('employee.update');
     Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
-    Route::post('/employee/{id}/restore', [EmployeeController::class, 'restore'])->name('employee.restore');
+    Route::post('/employee/{publicId}/restore', [EmployeeController::class, 'restore'])->name('employee.restore');
 
     // Schedule
     Route::put('/employee/{employee}/schedule', [ScheduleController::class, 'sync']);
@@ -304,15 +304,15 @@ Route::prefix('shop')->middleware([
     Route::post('operations/orders', [ShopOrderController::class, 'store'])
         ->middleware('shop.capability:pickup')
         ->name('shop.orders.store');
-    Route::get('operations/orders/{order}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
-    Route::get('operations/orders/{order}/edit', [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
-    Route::put('operations/orders/{order}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
-    Route::delete('operations/orders/{order}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
-    Route::post('operations/orders/{order}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('shop.orders.payment-request');
-    Route::post('operations/orders/{order}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('shop.orders.payments.store');
-    Route::post('operations/orders/{order}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('shop.orders.payments.check');
-    Route::post('operations/orders/{order}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('shop.orders.payments.void');
-    Route::post('operations/orders/{order}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
+    Route::get('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
+    Route::get('operations/orders/{order:payment_public_id}/edit', [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
+    Route::put('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
+    Route::delete('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
+    Route::post('operations/orders/{order:payment_public_id}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('shop.orders.payment-request');
+    Route::post('operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('shop.orders.payments.store');
+    Route::post('operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('shop.orders.payments.check');
+    Route::post('operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('shop.orders.payments.void');
+    Route::post('operations/orders/{order:payment_public_id}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
         ->middleware('shop.capability:delivery')
         ->name('shop.orders.send-for-delivery');
     Route::get('operations/ratings', [OrderRatingController::class, 'index'])->name('shop.ratings.index');
@@ -345,10 +345,10 @@ Route::prefix('shop')->middleware([
     Route::patch('operations/promos/{promotion}/restore', [PromotionController::class, 'restore'])->name('promotions.restore');
 
     Route::post('operations/orders/restore-all', [ShopOrderController::class, 'restoreAll'])->name('shop.orders.restore-all');
-    Route::patch('operations/orders/{order}/restore', [ShopOrderController::class, 'restore'])->name('shop.orders.restore');
+    Route::patch('operations/orders/{order:payment_public_id}/restore', [ShopOrderController::class, 'restore'])->withTrashed()->name('shop.orders.restore');
 
     // Dedicated status & payment update endpoints
-    Route::patch('orders/{order}/status', [ShopOrderController::class, 'updateStatus'])->name('status');
+    Route::patch('orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('status');
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
@@ -366,7 +366,7 @@ Route::prefix('shop')->middleware([
     Route::post('/finance/expenses', [ExpenseController::class, 'store'])->name('finance.expenses.store');
     Route::put('/finance/expenses/{expense}', [ExpenseController::class, 'update'])->name('finance.expenses.update');
     Route::delete('/finance/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('finance.expenses.destroy');
-    Route::post('/finance/expenses/{id}/restore', [ExpenseController::class, 'restore'])->name('finance.expenses.restore');
+    Route::post('/finance/expenses/{publicId}/restore', [ExpenseController::class, 'restore'])->name('finance.expenses.restore');
     Route::post('/finance/categories', [ExpenseController::class, 'storeCategory'])->name('finance.categories.store');
     Route::delete('/finance/categories/{category}', [ExpenseController::class, 'destroyCategory'])->name('finance.categories.destroy');
 
@@ -440,7 +440,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
     Route::middleware('permission:HRM,archive')->group(function () {
         Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('staff.employee.destroy');
-        Route::post('/employee/{id}/restore', [EmployeeController::class, 'restore'])->name('staff.employee.restore');
+        Route::post('/employee/{publicId}/restore', [EmployeeController::class, 'restore'])->name('staff.employee.restore');
     });
 
     // ── Schedule ──────────────────────────────────────────────────────────────
@@ -549,7 +549,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
 
     // ── Operations ────────────────────────────────────────────────────────────
-    // Static /create routes MUST come before /{order} wildcard to avoid 404s
+    // Static /create routes MUST come before /{order:payment_public_id} wildcard to avoid 404s
     Route::middleware('permission:Operations,create')->group(function () {
         Route::get('/operations/orders/create', [ShopOrderController::class, 'create'])->name('staff.orders.create');
         Route::post('/operations/orders', [ShopOrderController::class, 'store'])
@@ -563,23 +563,23 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     // Dynamic (wildcard) routes after static ones
     Route::middleware('permission:Operations,view')->group(function () {
         Route::get('/operations/orders', [ShopOrderController::class, 'index'])->name('staff.orders.index');
-        Route::get('/operations/orders/{order}', [ShopOrderController::class, 'show'])->name('staff.orders.show');
+        Route::get('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('staff.orders.show');
         Route::get('/operations/services', [ShopServiceController::class, 'index'])->name('staff.services.index');
         Route::get('/operations/promos', [PromotionController::class, 'index'])->name('staff.promotions.index');
         Route::get('/operations/ratings', [OrderRatingController::class, 'index'])->name('staff.ratings.index');
     });
     Route::middleware('permission:Operations,manage')->group(function () {
-        Route::get('/operations/orders/{order}/edit', [ShopOrderController::class, 'edit'])->name('staff.orders.edit');
-        Route::put('/operations/orders/{order}', [ShopOrderController::class, 'update'])->name('staff.orders.update');
-        Route::patch('/operations/orders/{order}/restore', [ShopOrderController::class, 'restore'])->name('staff.orders.restore');
+        Route::get('/operations/orders/{order:payment_public_id}/edit', [ShopOrderController::class, 'edit'])->name('staff.orders.edit');
+        Route::put('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'update'])->name('staff.orders.update');
+        Route::patch('/operations/orders/{order:payment_public_id}/restore', [ShopOrderController::class, 'restore'])->withTrashed()->name('staff.orders.restore');
         Route::post('/operations/orders/restore-all', [ShopOrderController::class, 'restoreAll'])->name('staff.orders.restore-all');
-        Route::delete('/operations/orders/{order}', [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
-        Route::patch('/operations/orders/{order}/status', [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
-        Route::post('/operations/orders/{order}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('staff.orders.payments.store');
-        Route::post('/operations/orders/{order}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('staff.orders.payments.check');
-        Route::post('/operations/orders/{order}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('staff.orders.payments.void');
-        Route::post('/operations/orders/{order}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('staff.orders.payment-request');
-        Route::post('/operations/orders/{order}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
+        Route::delete('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
+        Route::patch('/operations/orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
+        Route::post('/operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('staff.orders.payments.store');
+        Route::post('/operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('staff.orders.payments.check');
+        Route::post('/operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('staff.orders.payments.void');
+        Route::post('/operations/orders/{order:payment_public_id}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('staff.orders.payment-request');
+        Route::post('/operations/orders/{order:payment_public_id}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
             ->middleware('shop.capability:delivery')
             ->name('staff.orders.send-for-delivery');
         Route::get('/operations/services/{service}/edit', [ShopServiceController::class, 'edit'])->name('staff.services.edit');
@@ -654,7 +654,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::middleware('permission:Finance Management,archive')->group(function () {
         Route::get('/finance/expenses/archive', [ExpenseController::class, 'archive'])->name('staff.finance.expenses.archive');
         Route::delete('/finance/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('staff.finance.expenses.destroy');
-        Route::post('/finance/expenses/{id}/restore', [ExpenseController::class, 'restore'])->name('staff.finance.expenses.restore');
+        Route::post('/finance/expenses/{publicId}/restore', [ExpenseController::class, 'restore'])->name('staff.finance.expenses.restore');
         Route::delete('/finance/categories/{category}', [ExpenseController::class, 'destroyCategory'])->name('staff.finance.categories.destroy');
     });
     Route::middleware('permission:Finance Management,create')->group(function () {

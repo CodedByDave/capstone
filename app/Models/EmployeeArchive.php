@@ -36,6 +36,21 @@ class EmployeeArchive extends Model
         'original_created_at' => 'datetime',
     ];
 
+    /** The public id of the archived employee, used in the restore URL instead of the sequential id. */
+    protected $appends = ['employee_public_id'];
+
+    protected $hidden = ['employee'];
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'employee_id_ref')->withTrashed();
+    }
+
+    public function getEmployeePublicIdAttribute(): ?string
+    {
+        return $this->employee?->public_id;
+    }
+
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);

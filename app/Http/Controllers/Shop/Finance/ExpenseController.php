@@ -103,10 +103,10 @@ class ExpenseController extends Controller
         return back()->with('toast', ['type' => 'success', 'message' => 'Expense archived.']);
     }
 
-    public function restore(int $id)
+    public function restore(string $publicId)
     {
         $shop = $this->getShop();
-        $this->expenseService->restore($id, $shop);
+        $this->expenseService->restore($publicId, $shop);
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Expense restored.']);
     }

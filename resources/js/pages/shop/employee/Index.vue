@@ -69,6 +69,7 @@ interface EmploymentTypeOption {
 
 interface Employee {
     id: number;
+    public_id: string;
     user_id: number;
     shop_id: number | null;
     employee_id: string;
@@ -181,7 +182,7 @@ function can(module: string, action: string): boolean {
 // Route helpers — staff uses /staff/* prefix
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 
-function employeeUrl(id: number, suffix = ''): string {
+function employeeUrl(id: string, suffix = ''): string {
     return `${baseRoute.value}/employee/${id}${suffix}`;
 }
 
@@ -353,7 +354,7 @@ function cancelArchive() {
 
 function confirmArchive() {
     if (!employeeToArchive.value) return;
-    router.delete(employeeUrl(employeeToArchive.value.id), {
+    router.delete(employeeUrl(employeeToArchive.value.public_id), {
         preserveScroll: true,
         onSuccess: () => {
             employeeToArchive.value = null;
@@ -850,7 +851,9 @@ async function submitImport() {
                                     variant="ghost"
                                     aria-label="View employee"
                                     @click="
-                                        router.visit(employeeUrl(employee.id))
+                                        router.visit(
+                                            employeeUrl(employee.public_id),
+                                        )
                                     "
                                 >
                                     <Eye class="h-4 w-4 text-blue-500" />
@@ -862,7 +865,10 @@ async function submitImport() {
                                     aria-label="Edit employee"
                                     @click="
                                         router.visit(
-                                            employeeUrl(employee.id, '/edit'),
+                                            employeeUrl(
+                                                employee.public_id,
+                                                '/edit',
+                                            ),
                                         )
                                     "
                                 >

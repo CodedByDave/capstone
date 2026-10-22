@@ -35,6 +35,7 @@ import {
 interface ArchivedEmployee {
     id: number;
     employee_id_ref: number;
+    employee_public_id: string | null;
     employee_id: string;
     first_name: string;
     last_name: string;
@@ -115,9 +116,10 @@ const formatDate = (val: string) =>
 
 // ─── Single restore ───────────────────────────────────────────────────────────
 
-function restore(employeeIdRef: number) {
+function restore(employeePublicId: string | null) {
+    if (!employeePublicId) return;
     router.post(
-        `${baseRoute.value}/employee/${employeeIdRef}/restore`,
+        `${baseRoute.value}/employee/${employeePublicId}/restore`,
         {},
         { preserveScroll: true },
     );
@@ -308,7 +310,7 @@ function executeBulkRestore() {
                                             variant="ghost"
                                             title="Restore employee"
                                             @click="
-                                                restore(emp.employee_id_ref)
+                                                restore(emp.employee_public_id)
                                             "
                                         >
                                             <ArchiveRestore

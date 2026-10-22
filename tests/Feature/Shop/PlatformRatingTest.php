@@ -115,7 +115,7 @@ test('completing an order in the edit form stamps its completion time and starts
     promptedShopPage($shop->owner)->assertInertia(fn ($page) => $page->where('platformRatingPrompt', false));
 
     $this->actingAs($shop->owner)
-        ->put("/shop/operations/orders/{$order->id}", [
+        ->put("/shop/operations/orders/{$order->payment_public_id}", [
             'customer_name' => 'Walk In',
             'customer_phone' => '09181234567',
             'service_id' => $order->service_id,

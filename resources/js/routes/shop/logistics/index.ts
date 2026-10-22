@@ -6,7 +6,7 @@ import riders13f500 from './riders'
  * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
-export const status = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const status = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -21,13 +21,13 @@ status.definition = {
  * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
-status.url = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+status.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { delivery: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { delivery: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'public_id' in args) {
+            args = { delivery: args.public_id }
         }
     
     if (Array.isArray(args)) {
@@ -40,7 +40,7 @@ status.url = (args: { delivery: number | { id: number } } | [delivery: number | 
 
     const parsedArgs = {
                         delivery: typeof args.delivery === 'object'
-                ? args.delivery.id
+                ? args.delivery.public_id
                 : args.delivery,
                 }
 
@@ -54,7 +54,7 @@ status.url = (args: { delivery: number | { id: number } } | [delivery: number | 
  * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
-status.patch = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+status.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -64,7 +64,7 @@ status.patch = (args: { delivery: number | { id: number } } | [delivery: number 
  * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
-    const statusForm = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const statusForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: status.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -79,7 +79,7 @@ status.patch = (args: { delivery: number | { id: number } } | [delivery: number 
  * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
-        statusForm.patch = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        statusForm.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: status.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -95,7 +95,7 @@ status.patch = (args: { delivery: number | { id: number } } | [delivery: number 
  * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
-export const destroy = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -110,13 +110,13 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
-destroy.url = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { delivery: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { delivery: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'public_id' in args) {
+            args = { delivery: args.public_id }
         }
     
     if (Array.isArray(args)) {
@@ -129,7 +129,7 @@ destroy.url = (args: { delivery: number | { id: number } } | [delivery: number |
 
     const parsedArgs = {
                         delivery: typeof args.delivery === 'object'
-                ? args.delivery.id
+                ? args.delivery.public_id
                 : args.delivery,
                 }
 
@@ -143,7 +143,7 @@ destroy.url = (args: { delivery: number | { id: number } } | [delivery: number |
  * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
-destroy.delete = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -153,7 +153,7 @@ destroy.delete = (args: { delivery: number | { id: number } } | [delivery: numbe
  * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
-    const destroyForm = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -168,7 +168,7 @@ destroy.delete = (args: { delivery: number | { id: number } } | [delivery: numbe
  * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
-        destroyForm.delete = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

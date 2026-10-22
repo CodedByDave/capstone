@@ -22,6 +22,11 @@ class Delivery extends Model
         'assigned_at', 'picked_up_at', 'delivered_at',
     ];
 
+    public function getRouteKeyName(): string
+    {
+        return 'public_id';
+    }
+
     protected static function booted(): void
     {
         static::creating(function (self $delivery) {

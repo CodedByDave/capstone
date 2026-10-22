@@ -37,6 +37,7 @@ interface Promotion {
 
 interface Order {
     id: number;
+    payment_public_id: string;
     order_number: string;
     customer_name: string;
     customer_phone: string | null;
@@ -253,7 +254,7 @@ watch(() => form.supplies.map((s) => s.quantity_used), recalcSupplyCharges, {
 
 const submit = () => {
     form.total_amount = String(computedTotal.value);
-    form.put(`${base.value}/${props.shopOrder.id}`);
+    form.put(`${base.value}/${props.shopOrder.payment_public_id}`);
 };
 
 // A walk-in customer can still have the finished laundry brought to them.
@@ -285,7 +286,9 @@ watch(
                 </div>
                 <Button
                     variant="outline"
-                    @click="router.visit(`${base}/${shopOrder.id}`)"
+                    @click="
+                        router.visit(`${base}/${shopOrder.payment_public_id}`)
+                    "
                 >
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back
                 </Button>
@@ -913,7 +916,11 @@ watch(
                         type="button"
                         variant="outline"
                         :disabled="form.processing"
-                        @click="router.visit(`${base}/${shopOrder.id}`)"
+                        @click="
+                            router.visit(
+                                `${base}/${shopOrder.payment_public_id}`,
+                            )
+                        "
                     >
                         Cancel
                     </Button>

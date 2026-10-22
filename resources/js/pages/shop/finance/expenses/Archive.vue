@@ -19,6 +19,7 @@ import {
 
 interface Expense {
     id: number;
+    public_id: string;
     title: string;
     amount: string;
     expense_date: string;
@@ -77,9 +78,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-function restore(id: number) {
+function restore(publicId: string) {
     router.post(
-        `${base.value}/finance/expenses/${id}/restore`,
+        `${base.value}/finance/expenses/${publicId}/restore`,
         {},
         { preserveScroll: true },
     );
@@ -208,7 +209,7 @@ function formatDate(val: string): string {
                                 <Button
                                     size="icon"
                                     variant="ghost"
-                                    @click="restore(exp.id)"
+                                    @click="restore(exp.public_id)"
                                 >
                                     <RotateCcw class="h-4 w-4 text-green-600" />
                                 </Button>

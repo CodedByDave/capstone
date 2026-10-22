@@ -160,7 +160,7 @@ archive.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-export const destroy = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -175,13 +175,13 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-destroy.url = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { expense: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { expense: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'public_id' in args) {
+            args = { expense: args.public_id }
         }
     
     if (Array.isArray(args)) {
@@ -194,7 +194,7 @@ destroy.url = (args: { expense: number | { id: number } } | [expense: number | {
 
     const parsedArgs = {
                         expense: typeof args.expense === 'object'
-                ? args.expense.id
+                ? args.expense.public_id
                 : args.expense,
                 }
 
@@ -208,7 +208,7 @@ destroy.url = (args: { expense: number | { id: number } } | [expense: number | {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-destroy.delete = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -218,7 +218,7 @@ destroy.delete = (args: { expense: number | { id: number } } | [expense: number 
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-    const destroyForm = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -233,7 +233,7 @@ destroy.delete = (args: { expense: number | { id: number } } | [expense: number 
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-        destroyForm.delete = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -247,52 +247,52 @@ destroy.delete = (args: { expense: number | { id: number } } | [expense: number 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
- * @route '/staff/finance/expenses/{id}/restore'
+ * @route '/staff/finance/expenses/{publicId}/restore'
  */
-export const restore = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const restore = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: restore.url(args, options),
     method: 'post',
 })
 
 restore.definition = {
     methods: ["post"],
-    url: '/staff/finance/expenses/{id}/restore',
+    url: '/staff/finance/expenses/{publicId}/restore',
 } satisfies RouteDefinition<["post"]>
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
- * @route '/staff/finance/expenses/{id}/restore'
+ * @route '/staff/finance/expenses/{publicId}/restore'
  */
-restore.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
+restore.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { id: args }
+        args = { publicId: args }
     }
 
     
     if (Array.isArray(args)) {
         args = {
-                    id: args[0],
+                    publicId: args[0],
                 }
     }
 
     args = applyUrlDefaults(args)
 
     const parsedArgs = {
-                        id: args.id,
+                        publicId: args.publicId,
                 }
 
     return restore.definition.url
-            .replace('{id}', parsedArgs.id.toString())
+            .replace('{publicId}', parsedArgs.publicId.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
- * @route '/staff/finance/expenses/{id}/restore'
+ * @route '/staff/finance/expenses/{publicId}/restore'
  */
-restore.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+restore.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: restore.url(args, options),
     method: 'post',
 })
@@ -300,9 +300,9 @@ restore.post = (args: { id: string | number } | [id: string | number ] | string 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
- * @route '/staff/finance/expenses/{id}/restore'
+ * @route '/staff/finance/expenses/{publicId}/restore'
  */
-    const restoreForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const restoreForm = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: restore.url(args, options),
         method: 'post',
     })
@@ -310,9 +310,9 @@ restore.post = (args: { id: string | number } | [id: string | number ] | string 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
- * @route '/staff/finance/expenses/{id}/restore'
+ * @route '/staff/finance/expenses/{publicId}/restore'
  */
-        restoreForm.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        restoreForm.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: restore.url(args, options),
             method: 'post',
         })
@@ -378,7 +378,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-export const update = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -393,13 +393,13 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-update.url = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+update.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { expense: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { expense: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'public_id' in args) {
+            args = { expense: args.public_id }
         }
     
     if (Array.isArray(args)) {
@@ -412,7 +412,7 @@ update.url = (args: { expense: number | { id: number } } | [expense: number | { 
 
     const parsedArgs = {
                         expense: typeof args.expense === 'object'
-                ? args.expense.id
+                ? args.expense.public_id
                 : args.expense,
                 }
 
@@ -426,7 +426,7 @@ update.url = (args: { expense: number | { id: number } } | [expense: number | { 
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-update.put = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -436,7 +436,7 @@ update.put = (args: { expense: number | { id: number } } | [expense: number | { 
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-    const updateForm = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -451,7 +451,7 @@ update.put = (args: { expense: number | { id: number } } | [expense: number | { 
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-        updateForm.put = (args: { expense: number | { id: number } } | [expense: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',

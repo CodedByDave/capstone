@@ -116,6 +116,7 @@ class EmployeeController extends Controller
             // Explicit array so no extra Eloquent attributes/relations bleed into the prop
             'employee' => [
                 'id' => $employee->id,
+                'public_id' => $employee->public_id,
                 'employee_id' => $employee->employee_id,
                 'user_id' => $employee->user_id,
                 'first_name' => $employee->first_name,
@@ -145,6 +146,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('shop/employee/Archive', [
             'archived' => EmployeeArchive::where('shop_id', $shop->id)
+                ->with('employee')
                 ->latest('archived_at')
                 ->get(),
 
@@ -190,10 +192,10 @@ class EmployeeController extends Controller
             ->with('toast', ['type' => 'success', 'message' => 'Employee archived successfully.']);
     }
 
-    public function restore(int $id)
+    public function restore(string $publicId)
     {
         $shop = $this->getShop();
-        $employee = $shop->employees()->onlyTrashed()->findOrFail($id);
+        $employee = $shop->employees()->onlyTrashed()->where('public_id', $publicId)->firstOrFail();
 
         Gate::authorize('restore', $employee);
 

@@ -16,6 +16,7 @@ import { ArrowLeft, Calendar } from 'lucide-vue-next';
 
 interface Employee {
     id: number;
+    public_id: string;
     employee_id: string;
     first_name: string;
     last_name: string;
@@ -33,7 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Employee Management', href: '/shop/employee' },
     {
         title: `${employee.first_name} ${employee.last_name}`,
-        href: `/shop/employee/${employee.id}`,
+        href: `/shop/employee/${employee.public_id}`,
     },
     { title: 'Add Schedule', href: '#' },
 ];
@@ -47,7 +48,7 @@ const form = useForm({
 });
 
 function submit() {
-    form.post(`/shop/employee/${employee.id}/schedule`, {
+    form.post(`/shop/employee/${employee.public_id}/schedule`, {
         preserveScroll: true,
     });
 }
@@ -63,7 +64,9 @@ function submit() {
                 <Button
                     type="button"
                     variant="outline"
-                    @click="router.visit(`/shop/employee/${employee.id}`)"
+                    @click="
+                        router.visit(`/shop/employee/${employee.public_id}`)
+                    "
                 >
                     <ArrowLeft class="mr-2 h-4 w-4" />
                     Back to Employee
@@ -145,7 +148,7 @@ function submit() {
                                 variant="outline"
                                 @click="
                                     router.visit(
-                                        `/shop/employee/${employee.id}`,
+                                        `/shop/employee/${employee.public_id}`,
                                     )
                                 "
                             >

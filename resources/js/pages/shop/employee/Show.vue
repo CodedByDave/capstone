@@ -20,6 +20,7 @@ interface AuditUser {
 
 interface Employee {
     id: number;
+    public_id: string;
     employee_id: string;
     first_name: string;
     last_name: string;
@@ -82,7 +83,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Employee Management', href: `${baseRoute.value}/employee` },
     {
         title: `${employee.first_name} ${employee.last_name}`,
-        href: `${baseRoute.value}/employee/${employee.id}`,
+        href: `${baseRoute.value}/employee/${employee.public_id}`,
     },
 ];
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\PhilippinePhoneCast;
+use App\Services\ShopContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -87,6 +88,22 @@ class ShopOrder extends Model
     const PAYMENT_STATUSES = ['unpaid', 'partial', 'paid'];
 
     const STATUSES = ['pending', 'in_progress', 'completed', 'cancelled'];
+
+    /**
+     * Shop owners and staff only ever resolve orders of their own shop. An order of another shop
+     * is "not found", exactly like one that does not exist.
+     */
+    public function resolveRouteBinding($value, $field = null): ?Model
+    {
+        $query = $this->resolveRouteBindingQuery($this, $value, $field);
+        $user = auth()->user();
+
+        if ($user && in_array($user->role, ['owner', 'staff'], true)) {
+            $query->where('shop_id', app(ShopContext::class)->shopIdFor($user));
+        }
+
+        return $query->first();
+    }
 
     // ─── Relationships ────────────────────────────────────────────────────────
 

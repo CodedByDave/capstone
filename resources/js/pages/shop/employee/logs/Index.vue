@@ -47,6 +47,7 @@ interface Performer {
 
 interface Subject {
     id: number;
+    public_id?: string;
     first_name?: string;
     last_name?: string;
     employee_id?: string;
@@ -186,7 +187,7 @@ const moduleRoutes = computed<Record<string, string>>(() => ({
 function subjectUrl(log: ActivityLog): string | null {
     if (!log.subject) return null;
     const base = moduleRoutes.value[log.module];
-    return base ? `${base}/${log.subject.id}` : null;
+    return base ? `${base}/${log.subject.public_id ?? log.subject.id}` : null;
 }
 
 /* ───────── ACTION BADGES ───────── */

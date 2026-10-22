@@ -110,7 +110,7 @@ function payStaff(Shop $shop, array $actions): User
 
 function payUrl(ShopOrder $order, string $suffix = ''): string
 {
-    return "/shop/operations/orders/{$order->id}/payments{$suffix}";
+    return "/shop/operations/orders/{$order->payment_public_id}/payments{$suffix}";
 }
 
 // ─── Recording ────────────────────────────────────────────────────────────────
@@ -261,13 +261,13 @@ test('staff with Operations manage can record payments but view-only staff canno
     $order = payOrder($shop);
 
     $viewer = payStaff($shop, ['view']);
-    $response = $this->actingAs($viewer)->post("/staff/operations/orders/{$order->id}/payments", ['amount' => '50', 'method' => 'cash']);
+    $response = $this->actingAs($viewer)->post("/staff/operations/orders/{$order->payment_public_id}/payments", ['amount' => '50', 'method' => 'cash']);
     expect($response->status())->toBeIn([302, 403])
         ->and($order->payments()->count())->toBe(0);
 
     $manager = payStaff($shop, ['view', 'manage']);
     $this->actingAs($manager)
-        ->post("/staff/operations/orders/{$order->id}/payments", ['amount' => '50', 'method' => 'cash'])
+        ->post("/staff/operations/orders/{$order->payment_public_id}/payments", ['amount' => '50', 'method' => 'cash'])
         ->assertSessionHasNoErrors();
 
     expect($order->payments()->count())->toBe(1)
@@ -309,7 +309,7 @@ test('the order page lists its payments', function () {
     $this->actingAs($shop->owner)->post(payUrl($order), ['amount' => '100', 'method' => 'cash']);
 
     $this->actingAs($shop->owner)
-        ->get("/shop/operations/orders/{$order->id}")
+        ->get("/shop/operations/orders/{$order->payment_public_id}")
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('shop/operations/orders/Show')

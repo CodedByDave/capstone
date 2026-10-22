@@ -54,6 +54,7 @@ interface Category {
 
 interface Expense {
     id: number;
+    public_id: string;
     title: string;
     amount: string;
     expense_date: string;
@@ -246,7 +247,7 @@ function submitEdit() {
                 : editForm.value.category_id,
     };
     router.put(
-        `${base.value}/finance/expenses/${editingExpense.value.id}`,
+        `${base.value}/finance/expenses/${editingExpense.value.public_id}`,
         payload,
         {
             preserveScroll: true,
@@ -273,7 +274,7 @@ function openDelete(exp: Expense) {
 function confirmDelete() {
     if (!deletingExpense.value) return;
     router.delete(
-        `${base.value}/finance/expenses/${deletingExpense.value.id}`,
+        `${base.value}/finance/expenses/${deletingExpense.value.public_id}`,
         {
             preserveScroll: true,
             onSuccess: () => {

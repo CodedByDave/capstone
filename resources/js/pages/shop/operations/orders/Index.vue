@@ -46,6 +46,7 @@ import 'vue3-toastify/dist/index.css';
 
 interface Order {
     id: number;
+    payment_public_id: string;
     order_number: string;
     customer_name: string;
     customer_phone: string | null;
@@ -307,7 +308,7 @@ const toggleArchived = () => {
 // ─── Restore ───────────────────────────────────────
 
 const restoreOrder = (order: Order) => {
-    router.patch(`${base.value}/${order.id}/restore`);
+    router.patch(`${base.value}/${order.payment_public_id}/restore`);
 };
 
 const restoreAll = () => {
@@ -326,7 +327,7 @@ const confirmDelete = (order: Order) => {
 
 const handleDelete = () => {
     if (!orderToDelete.value) return;
-    router.delete(`${base.value}/${orderToDelete.value.id}`);
+    router.delete(`${base.value}/${orderToDelete.value.payment_public_id}`);
     showDeleteDialog.value = false;
     orderToDelete.value = null;
 };
@@ -666,7 +667,11 @@ const handleDelete = () => {
                                 <button
                                     v-if="!showArchived"
                                     class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                                    @click="router.visit(`${base}/${order.id}`)"
+                                    @click="
+                                        router.visit(
+                                            `${base}/${order.payment_public_id}`,
+                                        )
+                                    "
                                 >
                                     {{ order.order_number }}
                                 </button>
@@ -743,7 +748,7 @@ const handleDelete = () => {
                                             aria-label="View order"
                                             @click="
                                                 router.visit(
-                                                    `${base}/${order.id}`,
+                                                    `${base}/${order.payment_public_id}`,
                                                 )
                                             "
                                         >
@@ -755,7 +760,7 @@ const handleDelete = () => {
                                             aria-label="Edit order"
                                             @click="
                                                 router.visit(
-                                                    `${base}/${order.id}/edit`,
+                                                    `${base}/${order.payment_public_id}/edit`,
                                                 )
                                             "
                                         >

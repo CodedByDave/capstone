@@ -37,6 +37,7 @@ interface Supply {
 
 interface Order {
     id: number;
+    payment_public_id: string;
     order_number: string;
     customer_name: string;
     customer_phone: string | null;
@@ -104,7 +105,7 @@ const isAwaitingWeight = computed(
 function sendPaymentRequest() {
     sending.value = true;
     router.post(
-        `${base.value}/${props.shopOrder.id}/payment-request`,
+        `${base.value}/${props.shopOrder.payment_public_id}/payment-request`,
         {},
         {
             preserveScroll: true,
@@ -154,7 +155,7 @@ function sendForDelivery() {
     sendingDelivery.value = true;
     deliveryError.value = '';
     router.post(
-        `${base.value}/${props.shopOrder.id}/send-for-delivery`,
+        `${base.value}/${props.shopOrder.payment_public_id}/send-for-delivery`,
         { delivery_address: deliveryAddress.value || null },
         {
             preserveScroll: true,
@@ -239,7 +240,13 @@ const statusIcon = (s: string) =>
                 <Button variant="outline" @click="router.visit(base)">
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back to Orders
                 </Button>
-                <Button @click="router.visit(`${base}/${shopOrder.id}/edit`)">
+                <Button
+                    @click="
+                        router.visit(
+                            `${base}/${shopOrder.payment_public_id}/edit`,
+                        )
+                    "
+                >
                     <Pencil class="mr-2 h-4 w-4" /> Edit Order
                 </Button>
             </div>
@@ -399,7 +406,11 @@ const statusIcon = (s: string) =>
                 </div>
                 <Button
                     class="shrink-0"
-                    @click="router.visit(`${base}/${shopOrder.id}/edit`)"
+                    @click="
+                        router.visit(
+                            `${base}/${shopOrder.payment_public_id}/edit`,
+                        )
+                    "
                 >
                     Record Actual Weight
                 </Button>

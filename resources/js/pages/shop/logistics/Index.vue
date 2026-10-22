@@ -55,6 +55,7 @@ interface DeliveryPhoto {
 
 interface Delivery {
     id: number;
+    public_id: string;
     shop_order_id: number | null;
     type: 'pickup' | 'delivery';
     rider_id: number | null;
@@ -276,7 +277,7 @@ function submitStatus() {
     const form = statusModal.value.form;
     const riderId = form.rider_id;
     router.patch(
-        `${base}/${statusModal.value.delivery.id}/status`,
+        `${base}/${statusModal.value.delivery.public_id}/status`,
         {
             status: statusModal.value.form.status,
             courier: form.courier,
@@ -319,7 +320,7 @@ function uploadPhotos(event: Event) {
 
     uploadingPhotos.value = true;
     router.post(
-        `${base}/${delivery.id}/photos`,
+        `${base}/${delivery.public_id}/photos`,
         { photos: files },
         {
             forceFormData: true,

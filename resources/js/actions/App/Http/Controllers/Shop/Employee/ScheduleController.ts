@@ -4,7 +4,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:25
  * @route '/shop/employee/{employee}/schedule'
  */
-export const sync = (args: { employee: number | { id: number } } | [employee: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const sync = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: sync.url(args, options),
     method: 'put',
 })
@@ -19,13 +19,13 @@ sync.definition = {
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:25
  * @route '/shop/employee/{employee}/schedule'
  */
-sync.url = (args: { employee: number | { id: number } } | [employee: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+sync.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { employee: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'public_id' in args) {
+            args = { employee: args.public_id }
         }
     
     if (Array.isArray(args)) {
@@ -38,7 +38,7 @@ sync.url = (args: { employee: number | { id: number } } | [employee: number | { 
 
     const parsedArgs = {
                         employee: typeof args.employee === 'object'
-                ? args.employee.id
+                ? args.employee.public_id
                 : args.employee,
                 }
 
@@ -52,7 +52,7 @@ sync.url = (args: { employee: number | { id: number } } | [employee: number | { 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:25
  * @route '/shop/employee/{employee}/schedule'
  */
-sync.put = (args: { employee: number | { id: number } } | [employee: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+sync.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: sync.url(args, options),
     method: 'put',
 })
@@ -62,7 +62,7 @@ sync.put = (args: { employee: number | { id: number } } | [employee: number | { 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:25
  * @route '/shop/employee/{employee}/schedule'
  */
-    const syncForm = (args: { employee: number | { id: number } } | [employee: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const syncForm = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: sync.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -77,7 +77,7 @@ sync.put = (args: { employee: number | { id: number } } | [employee: number | { 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:25
  * @route '/shop/employee/{employee}/schedule'
  */
-        syncForm.put = (args: { employee: number | { id: number } } | [employee: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        syncForm.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: sync.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -93,7 +93,7 @@ sync.put = (args: { employee: number | { id: number } } | [employee: number | { 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/shop/employee/{employee}/schedule/{schedule}'
  */
-const destroy25c3ae7d5e6f4ced8b8a83259844cf0e = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy25c3ae7d5e6f4ced8b8a83259844cf0e = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url(args, options),
     method: 'delete',
 })
@@ -108,7 +108,7 @@ destroy25c3ae7d5e6f4ced8b8a83259844cf0e.definition = {
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/shop/employee/{employee}/schedule/{schedule}'
  */
-destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
+destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
                     employee: args[0],
@@ -120,7 +120,7 @@ destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url = (args: { employee: number | { id: 
 
     const parsedArgs = {
                         employee: typeof args.employee === 'object'
-                ? args.employee.id
+                ? args.employee.public_id
                 : args.employee,
                                 schedule: typeof args.schedule === 'object'
                 ? args.schedule.id
@@ -138,7 +138,7 @@ destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url = (args: { employee: number | { id: 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/shop/employee/{employee}/schedule/{schedule}'
  */
-destroy25c3ae7d5e6f4ced8b8a83259844cf0e.delete = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy25c3ae7d5e6f4ced8b8a83259844cf0e.delete = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url(args, options),
     method: 'delete',
 })
@@ -148,7 +148,7 @@ destroy25c3ae7d5e6f4ced8b8a83259844cf0e.delete = (args: { employee: number | { i
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/shop/employee/{employee}/schedule/{schedule}'
  */
-    const destroy25c3ae7d5e6f4ced8b8a83259844cf0eForm = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy25c3ae7d5e6f4ced8b8a83259844cf0eForm = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -163,7 +163,7 @@ destroy25c3ae7d5e6f4ced8b8a83259844cf0e.delete = (args: { employee: number | { i
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/shop/employee/{employee}/schedule/{schedule}'
  */
-        destroy25c3ae7d5e6f4ced8b8a83259844cf0eForm.delete = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy25c3ae7d5e6f4ced8b8a83259844cf0eForm.delete = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy25c3ae7d5e6f4ced8b8a83259844cf0e.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -179,7 +179,7 @@ destroy25c3ae7d5e6f4ced8b8a83259844cf0e.delete = (args: { employee: number | { i
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-const destroyc8c0bfb6e23a46369d3278d8e95bb4cb = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyc8c0bfb6e23a46369d3278d8e95bb4cb = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url(args, options),
     method: 'delete',
 })
@@ -194,7 +194,7 @@ destroyc8c0bfb6e23a46369d3278d8e95bb4cb.definition = {
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
+destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
                     employee: args[0],
@@ -206,7 +206,7 @@ destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url = (args: { employee: number | { id: 
 
     const parsedArgs = {
                         employee: typeof args.employee === 'object'
-                ? args.employee.id
+                ? args.employee.public_id
                 : args.employee,
                                 schedule: typeof args.schedule === 'object'
                 ? args.schedule.id
@@ -224,7 +224,7 @@ destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url = (args: { employee: number | { id: 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-destroyc8c0bfb6e23a46369d3278d8e95bb4cb.delete = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyc8c0bfb6e23a46369d3278d8e95bb4cb.delete = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url(args, options),
     method: 'delete',
 })
@@ -234,7 +234,7 @@ destroyc8c0bfb6e23a46369d3278d8e95bb4cb.delete = (args: { employee: number | { i
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-    const destroyc8c0bfb6e23a46369d3278d8e95bb4cbForm = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyc8c0bfb6e23a46369d3278d8e95bb4cbForm = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -249,7 +249,7 @@ destroyc8c0bfb6e23a46369d3278d8e95bb4cb.delete = (args: { employee: number | { i
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-        destroyc8c0bfb6e23a46369d3278d8e95bb4cbForm.delete = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyc8c0bfb6e23a46369d3278d8e95bb4cbForm.delete = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyc8c0bfb6e23a46369d3278d8e95bb4cb.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -345,7 +345,7 @@ store.post = (args: { employee: string | number } | [employee: string | number ]
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-export const update = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -360,7 +360,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-update.url = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
+update.url = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
                     employee: args[0],
@@ -372,7 +372,7 @@ update.url = (args: { employee: number | { id: number }, schedule: number | { id
 
     const parsedArgs = {
                         employee: typeof args.employee === 'object'
-                ? args.employee.id
+                ? args.employee.public_id
                 : args.employee,
                                 schedule: typeof args.schedule === 'object'
                 ? args.schedule.id
@@ -390,7 +390,7 @@ update.url = (args: { employee: number | { id: number }, schedule: number | { id
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-update.put = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -400,7 +400,7 @@ update.put = (args: { employee: number | { id: number }, schedule: number | { id
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-    const updateForm = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -415,7 +415,7 @@ update.put = (args: { employee: number | { id: number }, schedule: number | { id
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-        updateForm.put = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',

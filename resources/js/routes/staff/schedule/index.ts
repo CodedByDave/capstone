@@ -78,7 +78,7 @@ store.post = (args: { employee: string | number } | [employee: string | number ]
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-export const update = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -93,7 +93,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-update.url = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
+update.url = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
                     employee: args[0],
@@ -105,7 +105,7 @@ update.url = (args: { employee: number | { id: number }, schedule: number | { id
 
     const parsedArgs = {
                         employee: typeof args.employee === 'object'
-                ? args.employee.id
+                ? args.employee.public_id
                 : args.employee,
                                 schedule: typeof args.schedule === 'object'
                 ? args.schedule.id
@@ -123,7 +123,7 @@ update.url = (args: { employee: number | { id: number }, schedule: number | { id
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-update.put = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -133,7 +133,7 @@ update.put = (args: { employee: number | { id: number }, schedule: number | { id
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-    const updateForm = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -148,7 +148,7 @@ update.put = (args: { employee: number | { id: number }, schedule: number | { id
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:32
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-        updateForm.put = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -164,7 +164,7 @@ update.put = (args: { employee: number | { id: number }, schedule: number | { id
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-export const destroy = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -179,7 +179,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-destroy.url = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
+destroy.url = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
                     employee: args[0],
@@ -191,7 +191,7 @@ destroy.url = (args: { employee: number | { id: number }, schedule: number | { i
 
     const parsedArgs = {
                         employee: typeof args.employee === 'object'
-                ? args.employee.id
+                ? args.employee.public_id
                 : args.employee,
                                 schedule: typeof args.schedule === 'object'
                 ? args.schedule.id
@@ -209,7 +209,7 @@ destroy.url = (args: { employee: number | { id: number }, schedule: number | { i
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-destroy.delete = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -219,7 +219,7 @@ destroy.delete = (args: { employee: number | { id: number }, schedule: number | 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-    const destroyForm = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -234,7 +234,7 @@ destroy.delete = (args: { employee: number | { id: number }, schedule: number | 
  * @see app/Http/Controllers/Shop/Employee/ScheduleController.php:41
  * @route '/staff/employee/{employee}/schedule/{schedule}'
  */
-        destroyForm.delete = (args: { employee: number | { id: number }, schedule: number | { id: number } } | [employee: number | { id: number }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { employee: string | { public_id: string }, schedule: number | { id: number } } | [employee: string | { public_id: string }, schedule: number | { id: number } ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

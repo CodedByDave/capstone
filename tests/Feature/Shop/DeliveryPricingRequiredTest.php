@@ -198,7 +198,7 @@ test('staff cannot open logistics or send orders for delivery without pricing', 
     $order = unpricedCompletedOrder($shop, ['pickup_type' => 'walk_in']);
 
     $this->actingAs($staff)->get('/staff/logistics')->assertForbidden();
-    $this->actingAs($staff)->post("/staff/operations/orders/{$order->id}/send-for-delivery")->assertForbidden();
+    $this->actingAs($staff)->post("/staff/operations/orders/{$order->payment_public_id}/send-for-delivery")->assertForbidden();
 
     expect(App\Models\Delivery::count())->toBe(0);
 });
@@ -219,7 +219,7 @@ test('the order form refuses deliver to customer without pricing', function () {
     $order = unpricedCompletedOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress']);
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->id}", [
+        ->put("/staff/operations/orders/{$order->payment_public_id}", [
             'customer_name' => 'Maria Cruz',
             'customer_address' => '12 Rizal St, Imus',
             'deliver_to_customer' => true,
