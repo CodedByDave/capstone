@@ -1,8 +1,82 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 import demoBe5688 from './demo'
 /**
+* @see \App\Http\Controllers\User\UserPaymentController::check
+ * @see app/Http/Controllers/User/UserPaymentController.php:130
+ * @route '/user/orders/{paymentPublicId}/payment/check'
+ */
+export const check = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: check.url(args, options),
+    method: 'post',
+})
+
+check.definition = {
+    methods: ["post"],
+    url: '/user/orders/{paymentPublicId}/payment/check',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\User\UserPaymentController::check
+ * @see app/Http/Controllers/User/UserPaymentController.php:130
+ * @route '/user/orders/{paymentPublicId}/payment/check'
+ */
+check.url = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { paymentPublicId: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    paymentPublicId: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        paymentPublicId: args.paymentPublicId,
+                }
+
+    return check.definition.url
+            .replace('{paymentPublicId}', parsedArgs.paymentPublicId.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\User\UserPaymentController::check
+ * @see app/Http/Controllers/User/UserPaymentController.php:130
+ * @route '/user/orders/{paymentPublicId}/payment/check'
+ */
+check.post = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: check.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\User\UserPaymentController::check
+ * @see app/Http/Controllers/User/UserPaymentController.php:130
+ * @route '/user/orders/{paymentPublicId}/payment/check'
+ */
+    const checkForm = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: check.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\User\UserPaymentController::check
+ * @see app/Http/Controllers/User/UserPaymentController.php:130
+ * @route '/user/orders/{paymentPublicId}/payment/check'
+ */
+        checkForm.post = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: check.url(args, options),
+            method: 'post',
+        })
+    
+    check.form = checkForm
+/**
 * @see \App\Http\Controllers\User\UserPaymentController::demo
- * @see app/Http/Controllers/User/UserPaymentController.php:56
+ * @see app/Http/Controllers/User/UserPaymentController.php:57
  * @route '/user/orders/{paymentPublicId}/payment/demo'
  */
 export const demo = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -17,7 +91,7 @@ demo.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::demo
- * @see app/Http/Controllers/User/UserPaymentController.php:56
+ * @see app/Http/Controllers/User/UserPaymentController.php:57
  * @route '/user/orders/{paymentPublicId}/payment/demo'
  */
 demo.url = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -45,7 +119,7 @@ demo.url = (args: { paymentPublicId: string | number } | [paymentPublicId: strin
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::demo
- * @see app/Http/Controllers/User/UserPaymentController.php:56
+ * @see app/Http/Controllers/User/UserPaymentController.php:57
  * @route '/user/orders/{paymentPublicId}/payment/demo'
  */
 demo.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -54,7 +128,7 @@ demo.get = (args: { paymentPublicId: string | number } | [paymentPublicId: strin
 })
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::demo
- * @see app/Http/Controllers/User/UserPaymentController.php:56
+ * @see app/Http/Controllers/User/UserPaymentController.php:57
  * @route '/user/orders/{paymentPublicId}/payment/demo'
  */
 demo.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -64,7 +138,7 @@ demo.head = (args: { paymentPublicId: string | number } | [paymentPublicId: stri
 
     /**
 * @see \App\Http\Controllers\User\UserPaymentController::demo
- * @see app/Http/Controllers/User/UserPaymentController.php:56
+ * @see app/Http/Controllers/User/UserPaymentController.php:57
  * @route '/user/orders/{paymentPublicId}/payment/demo'
  */
     const demoForm = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -74,7 +148,7 @@ demo.head = (args: { paymentPublicId: string | number } | [paymentPublicId: stri
 
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::demo
- * @see app/Http/Controllers/User/UserPaymentController.php:56
+ * @see app/Http/Controllers/User/UserPaymentController.php:57
  * @route '/user/orders/{paymentPublicId}/payment/demo'
  */
         demoForm.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -83,7 +157,7 @@ demo.head = (args: { paymentPublicId: string | number } | [paymentPublicId: stri
         })
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::demo
- * @see app/Http/Controllers/User/UserPaymentController.php:56
+ * @see app/Http/Controllers/User/UserPaymentController.php:57
  * @route '/user/orders/{paymentPublicId}/payment/demo'
  */
         demoForm.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -99,7 +173,7 @@ demo.head = (args: { paymentPublicId: string | number } | [paymentPublicId: stri
     demo.form = demoForm
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::receipt
- * @see app/Http/Controllers/User/UserPaymentController.php:126
+ * @see app/Http/Controllers/User/UserPaymentController.php:154
  * @route '/user/orders/{paymentPublicId}/payment/receipt'
  */
 export const receipt = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -114,7 +188,7 @@ receipt.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::receipt
- * @see app/Http/Controllers/User/UserPaymentController.php:126
+ * @see app/Http/Controllers/User/UserPaymentController.php:154
  * @route '/user/orders/{paymentPublicId}/payment/receipt'
  */
 receipt.url = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -142,7 +216,7 @@ receipt.url = (args: { paymentPublicId: string | number } | [paymentPublicId: st
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::receipt
- * @see app/Http/Controllers/User/UserPaymentController.php:126
+ * @see app/Http/Controllers/User/UserPaymentController.php:154
  * @route '/user/orders/{paymentPublicId}/payment/receipt'
  */
 receipt.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -151,7 +225,7 @@ receipt.get = (args: { paymentPublicId: string | number } | [paymentPublicId: st
 })
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::receipt
- * @see app/Http/Controllers/User/UserPaymentController.php:126
+ * @see app/Http/Controllers/User/UserPaymentController.php:154
  * @route '/user/orders/{paymentPublicId}/payment/receipt'
  */
 receipt.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -161,7 +235,7 @@ receipt.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
 
     /**
 * @see \App\Http\Controllers\User\UserPaymentController::receipt
- * @see app/Http/Controllers/User/UserPaymentController.php:126
+ * @see app/Http/Controllers/User/UserPaymentController.php:154
  * @route '/user/orders/{paymentPublicId}/payment/receipt'
  */
     const receiptForm = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -171,7 +245,7 @@ receipt.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
 
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::receipt
- * @see app/Http/Controllers/User/UserPaymentController.php:126
+ * @see app/Http/Controllers/User/UserPaymentController.php:154
  * @route '/user/orders/{paymentPublicId}/payment/receipt'
  */
         receiptForm.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -180,7 +254,7 @@ receipt.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
         })
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::receipt
- * @see app/Http/Controllers/User/UserPaymentController.php:126
+ * @see app/Http/Controllers/User/UserPaymentController.php:154
  * @route '/user/orders/{paymentPublicId}/payment/receipt'
  */
         receiptForm.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -196,7 +270,7 @@ receipt.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
     receipt.form = receiptForm
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::success
- * @see app/Http/Controllers/User/UserPaymentController.php:82
+ * @see app/Http/Controllers/User/UserPaymentController.php:84
  * @route '/user/orders/{paymentPublicId}/payment/success'
  */
 export const success = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -211,7 +285,7 @@ success.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::success
- * @see app/Http/Controllers/User/UserPaymentController.php:82
+ * @see app/Http/Controllers/User/UserPaymentController.php:84
  * @route '/user/orders/{paymentPublicId}/payment/success'
  */
 success.url = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -239,7 +313,7 @@ success.url = (args: { paymentPublicId: string | number } | [paymentPublicId: st
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::success
- * @see app/Http/Controllers/User/UserPaymentController.php:82
+ * @see app/Http/Controllers/User/UserPaymentController.php:84
  * @route '/user/orders/{paymentPublicId}/payment/success'
  */
 success.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -248,7 +322,7 @@ success.get = (args: { paymentPublicId: string | number } | [paymentPublicId: st
 })
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::success
- * @see app/Http/Controllers/User/UserPaymentController.php:82
+ * @see app/Http/Controllers/User/UserPaymentController.php:84
  * @route '/user/orders/{paymentPublicId}/payment/success'
  */
 success.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -258,7 +332,7 @@ success.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
 
     /**
 * @see \App\Http\Controllers\User\UserPaymentController::success
- * @see app/Http/Controllers/User/UserPaymentController.php:82
+ * @see app/Http/Controllers/User/UserPaymentController.php:84
  * @route '/user/orders/{paymentPublicId}/payment/success'
  */
     const successForm = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -268,7 +342,7 @@ success.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
 
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::success
- * @see app/Http/Controllers/User/UserPaymentController.php:82
+ * @see app/Http/Controllers/User/UserPaymentController.php:84
  * @route '/user/orders/{paymentPublicId}/payment/success'
  */
         successForm.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -277,7 +351,7 @@ success.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
         })
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::success
- * @see app/Http/Controllers/User/UserPaymentController.php:82
+ * @see app/Http/Controllers/User/UserPaymentController.php:84
  * @route '/user/orders/{paymentPublicId}/payment/success'
  */
         successForm.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -293,7 +367,7 @@ success.head = (args: { paymentPublicId: string | number } | [paymentPublicId: s
     success.form = successForm
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::cancel
- * @see app/Http/Controllers/User/UserPaymentController.php:116
+ * @see app/Http/Controllers/User/UserPaymentController.php:120
  * @route '/user/orders/{paymentPublicId}/payment/cancel'
  */
 export const cancel = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -308,7 +382,7 @@ cancel.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::cancel
- * @see app/Http/Controllers/User/UserPaymentController.php:116
+ * @see app/Http/Controllers/User/UserPaymentController.php:120
  * @route '/user/orders/{paymentPublicId}/payment/cancel'
  */
 cancel.url = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -336,7 +410,7 @@ cancel.url = (args: { paymentPublicId: string | number } | [paymentPublicId: str
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::cancel
- * @see app/Http/Controllers/User/UserPaymentController.php:116
+ * @see app/Http/Controllers/User/UserPaymentController.php:120
  * @route '/user/orders/{paymentPublicId}/payment/cancel'
  */
 cancel.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -345,7 +419,7 @@ cancel.get = (args: { paymentPublicId: string | number } | [paymentPublicId: str
 })
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::cancel
- * @see app/Http/Controllers/User/UserPaymentController.php:116
+ * @see app/Http/Controllers/User/UserPaymentController.php:120
  * @route '/user/orders/{paymentPublicId}/payment/cancel'
  */
 cancel.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -355,7 +429,7 @@ cancel.head = (args: { paymentPublicId: string | number } | [paymentPublicId: st
 
     /**
 * @see \App\Http\Controllers\User\UserPaymentController::cancel
- * @see app/Http/Controllers/User/UserPaymentController.php:116
+ * @see app/Http/Controllers/User/UserPaymentController.php:120
  * @route '/user/orders/{paymentPublicId}/payment/cancel'
  */
     const cancelForm = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -365,7 +439,7 @@ cancel.head = (args: { paymentPublicId: string | number } | [paymentPublicId: st
 
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::cancel
- * @see app/Http/Controllers/User/UserPaymentController.php:116
+ * @see app/Http/Controllers/User/UserPaymentController.php:120
  * @route '/user/orders/{paymentPublicId}/payment/cancel'
  */
         cancelForm.get = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -374,7 +448,7 @@ cancel.head = (args: { paymentPublicId: string | number } | [paymentPublicId: st
         })
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::cancel
- * @see app/Http/Controllers/User/UserPaymentController.php:116
+ * @see app/Http/Controllers/User/UserPaymentController.php:120
  * @route '/user/orders/{paymentPublicId}/payment/cancel'
  */
         cancelForm.head = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -389,7 +463,8 @@ cancel.head = (args: { paymentPublicId: string | number } | [paymentPublicId: st
     
     cancel.form = cancelForm
 const payment = {
-    demo: Object.assign(demo, demoBe5688),
+    check: Object.assign(check, check),
+demo: Object.assign(demo, demoBe5688),
 receipt: Object.assign(receipt, receipt),
 success: Object.assign(success, success),
 cancel: Object.assign(cancel, cancel),

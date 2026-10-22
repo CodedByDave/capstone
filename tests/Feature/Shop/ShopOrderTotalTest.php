@@ -5,6 +5,7 @@ use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Models\User;
+use App\Services\OrderPaymentService;
 use App\Services\ShopOrderService;
 
 function orderTotalScenario(array $serviceOverrides = []): array
@@ -46,6 +47,20 @@ function orderTotalScenario(array $serviceOverrides = []): array
     return compact('order', 'service');
 }
 
+/** Money already received for an order, kept in the payment history. */
+function recordConfirmedPayment(ShopOrder $order, float $amount): void
+{
+    $order->payments()->create([
+        'shop_id' => $order->shop_id,
+        'amount' => $amount,
+        'method' => 'cash',
+        'status' => 'confirmed',
+        'source' => 'shop',
+        'paid_at' => now(),
+    ]);
+    $order->update(['amount_paid' => $amount, 'payment_status' => 'partial']);
+}
+
 function orderUpdatePayload(ShopService $service, array $overrides = []): array
 {
     return array_merge([
@@ -56,7 +71,6 @@ function orderUpdatePayload(ShopService $service, array $overrides = []): array
         'actual_weight_kg' => null,
         'additional_charges' => 0,
         'discount_amount' => 0,
-        'amount_paid' => 0,
         'status' => 'pending',
     ], $overrides);
 }
@@ -131,12 +145,12 @@ test('a stored delivery fee stays in an unweighed order total with charges and d
 test('a stored delivery fee stays in a weighed order total and keeps the balance due', function () {
     ['order' => $order, 'service' => $service] = orderTotalScenario();
     $order->update(['delivery_fee' => 45]);
+    recordConfirmedPayment($order, 190);
 
     $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), orderUpdatePayload($service, [
         'actual_weight_kg' => 3,
         'additional_charges' => 20,
         'discount_amount' => 10,
-        'amount_paid' => 190,
         'status' => 'completed',
     ]));
 
@@ -148,9 +162,15 @@ test('a stored delivery fee stays in a weighed order total and keeps the balance
 
 test('recording the delivery fee payment marks the order paid', function () {
     ['order' => $order] = orderTotalScenario();
-    $order->update(['delivery_fee' => 45, 'total_amount' => 165, 'amount_paid' => 120, 'payment_status' => 'partial']);
+    $order->update(['delivery_fee' => 45, 'total_amount' => 165]);
+    recordConfirmedPayment($order, 120);
 
-    $updated = app(ShopOrderService::class)->updatePayment($order->fresh(), ['amount_paid' => 165]);
+    $payment = app(OrderPaymentService::class)->recordShopPayment(
+        $order->shop->owner,
+        $order->fresh(),
+        ['amount' => 45, 'method' => 'cash'],
+    );
 
-    expect($updated->payment_status)->toBe('paid');
+    expect((float) $payment->amount)->toBe(45.0)
+        ->and($order->fresh()->payment_status)->toBe('paid');
 });

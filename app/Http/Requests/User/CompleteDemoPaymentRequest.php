@@ -16,6 +16,8 @@ class CompleteDemoPaymentRequest extends FormRequest
     {
         return [
             'payment_method' => ['required', Rule::in(['gcash', 'maya', 'card', 'grabpay'])],
+            // Left out to pay the whole remaining balance.
+            'amount' => ['nullable', 'numeric', 'min:100', 'max:9999999.99', 'decimal:0,2'],
         ];
     }
 }

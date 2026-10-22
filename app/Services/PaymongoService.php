@@ -203,9 +203,10 @@ class PaymongoService
      * Create a PayMongo checkout session for a shop order using that shop's own secret key.
      * Money lands directly in the shop's PayMongo account.
      */
-    public function createShopOrderSession(ShopOrder $order, string $secretKey): array
+    public function createShopOrderSession(ShopOrder $order, string $secretKey, ?float $payAmount = null): array
     {
-        $amount = (int) round($order->balanceDue() * 100);
+        $balance = (int) round($order->balanceDue() * 100);
+        $amount = $payAmount !== null ? (int) round($payAmount * 100) : $balance;
 
         if ($amount < 10000) {
             throw new \Exception('Minimum payment amount is ₱100.00');
@@ -227,7 +228,9 @@ class PaymongoService
                         [
                             'currency' => 'PHP',
                             'amount' => $amount,
-                            'name' => "Laundry Order {$order->order_number}",
+                            'name' => $amount < $balance
+                                ? "Laundry Order {$order->order_number} (partial payment)"
+                                : "Laundry Order {$order->order_number}",
                             'quantity' => 1,
                         ],
                     ],
@@ -252,7 +255,7 @@ class PaymongoService
 
         Log::info('PayMongo ShopOrder Checkout Request', [
             'order_id' => $order->id,
-            'amount_php' => $order->total_amount,
+            'amount_php' => $amount / 100,
             'amount_centavos' => $amount,
         ]);
 

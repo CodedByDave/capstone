@@ -16,6 +16,8 @@ class InitiateOnlinePaymentRequest extends FormRequest
     {
         return [
             'payment_method' => ['required', Rule::in(['gcash', 'maya', 'card', 'grabpay'])],
+            // Left out to pay the whole remaining balance.
+            'amount' => ['nullable', 'numeric', 'min:100', 'max:9999999.99', 'decimal:0,2'],
         ];
     }
 
@@ -23,6 +25,8 @@ class InitiateOnlinePaymentRequest extends FormRequest
     {
         return [
             'payment_method.required' => 'Select a payment method before continuing.',
+            'amount.min' => 'The smallest amount you can pay online is ₱100.',
+            'amount.decimal' => 'The amount can have at most 2 decimal places.',
             'payment_method.in' => 'Select GCash, Maya, Card, or GrabPay.',
         ];
     }

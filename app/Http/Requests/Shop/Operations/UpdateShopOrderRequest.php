@@ -68,8 +68,6 @@ class UpdateShopOrderRequest extends FormRequest
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'total_amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', Rule::in(ShopOrder::PAYMENT_METHODS)],
-            'payment_status' => ['required', Rule::in(ShopOrder::PAYMENT_STATUSES)],  // ← add
-            'amount_paid' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', Rule::in(ShopOrder::STATUSES)],           // ← add
             'estimated_completion_at' => ['nullable', 'date'],
             'supplies' => ['nullable', 'array'],
@@ -84,7 +82,6 @@ class UpdateShopOrderRequest extends FormRequest
         $this->merge([
             'additional_charges' => $this->additional_charges ?? 0,
             'discount_amount' => $this->discount_amount ?? 0,
-            'amount_paid' => $this->amount_paid ?? 0,
             'price_per_kg' => $this->price_per_kg ?? 0,
         ]);
     }

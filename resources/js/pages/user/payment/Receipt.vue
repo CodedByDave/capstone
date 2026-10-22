@@ -32,6 +32,9 @@ defineProps<{
         delivery_fee?: number;
         total_amount: number;
         amount_paid: number;
+        balance_due: number;
+        is_fully_paid: boolean;
+        payments: { amount: number; method: string; paid_at: string }[];
     };
 }>();
 
@@ -119,7 +122,7 @@ function printReceipt() {
                             class="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700"
                         >
                             <CheckCircle2 class="h-4 w-4" />
-                            PAID
+                            {{ receipt.is_fully_paid ? 'PAID' : 'PARTIAL' }}
                         </div>
                     </div>
 
@@ -214,11 +217,45 @@ function printReceipt() {
                         <div
                             class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-4"
                         >
-                            <span class="font-bold text-gray-900"
-                                >Total paid</span
-                            >
+                            <span class="font-bold text-gray-900">{{
+                                receipt.is_fully_paid
+                                    ? 'Total paid'
+                                    : 'Paid so far'
+                            }}</span>
                             <span class="text-lg font-bold text-gray-950">{{
                                 peso(receipt.amount_paid)
+                            }}</span>
+                        </div>
+                        <div
+                            v-if="!receipt.is_fully_paid"
+                            class="flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm"
+                        >
+                            <span class="font-semibold text-orange-700"
+                                >Balance remaining</span
+                            >
+                            <span class="font-semibold text-orange-700">{{
+                                peso(receipt.balance_due)
+                            }}</span>
+                        </div>
+                    </div>
+
+                    <div v-if="receipt.payments.length > 1" class="mt-5">
+                        <p
+                            class="text-[10px] font-semibold tracking-wide text-gray-400 uppercase"
+                        >
+                            Payments received
+                        </p>
+                        <div
+                            v-for="(payment, index) in receipt.payments"
+                            :key="index"
+                            class="mt-1 flex justify-between text-xs text-gray-600"
+                        >
+                            <span class="capitalize"
+                                >{{ payment.method }} ·
+                                {{ dateTime(payment.paid_at) }}</span
+                            >
+                            <span class="font-medium">{{
+                                peso(payment.amount)
                             }}</span>
                         </div>
                     </div>

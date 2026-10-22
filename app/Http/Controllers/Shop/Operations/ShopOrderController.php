@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Shop\Operations;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Operations\RecordOrderPaymentRequest;
 use App\Http\Requests\Shop\Operations\SendOrderForDeliveryRequest;
 use App\Http\Requests\Shop\Operations\ShopOrderFilterRequest;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
+use App\Http\Requests\Shop\Operations\VoidOrderPaymentRequest;
+use App\Http\Resources\ShopOrderPaymentResource;
 use App\Models\Employee;
 use App\Models\Inventory;
 use App\Models\Promotion;
@@ -15,6 +18,8 @@ use App\Models\ShopService;
 use App\Notifications\OrderNotification;
 use App\Services\CustomerAgreementService;
 use App\Services\LogisticsService;
+use App\Services\OrderPaymentService;
+use App\Services\ShopOrderPaymentService;
 use App\Services\ShopOrderService;
 use App\Traits\BranchScoped;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +36,8 @@ class ShopOrderController extends Controller
         protected ShopOrderService $service,
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly LogisticsService $logistics,
+        private readonly OrderPaymentService $payments,
+        private readonly ShopOrderPaymentService $onlinePayments,
     ) {}
 
     private function getShopId(): int
@@ -126,6 +133,7 @@ class ShopOrderController extends Controller
             'shopOrder' => $order,
             'customerAgreement' => $this->customerAgreementService->acceptanceData($order),
             'deliveryOption' => $this->logistics->deliveryOptionFor($order),
+            'payments' => ShopOrderPaymentResource::collection($this->payments->history($order))->resolve(),
             'gcash_qr' => $qrUrl($shop->gcash_qr),
             'maya_qr' => $qrUrl($shop->maya_qr),
         ]);
@@ -225,18 +233,39 @@ class ShopOrderController extends Controller
         ]);
     }
 
-    public function updatePayment(Request $request, ShopOrder $order): RedirectResponse
+    public function recordPayment(RecordOrderPaymentRequest $request, ShopOrder $order): RedirectResponse
     {
-        $request->validate([
-            'payment_method' => ['required', 'in:'.implode(',', ShopOrder::PAYMENT_METHODS)],
-            'amount_paid' => ['required', 'numeric', 'min:0'],
-        ]);
-
-        $this->service->updatePayment($order, $request->only(['payment_method', 'amount_paid']));
+        $payment = $this->payments->recordShopPayment($request->user(), $order, $request->validated());
+        $balance = $order->fresh()->balanceDue();
 
         return back()->with('toast', [
             'type' => 'success',
-            'message' => 'Order payment updated successfully.',
+            'message' => 'Payment of ₱'.number_format((float) $payment->amount, 2).' recorded. '
+                .($balance > 0 ? 'Remaining balance: ₱'.number_format($balance, 2).'.' : 'The order is fully paid.'),
+        ]);
+    }
+
+    public function voidPayment(VoidOrderPaymentRequest $request, ShopOrder $order, string $payment): RedirectResponse
+    {
+        $this->payments->voidPayment($request->user(), $order, $payment, $request->validated('reason'));
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Payment voided. The balance has been restored.',
+        ]);
+    }
+
+    public function checkPayments(Request $request, ShopOrder $order): RedirectResponse
+    {
+        $result = $this->onlinePayments->reconcileForShop($request->user(), $order);
+
+        return back()->with('toast', [
+            'type' => $result === 'confirmed' ? 'success' : 'info',
+            'message' => match ($result) {
+                'confirmed' => 'The online payment was confirmed.',
+                'pending' => 'The online payment has not been completed yet.',
+                default => 'There is no online payment waiting to be confirmed.',
+            },
         ]);
     }
 

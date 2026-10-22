@@ -255,7 +255,7 @@ checkout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     checkout.form = checkoutForm
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
 export const status = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -270,7 +270,7 @@ status.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
 status.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -303,7 +303,7 @@ status.url = (args: { order: number | { id: number } } | [order: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
 status.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -313,7 +313,7 @@ status.patch = (args: { order: number | { id: number } } | [order: number | { id
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
     const statusForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -328,7 +328,7 @@ status.patch = (args: { order: number | { id: number } } | [order: number | { id
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
         statusForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -342,95 +342,6 @@ status.patch = (args: { order: number | { id: number } } | [order: number | { id
         })
     
     status.form = statusForm
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::payment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-export const payment = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: payment.url(args, options),
-    method: 'patch',
-})
-
-payment.definition = {
-    methods: ["patch"],
-    url: '/shop/orders/{order}/payment',
-} satisfies RouteDefinition<["patch"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::payment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-payment.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { order: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { order: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    order: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        order: typeof args.order === 'object'
-                ? args.order.id
-                : args.order,
-                }
-
-    return payment.definition.url
-            .replace('{order}', parsedArgs.order.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::payment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-payment.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: payment.url(args, options),
-    method: 'patch',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::payment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-    const paymentForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: payment.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'PATCH',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::payment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-        paymentForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: payment.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PATCH',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    payment.form = paymentForm
 /**
 * @see \App\Http\Controllers\Auth\AuthController::login
  * @see app/Http/Controllers/Auth/AuthController.php:11

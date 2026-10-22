@@ -19,6 +19,7 @@ class ShopOrderService
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly OrderBillingBreakdownService $billing,
         private readonly LogisticsService $logistics,
+        private readonly OrderPaymentService $orderPayments,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -50,7 +51,17 @@ class ShopOrderService
 
             $data['order_number'] = $this->generateOrderNumber();
 
+            // Money received now is recorded as a payment; the order's totals follow from it.
+            $paidNow = round((float) ($data['amount_paid'] ?? 0), 2);
+            if ($paidNow > round((float) $data['total_amount'], 2)) {
+                throw ValidationException::withMessages([
+                    'amount_paid' => 'The payment received cannot be more than the order total.',
+                ]);
+            }
+            unset($data['amount_paid'], $data['payment_status'], $data['paid_at']);
+
             $order = $this->repository->create($data);
+            $this->orderPayments->recordInitialPayment($actor, $order, $paidNow, $data['payment_method'] ?? null);
 
             foreach ($supplies as $supply) {
                 if (empty($supply['inventory_id'])) {
@@ -154,6 +165,8 @@ class ShopOrderService
         $previousStatus = $order->status;
 
         $updated = DB::transaction(function () use ($order, $data) {
+            $order = $this->repository->lockForUpdate($order);
+
             if ($order->payment_status === 'paid'
                 && array_key_exists('actual_weight_kg', $data)
                 && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg) {
@@ -217,15 +230,8 @@ class ShopOrderService
             ) + (float) $order->delivery_fee, 2);
             unset($data['delivery_fee']);
 
-            $amountPaid = (float) ($data['amount_paid'] ?? $order->amount_paid);
-            $data['payment_status'] = match (true) {
-                $amountPaid <= 0 => 'unpaid',
-                $amountPaid < $data['total_amount'] => 'partial',
-                default => 'paid',
-            };
-            $data['paid_at'] = $data['payment_status'] === 'paid'
-                ? ($order->paid_at ?? now())
-                : null;
+            // What has been paid comes only from the recorded payments; the form cannot change it.
+            unset($data['amount_paid'], $data['payment_status'], $data['paid_at']);
 
             // Restore old supply quantities back to inventory
             foreach ($order->supplies as $oldSupply) {
@@ -237,8 +243,10 @@ class ShopOrderService
             // Detach all old supplies from pivot
             $order->supplies()->detach();
 
-            // Persist the authoritative pricing and weight values.
+            // Persist the authoritative pricing and weight values, then re-derive the payment
+            // status because the total may have changed.
             $this->repository->update($order, $data);
+            $this->orderPayments->sync($order);
 
             // Re-attach new supplies and deduct inventory
             foreach ($newSupplies as $supply) {
@@ -290,7 +298,7 @@ class ShopOrderService
         return $updated;
     }
 
-    // ─── Status & Payment ─────────────────────────────────────────────────────
+    // ─── Status ───────────────────────────────────────────────────────────────
 
     public function updateStatus(ShopOrder $order, string $status): ShopOrder
     {
@@ -311,31 +319,6 @@ class ShopOrderService
         // A pickup order goes back to the customer, so it joins the delivery board.
         if ($status === 'completed') {
             $this->logistics->dispatchCompletedOrder($updated);
-        }
-
-        return $updated;
-    }
-
-    public function updatePayment(ShopOrder $order, array $data): ShopOrder
-    {
-        $amountPaid = $data['amount_paid'] ?? $order->amount_paid;
-
-        $data['payment_status'] = match (true) {
-            $amountPaid <= 0 => 'unpaid',
-            $amountPaid < $order->total_amount => 'partial',
-            default => 'paid',
-        };
-
-        if ($data['payment_status'] === 'paid') {
-            $data['paid_at'] = now();
-        }
-
-        $updated = $this->repository->update($order, $data);
-
-        // Notify the customer when payment is marked paid
-        if ($updated->user_id && $data['payment_status'] === 'paid') {
-            $updated->load('shop');
-            $updated->user?->notify(new OrderNotification($updated, 'payment_updated'));
         }
 
         return $updated;

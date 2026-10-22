@@ -11,6 +11,8 @@ class OrderNotification extends Notification
         public readonly ShopOrder $order,
         public readonly string $event, // placed | weight_confirmed | status_changed | payment_updated | payment_request | cancelled
         public readonly ?string $qrUrl = null,
+        // The payment just received, so the message can say how much and what is left.
+        public readonly ?float $amount = null,
     ) {}
 
     public function via(object $notifiable): array
@@ -53,8 +55,8 @@ class OrderNotification extends Notification
                 'amount' => $order->total_amount,
             ],
             'payment_updated' => [
-                'title' => 'Payment updated',
-                'body' => "Payment for order #{$order->order_number} is now {$order->payment_status}.",
+                'title' => $this->paymentTitle($order),
+                'body' => $this->paymentBody($order),
                 'order_id' => $order->id,
                 'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
@@ -63,12 +65,12 @@ class OrderNotification extends Notification
             ],
             'payment_request' => [
                 'title' => 'Payment request from '.$order->shop->shop_name,
-                'body' => 'Please pay ₱'.number_format($order->total_amount, 2)." for order #{$order->order_number} via ".strtoupper($order->payment_method).'.',
+                'body' => 'Please pay ₱'.number_format($order->balanceDue(), 2)." for order #{$order->order_number} via ".strtoupper($order->payment_method).'.',
                 'order_id' => $order->id,
                 'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'payment_request',
-                'amount' => $order->total_amount,
+                'amount' => $order->balanceDue(),
                 'qr_url' => $this->qrUrl,
             ],
             'cancelled' => [
@@ -80,6 +82,28 @@ class OrderNotification extends Notification
                 'type' => 'cancelled',
             ],
             default => [],
+        };
+    }
+
+    private function paymentTitle(ShopOrder $order): string
+    {
+        return match ($order->payment_status) {
+            'paid' => 'Order fully paid',
+            'partial' => 'Payment received',
+            default => 'Payment updated',
+        };
+    }
+
+    private function paymentBody(ShopOrder $order): string
+    {
+        $received = $this->amount !== null && $this->amount > 0
+            ? '₱'.number_format($this->amount, 2).' received for'
+            : 'Payment recorded for';
+
+        return match ($order->payment_status) {
+            'paid' => "{$received} order #{$order->order_number}. It is now fully paid.",
+            'partial' => "{$received} order #{$order->order_number}. Remaining balance: ₱".number_format($order->balanceDue(), 2).'.',
+            default => "Payment for order #{$order->order_number} is now {$order->payment_status}.",
         };
     }
 

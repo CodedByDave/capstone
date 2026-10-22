@@ -179,3 +179,9 @@ cancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
     
     cancel.form = cancelForm
+const payment = {
+    success: Object.assign(success, success),
+cancel: Object.assign(cancel, cancel),
+}
+
+export default payment

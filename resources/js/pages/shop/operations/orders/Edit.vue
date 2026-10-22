@@ -106,8 +106,6 @@ const form = useForm({
     discount_amount: props.shopOrder.discount_amount,
     total_amount: props.shopOrder.total_amount,
     payment_method: props.shopOrder.payment_method,
-    payment_status: props.shopOrder.payment_status,
-    amount_paid: props.shopOrder.amount_paid,
     status: props.shopOrder.status,
     estimated_completion_at: props.shopOrder.estimated_completion_at
         ? new Date(props.shopOrder.estimated_completion_at)
@@ -730,30 +728,28 @@ watch(
                                 </option>
                             </select>
                         </div>
-                        <div class="col-span-12 space-y-1 sm:col-span-3">
+                        <div class="col-span-12 space-y-1 sm:col-span-6">
                             <label class="text-sm font-medium"
-                                >Payment Status</label
+                                >Payments received</label
                             >
-                            <select
-                                v-model="form.payment_status"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            <p
+                                class="rounded-lg border border-gray-200 bg-muted/40 px-3 py-2.5 text-sm"
                             >
-                                <option value="unpaid">Unpaid</option>
-                                <option value="partial">Partial</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
-                        <div class="col-span-12 space-y-1 sm:col-span-3">
-                            <label class="text-sm font-medium"
-                                >Amount Paid</label
-                            >
-                            <input
-                                v-model="form.amount_paid"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            />
+                                <span class="font-semibold capitalize">{{
+                                    shopOrder.payment_status
+                                }}</span>
+                                · ₱{{
+                                    Number(
+                                        shopOrder.amount_paid,
+                                    ).toLocaleString('en-PH', {
+                                        minimumFractionDigits: 2,
+                                    })
+                                }}
+                                paid
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Record or void payments on the order's page.
+                            </p>
                         </div>
                         <div class="col-span-12 space-y-1 sm:col-span-3">
                             <label class="text-sm font-medium"

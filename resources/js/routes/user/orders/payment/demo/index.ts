@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::complete
- * @see app/Http/Controllers/User/UserPaymentController.php:68
+ * @see app/Http/Controllers/User/UserPaymentController.php:69
  * @route '/user/orders/{paymentPublicId}/payment/demo/complete'
  */
 export const complete = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ complete.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::complete
- * @see app/Http/Controllers/User/UserPaymentController.php:68
+ * @see app/Http/Controllers/User/UserPaymentController.php:69
  * @route '/user/orders/{paymentPublicId}/payment/demo/complete'
  */
 complete.url = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ complete.url = (args: { paymentPublicId: string | number } | [paymentPublicId: s
 
 /**
 * @see \App\Http\Controllers\User\UserPaymentController::complete
- * @see app/Http/Controllers/User/UserPaymentController.php:68
+ * @see app/Http/Controllers/User/UserPaymentController.php:69
  * @route '/user/orders/{paymentPublicId}/payment/demo/complete'
  */
 complete.post = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -54,7 +54,7 @@ complete.post = (args: { paymentPublicId: string | number } | [paymentPublicId: 
 
     /**
 * @see \App\Http\Controllers\User\UserPaymentController::complete
- * @see app/Http/Controllers/User/UserPaymentController.php:68
+ * @see app/Http/Controllers/User/UserPaymentController.php:69
  * @route '/user/orders/{paymentPublicId}/payment/demo/complete'
  */
     const completeForm = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -64,7 +64,7 @@ complete.post = (args: { paymentPublicId: string | number } | [paymentPublicId: 
 
             /**
 * @see \App\Http\Controllers\User\UserPaymentController::complete
- * @see app/Http/Controllers/User/UserPaymentController.php:68
+ * @see app/Http/Controllers/User/UserPaymentController.php:69
  * @route '/user/orders/{paymentPublicId}/payment/demo/complete'
  */
         completeForm.post = (args: { paymentPublicId: string | number } | [paymentPublicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

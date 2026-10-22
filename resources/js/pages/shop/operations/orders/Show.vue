@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
+import OrderPaymentsCard, {
+    type OrderPayment,
+} from '@/components/shop/OrderPaymentsCard.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -63,6 +66,7 @@ interface Order {
 
 const props = defineProps<{
     shopOrder: Order;
+    payments: OrderPayment[];
     deliveryOption: {
         offers_delivery: boolean;
         can_send: boolean;
@@ -749,6 +753,12 @@ const statusIcon = (s: string) =>
                         </CardContent>
                     </Card>
 
+                    <OrderPaymentsCard
+                        :order="shopOrder"
+                        :payments="payments"
+                        :base="base"
+                    />
+
                     <!-- GCash / Maya Payment Request -->
                     <CustomerServiceAgreement
                         v-if="customerAgreement"
@@ -782,7 +792,12 @@ const statusIcon = (s: string) =>
                                     class="h-44 w-44 rounded-xl border bg-white object-contain p-2"
                                 />
                                 <p class="text-sm font-bold">
-                                    {{ formatCurrency(shopOrder.total_amount) }}
+                                    {{
+                                        formatCurrency(
+                                            Number(shopOrder.total_amount) -
+                                                Number(shopOrder.amount_paid),
+                                        )
+                                    }}
                                 </p>
                             </div>
                             <div

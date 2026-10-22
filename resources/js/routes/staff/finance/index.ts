@@ -3,7 +3,7 @@ import expenses from './expenses'
 import categories from './categories'
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::dashboard
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:34
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:35
  * @route '/staff/finance'
  */
 export const dashboard = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -18,7 +18,7 @@ dashboard.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::dashboard
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:34
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:35
  * @route '/staff/finance'
  */
 dashboard.url = (options?: RouteQueryOptions) => {
@@ -27,7 +27,7 @@ dashboard.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::dashboard
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:34
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:35
  * @route '/staff/finance'
  */
 dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -36,7 +36,7 @@ dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::dashboard
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:34
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:35
  * @route '/staff/finance'
  */
 dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -46,7 +46,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::dashboard
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:34
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:35
  * @route '/staff/finance'
  */
     const dashboardForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -56,7 +56,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::dashboard
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:34
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:35
  * @route '/staff/finance'
  */
         dashboardForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::dashboard
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:34
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:35
  * @route '/staff/finance'
  */
         dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -81,7 +81,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     dashboard.form = dashboardForm
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::income
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:43
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:44
  * @route '/staff/finance/income'
  */
 export const income = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -96,7 +96,7 @@ income.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::income
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:43
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:44
  * @route '/staff/finance/income'
  */
 income.url = (options?: RouteQueryOptions) => {
@@ -105,7 +105,7 @@ income.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::income
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:43
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:44
  * @route '/staff/finance/income'
  */
 income.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -114,7 +114,7 @@ income.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::income
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:43
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:44
  * @route '/staff/finance/income'
  */
 income.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -124,7 +124,7 @@ income.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::income
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:43
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:44
  * @route '/staff/finance/income'
  */
     const incomeForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -134,7 +134,7 @@ income.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::income
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:43
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:44
  * @route '/staff/finance/income'
  */
         incomeForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -143,7 +143,7 @@ income.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::income
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:43
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:44
  * @route '/staff/finance/income'
  */
         incomeForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -159,7 +159,7 @@ income.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     income.form = incomeForm
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::transactions
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:81
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:58
  * @route '/staff/finance/transactions'
  */
 export const transactions = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -174,7 +174,7 @@ transactions.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::transactions
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:81
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:58
  * @route '/staff/finance/transactions'
  */
 transactions.url = (options?: RouteQueryOptions) => {
@@ -183,7 +183,7 @@ transactions.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::transactions
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:81
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:58
  * @route '/staff/finance/transactions'
  */
 transactions.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -192,7 +192,7 @@ transactions.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::transactions
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:81
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:58
  * @route '/staff/finance/transactions'
  */
 transactions.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -202,7 +202,7 @@ transactions.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::transactions
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:81
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:58
  * @route '/staff/finance/transactions'
  */
     const transactionsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -212,7 +212,7 @@ transactions.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::transactions
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:81
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:58
  * @route '/staff/finance/transactions'
  */
         transactionsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -221,7 +221,7 @@ transactions.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\Finance\FinanceDashboardController::transactions
- * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:81
+ * @see app/Http/Controllers/Shop/Finance/FinanceDashboardController.php:58
  * @route '/staff/finance/transactions'
  */
         transactionsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

@@ -28,6 +28,7 @@ class UserPaymentController extends Controller
                 $request->user(),
                 $paymentPublicId,
                 $request->validated('payment_method'),
+                $request->filled('amount') ? (float) $request->validated('amount') : null,
             ));
         } catch (ShopOrderPaymentException $exception) {
             return back()->with('toast', ['type' => 'error', 'message' => $exception->getMessage()]);
@@ -72,6 +73,7 @@ class UserPaymentController extends Controller
                 $request->user(),
                 $paymentPublicId,
                 $request->validated('payment_method'),
+                $request->filled('amount') ? (float) $request->validated('amount') : null,
             ));
         } catch (ShopOrderPaymentException $exception) {
             return redirect()->route('user.orders.index')
@@ -82,12 +84,14 @@ class UserPaymentController extends Controller
     public function success(VerifyOnlinePaymentRequest $request, string $paymentPublicId): RedirectResponse
     {
         try {
-            $completed = $this->paymentService->verifyPaymongoReturn($request->user(), $paymentPublicId);
+            $status = $this->paymentService->verifyPaymongoReturn($request->user(), $paymentPublicId);
 
-            if ($completed) {
+            if ($status !== null) {
                 return redirect()->route('user.orders.payment.receipt', $paymentPublicId)->with('toast', [
                     'type' => 'success',
-                    'message' => 'Payment successful! Your receipt is ready.',
+                    'message' => $status === 'paid'
+                        ? 'Payment successful! Your receipt is ready.'
+                        : 'Payment received! You still have a balance to pay on this order.',
                 ]);
             }
 
@@ -115,12 +119,36 @@ class UserPaymentController extends Controller
 
     public function cancel(Request $request, string $paymentPublicId): RedirectResponse
     {
-        $this->paymentService->assertOwnership($request->user(), $paymentPublicId);
+        $this->paymentService->cancelPending($request->user(), $paymentPublicId);
 
         return redirect()->route('user.orders.show', $paymentPublicId)->with('toast', [
             'type' => 'warning',
             'message' => 'Payment was cancelled. You can try again anytime.',
         ]);
+    }
+
+    public function check(Request $request, string $paymentPublicId): RedirectResponse
+    {
+        try {
+            $result = $this->paymentService->checkForCustomer($request->user(), $paymentPublicId);
+        } catch (ShopOrderPaymentException $exception) {
+            return back()->with('toast', ['type' => 'error', 'message' => $exception->getMessage()]);
+        } catch (ModelNotFoundException $exception) {
+            throw $exception;
+        } catch (\Throwable $exception) {
+            Log::warning('Customer payment status check failed', [
+                'payment_public_id' => $paymentPublicId,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->with('toast', ['type' => 'error', 'message' => 'Could not check the payment right now. Please try again shortly.']);
+        }
+
+        return back()->with('toast', match ($result) {
+            'confirmed' => ['type' => 'success', 'message' => 'Your payment was received. Thank you!'],
+            'pending' => ['type' => 'warning', 'message' => 'The payment has not been completed yet. If you already paid, wait a minute and check again.'],
+            default => ['type' => 'info', 'message' => 'There is no payment waiting to be confirmed.'],
+        });
     }
 
     public function receipt(Request $request, string $paymentPublicId): Response|RedirectResponse

@@ -309,6 +309,9 @@ Route::prefix('shop')->middleware([
     Route::put('operations/orders/{order}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
     Route::delete('operations/orders/{order}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
     Route::post('operations/orders/{order}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('shop.orders.payment-request');
+    Route::post('operations/orders/{order}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('shop.orders.payments.store');
+    Route::post('operations/orders/{order}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('shop.orders.payments.check');
+    Route::post('operations/orders/{order}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('shop.orders.payments.void');
     Route::post('operations/orders/{order}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
         ->middleware('shop.capability:delivery')
         ->name('shop.orders.send-for-delivery');
@@ -346,7 +349,6 @@ Route::prefix('shop')->middleware([
 
     // Dedicated status & payment update endpoints
     Route::patch('orders/{order}/status', [ShopOrderController::class, 'updateStatus'])->name('status');
-    Route::patch('orders/{order}/payment', [ShopOrderController::class, 'updatePayment'])->name('payment');
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
@@ -573,7 +575,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/operations/orders/restore-all', [ShopOrderController::class, 'restoreAll'])->name('staff.orders.restore-all');
         Route::delete('/operations/orders/{order}', [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
         Route::patch('/operations/orders/{order}/status', [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
-        Route::patch('/operations/orders/{order}/payment', [ShopOrderController::class, 'updatePayment'])->name('staff.orders.payment');
+        Route::post('/operations/orders/{order}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('staff.orders.payments.store');
+        Route::post('/operations/orders/{order}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('staff.orders.payments.check');
+        Route::post('/operations/orders/{order}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('staff.orders.payments.void');
         Route::post('/operations/orders/{order}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('staff.orders.payment-request');
         Route::post('/operations/orders/{order}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
             ->middleware('shop.capability:delivery')
@@ -692,6 +696,7 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
         ->name('orders.rating.store');
     Route::post('/orders/{order:payment_public_id}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{paymentPublicId}/pay-online', [UserPaymentController::class, 'pay'])->whereUlid('paymentPublicId')->name('orders.pay-online');
+    Route::post('/orders/{paymentPublicId}/payment/check', [UserPaymentController::class, 'check'])->whereUlid('paymentPublicId')->middleware('throttle:20,1')->name('orders.payment.check');
     Route::get('/orders/{paymentPublicId}/payment/demo', [UserPaymentController::class, 'demo'])->whereUlid('paymentPublicId')->name('orders.payment.demo');
     Route::post('/orders/{paymentPublicId}/payment/demo/complete', [UserPaymentController::class, 'completeDemo'])->whereUlid('paymentPublicId')->name('orders.payment.demo.complete');
     Route::get('/orders/{paymentPublicId}/payment/receipt', [UserPaymentController::class, 'receipt'])->whereUlid('paymentPublicId')->name('orders.payment.receipt');

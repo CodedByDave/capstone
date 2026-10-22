@@ -7,6 +7,7 @@ use App\Models\ExpenseCategory;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Repositories\ExpenseRepository;
+use App\Repositories\OrderPaymentRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -15,6 +16,7 @@ class ExpenseService
     public function __construct(
         private readonly ExpenseRepository $expenseRepository,
         private readonly ActivityLogService $activityLogService,
+        private readonly OrderPaymentRepository $orderPayments,
     ) {}
 
     public function paginate(Shop $shop, array $filters = [], int $perPage = 10): LengthAwarePaginator
@@ -133,11 +135,9 @@ class ExpenseService
         $monthEnd = $now->copy()->endOfMonth();
 
         // ── Revenue from shop orders ───────────────────────────────────────────
-        $revenueThisMonth = (float) ShopOrder::where('shop_id', $shop->id)
-            ->whereBetween('created_at', [$monthStart, $monthEnd])
-            ->sum('amount_paid');
+        $revenueThisMonth = $this->orderPayments->incomeTotal($shop->id, $monthStart->toDateString(), $monthEnd->toDateString());
 
-        $totalRevenue = (float) ShopOrder::where('shop_id', $shop->id)->sum('amount_paid');
+        $totalRevenue = $this->orderPayments->incomeTotal($shop->id);
 
         $unpaidAmount = (float) ShopOrder::where('shop_id', $shop->id)
             ->whereIn('payment_status', ['unpaid', 'partial'])
@@ -158,9 +158,7 @@ class ExpenseService
             $mStart = $now->copy()->subMonths($i)->startOfMonth();
             $mEnd = $now->copy()->subMonths($i)->endOfMonth();
 
-            $rev = (float) ShopOrder::where('shop_id', $shop->id)
-                ->whereBetween('created_at', [$mStart, $mEnd])
-                ->sum('amount_paid');
+            $rev = $this->orderPayments->incomeTotal($shop->id, $mStart->toDateString(), $mEnd->toDateString());
 
             $exp = (float) Expense::where('shop_id', $shop->id)
                 ->whereBetween('expense_date', [$mStart->toDateString(), $mEnd->toDateString()])

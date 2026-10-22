@@ -206,6 +206,11 @@ class ShopOrderRepository
         return $this->model->forShop($shopId)->with(['service', 'supplies'])->latest()->get();
     }
 
+    public function countUnpaid(int $shopId): int
+    {
+        return $this->model->forShop($shopId)->where('payment_status', 'unpaid')->count();
+    }
+
     public function countByStatus(int $shopId, ?string $branch = null): array
     {
         return $this->model->forShop($shopId)

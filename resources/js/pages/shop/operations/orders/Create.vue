@@ -91,7 +91,6 @@ const form = useForm({
     additional_charges: 0,
     discount_amount: 0,
     total_amount: 0,
-    payment_status: 'unpaid',
     amount_paid: 0,
     estimated_completion_at: '',
     promotion_id: '' as string | number,
@@ -773,20 +772,7 @@ watch(
                     <div class="grid grid-cols-12 gap-x-6 gap-y-5">
                         <div class="col-span-12 space-y-1 sm:col-span-3">
                             <label class="text-sm font-medium"
-                                >Payment Status</label
-                            >
-                            <select
-                                v-model="form.payment_status"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            >
-                                <option value="unpaid">Unpaid</option>
-                                <option value="partial">Partial</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
-                        <div class="col-span-12 space-y-1 sm:col-span-3">
-                            <label class="text-sm font-medium"
-                                >Amount Paid</label
+                                >Payment received now</label
                             >
                             <input
                                 v-model="form.amount_paid"

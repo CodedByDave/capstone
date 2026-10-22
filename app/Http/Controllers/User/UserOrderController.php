@@ -16,7 +16,9 @@ use App\Services\CustomerOrderPlacementService;
 use App\Services\DeliveryRequestService;
 use App\Services\DeliveryTrackingService;
 use App\Services\OrderBillingBreakdownService;
+use App\Services\OrderPaymentService;
 use App\Services\OrderRatingService;
+use App\Services\ShopOrderPaymentService;
 use App\Services\ShopPaymentSettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +36,8 @@ class UserOrderController extends Controller
         private readonly DeliveryRequestService $deliveryRequests,
         private readonly DeliveryTrackingService $deliveryTracking,
         private readonly OrderRatingService $ratings,
+        private readonly OrderPaymentService $orderPayments,
+        private readonly ShopOrderPaymentService $onlinePayments,
     ) {}
 
     // ─── List orders ──────────────────────────────────────────────────────────
@@ -88,6 +92,8 @@ class UserOrderController extends Controller
                 'total_amount' => (float) $order->total_amount,
                 'amount_paid' => (float) $order->amount_paid,
                 'billing' => $this->billing->forOrder($order),
+                'balance_due' => $order->balanceDue(),
+                ...$this->orderPayments->customerView($order),
                 'estimated_weight_kg' => $order->estimated_weight_kg,
                 'actual_weight_kg' => $order->actual_weight_kg,
                 'pickup_type' => $order->pickup_type,
@@ -205,6 +211,9 @@ class UserOrderController extends Controller
                 'message' => 'Only pending orders can be cancelled.',
             ]);
         }
+
+        // Look at any open online checkout first so a payment already made is not lost.
+        $this->onlinePayments->cancelPending(auth()->user(), $order->payment_public_id);
 
         $order->update(['status' => 'cancelled']);
 

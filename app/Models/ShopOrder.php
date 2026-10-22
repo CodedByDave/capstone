@@ -6,6 +6,7 @@ use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -104,6 +105,12 @@ class ShopOrder extends Model
     public function pickupRun(): HasOne
     {
         return $this->hasOne(Delivery::class, 'shop_order_id')->where('type', Delivery::TYPE_PICKUP);
+    }
+
+    /** Every payment toward this order: received at the shop, or made online. */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(ShopOrderPayment::class);
     }
 
     /** The customer's star rating of this order, if they left one. */
@@ -206,15 +213,6 @@ class ShopOrder extends Model
     public function isCompleted(): bool
     {
         return $this->status === 'completed';
-    }
-
-    public function markAsPaid(): void
-    {
-        $this->update([
-            'payment_status' => 'paid',
-            'amount_paid' => $this->total_amount,
-            'paid_at' => now(),
-        ]);
     }
 
     public function markAsCompleted(): void

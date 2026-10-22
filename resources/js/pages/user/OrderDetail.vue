@@ -22,6 +22,7 @@ import {
     MapPin,
     Phone,
     ReceiptText,
+    RefreshCw,
     Smartphone,
     Star,
     Truck,
@@ -53,6 +54,9 @@ interface Order {
     payment_method: string;
     total_amount: number;
     amount_paid: number;
+    balance_due: number;
+    payments: { id: string; amount: number; method: string; paid_at: string }[];
+    pending: { amount: number; method: string; started_at: string } | null;
     billing: BillingBreakdownData;
     estimated_weight_kg: number;
     actual_weight_kg: number | null;
@@ -235,18 +239,85 @@ const canPayOnline = computed(
             props.order.billing.balance_due >= 100),
 );
 
+// Pay everything that is left, or only a part of it.
+const MIN_ONLINE_PAYMENT = 100;
+const payMode = ref<'full' | 'partial'>('full');
+const partialAmount = ref('');
+
+const canPayInParts = computed(
+    () => props.order.balance_due > MIN_ONLINE_PAYMENT,
+);
+
+const partialError = computed(() => {
+    if (payMode.value !== 'partial') return '';
+    const amount = Number(partialAmount.value);
+    if (!partialAmount.value || !Number.isFinite(amount)) {
+        return 'Enter how much you want to pay.';
+    }
+    if (amount < MIN_ONLINE_PAYMENT) {
+        return 'The smallest amount you can pay online is ₱100.';
+    }
+    if (amount > props.order.balance_due) {
+        return `That is more than the remaining ${money(props.order.balance_due)}.`;
+    }
+    return '';
+});
+
+const amountToPay = computed(() =>
+    payMode.value === 'partial'
+        ? Number(partialAmount.value) || 0
+        : props.order.balance_due,
+);
+
+const money = (value: number) =>
+    `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+const formatPaidAt = (value: string) =>
+    new Date(value).toLocaleDateString('en-PH', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+
+const checkingPayment = ref(false);
+
+function checkPayment() {
+    checkingPayment.value = true;
+    router.post(
+        `/user/orders/${props.order.payment_public_id}/payment/check`,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                checkingPayment.value = false;
+            },
+        },
+    );
+}
+
 function payOnline() {
+    if (partialError.value) {
+        toast.error(partialError.value);
+        return;
+    }
+
     payingOnline.value = true;
     router.post(
         `/user/orders/${props.order.payment_public_id}/pay-online`,
-        { payment_method: selectedOnlineMethod.value },
+        {
+            payment_method: selectedOnlineMethod.value,
+            ...(payMode.value === 'partial'
+                ? { amount: partialAmount.value }
+                : {}),
+        },
         {
             preserveScroll: true,
             // Flash toasts from the redirect are shown by the page-level watcher.
             onError: (errors) => {
                 toast.error(
                     String(
-                        errors.payment_method ??
+                        errors.amount ??
+                            errors.payment_method ??
                             'Checkout could not be opened. Please try again.',
                     ),
                 );
@@ -450,8 +521,53 @@ const shopLocation = computed(() =>
 
                 <BillingBreakdown :breakdown="order.billing" />
 
+                <div v-if="order.payments.length" class="mt-3 space-y-1">
+                    <p
+                        class="text-xs font-semibold tracking-wide text-gray-400 uppercase"
+                    >
+                        Payments made
+                    </p>
+                    <div
+                        v-for="payment in order.payments"
+                        :key="payment.id"
+                        class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs"
+                    >
+                        <span class="text-gray-600 capitalize"
+                            >{{ payment.method }} ·
+                            {{ formatPaidAt(payment.paid_at) }}</span
+                        >
+                        <span class="font-semibold text-emerald-700">{{
+                            money(payment.amount)
+                        }}</span>
+                    </div>
+                </div>
+
+                <div
+                    v-if="order.pending"
+                    class="mt-3 space-y-2 rounded-xl bg-amber-50 p-3 text-xs text-amber-800"
+                >
+                    <p>
+                        Your {{ money(order.pending.amount) }} payment has not
+                        been confirmed yet. If you already paid, check again in
+                        a moment.
+                    </p>
+                    <button
+                        type="button"
+                        :disabled="checkingPayment"
+                        class="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 font-semibold text-white transition hover:bg-amber-700 disabled:opacity-50"
+                        @click="checkPayment"
+                    >
+                        <Loader
+                            v-if="checkingPayment"
+                            class="h-3.5 w-3.5 animate-spin"
+                        />
+                        <RefreshCw v-else class="h-3.5 w-3.5" />
+                        Check payment status
+                    </button>
+                </div>
+
                 <button
-                    v-if="order.payment_status === 'paid'"
+                    v-if="order.payments.length"
                     type="button"
                     class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
                     @click="
@@ -461,7 +577,11 @@ const shopLocation = computed(() =>
                     "
                 >
                     <ReceiptText class="h-4 w-4" />
-                    View Invoice Receipt
+                    {{
+                        order.payment_status === 'paid'
+                            ? 'View Invoice Receipt'
+                            : 'View Payment Receipt'
+                    }}
                 </button>
 
                 <!-- Pay Online button (shown when shop has PayMongo and order is unpaid) -->
@@ -496,8 +616,76 @@ const shopLocation = computed(() =>
                             </button>
                         </div>
                     </div>
+                    <div v-if="canPayInParts" class="space-y-2">
+                        <p class="text-xs font-semibold text-gray-600">
+                            How much do you want to pay?
+                        </p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                class="rounded-xl border-2 px-3 py-2 text-xs font-semibold transition"
+                                :class="
+                                    payMode === 'full'
+                                        ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                                "
+                                @click="payMode = 'full'"
+                            >
+                                Full balance
+                                <span class="block font-normal">{{
+                                    money(order.balance_due)
+                                }}</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="rounded-xl border-2 px-3 py-2 text-xs font-semibold transition"
+                                :class="
+                                    payMode === 'partial'
+                                        ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                                "
+                                @click="payMode = 'partial'"
+                            >
+                                Pay part now
+                                <span class="block font-normal">Min. ₱100</span>
+                            </button>
+                        </div>
+                        <div v-if="payMode === 'partial'" class="space-y-1">
+                            <input
+                                v-model="partialAmount"
+                                type="number"
+                                step="0.01"
+                                :min="MIN_ONLINE_PAYMENT"
+                                :max="order.balance_due"
+                                inputmode="decimal"
+                                placeholder="Amount in ₱"
+                                class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            />
+                            <p
+                                v-if="partialError && partialAmount"
+                                class="text-xs text-red-500"
+                            >
+                                {{ partialError }}
+                            </p>
+                            <p v-else class="text-xs text-muted-foreground">
+                                You will still owe
+                                {{
+                                    money(
+                                        Math.max(
+                                            0,
+                                            order.balance_due - amountToPay,
+                                        ),
+                                    )
+                                }}
+                                after this payment.
+                            </p>
+                        </div>
+                    </div>
                     <button
-                        :disabled="payingOnline"
+                        :disabled="
+                            payingOnline ||
+                            (payMode === 'partial' && !!partialError)
+                        "
                         class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
                         @click="payOnline"
                     >
@@ -509,7 +697,7 @@ const shopLocation = computed(() =>
                         {{
                             payingOnline
                                 ? 'Redirecting to payment…'
-                                : `Pay with ${onlinePaymentMethods.find((method) => method.value === selectedOnlineMethod)?.label}`
+                                : `Pay ${money(amountToPay)} with ${onlinePaymentMethods.find((method) => method.value === selectedOnlineMethod)?.label}`
                         }}
                     </button>
                     <p class="text-center text-xs text-muted-foreground">

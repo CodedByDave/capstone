@@ -95,7 +95,6 @@ class StoreShopOrderRequest extends FormRequest
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'total_amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['nullable', Rule::in(ShopOrder::PAYMENT_METHODS)],
-            'payment_status' => ['required', Rule::in(ShopOrder::PAYMENT_STATUSES)],
             'amount_paid' => ['nullable', 'numeric', 'min:0'],
             'estimated_completion_at' => ['nullable', 'date'],
             'customer_agreement_version' => ['required', 'string', 'max:30'],

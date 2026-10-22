@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/shop/operations/orders'
  */
 const index3046662a2b56aac3a381595943a566e4 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index3046662a2b56aac3a381595943a566e4.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/shop/operations/orders'
  */
 index3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/shop/operations/orders'
  */
 index3046662a2b56aac3a381595943a566e4.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index3046662a2b56aac3a381595943a566e4.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/shop/operations/orders'
  */
 index3046662a2b56aac3a381595943a566e4.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index3046662a2b56aac3a381595943a566e4.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/shop/operations/orders'
  */
     const index3046662a2b56aac3a381595943a566e4Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index3046662a2b56aac3a381595943a566e4.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/shop/operations/orders'
  */
         index3046662a2b56aac3a381595943a566e4Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index3046662a2b56aac3a381595943a566e4.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/shop/operations/orders'
  */
         index3046662a2b56aac3a381595943a566e4Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index3046662a2b56aac3a381595943a566e4.head = (options?: RouteQueryOptions): Rout
     index3046662a2b56aac3a381595943a566e4.form = index3046662a2b56aac3a381595943a566e4Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/staff/operations/orders'
  */
 const index1ca873fe54e10e608543305c9bad9bf6 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ index1ca873fe54e10e608543305c9bad9bf6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/staff/operations/orders'
  */
 index1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ index1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/staff/operations/orders'
  */
 index1ca873fe54e10e608543305c9bad9bf6.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ index1ca873fe54e10e608543305c9bad9bf6.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/staff/operations/orders'
  */
 index1ca873fe54e10e608543305c9bad9bf6.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ index1ca873fe54e10e608543305c9bad9bf6.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/staff/operations/orders'
  */
     const index1ca873fe54e10e608543305c9bad9bf6Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ index1ca873fe54e10e608543305c9bad9bf6.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/staff/operations/orders'
  */
         index1ca873fe54e10e608543305c9bad9bf6Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ index1ca873fe54e10e608543305c9bad9bf6.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::index
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:51
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:58
  * @route '/staff/operations/orders'
  */
         index1ca873fe54e10e608543305c9bad9bf6Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/shop/operations/orders/create'
  */
 const create203d115f540b6dfaa806642627917908 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +178,7 @@ create203d115f540b6dfaa806642627917908.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/shop/operations/orders/create'
  */
 create203d115f540b6dfaa806642627917908.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ create203d115f540b6dfaa806642627917908.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/shop/operations/orders/create'
  */
 create203d115f540b6dfaa806642627917908.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ create203d115f540b6dfaa806642627917908.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/shop/operations/orders/create'
  */
 create203d115f540b6dfaa806642627917908.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ create203d115f540b6dfaa806642627917908.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/shop/operations/orders/create'
  */
     const create203d115f540b6dfaa806642627917908Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ create203d115f540b6dfaa806642627917908.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/shop/operations/orders/create'
  */
         create203d115f540b6dfaa806642627917908Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -225,7 +225,7 @@ create203d115f540b6dfaa806642627917908.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/shop/operations/orders/create'
  */
         create203d115f540b6dfaa806642627917908Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -241,7 +241,7 @@ create203d115f540b6dfaa806642627917908.head = (options?: RouteQueryOptions): Rou
     create203d115f540b6dfaa806642627917908.form = create203d115f540b6dfaa806642627917908Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/staff/operations/orders/create'
  */
 const createba311394b42e87ea949046d6a4ae45c8 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -256,7 +256,7 @@ createba311394b42e87ea949046d6a4ae45c8.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/staff/operations/orders/create'
  */
 createba311394b42e87ea949046d6a4ae45c8.url = (options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ createba311394b42e87ea949046d6a4ae45c8.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/staff/operations/orders/create'
  */
 createba311394b42e87ea949046d6a4ae45c8.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ createba311394b42e87ea949046d6a4ae45c8.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/staff/operations/orders/create'
  */
 createba311394b42e87ea949046d6a4ae45c8.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ createba311394b42e87ea949046d6a4ae45c8.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/staff/operations/orders/create'
  */
     const createba311394b42e87ea949046d6a4ae45c8Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ createba311394b42e87ea949046d6a4ae45c8.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/staff/operations/orders/create'
  */
         createba311394b42e87ea949046d6a4ae45c8Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ createba311394b42e87ea949046d6a4ae45c8.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::create
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:73
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:80
  * @route '/staff/operations/orders/create'
  */
         createba311394b42e87ea949046d6a4ae45c8Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -325,7 +325,7 @@ export const create = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/shop/operations/orders'
  */
 const store3046662a2b56aac3a381595943a566e4 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +340,7 @@ store3046662a2b56aac3a381595943a566e4.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/shop/operations/orders'
  */
 store3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ store3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/shop/operations/orders'
  */
 store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +359,7 @@ store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/shop/operations/orders'
  */
     const store3046662a2b56aac3a381595943a566e4Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/shop/operations/orders'
  */
         store3046662a2b56aac3a381595943a566e4Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +380,7 @@ store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): Rout
     store3046662a2b56aac3a381595943a566e4.form = store3046662a2b56aac3a381595943a566e4Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/staff/operations/orders'
  */
 const store1ca873fe54e10e608543305c9bad9bf6 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +395,7 @@ store1ca873fe54e10e608543305c9bad9bf6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/staff/operations/orders'
  */
 store1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
@@ -404,7 +404,7 @@ store1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/staff/operations/orders'
  */
 store1ca873fe54e10e608543305c9bad9bf6.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +414,7 @@ store1ca873fe54e10e608543305c9bad9bf6.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/staff/operations/orders'
  */
     const store1ca873fe54e10e608543305c9bad9bf6Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +424,7 @@ store1ca873fe54e10e608543305c9bad9bf6.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:105
  * @route '/staff/operations/orders'
  */
         store1ca873fe54e10e608543305c9bad9bf6Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -441,7 +441,7 @@ export const store = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/shop/operations/orders/{order}'
  */
 const show27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -456,7 +456,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/shop/operations/orders/{order}'
  */
 show27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -489,7 +489,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: number
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/shop/operations/orders/{order}'
  */
 show27635f40a22aa7da9bdd32cbbfd0f9c0.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -498,7 +498,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.get = (args: { order: number | { id: number
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/shop/operations/orders/{order}'
  */
 show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -508,7 +508,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: number | { id: numbe
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/shop/operations/orders/{order}'
  */
     const show27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -518,7 +518,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: number | { id: numbe
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/shop/operations/orders/{order}'
  */
         show27635f40a22aa7da9bdd32cbbfd0f9c0Form.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -527,7 +527,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: number | { id: numbe
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/shop/operations/orders/{order}'
  */
         show27635f40a22aa7da9bdd32cbbfd0f9c0Form.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -543,7 +543,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: number | { id: numbe
     show27635f40a22aa7da9bdd32cbbfd0f9c0.form = show27635f40a22aa7da9bdd32cbbfd0f9c0Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/staff/operations/orders/{order}'
  */
 const show9b2a634ffe9535792984c712b770b227 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -558,7 +558,7 @@ show9b2a634ffe9535792984c712b770b227.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/staff/operations/orders/{order}'
  */
 show9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -591,7 +591,7 @@ show9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: number
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/staff/operations/orders/{order}'
  */
 show9b2a634ffe9535792984c712b770b227.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -600,7 +600,7 @@ show9b2a634ffe9535792984c712b770b227.get = (args: { order: number | { id: number
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/staff/operations/orders/{order}'
  */
 show9b2a634ffe9535792984c712b770b227.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -610,7 +610,7 @@ show9b2a634ffe9535792984c712b770b227.head = (args: { order: number | { id: numbe
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/staff/operations/orders/{order}'
  */
     const show9b2a634ffe9535792984c712b770b227Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -620,7 +620,7 @@ show9b2a634ffe9535792984c712b770b227.head = (args: { order: number | { id: numbe
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/staff/operations/orders/{order}'
  */
         show9b2a634ffe9535792984c712b770b227Form.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -629,7 +629,7 @@ show9b2a634ffe9535792984c712b770b227.head = (args: { order: number | { id: numbe
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:118
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:125
  * @route '/staff/operations/orders/{order}'
  */
         show9b2a634ffe9535792984c712b770b227Form.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -651,7 +651,7 @@ export const show = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/shop/operations/orders/{order}/edit'
  */
 const edit8553c4209e292d88c8408c54f41397fe = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -666,7 +666,7 @@ edit8553c4209e292d88c8408c54f41397fe.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/shop/operations/orders/{order}/edit'
  */
 edit8553c4209e292d88c8408c54f41397fe.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -699,7 +699,7 @@ edit8553c4209e292d88c8408c54f41397fe.url = (args: { order: number | { id: number
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/shop/operations/orders/{order}/edit'
  */
 edit8553c4209e292d88c8408c54f41397fe.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -708,7 +708,7 @@ edit8553c4209e292d88c8408c54f41397fe.get = (args: { order: number | { id: number
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/shop/operations/orders/{order}/edit'
  */
 edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -718,7 +718,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: number | { id: numbe
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/shop/operations/orders/{order}/edit'
  */
     const edit8553c4209e292d88c8408c54f41397feForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -728,7 +728,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: number | { id: numbe
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/shop/operations/orders/{order}/edit'
  */
         edit8553c4209e292d88c8408c54f41397feForm.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -737,7 +737,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: number | { id: numbe
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/shop/operations/orders/{order}/edit'
  */
         edit8553c4209e292d88c8408c54f41397feForm.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -753,7 +753,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: number | { id: numbe
     edit8553c4209e292d88c8408c54f41397fe.form = edit8553c4209e292d88c8408c54f41397feForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/staff/operations/orders/{order}/edit'
  */
 const edit223e40850db6d7ee7cc15c6cb055c2ad = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -768,7 +768,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/staff/operations/orders/{order}/edit'
  */
 edit223e40850db6d7ee7cc15c6cb055c2ad.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -801,7 +801,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.url = (args: { order: number | { id: number
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/staff/operations/orders/{order}/edit'
  */
 edit223e40850db6d7ee7cc15c6cb055c2ad.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -810,7 +810,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.get = (args: { order: number | { id: number
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/staff/operations/orders/{order}/edit'
  */
 edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -820,7 +820,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: number | { id: numbe
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/staff/operations/orders/{order}/edit'
  */
     const edit223e40850db6d7ee7cc15c6cb055c2adForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -830,7 +830,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: number | { id: numbe
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/staff/operations/orders/{order}/edit'
  */
         edit223e40850db6d7ee7cc15c6cb055c2adForm.get = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -839,7 +839,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: number | { id: numbe
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:176
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:184
  * @route '/staff/operations/orders/{order}/edit'
  */
         edit223e40850db6d7ee7cc15c6cb055c2adForm.head = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -861,7 +861,7 @@ export const edit = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/shop/operations/orders/{order}'
  */
 const update27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -876,7 +876,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/shop/operations/orders/{order}'
  */
 update27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -909,7 +909,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/shop/operations/orders/{order}'
  */
 update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -919,7 +919,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: number | { id: numb
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/shop/operations/orders/{order}'
  */
     const update27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -934,7 +934,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: number | { id: numb
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/shop/operations/orders/{order}'
  */
         update27635f40a22aa7da9bdd32cbbfd0f9c0Form.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -950,7 +950,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: number | { id: numb
     update27635f40a22aa7da9bdd32cbbfd0f9c0.form = update27635f40a22aa7da9bdd32cbbfd0f9c0Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/staff/operations/orders/{order}'
  */
 const update9b2a634ffe9535792984c712b770b227 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -965,7 +965,7 @@ update9b2a634ffe9535792984c712b770b227.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/staff/operations/orders/{order}'
  */
 update9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -998,7 +998,7 @@ update9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/staff/operations/orders/{order}'
  */
 update9b2a634ffe9535792984c712b770b227.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -1008,7 +1008,7 @@ update9b2a634ffe9535792984c712b770b227.put = (args: { order: number | { id: numb
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/staff/operations/orders/{order}'
  */
     const update9b2a634ffe9535792984c712b770b227Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1023,7 +1023,7 @@ update9b2a634ffe9535792984c712b770b227.put = (args: { order: number | { id: numb
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:203
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:211
  * @route '/staff/operations/orders/{order}'
  */
         update9b2a634ffe9535792984c712b770b227Form.put = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1045,7 +1045,7 @@ export const update = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/shop/operations/orders/{order}'
  */
 const destroy27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1060,7 +1060,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/shop/operations/orders/{order}'
  */
 destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1093,7 +1093,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/shop/operations/orders/{order}'
  */
 destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1103,7 +1103,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: number | { id: 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/shop/operations/orders/{order}'
  */
     const destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1118,7 +1118,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: number | { id: 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/shop/operations/orders/{order}'
  */
         destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1134,7 +1134,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: number | { id: 
     destroy27635f40a22aa7da9bdd32cbbfd0f9c0.form = destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/staff/operations/orders/{order}'
  */
 const destroy9b2a634ffe9535792984c712b770b227 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1149,7 +1149,7 @@ destroy9b2a634ffe9535792984c712b770b227.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/staff/operations/orders/{order}'
  */
 destroy9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1182,7 +1182,7 @@ destroy9b2a634ffe9535792984c712b770b227.url = (args: { order: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/staff/operations/orders/{order}'
  */
 destroy9b2a634ffe9535792984c712b770b227.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1192,7 +1192,7 @@ destroy9b2a634ffe9535792984c712b770b227.delete = (args: { order: number | { id: 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/staff/operations/orders/{order}'
  */
     const destroy9b2a634ffe9535792984c712b770b227Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1207,7 +1207,7 @@ destroy9b2a634ffe9535792984c712b770b227.delete = (args: { order: number | { id: 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:243
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:272
  * @route '/staff/operations/orders/{order}'
  */
         destroy9b2a634ffe9535792984c712b770b227Form.delete = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1229,7 +1229,7 @@ export const destroy = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/shop/operations/orders/{order}/payment-request'
  */
 const sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1244,7 +1244,7 @@ sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/shop/operations/orders/{order}/payment-request'
  */
 sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1277,7 +1277,7 @@ sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.url = (args: { order: number 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/shop/operations/orders/{order}/payment-request'
  */
 sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1287,7 +1287,7 @@ sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.post = (args: { order: number
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/shop/operations/orders/{order}/payment-request'
  */
     const sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cacForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1297,7 +1297,7 @@ sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.post = (args: { order: number
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/shop/operations/orders/{order}/payment-request'
  */
         sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cacForm.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1308,7 +1308,7 @@ sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.post = (args: { order: number
     sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cac.form = sendPaymentRequest54b50796937d6f83a2b0fc558e7d3cacForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/staff/operations/orders/{order}/payment-request'
  */
 const sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1323,7 +1323,7 @@ sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/staff/operations/orders/{order}/payment-request'
  */
 sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1356,7 +1356,7 @@ sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.url = (args: { order: number 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/staff/operations/orders/{order}/payment-request'
  */
 sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1366,7 +1366,7 @@ sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.post = (args: { order: number
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/staff/operations/orders/{order}/payment-request'
  */
     const sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1376,7 +1376,7 @@ sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62.post = (args: { order: number
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendPaymentRequest
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:146
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:154
  * @route '/staff/operations/orders/{order}/payment-request'
  */
         sendPaymentRequest89c3cbca49cf36da7b13e6540e8e7b62Form.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1392,8 +1392,490 @@ export const sendPaymentRequest = {
 }
 
 /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/shop/operations/orders/{order}/payments'
+ */
+const recordPaymentf3b50fd002e9152ec0cf94bde684bdbc = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.url(args, options),
+    method: 'post',
+})
+
+recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.definition = {
+    methods: ["post"],
+    url: '/shop/operations/orders/{order}/payments',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/shop/operations/orders/{order}/payments'
+ */
+recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/shop/operations/orders/{order}/payments'
+ */
+recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/shop/operations/orders/{order}/payments'
+ */
+    const recordPaymentf3b50fd002e9152ec0cf94bde684bdbcForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/shop/operations/orders/{order}/payments'
+ */
+        recordPaymentf3b50fd002e9152ec0cf94bde684bdbcForm.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.url(args, options),
+            method: 'post',
+        })
+    
+    recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.form = recordPaymentf3b50fd002e9152ec0cf94bde684bdbcForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/staff/operations/orders/{order}/payments'
+ */
+const recordPaymenta507d8de96b348dcc09a8ac7624e92c6 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: recordPaymenta507d8de96b348dcc09a8ac7624e92c6.url(args, options),
+    method: 'post',
+})
+
+recordPaymenta507d8de96b348dcc09a8ac7624e92c6.definition = {
+    methods: ["post"],
+    url: '/staff/operations/orders/{order}/payments',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/staff/operations/orders/{order}/payments'
+ */
+recordPaymenta507d8de96b348dcc09a8ac7624e92c6.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return recordPaymenta507d8de96b348dcc09a8ac7624e92c6.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/staff/operations/orders/{order}/payments'
+ */
+recordPaymenta507d8de96b348dcc09a8ac7624e92c6.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: recordPaymenta507d8de96b348dcc09a8ac7624e92c6.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/staff/operations/orders/{order}/payments'
+ */
+    const recordPaymenta507d8de96b348dcc09a8ac7624e92c6Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: recordPaymenta507d8de96b348dcc09a8ac7624e92c6.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:236
+ * @route '/staff/operations/orders/{order}/payments'
+ */
+        recordPaymenta507d8de96b348dcc09a8ac7624e92c6Form.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: recordPaymenta507d8de96b348dcc09a8ac7624e92c6.url(args, options),
+            method: 'post',
+        })
+    
+    recordPaymenta507d8de96b348dcc09a8ac7624e92c6.form = recordPaymenta507d8de96b348dcc09a8ac7624e92c6Form
+
+export const recordPayment = {
+    '/shop/operations/orders/{order}/payments': recordPaymentf3b50fd002e9152ec0cf94bde684bdbc,
+    '/staff/operations/orders/{order}/payments': recordPaymenta507d8de96b348dcc09a8ac7624e92c6,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/shop/operations/orders/{order}/payments/check'
+ */
+const checkPayments54904557fbb5997b3d93aca95f48b84d = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: checkPayments54904557fbb5997b3d93aca95f48b84d.url(args, options),
+    method: 'post',
+})
+
+checkPayments54904557fbb5997b3d93aca95f48b84d.definition = {
+    methods: ["post"],
+    url: '/shop/operations/orders/{order}/payments/check',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/shop/operations/orders/{order}/payments/check'
+ */
+checkPayments54904557fbb5997b3d93aca95f48b84d.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return checkPayments54904557fbb5997b3d93aca95f48b84d.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/shop/operations/orders/{order}/payments/check'
+ */
+checkPayments54904557fbb5997b3d93aca95f48b84d.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: checkPayments54904557fbb5997b3d93aca95f48b84d.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/shop/operations/orders/{order}/payments/check'
+ */
+    const checkPayments54904557fbb5997b3d93aca95f48b84dForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: checkPayments54904557fbb5997b3d93aca95f48b84d.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/shop/operations/orders/{order}/payments/check'
+ */
+        checkPayments54904557fbb5997b3d93aca95f48b84dForm.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: checkPayments54904557fbb5997b3d93aca95f48b84d.url(args, options),
+            method: 'post',
+        })
+    
+    checkPayments54904557fbb5997b3d93aca95f48b84d.form = checkPayments54904557fbb5997b3d93aca95f48b84dForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/staff/operations/orders/{order}/payments/check'
+ */
+const checkPayments70b0be731a2ff95d09c41d406c741384 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: checkPayments70b0be731a2ff95d09c41d406c741384.url(args, options),
+    method: 'post',
+})
+
+checkPayments70b0be731a2ff95d09c41d406c741384.definition = {
+    methods: ["post"],
+    url: '/staff/operations/orders/{order}/payments/check',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/staff/operations/orders/{order}/payments/check'
+ */
+checkPayments70b0be731a2ff95d09c41d406c741384.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { order: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { order: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                }
+
+    return checkPayments70b0be731a2ff95d09c41d406c741384.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/staff/operations/orders/{order}/payments/check'
+ */
+checkPayments70b0be731a2ff95d09c41d406c741384.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: checkPayments70b0be731a2ff95d09c41d406c741384.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/staff/operations/orders/{order}/payments/check'
+ */
+    const checkPayments70b0be731a2ff95d09c41d406c741384Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: checkPayments70b0be731a2ff95d09c41d406c741384.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:258
+ * @route '/staff/operations/orders/{order}/payments/check'
+ */
+        checkPayments70b0be731a2ff95d09c41d406c741384Form.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: checkPayments70b0be731a2ff95d09c41d406c741384.url(args, options),
+            method: 'post',
+        })
+    
+    checkPayments70b0be731a2ff95d09c41d406c741384.form = checkPayments70b0be731a2ff95d09c41d406c741384Form
+
+export const checkPayments = {
+    '/shop/operations/orders/{order}/payments/check': checkPayments54904557fbb5997b3d93aca95f48b84d,
+    '/staff/operations/orders/{order}/payments/check': checkPayments70b0be731a2ff95d09c41d406c741384,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/shop/operations/orders/{order}/payments/{payment}/void'
+ */
+const voidPaymentfe4c03a56e701e772aa589eb2efefa65 = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: voidPaymentfe4c03a56e701e772aa589eb2efefa65.url(args, options),
+    method: 'post',
+})
+
+voidPaymentfe4c03a56e701e772aa589eb2efefa65.definition = {
+    methods: ["post"],
+    url: '/shop/operations/orders/{order}/payments/{payment}/void',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/shop/operations/orders/{order}/payments/{payment}/void'
+ */
+voidPaymentfe4c03a56e701e772aa589eb2efefa65.url = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions) => {
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                    payment: args[1],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                                payment: args.payment,
+                }
+
+    return voidPaymentfe4c03a56e701e772aa589eb2efefa65.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace('{payment}', parsedArgs.payment.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/shop/operations/orders/{order}/payments/{payment}/void'
+ */
+voidPaymentfe4c03a56e701e772aa589eb2efefa65.post = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: voidPaymentfe4c03a56e701e772aa589eb2efefa65.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/shop/operations/orders/{order}/payments/{payment}/void'
+ */
+    const voidPaymentfe4c03a56e701e772aa589eb2efefa65Form = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: voidPaymentfe4c03a56e701e772aa589eb2efefa65.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/shop/operations/orders/{order}/payments/{payment}/void'
+ */
+        voidPaymentfe4c03a56e701e772aa589eb2efefa65Form.post = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: voidPaymentfe4c03a56e701e772aa589eb2efefa65.url(args, options),
+            method: 'post',
+        })
+    
+    voidPaymentfe4c03a56e701e772aa589eb2efefa65.form = voidPaymentfe4c03a56e701e772aa589eb2efefa65Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/staff/operations/orders/{order}/payments/{payment}/void'
+ */
+const voidPayment2914ef91516307a77cce6e42afb4823a = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: voidPayment2914ef91516307a77cce6e42afb4823a.url(args, options),
+    method: 'post',
+})
+
+voidPayment2914ef91516307a77cce6e42afb4823a.definition = {
+    methods: ["post"],
+    url: '/staff/operations/orders/{order}/payments/{payment}/void',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/staff/operations/orders/{order}/payments/{payment}/void'
+ */
+voidPayment2914ef91516307a77cce6e42afb4823a.url = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions) => {
+    if (Array.isArray(args)) {
+        args = {
+                    order: args[0],
+                    payment: args[1],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        order: typeof args.order === 'object'
+                ? args.order.id
+                : args.order,
+                                payment: args.payment,
+                }
+
+    return voidPayment2914ef91516307a77cce6e42afb4823a.definition.url
+            .replace('{order}', parsedArgs.order.toString())
+            .replace('{payment}', parsedArgs.payment.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/staff/operations/orders/{order}/payments/{payment}/void'
+ */
+voidPayment2914ef91516307a77cce6e42afb4823a.post = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: voidPayment2914ef91516307a77cce6e42afb4823a.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/staff/operations/orders/{order}/payments/{payment}/void'
+ */
+    const voidPayment2914ef91516307a77cce6e42afb4823aForm = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: voidPayment2914ef91516307a77cce6e42afb4823a.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:248
+ * @route '/staff/operations/orders/{order}/payments/{payment}/void'
+ */
+        voidPayment2914ef91516307a77cce6e42afb4823aForm.post = (args: { order: number | { id: number }, payment: string | number } | [order: number | { id: number }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: voidPayment2914ef91516307a77cce6e42afb4823a.url(args, options),
+            method: 'post',
+        })
+    
+    voidPayment2914ef91516307a77cce6e42afb4823a.form = voidPayment2914ef91516307a77cce6e42afb4823aForm
+
+export const voidPayment = {
+    '/shop/operations/orders/{order}/payments/{payment}/void': voidPaymentfe4c03a56e701e772aa589eb2efefa65,
+    '/staff/operations/orders/{order}/payments/{payment}/void': voidPayment2914ef91516307a77cce6e42afb4823a,
+}
+
+/**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
 const sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1408,7 +1890,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
 sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1441,7 +1923,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.url = (args: { order: number | {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
 sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1451,7 +1933,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: number | 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
     const sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1461,7 +1943,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: number | 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
         sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653Form.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1472,7 +1954,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: number | 
     sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.form = sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
 const sendForDelivery3f3122164782bf150d593c15237c6c62 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1487,7 +1969,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
 sendForDelivery3f3122164782bf150d593c15237c6c62.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1520,7 +2002,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.url = (args: { order: number | {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
 sendForDelivery3f3122164782bf150d593c15237c6c62.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1530,7 +2012,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.post = (args: { order: number | 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
     const sendForDelivery3f3122164782bf150d593c15237c6c62Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1540,7 +2022,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.post = (args: { order: number | 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:134
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:142
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
         sendForDelivery3f3122164782bf150d593c15237c6c62Form.post = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1557,7 +2039,7 @@ export const sendForDelivery = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/shop/operations/orders/restore-all'
  */
 const restoreAll05359cba787ad6011630036e5678dbd3 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1572,7 +2054,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/shop/operations/orders/restore-all'
  */
 restoreAll05359cba787ad6011630036e5678dbd3.url = (options?: RouteQueryOptions) => {
@@ -1581,7 +2063,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.url = (options?: RouteQueryOptions) =
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/shop/operations/orders/restore-all'
  */
 restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1591,7 +2073,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions):
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/shop/operations/orders/restore-all'
  */
     const restoreAll05359cba787ad6011630036e5678dbd3Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1601,7 +2083,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions):
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/shop/operations/orders/restore-all'
  */
         restoreAll05359cba787ad6011630036e5678dbd3Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1612,7 +2094,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions):
     restoreAll05359cba787ad6011630036e5678dbd3.form = restoreAll05359cba787ad6011630036e5678dbd3Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/staff/operations/orders/restore-all'
  */
 const restoreAllb53e8d9bd0c80a798445ffd326144dac = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1627,7 +2109,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/staff/operations/orders/restore-all'
  */
 restoreAllb53e8d9bd0c80a798445ffd326144dac.url = (options?: RouteQueryOptions) => {
@@ -1636,7 +2118,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.url = (options?: RouteQueryOptions) =
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/staff/operations/orders/restore-all'
  */
 restoreAllb53e8d9bd0c80a798445ffd326144dac.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1646,7 +2128,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.post = (options?: RouteQueryOptions):
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/staff/operations/orders/restore-all'
  */
     const restoreAllb53e8d9bd0c80a798445ffd326144dacForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1656,7 +2138,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.post = (options?: RouteQueryOptions):
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:266
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:295
  * @route '/staff/operations/orders/restore-all'
  */
         restoreAllb53e8d9bd0c80a798445ffd326144dacForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1673,7 +2155,7 @@ export const restoreAll = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/shop/operations/orders/{order}/restore'
  */
 const restore7e2cbae9ec08c3398f3896c88ccc477c = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1688,7 +2170,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/shop/operations/orders/{order}/restore'
  */
 restore7e2cbae9ec08c3398f3896c88ccc477c.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1721,7 +2203,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.url = (args: { order: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/shop/operations/orders/{order}/restore'
  */
 restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1731,7 +2213,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: number | { id: n
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/shop/operations/orders/{order}/restore'
  */
     const restore7e2cbae9ec08c3398f3896c88ccc477cForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1746,7 +2228,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: number | { id: n
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/shop/operations/orders/{order}/restore'
  */
         restore7e2cbae9ec08c3398f3896c88ccc477cForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1762,7 +2244,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: number | { id: n
     restore7e2cbae9ec08c3398f3896c88ccc477c.form = restore7e2cbae9ec08c3398f3896c88ccc477cForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/staff/operations/orders/{order}/restore'
  */
 const restore7ecbb9f0c73a6910b6185bd2204974f6 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1777,7 +2259,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/staff/operations/orders/{order}/restore'
  */
 restore7ecbb9f0c73a6910b6185bd2204974f6.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1810,7 +2292,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.url = (args: { order: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/staff/operations/orders/{order}/restore'
  */
 restore7ecbb9f0c73a6910b6185bd2204974f6.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1820,7 +2302,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.patch = (args: { order: number | { id: n
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/staff/operations/orders/{order}/restore'
  */
     const restore7ecbb9f0c73a6910b6185bd2204974f6Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1835,7 +2317,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.patch = (args: { order: number | { id: n
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:254
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:283
  * @route '/staff/operations/orders/{order}/restore'
  */
         restore7ecbb9f0c73a6910b6185bd2204974f6Form.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1857,7 +2339,7 @@ export const restore = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
 const updateStatus923621f100b9b8119e887ba70c01a46a = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1872,7 +2354,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
 updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1905,7 +2387,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: number | { id
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
 updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1915,7 +2397,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: number | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
     const updateStatus923621f100b9b8119e887ba70c01a46aForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1930,7 +2412,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: number | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/shop/orders/{order}/status'
  */
         updateStatus923621f100b9b8119e887ba70c01a46aForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1946,7 +2428,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: number | { 
     updateStatus923621f100b9b8119e887ba70c01a46a.form = updateStatus923621f100b9b8119e887ba70c01a46aForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/staff/operations/orders/{order}/status'
  */
 const updateStatus1408d9eab3157e71b3908eed25954ec5 = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1961,7 +2443,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/staff/operations/orders/{order}/status'
  */
 updateStatus1408d9eab3157e71b3908eed25954ec5.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1994,7 +2476,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.url = (args: { order: number | { id
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/staff/operations/orders/{order}/status'
  */
 updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2004,7 +2486,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: number | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/staff/operations/orders/{order}/status'
  */
     const updateStatus1408d9eab3157e71b3908eed25954ec5Form = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2019,7 +2501,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: number | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
  * @route '/staff/operations/orders/{order}/status'
  */
         updateStatus1408d9eab3157e71b3908eed25954ec5Form.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2039,190 +2521,6 @@ export const updateStatus = {
     '/staff/operations/orders/{order}/status': updateStatus1408d9eab3157e71b3908eed25954ec5,
 }
 
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-const updatePayment95eb2d36fe84988c671f8c54a664e52e = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, options),
-    method: 'patch',
-})
-
-updatePayment95eb2d36fe84988c671f8c54a664e52e.definition = {
-    methods: ["patch"],
-    url: '/shop/orders/{order}/payment',
-} satisfies RouteDefinition<["patch"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-updatePayment95eb2d36fe84988c671f8c54a664e52e.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { order: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { order: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    order: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        order: typeof args.order === 'object'
-                ? args.order.id
-                : args.order,
-                }
-
-    return updatePayment95eb2d36fe84988c671f8c54a664e52e.definition.url
-            .replace('{order}', parsedArgs.order.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-updatePayment95eb2d36fe84988c671f8c54a664e52e.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, options),
-    method: 'patch',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-    const updatePayment95eb2d36fe84988c671f8c54a664e52eForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'PATCH',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/shop/orders/{order}/payment'
- */
-        updatePayment95eb2d36fe84988c671f8c54a664e52eForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: updatePayment95eb2d36fe84988c671f8c54a664e52e.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PATCH',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    updatePayment95eb2d36fe84988c671f8c54a664e52e.form = updatePayment95eb2d36fe84988c671f8c54a664e52eForm
-    /**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/staff/operations/orders/{order}/payment'
- */
-const updatePayment41547d144c1f760c1a289d397322b7bc = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, options),
-    method: 'patch',
-})
-
-updatePayment41547d144c1f760c1a289d397322b7bc.definition = {
-    methods: ["patch"],
-    url: '/staff/operations/orders/{order}/payment',
-} satisfies RouteDefinition<["patch"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/staff/operations/orders/{order}/payment'
- */
-updatePayment41547d144c1f760c1a289d397322b7bc.url = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { order: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { order: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    order: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        order: typeof args.order === 'object'
-                ? args.order.id
-                : args.order,
-                }
-
-    return updatePayment41547d144c1f760c1a289d397322b7bc.definition.url
-            .replace('{order}', parsedArgs.order.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/staff/operations/orders/{order}/payment'
- */
-updatePayment41547d144c1f760c1a289d397322b7bc.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, options),
-    method: 'patch',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/staff/operations/orders/{order}/payment'
- */
-    const updatePayment41547d144c1f760c1a289d397322b7bcForm = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'PATCH',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updatePayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
- * @route '/staff/operations/orders/{order}/payment'
- */
-        updatePayment41547d144c1f760c1a289d397322b7bcForm.patch = (args: { order: number | { id: number } } | [order: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: updatePayment41547d144c1f760c1a289d397322b7bc.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PATCH',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    updatePayment41547d144c1f760c1a289d397322b7bc.form = updatePayment41547d144c1f760c1a289d397322b7bcForm
-
-export const updatePayment = {
-    '/shop/orders/{order}/payment': updatePayment95eb2d36fe84988c671f8c54a664e52e,
-    '/staff/operations/orders/{order}/payment': updatePayment41547d144c1f760c1a289d397322b7bc,
-}
-
-const ShopOrderController = { index, create, store, show, edit, update, destroy, sendPaymentRequest, sendForDelivery, restoreAll, restore, updateStatus, updatePayment }
+const ShopOrderController = { index, create, store, show, edit, update, destroy, sendPaymentRequest, recordPayment, checkPayments, voidPayment, sendForDelivery, restoreAll, restore, updateStatus }
 
 export default ShopOrderController
