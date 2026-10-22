@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop\Operations;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Operations\SendOrderForDeliveryRequest;
+use App\Http\Requests\Shop\Operations\ShopOrderFilterRequest;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
 use App\Models\Employee;
@@ -47,25 +48,25 @@ class ShopOrderController extends Controller
         return auth()->user()->role === 'owner' ? '/shop' : '/staff';
     }
 
-    public function index(Request $request): Response
+    public function index(ShopOrderFilterRequest $request): Response
     {
         $shopId = $this->getShopId();
         $branch = $this->getStaffBranch();
-        $showTrashed = $request->boolean('archived');
+        $filters = $request->filters();
 
         $orders = $this->service->getPaginatedOrders(
             shopId: $shopId,
-            perPage: 15,
-            filters: $request->only(['status', 'payment_status', 'search']),
-            onlyTrashed: $showTrashed,
+            perPage: $filters['per_page'],
+            filters: $filters,
+            onlyTrashed: $filters['archived'],
             branch: $branch,
         );
 
         return Inertia::render('shop/operations/orders/Index', [
             'orders' => $orders,
             'statusSummary' => $this->service->getStatusSummary($shopId, $branch),
-            'filters' => $request->only(['status', 'payment_status', 'search']),
-            'showArchived' => $showTrashed,
+            'filters' => $filters,
+            'showArchived' => $filters['archived'],
         ]);
     }
 

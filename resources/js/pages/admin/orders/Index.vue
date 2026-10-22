@@ -2,17 +2,20 @@
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import Vue3EasyDataTable, {
+    type Header,
+    type ServerOptions,
+} from 'vue3-easy-data-table';
+import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
+import SortableHeader from '@/components/SortableHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
     ChevronDown,
     Download,
     Eye,
@@ -81,10 +84,7 @@ interface Paginator {
     current_page: number;
     last_page: number;
     per_page: number;
-    from: number | null;
-    to: number | null;
     total: number;
-    links: { url: string | null; label: string; active: boolean }[];
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -99,8 +99,10 @@ const props = defineProps<{
         expired: number;
         revenue: number;
     };
-    filters: Record<string, string>;
+    filters: Record<string, string | number | null | undefined>;
 }>();
+
+const EasyDataTable = Vue3EasyDataTable;
 
 // ─── Flash ────────────────────────────────────────────────────────────────────
 
@@ -130,95 +132,159 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Order Management', href: '/admin/orders' },
 ];
 
-// ─── Filters ──────────────────────────────────────────────────────────────────
+// ─── Filters, sorting and paging ──────────────────────────────────────────────
 
-const search = ref(props.filters.search ?? '');
-const sortBy = ref(props.filters.sort_by ?? '');
-const sortDirection = ref(
-    props.filters.sort_direction === 'desc' ? 'desc' : 'asc',
-);
+const search = ref(String(props.filters.search ?? ''));
 const status = ref(
     props.filters.status && props.filters.status !== 'all'
-        ? props.filters.status
+        ? String(props.filters.status)
         : '',
 );
 const plan = ref(
     props.filters.plan && props.filters.plan !== 'all'
-        ? props.filters.plan
+        ? String(props.filters.plan)
         : '',
 );
-const date = ref(props.filters.date ?? '');
-const rowsPerPage = ref(props.orders.per_page);
+const date = ref(String(props.filters.date ?? ''));
 const importInput = ref<HTMLInputElement | null>(null);
 const importing = ref(false);
-const showRowsSelector = ref(false);
+const tableLoading = ref(false);
+
+type SortColumn =
+    | 'reference'
+    | 'shop'
+    | 'owner'
+    | 'plan'
+    | 'total'
+    | 'status'
+    | 'expires'
+    | 'created_at';
+
+const headers: Header[] = [
+    { text: 'Transaction Reference', value: 'reference', width: 170 },
+    { text: 'Shop', value: 'shop', width: 190 },
+    { text: 'Owner', value: 'owner', width: 210 },
+    { text: 'Plan', value: 'plan', width: 120 },
+    { text: 'Modules', value: 'modules', width: 130 },
+    { text: 'Payment', value: 'payment', width: 120 },
+    { text: 'Total', value: 'total', width: 120 },
+    { text: 'Status', value: 'status', width: 130 },
+    { text: 'Expires', value: 'expires', width: 130 },
+    { text: 'Ordered', value: 'created_at', width: 140 },
+    { text: 'Actions', value: 'actions', width: 160 },
+];
+
+const serverOptions = ref<ServerOptions>({
+    page: props.orders.current_page,
+    rowsPerPage: props.orders.per_page,
+    sortBy: String(props.filters.sort_by ?? 'created_at'),
+    sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
+});
+
+// Plain strings for the header component; the table library types these more loosely.
+const sortBy = computed(() => String(serverOptions.value.sortBy));
+const sortType = computed<'asc' | 'desc'>(() =>
+    serverOptions.value.sortType === 'asc' ? 'asc' : 'desc',
+);
+
+function toggleSort(column: SortColumn) {
+    if (serverOptions.value.sortBy === column) {
+        serverOptions.value.sortType =
+            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
+        return;
+    }
+
+    serverOptions.value.sortBy = column;
+    serverOptions.value.sortType = 'asc';
+}
+
+const tableItems = computed(() =>
+    props.orders.data.map((order) => ({
+        ...order,
+        reference: order.transaction_reference,
+        shop: order.shop_name,
+        owner: order.owner_name,
+        plan: order.plan_name ?? '',
+        payment: order.payment_method ?? '',
+        total: order.total_price,
+        expires: order.expires_at ?? '',
+        actions: '',
+    })),
+);
+
+function query() {
+    return {
+        search: search.value || undefined,
+        status: status.value || undefined,
+        plan: plan.value || undefined,
+        date: date.value || undefined,
+        sort_by: serverOptions.value.sortBy,
+        sort_direction: serverOptions.value.sortType,
+        page: serverOptions.value.page,
+        per_page: serverOptions.value.rowsPerPage,
+    };
+}
 
 function applyFilters() {
-    router.get(
-        '/admin/orders',
-        {
-            search: search.value || undefined,
-            sort_by: sortBy.value || undefined,
-            sort_direction: sortBy.value ? sortDirection.value : undefined,
-            status: status.value || undefined,
-            plan: plan.value || undefined,
-            date: date.value || undefined,
-            per_page: rowsPerPage.value,
+    router.get('/admin/orders', query(), {
+        only: ['orders', 'filters'],
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        showProgress: false,
+        onStart: () => {
+            tableLoading.value = true;
         },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
+        onFinish: () => {
+            tableLoading.value = false;
         },
-    );
+    });
 }
 
-function resetFilters() {
-    search.value = '';
-    sortBy.value = '';
-    sortDirection.value = 'asc';
-    status.value = '';
-    plan.value = '';
-    date.value = '';
-    router.get(
-        '/admin/orders',
-        { per_page: rowsPerPage.value },
-        { preserveState: true, replace: true },
-    );
-}
-
-function toggleSort(column: 'shop' | 'owner' | 'total' | 'expires') {
-    if (sortBy.value === column) {
-        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
-    } else {
-        sortBy.value = column;
-        sortDirection.value = 'asc';
+// A changed filter always starts again from the first page.
+function filterTable() {
+    if (serverOptions.value.page !== 1) {
+        serverOptions.value.page = 1;
+        return;
     }
 
     applyFilters();
 }
 
-function selectRowsPerPage(size: number) {
-    rowsPerPage.value = size;
-    showRowsSelector.value = false;
-    applyFilters();
+function resetFilters() {
+    search.value = '';
+    status.value = '';
+    plan.value = '';
+    date.value = '';
+
+    const optionsChanged =
+        serverOptions.value.page !== 1 ||
+        serverOptions.value.sortBy !== 'created_at' ||
+        serverOptions.value.sortType !== 'desc';
+
+    serverOptions.value.page = 1;
+    serverOptions.value.sortBy = 'created_at';
+    serverOptions.value.sortType = 'desc';
+
+    if (!optionsChanged) applyFilters();
 }
 
-function visitPage(url: string | null) {
-    if (!url) return;
-
-    router.visit(url, {
-        preserveState: true,
-        preserveScroll: true,
-    });
-}
+watch(
+    [
+        () => serverOptions.value.page,
+        () => serverOptions.value.rowsPerPage,
+        () => serverOptions.value.sortBy,
+        () => serverOptions.value.sortType,
+    ],
+    () => applyFilters(),
+);
 
 function exportCsv() {
     const params = new URLSearchParams();
     const filters = {
         search: search.value || undefined,
-        sort_by: sortBy.value || undefined,
-        sort_direction: sortBy.value ? sortDirection.value : undefined,
+        sort_by: String(serverOptions.value.sortBy),
+        sort_direction: String(serverOptions.value.sortType),
         status: status.value || undefined,
         plan: plan.value || undefined,
         date: date.value || undefined,
@@ -273,7 +339,6 @@ function toggleModules(orderReference: string) {
 
 function handleClickOutside() {
     expandedOrder.value = null;
-    showRowsSelector.value = false;
 }
 
 onMounted(() => document.addEventListener('click', handleClickOutside));
@@ -502,7 +567,7 @@ const statusBadge: Record<string, string> = {
                             v-model="search"
                             placeholder="Search reference, shop, owner, email..."
                             class="pl-8"
-                            @keyup.enter="applyFilters"
+                            @keyup.enter="filterTable"
                         />
                     </div>
                     <Button
@@ -544,548 +609,353 @@ const statusBadge: Record<string, string> = {
 
                 <!-- Table -->
                 <div class="overflow-hidden rounded-lg border">
-                    <div class="overflow-x-auto">
-                        <table class="w-full min-w-[1470px] text-sm">
-                            <thead>
-                                <tr
-                                    class="h-[92px] border-b bg-muted text-xs text-muted-foreground"
+                    <EasyDataTable
+                        v-model:server-options="serverOptions"
+                        class="admin-orders-table"
+                        :headers="headers"
+                        :items="tableItems"
+                        :server-items-length="orders.total"
+                        :loading="tableLoading"
+                        :rows-items="[5, 10, 15, 20, 50, 100]"
+                        rows-of-page-separator-message="out of"
+                        rows-per-page-message="Rows per page:"
+                        buttons-pagination
+                        alternating
+                        must-sort
+                    >
+                        <template #header-reference="{ text }">
+                            <SortableHeader
+                                :label="text"
+                                column="reference"
+                                :sort-by="sortBy"
+                                :sort-type="sortType"
+                                @toggle="toggleSort('reference')"
+                            />
+                        </template>
+
+                        <template #header-shop="{ text }">
+                            <SortableHeader
+                                :label="text"
+                                column="shop"
+                                :sort-by="sortBy"
+                                :sort-type="sortType"
+                                @toggle="toggleSort('shop')"
+                            />
+                        </template>
+
+                        <template #header-owner="{ text }">
+                            <SortableHeader
+                                :label="text"
+                                column="owner"
+                                :sort-by="sortBy"
+                                :sort-type="sortType"
+                                @toggle="toggleSort('owner')"
+                            />
+                        </template>
+
+                        <template #header-plan="{ text }">
+                            <div class="column-filter">
+                                <SortableHeader
+                                    :label="text"
+                                    column="plan"
+                                    :sort-by="sortBy"
+                                    :sort-type="sortType"
+                                    @toggle="toggleSort('plan')"
+                                />
+                                <select
+                                    v-model="plan"
+                                    class="column-filter-input"
+                                    aria-label="Filter by plan"
+                                    @change="filterTable"
                                 >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Transaction Reference
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        <button
-                                            type="button"
-                                            class="sortable-column"
-                                            :aria-label="`Sort shops ${sortBy === 'shop' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
-                                            @click="toggleSort('shop')"
-                                        >
-                                            <span>Shop</span>
-                                            <ArrowUp
-                                                v-if="
-                                                    sortBy === 'shop' &&
-                                                    sortDirection === 'asc'
-                                                "
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowDown
-                                                v-else-if="sortBy === 'shop'"
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowUpDown
-                                                v-else
-                                                class="h-3.5 w-3.5 opacity-60"
-                                            />
-                                        </button>
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        <button
-                                            type="button"
-                                            class="sortable-column"
-                                            :aria-label="`Sort owners ${sortBy === 'owner' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
-                                            @click="toggleSort('owner')"
-                                        >
-                                            <span>Owner</span>
-                                            <ArrowUp
-                                                v-if="
-                                                    sortBy === 'owner' &&
-                                                    sortDirection === 'asc'
-                                                "
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowDown
-                                                v-else-if="sortBy === 'owner'"
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowUpDown
-                                                v-else
-                                                class="h-3.5 w-3.5 opacity-60"
-                                            />
-                                        </button>
-                                    </th>
-                                    <th class="px-3 py-2 text-left font-medium">
-                                        <div class="column-filter">
-                                            <span>Plan</span>
-                                            <select
-                                                v-model="plan"
-                                                class="column-filter-input"
-                                                aria-label="Filter by plan"
-                                                @change="applyFilters"
-                                            >
-                                                <option value="">
-                                                    All plans
-                                                </option>
-                                                <option value="Basic">
-                                                    Basic
-                                                </option>
-                                                <option value="Standard">
-                                                    Standard
-                                                </option>
-                                                <option value="Premium">
-                                                    Premium
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Modules
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Payment
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        <button
-                                            type="button"
-                                            class="sortable-column"
-                                            :aria-label="`Sort totals ${sortBy === 'total' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
-                                            @click="toggleSort('total')"
-                                        >
-                                            <span>Total</span>
-                                            <ArrowUp
-                                                v-if="
-                                                    sortBy === 'total' &&
-                                                    sortDirection === 'asc'
-                                                "
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowDown
-                                                v-else-if="sortBy === 'total'"
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowUpDown
-                                                v-else
-                                                class="h-3.5 w-3.5 opacity-60"
-                                            />
-                                        </button>
-                                    </th>
-                                    <th class="px-3 py-2 text-left font-medium">
-                                        <div class="column-filter">
-                                            <span>Status</span>
-                                            <select
-                                                v-model="status"
-                                                class="column-filter-input"
-                                                aria-label="Filter by order status"
-                                                @change="applyFilters"
-                                            >
-                                                <option value="">
-                                                    All statuses
-                                                </option>
-                                                <option value="paid">
-                                                    Paid
-                                                </option>
-                                                <option value="approved">
-                                                    Approved
-                                                </option>
-                                                <option value="pending">
-                                                    Pending
-                                                </option>
-                                                <option value="rejected">
-                                                    Rejected
-                                                </option>
-                                                <option value="failed">
-                                                    Failed
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        <button
-                                            type="button"
-                                            class="sortable-column"
-                                            :aria-label="`Sort expiration dates ${sortBy === 'expires' && sortDirection === 'asc' ? 'descending' : 'ascending'}`"
-                                            @click="toggleSort('expires')"
-                                        >
-                                            <span>Expires</span>
-                                            <ArrowUp
-                                                v-if="
-                                                    sortBy === 'expires' &&
-                                                    sortDirection === 'asc'
-                                                "
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowDown
-                                                v-else-if="sortBy === 'expires'"
-                                                class="h-3.5 w-3.5"
-                                            />
-                                            <ArrowUpDown
-                                                v-else
-                                                class="h-3.5 w-3.5 opacity-60"
-                                            />
-                                        </button>
-                                    </th>
-                                    <th class="px-3 py-2 text-left font-medium">
-                                        <div class="column-filter">
-                                            <span>Ordered</span>
-                                            <input
-                                                v-model="date"
-                                                type="date"
-                                                class="column-filter-input"
-                                                aria-label="Filter by order date"
-                                                @change="applyFilters"
-                                            />
-                                        </div>
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-center font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="order in orders.data"
-                                    :key="order.public_id"
-                                    class="h-16 border-b transition-colors last:border-0 even:bg-muted/35 hover:bg-muted/65"
+                                    <option value="">All plans</option>
+                                    <option value="Basic">Basic</option>
+                                    <option value="Standard">Standard</option>
+                                    <option value="Premium">Premium</option>
+                                </select>
+                            </div>
+                        </template>
+
+                        <template #header-total="{ text }">
+                            <SortableHeader
+                                :label="text"
+                                column="total"
+                                :sort-by="sortBy"
+                                :sort-type="sortType"
+                                @toggle="toggleSort('total')"
+                            />
+                        </template>
+
+                        <template #header-status="{ text }">
+                            <div class="column-filter">
+                                <SortableHeader
+                                    :label="text"
+                                    column="status"
+                                    :sort-by="sortBy"
+                                    :sort-type="sortType"
+                                    @toggle="toggleSort('status')"
+                                />
+                                <select
+                                    v-model="status"
+                                    class="column-filter-input"
+                                    aria-label="Filter by order status"
+                                    @change="filterTable"
                                 >
-                                    <td
-                                        class="px-4 py-3 font-mono text-xs text-muted-foreground"
-                                    >
-                                        {{ order.transaction_reference }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p
-                                            class="font-medium whitespace-nowrap"
-                                        >
-                                            {{ order.shop_name }}
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ order.municipality }},
-                                            {{ order.barangay }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p
-                                            class="font-medium whitespace-nowrap"
-                                        >
-                                            {{ order.owner_name }}
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ order.email }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p class="text-xs font-medium">
-                                            {{ order.plan_name ?? '—' }}
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{
-                                                order.billing_months
-                                                    ? `${order.billing_months} mo`
-                                                    : '—'
-                                            }}
-                                        </p>
-                                    </td>
+                                    <option value="">All statuses</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+                            </div>
+                        </template>
 
-                                    <!-- Modules dropdown -->
-                                    <td class="px-4 py-3">
-                                        <div class="relative" @click.stop>
-                                            <button
-                                                type="button"
-                                                class="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors hover:bg-muted/70"
-                                                @click="
-                                                    toggleModules(
-                                                        order.public_id,
-                                                    )
-                                                "
-                                            >
-                                                {{ order.modules.length }}
-                                                module{{
-                                                    order.modules.length !== 1
-                                                        ? 's'
-                                                        : ''
-                                                }}
-                                                <ChevronDown
-                                                    class="h-3 w-3 transition-transform duration-200"
-                                                    :class="
-                                                        expandedOrder ===
-                                                        order.public_id
-                                                            ? 'rotate-180'
-                                                            : ''
-                                                    "
-                                                />
-                                            </button>
-                                            <div
-                                                v-if="
-                                                    expandedOrder ===
-                                                    order.public_id
-                                                "
-                                                class="absolute left-0 z-20 mt-1 min-w-44 rounded-lg border border-border bg-card py-1 shadow-lg"
-                                            >
-                                                <div
-                                                    v-for="mod in order.modules"
-                                                    :key="mod.id"
-                                                    class="flex items-center justify-between gap-6 px-3 py-1.5 text-xs hover:bg-muted/50"
-                                                >
-                                                    <span class="font-medium">{{
-                                                        mod.name
-                                                    }}</span>
-                                                </div>
-                                                <div
-                                                    v-if="
-                                                        order.modules.length ===
-                                                        0
-                                                    "
-                                                    class="px-3 py-2 text-xs text-muted-foreground"
-                                                >
-                                                    No modules
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
+                        <template #header-expires="{ text }">
+                            <SortableHeader
+                                :label="text"
+                                column="expires"
+                                :sort-by="sortBy"
+                                :sort-type="sortType"
+                                @toggle="toggleSort('expires')"
+                            />
+                        </template>
 
-                                    <td class="px-4 py-3">
-                                        <span
-                                            v-if="order.payment_method"
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                            :class="
-                                                paymentBadge[
-                                                    order.payment_method
-                                                ]?.cls ??
-                                                'bg-gray-100 text-gray-500'
-                                            "
-                                        >
-                                            {{
-                                                paymentBadge[
-                                                    order.payment_method
-                                                ]?.label ?? order.payment_method
-                                            }}
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-xs text-muted-foreground"
-                                            >—</span
-                                        >
-                                    </td>
+                        <template #header-created_at="{ text }">
+                            <div class="column-filter">
+                                <SortableHeader
+                                    :label="text"
+                                    column="created_at"
+                                    :sort-by="sortBy"
+                                    :sort-type="sortType"
+                                    @toggle="toggleSort('created_at')"
+                                />
+                                <input
+                                    v-model="date"
+                                    type="date"
+                                    class="column-filter-input"
+                                    aria-label="Filter by order date"
+                                    @change="filterTable"
+                                />
+                            </div>
+                        </template>
 
-                                    <td
-                                        class="px-4 py-3 font-medium whitespace-nowrap"
-                                    >
-                                        {{ formatPrice(order.total_price) }}
-                                    </td>
+                        <template #item-reference="order">
+                            <span
+                                class="font-mono text-xs text-muted-foreground"
+                            >
+                                {{ order.transaction_reference }}
+                            </span>
+                        </template>
 
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                            :class="
-                                                statusBadge[order.status] ??
-                                                'bg-gray-100 text-gray-500'
-                                            "
-                                        >
-                                            {{ order.status }}
-                                        </span>
-                                    </td>
+                        <template #item-shop="order">
+                            <p class="font-medium whitespace-nowrap">
+                                {{ order.shop_name }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                {{ order.municipality }}, {{ order.barangay }}
+                            </p>
+                        </template>
 
-                                    <td class="px-4 py-3 whitespace-nowrap">
-                                        <span
-                                            v-if="order.expires_at"
-                                            class="text-xs font-medium"
-                                            :class="
-                                                isExpired(order.expires_at)
-                                                    ? 'text-red-500'
-                                                    : 'text-muted-foreground'
-                                            "
-                                        >
-                                            {{ formatDate(order.expires_at) }}
-                                            <span
-                                                v-if="
-                                                    isExpired(order.expires_at)
-                                                "
-                                                class="block"
-                                                >Expired</span
-                                            >
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-xs text-muted-foreground"
-                                            >—</span
-                                        >
-                                    </td>
+                        <template #item-owner="order">
+                            <p class="font-medium whitespace-nowrap">
+                                {{ order.owner_name }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                {{ order.email }}
+                            </p>
+                        </template>
 
-                                    <td
-                                        class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
-                                    >
-                                        {{ formatDate(order.created_at) }}
-                                    </td>
+                        <template #item-plan="order">
+                            <p class="text-xs font-medium">
+                                {{ order.plan_name ?? '—' }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    order.billing_months
+                                        ? `${order.billing_months} mo`
+                                        : '—'
+                                }}
+                            </p>
+                        </template>
 
-                                    <!-- Actions -->
-                                    <td class="px-4 py-3">
-                                        <div
-                                            class="flex items-center justify-center gap-1"
-                                        >
-                                            <!-- View order detail -->
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.visit(
-                                                        `/admin/orders/${order.public_id}`,
-                                                    )
-                                                "
-                                            >
-                                                <Eye
-                                                    class="h-4 w-4 text-blue-500"
-                                                />
-                                            </Button>
-
-                                            <!-- View KYC files -->
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                title="View KYC Documents"
-                                                @click="openKyc(order)"
-                                            >
-                                                <FileText
-                                                    class="h-4 w-4 text-violet-500"
-                                                />
-                                            </Button>
-
-                                            <!-- Approve (only while awaiting admin review) -->
-                                            <Button
-                                                v-if="
-                                                    order.status === 'pending'
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                title="Approve"
-                                                @click="
-                                                    openConfirm(
-                                                        'approve',
-                                                        order,
-                                                    )
-                                                "
-                                            >
-                                                <ShieldCheck
-                                                    class="h-4 w-4 text-emerald-500"
-                                                />
-                                            </Button>
-
-                                            <!-- Reject (only while awaiting admin review) -->
-                                            <Button
-                                                v-if="
-                                                    order.status === 'pending'
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                title="Reject"
-                                                @click="
-                                                    openConfirm('reject', order)
-                                                "
-                                            >
-                                                <ShieldX
-                                                    class="h-4 w-4 text-red-500"
-                                                />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr v-if="orders.data.length === 0">
-                                    <td
-                                        colspan="11"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <ListOrdered
-                                            class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                        />
-                                        No orders found.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="order-table-footer">
-                        <div class="pagination__rows-per-page">
-                            Rows per page:
-                            <div class="order-rows-selector" @click.stop>
+                        <!-- Modules dropdown -->
+                        <template #item-modules="order">
+                            <div class="relative" @click.stop>
                                 <button
                                     type="button"
-                                    class="rows-input__wrapper"
-                                    aria-label="Select rows per page"
+                                    class="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors hover:bg-muted/70"
+                                    @click="toggleModules(order.public_id)"
+                                >
+                                    {{ order.modules.length }}
+                                    module{{
+                                        order.modules.length !== 1 ? 's' : ''
+                                    }}
+                                    <ChevronDown
+                                        class="h-3 w-3 transition-transform duration-200"
+                                        :class="
+                                            expandedOrder === order.public_id
+                                                ? 'rotate-180'
+                                                : ''
+                                        "
+                                    />
+                                </button>
+                                <div
+                                    v-if="expandedOrder === order.public_id"
+                                    class="absolute left-0 z-20 mt-1 min-w-44 rounded-lg border border-border bg-card py-1 shadow-lg"
+                                >
+                                    <div
+                                        v-for="mod in order.modules"
+                                        :key="mod.id"
+                                        class="flex items-center justify-between gap-6 px-3 py-1.5 text-xs hover:bg-muted/50"
+                                    >
+                                        <span class="font-medium">{{
+                                            mod.name
+                                        }}</span>
+                                    </div>
+                                    <div
+                                        v-if="order.modules.length === 0"
+                                        class="px-3 py-2 text-xs text-muted-foreground"
+                                    >
+                                        No modules
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template #item-payment="order">
+                            <span
+                                v-if="order.payment_method"
+                                class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                :class="
+                                    paymentBadge[order.payment_method]?.cls ??
+                                    'bg-gray-100 text-gray-500'
+                                "
+                            >
+                                {{
+                                    paymentBadge[order.payment_method]?.label ??
+                                    order.payment_method
+                                }}
+                            </span>
+                            <span v-else class="text-xs text-muted-foreground"
+                                >—</span
+                            >
+                        </template>
+
+                        <template #item-total="order">
+                            <span class="font-medium whitespace-nowrap">{{
+                                formatPrice(order.total_price)
+                            }}</span>
+                        </template>
+
+                        <template #item-status="order">
+                            <span
+                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                                :class="
+                                    statusBadge[order.status] ??
+                                    'bg-gray-100 text-gray-500'
+                                "
+                            >
+                                {{ order.status }}
+                            </span>
+                        </template>
+
+                        <template #item-expires="order">
+                            <span
+                                v-if="order.expires_at"
+                                class="text-xs font-medium whitespace-nowrap"
+                                :class="
+                                    isExpired(order.expires_at)
+                                        ? 'text-red-500'
+                                        : 'text-muted-foreground'
+                                "
+                            >
+                                {{ formatDate(order.expires_at) }}
+                                <span
+                                    v-if="isExpired(order.expires_at)"
+                                    class="block"
+                                    >Expired</span
+                                >
+                            </span>
+                            <span v-else class="text-xs text-muted-foreground"
+                                >—</span
+                            >
+                        </template>
+
+                        <template #item-created_at="order">
+                            <span
+                                class="text-xs whitespace-nowrap text-muted-foreground"
+                                >{{ formatDate(order.created_at) }}</span
+                            >
+                        </template>
+
+                        <!-- Actions -->
+                        <template #item-actions="order">
+                            <div class="flex items-center justify-center gap-1">
+                                <!-- View order detail -->
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="View order"
                                     @click="
-                                        showRowsSelector = !showRowsSelector
+                                        router.visit(
+                                            `/admin/orders/${order.public_id}`,
+                                        )
                                     "
                                 >
-                                    <span>{{ rowsPerPage }}</span>
-                                    <span class="triangle" />
-                                </button>
-                                <ul
-                                    class="select-items"
-                                    :class="{ show: showRowsSelector }"
+                                    <Eye class="h-4 w-4 text-blue-500" />
+                                </Button>
+
+                                <!-- View KYC files -->
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    title="View KYC Documents"
+                                    aria-label="View KYC documents"
+                                    @click="openKyc(order)"
                                 >
-                                    <li
-                                        v-for="size in [5, 10, 15, 20, 50, 100]"
-                                        :key="size"
-                                        :class="{
-                                            selected: size === rowsPerPage,
-                                        }"
-                                        @click="selectRowsPerPage(size)"
-                                    >
-                                        {{ size }}
-                                    </li>
-                                </ul>
+                                    <FileText class="h-4 w-4 text-violet-500" />
+                                </Button>
+
+                                <!-- Approve (only while awaiting admin review) -->
+                                <Button
+                                    v-if="order.status === 'pending'"
+                                    size="icon"
+                                    variant="ghost"
+                                    title="Approve"
+                                    aria-label="Approve order"
+                                    @click="openConfirm('approve', order)"
+                                >
+                                    <ShieldCheck
+                                        class="h-4 w-4 text-emerald-500"
+                                    />
+                                </Button>
+
+                                <!-- Reject (only while awaiting admin review) -->
+                                <Button
+                                    v-if="order.status === 'pending'"
+                                    size="icon"
+                                    variant="ghost"
+                                    title="Reject"
+                                    aria-label="Reject order"
+                                    @click="openConfirm('reject', order)"
+                                >
+                                    <ShieldX class="h-4 w-4 text-red-500" />
+                                </Button>
                             </div>
-                        </div>
-                        <div class="pagination__items-index">
-                            {{ orders.from ?? 0 }}–{{ orders.to ?? 0 }} out of
-                            {{ orders.total }}
-                        </div>
-                        <button
-                            type="button"
-                            class="previous-page__click-button"
-                            :class="{ 'first-page': !orders.links[0]?.url }"
-                            aria-label="Previous page"
-                            :disabled="!orders.links[0]?.url"
-                            @click="visitPage(orders.links[0]?.url ?? null)"
-                        >
-                            <span class="arrow arrow-right" />
-                        </button>
-                        <div class="buttons-pagination">
-                            <button
-                                v-for="link in orders.links.slice(1, -1)"
-                                :key="link.label"
-                                type="button"
-                                class="item"
-                                :class="{
-                                    button: link.url !== null,
-                                    active: link.active,
-                                    omission: link.url === null,
-                                }"
-                                :disabled="!link.url || link.active"
-                                @click="visitPage(link.url)"
+                        </template>
+
+                        <template #empty-message>
+                            <div
+                                class="py-10 text-center text-muted-foreground"
                             >
-                                {{ link.label }}
-                            </button>
-                        </div>
-                        <button
-                            type="button"
-                            class="next-page__click-button"
-                            :class="{
-                                'last-page':
-                                    !orders.links[orders.links.length - 1]?.url,
-                            }"
-                            aria-label="Next page"
-                            :disabled="
-                                !orders.links[orders.links.length - 1]?.url
-                            "
-                            @click="
-                                visitPage(
-                                    orders.links[orders.links.length - 1]
-                                        ?.url ?? null,
-                                )
-                            "
-                        >
-                            <span class="arrow arrow-left" />
-                        </button>
-                    </div>
+                                <ListOrdered
+                                    class="mx-auto mb-2 h-10 w-10 opacity-20"
+                                />
+                                No orders found.
+                            </div>
+                        </template>
+                    </EasyDataTable>
                 </div>
             </CardContent>
         </div>
@@ -1292,16 +1162,38 @@ const statusBadge: Record<string, string> = {
 </template>
 
 <style scoped>
-.sortable-column {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: inherit;
-    font: inherit;
-}
-
-.sortable-column:hover {
-    color: var(--foreground);
+.admin-orders-table {
+    --easy-table-border: 0;
+    --easy-table-row-border: 1px solid var(--border);
+    --easy-table-header-background-color: var(--muted);
+    --easy-table-header-font-color: var(--muted-foreground);
+    --easy-table-header-font-size: 12px;
+    --easy-table-header-height: 92px;
+    --easy-table-header-item-padding: 10px 12px;
+    --easy-table-body-row-background-color: var(--background);
+    --easy-table-body-even-row-background-color: color-mix(
+        in srgb,
+        var(--muted) 35%,
+        transparent
+    );
+    --easy-table-body-row-font-color: var(--foreground);
+    --easy-table-body-even-row-font-color: var(--foreground);
+    --easy-table-body-row-hover-background-color: color-mix(
+        in srgb,
+        var(--muted) 65%,
+        transparent
+    );
+    --easy-table-body-row-hover-font-color: var(--foreground);
+    --easy-table-body-row-height: 64px;
+    --easy-table-body-item-padding: 10px 12px;
+    --easy-table-message-font-color: var(--muted-foreground);
+    --easy-table-footer-background-color: var(--background);
+    --easy-table-footer-font-color: var(--muted-foreground);
+    --easy-table-footer-font-size: 12px;
+    --easy-table-footer-height: 56px;
+    --easy-table-footer-padding: 0 16px;
+    --easy-table-buttons-pagination-border: 1px solid var(--border);
+    width: 100%;
 }
 
 .column-filter {
@@ -1331,155 +1223,11 @@ const statusBadge: Record<string, string> = {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
 }
 
-.order-table-footer {
-    box-sizing: border-box;
-    display: flex;
-    height: 56px;
-    width: 100%;
-    align-items: center;
-    justify-content: flex-end;
-    border-top: 1px solid var(--border);
+:deep(.vue3-easy-data-table__main) {
     background: var(--background);
-    padding: 0 16px;
-    color: var(--muted-foreground);
-    font-size: 12px;
 }
 
-.pagination__rows-per-page {
-    display: flex;
-    align-items: center;
-}
-
-.pagination__items-index {
-    margin: 0 20px 0 10px;
-}
-
-.order-rows-selector {
-    position: relative;
-    display: inline-block;
-    min-width: 45px;
-    margin: 0 10px;
-}
-
-.rows-input__wrapper {
-    display: flex;
-    height: 20px;
-    width: 100%;
-    cursor: pointer;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--muted-foreground);
-    padding: 0 5px;
-}
-
-.triangle {
-    display: inline-block;
-    width: 0;
-    height: 0;
-    border-top: 6px solid var(--muted-foreground);
-    border-right: 6px solid transparent;
-    border-left: 6px solid transparent;
-}
-
-.select-items {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    z-index: 30;
-    display: none;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    text-align: left;
-    box-shadow:
-        0 5px 5px -3px rgb(0 0 0 / 20%),
-        0 8px 10px 1px rgb(0 0 0 / 14%),
-        0 3px 14px 2px rgb(0 0 0 / 12%);
-}
-
-.select-items.show {
-    display: block;
-}
-
-.select-items li {
-    cursor: pointer;
-    background: var(--background);
-    padding: 5px;
-}
-
-.select-items li.selected {
-    background: #42b883;
-    color: white;
-}
-
-.buttons-pagination {
-    display: flex;
-    box-sizing: border-box;
-    padding: 0;
-    border-radius: 4px;
-}
-
-.buttons-pagination .item {
-    box-sizing: border-box;
-    min-width: 21.6px;
-    cursor: pointer;
-    border-top: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    line-height: 21.6px;
-    text-align: center;
-}
-
-.buttons-pagination .item:first-of-type {
-    border-left: 1px solid var(--border);
-    border-radius: 4px 0 0 4px;
-}
-
-.buttons-pagination .item:last-of-type {
-    border-radius: 0 4px 4px 0;
-}
-
-.buttons-pagination .item.active {
-    border-color: #42b883;
-    background: #42b883;
-    color: white;
-}
-
-.buttons-pagination .item:disabled:not(.active) {
-    cursor: default;
-}
-
-.previous-page__click-button,
-.next-page__click-button {
-    margin: 0 5px;
-    cursor: pointer;
-}
-
-.previous-page__click-button .arrow,
-.next-page__click-button .arrow {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-top: 2px solid var(--foreground);
-    border-left: 2px solid var(--foreground);
-}
-
-.previous-page__click-button .arrow-right {
-    transform: rotate(135deg);
-}
-
-.next-page__click-button .arrow-left {
-    transform: rotate(-45deg);
-}
-
-.previous-page__click-button.first-page,
-.next-page__click-button.last-page {
-    cursor: not-allowed;
-}
-
-.previous-page__click-button.first-page .arrow,
-.next-page__click-button.last-page .arrow {
-    border-color: #e0e0e0;
+:deep(.vue3-easy-data-table__main table) {
+    min-width: 1470px;
 }
 </style>

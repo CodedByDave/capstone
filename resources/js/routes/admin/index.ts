@@ -156,7 +156,7 @@ settings.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     settings.form = settingsForm
 /**
 * @see \App\Http\Controllers\Admin\OrderController::kycFile
- * @see app/Http/Controllers/Admin/OrderController.php:151
+ * @see app/Http/Controllers/Admin/OrderController.php:150
  * @route '/admin/kyc-file'
  */
 export const kycFile = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -171,7 +171,7 @@ kycFile.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\OrderController::kycFile
- * @see app/Http/Controllers/Admin/OrderController.php:151
+ * @see app/Http/Controllers/Admin/OrderController.php:150
  * @route '/admin/kyc-file'
  */
 kycFile.url = (options?: RouteQueryOptions) => {
@@ -180,7 +180,7 @@ kycFile.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\OrderController::kycFile
- * @see app/Http/Controllers/Admin/OrderController.php:151
+ * @see app/Http/Controllers/Admin/OrderController.php:150
  * @route '/admin/kyc-file'
  */
 kycFile.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -189,7 +189,7 @@ kycFile.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Admin\OrderController::kycFile
- * @see app/Http/Controllers/Admin/OrderController.php:151
+ * @see app/Http/Controllers/Admin/OrderController.php:150
  * @route '/admin/kyc-file'
  */
 kycFile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -199,7 +199,7 @@ kycFile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\OrderController::kycFile
- * @see app/Http/Controllers/Admin/OrderController.php:151
+ * @see app/Http/Controllers/Admin/OrderController.php:150
  * @route '/admin/kyc-file'
  */
     const kycFileForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -209,7 +209,7 @@ kycFile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\OrderController::kycFile
- * @see app/Http/Controllers/Admin/OrderController.php:151
+ * @see app/Http/Controllers/Admin/OrderController.php:150
  * @route '/admin/kyc-file'
  */
         kycFileForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -218,7 +218,7 @@ kycFile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Admin\OrderController::kycFile
- * @see app/Http/Controllers/Admin/OrderController.php:151
+ * @see app/Http/Controllers/Admin/OrderController.php:150
  * @route '/admin/kyc-file'
  */
         kycFileForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

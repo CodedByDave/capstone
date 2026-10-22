@@ -140,6 +140,8 @@ class OrderRepository extends Repository
                 fn (Builder $query, string $column) => $query->orderBy($column, $this->sortDirection($filters)),
                 fn (Builder $query) => $query->latest(),
             )
+            // A stable tie-break so rows never jump between pages.
+            ->orderByDesc('id')
             ->paginate($perPage)
             ->withQueryString();
     }
@@ -191,6 +193,10 @@ class OrderRepository extends Repository
             'owner' => 'owner_name',
             'total' => 'total_price',
             'expires' => 'expires_at',
+            'reference' => 'transaction_reference',
+            'plan' => 'plan_name',
+            'status' => 'status',
+            'created_at' => 'created_at',
             default => null,
         };
     }

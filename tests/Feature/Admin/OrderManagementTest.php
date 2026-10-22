@@ -45,7 +45,7 @@ test('order table supports server-side page sizing', function () {
         ->get(route('admin.orders.index', ['per_page' => 5]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('filters.per_page', '5')
+            ->where('filters.per_page', 5)
             ->where('orders.per_page', 5)
             ->where('orders.total', 6)
             ->where('orders.last_page', 2)
@@ -195,4 +195,106 @@ test('super admin can import an order csv backup', function () {
 
     $order = Order::where('transaction_reference', 'TXN-CSV-IMPORT')->firstOrFail();
     expect($order->modules)->toHaveCount(2);
+});
+
+/** @param  array<string, mixed>  $columns  columns that are not mass assignable, set directly */
+function createStampedAdminOrder(array $attributes = [], array $columns = []): Order
+{
+    $order = createAdminOrder($attributes);
+
+    if ($columns !== []) {
+        $order->forceFill($columns)->saveQuietly();
+    }
+
+    return $order;
+}
+
+function adminOrderNames($response): array
+{
+    return collect($response->viewData('page')['props']['orders']['data'])->pluck('shop_name')->all();
+}
+
+test('the order table lists the newest orders first by default', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    createStampedAdminOrder(['shop_name' => 'Old Laundry'], ['created_at' => now()->subDays(5)]);
+    createStampedAdminOrder(['shop_name' => 'New Laundry'], ['created_at' => now()->subHour()]);
+
+    $response = $this->actingAs($admin)->get(route('admin.orders.index'))->assertOk();
+
+    expect(adminOrderNames($response))->toBe(['New Laundry', 'Old Laundry']);
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('filters.sort_by', 'created_at')
+        ->where('filters.sort_direction', 'desc')
+        ->where('orders.per_page', 20));
+});
+
+test('the order table sorts by reference plan status and order date', function (string $sortBy) {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    createStampedAdminOrder(
+        ['shop_name' => 'Low Laundry', 'plan_name' => 'Basic', 'status' => 'approved'],
+        ['transaction_reference' => 'TXN-A', 'created_at' => now()->subDays(5)],
+    );
+    createStampedAdminOrder(
+        ['shop_name' => 'High Laundry', 'plan_name' => 'Premium', 'status' => 'rejected'],
+        ['transaction_reference' => 'TXN-Z', 'created_at' => now()->subDay()],
+    );
+    $this->actingAs($admin);
+
+    $asc = adminOrderNames($this->get(route('admin.orders.index', ['sort_by' => $sortBy, 'sort_direction' => 'asc'])));
+    $desc = adminOrderNames($this->get(route('admin.orders.index', ['sort_by' => $sortBy, 'sort_direction' => 'desc'])));
+
+    expect($asc)->toBe(['Low Laundry', 'High Laundry'])
+        ->and($desc)->toBe(['High Laundry', 'Low Laundry']);
+})->with(['reference', 'plan', 'status', 'created_at']);
+
+test('the order table pages through results on the server', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    foreach (range(1, 7) as $number) {
+        createStampedAdminOrder(
+            ['shop_name' => "Paged Laundry {$number}"],
+            ['created_at' => now()->subMinutes(10 - $number)],
+        );
+    }
+
+    $response = $this->actingAs($admin)->get(route('admin.orders.index', ['per_page' => 5, 'page' => 2]));
+
+    expect(adminOrderNames($response))->toHaveCount(2);
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('orders.total', 7)
+        ->where('orders.current_page', 2)
+        ->where('orders.per_page', 5));
+});
+
+test('the order table rejects invalid sort and filter options', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+
+    $this->actingAs($admin)
+        ->getJson(route('admin.orders.index', [
+            'sort_by' => 'password',
+            'sort_direction' => 'sideways',
+            'date' => 'not-a-date',
+            'page' => 0,
+        ]))
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['sort_by', 'sort_direction', 'date', 'page']);
+
+    $this->actingAs($admin)
+        ->get(route('admin.orders.index', ['per_page' => 500]))
+        ->assertInertia(fn (Assert $page) => $page->where('orders.per_page', 100));
+});
+
+test('old bookmarked order links with status all still open', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    createStampedAdminOrder(['shop_name' => 'Still Listed']);
+
+    $this->actingAs($admin)
+        ->get(route('admin.orders.index', ['status' => 'all', 'plan' => 'all']))
+        ->assertOk();
+});
+
+test('only the super admin can open the order table', function () {
+    $this->get(route('admin.orders.index'))->assertRedirect('/login');
+
+    $this->actingAs(User::factory()->create(['role' => AccountType::ShopOwner->value]));
+    expect($this->get(route('admin.orders.index'))->status())->toBeIn([302, 403]);
 });

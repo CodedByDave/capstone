@@ -22,8 +22,7 @@ class ShopOrderRepository
                 $q->where('branch_name', $branch)
                     ->orWhereNull('branch_name')
                     ->orWhere('branch_name', '');
-            }))
-            ->latest();
+            }));
 
         if (! empty($filters['status']) && ! $onlyTrashed) {
             $query->where('status', $filters['status']);
@@ -33,15 +32,49 @@ class ShopOrderRepository
             $query->where('payment_status', $filters['payment_status']);
         }
 
-        if (! empty($filters['search'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('customer_name', 'like', "%{$filters['search']}%")
-                    ->orWhere('order_number', 'like', "%{$filters['search']}%")
-                    ->orWhere('customer_phone', 'like', "%{$filters['search']}%");
+        if (filled($filters['search'] ?? null)) {
+            $like = '%'.addcslashes((string) $filters['search'], '%_\\').'%';
+
+            $query->where(function ($q) use ($like) {
+                $q->where('customer_name', 'like', $like)
+                    ->orWhere('order_number', 'like', $like)
+                    ->orWhere('customer_phone', 'like', $like);
             });
         }
 
-        return $query->paginate($perPage);
+        $this->applySorting($query, $filters['sort_by'] ?? 'created_at', $filters['sort_direction'] ?? 'desc');
+
+        return $query->paginate($perPage)->withQueryString();
+    }
+
+    /** Sorts on a whitelisted column, newest first when nothing valid is asked for. */
+    private function applySorting($query, string $sortBy, string $direction): void
+    {
+        $direction = $direction === 'asc' ? 'asc' : 'desc';
+
+        $columns = [
+            'order_number' => 'order_number',
+            'customer' => 'customer_name',
+            'status' => 'status',
+            'payment_status' => 'payment_status',
+            'total' => 'total_amount',
+            'created_at' => 'created_at',
+        ];
+
+        if ($sortBy === 'service') {
+            // A subquery, not a join, so the shop scope and soft-delete filters stay unambiguous.
+            $query->orderBy(
+                ShopService::query()
+                    ->select('service_name')
+                    ->whereColumn('services_and_pricing.id', 'shop_orders.service_id'),
+                $direction,
+            );
+        } else {
+            $query->orderBy($columns[$sortBy] ?? 'created_at', $direction);
+        }
+
+        // A stable tie-break so rows never jump between pages.
+        $query->orderByDesc('id');
     }
 
     public function findById(int $id): ?ShopOrder

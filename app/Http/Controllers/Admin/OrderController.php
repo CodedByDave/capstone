@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApproveOrderRequest;
+use App\Http\Requests\Admin\OrderFilterRequest;
 use App\Models\Order;
 use App\Notifications\PlanRejectedNotification;
 use App\Services\BusinessAgreementService;
@@ -20,14 +21,12 @@ class OrderController extends Controller
         private readonly BusinessAgreementService $businessAgreementService,
     ) {}
 
-    public function index(Request $request)
+    public function index(OrderFilterRequest $request)
     {
-        $filters = $request->only(['search', 'status', 'plan', 'date', 'sort_by', 'sort_direction', 'per_page']);
-        $perPage = min(max($request->integer('per_page', 20), 5), 100);
-        $filters['per_page'] = (string) $perPage;
+        $filters = $request->filters();
 
         return Inertia::render('admin/orders/Index', [
-            'orders' => $this->orderService->getPaginated($filters, $perPage),
+            'orders' => $this->orderService->getPaginated($filters, $filters['per_page']),
             'stats' => $this->orderService->getStats(),
             'filters' => $filters,
         ]);
