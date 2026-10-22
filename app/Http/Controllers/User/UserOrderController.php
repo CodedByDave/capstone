@@ -16,6 +16,7 @@ use App\Services\CustomerOrderPlacementService;
 use App\Services\DeliveryRequestService;
 use App\Services\DeliveryTrackingService;
 use App\Services\OrderBillingBreakdownService;
+use App\Services\OrderRatingService;
 use App\Services\ShopPaymentSettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -32,6 +33,7 @@ class UserOrderController extends Controller
         private readonly OrderBillingBreakdownService $billing,
         private readonly DeliveryRequestService $deliveryRequests,
         private readonly DeliveryTrackingService $deliveryTracking,
+        private readonly OrderRatingService $ratings,
     ) {}
 
     // ─── List orders ──────────────────────────────────────────────────────────
@@ -112,6 +114,7 @@ class UserOrderController extends Controller
                 ] : null,
                 'service_name' => $order->service->service_name ?? '—',
                 'delivery' => $delivery ? $this->deliveryTracking->payload($delivery) : null,
+                'rating' => $this->ratings->orderState($order),
             ],
         ]);
     }

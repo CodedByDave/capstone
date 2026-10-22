@@ -6,6 +6,8 @@ import paymentHistory from './payment-history'
 import setup from './setup'
 import permissionF99818 from './permission'
 import orders from './orders'
+import ratings from './ratings'
+import platformRating from './platform-rating'
 import services from './services'
 import paymentQrBef25d from './payment-qr'
 import upgradeE62d79 from './upgrade'
@@ -1487,6 +1489,8 @@ dashboard: Object.assign(dashboard, dashboard),
 data: Object.assign(data, data),
 permission: Object.assign(permission, permissionF99818),
 orders: Object.assign(orders, orders),
+ratings: Object.assign(ratings, ratings),
+platformRating: Object.assign(platformRating, platformRating),
 services: Object.assign(services, services),
 paymentQr: Object.assign(paymentQr, paymentQrBef25d),
 upgrade: Object.assign(upgrade, upgradeE62d79),

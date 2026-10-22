@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RatingSummary from '@/components/customer/RatingSummary.vue';
 import { Input } from '@/components/ui/input';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
@@ -39,6 +40,8 @@ interface Shop {
     starting_price: number | null;
     starting_price_unit: 'kg' | 'bundle' | null;
     services_count: number;
+    rating_avg: number | null;
+    rating_count: number;
     services: ShopService[];
 }
 
@@ -290,6 +293,11 @@ function shopGradient(id: number) {
                                             shop.services_count !== 1 ? 's' : ''
                                         }}
                                     </span>
+                                    <RatingSummary
+                                        :average="shop.rating_avg"
+                                        :count="shop.rating_count"
+                                        class="self-center"
+                                    />
                                 </div>
                             </div>
 

@@ -19,6 +19,7 @@ import {
     LayoutGrid,
     ListOrdered,
     ShieldCheck,
+    Star,
     Store,
     User,
     Users,
@@ -66,6 +67,11 @@ const mainNavItems: NavItem[] = [
         title: 'Issue Reports',
         href: '/admin/issue-reports',
         icon: CircleAlert,
+    },
+    {
+        title: 'Platform Ratings',
+        href: '/admin/platform-ratings',
+        icon: Star,
     },
     {
         title: 'Roles & Permissions',

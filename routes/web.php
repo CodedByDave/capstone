@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\IssueReportController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PlatformRatingController as AdminPlatformRatingController;
 use App\Http\Controllers\Admin\PlatformRoleController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
@@ -27,11 +28,13 @@ use App\Http\Controllers\Shop\Inventory\InventoryController;
 use App\Http\Controllers\Shop\Inventory\LowStockAlertController;
 use App\Http\Controllers\Shop\Inventory\SupplierController;
 use App\Http\Controllers\Shop\LogisticsController;
+use App\Http\Controllers\Shop\Operations\OrderRatingController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use App\Http\Controllers\Shop\PaymentHistoryController;
 use App\Http\Controllers\Shop\PaymentQrController;
+use App\Http\Controllers\Shop\PlatformRatingController as ShopPlatformRatingController;
 use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\ShopDashboardController;
 use App\Http\Controllers\Shop\ShopDataController;
@@ -45,6 +48,7 @@ use App\Http\Controllers\Staff\StaffDashboardController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
 use App\Http\Controllers\User\UserOrderController;
+use App\Http\Controllers\User\UserOrderRatingController;
 use App\Http\Controllers\User\UserPaymentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -162,6 +166,7 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
+    Route::get('/platform-ratings', [AdminPlatformRatingController::class, 'index'])->name('admin.platform-ratings.index');
 
     Route::prefix('issue-reports')->name('admin.issue-reports.')->group(function () {
         Route::get('/', [IssueReportController::class, 'index'])->name('index');
@@ -307,6 +312,13 @@ Route::prefix('shop')->middleware([
     Route::post('operations/orders/{order}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
         ->middleware('shop.capability:delivery')
         ->name('shop.orders.send-for-delivery');
+    Route::get('operations/ratings', [OrderRatingController::class, 'index'])->name('shop.ratings.index');
+    Route::post('platform-rating', [ShopPlatformRatingController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('shop.platform-rating.store');
+    Route::post('platform-rating/dismiss', [ShopPlatformRatingController::class, 'dismiss'])
+        ->middleware('throttle:10,1')
+        ->name('shop.platform-rating.dismiss');
 
     // Services and pricing
     Route::get('operations/services', [ShopServiceController::class, 'index'])->name('shop.services.index');
@@ -552,6 +564,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::get('/operations/orders/{order}', [ShopOrderController::class, 'show'])->name('staff.orders.show');
         Route::get('/operations/services', [ShopServiceController::class, 'index'])->name('staff.services.index');
         Route::get('/operations/promos', [PromotionController::class, 'index'])->name('staff.promotions.index');
+        Route::get('/operations/ratings', [OrderRatingController::class, 'index'])->name('staff.ratings.index');
     });
     Route::middleware('permission:Operations,manage')->group(function () {
         Route::get('/operations/orders/{order}/edit', [ShopOrderController::class, 'edit'])->name('staff.orders.edit');
@@ -673,6 +686,10 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/orders/delivery-photos/{photo}', [DeliveryProofController::class, 'showForCustomer'])
         ->middleware('throttle:120,1')
         ->name('orders.delivery-photos.show');
+    Route::post('/orders/{paymentPublicId}/rating', [UserOrderRatingController::class, 'store'])
+        ->whereUlid('paymentPublicId')
+        ->middleware('throttle:20,1')
+        ->name('orders.rating.store');
     Route::post('/orders/{order:payment_public_id}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{paymentPublicId}/pay-online', [UserPaymentController::class, 'pay'])->whereUlid('paymentPublicId')->name('orders.pay-online');
     Route::get('/orders/{paymentPublicId}/payment/demo', [UserPaymentController::class, 'demo'])->whereUlid('paymentPublicId')->name('orders.payment.demo');

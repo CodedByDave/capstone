@@ -75,7 +75,7 @@ class DeliveryNotification extends Notification
         return match ($delivery->status) {
             'assigned' => "{$ref} has been assigned to {$rider} and will be picked up shortly.",
             'picked_up' => "{$ref} has been picked up by {$rider} and is on the way to you.",
-            'delivered' => "{$ref} has been delivered. Thank you for choosing us!",
+            'delivered' => "{$ref} has been delivered. Thank you for choosing us! How did we do? Rate your order.",
             'failed' => "{$ref} could not be delivered. Please contact the shop for assistance.",
             default => "{$ref} delivery status has been updated to {$delivery->status}.",
         };

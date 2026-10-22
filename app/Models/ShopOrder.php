@@ -106,6 +106,12 @@ class ShopOrder extends Model
         return $this->hasOne(Delivery::class, 'shop_order_id')->where('type', Delivery::TYPE_PICKUP);
     }
 
+    /** The customer's star rating of this order, if they left one. */
+    public function rating(): HasOne
+    {
+        return $this->hasOne(OrderRating::class);
+    }
+
     public function customerAgreementAcceptance(): HasOne
     {
         return $this->hasOne(CustomerAgreementAcceptance::class);

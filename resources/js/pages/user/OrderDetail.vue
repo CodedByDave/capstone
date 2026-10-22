@@ -7,7 +7,9 @@ import DeliveryRequestPanel from '@/components/customer/DeliveryRequestPanel.vue
 import DeliveryTrackingCard, {
     type DeliveryTracking,
 } from '@/components/customer/DeliveryTrackingCard.vue';
+import OrderRatingDialog from '@/components/customer/OrderRatingDialog.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
+import { isPostponed } from '@/lib/ratingPrompt';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     AlertTriangle,
@@ -21,11 +23,12 @@ import {
     Phone,
     ReceiptText,
     Smartphone,
+    Star,
     Truck,
     WashingMachine,
     X,
 } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -67,6 +70,14 @@ interface Order {
     shop: Shop | null;
     service_name: string;
     delivery: DeliveryTracking | null;
+    rating: {
+        can_rate: boolean;
+        rating: {
+            stars: number;
+            comment: string | null;
+            rated_at: string;
+        } | null;
+    };
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -81,6 +92,20 @@ const props = defineProps<{
         customer_name?: string;
     } | null;
 }>();
+
+// ─── Rating ───────────────────────────────────────────────────────────────────
+
+// Open the rating popup when the customer arrives at a finished order, unless they said
+// "maybe later" recently; the card below stays available either way.
+const ratingOpen = ref(false);
+onMounted(() => {
+    if (
+        props.order.rating.can_rate &&
+        !isPostponed(props.order.payment_public_id)
+    ) {
+        ratingOpen.value = true;
+    }
+});
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
@@ -587,6 +612,70 @@ const shopLocation = computed(() =>
                     @cancel="showDeliveryForm = false"
                 />
             </div>
+
+            <!-- ── Rating ─────────────────────────────────────── -->
+            <div
+                v-if="order.rating.can_rate"
+                class="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10"
+            >
+                <p
+                    class="text-xs font-semibold tracking-wide text-amber-700 uppercase dark:text-amber-300"
+                >
+                    Rate your order
+                </p>
+                <p class="text-sm text-gray-700 dark:text-gray-200">
+                    Your laundry is done. How did
+                    {{ order.shop?.name ?? 'the shop' }} do?
+                </p>
+                <button
+                    type="button"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-sm font-semibold text-white transition hover:bg-amber-600"
+                    @click="ratingOpen = true"
+                >
+                    <Star class="h-4 w-4" />
+                    Rate now
+                </button>
+            </div>
+            <div
+                v-else-if="order.rating.rating"
+                class="space-y-2 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            >
+                <p
+                    class="text-xs font-semibold tracking-wide text-gray-400 uppercase"
+                >
+                    Your rating
+                </p>
+                <div
+                    class="flex items-center gap-1"
+                    role="img"
+                    :aria-label="`You rated this order ${order.rating.rating.stars} out of 5 stars`"
+                >
+                    <Star
+                        v-for="n in 5"
+                        :key="n"
+                        class="h-5 w-5"
+                        :class="
+                            n <= order.rating.rating.stars
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-gray-300'
+                        "
+                        aria-hidden="true"
+                    />
+                </div>
+                <p
+                    v-if="order.rating.rating.comment"
+                    class="text-sm text-gray-600 dark:text-gray-300"
+                >
+                    “{{ order.rating.rating.comment }}”
+                </p>
+            </div>
+
+            <OrderRatingDialog
+                v-model:open="ratingOpen"
+                :payment-public-id="order.payment_public_id"
+                :order-number="order.order_number"
+                :shop-name="order.shop?.name ?? 'the shop'"
+            />
 
             <!-- ── Cancel order ───────────────────────────────── -->
             <div

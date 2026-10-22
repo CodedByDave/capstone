@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlatformRatingDialog from '@/components/shop/PlatformRatingDialog.vue';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { type BreadcrumbItem } from '@/types';
 import ShopNavbar from './ShopNavbar.vue';
@@ -26,5 +27,7 @@ defineProps<{
                 </main>
             </div>
         </SidebarInset>
+
+        <PlatformRatingDialog />
     </SidebarProvider>
 </template>

@@ -42,6 +42,7 @@ import {
     Settings,
     ShieldCheck,
     ShoppingCart,
+    Star,
     Tag,
     Truck,
     UserRoundCog,
@@ -182,6 +183,14 @@ const allOperationsSubActions = [
         href: isOwner.value
             ? '/shop/operations/orders'
             : '/staff/operations/orders',
+        show: () => isOwner.value || can('Operations', 'view'),
+    },
+    {
+        title: 'Ratings',
+        icon: Star,
+        href: isOwner.value
+            ? '/shop/operations/ratings'
+            : '/staff/operations/ratings',
         show: () => isOwner.value || can('Operations', 'view'),
     },
 ];

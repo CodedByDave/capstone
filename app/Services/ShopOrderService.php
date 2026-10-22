@@ -174,6 +174,11 @@ class ShopOrderService
             }
 
             $previousActualWeight = $order->actual_weight_kg;
+
+            // The edit form can complete an order too; record when, as the status button does.
+            if (($data['status'] ?? null) === 'completed' && $order->status !== 'completed') {
+                $data['completed_at'] = now();
+            }
             $newSupplies = $data['supplies'] ?? [];
             unset($data['supplies']);
 

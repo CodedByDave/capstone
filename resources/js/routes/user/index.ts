@@ -4,7 +4,7 @@ import orders from './orders'
 import notifications1ce82a from './notifications'
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
- * @see app/Http/Controllers/User/UserDashboardController.php:23
+ * @see app/Http/Controllers/User/UserDashboardController.php:25
  * @route '/user/dashboard'
  */
 export const dashboard = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -19,7 +19,7 @@ dashboard.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
- * @see app/Http/Controllers/User/UserDashboardController.php:23
+ * @see app/Http/Controllers/User/UserDashboardController.php:25
  * @route '/user/dashboard'
  */
 dashboard.url = (options?: RouteQueryOptions) => {
@@ -28,7 +28,7 @@ dashboard.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
- * @see app/Http/Controllers/User/UserDashboardController.php:23
+ * @see app/Http/Controllers/User/UserDashboardController.php:25
  * @route '/user/dashboard'
  */
 dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -37,7 +37,7 @@ dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
- * @see app/Http/Controllers/User/UserDashboardController.php:23
+ * @see app/Http/Controllers/User/UserDashboardController.php:25
  * @route '/user/dashboard'
  */
 dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -47,7 +47,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
- * @see app/Http/Controllers/User/UserDashboardController.php:23
+ * @see app/Http/Controllers/User/UserDashboardController.php:25
  * @route '/user/dashboard'
  */
     const dashboardForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -57,7 +57,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
- * @see app/Http/Controllers/User/UserDashboardController.php:23
+ * @see app/Http/Controllers/User/UserDashboardController.php:25
  * @route '/user/dashboard'
  */
         dashboardForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -66,7 +66,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
- * @see app/Http/Controllers/User/UserDashboardController.php:23
+ * @see app/Http/Controllers/User/UserDashboardController.php:25
  * @route '/user/dashboard'
  */
         dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     dashboard.form = dashboardForm
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::shops
- * @see app/Http/Controllers/User/UserDashboardController.php:89
+ * @see app/Http/Controllers/User/UserDashboardController.php:98
  * @route '/user/shops'
  */
 export const shops = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -97,7 +97,7 @@ shops.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::shops
- * @see app/Http/Controllers/User/UserDashboardController.php:89
+ * @see app/Http/Controllers/User/UserDashboardController.php:98
  * @route '/user/shops'
  */
 shops.url = (options?: RouteQueryOptions) => {
@@ -106,7 +106,7 @@ shops.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::shops
- * @see app/Http/Controllers/User/UserDashboardController.php:89
+ * @see app/Http/Controllers/User/UserDashboardController.php:98
  * @route '/user/shops'
  */
 shops.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -115,7 +115,7 @@ shops.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::shops
- * @see app/Http/Controllers/User/UserDashboardController.php:89
+ * @see app/Http/Controllers/User/UserDashboardController.php:98
  * @route '/user/shops'
  */
 shops.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -125,7 +125,7 @@ shops.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\User\UserDashboardController::shops
- * @see app/Http/Controllers/User/UserDashboardController.php:89
+ * @see app/Http/Controllers/User/UserDashboardController.php:98
  * @route '/user/shops'
  */
     const shopsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -135,7 +135,7 @@ shops.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\User\UserDashboardController::shops
- * @see app/Http/Controllers/User/UserDashboardController.php:89
+ * @see app/Http/Controllers/User/UserDashboardController.php:98
  * @route '/user/shops'
  */
         shopsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -144,7 +144,7 @@ shops.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\User\UserDashboardController::shops
- * @see app/Http/Controllers/User/UserDashboardController.php:89
+ * @see app/Http/Controllers/User/UserDashboardController.php:98
  * @route '/user/shops'
  */
         shopsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -237,7 +237,7 @@ notifications.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
     
     notifications.form = notificationsForm
 /**
- * @see routes/web.php:688
+ * @see routes/web.php:705
  * @route '/user/profile'
  */
 export const profile = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -251,7 +251,7 @@ profile.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:688
+ * @see routes/web.php:705
  * @route '/user/profile'
  */
 profile.url = (options?: RouteQueryOptions) => {
@@ -259,7 +259,7 @@ profile.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:688
+ * @see routes/web.php:705
  * @route '/user/profile'
  */
 profile.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -267,7 +267,7 @@ profile.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:688
+ * @see routes/web.php:705
  * @route '/user/profile'
  */
 profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -276,7 +276,7 @@ profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:688
+ * @see routes/web.php:705
  * @route '/user/profile'
  */
     const profileForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -285,7 +285,7 @@ profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:688
+ * @see routes/web.php:705
  * @route '/user/profile'
  */
         profileForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -293,7 +293,7 @@ profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:688
+ * @see routes/web.php:705
  * @route '/user/profile'
  */
         profileForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

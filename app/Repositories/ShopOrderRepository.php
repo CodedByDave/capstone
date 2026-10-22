@@ -58,6 +58,42 @@ class ShopOrderRepository
             ->first();
     }
 
+    /** The customer's own order with what is needed to decide whether it can be rated. */
+    public function findOwnedForRating(string $paymentPublicId, int $customerId): ?ShopOrder
+    {
+        return $this->model->newQuery()
+            ->with(['delivery', 'rating', 'shop:id,shop_name'])
+            ->where('payment_public_id', $paymentPublicId)
+            ->where('user_id', $customerId)
+            ->first();
+    }
+
+    /**
+     * The customer's most recent completed orders that have no rating yet. The rating
+     * rules (delivery state, time window) are applied by the caller.
+     */
+    public function completedWithoutRating(int $customerId, int $limit = 25): Collection
+    {
+        return $this->model->newQuery()
+            ->with(['delivery', 'rating', 'shop:id,shop_name'])
+            ->where('user_id', $customerId)
+            ->where('status', 'completed')
+            ->doesntHave('rating')
+            ->latest('updated_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /** Whether the shop completed any order since the given time. */
+    public function hasCompletedSince(int $shopId, \DateTimeInterface $since): bool
+    {
+        return $this->model->newQuery()
+            ->where('shop_id', $shopId)
+            ->where('status', 'completed')
+            ->where('completed_at', '>=', $since)
+            ->exists();
+    }
+
     public function findForCustomerDelivery(string $paymentPublicId, int $customerId): ?ShopOrder
     {
         return $this->model->newQuery()

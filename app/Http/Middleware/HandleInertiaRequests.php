@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\RolePermission;
 use App\Models\Shop;
 use App\Services\NotificationService;
+use App\Services\PlatformRatingService;
 use App\Services\PlatformRoleService;
 use App\Services\ShopSetupService;
 use Illuminate\Foundation\Inspiring;
@@ -21,6 +22,7 @@ class HandleInertiaRequests extends Middleware
         private readonly PlatformRoleService $platformRoles,
         private readonly NotificationService $notifications,
         private readonly ShopSetupService $shopSetup,
+        private readonly PlatformRatingService $platformRatings,
     ) {}
 
     public function version(Request $request): ?string
@@ -143,6 +145,11 @@ class HandleInertiaRequests extends Middleware
             'unreadNotifications' => fn () => $request->user()
                 ? $this->notifications->unreadCount($request->user())
                 : 0,
+
+            // Owners only: ask them to rate LaundryHub after they complete an order, at most monthly.
+            'platformRatingPrompt' => fn () => $request->user()
+                ? $this->platformRatings->shouldPrompt($request->user())
+                : false,
 
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'toast' => fn () => $request->session()->get('toast'),

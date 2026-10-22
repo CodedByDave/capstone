@@ -47,6 +47,19 @@ class ShopRepository extends Repository
         return $shop->refresh();
     }
 
+    /** The owner's shop with its row locked for the rest of the surrounding transaction. */
+    public function lockForOwner(int $ownerId): ?Shop
+    {
+        return Shop::query()->where('owner_id', $ownerId)->lockForUpdate()->first();
+    }
+
+    public function markPlatformRatingPrompted(Shop $shop): Shop
+    {
+        $shop->update(['platform_rating_prompted_at' => now()]);
+
+        return $shop->refresh();
+    }
+
     public function updateSetup(Shop $shop, array $data): Shop
     {
         $shop->update($data);

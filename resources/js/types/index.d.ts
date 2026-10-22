@@ -56,6 +56,8 @@ export type AppPageProps<
     sidebarOpen: boolean;
     order: Order | null;
     shopCapabilities?: ShopCapabilities | null;
+    /** Owners only: the server wants them to rate LaundryHub now. */
+    platformRatingPrompt?: boolean;
 };
 
 export type BreadcrumbItemType = BreadcrumbItem;

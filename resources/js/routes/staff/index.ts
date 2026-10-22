@@ -9,6 +9,7 @@ import logs from './logs'
 import orders from './orders'
 import services from './services'
 import promotions from './promotions'
+import ratings from './ratings'
 import logisticsC73990 from './logistics'
 import payroll from './payroll'
 import reports from './reports'
@@ -181,6 +182,7 @@ logs: Object.assign(logs, logs),
 orders: Object.assign(orders, orders),
 services: Object.assign(services, services),
 promotions: Object.assign(promotions, promotions),
+ratings: Object.assign(ratings, ratings),
 logistics: Object.assign(logistics, logisticsC73990),
 payroll: Object.assign(payroll, payroll),
 reports: Object.assign(reports, reports),

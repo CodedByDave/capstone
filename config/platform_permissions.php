@@ -53,6 +53,7 @@ return [
         'shop/agreement*' => 'shop.settings',
         'shop/upgrade*' => 'shop.settings',
         'shop/checkout*' => 'shop.settings',
+        'shop/platform-rating*' => 'shop.dashboard',
         'shop/payment-history*' => 'payments.manage_own',
         'shop/payment*' => 'shop.settings',
     ],

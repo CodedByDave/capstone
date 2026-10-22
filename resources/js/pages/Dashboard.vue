@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import OrderRatingDialog from '@/components/customer/OrderRatingDialog.vue';
+import RatingSummary from '@/components/customer/RatingSummary.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -10,10 +12,11 @@ import {
     Navigation,
     Package,
     ShoppingBag,
+    Star,
     WashingMachine,
     X,
 } from 'lucide-vue-next';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -42,6 +45,14 @@ interface NearbyShop {
     starting_price: string | null;
     starting_price_unit: 'kg' | 'bundle' | null;
     services_count: number;
+    rating_avg: number | null;
+    rating_count: number;
+}
+
+interface RatingPrompt {
+    payment_public_id: string;
+    order_number: string;
+    shop_name: string;
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -50,9 +61,13 @@ const props = defineProps<{
     recentOrders: RecentOrder[];
     totalOrders: number;
     nearbyShops: NearbyShop[];
+    ratingPrompt: RatingPrompt | null;
     userLat: number | null;
     userLng: number | null;
 }>();
+
+// The "rate your recent order" popup; the card opens it.
+const ratingOpen = ref(false);
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -66,6 +81,17 @@ const greeting = computed(() => {
 });
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
+
+// A rating sent from the card on this page comes back to the same page without remounting it,
+// so the first-load check below would never show its message.
+watch(
+    () => page.props.toast as { type: string; message: string } | undefined,
+    (flash) => {
+        if (!flash?.message) return;
+        if (flash.type === 'success') toast.success(flash.message);
+        else if (flash.type === 'error') toast.error(flash.message);
+    },
+);
 
 onMounted(() => {
     const flashToast = page.props.toast as
@@ -258,6 +284,40 @@ function shopGradient(id: number) {
                 </div>
             </div>
 
+            <!-- ── Rate your recent order ─────────────────────── -->
+            <div
+                v-if="ratingPrompt"
+                class="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm"
+            >
+                <Star
+                    class="h-8 w-8 shrink-0 fill-amber-400 text-amber-400"
+                    aria-hidden="true"
+                />
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-gray-800">
+                        How was your laundry?
+                    </p>
+                    <p class="truncate text-xs text-gray-600">
+                        Rate order #{{ ratingPrompt.order_number }} at
+                        {{ ratingPrompt.shop_name }}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    class="shrink-0 rounded-xl bg-amber-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-600"
+                    @click="ratingOpen = true"
+                >
+                    Rate now
+                </button>
+            </div>
+            <OrderRatingDialog
+                v-if="ratingPrompt"
+                v-model:open="ratingOpen"
+                :payment-public-id="ratingPrompt.payment_public_id"
+                :order-number="ratingPrompt.order_number"
+                :shop-name="ratingPrompt.shop_name"
+            />
+
             <!-- ── Location Permission Banner ────────────────── -->
             <div
                 v-if="showLocationBanner"
@@ -424,6 +484,10 @@ function shopGradient(id: number) {
                                 <span v-else class="text-[10px] text-gray-400"
                                     >{{ shop.services_count }} services</span
                                 >
+                                <RatingSummary
+                                    :average="shop.rating_avg"
+                                    :count="shop.rating_count"
+                                />
                                 <ChevronRight
                                     class="h-3.5 w-3.5 shrink-0 text-gray-300"
                                 />

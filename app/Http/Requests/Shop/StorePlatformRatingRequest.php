@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Http\Requests\Shop;
+
+use App\Models\OrderRating;
+use Illuminate\Foundation\Http\FormRequest;
+
+class StorePlatformRatingRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        // Only the shop owner speaks for the shop; staff are never asked.
+        return $this->user()?->isOwner() === true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $comment = $this->input('comment');
+
+        $this->merge([
+            'comment' => is_string($comment) && trim($comment) !== '' ? trim($comment) : null,
+        ]);
+    }
+
+    public function rules(): array
+    {
+        return [
+            'rating' => ['required', 'integer', 'between:'.OrderRating::MIN.','.OrderRating::MAX],
+            'comment' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'rating.required' => 'Choose a star rating.',
+            'rating.between' => 'The rating must be between 1 and 5 stars.',
+            'comment.max' => 'Keep the comment to 500 characters or fewer.',
+        ];
+    }
+}

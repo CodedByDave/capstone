@@ -96,7 +96,7 @@ class OrderNotification extends Notification
     {
         return match ($order->status) {
             'in_progress' => "Your laundry at {$order->shop->shop_name} is now being washed. Order #{$order->order_number}.",
-            'completed' => "Your laundry is ready for pickup! Order #{$order->order_number} at {$order->shop->shop_name}.",
+            'completed' => "Your laundry is ready for pickup! Order #{$order->order_number} at {$order->shop->shop_name}.".($order->pickup_type === 'pickup' || $order->deliver_to_customer ? '' : ' How did we do? Rate your order.'),
             default => "Order #{$order->order_number} status updated to {$order->status}.",
         };
     }

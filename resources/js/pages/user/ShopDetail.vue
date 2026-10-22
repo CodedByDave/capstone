@@ -4,6 +4,7 @@ import BillingBreakdown, {
     type BillingBreakdown as BillingBreakdownData,
 } from '@/components/customer/BillingBreakdown.vue';
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
+import RatingSummary from '@/components/customer/RatingSummary.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -66,6 +67,8 @@ interface ShopInfo {
     distance_km: number | null;
     offers_pickup: boolean;
     offers_delivery: boolean;
+    rating_avg: number | null;
+    rating_count: number;
     payment_options: Record<
         'cash' | 'gcash' | 'maya',
         'at_shop' | 'online' | 'qr' | 'unavailable'
@@ -350,6 +353,14 @@ function goBack() {
                 <p v-if="shop.branch_name" class="mt-0.5 text-sm text-white/80">
                     {{ shop.branch_name }}
                 </p>
+                <div
+                    class="mt-1.5 inline-flex rounded-full bg-white/90 px-2.5 py-1"
+                >
+                    <RatingSummary
+                        :average="shop.rating_avg"
+                        :count="shop.rating_count"
+                    />
+                </div>
             </div>
         </div>
 

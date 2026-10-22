@@ -7,6 +7,7 @@ use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerShopCatalogService;
+use App\Services\OrderRatingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,7 @@ class UserDashboardController extends Controller
     public function __construct(
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly CustomerShopCatalogService $catalog,
+        private readonly OrderRatingService $ratings,
     ) {}
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
@@ -73,11 +75,18 @@ class UserDashboardController extends Controller
                 ->take(5)
                 ->values()
                 ->toArray();
+
+            $summaries = $this->ratings->summariesFor(array_column($nearbyShops, 'id'));
+            $nearbyShops = array_map(fn (array $shop) => $shop + [
+                'rating_avg' => $summaries[$shop['id']]['average'] ?? null,
+                'rating_count' => $summaries[$shop['id']]['count'] ?? 0,
+            ], $nearbyShops);
         }
 
         return Inertia::render('Dashboard', [
             'recentOrders' => $recentOrders,
             'totalOrders' => ShopOrder::where('user_id', $user->id)->count(),
+            'ratingPrompt' => $this->ratings->promptFor($user),
             'nearbyShops' => $nearbyShops,
             'userLat' => $lat,
             'userLng' => $lng,
@@ -107,7 +116,10 @@ class UserDashboardController extends Controller
             });
         }
 
-        $shops = $query->get()->map(function ($shop) use ($lat, $lng) {
+        $found = $query->get();
+        $summaries = $this->ratings->summariesFor($found->pluck('id')->all());
+
+        $shops = $found->map(function ($shop) use ($lat, $lng, $summaries) {
             $data = $shop->toArray();
             $data['cover_photo'] = $this->coverUrl($shop->cover_photo);
             $data['distance_km'] = ($lat && $lng && $shop->latitude && $shop->longitude)
@@ -118,6 +130,8 @@ class UserDashboardController extends Controller
             $data['starting_price'] = $startingPrice['amount'];
             $data['starting_price_unit'] = $startingPrice['unit'];
             $data['services_count'] = $shop->services->count();
+            $data['rating_avg'] = $summaries[$shop->id]['average'] ?? null;
+            $data['rating_count'] = $summaries[$shop->id]['count'] ?? 0;
 
             return $data;
         });
@@ -165,6 +179,8 @@ class UserDashboardController extends Controller
             ? $this->haversine($lat, $lng, $shop->latitude, $shop->longitude)
             : null;
 
+        $rating = $this->ratings->summariesFor([$shop->id])[$shop->id] ?? null;
+
         return Inertia::render('user/ShopDetail', [
             'shop' => [
                 'id' => $shop->id,
@@ -183,6 +199,8 @@ class UserDashboardController extends Controller
                 'distance_km' => $distance,
                 'offers_pickup' => (bool) $shop->offers_pickup,
                 'offers_delivery' => $shop->canDeliver(),
+                'rating_avg' => $rating['average'] ?? null,
+                'rating_count' => $rating['count'] ?? 0,
             ],
             'services' => $services,
             'customerAgreement' => $this->customerAgreementService->agreementData($shop),

@@ -9,6 +9,7 @@ import ShopDataController from './ShopDataController'
 import Employee from './Employee'
 import Inventory from './Inventory'
 import Operations from './Operations'
+import PlatformRatingController from './PlatformRatingController'
 import ReportsController from './ReportsController'
 import Finance from './Finance'
 import PaymentQrController from './PaymentQrController'
@@ -28,6 +29,7 @@ ShopDataController: Object.assign(ShopDataController, ShopDataController),
 Employee: Object.assign(Employee, Employee),
 Inventory: Object.assign(Inventory, Inventory),
 Operations: Object.assign(Operations, Operations),
+PlatformRatingController: Object.assign(PlatformRatingController, PlatformRatingController),
 ReportsController: Object.assign(ReportsController, ReportsController),
 Finance: Object.assign(Finance, Finance),
 PaymentQrController: Object.assign(PaymentQrController, PaymentQrController),
