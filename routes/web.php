@@ -33,7 +33,7 @@ use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use App\Http\Controllers\Shop\PaymentHistoryController;
-use App\Http\Controllers\Shop\PaymentQrController;
+use App\Http\Controllers\Shop\PaymentSettingsController;
 use App\Http\Controllers\Shop\PlatformRatingController as ShopPlatformRatingController;
 use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\ShopDashboardController;
@@ -308,7 +308,6 @@ Route::prefix('shop')->middleware([
     Route::get('operations/orders/{order:payment_public_id}/edit', [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
     Route::put('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
     Route::delete('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
-    Route::post('operations/orders/{order:payment_public_id}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('shop.orders.payment-request');
     Route::post('operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('shop.orders.payments.store');
     Route::post('operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('shop.orders.payments.check');
     Route::post('operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('shop.orders.payments.void');
@@ -371,8 +370,7 @@ Route::prefix('shop')->middleware([
     Route::delete('/finance/categories/{category}', [ExpenseController::class, 'destroyCategory'])->name('finance.categories.destroy');
 
     // ── Payment QR ────────────────────────────────────────────────────────────
-    Route::get('/payment-qr', [PaymentQrController::class, 'index'])->name('shop.payment-qr');
-    Route::post('/payment-qr', [PaymentQrController::class, 'update'])->name('shop.payment-qr.update');
+    Route::get('/payment-settings', [PaymentSettingsController::class, 'index'])->name('shop.payment-settings');
 
     // ── Shop Settings ─────────────────────────────────────────────────────────
     // ── Upgrade Plan ──────────────────────────────────────────────────────────
@@ -578,7 +576,6 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('staff.orders.payments.store');
         Route::post('/operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('staff.orders.payments.check');
         Route::post('/operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('staff.orders.payments.void');
-        Route::post('/operations/orders/{order:payment_public_id}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('staff.orders.payment-request');
         Route::post('/operations/orders/{order:payment_public_id}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
             ->middleware('shop.capability:delivery')
             ->name('staff.orders.send-for-delivery');

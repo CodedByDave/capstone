@@ -255,7 +255,7 @@ checkout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     checkout.form = checkoutForm
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:185
  * @route '/shop/orders/{order}/status'
  */
 export const status = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -270,7 +270,7 @@ status.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:185
  * @route '/shop/orders/{order}/status'
  */
 status.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -303,7 +303,7 @@ status.url = (args: { order: string | { payment_public_id: string } } | [order: 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:185
  * @route '/shop/orders/{order}/status'
  */
 status.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -313,7 +313,7 @@ status.patch = (args: { order: string | { payment_public_id: string } } | [order
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:185
  * @route '/shop/orders/{order}/status'
  */
     const statusForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -328,7 +328,7 @@ status.patch = (args: { order: string | { payment_public_id: string } } | [order
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::status
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:222
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:185
  * @route '/shop/orders/{order}/status'
  */
         statusForm.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

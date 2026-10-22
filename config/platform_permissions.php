@@ -44,7 +44,7 @@ return [
         'shop/orders*' => 'shop.operations',
         'shop/logistics*' => 'shop.operations',
         'shop/finance*' => 'shop.finance',
-        'shop/payment-qr*' => 'shop.finance',
+        'shop/payment-settings*' => 'shop.finance',
         'shop/reports*' => 'shop.analytics',
         'shop/logs*' => 'shop.analytics',
         'shop/settings*' => 'shop.settings',

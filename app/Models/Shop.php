@@ -66,8 +66,6 @@ class Shop extends Model
         'latitude',
         'longitude',
         'cover_photo',
-        'gcash_qr',
-        'maya_qr',
         'paymongo_secret_key',
         'paymongo_public_key',
         'status',

@@ -151,11 +151,9 @@ test('the shop page is hidden for an inactive shop', function () {
         ->assertNotFound();
 });
 
-test('the shop page tells the customer how each payment method works', function () {
+test('the shop page tells the customer pays only through PayMongo', function () {
     $online = catalogShop('Online Shop');
     $online->forceFill(['paymongo_secret_key' => 'sk_test_x', 'paymongo_public_key' => 'pk_test_x'])->save();
-
-    $qr = catalogShop('QR Shop', ['gcash_qr' => 'qr/gcash.png']);
 
     $none = catalogShop('Plain Shop');
 
@@ -164,10 +162,6 @@ test('the shop page tells the customer how each payment method works', function 
     $this->actingAs($customer)->get(route('user.shops.show', $online))
         ->assertInertia(fn (Assert $page) => $page
             ->where('shop.payment_options', ['cash' => 'at_shop', 'gcash' => 'online', 'maya' => 'online']));
-
-    $this->actingAs($customer)->get(route('user.shops.show', $qr))
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('shop.payment_options', ['cash' => 'at_shop', 'gcash' => 'qr', 'maya' => 'unavailable']));
 
     $this->actingAs($customer)->get(route('user.shops.show', $none))
         ->assertInertia(fn (Assert $page) => $page

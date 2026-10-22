@@ -3,8 +3,6 @@ import UserLayout from '@/layouts/user/UserLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import {
     Bell,
-    ChevronDown,
-    ChevronUp,
     Clock,
     CreditCard,
     Inbox,
@@ -12,7 +10,6 @@ import {
     Truck,
     WashingMachine,
 } from 'lucide-vue-next';
-import { ref } from 'vue';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,16 +19,10 @@ interface NotificationData {
     order_id?: number;
     payment_public_id?: string;
     order_number?: string;
-    type:
-        | 'placed'
-        | 'status_changed'
-        | 'payment_updated'
-        | 'payment_request'
-        | 'delivery_updated';
+    type: 'placed' | 'status_changed' | 'payment_updated' | 'delivery_updated';
     status?: string;
     payment_status?: string;
     amount?: string;
-    qr_url?: string | null;
     delivery_id?: number;
     delivery_status?: string;
 }
@@ -49,20 +40,6 @@ defineProps<{
     notifications: Notification[];
 }>();
 
-// ─── Expanded QR state ────────────────────────────────────────────────────────
-
-const expandedQr = ref<Set<string>>(new Set());
-
-function toggleQr(id: string) {
-    if (expandedQr.value.has(id)) {
-        expandedQr.value.delete(id);
-    } else {
-        expandedQr.value.add(id);
-    }
-    // trigger reactivity
-    expandedQr.value = new Set(expandedQr.value);
-}
-
 // ─── Computed ─────────────────────────────────────────────────────────────────
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -71,7 +48,6 @@ function notifIcon(type: string) {
     if (type === 'placed') return Package;
     if (type === 'status_changed') return WashingMachine;
     if (type === 'payment_updated') return CreditCard;
-    if (type === 'payment_request') return CreditCard;
     if (type === 'delivery_updated') return Truck;
     return Bell;
 }
@@ -82,7 +58,6 @@ function notifColor(n: Notification): string {
     const deliveryStatus = n.data.delivery_status;
     if (type === 'placed') return 'bg-blue-100 text-blue-600';
     if (type === 'payment_updated') return 'bg-green-100 text-green-600';
-    if (type === 'payment_request') return 'bg-violet-100 text-violet-600';
     if (type === 'delivery_updated') {
         if (deliveryStatus === 'delivered')
             return 'bg-emerald-100 text-emerald-600';
@@ -97,10 +72,6 @@ function notifColor(n: Notification): string {
 }
 
 function handleNotifClick(n: Notification) {
-    if (n.data.type === 'payment_request') {
-        toggleQr(n.id);
-        return;
-    }
     if (n.data.payment_public_id) {
         router.visit(`/user/orders/${n.data.payment_public_id}`);
     } else if (n.data.order_id) {
@@ -177,61 +148,6 @@ function handleNotifClick(n: Notification) {
                         <p class="mt-0.5 text-xs leading-relaxed text-gray-500">
                             {{ notif.data.body }}
                         </p>
-
-                        <!-- Payment request: tap to expand QR -->
-                        <template v-if="notif.data.type === 'payment_request'">
-                            <!-- Collapsed hint -->
-                            <div
-                                v-if="!expandedQr.has(notif.id)"
-                                class="mt-2 flex items-center gap-1.5 text-xs font-medium text-violet-600"
-                            >
-                                <CreditCard class="h-3.5 w-3.5 shrink-0" />
-                                Tap to view payment QR
-                                <ChevronDown class="ml-auto h-3.5 w-3.5" />
-                            </div>
-
-                            <!-- Expanded QR -->
-                            <div
-                                v-else
-                                class="mt-2 flex flex-col items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 p-4"
-                            >
-                                <p
-                                    class="text-xs font-semibold text-violet-700"
-                                >
-                                    Scan to pay
-                                </p>
-                                <img
-                                    v-if="notif.data.qr_url"
-                                    :src="notif.data.qr_url"
-                                    alt="Payment QR"
-                                    class="h-48 w-48 rounded-xl border border-violet-200 bg-white object-contain p-2"
-                                />
-                                <div
-                                    v-else
-                                    class="text-center text-xs text-amber-700"
-                                >
-                                    QR not available. Contact the shop directly.
-                                </div>
-                                <p class="text-base font-bold text-violet-900">
-                                    ₱{{
-                                        Number(
-                                            notif.data.amount,
-                                        ).toLocaleString('en-PH', {
-                                            minimumFractionDigits: 2,
-                                        })
-                                    }}
-                                </p>
-                                <p class="text-[11px] text-violet-500">
-                                    Open your GCash / Maya app and scan
-                                </p>
-                                <div
-                                    class="mt-1 flex items-center gap-1 text-xs text-violet-500"
-                                >
-                                    <ChevronUp class="h-3.5 w-3.5" /> Tap to
-                                    collapse
-                                </div>
-                            </div>
-                        </template>
 
                         <div
                             class="mt-1.5 flex items-center gap-1 text-[11px] text-gray-400"

@@ -36,7 +36,6 @@ import {
     List,
     Package,
     PieChart,
-    QrCode,
     Receipt,
     Scissors,
     Settings,
@@ -745,13 +744,15 @@ const hasOwnerAdministration = computed(() =>
                 <SidebarMenuItem v-if="ownerCan('shop.finance')">
                     <SidebarMenuButton
                         as-child
-                        :is-active="currentUrl.startsWith('/shop/payment-qr')"
+                        :is-active="
+                            currentUrl.startsWith('/shop/payment-settings')
+                        "
                     >
                         <Link
-                            href="/shop/payment-qr"
+                            href="/shop/payment-settings"
                             class="flex w-full items-center gap-2"
                         >
-                            <QrCode class="h-4 w-4" />
+                            <CreditCard class="h-4 w-4" />
                             <span>Payment Settings</span>
                         </Link>
                     </SidebarMenuButton>

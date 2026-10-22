@@ -266,7 +266,7 @@ class OrderPaymentService
         $order = $order->fresh(['shop', 'customer']);
 
         if ($order?->user_id) {
-            $order->customer?->notify(new OrderNotification($order, 'payment_updated', null, $amount));
+            $order->customer?->notify(new OrderNotification($order, 'payment_updated', $amount));
         }
     }
 

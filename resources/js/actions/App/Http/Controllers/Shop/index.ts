@@ -12,7 +12,7 @@ import Operations from './Operations'
 import PlatformRatingController from './PlatformRatingController'
 import ReportsController from './ReportsController'
 import Finance from './Finance'
-import PaymentQrController from './PaymentQrController'
+import PaymentSettingsController from './PaymentSettingsController'
 import UpgradeController from './UpgradeController'
 import ShopSettingsController from './ShopSettingsController'
 import LogisticsController from './LogisticsController'
@@ -32,7 +32,7 @@ Operations: Object.assign(Operations, Operations),
 PlatformRatingController: Object.assign(PlatformRatingController, PlatformRatingController),
 ReportsController: Object.assign(ReportsController, ReportsController),
 Finance: Object.assign(Finance, Finance),
-PaymentQrController: Object.assign(PaymentQrController, PaymentQrController),
+PaymentSettingsController: Object.assign(PaymentSettingsController, PaymentSettingsController),
 UpgradeController: Object.assign(UpgradeController, UpgradeController),
 ShopSettingsController: Object.assign(ShopSettingsController, ShopSettingsController),
 LogisticsController: Object.assign(LogisticsController, LogisticsController),

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { AppPageProps } from '@/types';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Bell, ClipboardList, Home, Store, User } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 const page = usePage<AppPageProps>();
@@ -33,19 +32,6 @@ async function pollNotifications() {
         for (const n of data.unread) {
             if (seenIds.value.has(n.id)) continue;
             seenIds.value.add(n.id);
-
-            if (n.type === 'payment_request') {
-                toast(n.title, {
-                    type: 'info',
-                    position: 'top-center',
-                    autoClose: false,
-                    closeOnClick: false,
-                    theme: 'colored',
-                    icon: '💳',
-                    onClick: () => router.visit('/user/notifications'),
-                    toastStyle: { cursor: 'pointer' },
-                });
-            }
         }
     } catch {
         // silently ignore network errors

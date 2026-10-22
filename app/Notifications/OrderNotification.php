@@ -9,8 +9,7 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string $event, // placed | weight_confirmed | status_changed | payment_updated | payment_request | cancelled
-        public readonly ?string $qrUrl = null,
+        public readonly string $event, // placed | weight_confirmed | status_changed | payment_updated | cancelled
         // The payment just received, so the message can say how much and what is left.
         public readonly ?float $amount = null,
     ) {}
@@ -62,16 +61,6 @@ class OrderNotification extends Notification
                 'order_number' => $order->order_number,
                 'type' => 'payment_updated',
                 'payment_status' => $order->payment_status,
-            ],
-            'payment_request' => [
-                'title' => 'Payment request from '.$order->shop->shop_name,
-                'body' => 'Please pay ₱'.number_format($order->balanceDue(), 2)." for order #{$order->order_number} via ".strtoupper($order->payment_method).'.',
-                'order_id' => $order->id,
-                'payment_public_id' => $order->payment_public_id,
-                'order_number' => $order->order_number,
-                'type' => 'payment_request',
-                'amount' => $order->balanceDue(),
-                'qr_url' => $this->qrUrl,
             ],
             'cancelled' => [
                 'title' => 'Order cancelled',

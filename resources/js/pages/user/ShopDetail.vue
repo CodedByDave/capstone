@@ -60,8 +60,6 @@ interface ShopInfo {
     municipality: string;
     barangay: string;
     cover_photo: string | null;
-    gcash_qr: string | null;
-    maya_qr: string | null;
     latitude: number | null;
     longitude: number | null;
     distance_km: number | null;
@@ -71,7 +69,7 @@ interface ShopInfo {
     rating_count: number;
     payment_options: Record<
         'cash' | 'gcash' | 'maya',
-        'at_shop' | 'online' | 'qr' | 'unavailable'
+        'at_shop' | 'online' | 'unavailable'
     >;
 }
 
@@ -144,13 +142,6 @@ function paymentNote(method: string): { text: string; warn: boolean } {
     if (mode === 'online') {
         return {
             text: 'Pay online after the shop confirms the actual weight and final amount.',
-            warn: false,
-        };
-    }
-
-    if (mode === 'qr') {
-        return {
-            text: `The shop sends its ${label} QR code once the final amount is confirmed.`,
             warn: false,
         };
     }

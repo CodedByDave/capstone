@@ -34,7 +34,7 @@ class CustomerShopCatalogService
 
     /**
      * How a customer can pay this shop for each method:
-     * "online" (hosted checkout), "qr" (shop sends its QR), "unavailable" (not set up), or "at_shop".
+     * "online" (PayMongo checkout), "unavailable" (not set up), or "at_shop".
      *
      * @return array{cash: string, gcash: string, maya: string}
      */
@@ -42,16 +42,15 @@ class CustomerShopCatalogService
     {
         return [
             'cash' => 'at_shop',
-            'gcash' => $this->walletMode($shop, $shop->gcash_qr),
-            'maya' => $this->walletMode($shop, $shop->maya_qr),
+            'gcash' => $this->walletMode($shop),
+            'maya' => $this->walletMode($shop),
         ];
     }
 
-    private function walletMode(Shop $shop, ?string $qr): string
+    private function walletMode(Shop $shop): string
     {
         return match (true) {
             $shop->hasPaymongo() => 'online',
-            ! empty($qr) => 'qr',
             default => 'unavailable',
         };
     }

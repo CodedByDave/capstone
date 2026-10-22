@@ -193,8 +193,6 @@ class UserDashboardController extends Controller
                 'latitude' => $shop->latitude,
                 'longitude' => $shop->longitude,
                 'cover_photo' => $this->coverUrl($shop->cover_photo),
-                'gcash_qr' => $this->qrUrl($shop->gcash_qr),
-                'maya_qr' => $this->qrUrl($shop->maya_qr),
                 'payment_options' => $this->catalog->paymentOptions($shop),
                 'distance_km' => $distance,
                 'offers_pickup' => (bool) $shop->offers_pickup,
@@ -210,15 +208,6 @@ class UserDashboardController extends Controller
     }
 
     // ─── URL helpers ──────────────────────────────────────────────────────────
-
-    private function qrUrl(?string $value): ?string
-    {
-        if (! $value) {
-            return null;
-        }
-
-        return str_starts_with($value, 'http') ? $value : \Storage::disk('public')->url($value);
-    }
 
     private function coverUrl(?string $value): ?string
     {

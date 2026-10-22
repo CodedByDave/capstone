@@ -9,7 +9,6 @@ import orders from './orders'
 import ratings from './ratings'
 import platformRating from './platform-rating'
 import services from './services'
-import paymentQrBef25d from './payment-qr'
 import upgradeE62d79 from './upgrade'
 import settings69f00b from './settings'
 import logisticsC73990 from './logistics'
@@ -1157,74 +1156,74 @@ permission.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     permission.form = permissionForm
 /**
-* @see \App\Http\Controllers\Shop\PaymentQrController::paymentQr
- * @see app/Http/Controllers/Shop/PaymentQrController.php:39
- * @route '/shop/payment-qr'
+* @see \App\Http\Controllers\Shop\PaymentSettingsController::paymentSettings
+ * @see app/Http/Controllers/Shop/PaymentSettingsController.php:13
+ * @route '/shop/payment-settings'
  */
-export const paymentQr = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: paymentQr.url(options),
+export const paymentSettings = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: paymentSettings.url(options),
     method: 'get',
 })
 
-paymentQr.definition = {
+paymentSettings.definition = {
     methods: ["get","head"],
-    url: '/shop/payment-qr',
+    url: '/shop/payment-settings',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see \App\Http\Controllers\Shop\PaymentQrController::paymentQr
- * @see app/Http/Controllers/Shop/PaymentQrController.php:39
- * @route '/shop/payment-qr'
+* @see \App\Http\Controllers\Shop\PaymentSettingsController::paymentSettings
+ * @see app/Http/Controllers/Shop/PaymentSettingsController.php:13
+ * @route '/shop/payment-settings'
  */
-paymentQr.url = (options?: RouteQueryOptions) => {
-    return paymentQr.definition.url + queryParams(options)
+paymentSettings.url = (options?: RouteQueryOptions) => {
+    return paymentSettings.definition.url + queryParams(options)
 }
 
 /**
-* @see \App\Http\Controllers\Shop\PaymentQrController::paymentQr
- * @see app/Http/Controllers/Shop/PaymentQrController.php:39
- * @route '/shop/payment-qr'
+* @see \App\Http\Controllers\Shop\PaymentSettingsController::paymentSettings
+ * @see app/Http/Controllers/Shop/PaymentSettingsController.php:13
+ * @route '/shop/payment-settings'
  */
-paymentQr.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: paymentQr.url(options),
+paymentSettings.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: paymentSettings.url(options),
     method: 'get',
 })
 /**
-* @see \App\Http\Controllers\Shop\PaymentQrController::paymentQr
- * @see app/Http/Controllers/Shop/PaymentQrController.php:39
- * @route '/shop/payment-qr'
+* @see \App\Http\Controllers\Shop\PaymentSettingsController::paymentSettings
+ * @see app/Http/Controllers/Shop/PaymentSettingsController.php:13
+ * @route '/shop/payment-settings'
  */
-paymentQr.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: paymentQr.url(options),
+paymentSettings.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: paymentSettings.url(options),
     method: 'head',
 })
 
     /**
-* @see \App\Http\Controllers\Shop\PaymentQrController::paymentQr
- * @see app/Http/Controllers/Shop/PaymentQrController.php:39
- * @route '/shop/payment-qr'
+* @see \App\Http\Controllers\Shop\PaymentSettingsController::paymentSettings
+ * @see app/Http/Controllers/Shop/PaymentSettingsController.php:13
+ * @route '/shop/payment-settings'
  */
-    const paymentQrForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: paymentQr.url(options),
+    const paymentSettingsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: paymentSettings.url(options),
         method: 'get',
     })
 
             /**
-* @see \App\Http\Controllers\Shop\PaymentQrController::paymentQr
- * @see app/Http/Controllers/Shop/PaymentQrController.php:39
- * @route '/shop/payment-qr'
+* @see \App\Http\Controllers\Shop\PaymentSettingsController::paymentSettings
+ * @see app/Http/Controllers/Shop/PaymentSettingsController.php:13
+ * @route '/shop/payment-settings'
  */
-        paymentQrForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: paymentQr.url(options),
+        paymentSettingsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: paymentSettings.url(options),
             method: 'get',
         })
             /**
-* @see \App\Http\Controllers\Shop\PaymentQrController::paymentQr
- * @see app/Http/Controllers/Shop/PaymentQrController.php:39
- * @route '/shop/payment-qr'
+* @see \App\Http\Controllers\Shop\PaymentSettingsController::paymentSettings
+ * @see app/Http/Controllers/Shop/PaymentSettingsController.php:13
+ * @route '/shop/payment-settings'
  */
-        paymentQrForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: paymentQr.url({
+        paymentSettingsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: paymentSettings.url({
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
                             ...(options?.query ?? options?.mergeQuery ?? {}),
@@ -1233,7 +1232,7 @@ paymentQr.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
     
-    paymentQr.form = paymentQrForm
+    paymentSettings.form = paymentSettingsForm
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::upgrade
  * @see app/Http/Controllers/Shop/UpgradeController.php:32
@@ -1492,7 +1491,7 @@ orders: Object.assign(orders, orders),
 ratings: Object.assign(ratings, ratings),
 platformRating: Object.assign(platformRating, platformRating),
 services: Object.assign(services, services),
-paymentQr: Object.assign(paymentQr, paymentQrBef25d),
+paymentSettings: Object.assign(paymentSettings, paymentSettings),
 upgrade: Object.assign(upgrade, upgradeE62d79),
 settings: Object.assign(settings, settings69f00b),
 logistics: Object.assign(logistics, logisticsC73990),

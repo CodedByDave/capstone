@@ -19,7 +19,6 @@ import {
     Loader2,
     Package,
     Pencil,
-    Send,
     Truck,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -75,8 +74,6 @@ const props = defineProps<{
         has_address: boolean;
         address: string | null;
     };
-    gcash_qr: string | null;
-    maya_qr: string | null;
     customerAgreement: {
         title: string;
         version: string;
@@ -86,45 +83,9 @@ const props = defineProps<{
     } | null;
 }>();
 
-const sending = ref(false);
-
-const activeQr = computed(() => {
-    if (props.shopOrder.payment_method === 'gcash') return props.gcash_qr;
-    if (props.shopOrder.payment_method === 'maya') return props.maya_qr;
-    return null;
-});
-
-const isDigitalPayment = computed(() =>
-    ['gcash', 'maya'].includes(props.shopOrder.payment_method),
-);
-
 const isAwaitingWeight = computed(
     () => props.shopOrder.actual_weight_kg === null,
 );
-
-function sendPaymentRequest() {
-    sending.value = true;
-    router.post(
-        `${base.value}/${props.shopOrder.payment_public_id}/payment-request`,
-        {},
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(
-                    `Payment request sent to ${props.shopOrder.customer_name} successfully.`,
-                );
-            },
-            onError: () => {
-                toast.error(
-                    'Failed to send payment request. Please try again.',
-                );
-            },
-            onFinish: () => {
-                sending.value = false;
-            },
-        },
-    );
-}
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
@@ -770,102 +731,11 @@ const statusIcon = (s: string) =>
                         :base="base"
                     />
 
-                    <!-- GCash / Maya Payment Request -->
                     <CustomerServiceAgreement
                         v-if="customerAgreement"
                         :agreement="customerAgreement"
                         readonly
                     />
-
-                    <Card v-if="isDigitalPayment">
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <CreditCard class="h-4 w-4" />
-                                {{ shopOrder.payment_method.toUpperCase() }}
-                                Payment
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent class="space-y-4">
-                            <!-- QR code -->
-                            <div
-                                v-if="activeQr"
-                                class="flex flex-col items-center gap-2"
-                            >
-                                <p
-                                    class="text-center text-xs text-muted-foreground"
-                                >
-                                    Show or share this QR for the customer to
-                                    scan
-                                </p>
-                                <img
-                                    :src="activeQr"
-                                    :alt="`${shopOrder.payment_method} QR`"
-                                    class="h-44 w-44 rounded-xl border bg-white object-contain p-2"
-                                />
-                                <p class="text-sm font-bold">
-                                    {{
-                                        formatCurrency(
-                                            Number(shopOrder.total_amount) -
-                                                Number(shopOrder.amount_paid),
-                                        )
-                                    }}
-                                </p>
-                            </div>
-                            <div
-                                v-else
-                                class="rounded-lg bg-amber-50 p-3 text-xs text-amber-700"
-                            >
-                                No QR code set up yet. Go to
-                                <a
-                                    href="/shop/payment-qr"
-                                    class="font-medium underline"
-                                    >Payment QR</a
-                                >
-                                in settings to add one.
-                            </div>
-
-                            <!-- Send in-app notification -->
-                            <Button
-                                class="w-full"
-                                :disabled="
-                                    sending ||
-                                    isAwaitingWeight ||
-                                    shopOrder.payment_status === 'paid'
-                                "
-                                @click="sendPaymentRequest"
-                            >
-                                <Loader2
-                                    v-if="sending"
-                                    class="mr-2 h-4 w-4 animate-spin"
-                                />
-                                <Send v-else class="mr-2 h-4 w-4" />
-                                {{
-                                    sending
-                                        ? 'Sending…'
-                                        : 'Send Payment Request to Customer'
-                                }}
-                            </Button>
-                            <p
-                                v-if="isAwaitingWeight"
-                                class="text-center text-xs text-amber-600"
-                            >
-                                Record the actual weight before requesting
-                                payment.
-                            </p>
-                            <p
-                                v-if="shopOrder.payment_status === 'paid'"
-                                class="text-center text-xs text-emerald-600"
-                            >
-                                Order is already fully paid.
-                            </p>
-                            <p
-                                class="text-center text-xs text-muted-foreground"
-                            >
-                                Sends an in-app notification with the amount and
-                                QR link.
-                            </p>
-                        </CardContent>
-                    </Card>
 
                     <!-- Dates -->
                     <Card>

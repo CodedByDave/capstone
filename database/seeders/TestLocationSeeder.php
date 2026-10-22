@@ -142,8 +142,6 @@ class TestLocationSeeder extends Seeder
         );
         $shop3->update([
             'cover_photo' => 'https://picsum.photos/seed/brightsuds/800/400',
-            'gcash_qr' => 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=GCash%3A09391234567%20BrightSuds%20Laundromat&margin=10',
-            'maya_qr' => 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=Maya%3A09391234567%20BrightSuds%20Laundromat&margin=10',
         ]);
 
         $this->command->info("Shops created: {$shop1->shop_name}, {$shop2->shop_name}, {$shop3->shop_name}");

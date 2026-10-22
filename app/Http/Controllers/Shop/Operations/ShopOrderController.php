@@ -15,7 +15,6 @@ use App\Models\Inventory;
 use App\Models\Promotion;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
-use App\Notifications\OrderNotification;
 use App\Services\CustomerAgreementService;
 use App\Services\LogisticsService;
 use App\Services\OrderPaymentService;
@@ -24,7 +23,6 @@ use App\Services\ShopOrderService;
 use App\Traits\BranchScoped;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -126,16 +124,11 @@ class ShopOrderController extends Controller
     {
         $order->load(['service', 'supplies', 'shop']);
 
-        $shop = $order->shop;
-        $qrUrl = fn (?string $path) => $path ? Storage::disk('public')->url($path) : null;
-
         return Inertia::render('shop/operations/orders/Show', [
             'shopOrder' => $order,
             'customerAgreement' => $this->customerAgreementService->acceptanceData($order),
             'deliveryOption' => $this->logistics->deliveryOptionFor($order),
             'payments' => ShopOrderPaymentResource::collection($this->payments->history($order))->resolve(),
-            'gcash_qr' => $qrUrl($shop->gcash_qr),
-            'maya_qr' => $qrUrl($shop->maya_qr),
         ]);
     }
 
@@ -148,36 +141,6 @@ class ShopOrderController extends Controller
             'message' => $delivery->rider_id
                 ? "Order {$order->order_number} sent for delivery and a rider was assigned."
                 : "Order {$order->order_number} sent for delivery. Assign a rider in Logistics.",
-        ]);
-    }
-
-    public function sendPaymentRequest(ShopOrder $order): RedirectResponse
-    {
-        if (! in_array($order->payment_method, ['gcash', 'maya'])) {
-            return back()->with('toast', [
-                'type' => 'error',
-                'message' => 'Payment request can only be sent for GCash or Maya orders.',
-            ]);
-        }
-
-        $customer = $order->customer;
-
-        if (! $customer) {
-            return back()->with('toast', [
-                'type' => 'error',
-                'message' => 'This order has no linked customer account to notify.',
-            ]);
-        }
-
-        $shop = $order->shop;
-        $qrPath = $order->payment_method === 'gcash' ? $shop->gcash_qr : $shop->maya_qr;
-        $qrUrl = $qrPath ? Storage::disk('public')->url($qrPath) : null;
-
-        $customer->notify(new OrderNotification($order, 'payment_request', $qrUrl));
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => 'Payment request sent to customer.',
         ]);
     }
 
