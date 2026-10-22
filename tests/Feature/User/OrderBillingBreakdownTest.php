@@ -277,3 +277,32 @@ test('an order placed by a customer stores the same estimate the breakdown quote
     expect((float) $order->total_amount)->toBe($quoted['total'])
         ->and((int) $order->bundle_quantity)->toBe(2);
 });
+
+test('a breakdown lists the delivery fee as its own line and keeps the balance due', function () {
+    $customer = billingCustomer();
+    $order = billingOrder($customer, billingService(billingShop()), [
+        'actual_weight_kg' => 3,
+        'additional_charges' => 20,
+        'discount_amount' => 10,
+        'delivery_fee' => 45,
+        'total_amount' => 235,
+        'amount_paid' => 190,
+        'payment_status' => 'partial',
+    ]);
+
+    $breakdown = app(OrderBillingBreakdownService::class)->forOrder($order);
+
+    expect($breakdown['service']['amount'])->toBe(180.0)
+        ->and($breakdown['additional_charges'])->toBe(20.0)
+        ->and($breakdown['discount'])->toBe(10.0)
+        ->and($breakdown['delivery_fee'])->toBe(45.0)
+        ->and($breakdown['total'])->toBe(235.0)
+        ->and($breakdown['balance_due'])->toBe(45.0);
+});
+
+test('an unweighed estimate breakdown reports no delivery fee', function () {
+    $customer = billingCustomer();
+    $order = billingOrder($customer, billingService(billingShop()));
+
+    expect(app(OrderBillingBreakdownService::class)->forOrder($order)['delivery_fee'])->toBe(0.0);
+});

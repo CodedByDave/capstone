@@ -40,3 +40,27 @@ it('sends the national mobile number because PayMongo supplies the country prefi
             && $request['data']['attributes']['billing']['phone'] === '9123456789';
     });
 });
+
+it('charges only the balance due on a shop order checkout', function () {
+    Http::fake([
+        'https://api.paymongo.com/v1/checkout_sessions' => Http::response([
+            'data' => ['id' => 'cs_test_balance', 'attributes' => ['checkout_url' => 'https://checkout.paymongo.test/balance']],
+        ], 200),
+    ]);
+
+    // Laundry of 190 already paid; a 145 delivery fee was added afterwards.
+    $order = new \App\Models\ShopOrder([
+        'order_number' => 'ONL-BALANCE-1',
+        'customer_name' => 'Balance Customer',
+        'customer_phone' => '09181234567',
+        'payment_method' => 'gcash',
+        'total_amount' => 335,
+        'amount_paid' => 190,
+        'delivery_fee' => 145,
+    ]);
+    $order->payment_public_id = '01JBALANCEDUE0000000000000';
+
+    app(PaymongoService::class)->createShopOrderSession($order, 'sk_test_shop');
+
+    Http::assertSent(fn (Request $request) => $request['data']['attributes']['line_items'][0]['amount'] === 14500);
+});

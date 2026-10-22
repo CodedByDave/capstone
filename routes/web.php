@@ -52,6 +52,9 @@ use Laravel\Fortify\Features;
 // ── Driver / Rider routes ─────────────────────────
 Route::get('/driver/{token}', [DriverPageController::class, 'show']);
 Route::patch('/driver/{token}/status', [DriverPageController::class, 'updateStatus']);
+Route::post('/driver/{token}/location', [DriverPageController::class, 'updateLocation'])
+    ->middleware('throttle:60,1')
+    ->name('driver.location');
 
 Route::get('/', function () {
     return Inertia::render('Landing', [
@@ -366,6 +369,9 @@ Route::prefix('shop')->middleware([
     Route::post('/settings/cover-photo', [ShopSettingsController::class, 'updateCoverPhoto'])->name('shop.settings.cover-photo');
     Route::post('/settings/cover-photo/clear', [ShopSettingsController::class, 'removeCoverPhoto'])->name('shop.settings.cover-photo.clear');
     Route::post('/settings/paymongo', [ShopSettingsController::class, 'updatePaymongo'])->name('shop.settings.paymongo');
+    Route::patch('/settings/delivery-pricing', [ShopSettingsController::class, 'updateDeliveryPricing'])
+        ->middleware('shop.capability:delivery')
+        ->name('shop.settings.delivery-pricing');
 
     // ── Logistics ─────────────────────────────────────────────────────────────
     Route::middleware('shop.capability:delivery')->group(function () {
@@ -625,6 +631,13 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::post('/orders/{order:payment_public_id}/request-delivery', [UserOrderController::class, 'requestDelivery'])
         ->middleware('shop.capability:delivery')
         ->name('orders.request-delivery');
+    Route::post('/orders/{order:payment_public_id}/delivery-quote', [UserOrderController::class, 'deliveryQuote'])
+        ->middleware(['shop.capability:delivery', 'throttle:30,1'])
+        ->name('orders.delivery-quote');
+    Route::get('/orders/{paymentPublicId}/tracking', [UserOrderController::class, 'tracking'])
+        ->whereUlid('paymentPublicId')
+        ->middleware('throttle:120,1')
+        ->name('orders.tracking');
     Route::post('/orders/{order:payment_public_id}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{paymentPublicId}/pay-online', [UserPaymentController::class, 'pay'])->whereUlid('paymentPublicId')->name('orders.pay-online');
     Route::get('/orders/{paymentPublicId}/payment/demo', [UserPaymentController::class, 'demo'])->whereUlid('paymentPublicId')->name('orders.payment.demo');

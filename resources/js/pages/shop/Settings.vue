@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import DeliveryPricingCard, {
+    type DeliveryPricing,
+} from '@/components/business/DeliveryPricingCard.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -42,6 +45,7 @@ const props = defineProps<{
         status: string;
         cover_photo: string | null;
     };
+    deliveryPricing: DeliveryPricing;
 }>();
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
@@ -284,6 +288,9 @@ function clearGeo() {
                     </Button>
                 </CardContent>
             </Card>
+
+            <!-- ── Delivery Pricing ── -->
+            <DeliveryPricingCard :pricing="props.deliveryPricing" />
 
             <!-- ── Cover Photo ── -->
             <Card>

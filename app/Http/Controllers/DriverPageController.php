@@ -2,13 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\RiderLocationException;
+use App\Http\Requests\Driver\UpdateRiderLocationRequest;
 use App\Models\Delivery;
 use App\Notifications\DeliveryNotification;
+use App\Services\DeliveryTrackingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DriverPageController extends Controller
 {
+    public function updateLocation(
+        UpdateRiderLocationRequest $request,
+        DeliveryTrackingService $tracking,
+        string $token,
+    ): JsonResponse {
+        $data = $request->validated();
+
+        try {
+            $delivery = $tracking->updateRiderLocation($token, (float) $data['lat'], (float) $data['lng']);
+        } catch (RiderLocationException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 409);
+        }
+
+        return response()->json([
+            'message' => 'Location updated.',
+            'located_at' => $delivery->rider_located_at?->toIso8601String(),
+        ]);
+    }
+
     public function show(string $token)
     {
         $delivery = Delivery::where('driver_token', $token)
@@ -23,6 +46,8 @@ class DriverPageController extends Controller
                 'customer_name' => $delivery->customer_name,
                 'customer_phone' => $delivery->customer_phone,
                 'delivery_address' => $delivery->delivery_address,
+                'destination_lat' => $delivery->destination_lat,
+                'destination_lng' => $delivery->destination_lng,
                 'notes' => $delivery->notes,
                 'order_number' => $delivery->order?->order_number,
                 'shop_name' => $delivery->shop?->shop_name,

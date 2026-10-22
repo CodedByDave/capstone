@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::show
- * @see app/Http/Controllers/User/UserDashboardController.php:137
+ * @see app/Http/Controllers/User/UserDashboardController.php:142
  * @route '/user/shops/{shop}'
  */
 export const show = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::show
- * @see app/Http/Controllers/User/UserDashboardController.php:137
+ * @see app/Http/Controllers/User/UserDashboardController.php:142
  * @route '/user/shops/{shop}'
  */
 show.url = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ show.url = (args: { shop: number | { id: number } } | [shop: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::show
- * @see app/Http/Controllers/User/UserDashboardController.php:137
+ * @see app/Http/Controllers/User/UserDashboardController.php:142
  * @route '/user/shops/{shop}'
  */
 show.get = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ show.get = (args: { shop: number | { id: number } } | [shop: number | { id: numb
 })
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::show
- * @see app/Http/Controllers/User/UserDashboardController.php:137
+ * @see app/Http/Controllers/User/UserDashboardController.php:142
  * @route '/user/shops/{shop}'
  */
 show.head = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ show.head = (args: { shop: number | { id: number } } | [shop: number | { id: num
 
     /**
 * @see \App\Http\Controllers\User\UserDashboardController::show
- * @see app/Http/Controllers/User/UserDashboardController.php:137
+ * @see app/Http/Controllers/User/UserDashboardController.php:142
  * @route '/user/shops/{shop}'
  */
     const showForm = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ show.head = (args: { shop: number | { id: number } } | [shop: number | { id: num
 
             /**
 * @see \App\Http\Controllers\User\UserDashboardController::show
- * @see app/Http/Controllers/User/UserDashboardController.php:137
+ * @see app/Http/Controllers/User/UserDashboardController.php:142
  * @route '/user/shops/{shop}'
  */
         showForm.get = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ show.head = (args: { shop: number | { id: number } } | [shop: number | { id: num
         })
             /**
 * @see \App\Http\Controllers\User\UserDashboardController::show
- * @see app/Http/Controllers/User/UserDashboardController.php:137
+ * @see app/Http/Controllers/User/UserDashboardController.php:142
  * @route '/user/shops/{shop}'
  */
         showForm.head = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

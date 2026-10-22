@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\UpdateDeliveryPricingRequest;
 use App\Http\Requests\Shop\UpdatePaymongoSettingsRequest;
 use App\Models\Shop;
+use App\Services\ShopDeliveryPricingService;
 use App\Services\ShopPaymentSettingsService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -26,11 +29,12 @@ class ShopSettingsController extends Controller
         return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
     }
 
-    public function index()
+    public function index(ShopDeliveryPricingService $deliveryPricing)
     {
         $shop = $this->getShop();
 
         return Inertia::render('shop/Settings', [
+            'deliveryPricing' => $deliveryPricing->pageData(auth()->user()),
             'shop' => [
                 'shop_name' => $shop->shop_name,
                 'phone' => $shop->phone,
@@ -51,6 +55,18 @@ class ShopSettingsController extends Controller
         ShopPaymentSettingsService $paymentSettings,
     ) {
         return back()->with('toast', $paymentSettings->update($request->user(), $request->validated()));
+    }
+
+    public function updateDeliveryPricing(
+        UpdateDeliveryPricingRequest $request,
+        ShopDeliveryPricingService $deliveryPricing,
+    ): RedirectResponse {
+        $deliveryPricing->update($request->user(), $request->validated());
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Delivery pricing saved.',
+        ]);
     }
 
     public function updateCoverPhoto(Request $request)

@@ -40,6 +40,13 @@ class ShopRepository extends Repository
         return $shop->refresh();
     }
 
+    public function updateDeliveryPricing(Shop $shop, array $data): Shop
+    {
+        $shop->update($data);
+
+        return $shop->refresh();
+    }
+
     public function updateSetup(Shop $shop, array $data): Shop
     {
         $shop->update($data);

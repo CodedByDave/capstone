@@ -205,7 +205,7 @@ class PaymongoService
      */
     public function createShopOrderSession(ShopOrder $order, string $secretKey): array
     {
-        $amount = (int) round((float) $order->total_amount * 100);
+        $amount = (int) round($order->balanceDue() * 100);
 
         if ($amount < 10000) {
             throw new \Exception('Minimum payment amount is ₱100.00');

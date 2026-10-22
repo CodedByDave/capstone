@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Info, ReceiptText } from 'lucide-vue-next';
+import { Info, ReceiptText, Truck } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 export interface BillingBreakdown {
@@ -15,6 +15,7 @@ export interface BillingBreakdown {
     };
     additional_charges: number;
     discount: number;
+    delivery_fee?: number;
     total: number;
     amount_paid: number;
     balance_due: number;
@@ -90,6 +91,19 @@ const serviceDetail = computed(() => {
             <span class="text-gray-500">Additional charges</span>
             <span class="font-medium text-gray-700">{{
                 currency(breakdown.additional_charges)
+            }}</span>
+        </div>
+
+        <div
+            v-if="(breakdown.delivery_fee ?? 0) > 0"
+            class="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-sm"
+        >
+            <span class="flex items-center gap-1.5 text-gray-500">
+                <Truck class="h-3.5 w-3.5" />
+                Delivery fee
+            </span>
+            <span class="font-medium text-gray-700">{{
+                currency(breakdown.delivery_fee ?? 0)
             }}</span>
         </div>
 

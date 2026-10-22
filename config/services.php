@@ -41,6 +41,13 @@ return [
         'demo_secret_key' => env('PAYMONGO_DEMO_SECRET_KEY', 'sk_test_demoLaundryHubPanel2026'),
         'demo_public_key' => env('PAYMONGO_DEMO_PUBLIC_KEY', 'pk_test_demoLaundryHubPanel2026'),
     ],
+    // Public OSRM routing server used for delivery road distances (no API key).
+    // Point OSRM_URL at a self-hosted instance for production traffic.
+    'osrm' => [
+        'url' => env('OSRM_URL', 'https://router.project-osrm.org'),
+        'timeout' => (int) env('OSRM_TIMEOUT', 4),
+        'cache_ttl' => (int) env('OSRM_CACHE_TTL', 86400),
+    ],
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

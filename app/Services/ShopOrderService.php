@@ -191,12 +191,15 @@ class ShopOrderService
                     : (float) ($data['bundle_quantity'] ?? 1) * (float) $service->bundle_price;
             }
 
+            // A customer-requested delivery fee is owned by the delivery flow, not the edit form,
+            // so it is carried over from the stored order rather than read from the request.
             $data['total_amount'] = round(max(
                 0,
                 $baseAmount
                     + (float) ($data['additional_charges'] ?? 0)
                     - (float) ($data['discount_amount'] ?? 0),
-            ), 2);
+            ) + (float) $order->delivery_fee, 2);
+            unset($data['delivery_fee']);
 
             $amountPaid = (float) ($data['amount_paid'] ?? $order->amount_paid);
             $data['payment_status'] = match (true) {

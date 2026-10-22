@@ -111,3 +111,46 @@ test('an unweighed order without extras keeps the plain estimate', function () {
 
     expect((float) $updated->total_amount)->toBe(120.0);
 });
+
+test('a stored delivery fee stays in an unweighed order total with charges and discount', function () {
+    ['order' => $order, 'service' => $service] = orderTotalScenario();
+    $order->update(['delivery_fee' => 45]);
+
+    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), orderUpdatePayload($service, [
+        'additional_charges' => 20,
+        'discount_amount' => 10,
+        // A forged fee from the edit form must be ignored.
+        'delivery_fee' => 0,
+    ]));
+
+    // 2 kg x 60 = 120, + 20 - 10, + 45 delivery
+    expect((float) $updated->total_amount)->toBe(175.0)
+        ->and((float) $updated->delivery_fee)->toBe(45.0);
+});
+
+test('a stored delivery fee stays in a weighed order total and keeps the balance due', function () {
+    ['order' => $order, 'service' => $service] = orderTotalScenario();
+    $order->update(['delivery_fee' => 45]);
+
+    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), orderUpdatePayload($service, [
+        'actual_weight_kg' => 3,
+        'additional_charges' => 20,
+        'discount_amount' => 10,
+        'amount_paid' => 190,
+        'status' => 'completed',
+    ]));
+
+    // 3 kg x 60 = 180, + 20 - 10 = 190 paid, + 45 delivery still owed
+    expect((float) $updated->total_amount)->toBe(235.0)
+        ->and($updated->payment_status)->toBe('partial')
+        ->and($updated->balanceDue())->toBe(45.0);
+});
+
+test('recording the delivery fee payment marks the order paid', function () {
+    ['order' => $order] = orderTotalScenario();
+    $order->update(['delivery_fee' => 45, 'total_amount' => 165, 'amount_paid' => 120, 'payment_status' => 'partial']);
+
+    $updated = app(ShopOrderService::class)->updatePayment($order->fresh(), ['amount_paid' => 165]);
+
+    expect($updated->payment_status)->toBe('paid');
+});

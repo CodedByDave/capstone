@@ -53,6 +53,7 @@ interface Order {
     promotion_id: number | null;
     additional_charges: string;
     discount_amount: string;
+    delivery_fee?: string | null;
     total_amount: string;
     payment_method: string;
     payment_status: string;
@@ -184,10 +185,17 @@ const onPromotionChange = () => {
     form.discount_amount = String(promoDiscount.value);
 };
 
+// Set by the customer's delivery request; the server keeps it in the total.
+const deliveryFee = computed(
+    () => parseFloat(String(props.shopOrder.delivery_fee ?? 0)) || 0,
+);
+
 const computedTotal = computed(() => {
     const charges = parseFloat(String(form.additional_charges)) || 0;
     const discount = parseFloat(String(form.discount_amount)) || 0;
-    return Math.max(0, baseTotal.value + charges - discount);
+    return (
+        Math.max(0, baseTotal.value + charges - discount) + deliveryFee.value
+    );
 });
 
 const formatServiceLabel = (svc: Service) => {
@@ -622,6 +630,11 @@ const submit = () => {
                                         {{
                                             formatCurrency(form.bundle_price)
                                         }}</template
+                                    >
+                                    <template v-if="deliveryFee > 0">
+                                        +
+                                        {{ formatCurrency(deliveryFee) }}
+                                        delivery</template
                                     >
                                 </span>
                                 <span class="text-xl font-bold text-blue-900">

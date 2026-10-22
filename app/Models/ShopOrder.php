@@ -44,6 +44,7 @@ class ShopOrder extends Model
         'additional_charges',
         'promotion_id',
         'discount_amount',
+        'delivery_fee',
         'total_amount',
         'payment_method',
         'payment_status',
@@ -66,6 +67,7 @@ class ShopOrder extends Model
         'bundle_quantity' => 'integer',
         'additional_charges' => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'paid_at' => 'datetime',
@@ -138,6 +140,7 @@ class ShopOrder extends Model
         $this->total_amount =
             ($this->actual_weight_kg * $this->price_per_kg)
             + $this->additional_charges
+            + $this->delivery_fee
             - $this->discount_amount;
 
         return $this;
@@ -171,6 +174,14 @@ class ShopOrder extends Model
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    /**
+     * Amount still owed on the order, never below zero.
+     */
+    public function balanceDue(): float
+    {
+        return round(max(0, (float) $this->total_amount - (float) $this->amount_paid), 2);
+    }
 
     public function isPaid(): bool
     {

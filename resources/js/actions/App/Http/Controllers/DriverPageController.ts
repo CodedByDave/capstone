@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\DriverPageController::show
- * @see app/Http/Controllers/DriverPageController.php:12
+ * @see app/Http/Controllers/DriverPageController.php:35
  * @route '/driver/{token}'
  */
 export const show = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\DriverPageController::show
- * @see app/Http/Controllers/DriverPageController.php:12
+ * @see app/Http/Controllers/DriverPageController.php:35
  * @route '/driver/{token}'
  */
 show.url = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ show.url = (args: { token: string | number } | [token: string | number ] | strin
 
 /**
 * @see \App\Http\Controllers\DriverPageController::show
- * @see app/Http/Controllers/DriverPageController.php:12
+ * @see app/Http/Controllers/DriverPageController.php:35
  * @route '/driver/{token}'
  */
 show.get = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ show.get = (args: { token: string | number } | [token: string | number ] | strin
 })
 /**
 * @see \App\Http\Controllers\DriverPageController::show
- * @see app/Http/Controllers/DriverPageController.php:12
+ * @see app/Http/Controllers/DriverPageController.php:35
  * @route '/driver/{token}'
  */
 show.head = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -63,7 +63,7 @@ show.head = (args: { token: string | number } | [token: string | number ] | stri
 
     /**
 * @see \App\Http\Controllers\DriverPageController::show
- * @see app/Http/Controllers/DriverPageController.php:12
+ * @see app/Http/Controllers/DriverPageController.php:35
  * @route '/driver/{token}'
  */
     const showForm = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -73,7 +73,7 @@ show.head = (args: { token: string | number } | [token: string | number ] | stri
 
             /**
 * @see \App\Http\Controllers\DriverPageController::show
- * @see app/Http/Controllers/DriverPageController.php:12
+ * @see app/Http/Controllers/DriverPageController.php:35
  * @route '/driver/{token}'
  */
         showForm.get = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ show.head = (args: { token: string | number } | [token: string | number ] | stri
         })
             /**
 * @see \App\Http\Controllers\DriverPageController::show
- * @see app/Http/Controllers/DriverPageController.php:12
+ * @see app/Http/Controllers/DriverPageController.php:35
  * @route '/driver/{token}'
  */
         showForm.head = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -98,7 +98,7 @@ show.head = (args: { token: string | number } | [token: string | number ] | stri
     show.form = showForm
 /**
 * @see \App\Http\Controllers\DriverPageController::updateStatus
- * @see app/Http/Controllers/DriverPageController.php:37
+ * @see app/Http/Controllers/DriverPageController.php:62
  * @route '/driver/{token}/status'
  */
 export const updateStatus = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -113,7 +113,7 @@ updateStatus.definition = {
 
 /**
 * @see \App\Http\Controllers\DriverPageController::updateStatus
- * @see app/Http/Controllers/DriverPageController.php:37
+ * @see app/Http/Controllers/DriverPageController.php:62
  * @route '/driver/{token}/status'
  */
 updateStatus.url = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -141,7 +141,7 @@ updateStatus.url = (args: { token: string | number } | [token: string | number ]
 
 /**
 * @see \App\Http\Controllers\DriverPageController::updateStatus
- * @see app/Http/Controllers/DriverPageController.php:37
+ * @see app/Http/Controllers/DriverPageController.php:62
  * @route '/driver/{token}/status'
  */
 updateStatus.patch = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -151,7 +151,7 @@ updateStatus.patch = (args: { token: string | number } | [token: string | number
 
     /**
 * @see \App\Http\Controllers\DriverPageController::updateStatus
- * @see app/Http/Controllers/DriverPageController.php:37
+ * @see app/Http/Controllers/DriverPageController.php:62
  * @route '/driver/{token}/status'
  */
     const updateStatusForm = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -166,7 +166,7 @@ updateStatus.patch = (args: { token: string | number } | [token: string | number
 
             /**
 * @see \App\Http\Controllers\DriverPageController::updateStatus
- * @see app/Http/Controllers/DriverPageController.php:37
+ * @see app/Http/Controllers/DriverPageController.php:62
  * @route '/driver/{token}/status'
  */
         updateStatusForm.patch = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -180,6 +180,80 @@ updateStatus.patch = (args: { token: string | number } | [token: string | number
         })
     
     updateStatus.form = updateStatusForm
-const DriverPageController = { show, updateStatus }
+/**
+* @see \App\Http\Controllers\DriverPageController::updateLocation
+ * @see app/Http/Controllers/DriverPageController.php:16
+ * @route '/driver/{token}/location'
+ */
+export const updateLocation = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: updateLocation.url(args, options),
+    method: 'post',
+})
+
+updateLocation.definition = {
+    methods: ["post"],
+    url: '/driver/{token}/location',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\DriverPageController::updateLocation
+ * @see app/Http/Controllers/DriverPageController.php:16
+ * @route '/driver/{token}/location'
+ */
+updateLocation.url = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { token: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    token: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        token: args.token,
+                }
+
+    return updateLocation.definition.url
+            .replace('{token}', parsedArgs.token.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\DriverPageController::updateLocation
+ * @see app/Http/Controllers/DriverPageController.php:16
+ * @route '/driver/{token}/location'
+ */
+updateLocation.post = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: updateLocation.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\DriverPageController::updateLocation
+ * @see app/Http/Controllers/DriverPageController.php:16
+ * @route '/driver/{token}/location'
+ */
+    const updateLocationForm = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updateLocation.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\DriverPageController::updateLocation
+ * @see app/Http/Controllers/DriverPageController.php:16
+ * @route '/driver/{token}/location'
+ */
+        updateLocationForm.post = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updateLocation.url(args, options),
+            method: 'post',
+        })
+    
+    updateLocation.form = updateLocationForm
+const DriverPageController = { show, updateStatus, updateLocation }
 
 export default DriverPageController

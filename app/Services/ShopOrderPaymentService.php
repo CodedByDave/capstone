@@ -41,11 +41,12 @@ class ShopOrderPaymentService
             throw new ShopOrderPaymentException('Online payment is not set up for this shop.');
         }
 
-        if ((float) $order->total_amount <= 0) {
+        // Charge only what is still owed, e.g. a delivery fee added after the laundry was paid.
+        if ($order->balanceDue() <= 0) {
             throw new ShopOrderPaymentException('The order must have a payable amount before checkout.');
         }
 
-        if ((float) $order->total_amount < 100) {
+        if ($order->balanceDue() < 100) {
             throw new ShopOrderPaymentException('Order total must be at least ₱100 to pay through PayMongo.');
         }
 
@@ -74,7 +75,7 @@ class ShopOrderPaymentService
             'payment_public_id' => $order->payment_public_id,
             'order_number' => $order->order_number,
             'customer_name' => $order->customer_name,
-            'amount' => (float) $order->total_amount,
+            'amount' => $order->balanceDue(),
             'shop_name' => $order->shop->shop_name,
             'session_id' => $order->paymongo_session_id,
         ];
@@ -163,6 +164,7 @@ class ShopOrderPaymentService
             'weight_kg' => (float) ($order->actual_weight_kg ?? $order->estimated_weight_kg ?? 0),
             'additional_charges' => (float) $order->additional_charges,
             'discount_amount' => (float) $order->discount_amount,
+            'delivery_fee' => (float) $order->delivery_fee,
             'total_amount' => (float) $order->total_amount,
             'amount_paid' => (float) $order->amount_paid,
             'is_demo' => $order->shop

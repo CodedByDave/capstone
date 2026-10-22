@@ -58,6 +58,23 @@ class ShopOrderRepository
             ->first();
     }
 
+    public function findForCustomerDelivery(string $paymentPublicId, int $customerId): ?ShopOrder
+    {
+        return $this->model->newQuery()
+            ->with(['shop.owner', 'delivery'])
+            ->where('payment_public_id', $paymentPublicId)
+            ->where('user_id', $customerId)
+            ->first();
+    }
+
+    /**
+     * Re-read the order with a row lock so concurrent delivery requests cannot both pass the eligibility check.
+     */
+    public function lockForUpdate(ShopOrder $order): ShopOrder
+    {
+        return $this->model->newQuery()->whereKey($order->getKey())->lockForUpdate()->firstOrFail();
+    }
+
     public function findForCustomerReceipt(string $paymentPublicId, int $customerId): ?ShopOrder
     {
         return $this->model->newQuery()
