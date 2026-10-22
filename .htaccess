@@ -1,0 +1,22 @@
+# Hostinger deploys the whole project into the web root, but Laravel's entry point
+# lives in public/. This sends every request through public/, so nothing outside it
+# (.env, storage, vendor, composer.json, ...) can ever be reached from the browser.
+#
+# Tracked in Git on purpose: a deploy replaces everything that is not in the repository,
+# so a copy created by hand on the server is lost on the next deploy.
+#
+# If the domain's document root is already set to the public/ folder this file is not
+# used and does no harm.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Do not rewrite a request that already points into public/ (prevents a loop).
+    RewriteCond %{REQUEST_URI} !(^|/)public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Never serve hidden files or Laravel's own files if this file is ever bypassed.
+<FilesMatch "^\.(?!well-known)">
+    Require all denied
+</FilesMatch>
