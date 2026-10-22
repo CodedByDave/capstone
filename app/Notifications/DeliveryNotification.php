@@ -22,7 +22,7 @@ class DeliveryNotification extends Notification
         $order = $delivery->order;
 
         return [
-            'title' => $this->statusTitle($delivery->status),
+            'title' => $this->statusTitle($delivery),
             'body' => $this->statusBody($delivery),
             'type' => 'delivery_updated',
             'delivery_id' => $delivery->id,
@@ -33,9 +33,19 @@ class DeliveryNotification extends Notification
         ];
     }
 
-    private function statusTitle(string $status): string
+    private function statusTitle(Delivery $delivery): string
     {
-        return match ($status) {
+        if ($delivery->isPickupRun()) {
+            return match ($delivery->status) {
+                'assigned' => 'Rider on the way to collect',
+                'picked_up' => 'Laundry collected',
+                'delivered' => 'Laundry received at the shop',
+                'failed' => 'Pickup failed',
+                default => 'Pickup update',
+            };
+        }
+
+        return match ($delivery->status) {
             'assigned' => 'Rider assigned',
             'picked_up' => 'Order picked up',
             'delivered' => 'Order delivered!',
@@ -48,7 +58,19 @@ class DeliveryNotification extends Notification
     {
         $order = $delivery->order;
         $ref = $order ? "Order #{$order->order_number}" : 'Your order';
-        $rider = $delivery->rider?->name ?? 'our rider';
+        $rider = $delivery->usesLalamove()
+            ? ($delivery->courier_driver_name ?? 'a Lalamove driver')
+            : ($delivery->rider?->name ?? 'our rider');
+
+        if ($delivery->isPickupRun()) {
+            return match ($delivery->status) {
+                'assigned' => "{$rider} will collect the laundry for {$ref} from your address.",
+                'picked_up' => "{$rider} has collected the laundry for {$ref} and is heading to the shop.",
+                'delivered' => "The laundry for {$ref} has arrived at the shop.",
+                'failed' => "We could not collect the laundry for {$ref}. Please contact the shop for assistance.",
+                default => "The pickup for {$ref} has been updated to {$delivery->status}.",
+            };
+        }
 
         return match ($delivery->status) {
             'assigned' => "{$ref} has been assigned to {$rider} and will be picked up shortly.",

@@ -14,13 +14,26 @@ class UpdateShopOrderRequest extends FormRequest
         return true;
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator) {
+            $order = $this->route('order');
+
+            if ($this->boolean('deliver_to_customer')
+                && ! $order?->shop()->where('offers_delivery', true)->exists()) {
+                $validator->errors()->add('deliver_to_customer', 'This shop does not offer delivery.');
+            }
+        });
+    }
+
     // In UpdateShopOrderRequest
     public function rules(): array
     {
         return [
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
-            'customer_address' => ['nullable', 'string', 'max:500'],
+            'customer_address' => ['nullable', 'string', 'max:500', 'required_if_accepted:deliver_to_customer'],
+            'deliver_to_customer' => ['nullable', 'boolean'],
             'service_id' => ['required', 'integer', Rule::exists('services_and_pricing', 'id')],
             'pickup_type' => ['required', Rule::in(ShopOrder::PICKUP_TYPES)],
             'pricing_model' => ['required', Rule::in(['per_kg', 'per_bundle'])],

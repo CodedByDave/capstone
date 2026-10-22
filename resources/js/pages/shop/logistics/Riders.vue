@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
@@ -50,6 +51,8 @@ const props = defineProps<{
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
 const page = usePage();
+const { can, isOwner } = usePermissions();
+const base = isOwner.value ? '/shop/logistics' : '/staff/logistics';
 onMounted(() => {
     const flash = (page.props as any).toast as
         | { type: string; message: string }
@@ -74,7 +77,7 @@ function openAdd() {
 function submitAdd() {
     adding.value = true;
     router.post(
-        '/shop/logistics/riders',
+        `${base}/riders`,
         {
             name: addForm.value.name,
             phone: addForm.value.phone || null,
@@ -118,7 +121,7 @@ function submitEdit() {
     if (!editModal.value.rider) return;
     saving.value = true;
     router.patch(
-        `/shop/logistics/riders/${editModal.value.rider.id}`,
+        `${base}/riders/${editModal.value.rider.id}`,
         {
             name: editModal.value.form.name,
             phone: editModal.value.form.phone || null,
@@ -145,7 +148,7 @@ function deleteRider(id: number) {
     if (!confirm('Remove this rider? Their delivery records will remain.'))
         return;
     deleting.value = id;
-    router.delete(`/shop/logistics/riders/${id}`, {
+    router.delete(`${base}/riders/${id}`, {
         preserveScroll: true,
         onFinish: () => {
             deleting.value = null;
@@ -175,7 +178,7 @@ function fmtDate(d: string) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        @click="router.visit('/shop/logistics')"
+                        @click="router.visit(base)"
                     >
                         <ChevronLeft class="h-4 w-4" />
                     </Button>
@@ -186,7 +189,11 @@ function fmtDate(d: string) {
                         </p>
                     </div>
                 </div>
-                <Button size="sm" @click="openAdd">
+                <Button
+                    v-if="can('Logistics', 'create')"
+                    size="sm"
+                    @click="openAdd"
+                >
                     <Plus class="mr-1.5 h-4 w-4" />
                     Add Rider
                 </Button>
@@ -204,7 +211,12 @@ function fmtDate(d: string) {
                         Add your first rider to start assigning deliveries.
                     </p>
                 </div>
-                <Button size="sm" variant="outline" @click="openAdd">
+                <Button
+                    v-if="can('Logistics', 'create')"
+                    size="sm"
+                    variant="outline"
+                    @click="openAdd"
+                >
                     <Plus class="mr-1.5 h-3.5 w-3.5" />
                     Add Rider
                 </Button>
@@ -261,6 +273,7 @@ function fmtDate(d: string) {
                         <div class="flex shrink-0 items-center gap-1">
                             <button
                                 class="flex h-7 w-7 items-center justify-center rounded-lg border transition-colors hover:bg-muted"
+                                v-if="can('Logistics', 'update')"
                                 @click="openEdit(rider)"
                             >
                                 <Pencil
@@ -269,6 +282,7 @@ function fmtDate(d: string) {
                             </button>
                             <button
                                 class="flex h-7 w-7 items-center justify-center rounded-lg border border-red-200 transition-colors hover:bg-red-50"
+                                v-if="can('Logistics', 'archive')"
                                 :disabled="deleting === rider.id"
                                 @click="deleteRider(rider.id)"
                             >

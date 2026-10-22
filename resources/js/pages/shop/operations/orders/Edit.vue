@@ -41,6 +41,7 @@ interface Order {
     customer_name: string;
     customer_phone: string | null;
     customer_address: string | null;
+    deliver_to_customer: boolean;
     service_id: number;
     pickup_type: string;
     pricing_model: 'per_kg' | 'per_bundle';
@@ -90,6 +91,7 @@ const form = useForm({
     customer_name: props.shopOrder.customer_name,
     customer_phone: props.shopOrder.customer_phone ?? '',
     customer_address: props.shopOrder.customer_address ?? '',
+    deliver_to_customer: props.shopOrder.deliver_to_customer ?? false,
     service_id: props.shopOrder.service_id,
     pickup_type: props.shopOrder.pickup_type,
     pricing_model: props.shopOrder.pricing_model,
@@ -255,6 +257,19 @@ const submit = () => {
     form.total_amount = String(computedTotal.value);
     form.put(`${base.value}/${props.shopOrder.id}`);
 };
+
+// A walk-in customer can still have the finished laundry brought to them.
+const canDeliverBack = computed(
+    () =>
+        form.pickup_type === 'walk_in' &&
+        !!page.props.shopCapabilities?.offers_delivery,
+);
+watch(
+    () => form.pickup_type,
+    (type) => {
+        if (type !== 'walk_in') form.deliver_to_customer = false;
+    },
+);
 </script>
 
 <template>
@@ -359,12 +374,53 @@ const submit = () => {
                             </select>
                         </div>
                         <div class="col-span-12 space-y-1">
-                            <label class="text-sm font-medium">Address</label>
+                            <label class="text-sm font-medium"
+                                >Address
+                                <span
+                                    v-if="form.deliver_to_customer"
+                                    class="text-red-500"
+                                    >*</span
+                                ></label
+                            >
                             <textarea
                                 v-model="form.customer_address"
                                 rows="2"
                                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             />
+                            <label
+                                v-if="canDeliverBack"
+                                class="mt-2 flex cursor-pointer items-start gap-2 rounded-lg border border-dashed p-3 text-sm"
+                            >
+                                <input
+                                    v-model="form.deliver_to_customer"
+                                    type="checkbox"
+                                    class="mt-0.5 h-4 w-4 rounded border-gray-300"
+                                />
+                                <span>
+                                    <span class="font-medium"
+                                        >Deliver to the customer when it's
+                                        done</span
+                                    >
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >A rider brings the finished laundry to
+                                        the address above. It appears in
+                                        Logistics automatically.</span
+                                    >
+                                </span>
+                            </label>
+                            <p
+                                v-if="form.errors.customer_address"
+                                class="text-xs text-red-500"
+                            >
+                                {{ form.errors.customer_address }}
+                            </p>
+                            <p
+                                v-if="form.errors.deliver_to_customer"
+                                class="text-xs text-red-500"
+                            >
+                                {{ form.errors.deliver_to_customer }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -806,7 +862,7 @@ const submit = () => {
                                     ₱{{
                                         (
                                             (parseFloat(
-                                                inventoryItems.find(
+                                                inventoryItems?.find(
                                                     (it) =>
                                                         it.id ===
                                                         supply.inventory_id,

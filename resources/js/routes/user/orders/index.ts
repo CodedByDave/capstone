@@ -1,4 +1,5 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
+import deliveryPhotos from './delivery-photos'
 import payment from './payment'
 /**
 * @see \App\Http\Controllers\User\UserOrderController::index
@@ -729,6 +730,7 @@ store: Object.assign(store, store),
 requestDelivery: Object.assign(requestDelivery, requestDelivery),
 deliveryQuote: Object.assign(deliveryQuote, deliveryQuote),
 tracking: Object.assign(tracking, tracking),
+deliveryPhotos: Object.assign(deliveryPhotos, deliveryPhotos),
 cancel: Object.assign(cancel, cancel),
 payOnline: Object.assign(payOnline, payOnline),
 payment: Object.assign(payment, payment),

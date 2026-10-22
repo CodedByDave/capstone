@@ -2,6 +2,8 @@
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -15,6 +17,7 @@ import {
     Package,
     Pencil,
     Send,
+    Truck,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -50,6 +53,7 @@ interface Order {
     total_amount: string;
     amount_paid: string;
     pickup_type: string;
+    deliver_to_customer?: boolean;
     estimated_completion_at: string | null;
     completed_at: string | null;
     created_at: string;
@@ -59,6 +63,13 @@ interface Order {
 
 const props = defineProps<{
     shopOrder: Order;
+    deliveryOption: {
+        offers_delivery: boolean;
+        can_send: boolean;
+        delivery_status: string | null;
+        has_address: boolean;
+        address: string | null;
+    };
     gcash_qr: string | null;
     maya_qr: string | null;
     customerAgreement: {
@@ -115,6 +126,49 @@ const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const base = computed(() =>
     isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
 );
+
+// ─── Send for delivery ─────────────────────────────
+
+const deliveryDialog = ref(false);
+const deliveryAddress = ref('');
+const sendingDelivery = ref(false);
+const deliveryError = ref('');
+const { locating, failed, detectAddress } = usePickupAddressAutofill();
+
+function openDeliveryDialog() {
+    deliveryAddress.value = props.deliveryOption.address ?? '';
+    deliveryError.value = '';
+    deliveryDialog.value = true;
+}
+
+async function useCurrentLocation() {
+    const detected = await detectAddress();
+    if (detected) deliveryAddress.value = detected;
+}
+
+function sendForDelivery() {
+    sendingDelivery.value = true;
+    deliveryError.value = '';
+    router.post(
+        `${base.value}/${props.shopOrder.id}/send-for-delivery`,
+        { delivery_address: deliveryAddress.value || null },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                deliveryDialog.value = false;
+            },
+            onError: (errors) => {
+                deliveryError.value =
+                    errors.delivery_address ??
+                    errors.delivery ??
+                    'Could not send the order for delivery.';
+            },
+            onFinish: () => {
+                sendingDelivery.value = false;
+            },
+        },
+    );
+}
 
 onMounted(() => {
     const t = page.props.toast as any;
@@ -210,6 +264,118 @@ const statusIcon = (s: string) =>
                 }}</span>
             </div>
 
+            <!-- Delivery -->
+            <div
+                v-if="
+                    deliveryOption.offers_delivery &&
+                    (deliveryOption.can_send || deliveryOption.delivery_status)
+                "
+                class="flex flex-col gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <div class="flex items-start gap-3">
+                    <Truck class="mt-0.5 h-5 w-5 shrink-0 text-sky-600" />
+                    <div>
+                        <p class="text-sm font-semibold text-sky-900">
+                            {{
+                                deliveryOption.delivery_status
+                                    ? 'Delivery on the logistics board'
+                                    : 'Customer wants it delivered?'
+                            }}
+                        </p>
+                        <p class="text-xs text-sky-800/80">
+                            <template v-if="deliveryOption.delivery_status"
+                                >Status:
+                                {{
+                                    formatLabel(deliveryOption.delivery_status)
+                                }}. Manage it in Logistics.</template
+                            >
+                            <template v-else
+                                >Create the delivery from this order. The
+                                customer's details are filled in and a free
+                                rider is assigned.</template
+                            >
+                        </p>
+                    </div>
+                </div>
+                <Button
+                    v-if="deliveryOption.can_send"
+                    class="shrink-0"
+                    @click="openDeliveryDialog"
+                >
+                    <Truck class="mr-2 h-4 w-4" /> Send for delivery
+                </Button>
+            </div>
+
+            <div
+                v-if="deliveryDialog"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+                @click.self="deliveryDialog = false"
+            >
+                <div
+                    class="w-full max-w-md space-y-4 rounded-2xl border bg-background p-5 shadow-xl"
+                >
+                    <div>
+                        <p class="text-sm font-semibold">Send for delivery</p>
+                        <p class="mt-0.5 text-xs text-muted-foreground">
+                            {{ shopOrder.customer_name }} ·
+                            {{ shopOrder.order_number }}
+                        </p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-medium"
+                            >Delivery address
+                            <span
+                                v-if="!deliveryOption.has_address"
+                                class="text-red-500"
+                                >*</span
+                            ></label
+                        >
+                        <Input
+                            v-model="deliveryAddress"
+                            placeholder="Where should the rider bring it?"
+                            class="h-9 text-sm"
+                        />
+                        <button
+                            type="button"
+                            class="text-xs font-medium text-blue-600 hover:underline disabled:opacity-60"
+                            :disabled="locating"
+                            @click="useCurrentLocation"
+                        >
+                            {{
+                                locating
+                                    ? 'Finding address…'
+                                    : failed
+                                      ? 'Could not detect, type the address'
+                                      : 'Use current location'
+                            }}
+                        </button>
+                        <p v-if="deliveryError" class="text-xs text-red-500">
+                            {{ deliveryError }}
+                        </p>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            @click="deliveryDialog = false"
+                            >Cancel</Button
+                        >
+                        <Button
+                            :disabled="sendingDelivery"
+                            @click="sendForDelivery"
+                        >
+                            <Loader2
+                                v-if="sendingDelivery"
+                                class="mr-2 h-4 w-4 animate-spin"
+                            />
+                            {{
+                                sendingDelivery
+                                    ? 'Sending…'
+                                    : 'Send for delivery'
+                            }}
+                        </Button>
+                    </div>
+                </div>
+            </div>
             <div
                 v-if="isAwaitingWeight"
                 class="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between"

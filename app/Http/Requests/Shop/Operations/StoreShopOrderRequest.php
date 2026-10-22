@@ -24,13 +24,24 @@ class StoreShopOrderRequest extends FormRequest
         ]);
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator) {
+            if ($this->boolean('deliver_to_customer')
+                && ! \App\Models\Shop::query()->whereKey($this->input('shop_id'))->where('offers_delivery', true)->exists()) {
+                $validator->errors()->add('deliver_to_customer', 'This shop does not offer delivery.');
+            }
+        });
+    }
+
     public function rules(): array
     {
         return [
             'shop_id' => ['required', 'integer', Rule::exists('shops', 'id')],
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
-            'customer_address' => ['nullable', 'string', 'max:500'],
+            'customer_address' => ['nullable', 'string', 'max:500', 'required_if_accepted:deliver_to_customer'],
+            'deliver_to_customer' => ['nullable', 'boolean'],
             'service_id' => ['required', 'integer', Rule::exists('services_and_pricing', 'id')],
             'pickup_type' => ['required', Rule::in(ShopOrder::PICKUP_TYPES)],
 

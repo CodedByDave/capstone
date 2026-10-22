@@ -35,6 +35,7 @@ class ShopOrder extends Model
         'estimated_weight_kg',
         'actual_weight_kg',
         'pickup_type',
+        'deliver_to_customer',
         'delivery_address',
         'pricing_model',
         'price_per_kg',
@@ -59,6 +60,7 @@ class ShopOrder extends Model
 
     protected $casts = [
         'customer_phone' => PhilippinePhoneCast::class,
+        'deliver_to_customer' => 'boolean',
         'estimated_weight_kg' => 'decimal:2',
         'actual_weight_kg' => 'decimal:2',
         'price_per_kg' => 'decimal:2',
@@ -92,9 +94,16 @@ class ShopOrder extends Model
         return $this->belongsTo(Shop::class);
     }
 
+    /** The delivery that brings the finished laundry back to the customer. */
     public function delivery(): HasOne
     {
-        return $this->hasOne(Delivery::class, 'shop_order_id');
+        return $this->hasOne(Delivery::class, 'shop_order_id')->where('type', Delivery::TYPE_DELIVERY);
+    }
+
+    /** The run that collects the laundry from the customer's address. */
+    public function pickupRun(): HasOne
+    {
+        return $this->hasOne(Delivery::class, 'shop_order_id')->where('type', Delivery::TYPE_PICKUP);
     }
 
     public function customerAgreementAcceptance(): HasOne

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import {
     ArrowRight,
+    Camera,
     CheckCircle2,
     ChevronLeft,
     ChevronRight,
@@ -43,12 +45,27 @@ interface Rider {
     id: number;
     name: string;
     vehicle_type: string | null;
+    available: boolean;
+}
+
+interface DeliveryPhoto {
+    public_id: string;
+    created_at: string;
 }
 
 interface Delivery {
     id: number;
     shop_order_id: number | null;
+    type: 'pickup' | 'delivery';
     rider_id: number | null;
+    courier: 'own_rider' | 'lalamove';
+    courier_reference: string | null;
+    courier_tracking_url: string | null;
+    courier_driver_name: string | null;
+    courier_driver_phone: string | null;
+    courier_vehicle_plate: string | null;
+    courier_cost: string | null;
+    photos: DeliveryPhoto[];
     customer_name: string;
     customer_phone: string | null;
     delivery_address: string | null;
@@ -61,16 +78,6 @@ interface Delivery {
     created_at: string;
     rider: Rider | null;
     order: { id: number; order_number: string } | null;
-}
-
-interface PendingOrder {
-    id: number;
-    order_number: string;
-    customer_name: string;
-    customer_phone: string | null;
-    customer_email: string | null;
-    delivery_address: string | null;
-    pickup_type: string;
 }
 
 interface Stats {
@@ -91,7 +98,6 @@ const props = defineProps<{
         last_page: number;
     };
     riders: Rider[];
-    pending_orders: PendingOrder[];
     stats: Stats;
     filters: { status?: string };
     rider_base_url: string;
@@ -100,6 +106,8 @@ const props = defineProps<{
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
 const page = usePage();
+const { can, isOwner } = usePermissions();
+const base = isOwner.value ? '/shop/logistics' : '/staff/logistics';
 onMounted(() => {
     const flash = (page.props as any).toast as
         | { type: string; message: string }
@@ -158,89 +166,53 @@ const NEXT_LABEL: Record<string, string> = {
     picked_up: 'Mark Delivered',
 };
 
+// A pickup run collects the laundry from the customer and brings it to the shop,
+// so the same statuses read differently from a delivery back to the customer.
+const PICKUP_STATUS_LABEL: Record<string, string> = {
+    picked_up: 'Collected',
+    delivered: 'At shop',
+};
+const PICKUP_NEXT_LABEL: Record<string, string> = {
+    pending: 'Assign Rider',
+    assigned: 'Mark Collected',
+    picked_up: 'Mark At Shop',
+};
+
+function statusLabel(d: Delivery, status = d.status): string {
+    if (d.type === 'pickup' && PICKUP_STATUS_LABEL[status]) {
+        return PICKUP_STATUS_LABEL[status];
+    }
+    return STATUS[status]?.label ?? status;
+}
+
+function nextLabel(d: Delivery): string {
+    return (d.type === 'pickup' ? PICKUP_NEXT_LABEL : NEXT_LABEL)[d.status];
+}
+
+// ─── Courier ──────────────────────────────────────────────────────────────────
+
+const COURIERS = [
+    { value: 'own_rider', label: 'Own rider' },
+    { value: 'lalamove', label: 'Lalamove' },
+] as const;
+
+function formatCost(value: string | number) {
+    return `₱${Number(value).toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`;
+}
+
 // ─── Filter ───────────────────────────────────────────────────────────────────
 
 const activeFilter = ref(props.filters.status ?? 'all');
 
 function setFilter(f: string) {
     activeFilter.value = f;
-    router.get('/shop/logistics', f === 'all' ? {} : { status: f }, {
+    router.get(base, f === 'all' ? {} : { status: f }, {
         preserveState: true,
         preserveScroll: true,
     });
-}
-
-// ─── Create Delivery Modal ────────────────────────────────────────────────────
-
-const showCreate = ref(false);
-const creating = ref(false);
-
-const createForm = ref({
-    shop_order_id: '',
-    customer_name: '',
-    customer_phone: '',
-    customer_email: '',
-    delivery_address: '',
-    rider_id: '',
-    notes: '',
-});
-
-function prefillFromOrder(orderId: string) {
-    if (orderId === '__none__') {
-        createForm.value.customer_name = '';
-        createForm.value.customer_phone = '';
-        createForm.value.customer_email = '';
-        createForm.value.delivery_address = '';
-        return;
-    }
-    const order = props.pending_orders.find((o) => o.id === Number(orderId));
-    if (!order) return;
-    createForm.value.customer_name = order.customer_name;
-    createForm.value.customer_phone = order.customer_phone ?? '';
-    createForm.value.delivery_address = order.delivery_address ?? '';
-    // Auto-fill email only when the order type is pickup
-    createForm.value.customer_email =
-        order.pickup_type === 'pickup' ? (order.customer_email ?? '') : '';
-}
-
-function openCreate() {
-    createForm.value = {
-        shop_order_id: '',
-        customer_name: '',
-        customer_phone: '',
-        customer_email: '',
-        delivery_address: '',
-        rider_id: '',
-        notes: '',
-    };
-    showCreate.value = true;
-}
-
-function submitCreate() {
-    creating.value = true;
-    const orderId = createForm.value.shop_order_id;
-    const riderId = createForm.value.rider_id;
-    router.post(
-        '/shop/logistics',
-        {
-            shop_order_id: orderId && orderId !== '__none__' ? orderId : null,
-            customer_name: createForm.value.customer_name,
-            customer_phone: createForm.value.customer_phone || null,
-            customer_email: createForm.value.customer_email || null,
-            delivery_address: createForm.value.delivery_address || null,
-            rider_id: riderId && riderId !== '__none__' ? riderId : null,
-            notes: createForm.value.notes || null,
-        },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                showCreate.value = false;
-            },
-            onFinish: () => {
-                creating.value = false;
-            },
-        },
-    );
 }
 
 // ─── Update Status Modal ──────────────────────────────────────────────────────
@@ -252,9 +224,32 @@ const statusModal = ref<{
 }>({
     open: false,
     delivery: null,
-    form: { status: '', rider_id: '', notes: '' },
+    form: emptyStatusForm(),
 });
 const updatingStatus = ref(false);
+
+function emptyStatusForm() {
+    return {
+        status: '',
+        courier: 'own_rider',
+        rider_id: '',
+        notes: '',
+        courier_reference: '',
+        courier_tracking_url: '',
+        courier_driver_name: '',
+        courier_driver_phone: '',
+        courier_vehicle_plate: '',
+        courier_cost: '',
+    };
+}
+
+// The open delivery, kept fresh as uploads reload the page props.
+const modalDelivery = computed(
+    () =>
+        props.deliveries.data.find(
+            (d) => d.id === statusModal.value.delivery?.id,
+        ) ?? statusModal.value.delivery,
+);
 
 function openStatusModal(delivery: Delivery, nextStatus?: string) {
     statusModal.value = {
@@ -262,8 +257,15 @@ function openStatusModal(delivery: Delivery, nextStatus?: string) {
         delivery,
         form: {
             status: nextStatus ?? delivery.status,
+            courier: delivery.courier ?? 'own_rider',
             rider_id: delivery.rider_id?.toString() ?? '',
             notes: delivery.notes ?? '',
+            courier_reference: delivery.courier_reference ?? '',
+            courier_tracking_url: delivery.courier_tracking_url ?? '',
+            courier_driver_name: delivery.courier_driver_name ?? '',
+            courier_driver_phone: delivery.courier_driver_phone ?? '',
+            courier_vehicle_plate: delivery.courier_vehicle_plate ?? '',
+            courier_cost: delivery.courier_cost ?? '',
         },
     };
 }
@@ -271,13 +273,26 @@ function openStatusModal(delivery: Delivery, nextStatus?: string) {
 function submitStatus() {
     if (!statusModal.value.delivery) return;
     updatingStatus.value = true;
-    const riderId = statusModal.value.form.rider_id;
+    const form = statusModal.value.form;
+    const riderId = form.rider_id;
     router.patch(
-        `/shop/logistics/${statusModal.value.delivery.id}/status`,
+        `${base}/${statusModal.value.delivery.id}/status`,
         {
             status: statusModal.value.form.status,
-            rider_id: riderId && riderId !== '__none__' ? riderId : null,
-            notes: statusModal.value.form.notes || null,
+            courier: form.courier,
+            rider_id:
+                form.courier === 'own_rider' &&
+                riderId &&
+                riderId !== '__none__'
+                    ? riderId
+                    : null,
+            notes: form.notes || null,
+            courier_reference: form.courier_reference || null,
+            courier_tracking_url: form.courier_tracking_url || null,
+            courier_driver_name: form.courier_driver_name || null,
+            courier_driver_phone: form.courier_driver_phone || null,
+            courier_vehicle_plate: form.courier_vehicle_plate || null,
+            courier_cost: form.courier_cost === '' ? null : form.courier_cost,
         },
         {
             preserveScroll: true,
@@ -291,6 +306,48 @@ function submitStatus() {
     );
 }
 
+// ─── Proof photos ─────────────────────────────────────────────────────────────
+
+const uploadingPhotos = ref(false);
+const removingPhoto = ref<string | null>(null);
+
+function uploadPhotos(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    const delivery = modalDelivery.value;
+    if (!files.length || !delivery) return;
+
+    uploadingPhotos.value = true;
+    router.post(
+        `${base}/${delivery.id}/photos`,
+        { photos: files },
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            preserveState: true,
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] ?? 'Upload failed.');
+            },
+            onFinish: () => {
+                uploadingPhotos.value = false;
+                input.value = '';
+            },
+        },
+    );
+}
+
+function removePhoto(photo: DeliveryPhoto) {
+    if (!confirm('Remove this proof photo?')) return;
+    removingPhoto.value = photo.public_id;
+    router.delete(`${base}/photos/${photo.public_id}`, {
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+            removingPhoto.value = null;
+        },
+    });
+}
+
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 const deleting = ref<number | null>(null);
@@ -298,7 +355,7 @@ const deleting = ref<number | null>(null);
 function deleteDelivery(id: number) {
     if (!confirm('Remove this delivery record?')) return;
     deleting.value = id;
-    router.delete(`/shop/logistics/${id}`, {
+    router.delete(`${base}/${id}`, {
         preserveScroll: true,
         onFinish: () => {
             deleting.value = null;
@@ -376,14 +433,10 @@ function fmtTime(d: string) {
                     <Button
                         variant="outline"
                         size="sm"
-                        @click="router.visit('/shop/logistics/riders')"
+                        @click="router.visit(`${base}/riders`)"
                     >
                         <User class="mr-1.5 h-4 w-4" />
                         Manage Riders
-                    </Button>
-                    <Button size="sm" @click="openCreate">
-                        <Plus class="mr-1.5 h-4 w-4" />
-                        New Delivery
                     </Button>
                 </div>
             </div>
@@ -452,7 +505,7 @@ function fmtTime(d: string) {
                                 Order
                             </th>
                             <th class="px-4 py-3 text-left font-medium">
-                                Rider
+                                Rider / Courier
                             </th>
                             <th class="px-4 py-3 text-left font-medium">
                                 Status
@@ -474,6 +527,21 @@ function fmtTime(d: string) {
                                 <p class="text-sm font-medium">
                                     {{ d.customer_name }}
                                 </p>
+                                <span
+                                    class="mt-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                                    :class="
+                                        d.type === 'pickup'
+                                            ? 'bg-sky-100 text-sky-700'
+                                            : 'bg-emerald-100 text-emerald-700'
+                                    "
+                                >
+                                    <Package class="h-2.5 w-2.5" />
+                                    {{
+                                        d.type === 'pickup'
+                                            ? 'Pickup from customer'
+                                            : 'Deliver to customer'
+                                    }}
+                                </span>
                                 <p
                                     v-if="d.customer_phone"
                                     class="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground"
@@ -501,14 +569,55 @@ function fmtTime(d: string) {
 
                             <!-- Rider -->
                             <td class="px-4 py-3 text-xs">
-                                <span v-if="d.rider" class="font-medium">{{
-                                    d.rider.name
-                                }}</span>
-                                <span
-                                    v-else
-                                    class="text-muted-foreground italic"
-                                    >Unassigned</span
+                                <template v-if="d.courier === 'lalamove'">
+                                    <span
+                                        class="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 font-medium text-orange-700"
+                                    >
+                                        <Truck class="h-3 w-3" />
+                                        Lalamove
+                                    </span>
+                                    <p
+                                        v-if="d.courier_driver_name"
+                                        class="mt-1 font-medium"
+                                    >
+                                        {{ d.courier_driver_name }}
+                                    </p>
+                                    <p
+                                        v-if="d.courier_reference"
+                                        class="font-mono text-muted-foreground"
+                                    >
+                                        {{ d.courier_reference }}
+                                    </p>
+                                    <p
+                                        v-if="d.courier_cost"
+                                        class="text-muted-foreground"
+                                    >
+                                        Cost {{ formatCost(d.courier_cost) }}
+                                    </p>
+                                </template>
+                                <template v-else>
+                                    <span v-if="d.rider" class="font-medium">{{
+                                        d.rider.name
+                                    }}</span>
+                                    <span
+                                        v-else
+                                        class="text-muted-foreground italic"
+                                        >Unassigned</span
+                                    >
+                                </template>
+                                <p
+                                    v-if="d.photos?.length"
+                                    class="mt-1 flex items-center gap-1 text-muted-foreground"
                                 >
+                                    <Camera class="h-3 w-3" />
+                                    {{ d.photos.length }}
+                                    proof
+                                    {{
+                                        d.photos.length === 1
+                                            ? 'photo'
+                                            : 'photos'
+                                    }}
+                                </p>
                             </td>
 
                             <!-- Status -->
@@ -521,7 +630,7 @@ function fmtTime(d: string) {
                                         class="h-1.5 w-1.5 rounded-full"
                                         :class="STATUS[d.status]?.dot"
                                     />
-                                    {{ STATUS[d.status]?.label }}
+                                    {{ statusLabel(d) }}
                                 </span>
                                 <div
                                     class="mt-1 space-y-0.5 text-xs text-muted-foreground"
@@ -547,7 +656,10 @@ function fmtTime(d: string) {
                                 >
                                     <!-- Quick advance -->
                                     <button
-                                        v-if="NEXT_STATUS[d.status]"
+                                        v-if="
+                                            NEXT_STATUS[d.status] &&
+                                            can('Logistics', 'update')
+                                        "
                                         class="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs text-primary-foreground transition-colors hover:bg-primary/90"
                                         @click="
                                             openStatusModal(
@@ -557,7 +669,7 @@ function fmtTime(d: string) {
                                         "
                                     >
                                         <ArrowRight class="h-3 w-3" />
-                                        {{ NEXT_LABEL[d.status] }}
+                                        {{ nextLabel(d) }}
                                     </button>
                                     <!-- QR code for rider -->
                                     <button
@@ -572,6 +684,7 @@ function fmtTime(d: string) {
                                     <!-- Edit -->
                                     <button
                                         class="flex h-7 w-7 items-center justify-center rounded-lg border transition-colors hover:bg-muted"
+                                        v-if="can('Logistics', 'update')"
                                         @click="openStatusModal(d)"
                                     >
                                         <Pencil
@@ -581,6 +694,7 @@ function fmtTime(d: string) {
                                     <!-- Delete -->
                                     <button
                                         class="flex h-7 w-7 items-center justify-center rounded-lg border border-red-200 transition-colors hover:bg-red-50"
+                                        v-if="can('Logistics', 'archive')"
                                         :disabled="deleting === d.id"
                                         @click="deleteDelivery(d.id)"
                                     >
@@ -650,182 +764,6 @@ function fmtTime(d: string) {
         </div>
     </ShopLayout>
 
-    <!-- ── Create Delivery Modal ─────────────────────────────────────────────── -->
-    <Teleport to="body">
-        <Transition name="fade">
-            <div
-                v-if="showCreate"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
-                @click.self="showCreate = false"
-            >
-                <div
-                    class="w-full max-w-md overflow-hidden rounded-2xl border bg-background shadow-xl"
-                >
-                    <div
-                        class="flex items-center justify-between border-b px-5 py-4"
-                    >
-                        <p class="text-sm font-semibold">New Delivery</p>
-                        <button
-                            @click="showCreate = false"
-                            class="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted"
-                        >
-                            <X class="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    <div
-                        class="max-h-[70vh] space-y-3 overflow-y-auto px-5 py-4"
-                    >
-                        <!-- Link to order -->
-                        <div
-                            class="space-y-1.5"
-                            v-if="props.pending_orders.length > 0"
-                        >
-                            <label class="text-xs font-medium"
-                                >Link to Order
-                                <span class="text-muted-foreground"
-                                    >(optional)</span
-                                ></label
-                            >
-                            <Select
-                                v-model="createForm.shop_order_id"
-                                @update:model-value="prefillFromOrder"
-                            >
-                                <SelectTrigger class="h-9 text-sm">
-                                    <SelectValue
-                                        placeholder="Select completed order…"
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__none__"
-                                        >— None —</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="o in props.pending_orders"
-                                        :key="o.id"
-                                        :value="String(o.id)"
-                                    >
-                                        {{ o.order_number }} —
-                                        {{ o.customer_name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium"
-                                >Customer Name
-                                <span class="text-red-500">*</span></label
-                            >
-                            <Input
-                                v-model="createForm.customer_name"
-                                placeholder="Juan dela Cruz"
-                                class="h-9 text-sm"
-                            />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium">Phone</label>
-                            <PhilippinePhoneInput
-                                v-model="createForm.customer_phone"
-                                class="h-9 text-sm"
-                            />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium">
-                                Email
-                                <span
-                                    v-if="createForm.customer_email"
-                                    class="ml-1 font-normal text-blue-500"
-                                    >(auto-filled)</span
-                                >
-                            </label>
-                            <Input
-                                v-model="createForm.customer_email"
-                                type="email"
-                                placeholder="customer@email.com"
-                                class="h-9 text-sm"
-                            />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium"
-                                >Delivery Address</label
-                            >
-                            <Input
-                                v-model="createForm.delivery_address"
-                                placeholder="Street, Barangay, City"
-                                class="h-9 text-sm"
-                            />
-                        </div>
-
-                        <!-- Assign rider -->
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium"
-                                >Assign Rider
-                                <span class="text-muted-foreground"
-                                    >(optional)</span
-                                ></label
-                            >
-                            <Select v-model="createForm.rider_id">
-                                <SelectTrigger class="h-9 text-sm">
-                                    <SelectValue placeholder="Assign later…" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__none__"
-                                        >— Unassigned —</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="r in props.riders"
-                                        :key="r.id"
-                                        :value="String(r.id)"
-                                    >
-                                        {{ r.name
-                                        }}<span
-                                            v-if="r.vehicle_type"
-                                            class="text-muted-foreground"
-                                        >
-                                            · {{ r.vehicle_type }}</span
-                                        >
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium">Notes</label>
-                            <Input
-                                v-model="createForm.notes"
-                                placeholder="Optional instructions…"
-                                class="h-9 text-sm"
-                            />
-                        </div>
-                    </div>
-
-                    <div
-                        class="flex justify-end gap-2 border-t bg-muted/20 px-5 py-4"
-                    >
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            @click="showCreate = false"
-                            >Cancel</Button
-                        >
-                        <Button
-                            size="sm"
-                            :disabled="creating || !createForm.customer_name"
-                            @click="submitCreate"
-                        >
-                            <Loader2
-                                v-if="creating"
-                                class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                            />
-                            {{ creating ? 'Creating…' : 'Create Delivery' }}
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </Transition>
-    </Teleport>
-
     <!-- ── Update Status Modal ───────────────────────────────────────────────── -->
     <Teleport to="body">
         <Transition name="fade">
@@ -835,7 +773,7 @@ function fmtTime(d: string) {
                 @click.self="statusModal.open = false"
             >
                 <div
-                    class="w-full max-w-sm overflow-hidden rounded-2xl border bg-background shadow-xl"
+                    class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border bg-background shadow-xl"
                 >
                     <div
                         class="flex items-center justify-between border-b px-5 py-4"
@@ -854,7 +792,7 @@ function fmtTime(d: string) {
                         </button>
                     </div>
 
-                    <div class="space-y-3 px-5 py-4">
+                    <div class="space-y-3 overflow-y-auto px-5 py-4">
                         <div class="space-y-1.5">
                             <label class="text-xs font-medium">Status</label>
                             <Select v-model="statusModal.form.status">
@@ -880,6 +818,108 @@ function fmtTime(d: string) {
                         </div>
 
                         <div class="space-y-1.5">
+                            <label class="text-xs font-medium">Courier</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button
+                                    v-for="c in COURIERS"
+                                    :key="c.value"
+                                    type="button"
+                                    class="rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
+                                    :class="
+                                        statusModal.form.courier === c.value
+                                            ? 'border-primary bg-primary/5 text-primary'
+                                            : 'text-muted-foreground hover:bg-muted'
+                                    "
+                                    @click="statusModal.form.courier = c.value"
+                                >
+                                    {{ c.label }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Lalamove booking details -->
+                        <div
+                            v-if="statusModal.form.courier === 'lalamove'"
+                            class="space-y-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3"
+                        >
+                            <p class="text-xs text-muted-foreground">
+                                Book the run in the Lalamove app, then record it
+                                here. The customer sees the driver and tracking
+                                link, never the cost.
+                            </p>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium"
+                                    >Booking / order number</label
+                                >
+                                <Input
+                                    v-model="statusModal.form.courier_reference"
+                                    placeholder="Lalamove order number"
+                                    class="h-9 text-sm"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium"
+                                    >Tracking link</label
+                                >
+                                <Input
+                                    v-model="
+                                        statusModal.form.courier_tracking_url
+                                    "
+                                    placeholder="https://…"
+                                    class="h-9 text-sm"
+                                />
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-medium"
+                                        >Driver name</label
+                                    >
+                                    <Input
+                                        v-model="
+                                            statusModal.form.courier_driver_name
+                                        "
+                                        class="h-9 text-sm"
+                                    />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-medium"
+                                        >Plate number</label
+                                    >
+                                    <Input
+                                        v-model="
+                                            statusModal.form
+                                                .courier_vehicle_plate
+                                        "
+                                        class="h-9 text-sm"
+                                    />
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium"
+                                    >Driver phone</label
+                                >
+                                <PhilippinePhoneInput
+                                    v-model="
+                                        statusModal.form.courier_driver_phone
+                                    "
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium"
+                                    >Lalamove cost (₱)</label
+                                >
+                                <Input
+                                    v-model="statusModal.form.courier_cost"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    class="h-9 text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div v-else class="space-y-1.5">
                             <label class="text-xs font-medium">Rider</label>
                             <Select v-model="statusModal.form.rider_id">
                                 <SelectTrigger class="h-9 text-sm">
@@ -895,6 +935,17 @@ function fmtTime(d: string) {
                                         :value="String(r.id)"
                                     >
                                         {{ r.name }}
+                                        <span
+                                            v-if="
+                                                !r.available &&
+                                                r.id !==
+                                                    statusModal.delivery
+                                                        ?.rider_id
+                                            "
+                                            class="text-amber-600"
+                                        >
+                                            · On delivery</span
+                                        >
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
@@ -907,6 +958,89 @@ function fmtTime(d: string) {
                                 placeholder="Optional…"
                                 class="h-9 text-sm"
                             />
+                        </div>
+
+                        <!-- Proof photos -->
+                        <div class="space-y-2 border-t pt-3">
+                            <div class="flex items-center justify-between">
+                                <label
+                                    class="flex items-center gap-1.5 text-xs font-medium"
+                                >
+                                    <Camera class="h-3.5 w-3.5" />
+                                    Proof photos
+                                    <span
+                                        class="font-normal text-muted-foreground"
+                                        >(the customer can see these)</span
+                                    >
+                                </label>
+                                <label
+                                    v-if="can('Logistics', 'update')"
+                                    class="inline-flex cursor-pointer items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-muted"
+                                    :class="
+                                        uploadingPhotos
+                                            ? 'pointer-events-none opacity-60'
+                                            : ''
+                                    "
+                                >
+                                    <Loader2
+                                        v-if="uploadingPhotos"
+                                        class="h-3 w-3 animate-spin"
+                                    />
+                                    <Plus v-else class="h-3 w-3" />
+                                    {{
+                                        uploadingPhotos
+                                            ? 'Uploading…'
+                                            : 'Add photos'
+                                    }}
+                                    <input
+                                        type="file"
+                                        class="sr-only"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        multiple
+                                        :disabled="uploadingPhotos"
+                                        @change="uploadPhotos"
+                                    />
+                                </label>
+                            </div>
+                            <div
+                                v-if="modalDelivery?.photos?.length"
+                                class="grid grid-cols-3 gap-2"
+                            >
+                                <div
+                                    v-for="photo in modalDelivery.photos"
+                                    :key="photo.public_id"
+                                    class="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
+                                >
+                                    <a
+                                        :href="`${base}/photos/${photo.public_id}`"
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        <img
+                                            :src="`${base}/photos/${photo.public_id}`"
+                                            alt="Delivery proof"
+                                            class="h-full w-full object-cover"
+                                            loading="lazy"
+                                        />
+                                    </a>
+                                    <button
+                                        v-if="can('Logistics', 'archive')"
+                                        type="button"
+                                        class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+                                        title="Remove photo"
+                                        :disabled="
+                                            removingPhoto === photo.public_id
+                                        "
+                                        @click="removePhoto(photo)"
+                                    >
+                                        <Trash2 class="h-3 w-3" />
+                                    </button>
+                                </div>
+                            </div>
+                            <p v-else class="text-xs text-muted-foreground">
+                                No proof photos yet. JPG, PNG or WebP, up to 5
+                                MB each (max 8).
+                            </p>
                         </div>
                     </div>
 

@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import L from 'leaflet';
 import {
+    Camera,
     CheckCircle2,
     Clock,
     MapPin,
@@ -32,6 +33,14 @@ export interface DeliveryTracking {
     distance_km: number | null;
     delivery_fee: number;
     rider_name: string | null;
+    courier: 'own_rider' | 'lalamove';
+    courier_info: {
+        tracking_url: string | null;
+        driver_name: string | null;
+        driver_phone: string | null;
+        vehicle_plate: string | null;
+    } | null;
+    photos: { public_id: string; uploaded_at: string | null }[];
     shop: Point & { name: string | null };
     destination: Point;
     rider: { lat: number; lng: number; located_at: string | null } | null;
@@ -96,7 +105,14 @@ const timeline = computed(() => {
     const t = tracking.value.timeline;
     const steps = [
         { key: 'pending', label: 'Requested', at: t.requested_at },
-        { key: 'assigned', label: 'Rider assigned', at: t.assigned_at },
+        {
+            key: 'assigned',
+            label:
+                tracking.value.courier === 'lalamove'
+                    ? 'Courier booked'
+                    : 'Rider assigned',
+            at: t.assigned_at,
+        },
         { key: 'picked_up', label: 'Picked up', at: t.picked_up_at },
     ];
     steps.push(
@@ -369,7 +385,44 @@ onUnmounted(() => {
                 <MapPin class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
                 <span>{{ tracking.delivery_address }}</span>
             </div>
-            <div v-if="tracking.rider_name" class="flex items-center gap-2">
+            <div
+                v-if="tracking.courier === 'lalamove' && tracking.courier_info"
+                class="space-y-1.5 rounded-xl bg-orange-50 p-3 dark:bg-orange-500/10"
+            >
+                <div class="flex items-center gap-2">
+                    <Truck class="h-3.5 w-3.5 shrink-0 text-orange-500" />
+                    <span class="font-medium text-gray-700 dark:text-gray-200"
+                        >Delivered by Lalamove</span
+                    >
+                </div>
+                <p v-if="tracking.courier_info.driver_name" class="pl-5.5">
+                    Driver:
+                    <span
+                        class="font-medium text-gray-700 dark:text-gray-200"
+                        >{{ tracking.courier_info.driver_name }}</span
+                    >
+                    <span v-if="tracking.courier_info.vehicle_plate">
+                        · {{ tracking.courier_info.vehicle_plate }}</span
+                    >
+                </p>
+                <p v-if="tracking.courier_info.driver_phone" class="pl-5.5">
+                    Phone: {{ tracking.courier_info.driver_phone }}
+                </p>
+                <a
+                    v-if="tracking.courier_info.tracking_url"
+                    :href="tracking.courier_info.tracking_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 pl-5.5 font-medium text-orange-600 hover:underline"
+                >
+                    <Navigation class="h-3.5 w-3.5" />
+                    Track on Lalamove
+                </a>
+            </div>
+            <div
+                v-else-if="tracking.rider_name"
+                class="flex items-center gap-2"
+            >
                 <Truck class="h-3.5 w-3.5 shrink-0 text-gray-400" />
                 <span
                     >Rider:
@@ -395,6 +448,33 @@ onUnmounted(() => {
                         }}</span
                     >
                 </span>
+            </div>
+        </div>
+
+        <!-- Proof photos from the shop -->
+        <div v-if="tracking.photos.length > 0" class="space-y-2">
+            <p
+                class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400"
+            >
+                <Camera class="h-3.5 w-3.5" />
+                Photos from the shop
+            </p>
+            <div class="grid grid-cols-3 gap-2">
+                <a
+                    v-for="photo in tracking.photos"
+                    :key="photo.public_id"
+                    :href="`/user/orders/delivery-photos/${photo.public_id}`"
+                    target="_blank"
+                    rel="noopener"
+                    class="aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                >
+                    <img
+                        :src="`/user/orders/delivery-photos/${photo.public_id}`"
+                        alt="Delivery photo from the shop"
+                        class="h-full w-full object-cover"
+                        loading="lazy"
+                    />
+                </a>
             </div>
         </div>
 

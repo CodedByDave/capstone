@@ -18,6 +18,7 @@ class ShopOrderService
         protected ShopOrderRepository $repository,
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly OrderBillingBreakdownService $billing,
+        private readonly LogisticsService $logistics,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -41,7 +42,7 @@ class ShopOrderService
 
     public function createOrder(array $data, User $actor, ?string $ipAddress = null, ?string $userAgent = null): ShopOrder
     {
-        return DB::transaction(function () use ($data, $actor, $ipAddress, $userAgent) {
+        $order = DB::transaction(function () use ($data, $actor, $ipAddress, $userAgent) {
             $supplies = $data['supplies'] ?? [];
             $agreementVersion = $data['customer_agreement_version'];
             unset($data['supplies']);
@@ -84,11 +85,15 @@ class ShopOrderService
 
             return $order;
         });
+
+        $this->logistics->dispatchPickupRun($order);
+
+        return $order;
     }
 
     public function createCustomerOrder(User $customer, array $data, ?string $ipAddress, ?string $userAgent): ShopOrder
     {
-        return DB::transaction(function () use ($customer, $data, $ipAddress, $userAgent) {
+        $order = DB::transaction(function () use ($customer, $data, $ipAddress, $userAgent) {
             $shop = $this->repository->findActiveShop((int) $data['shop_id']);
             if (! $shop) {
                 throw ValidationException::withMessages(['shop_id' => 'The selected shop is unavailable.']);
@@ -136,13 +141,19 @@ class ShopOrderService
 
             return $order;
         });
+
+        $this->logistics->dispatchPickupRun($order);
+
+        return $order;
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
 
     public function updateOrder(ShopOrder $order, array $data): ShopOrder
     {
-        return DB::transaction(function () use ($order, $data) {
+        $previousStatus = $order->status;
+
+        $updated = DB::transaction(function () use ($order, $data) {
             if ($order->payment_status === 'paid'
                 && array_key_exists('actual_weight_kg', $data)
                 && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg) {
@@ -263,6 +274,15 @@ class ShopOrderService
 
             return $updated;
         });
+
+        // The edit form can complete an order or switch it to pickup/delivery, so the board follows.
+        if ($updated->status === 'completed' && $previousStatus !== 'completed') {
+            $this->logistics->dispatchCompletedOrder($updated);
+        } else {
+            $this->logistics->dispatchPickupRun($updated);
+        }
+
+        return $updated;
     }
 
     // ─── Status & Payment ─────────────────────────────────────────────────────
@@ -281,6 +301,11 @@ class ShopOrderService
         if ($updated->user_id && in_array($status, ['in_progress', 'completed'])) {
             $updated->load('shop');
             $updated->user?->notify(new OrderNotification($updated, 'status_changed'));
+        }
+
+        // A pickup order goes back to the customer, so it joins the delivery board.
+        if ($status === 'completed') {
+            $this->logistics->dispatchCompletedOrder($updated);
         }
 
         return $updated;

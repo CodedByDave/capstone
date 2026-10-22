@@ -3,7 +3,7 @@ import roles from './roles'
 import employee from './employee'
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::update
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:84
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:89
  * @route '/shop/permission/update'
  */
 export const update = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -18,7 +18,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::update
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:84
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:89
  * @route '/shop/permission/update'
  */
 update.url = (options?: RouteQueryOptions) => {
@@ -27,7 +27,7 @@ update.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::update
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:84
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:89
  * @route '/shop/permission/update'
  */
 update.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -37,7 +37,7 @@ update.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::update
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:84
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:89
  * @route '/shop/permission/update'
  */
     const updateForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -47,7 +47,7 @@ update.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::update
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:84
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:89
  * @route '/shop/permission/update'
  */
         updateForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

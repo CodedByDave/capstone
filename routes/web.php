@@ -12,6 +12,7 @@ use App\Http\Controllers\BusinessAgreementSignatureController;
 use App\Http\Controllers\DriverPageController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\DeliveryProofController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
 use App\Http\Controllers\Shop\Employee\AttendanceController;
 use App\Http\Controllers\Shop\Employee\BranchController;
@@ -303,6 +304,9 @@ Route::prefix('shop')->middleware([
     Route::put('operations/orders/{order}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
     Route::delete('operations/orders/{order}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
     Route::post('operations/orders/{order}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('shop.orders.payment-request');
+    Route::post('operations/orders/{order}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
+        ->middleware('shop.capability:delivery')
+        ->name('shop.orders.send-for-delivery');
 
     // Services and pricing
     Route::get('operations/services', [ShopServiceController::class, 'index'])->name('shop.services.index');
@@ -376,7 +380,9 @@ Route::prefix('shop')->middleware([
     // ── Logistics ─────────────────────────────────────────────────────────────
     Route::middleware('shop.capability:delivery')->group(function () {
         Route::get('/logistics', [LogisticsController::class, 'index'])->name('shop.logistics');
-        Route::post('/logistics', [LogisticsController::class, 'store'])->name('shop.logistics.store');
+        Route::post('/logistics/{delivery}/photos', [DeliveryProofController::class, 'store'])->name('shop.logistics.photos.store');
+        Route::get('/logistics/photos/{photo}', [DeliveryProofController::class, 'show'])->name('shop.logistics.photos.show');
+        Route::delete('/logistics/photos/{photo}', [DeliveryProofController::class, 'destroy'])->name('shop.logistics.photos.destroy');
         Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
         Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
         Route::get('/logistics/riders', [LogisticsController::class, 'riders'])->name('shop.logistics.riders');
@@ -556,6 +562,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::patch('/operations/orders/{order}/status', [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
         Route::patch('/operations/orders/{order}/payment', [ShopOrderController::class, 'updatePayment'])->name('staff.orders.payment');
         Route::post('/operations/orders/{order}/payment-request', [ShopOrderController::class, 'sendPaymentRequest'])->name('staff.orders.payment-request');
+        Route::post('/operations/orders/{order}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
+            ->middleware('shop.capability:delivery')
+            ->name('staff.orders.send-for-delivery');
         Route::get('/operations/services/{service}/edit', [ShopServiceController::class, 'edit'])->name('staff.services.edit');
         Route::put('/operations/services/{service}', [ShopServiceController::class, 'update'])->name('staff.services.update');
         Route::patch('/operations/services/{service}/toggle', [ShopServiceController::class, 'toggleActive'])->name('staff.services.toggle');
@@ -567,6 +576,29 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::patch('/operations/promos/{promotion}/toggle', [PromotionController::class, 'toggleActive'])->name('staff.promotions.toggle');
         Route::patch('/operations/promos/{promotion}/restore', [PromotionController::class, 'restore'])->name('staff.promotions.restore');
         Route::delete('/operations/promos/{promotion}', [PromotionController::class, 'destroy'])->name('staff.promotions.destroy');
+    });
+
+    // ── Logistics ─────────────────────────────────────────────────────────────
+    // Staff dispatch only when the owner grants the Logistics permission to their role.
+    Route::middleware('shop.capability:delivery')->group(function () {
+        Route::middleware('permission:Logistics,view')->group(function () {
+            Route::get('/logistics', [LogisticsController::class, 'index'])->name('staff.logistics');
+            Route::get('/logistics/riders', [LogisticsController::class, 'riders'])->name('staff.logistics.riders');
+            Route::get('/logistics/photos/{photo}', [DeliveryProofController::class, 'show'])->name('staff.logistics.photos.show');
+        });
+        Route::middleware('permission:Logistics,create')->group(function () {
+            Route::post('/logistics/riders', [LogisticsController::class, 'storeRider'])->name('staff.logistics.riders.store');
+        });
+        Route::middleware('permission:Logistics,update')->group(function () {
+            Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('staff.logistics.status');
+            Route::post('/logistics/{delivery}/photos', [DeliveryProofController::class, 'store'])->name('staff.logistics.photos.store');
+            Route::patch('/logistics/riders/{rider}', [LogisticsController::class, 'updateRider'])->name('staff.logistics.riders.update');
+        });
+        Route::middleware('permission:Logistics,archive')->group(function () {
+            Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('staff.logistics.destroy');
+            Route::delete('/logistics/photos/{photo}', [DeliveryProofController::class, 'destroy'])->name('staff.logistics.photos.destroy');
+            Route::delete('/logistics/riders/{rider}', [LogisticsController::class, 'destroyRider'])->name('staff.logistics.riders.destroy');
+        });
     });
 
     // ── Payroll ───────────────────────────────────────────────────────────────
@@ -638,6 +670,9 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
         ->whereUlid('paymentPublicId')
         ->middleware('throttle:120,1')
         ->name('orders.tracking');
+    Route::get('/orders/delivery-photos/{photo}', [DeliveryProofController::class, 'showForCustomer'])
+        ->middleware('throttle:120,1')
+        ->name('orders.delivery-photos.show');
     Route::post('/orders/{order:payment_public_id}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{paymentPublicId}/pay-online', [UserPaymentController::class, 'pay'])->whereUlid('paymentPublicId')->name('orders.pay-online');
     Route::get('/orders/{paymentPublicId}/payment/demo', [UserPaymentController::class, 'demo'])->whereUlid('paymentPublicId')->name('orders.payment.demo');

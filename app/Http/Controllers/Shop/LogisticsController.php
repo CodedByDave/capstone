@@ -3,173 +3,76 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Shop\Logistics\StoreDeliveryRequest;
 use App\Http\Requests\Shop\Logistics\StoreRiderRequest;
+use App\Http\Requests\Shop\Logistics\UpdateDeliveryStatusRequest;
 use App\Http\Requests\Shop\Logistics\UpdateRiderRequest;
 use App\Models\Delivery;
 use App\Models\Rider;
-use App\Models\Shop;
-use App\Models\ShopOrder;
-use App\Notifications\DeliveryNotification;
+use App\Services\LogisticsService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * Serves both /shop/logistics (owner) and /staff/logistics (staff with the
+ * Logistics permission); the route group decides who may reach each action.
+ */
 class LogisticsController extends Controller
 {
-    private function getShop(): Shop
-    {
-        return Shop::where('owner_id', auth()->id())->firstOrFail();
-    }
+    public function __construct(private readonly LogisticsService $service) {}
 
     // ── Deliveries ────────────────────────────────────────────────────────────
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $shop = $this->getShop();
-        $status = $request->get('status');
-
-        $deliveries = Delivery::with(['rider', 'order:id,order_number'])
-            ->where('shop_id', $shop->id)
-            ->when($status, fn ($q) => $q->where('status', $status))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
-
-        $riders = Rider::where('shop_id', $shop->id)->active()->orderBy('name')->get(['id', 'name', 'vehicle_type']);
-
-        // Orders eligible for delivery: completed orders with no existing delivery
-        $pendingOrders = ShopOrder::where('shop_id', $shop->id)
-            ->where('status', 'completed')
-            ->whereNotIn('id', Delivery::where('shop_id', $shop->id)->whereNotNull('shop_order_id')->pluck('shop_order_id'))
-            ->with('customer:id,email')
-            ->orderByDesc('created_at')
-            ->get(['id', 'order_number', 'customer_name', 'customer_phone', 'delivery_address', 'pickup_type', 'user_id'])
-            ->map(fn ($o) => [
-                'id' => $o->id,
-                'order_number' => $o->order_number,
-                'customer_name' => $o->customer_name,
-                'customer_phone' => $o->customer_phone,
-                'delivery_address' => $o->delivery_address,
-                'pickup_type' => $o->pickup_type,
-                'customer_email' => $o->customer?->email,
-            ]);
-
-        $statusCounts = Delivery::where('shop_id', $shop->id)
-            ->selectRaw('status, COUNT(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
-        $stats = collect(['pending', 'assigned', 'picked_up', 'delivered', 'failed'])
-            ->mapWithKeys(fn ($status) => [$status => (int) ($statusCounts[$status] ?? 0)])
-            ->all();
-
         return Inertia::render('shop/logistics/Index', [
-            'deliveries' => $deliveries,
-            'riders' => $riders,
+            ...$this->service->board($request->user(), $request->get('status')),
             'rider_base_url' => rtrim(config('app.rider_base_url') ?: config('app.url'), '/'),
-            'pending_orders' => $pendingOrders,
-            'stats' => $stats,
             'filters' => $request->only('status'),
         ]);
     }
 
-    public function store(StoreDeliveryRequest $request)
+    public function updateStatus(UpdateDeliveryStatusRequest $request, Delivery $delivery): RedirectResponse
     {
-        $data = $request->validated();
-
-        $shop = $this->getShop();
-
-        Delivery::create([
-            'shop_id' => $shop->id,
-            'shop_order_id' => $data['shop_order_id'] ?? null,
-            'customer_name' => $data['customer_name'],
-            'customer_phone' => $data['customer_phone'] ?? null,
-            'customer_email' => $data['customer_email'] ?? null,
-            'delivery_address' => $data['delivery_address'] ?? null,
-            'rider_id' => $data['rider_id'] ?? null,
-            'status' => $data['rider_id'] ? 'assigned' : 'pending',
-            'notes' => $data['notes'] ?? null,
-            'assigned_at' => $data['rider_id'] ? now() : null,
-        ]);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Delivery created successfully.']);
-    }
-
-    public function updateStatus(Request $request, Delivery $delivery)
-    {
-        $data = $request->validate([
-            'status' => ['required', 'in:pending,assigned,picked_up,delivered,failed'],
-            'rider_id' => ['nullable', 'exists:riders,id'],
-            'notes' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $timestamps = [];
-        if ($data['status'] === 'assigned' && ! $delivery->assigned_at) {
-            $timestamps['assigned_at'] = now();
-        }
-        if ($data['status'] === 'picked_up' && ! $delivery->picked_up_at) {
-            $timestamps['picked_up_at'] = now();
-        }
-        if ($data['status'] === 'delivered' && ! $delivery->delivered_at) {
-            $timestamps['delivered_at'] = now();
-        }
-
-        $delivery->update(array_merge([
-            'status' => $data['status'],
-            'rider_id' => $data['rider_id'] ?? $delivery->rider_id,
-            'notes' => $data['notes'] ?? $delivery->notes,
-        ], $timestamps));
-
-        // Notify the customer linked to the shop order, if any
-        $customer = $delivery->order?->customer;
-        if ($customer) {
-            $delivery->load('rider'); // ensure rider name is fresh
-            $customer->notify(new DeliveryNotification($delivery));
-        }
+        $this->service->updateStatus($request->user(), $delivery, $request->validated());
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Delivery status updated.']);
     }
 
-    public function destroy(Delivery $delivery)
+    public function destroy(Request $request, Delivery $delivery): RedirectResponse
     {
-        $delivery->delete();
+        $this->service->deleteDelivery($request->user(), $delivery);
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Delivery removed.']);
     }
 
     // ── Riders ────────────────────────────────────────────────────────────────
 
-    public function riders()
+    public function riders(Request $request): Response
     {
-        $shop = $this->getShop();
-        $riders = Rider::where('shop_id', $shop->id)->withCount('deliveries')->orderBy('name')->get();
-
         return Inertia::render('shop/logistics/Riders', [
-            'riders' => $riders,
+            'riders' => $this->service->riderList($request->user()),
         ]);
     }
 
-    public function storeRider(StoreRiderRequest $request)
+    public function storeRider(StoreRiderRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-
-        $shop = $this->getShop();
-        Rider::create(array_merge($data, ['shop_id' => $shop->id]));
+        $this->service->createRider($request->user(), $request->validated());
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Rider added successfully.']);
     }
 
-    public function updateRider(UpdateRiderRequest $request, Rider $rider)
+    public function updateRider(UpdateRiderRequest $request, Rider $rider): RedirectResponse
     {
-        $data = $request->validated();
-
-        $rider->update($data);
+        $this->service->updateRider($request->user(), $rider, $request->validated());
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Rider updated.']);
     }
 
-    public function destroyRider(Rider $rider)
+    public function destroyRider(Request $request, Rider $rider): RedirectResponse
     {
-        $rider->delete();
+        $this->service->deleteRider($request->user(), $rider);
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Rider removed.']);
     }

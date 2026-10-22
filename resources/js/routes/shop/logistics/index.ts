@@ -1,63 +1,9 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
+import photos from './photos'
 import riders13f500 from './riders'
 /**
-* @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:75
- * @route '/shop/logistics'
- */
-export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: store.url(options),
-    method: 'post',
-})
-
-store.definition = {
-    methods: ["post"],
-    url: '/shop/logistics',
-} satisfies RouteDefinition<["post"]>
-
-/**
-* @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:75
- * @route '/shop/logistics'
- */
-store.url = (options?: RouteQueryOptions) => {
-    return store.definition.url + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:75
- * @route '/shop/logistics'
- */
-store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: store.url(options),
-    method: 'post',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:75
- * @route '/shop/logistics'
- */
-    const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: store.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:75
- * @route '/shop/logistics'
- */
-        storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: store.url(options),
-            method: 'post',
-        })
-    
-    store.form = storeForm
-/**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:97
+ * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
 export const status = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -72,7 +18,7 @@ status.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:97
+ * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
 status.url = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -105,7 +51,7 @@ status.url = (args: { delivery: number | { id: number } } | [delivery: number | 
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:97
+ * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
 status.patch = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -115,7 +61,7 @@ status.patch = (args: { delivery: number | { id: number } } | [delivery: number 
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:97
+ * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
     const statusForm = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -130,7 +76,7 @@ status.patch = (args: { delivery: number | { id: number } } | [delivery: number 
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:97
+ * @see app/Http/Controllers/Shop/LogisticsController.php:36
  * @route '/shop/logistics/{delivery}/status'
  */
         statusForm.patch = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -146,7 +92,7 @@ status.patch = (args: { delivery: number | { id: number } } | [delivery: number 
     status.form = statusForm
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:132
+ * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
 export const destroy = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -161,7 +107,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:132
+ * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
 destroy.url = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -194,7 +140,7 @@ destroy.url = (args: { delivery: number | { id: number } } | [delivery: number |
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:132
+ * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
 destroy.delete = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -204,7 +150,7 @@ destroy.delete = (args: { delivery: number | { id: number } } | [delivery: numbe
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:132
+ * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
     const destroyForm = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -219,7 +165,7 @@ destroy.delete = (args: { delivery: number | { id: number } } | [delivery: numbe
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:132
+ * @see app/Http/Controllers/Shop/LogisticsController.php:43
  * @route '/shop/logistics/{delivery}'
  */
         destroyForm.delete = (args: { delivery: number | { id: number } } | [delivery: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -235,7 +181,7 @@ destroy.delete = (args: { delivery: number | { id: number } } | [delivery: numbe
     destroy.form = destroyForm
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:141
+ * @see app/Http/Controllers/Shop/LogisticsController.php:52
  * @route '/shop/logistics/riders'
  */
 export const riders = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -250,7 +196,7 @@ riders.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:141
+ * @see app/Http/Controllers/Shop/LogisticsController.php:52
  * @route '/shop/logistics/riders'
  */
 riders.url = (options?: RouteQueryOptions) => {
@@ -259,7 +205,7 @@ riders.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:141
+ * @see app/Http/Controllers/Shop/LogisticsController.php:52
  * @route '/shop/logistics/riders'
  */
 riders.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -268,7 +214,7 @@ riders.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:141
+ * @see app/Http/Controllers/Shop/LogisticsController.php:52
  * @route '/shop/logistics/riders'
  */
 riders.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -278,7 +224,7 @@ riders.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:141
+ * @see app/Http/Controllers/Shop/LogisticsController.php:52
  * @route '/shop/logistics/riders'
  */
     const ridersForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -288,7 +234,7 @@ riders.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:141
+ * @see app/Http/Controllers/Shop/LogisticsController.php:52
  * @route '/shop/logistics/riders'
  */
         ridersForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -297,7 +243,7 @@ riders.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:141
+ * @see app/Http/Controllers/Shop/LogisticsController.php:52
  * @route '/shop/logistics/riders'
  */
         ridersForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -312,7 +258,7 @@ riders.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     riders.form = ridersForm
 const logistics = {
-    store: Object.assign(store, store),
+    photos: Object.assign(photos, photos),
 status: Object.assign(status, status),
 destroy: Object.assign(destroy, destroy),
 riders: Object.assign(riders, riders13f500),

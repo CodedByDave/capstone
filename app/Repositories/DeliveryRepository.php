@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Delivery;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class DeliveryRepository extends Repository
 {
@@ -16,9 +17,35 @@ class DeliveryRepository extends Repository
         return Delivery::query()->create($data);
     }
 
-    public function existsForOrder(int $shopOrderId): bool
+    public function paginateForShop(int $shopId, ?string $status, int $perPage = 15): LengthAwarePaginator
     {
-        return Delivery::query()->where('shop_order_id', $shopOrderId)->exists();
+        return Delivery::query()
+            ->with(['rider', 'order:id,order_number', 'photos'])
+            ->where('shop_id', $shopId)
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    /** @return array<string, int> delivery counts keyed by status, for the shop */
+    public function statusCountsForShop(int $shopId): array
+    {
+        return Delivery::query()
+            ->where('shop_id', $shopId)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->map(fn ($total) => (int) $total)
+            ->all();
+    }
+
+    public function existsForOrder(int $shopOrderId, string $type = Delivery::TYPE_DELIVERY): bool
+    {
+        return Delivery::query()
+            ->where('shop_order_id', $shopOrderId)
+            ->where('type', $type)
+            ->exists();
     }
 
     /**
@@ -28,7 +55,7 @@ class DeliveryRepository extends Repository
     public function findForCustomerOrder(string $paymentPublicId, int $customerId): ?Delivery
     {
         return Delivery::query()
-            ->with(['shop', 'rider:id,name', 'order:id,order_number,payment_public_id,user_id'])
+            ->with(['shop', 'rider:id,name', 'photos', 'order:id,order_number,payment_public_id,user_id'])
             ->whereHas('order', fn ($query) => $query
                 ->where('payment_public_id', $paymentPublicId)
                 ->where('user_id', $customerId))

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop\Operations;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Operations\SendOrderForDeliveryRequest;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
 use App\Models\Employee;
@@ -12,6 +13,7 @@ use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Notifications\OrderNotification;
 use App\Services\CustomerAgreementService;
+use App\Services\LogisticsService;
 use App\Services\ShopOrderService;
 use App\Traits\BranchScoped;
 use Illuminate\Http\RedirectResponse;
@@ -27,6 +29,7 @@ class ShopOrderController extends Controller
     public function __construct(
         protected ShopOrderService $service,
         private readonly CustomerAgreementService $customerAgreementService,
+        private readonly LogisticsService $logistics,
     ) {}
 
     private function getShopId(): int
@@ -121,8 +124,21 @@ class ShopOrderController extends Controller
         return Inertia::render('shop/operations/orders/Show', [
             'shopOrder' => $order,
             'customerAgreement' => $this->customerAgreementService->acceptanceData($order),
+            'deliveryOption' => $this->logistics->deliveryOptionFor($order),
             'gcash_qr' => $qrUrl($shop->gcash_qr),
             'maya_qr' => $qrUrl($shop->maya_qr),
+        ]);
+    }
+
+    public function sendForDelivery(SendOrderForDeliveryRequest $request, ShopOrder $order): RedirectResponse
+    {
+        $delivery = $this->logistics->sendOrderForDelivery($request->user(), $order, $request->validated('delivery_address'));
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => $delivery->rider_id
+                ? "Order {$order->order_number} sent for delivery and a rider was assigned."
+                : "Order {$order->order_number} sent for delivery. Assign a rider in Logistics.",
         ]);
     }
 

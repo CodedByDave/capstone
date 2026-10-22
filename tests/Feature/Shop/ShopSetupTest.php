@@ -200,8 +200,8 @@ test('shop cannot create deliveries when delivery is disabled', function () {
     ]);
 
     $this->actingAs($owner)
-        ->post(route('shop.logistics.store'), [
-            'customer_name' => 'Test Customer',
+        ->post(route('shop.logistics.riders.store'), [
+            'name' => 'Test Rider',
         ])
         ->assertForbidden();
 });

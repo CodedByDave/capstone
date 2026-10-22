@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::store
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:112
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:117
  * @route '/shop/permission/roles'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::store
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:112
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:117
  * @route '/shop/permission/roles'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::store
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:112
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:117
  * @route '/shop/permission/roles'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::store
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:112
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:117
  * @route '/shop/permission/roles'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::store
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:112
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:117
  * @route '/shop/permission/roles'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -56,7 +56,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::destroy
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:142
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:147
  * @route '/shop/permission/roles/{role}'
  */
 export const destroy = (args: { role: string | number } | [role: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -71,7 +71,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::destroy
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:142
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:147
  * @route '/shop/permission/roles/{role}'
  */
 destroy.url = (args: { role: string | number } | [role: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -99,7 +99,7 @@ destroy.url = (args: { role: string | number } | [role: string | number ] | stri
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::destroy
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:142
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:147
  * @route '/shop/permission/roles/{role}'
  */
 destroy.delete = (args: { role: string | number } | [role: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -109,7 +109,7 @@ destroy.delete = (args: { role: string | number } | [role: string | number ] | s
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::destroy
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:142
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:147
  * @route '/shop/permission/roles/{role}'
  */
     const destroyForm = (args: { role: string | number } | [role: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -124,7 +124,7 @@ destroy.delete = (args: { role: string | number } | [role: string | number ] | s
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::destroy
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:142
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:147
  * @route '/shop/permission/roles/{role}'
  */
         destroyForm.delete = (args: { role: string | number } | [role: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

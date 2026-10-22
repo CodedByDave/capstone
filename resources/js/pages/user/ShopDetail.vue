@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
 import {
     serviceCategoryLabel,
     type ServiceCategory,
@@ -170,6 +171,29 @@ const form = ref({
     customer_agreement_version: props.customerAgreement.version,
     customer_agreement_accepted: false,
 });
+
+// Pre-fill the pickup address from the device location; the customer can still edit it.
+const { locating, failed, detectAddress } = usePickupAddressAutofill();
+
+async function autofillAddress(force = false) {
+    if (!force && form.value.customer_address.trim() !== '') return;
+
+    const detected = await detectAddress();
+    if (
+        detected &&
+        form.value.pickup_type === 'pickup' &&
+        (force || form.value.customer_address.trim() === '')
+    ) {
+        form.value.customer_address = detected;
+    }
+}
+
+watch(
+    () => form.value.pickup_type,
+    (type) => {
+        if (type === 'pickup') autofillAddress();
+    },
+);
 
 function openOrder(service: ShopService) {
     selectedService.value = service;
@@ -576,6 +600,29 @@ function goBack() {
                                 errors.customer_address ? 'border-red-400' : ''
                             "
                         />
+                        <div class="flex items-center gap-2 text-xs">
+                            <button
+                                type="button"
+                                class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline disabled:opacity-60"
+                                :disabled="locating"
+                                @click="autofillAddress(true)"
+                            >
+                                <Loader2
+                                    v-if="locating"
+                                    class="h-3 w-3 animate-spin"
+                                />
+                                <MapPin v-else class="h-3 w-3" />
+                                {{
+                                    locating
+                                        ? 'Finding your address…'
+                                        : 'Use my current location'
+                                }}
+                            </button>
+                            <span v-if="failed" class="text-muted-foreground"
+                                >Could not detect it. Please type your
+                                address.</span
+                            >
+                        </div>
                         <p
                             v-if="errors.customer_address"
                             class="text-xs text-red-500"

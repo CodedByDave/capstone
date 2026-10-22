@@ -90,6 +90,14 @@ const moduleActionMap: Record<string, Action[]> = {
         { key: 'view', label: 'View' },
         { key: 'export', label: 'Export' },
     ],
+    // View the board; add riders; assign riders, book couriers, update statuses
+    // and upload proof; remove deliveries, riders and photos.
+    Logistics: [
+        { key: 'view', label: 'View' },
+        { key: 'create', label: 'Add Riders' },
+        { key: 'update', label: 'Assign & Update' },
+        { key: 'archive', label: 'Delete' },
+    ],
 };
 
 // ─── Modules ──────────────────────────────────────────────────────────────────

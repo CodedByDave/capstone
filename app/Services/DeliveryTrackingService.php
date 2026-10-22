@@ -41,6 +41,18 @@ class DeliveryTrackingService
             'distance_km' => $delivery->distance_km !== null ? (float) $delivery->distance_km : null,
             'delivery_fee' => (float) $delivery->delivery_fee,
             'rider_name' => $delivery->rider?->name,
+            'courier' => $delivery->courier,
+            'courier_info' => $delivery->usesLalamove() ? [
+                'tracking_url' => $delivery->courier_tracking_url,
+                'driver_name' => $delivery->courier_driver_name,
+                'driver_phone' => $delivery->courier_driver_phone,
+                'vehicle_plate' => $delivery->courier_vehicle_plate,
+            ] : null,
+            // The shop's proof photos are opened through an authenticated route by public id.
+            'photos' => $delivery->photos->map(fn ($photo) => [
+                'public_id' => $photo->public_id,
+                'uploaded_at' => $photo->created_at?->toIso8601String(),
+            ])->values()->all(),
             'shop' => [
                 'name' => $shop?->shop_name,
                 'lat' => $shop?->latitude,

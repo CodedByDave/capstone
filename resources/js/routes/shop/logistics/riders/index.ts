@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:151
+ * @see app/Http/Controllers/Shop/LogisticsController.php:59
  * @route '/shop/logistics/riders'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:151
+ * @see app/Http/Controllers/Shop/LogisticsController.php:59
  * @route '/shop/logistics/riders'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:151
+ * @see app/Http/Controllers/Shop/LogisticsController.php:59
  * @route '/shop/logistics/riders'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:151
+ * @see app/Http/Controllers/Shop/LogisticsController.php:59
  * @route '/shop/logistics/riders'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::store
- * @see app/Http/Controllers/Shop/LogisticsController.php:151
+ * @see app/Http/Controllers/Shop/LogisticsController.php:59
  * @route '/shop/logistics/riders'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -56,7 +56,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::update
- * @see app/Http/Controllers/Shop/LogisticsController.php:161
+ * @see app/Http/Controllers/Shop/LogisticsController.php:66
  * @route '/shop/logistics/riders/{rider}'
  */
 export const update = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -71,7 +71,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::update
- * @see app/Http/Controllers/Shop/LogisticsController.php:161
+ * @see app/Http/Controllers/Shop/LogisticsController.php:66
  * @route '/shop/logistics/riders/{rider}'
  */
 update.url = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -104,7 +104,7 @@ update.url = (args: { rider: number | { id: number } } | [rider: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::update
- * @see app/Http/Controllers/Shop/LogisticsController.php:161
+ * @see app/Http/Controllers/Shop/LogisticsController.php:66
  * @route '/shop/logistics/riders/{rider}'
  */
 update.patch = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -114,7 +114,7 @@ update.patch = (args: { rider: number | { id: number } } | [rider: number | { id
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::update
- * @see app/Http/Controllers/Shop/LogisticsController.php:161
+ * @see app/Http/Controllers/Shop/LogisticsController.php:66
  * @route '/shop/logistics/riders/{rider}'
  */
     const updateForm = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -129,7 +129,7 @@ update.patch = (args: { rider: number | { id: number } } | [rider: number | { id
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::update
- * @see app/Http/Controllers/Shop/LogisticsController.php:161
+ * @see app/Http/Controllers/Shop/LogisticsController.php:66
  * @route '/shop/logistics/riders/{rider}'
  */
         updateForm.patch = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -145,7 +145,7 @@ update.patch = (args: { rider: number | { id: number } } | [rider: number | { id
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:170
+ * @see app/Http/Controllers/Shop/LogisticsController.php:73
  * @route '/shop/logistics/riders/{rider}'
  */
 export const destroy = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -160,7 +160,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:170
+ * @see app/Http/Controllers/Shop/LogisticsController.php:73
  * @route '/shop/logistics/riders/{rider}'
  */
 destroy.url = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -193,7 +193,7 @@ destroy.url = (args: { rider: number | { id: number } } | [rider: number | { id:
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:170
+ * @see app/Http/Controllers/Shop/LogisticsController.php:73
  * @route '/shop/logistics/riders/{rider}'
  */
 destroy.delete = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -203,7 +203,7 @@ destroy.delete = (args: { rider: number | { id: number } } | [rider: number | { 
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:170
+ * @see app/Http/Controllers/Shop/LogisticsController.php:73
  * @route '/shop/logistics/riders/{rider}'
  */
     const destroyForm = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -218,7 +218,7 @@ destroy.delete = (args: { rider: number | { id: number } } | [rider: number | { 
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:170
+ * @see app/Http/Controllers/Shop/LogisticsController.php:73
  * @route '/shop/logistics/riders/{rider}'
  */
         destroyForm.delete = (args: { rider: number | { id: number } } | [rider: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

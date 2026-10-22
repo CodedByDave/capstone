@@ -15,6 +15,7 @@ import PaymentQrController from './PaymentQrController'
 import UpgradeController from './UpgradeController'
 import ShopSettingsController from './ShopSettingsController'
 import LogisticsController from './LogisticsController'
+import DeliveryProofController from './DeliveryProofController'
 const Shop = {
     CheckoutController: Object.assign(CheckoutController, CheckoutController),
 TrialController: Object.assign(TrialController, TrialController),
@@ -33,6 +34,7 @@ PaymentQrController: Object.assign(PaymentQrController, PaymentQrController),
 UpgradeController: Object.assign(UpgradeController, UpgradeController),
 ShopSettingsController: Object.assign(ShopSettingsController, ShopSettingsController),
 LogisticsController: Object.assign(LogisticsController, LogisticsController),
+DeliveryProofController: Object.assign(DeliveryProofController, DeliveryProofController),
 }
 
 export default Shop

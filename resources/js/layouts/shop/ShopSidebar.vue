@@ -495,6 +495,15 @@ const moduleNavItems = computed<ModuleNavItem[]>(() => {
         );
 });
 
+// Logistics is permission-based, not a purchased module, so staff get it here.
+const showStaffLogistics = computed(
+    () =>
+        !isOwner.value &&
+        isApproved.value &&
+        shopCapabilities.value.offers_delivery &&
+        can('Logistics', 'view'),
+);
+
 const dashboardItem = computed(() => {
     if (isOwner.value && !ownerCan('shop.dashboard')) return [];
 
@@ -631,6 +640,23 @@ const hasOwnerAdministration = computed(() =>
                     </SidebarMenuItem>
                 </template>
             </template>
+        </SidebarMenu>
+
+        <SidebarMenu v-if="showStaffLogistics" class="px-2">
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    as-child
+                    :is-active="currentUrl.startsWith('/staff/logistics')"
+                >
+                    <Link
+                        href="/staff/logistics"
+                        class="flex w-full items-center gap-2"
+                    >
+                        <Truck class="h-4 w-4 shrink-0" />
+                        <span>Logistics</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
         </SidebarMenu>
 
         <!-- Owner-only admin section -->

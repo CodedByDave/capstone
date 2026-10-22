@@ -9,6 +9,7 @@ import logs from './logs'
 import orders from './orders'
 import services from './services'
 import promotions from './promotions'
+import logisticsC73990 from './logistics'
 import payroll from './payroll'
 import reports from './reports'
 import finance from './finance'
@@ -90,6 +91,84 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
     
     dashboard.form = dashboardForm
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::logistics
+ * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @route '/staff/logistics'
+ */
+export const logistics = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: logistics.url(options),
+    method: 'get',
+})
+
+logistics.definition = {
+    methods: ["get","head"],
+    url: '/staff/logistics',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::logistics
+ * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @route '/staff/logistics'
+ */
+logistics.url = (options?: RouteQueryOptions) => {
+    return logistics.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::logistics
+ * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @route '/staff/logistics'
+ */
+logistics.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: logistics.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::logistics
+ * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @route '/staff/logistics'
+ */
+logistics.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: logistics.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\LogisticsController::logistics
+ * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @route '/staff/logistics'
+ */
+    const logisticsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: logistics.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\LogisticsController::logistics
+ * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @route '/staff/logistics'
+ */
+        logisticsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: logistics.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\LogisticsController::logistics
+ * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @route '/staff/logistics'
+ */
+        logisticsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: logistics.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    logistics.form = logisticsForm
 const staff = {
     dashboard: Object.assign(dashboard, dashboard),
 attendance: Object.assign(attendance, attendance),
@@ -102,6 +181,7 @@ logs: Object.assign(logs, logs),
 orders: Object.assign(orders, orders),
 services: Object.assign(services, services),
 promotions: Object.assign(promotions, promotions),
+logistics: Object.assign(logistics, logisticsC73990),
 payroll: Object.assign(payroll, payroll),
 reports: Object.assign(reports, reports),
 finance: Object.assign(finance, finance),

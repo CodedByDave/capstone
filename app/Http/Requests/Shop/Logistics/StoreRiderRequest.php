@@ -9,7 +9,7 @@ class StoreRiderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isOwner() === true;
+        return $this->user()?->isOwner() === true || $this->user()?->isStaff() === true;
     }
 
     public function rules(): array

@@ -43,6 +43,11 @@ class PermissionController extends Controller
                 ->toArray()
             : [];
 
+        // Logistics is not a purchased module: it is available whenever the shop offers delivery.
+        if ($shop->offers_delivery) {
+            $purchasedModules[] = ['name' => 'Logistics', 'price' => 0];
+        }
+
         $staff = Employee::where('shop_id', $shop->id)
             ->with('roles')
             ->get()
