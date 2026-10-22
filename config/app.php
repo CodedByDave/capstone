@@ -55,6 +55,13 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | Address riders open from the delivery QR code. Phones cannot reach localhost, so in
+    | local development this must be this computer's LAN address, e.g. http://192.168.1.5:8000.
+    | Falls back to APP_URL. Read through config so it survives `config:cache`.
+    */
+    'rider_base_url' => env('RIDER_BASE_URL'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

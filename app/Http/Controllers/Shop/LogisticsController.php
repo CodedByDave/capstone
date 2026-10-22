@@ -65,7 +65,7 @@ class LogisticsController extends Controller
         return Inertia::render('shop/logistics/Index', [
             'deliveries' => $deliveries,
             'riders' => $riders,
-            'rider_base_url' => rtrim(env('RIDER_BASE_URL', config('app.url')), '/'),
+            'rider_base_url' => rtrim(config('app.rider_base_url') ?: config('app.url'), '/'),
             'pending_orders' => $pendingOrders,
             'stats' => $stats,
             'filters' => $request->only('status'),
