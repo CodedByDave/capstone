@@ -952,7 +952,7 @@ const shopLocation = computed(() =>
                 <button
                     v-if="order.complaints.can_report"
                     type="button"
-                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
                     @click="complaintOpen = true"
                 >
                     <AlertTriangle class="h-4 w-4" aria-hidden="true" />
