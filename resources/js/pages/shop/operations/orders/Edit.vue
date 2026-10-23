@@ -5,7 +5,7 @@ import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { toLocalInputValue } from '@/lib/datetime';
 import { type AppPageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, Loader2 } from 'lucide-vue-next';
+import { ArrowLeft, Loader2, Truck } from 'lucide-vue-next';
 import { computed, onMounted, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -72,6 +72,8 @@ const props = defineProps<{
     pickupTypes: string[];
     paymentMethods: string[];
     statuses: string[];
+    /** Set while a pickup order's laundry has not yet reached the shop. */
+    weighingBlockedReason?: string | null;
     services?: Service[];
     inventoryItems?: InventoryItem[];
     promotions?: Promotion[];
@@ -482,6 +484,7 @@ watch(
                                 >
                                 <input
                                     v-model="form.actual_weight_kg"
+                                    :disabled="!!weighingBlockedReason"
                                     type="number"
                                     step="0.01"
                                     min="0.1"
@@ -490,6 +493,16 @@ watch(
                                 <p class="text-xs text-muted-foreground">
                                     Enter the scale reading to finalize the
                                     amount and unlock customer payment.
+                                </p>
+                                <p
+                                    v-if="weighingBlockedReason"
+                                    class="flex items-start gap-1.5 text-xs text-amber-700"
+                                    role="status"
+                                >
+                                    <Truck
+                                        class="mt-0.5 h-3.5 w-3.5 shrink-0"
+                                    />
+                                    {{ weighingBlockedReason }}
                                 </p>
                                 <p
                                     v-if="form.errors.actual_weight_kg"
@@ -532,6 +545,7 @@ watch(
                                 >
                                 <input
                                     v-model="form.actual_weight_kg"
+                                    :disabled="!!weighingBlockedReason"
                                     type="number"
                                     step="0.01"
                                     min="0.1"
@@ -540,6 +554,16 @@ watch(
                                 />
                                 <p class="text-xs text-muted-foreground">
                                     Auto-updates number of bundles
+                                </p>
+                                <p
+                                    v-if="weighingBlockedReason"
+                                    class="flex items-start gap-1.5 text-xs text-amber-700"
+                                    role="status"
+                                >
+                                    <Truck
+                                        class="mt-0.5 h-3.5 w-3.5 shrink-0"
+                                    />
+                                    {{ weighingBlockedReason }}
                                 </p>
                             </div>
                             <div class="col-span-12 space-y-1 sm:col-span-4">

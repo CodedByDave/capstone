@@ -38,6 +38,8 @@ interface Promotion {
 
 const props = defineProps<{
     shopId: number;
+    /** Pickup orders at this shop are weighed only after the rider brings the laundry in. */
+    pickupAwaitsReceipt: boolean;
     pickupTypes: string[];
     paymentMethods: string[];
     services?: Service[];
@@ -158,10 +160,19 @@ const selectedPromotion = computed(() =>
     props.promotions?.find((p) => p.id === Number(form.promotion_id)),
 );
 
+// A pickup order cannot be weighed yet, so its first total uses the customer's estimate.
+const weighLater = computed(
+    () => form.pickup_type === 'pickup' && props.pickupAwaitsReceipt,
+);
+
 const baseTotal = computed(() => {
     if (isPerKg.value) {
+        const weight = weighLater.value
+            ? form.estimated_weight_kg
+            : form.actual_weight_kg;
+
         return (
-            (parseFloat(String(form.actual_weight_kg)) || 0) *
+            (parseFloat(String(weight)) || 0) *
             (parseFloat(String(form.price_per_kg)) || 0)
         );
     }
@@ -268,6 +279,9 @@ watch(
         if (type !== 'walk_in') form.deliver_to_customer = false;
     },
 );
+watch(weighLater, (later) => {
+    if (later) form.actual_weight_kg = '';
+});
 </script>
 
 <template>
@@ -535,20 +549,35 @@ watch(
                             <div class="col-span-12 space-y-1 sm:col-span-4">
                                 <label class="text-sm font-medium"
                                     >Actual Weight (kg)
-                                    <span class="text-red-500">*</span></label
+                                    <span
+                                        v-if="!weighLater"
+                                        class="text-red-500"
+                                        >*</span
+                                    ></label
                                 >
                                 <input
                                     v-model="form.actual_weight_kg"
                                     type="number"
                                     step="0.01"
                                     min="0.1"
-                                    required
+                                    :required="!weighLater"
+                                    :disabled="weighLater"
+                                    :placeholder="
+                                        weighLater ? 'Weigh after pickup' : ''
+                                    "
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     :class="{
                                         'border-red-500':
                                             form.errors.actual_weight_kg,
                                     }"
                                 />
+                                <p
+                                    v-if="weighLater"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    Pickup order: weigh it once the rider has
+                                    brought the laundry to the shop.
+                                </p>
                                 <p
                                     v-if="form.errors.actual_weight_kg"
                                     class="text-xs text-red-500"

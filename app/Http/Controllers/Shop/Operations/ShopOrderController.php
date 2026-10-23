@@ -81,6 +81,7 @@ class ShopOrderController extends Controller
 
         return Inertia::render('shop/operations/orders/Create', [
             'shopId' => $shopId,
+            'pickupAwaitsReceipt' => $this->service->pickupOrdersAwaitReceipt($shopId),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'services' => ShopService::where('shop_id', $shopId)
@@ -152,6 +153,7 @@ class ShopOrderController extends Controller
         return Inertia::render('shop/operations/orders/Edit', [
             'shopOrder' => $order,
             'shopId' => $shopId,
+            'weighingBlockedReason' => $this->service->weighingBlockedReason($order),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'statuses' => ShopOrder::STATUSES,

@@ -57,7 +57,8 @@ class StoreShopOrderRequest extends FormRequest
                 'max:999.99',
             ],
             'actual_weight_kg' => [
-                Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_kg'),
+                // A pickup order is weighed later, once the rider has brought the laundry to the shop.
+                Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_kg' && $this->input('pickup_type') !== 'pickup'),
                 'nullable',
                 'numeric',
                 'min:0.1',

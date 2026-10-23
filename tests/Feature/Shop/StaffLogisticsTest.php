@@ -184,12 +184,12 @@ function autoOrder(Shop $shop, array $overrides = []): ShopOrder
     ], $overrides));
 }
 
-test('completing a pickup order puts it on the board with the customer details and a free rider', function () {
+test('completing a pickup order that asked for delivery puts it on the board with the customer details and a free rider', function () {
     $shop = dispatchShop();
     $busy = Rider::create(['shop_id' => $shop->id, 'name' => 'Busy', 'status' => 'active']);
     Delivery::create(['shop_id' => $shop->id, 'rider_id' => $busy->id, 'customer_name' => 'X', 'status' => 'picked_up']);
     $free = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
-    $order = autoOrder($shop);
+    $order = autoOrder($shop, ['deliver_to_customer' => true]);
 
     app(ShopOrderService::class)->updateStatus($order, 'completed');
 
@@ -206,7 +206,7 @@ test('a pickup order waits as pending when every rider is on the road', function
     $shop = dispatchShop();
     $busy = Rider::create(['shop_id' => $shop->id, 'name' => 'Busy', 'status' => 'active']);
     Delivery::create(['shop_id' => $shop->id, 'rider_id' => $busy->id, 'customer_name' => 'X', 'status' => 'assigned']);
-    $order = autoOrder($shop);
+    $order = autoOrder($shop, ['deliver_to_customer' => true]);
 
     app(ShopOrderService::class)->updateStatus($order, 'completed');
 
@@ -218,7 +218,7 @@ test('a pickup order waits as pending when every rider is on the road', function
 test('inactive riders are never auto assigned', function () {
     $shop = dispatchShop();
     Rider::create(['shop_id' => $shop->id, 'name' => 'Off', 'status' => 'inactive']);
-    $order = autoOrder($shop);
+    $order = autoOrder($shop, ['deliver_to_customer' => true]);
 
     app(ShopOrderService::class)->updateStatus($order, 'completed');
 
@@ -238,7 +238,7 @@ test('walk-in orders and shops without delivery create no delivery', function ()
 
 test('completing an order twice creates one delivery', function () {
     $shop = dispatchShop();
-    $order = autoOrder($shop);
+    $order = autoOrder($shop, ['deliver_to_customer' => true]);
 
     app(ShopOrderService::class)->updateStatus($order, 'completed');
     app(ShopOrderService::class)->updateStatus($order->fresh(), 'completed');
@@ -482,7 +482,7 @@ test('walk-in orders, finished orders and non-delivery shops get no pickup run',
 
 test('a pickup run is created once and does not block the return delivery', function () {
     $shop = dispatchShop();
-    $order = autoOrder($shop, ['status' => 'pending']);
+    $order = autoOrder($shop, ['status' => 'pending', 'deliver_to_customer' => true]);
     $service = app(LogisticsService::class);
 
     $service->dispatchPickupRun($order);
@@ -668,7 +668,7 @@ test('completing a pickup order in the Edit form creates its return delivery', f
     $shop = dispatchShop();
     $staff = orderManager($shop);
     $pickupRider = Rider::create(['shop_id' => $shop->id, 'name' => 'Collector', 'status' => 'active']);
-    $order = autoOrder($shop, ['status' => 'in_progress']);
+    $order = autoOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 3, 'deliver_to_customer' => true]);
     app(LogisticsService::class)->dispatchPickupRun($order);
     // The first rider is out collecting, so a second rider takes the return trip.
     $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
@@ -705,7 +705,7 @@ test('completing a walk-in order marked for delivery in the Edit form creates th
 test('switching an open order to pickup in the Edit form creates the pickup run', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
-    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'pending']);
+    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'pending', 'actual_weight_kg' => 3]);
 
     $this->actingAs($staff)
         ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['pickup_type' => 'pickup']))
@@ -738,11 +738,144 @@ test('the Edit form needs an address to deliver to and a shop that delivers', fu
 test('saving an already completed order again does not create another delivery', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
-    $order = autoOrder($shop, ['status' => 'in_progress']);
+    $order = autoOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 3, 'deliver_to_customer' => true]);
 
     $payload = editPayload($order, ['status' => 'completed']);
     $this->actingAs($staff)->put("/staff/operations/orders/{$order->payment_public_id}", $payload)->assertSessionHasNoErrors();
     $this->actingAs($staff)->put("/staff/operations/orders/{$order->payment_public_id}", $payload)->assertSessionHasNoErrors();
 
     expect(Delivery::where('shop_order_id', $order->id)->where('type', 'delivery')->count())->toBe(1);
+});
+
+// ── Pickup orders: weigh only after the rider brings the laundry in ──────────
+
+function pickupRunFor(ShopOrder $order, string $status): Delivery
+{
+    return Delivery::create([
+        'shop_id' => $order->shop_id,
+        'shop_order_id' => $order->id,
+        'type' => 'pickup',
+        'customer_name' => $order->customer_name,
+        'status' => $status,
+    ]);
+}
+
+test('a pickup order that did not ask for delivery gets no return delivery when completed', function () {
+    $shop = dispatchShop();
+    Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
+    $order = autoOrder($shop, ['actual_weight_kg' => 3]);
+
+    app(ShopOrderService::class)->updateStatus($order, 'completed');
+
+    expect(Delivery::where('shop_order_id', $order->id)->where('type', 'delivery')->count())->toBe(0);
+});
+
+test('a pickup order cannot be weighed until its pickup run is delivered', function (string $status) {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['status' => 'pending']);
+    pickupRunFor($order, $status);
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['actual_weight_kg' => 3]))
+        ->assertSessionHasErrors('actual_weight_kg');
+
+    expect($order->fresh()->actual_weight_kg)->toBeNull();
+})->with(['pending', 'assigned', 'picked_up', 'failed']);
+
+test('a pickup order can be weighed once the rider has delivered the laundry to the shop', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['status' => 'pending']);
+    pickupRunFor($order, 'delivered');
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['actual_weight_kg' => 3]))
+        ->assertSessionHasNoErrors();
+
+    expect((float) $order->fresh()->actual_weight_kg)->toBe(3.0);
+});
+
+test('a pickup order with no pickup run yet cannot be weighed either', function () {
+    $shop = dispatchShop();
+    $order = autoOrder($shop, ['status' => 'pending']);
+
+    expect(app(ShopOrderService::class)->weighingBlockedReason($order))->toContain('pickup');
+});
+
+test('saving a pickup order without changing its weight is not blocked', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['actual_weight_kg' => 3, 'status' => 'in_progress']);
+    pickupRunFor($order, 'assigned');
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['customer_name' => 'Maria C.']))
+        ->assertSessionHasNoErrors();
+
+    expect($order->fresh()->customer_name)->toBe('Maria C.');
+});
+
+test('walk-in orders and shops without delivery can be weighed straight away', function () {
+    $shop = dispatchShop();
+    $walkIn = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'pending']);
+    $noDelivery = autoOrder(dispatchShop(['offers_delivery' => false]), ['status' => 'pending']);
+
+    expect(app(ShopOrderService::class)->weighingBlockedReason($walkIn))->toBeNull()
+        ->and(app(ShopOrderService::class)->weighingBlockedReason($noDelivery))->toBeNull();
+});
+
+test('a new pickup order cannot be created already weighed', function () {
+    $shop = dispatchShop();
+
+    expect(fn () => app(ShopOrderService::class)->createOrder([
+        'shop_id' => $shop->id,
+        'pickup_type' => 'pickup',
+        'actual_weight_kg' => 3,
+        'customer_agreement_version' => '1.0',
+        'total_amount' => 180,
+    ], $shop->owner))->toThrow(Illuminate\Validation\ValidationException::class);
+
+    expect(ShopOrder::count())->toBe(0);
+});
+
+test('the Edit page tells staff why a pickup order cannot be weighed yet', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['status' => 'pending']);
+    pickupRunFor($order, 'picked_up');
+
+    $this->actingAs($staff)
+        ->get("/staff/operations/orders/{$order->payment_public_id}/edit")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('weighingBlockedReason', fn ($reason) => str_contains($reason, 'pickup')));
+
+    Delivery::where('shop_order_id', $order->id)->update(['status' => 'delivered']);
+
+    $this->actingAs($staff)
+        ->get("/staff/operations/orders/{$order->payment_public_id}/edit")
+        ->assertInertia(fn ($page) => $page->where('weighingBlockedReason', null));
+});
+
+test('the order page tracks the delivery back, never the pickup run', function () {
+    $shop = dispatchShop();
+    $order = autoOrder($shop, ['status' => 'completed']);
+    pickupRunFor($order, 'delivered');
+
+    $this->actingAs($order->customer)
+        ->getJson(route('user.orders.tracking', $order->payment_public_id))
+        ->assertNotFound();
+
+    Delivery::create([
+        'shop_id' => $shop->id,
+        'shop_order_id' => $order->id,
+        'type' => 'delivery',
+        'customer_name' => 'Maria Cruz',
+        'status' => 'assigned',
+    ]);
+
+    $this->actingAs($order->customer)
+        ->getJson(route('user.orders.tracking', $order->payment_public_id))
+        ->assertOk()
+        ->assertJsonPath('status', 'assigned');
 });

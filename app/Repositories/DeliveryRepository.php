@@ -48,6 +48,16 @@ class DeliveryRepository extends Repository
             ->exists();
     }
 
+    /** Whether the rider has brought the customer's laundry to the shop (the pickup run is delivered). */
+    public function pickupRunReceived(int $shopOrderId): bool
+    {
+        return Delivery::query()
+            ->where('shop_order_id', $shopOrderId)
+            ->where('type', Delivery::TYPE_PICKUP)
+            ->where('status', 'delivered')
+            ->exists();
+    }
+
     /**
      * The delivery of an order owned by the given customer. Anything else (another
      * customer's order, unknown id, or no delivery yet) resolves to null.
@@ -56,6 +66,8 @@ class DeliveryRepository extends Repository
     {
         return Delivery::query()
             ->with(['shop', 'rider:id,name', 'photos', 'order:id,order_number,payment_public_id,user_id'])
+            // Only the delivery back to the customer is tracked here, never the pickup run.
+            ->where('type', Delivery::TYPE_DELIVERY)
             ->whereHas('order', fn ($query) => $query
                 ->where('payment_public_id', $paymentPublicId)
                 ->where('user_id', $customerId))

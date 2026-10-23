@@ -153,6 +153,30 @@ class LogisticsService
             ?? throw ValidationException::withMessages(['delivery' => 'This order already has a delivery.']);
     }
 
+    /**
+     * Why the laundry cannot be weighed yet, or null when it can. A pickup order is weighed at the
+     * shop, so the rider must first bring it there (the pickup run marked delivered).
+     */
+    public function weighingBlockedReason(ShopOrder $order, ?string $pickupType = null): ?string
+    {
+        if (($pickupType ?? $order->pickup_type) !== 'pickup' || ! $this->shopWaitsForPickup($order->shop_id)) {
+            return null;
+        }
+
+        return $this->deliveries->pickupRunReceived($order->id)
+            ? null
+            : 'This is a pickup order. Weigh it only after the rider has brought the laundry to the shop: mark the pickup as delivered on the Logistics board first.';
+    }
+
+    /**
+     * Whether pickup orders at this shop go through a rider's pickup run. Without delivery set up
+     * there is no run to wait for, so weighing is not held back.
+     */
+    public function shopWaitsForPickup(int $shopId): bool
+    {
+        return (bool) $this->shops->findShopById($shopId)?->canDeliver();
+    }
+
     /** What the order page needs to offer the "Send for delivery" button. */
     public function deliveryOptionFor(ShopOrder $order): array
     {
@@ -173,10 +197,12 @@ class LogisticsService
     {
         $order->loadMissing(['shop', 'customer']);
 
-        // A pickup run is only for orders the rider collects. The delivery back is also wanted when
-        // a walk-in customer asked for it, or when staff sent the order for delivery.
-        $wanted = $order->pickup_type === 'pickup'
-            || ($type === Delivery::TYPE_DELIVERY && ($force || $order->deliver_to_customer));
+        // A pickup run is only for orders the rider collects. The delivery back is made only when the
+        // customer asked for it or staff sent the order for delivery; a pickup order is otherwise
+        // collected at the shop, so it gets no delivery and no delivery map.
+        $wanted = $type === Delivery::TYPE_PICKUP
+            ? $order->pickup_type === 'pickup'
+            : $force || $order->deliver_to_customer;
 
         if (! $wanted
             || ! $order->shop?->canDeliver()

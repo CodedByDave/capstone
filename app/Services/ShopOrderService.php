@@ -52,6 +52,15 @@ class ShopOrderService
             unset($data['supplies']);
             unset($data['customer_agreement_version'], $data['customer_agreement_accepted']);
 
+            // A pickup order is weighed only once the rider has brought the laundry to the shop.
+            if (($data['pickup_type'] ?? null) === 'pickup'
+                && filled($data['actual_weight_kg'] ?? null)
+                && $this->logistics->shopWaitsForPickup((int) $data['shop_id'])) {
+                throw ValidationException::withMessages([
+                    'actual_weight_kg' => 'A pickup order is weighed after the rider brings the laundry to the shop. Leave the actual weight empty for now.',
+                ]);
+            }
+
             $data['order_number'] = $this->generateOrderNumber();
 
             // Money received now is recorded as a payment; the order's totals follow from it.
@@ -162,6 +171,18 @@ class ShopOrderService
         return $order;
     }
 
+    /** Why this order cannot be weighed yet (a pickup order still on its way), or null. */
+    public function weighingBlockedReason(ShopOrder $order): ?string
+    {
+        return $this->logistics->weighingBlockedReason($order);
+    }
+
+    /** Whether new pickup orders at this shop must wait for the rider before they are weighed. */
+    public function pickupOrdersAwaitReceipt(int $shopId): bool
+    {
+        return $this->logistics->shopWaitsForPickup($shopId);
+    }
+
     // ─── Update ───────────────────────────────────────────────────────────────
 
     public function updateOrder(ShopOrder $order, array $data): ShopOrder
@@ -188,6 +209,13 @@ class ShopOrderService
                 throw ValidationException::withMessages([
                     'service_id' => 'The selected service is unavailable for this shop.',
                 ]);
+            }
+
+            if (array_key_exists('actual_weight_kg', $data)
+                && filled($data['actual_weight_kg'])
+                && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg
+                && ($blocked = $this->logistics->weighingBlockedReason($order, $data['pickup_type'] ?? null)) !== null) {
+                throw ValidationException::withMessages(['actual_weight_kg' => $blocked]);
             }
 
             $previousActualWeight = $order->actual_weight_kg;
