@@ -28,6 +28,14 @@ defineProps<{
         service_name: string;
         weight_kg: number;
         additional_charges: number;
+        supplies: {
+            name: string;
+            quantity: number;
+            unit: string | null;
+            unit_price: number | null;
+            amount: number | null;
+        }[];
+        other_charges: number | null;
         discount_amount: number;
         delivery_fee?: number;
         total_amount: number;
@@ -199,6 +207,42 @@ function printReceipt() {
                                 >Additional charges</span
                             >
                             <span>{{ peso(receipt.additional_charges) }}</span>
+                        </div>
+                        <div
+                            v-for="supply in receipt.supplies"
+                            :key="supply.name"
+                            class="flex justify-between gap-4 px-4 pb-1.5 pl-8 text-xs text-gray-500"
+                        >
+                            <span>
+                                {{ supply.name }}
+                                <template v-if="supply.unit_price !== null">
+                                    — {{ Number(supply.quantity) }}
+                                    {{ supply.unit }} ×
+                                    {{ peso(supply.unit_price) }}
+                                </template>
+                                <template v-else>
+                                    — {{ Number(supply.quantity) }}
+                                    {{ supply.unit }}
+                                </template>
+                            </span>
+                            <span v-if="supply.amount !== null">{{
+                                peso(supply.amount)
+                            }}</span>
+                        </div>
+                        <div
+                            v-if="
+                                receipt.supplies.length > 0 &&
+                                receipt.other_charges !== null &&
+                                receipt.other_charges !== 0
+                            "
+                            class="flex justify-between gap-4 px-4 pb-1.5 pl-8 text-xs text-gray-500"
+                        >
+                            <span>{{
+                                receipt.other_charges > 0
+                                    ? 'Other charges'
+                                    : 'Adjustment'
+                            }}</span>
+                            <span>{{ peso(receipt.other_charges) }}</span>
                         </div>
                         <div
                             v-if="(receipt.delivery_fee ?? 0) > 0"

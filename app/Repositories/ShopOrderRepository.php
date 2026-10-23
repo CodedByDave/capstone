@@ -172,7 +172,7 @@ class ShopOrderRepository
     public function findForCustomerReceipt(string $paymentPublicId, int $customerId): ?ShopOrder
     {
         return $this->model->newQuery()
-            ->with(['shop', 'service'])
+            ->with(['shop', 'service', 'supplies'])
             ->where('payment_public_id', $paymentPublicId)
             ->where('user_id', $customerId)
             ->first();

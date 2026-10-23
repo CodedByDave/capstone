@@ -41,11 +41,46 @@ class OrderBillingBreakdownService
                 $bundleWeight,
             ),
             'additional_charges' => (float) $order->additional_charges,
+            ...$this->additionalChargeDetail($order),
             'discount' => (float) $order->discount_amount,
             'delivery_fee' => (float) $order->delivery_fee,
             'total' => $total,
             'amount_paid' => $amountPaid,
             'balance_due' => round(max(0, $total - $amountPaid), 2),
+        ];
+    }
+
+    /**
+     * Which supplies the additional charges come from, so the customer can see what they paid for.
+     * Each line is priced at what the supply cost when it was added; a supply from before prices were
+     * recorded has no amount. `other_charges` is what the supplies do not explain (a manual charge or
+     * adjustment), or null when that cannot be worked out.
+     *
+     * @return array{supplies: list<array<string, mixed>>, other_charges: float|null}
+     */
+    public function additionalChargeDetail(ShopOrder $order): array
+    {
+        $lines = $order->supplies->map(function ($supply): array {
+            $quantity = (float) $supply->pivot->quantity_used;
+            $price = $supply->pivot->unit_price !== null ? (float) $supply->pivot->unit_price : null;
+
+            return [
+                'name' => $supply->name,
+                'quantity' => $quantity,
+                'unit' => $supply->pivot->unit ?: $supply->unit,
+                'unit_price' => $price,
+                'amount' => $price !== null ? round($price * $quantity, 2) : null,
+            ];
+        })->values();
+
+        $allPriced = $lines->every(fn (array $line) => $line['amount'] !== null);
+        $other = $allPriced
+            ? round((float) $order->additional_charges - (float) $lines->sum('amount'), 2)
+            : null;
+
+        return [
+            'supplies' => $lines->all(),
+            'other_charges' => $other !== null && abs($other) < 0.005 ? 0.0 : $other,
         ];
     }
 
@@ -65,6 +100,8 @@ class OrderBillingBreakdownService
             'is_estimate' => true,
             'service' => $line,
             'additional_charges' => 0.0,
+            'supplies' => [],
+            'other_charges' => 0.0,
             'discount' => 0.0,
             'delivery_fee' => 0.0,
             'total' => $line['amount'],

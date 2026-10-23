@@ -78,7 +78,7 @@ class UserOrderController extends Controller
     {
         abort_if($order->user_id !== auth()->id(), 404);
 
-        $order->load(['shop', 'service', 'delivery.rider', 'delivery.shop', 'delivery.photos']);
+        $order->load(['shop', 'service', 'supplies', 'delivery.rider', 'delivery.shop', 'delivery.photos']);
 
         $delivery = $order->delivery;
 

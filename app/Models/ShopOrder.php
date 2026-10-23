@@ -174,7 +174,7 @@ class ShopOrder extends Model
             'order_id',
             'inventory_id'
         )
-            ->withPivot(['quantity_used', 'unit', 'inventory_movement_id'])
+            ->withPivot(['quantity_used', 'unit', 'unit_price', 'inventory_movement_id'])
             ->withTimestamps();
     }
 

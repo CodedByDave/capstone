@@ -14,6 +14,14 @@ export interface BillingBreakdown {
         amount: number;
     };
     additional_charges: number;
+    supplies?: {
+        name: string;
+        quantity: number;
+        unit: string | null;
+        unit_price: number | null;
+        amount: number | null;
+    }[];
+    other_charges?: number | null;
     discount: number;
     delivery_fee?: number;
     total: number;
@@ -92,6 +100,36 @@ const serviceDetail = computed(() => {
             <span class="font-medium text-gray-700">{{
                 currency(breakdown.additional_charges)
             }}</span>
+        </div>
+
+        <div
+            v-for="supply in breakdown.supplies ?? []"
+            :key="supply.name"
+            class="flex items-center justify-between gap-3 px-4 pb-1.5 pl-8 text-xs text-gray-500"
+        >
+            <span>
+                {{ supply.name }} — {{ Number(supply.quantity) }}
+                {{ supply.unit }}
+                <template v-if="supply.unit_price !== null">
+                    × {{ currency(supply.unit_price) }}
+                </template>
+            </span>
+            <span v-if="supply.amount !== null">{{
+                currency(supply.amount)
+            }}</span>
+        </div>
+        <div
+            v-if="
+                (breakdown.supplies ?? []).length > 0 &&
+                breakdown.other_charges != null &&
+                breakdown.other_charges !== 0
+            "
+            class="flex items-center justify-between gap-3 px-4 pb-1.5 pl-8 text-xs text-gray-500"
+        >
+            <span>{{
+                breakdown.other_charges > 0 ? 'Other charges' : 'Adjustment'
+            }}</span>
+            <span>{{ currency(breakdown.other_charges) }}</span>
         </div>
 
         <div

@@ -89,6 +89,7 @@ class ShopOrderService
                 $order->supplies()->attach($supply['inventory_id'], [
                     'quantity_used' => $supply['quantity_used'],
                     'unit' => $supply['unit'],
+                    'unit_price' => $item->selling_price,
                 ]);
 
                 $item->decrement('quantity', (float) $supply['quantity_used']);
@@ -252,6 +253,11 @@ class ShopOrderService
                     ->increment('quantity', (float) $oldSupply->pivot->quantity_used);
             }
 
+            // Remember what each supply was charged at before the pivot rows are rebuilt.
+            $previousPrices = $order->supplies->mapWithKeys(
+                fn ($supply) => [$supply->id => $supply->pivot->unit_price],
+            );
+
             // Detach all old supplies from pivot
             $order->supplies()->detach();
 
@@ -284,6 +290,8 @@ class ShopOrderService
                 $order->supplies()->attach($supply['inventory_id'], [
                     'quantity_used' => $supply['quantity_used'],
                     'unit' => $supply['unit'],
+                    // A supply already on the order keeps the price it was first charged at.
+                    'unit_price' => $previousPrices[$item->id] ?? $item->selling_price,
                 ]);
 
                 $item->decrement('quantity', (float) $supply['quantity_used']);
