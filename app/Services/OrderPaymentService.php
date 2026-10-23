@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\OrderPaymentRecorded;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
 use App\Models\User;
@@ -177,6 +178,7 @@ class OrderPaymentService
             }
 
             $notify = [$order, (float) $payment->amount];
+            OrderPaymentRecorded::dispatch($order);
 
             return true;
         });
@@ -256,7 +258,8 @@ class OrderPaymentService
         ]);
 
         $this->sync($order);
-        $this->orders->update($order, ['payment_method' => $attributes['method']]);
+        $order = $this->orders->update($order, ['payment_method' => $attributes['method']]);
+        OrderPaymentRecorded::dispatch($order);
 
         return $payment;
     }

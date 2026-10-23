@@ -154,6 +154,21 @@ class ShopOrderRepository
         return $this->model->newQuery()->whereKey($order->getKey())->lockForUpdate()->firstOrFail();
     }
 
+    /**
+     * A shop's orders that are being worked on, with the service's estimated hours, so the
+     * automation can work out when each one is due. Trashed orders are left out.
+     *
+     * @return Collection<int, ShopOrder>
+     */
+    public function inProgressForShop(int $shopId): Collection
+    {
+        return $this->model->newQuery()
+            ->with('service:id,estimated_hours')
+            ->forShop($shopId)
+            ->where('status', 'in_progress')
+            ->get();
+    }
+
     public function findForCustomerReceipt(string $paymentPublicId, int $customerId): ?ShopOrder
     {
         return $this->model->newQuery()

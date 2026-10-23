@@ -9,7 +9,7 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string $event, // placed | weight_confirmed | status_changed | payment_updated | cancelled
+        public readonly string $event, // placed | weight_confirmed | status_changed | payment_updated | cancelled | overdue
         // The payment just received, so the message can say how much and what is left.
         public readonly ?float $amount = null,
     ) {}
@@ -69,6 +69,15 @@ class OrderNotification extends Notification
                 'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'cancelled',
+            ],
+            'overdue' => [
+                'title' => 'Order is overdue',
+                'body' => "Order #{$order->order_number} is past its expected completion time and is still in progress.",
+                'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
+                'order_number' => $order->order_number,
+                'type' => 'overdue',
+                'url' => '/shop/operations/orders/'.$order->payment_public_id,
             ],
             default => [],
         };

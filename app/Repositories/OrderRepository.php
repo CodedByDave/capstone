@@ -61,6 +61,20 @@ class OrderRepository extends Repository
             ->first();
     }
 
+    /**
+     * Whether the owner pays for a plan right now: a paid subscription that has not expired.
+     * A free trial does not count.
+     */
+    public function hasPaidSubscription(int $userId): bool
+    {
+        return Order::query()
+            ->where('user_id', $userId)
+            ->where('status', 'paid')
+            ->where('is_trial', false)
+            ->where('expires_at', '>', now())
+            ->exists();
+    }
+
     public function countRejectedApplications(int $userId): int
     {
         return Order::query()

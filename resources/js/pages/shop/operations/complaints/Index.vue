@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     Eye,
@@ -30,6 +30,8 @@ import Vue3EasyDataTable, {
     type ServerOptions,
 } from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 interface ComplaintRow {
     public_id: string;
@@ -212,6 +214,20 @@ function formatDate(iso: string) {
         day: 'numeric',
     });
 }
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+
+const page = usePage();
+
+watch(
+    () => page.props.toast as { type: string; message: string } | undefined,
+    (t) => {
+        if (!t) return;
+        if (t.type === 'success') toast.success(t.message);
+        if (t.type === 'error') toast.error(t.message);
+    },
+    { immediate: true },
+);
 
 // ─── Detail and reply ─────────────────────────────────────────────────────────
 

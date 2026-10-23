@@ -57,6 +57,8 @@ class ShopOrder extends Model
         'paymongo_payment_id',
         'status',
         'estimated_completion_at',
+        'in_progress_at',
+        'overdue_notified_at',
         'completed_at',
     ];
 
@@ -76,6 +78,8 @@ class ShopOrder extends Model
         'amount_paid' => 'decimal:2',
         'paid_at' => 'datetime',
         'estimated_completion_at' => 'datetime',
+        'in_progress_at' => 'datetime',
+        'overdue_notified_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
 

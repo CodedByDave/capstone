@@ -28,6 +28,7 @@ use App\Http\Controllers\Shop\Inventory\InventoryController;
 use App\Http\Controllers\Shop\Inventory\LowStockAlertController;
 use App\Http\Controllers\Shop\Inventory\SupplierController;
 use App\Http\Controllers\Shop\LogisticsController;
+use App\Http\Controllers\Shop\Operations\OrderAutomationController;
 use App\Http\Controllers\Shop\Operations\OrderComplaintController;
 use App\Http\Controllers\Shop\Operations\OrderRatingController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
@@ -317,6 +318,11 @@ Route::prefix('shop')->middleware([
         ->middleware('shop.capability:delivery')
         ->name('shop.orders.send-for-delivery');
     Route::get('operations/ratings', [OrderRatingController::class, 'index'])->name('shop.ratings.index');
+    // Owner only. The page opens on any plan so it can explain the upgrade; saving needs a paid plan.
+    Route::get('operations/order-automation', [OrderAutomationController::class, 'edit'])->name('shop.order-automation.edit');
+    Route::put('operations/order-automation', [OrderAutomationController::class, 'update'])
+        ->middleware(['shop.capability:order-automation', 'throttle:20,1'])
+        ->name('shop.order-automation.update');
     Route::get('operations/complaints', [OrderComplaintController::class, 'index'])->name('shop.complaints.index');
     Route::get('operations/complaints/photos/{photo}', [OrderComplaintController::class, 'photo'])
         ->whereUlid('photo')

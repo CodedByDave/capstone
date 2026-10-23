@@ -13,3 +13,8 @@ Artisan::command('inspire', function () {
 Schedule::command('payments:reconcile')
     ->everyFiveMinutes()
     ->withoutOverlapping(10);
+
+// Applies each paid shop's time-based order rules (auto-complete, overdue reminders).
+Schedule::command('orders:automate')
+    ->everyMinute()
+    ->withoutOverlapping(5);

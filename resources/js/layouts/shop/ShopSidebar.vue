@@ -47,6 +47,7 @@ import {
     UserRoundCog,
     Users,
     Wallet,
+    Zap,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -191,6 +192,12 @@ const allOperationsSubActions = [
             ? '/shop/operations/ratings'
             : '/staff/operations/ratings',
         show: () => isOwner.value || can('Operations', 'view'),
+    },
+    {
+        title: 'Order Automation',
+        icon: Zap,
+        href: '/shop/operations/order-automation',
+        show: () => isOwner.value,
     },
     {
         title: 'Complaints',

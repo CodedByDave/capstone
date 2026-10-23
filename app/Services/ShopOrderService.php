@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Events\OrderWeightConfirmed;
 use App\Models\Inventory;
 use App\Models\ShopOrder;
 use App\Models\User;
 use App\Notifications\OrderNotification;
 use App\Repositories\ShopOrderRepository;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -192,6 +195,15 @@ class ShopOrderService
             if (($data['status'] ?? null) === 'completed' && $order->status !== 'completed') {
                 $data['completed_at'] = now();
             }
+            if (($data['status'] ?? null) === 'in_progress' && $order->status !== 'in_progress') {
+                $data['in_progress_at'] = now();
+                $data['overdue_notified_at'] = null;
+            }
+            // A new estimate means the order can become overdue, and be reminded about, again.
+            if (array_key_exists('estimated_completion_at', $data)
+                && $this->estimateChanged($order->estimated_completion_at, $data['estimated_completion_at'])) {
+                $data['overdue_notified_at'] = null;
+            }
             $newSupplies = $data['supplies'] ?? [];
             unset($data['supplies']);
 
@@ -285,6 +297,10 @@ class ShopOrderService
                 $updated->customer?->notify(new OrderNotification($updated, 'weight_confirmed'));
             }
 
+            if ($previousActualWeight === null && $updated->actual_weight_kg !== null) {
+                OrderWeightConfirmed::dispatch($updated);
+            }
+
             return $updated;
         });
 
@@ -298,14 +314,35 @@ class ShopOrderService
         return $updated;
     }
 
+    private function estimateChanged(?CarbonInterface $current, mixed $new): bool
+    {
+        $new = blank($new) ? null : Carbon::parse($new);
+
+        if ($current === null || $new === null) {
+            return $current !== $new;
+        }
+
+        return ! $current->equalTo($new);
+    }
+
     // ─── Status ───────────────────────────────────────────────────────────────
 
     public function updateStatus(ShopOrder $order, string $status): ShopOrder
     {
+        // Nothing changes, so nobody is notified twice and the completion time is not overwritten.
+        if ($order->status === $status) {
+            return $order;
+        }
+
         $data = ['status' => $status];
 
         if ($status === 'completed') {
             $data['completed_at'] = now();
+        }
+
+        if ($status === 'in_progress') {
+            $data['in_progress_at'] = now();
+            $data['overdue_notified_at'] = null;
         }
 
         $updated = $this->repository->update($order, $data);
@@ -313,7 +350,7 @@ class ShopOrderService
         // Notify the customer if this was an online order with a linked user
         if ($updated->user_id && in_array($status, ['in_progress', 'completed'])) {
             $updated->load('shop');
-            $updated->user?->notify(new OrderNotification($updated, 'status_changed'));
+            $updated->customer?->notify(new OrderNotification($updated, 'status_changed'));
         }
 
         // A pickup order goes back to the customer, so it joins the delivery board.

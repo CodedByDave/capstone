@@ -165,6 +165,8 @@ class ShopSetupService
             'delivery' => $shop->canDeliver(),
             // Setting the pricing itself needs only the choice to deliver.
             'delivery-setup' => (bool) $shop->offers_delivery,
+            // Order automation is a paid-plan feature; a free trial does not include it.
+            'order-automation' => $this->orders->hasPaidSubscription((int) $shop->owner_id),
             default => false,
         };
     }

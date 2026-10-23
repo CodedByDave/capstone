@@ -94,6 +94,7 @@ class EnsureShopCapability
             'pickup' => 'Customer pickup is not offered by this shop.',
             'delivery' => 'Delivery is not available for this shop right now.',
             'delivery-setup' => 'Customer delivery is not offered by this shop.',
+            'order-automation' => 'Order automation is available on paid plans only.',
             default => 'This shop capability is not enabled.',
         };
     }

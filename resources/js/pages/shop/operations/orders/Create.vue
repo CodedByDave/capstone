@@ -3,6 +3,7 @@ import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
 import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { toLocalInputValue } from '@/lib/datetime';
 import { type AppPageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
@@ -149,7 +150,7 @@ const onServiceChange = () => {
     if (svc.estimated_hours) {
         const completion = new Date();
         completion.setHours(completion.getHours() + svc.estimated_hours);
-        form.estimated_completion_at = completion.toISOString().slice(0, 16);
+        form.estimated_completion_at = toLocalInputValue(completion);
     }
 };
 

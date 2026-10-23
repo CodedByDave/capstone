@@ -2,6 +2,7 @@
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { toLocalInputValue } from '@/lib/datetime';
 import { type AppPageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, Loader2 } from 'lucide-vue-next';
@@ -109,9 +110,7 @@ const form = useForm({
     payment_method: props.shopOrder.payment_method,
     status: props.shopOrder.status,
     estimated_completion_at: props.shopOrder.estimated_completion_at
-        ? new Date(props.shopOrder.estimated_completion_at)
-              .toISOString()
-              .slice(0, 16)
+        ? toLocalInputValue(new Date(props.shopOrder.estimated_completion_at))
         : '',
     supplies: props.shopOrder.supplies.map((s) => ({
         inventory_id: s.id,
