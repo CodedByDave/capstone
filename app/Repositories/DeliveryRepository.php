@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Delivery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class DeliveryRepository extends Repository
 {
@@ -65,13 +66,38 @@ class DeliveryRepository extends Repository
     public function findForCustomerOrder(string $paymentPublicId, int $customerId): ?Delivery
     {
         return Delivery::query()
-            ->with(['shop', 'rider:id,name', 'photos', 'order:id,order_number,payment_public_id,user_id'])
+            ->with(['shop', 'rider:id,name,phone,vehicle_type', 'photos', 'order:id,order_number,payment_public_id,user_id'])
             // Only the delivery back to the customer is tracked here, never the pickup run.
             ->where('type', Delivery::TYPE_DELIVERY)
             ->whereHas('order', fn ($query) => $query
                 ->where('payment_public_id', $paymentPublicId)
                 ->where('user_id', $customerId))
             ->first();
+    }
+
+    /** Whether the order has any rider trip, pickup or delivery. */
+    public function orderHasLeg(int $shopOrderId): bool
+    {
+        return Delivery::query()->where('shop_order_id', $shopOrderId)->exists();
+    }
+
+    /**
+     * Both trips of an order owned by the given customer, keyed by type (pickup, delivery). Another
+     * customer's order, an unknown id, or an order with no trip yet resolves to an empty collection.
+     *
+     * @return Collection<string, Delivery>
+     */
+    public function legsForCustomerOrder(string $paymentPublicId, int $customerId): Collection
+    {
+        return Delivery::query()
+            ->with(['shop', 'rider:id,name,phone,vehicle_type', 'photos', 'order:id,order_number,payment_public_id,user_id'])
+            ->whereHas('order', fn ($query) => $query
+                ->where('payment_public_id', $paymentPublicId)
+                ->where('user_id', $customerId))
+            // The newest trip of each type wins if an order ever has more than one.
+            ->orderBy('id')
+            ->get()
+            ->keyBy('type');
     }
 
     public function findByDriverToken(string $token): ?Delivery

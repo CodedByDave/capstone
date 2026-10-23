@@ -47,6 +47,7 @@ use App\Http\Controllers\Shop\TrialController;
 use App\Http\Controllers\Shop\UpgradeController;
 use App\Http\Controllers\Staff\SelfAttendanceController;
 use App\Http\Controllers\Staff\StaffDashboardController;
+use App\Http\Controllers\User\OrderTrackingController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
 use App\Http\Controllers\User\UserOrderComplaintController;
@@ -710,6 +711,13 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
         ->whereUlid('paymentPublicId')
         ->middleware('throttle:120,1')
         ->name('orders.tracking');
+    Route::get('/orders/{paymentPublicId}/track', [OrderTrackingController::class, 'show'])
+        ->whereUlid('paymentPublicId')
+        ->name('orders.track');
+    Route::get('/orders/{paymentPublicId}/track/data', [OrderTrackingController::class, 'data'])
+        ->whereUlid('paymentPublicId')
+        ->middleware('throttle:120,1')
+        ->name('orders.track.data');
     Route::get('/orders/delivery-photos/{photo}', [DeliveryProofController::class, 'showForCustomer'])
         ->middleware('throttle:120,1')
         ->name('orders.delivery-photos.show');

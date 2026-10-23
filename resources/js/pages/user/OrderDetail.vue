@@ -12,7 +12,7 @@ import OrderComplaintDialog from '@/components/customer/OrderComplaintDialog.vue
 import OrderRatingDialog from '@/components/customer/OrderRatingDialog.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { isPostponed } from '@/lib/ratingPrompt';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -22,6 +22,7 @@ import {
     Info,
     Loader,
     MapPin,
+    Navigation,
     Phone,
     ReceiptText,
     RefreshCw,
@@ -76,6 +77,7 @@ interface Order {
     shop: Shop | null;
     service_name: string;
     delivery: DeliveryTracking | null;
+    can_track: boolean;
     rating: {
         can_rate: boolean;
         rating: {
@@ -788,6 +790,16 @@ const shopLocation = computed(() =>
             </div>
 
             <!-- ── Delivery ───────────────────────────────────── -->
+
+            <!-- Full-screen live map of the rider (pickup and delivery) -->
+            <Link
+                v-if="order.can_track"
+                :href="`/user/orders/${order.payment_public_id}/track`"
+                class="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            >
+                <Navigation class="h-4 w-4" aria-hidden="true" />
+                Track live on the map
+            </Link>
 
             <!-- Live tracking for an existing delivery -->
             <DeliveryTrackingCard

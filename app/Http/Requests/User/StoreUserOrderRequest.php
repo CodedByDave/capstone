@@ -23,6 +23,9 @@ class StoreUserOrderRequest extends FormRequest
             'pickup_type' => ['required', 'in:walk_in,pickup'],
             'payment_method' => ['required', 'in:cash,gcash,maya,online'],
             'customer_address' => ['required_if:pickup_type,pickup', 'nullable', 'string', 'max:500'],
+            // The pinned pickup spot, so the rider can be followed on a map. Both or neither.
+            'customer_lat' => ['nullable', 'required_with:customer_lng', 'numeric', 'between:-90,90'],
+            'customer_lng' => ['nullable', 'required_with:customer_lat', 'numeric', 'between:-180,180'],
             'special_instructions' => ['nullable', 'string', 'max:500'],
             'customer_agreement_version' => ['required', 'string', 'max:30'],
             'customer_agreement_accepted' => ['required', 'accepted'],

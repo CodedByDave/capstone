@@ -15,6 +15,17 @@ class Rider extends Model
         'phone' => PhilippinePhoneCast::class,
     ];
 
+    /**
+     * Which vehicle to draw on the tracking map. The shop types the vehicle freely, so this is a
+     * best guess from the text; motorcycles are the common case and the default.
+     */
+    public function vehicleKind(): string
+    {
+        return preg_match('/\b(car|van|truck|sedan|suv|jeep|l300|vehicle|auto)\b/i', (string) $this->vehicle_type) === 1
+            ? 'car'
+            : 'motorcycle';
+    }
+
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);

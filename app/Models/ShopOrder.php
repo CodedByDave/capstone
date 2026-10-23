@@ -33,6 +33,8 @@ class ShopOrder extends Model
         'customer_name',
         'customer_phone',
         'customer_address',
+        'customer_lat',
+        'customer_lng',
         'special_instructions',
         'estimated_weight_kg',
         'actual_weight_kg',
@@ -65,6 +67,8 @@ class ShopOrder extends Model
     protected $casts = [
         'customer_phone' => PhilippinePhoneCast::class,
         'deliver_to_customer' => 'boolean',
+        'customer_lat' => 'float',
+        'customer_lng' => 'float',
         'estimated_weight_kg' => 'decimal:2',
         'actual_weight_kg' => 'decimal:2',
         'price_per_kg' => 'decimal:2',

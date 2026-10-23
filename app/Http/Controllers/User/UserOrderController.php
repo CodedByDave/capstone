@@ -122,6 +122,7 @@ class UserOrderController extends Controller
                 ] : null,
                 'service_name' => $order->service->service_name ?? '—',
                 'delivery' => $delivery ? $this->deliveryTracking->payload($delivery) : null,
+                'can_track' => $this->deliveryTracking->hasTrackableLeg($order),
                 'rating' => $this->ratings->orderState($order),
                 'complaints' => $this->complaints->orderState($order),
             ],

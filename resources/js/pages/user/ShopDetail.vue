@@ -20,6 +20,7 @@ import {
     type ServiceCategory,
 } from '@/constants/serviceCategories';
 import UserLayout from '@/layouts/user/UserLayout.vue';
+import { searchPlaces } from '@/lib/maps';
 import type { AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
@@ -161,24 +162,69 @@ const form = ref({
     pickup_type: 'walk_in' as 'walk_in' | 'pickup',
     payment_method: 'cash' as 'cash' | 'gcash' | 'maya',
     customer_address: '',
+    customer_lat: null as number | null,
+    customer_lng: null as number | null,
     special_instructions: '',
     customer_agreement_version: props.customerAgreement.version,
     customer_agreement_accepted: false,
 });
 
 // Pre-fill the pickup address from the device location; the customer can still edit it.
-const { locating, failed, detectAddress } = usePickupAddressAutofill();
+const { locating, failed, detectLocation } = usePickupAddressAutofill();
+
+// The address the saved pin belongs to; once the customer edits the text the pin is out of date.
+let pinnedAddress = '';
+const PIN_LOOKUP_TIMEOUT_MS = 4_000;
 
 async function autofillAddress(force = false) {
     if (!force && form.value.customer_address.trim() !== '') return;
 
-    const detected = await detectAddress();
+    const detected = await detectLocation();
     if (
         detected &&
         form.value.pickup_type === 'pickup' &&
         (force || form.value.customer_address.trim() === '')
     ) {
-        form.value.customer_address = detected;
+        // Without a readable address the position cannot be matched to the text, so no pin is kept.
+        if (detected.address) {
+            form.value.customer_address = detected.address;
+            form.value.customer_lat = detected.lat;
+            form.value.customer_lng = detected.lng;
+            pinnedAddress = detected.address;
+        }
+    }
+}
+
+/** Makes sure a pickup order carries a pin that matches the address, so the rider can be tracked. */
+async function resolvePickupPin() {
+    const address = form.value.customer_address.trim();
+
+    if (form.value.pickup_type !== 'pickup') {
+        form.value.customer_lat = form.value.customer_lng = null;
+        return;
+    }
+    if (form.value.customer_lat !== null && address === pinnedAddress.trim()) {
+        return;
+    }
+
+    form.value.customer_lat = form.value.customer_lng = null;
+    if (address === '') return;
+
+    try {
+        // Never keep the customer waiting on the address lookup.
+        const [match] = await Promise.race([
+            searchPlaces(address),
+            new Promise<never[]>((resolve) =>
+                setTimeout(() => resolve([]), PIN_LOOKUP_TIMEOUT_MS),
+            ),
+        ]);
+        if (match) {
+            form.value.customer_lat = Number(match.lat);
+            form.value.customer_lng = Number(match.lon);
+            pinnedAddress = form.value.customer_address;
+        }
+    } catch {
+        // Without a pin the order is still placed; tracking just shows no route to the customer.
     }
 }
 
@@ -257,8 +303,10 @@ onBeforeUnmount(() => {
     estimateRequest?.abort();
 });
 
-function submitOrder() {
+async function submitOrder() {
+    if (placing.value) return;
     placing.value = true;
+    await resolvePickupPin();
     router.post('/user/orders', form.value, {
         preserveScroll: true,
         onSuccess: () => {

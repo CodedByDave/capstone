@@ -146,7 +146,14 @@ class LogisticsService
         }
 
         if ($address !== '') {
-            $order = $this->orders->update($order, ['customer_address' => $address, 'deliver_to_customer' => true]);
+            $changes = ['customer_address' => $address, 'deliver_to_customer' => true];
+
+            // The saved pin belongs to the old address; a different address must not inherit it.
+            if ($address !== trim((string) $order->customer_address)) {
+                $changes += ['customer_lat' => null, 'customer_lng' => null];
+            }
+
+            $order = $this->orders->update($order, $changes);
         }
 
         return $this->dispatchOrderLeg($order, Delivery::TYPE_DELIVERY, 'Sent for delivery from the order.', force: true)
@@ -226,6 +233,8 @@ class LogisticsService
                 'customer_phone' => $order->customer_phone,
                 'customer_email' => $order->customer?->email,
                 'delivery_address' => $order->customer_address ?? $order->delivery_address,
+                'destination_lat' => $order->customer_lat,
+                'destination_lng' => $order->customer_lng,
                 'rider_id' => $rider?->id,
                 'status' => $rider ? 'assigned' : 'pending',
                 'assigned_at' => $rider ? now() : null,
@@ -265,11 +274,14 @@ class LogisticsService
 
         $courier = $this->courierAttributes($data, $delivery);
 
+        $riderId = $data['rider_id'] ?? $delivery->rider_id;
+        $riderChanged = $riderId !== $delivery->rider_id;
+
         DB::transaction(fn () => $this->deliveries->update($delivery, array_merge([
             'status' => $data['status'],
-            'rider_id' => $data['rider_id'] ?? $delivery->rider_id,
+            'rider_id' => $riderId,
             'notes' => $data['notes'] ?? $delivery->notes,
-        ], $courier, $timestamps)));
+        ], $riderChanged ? ['rider_lat' => null, 'rider_lng' => null, 'rider_located_at' => null] : [], $courier, $timestamps)));
 
         // Notify the customer linked to the shop order, if any.
         $customer = $delivery->order?->customer;
