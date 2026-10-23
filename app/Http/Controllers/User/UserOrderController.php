@@ -16,6 +16,7 @@ use App\Services\CustomerOrderPlacementService;
 use App\Services\DeliveryRequestService;
 use App\Services\DeliveryTrackingService;
 use App\Services\OrderBillingBreakdownService;
+use App\Services\OrderComplaintService;
 use App\Services\OrderPaymentService;
 use App\Services\OrderRatingService;
 use App\Services\ShopOrderPaymentService;
@@ -36,6 +37,7 @@ class UserOrderController extends Controller
         private readonly DeliveryRequestService $deliveryRequests,
         private readonly DeliveryTrackingService $deliveryTracking,
         private readonly OrderRatingService $ratings,
+        private readonly OrderComplaintService $complaints,
         private readonly OrderPaymentService $orderPayments,
         private readonly ShopOrderPaymentService $onlinePayments,
     ) {}
@@ -121,6 +123,7 @@ class UserOrderController extends Controller
                 'service_name' => $order->service->service_name ?? '—',
                 'delivery' => $delivery ? $this->deliveryTracking->payload($delivery) : null,
                 'rating' => $this->ratings->orderState($order),
+                'complaints' => $this->complaints->orderState($order),
             ],
         ]);
     }

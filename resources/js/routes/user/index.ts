@@ -1,6 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 import shops266a13 from './shops'
 import orders from './orders'
+import complaints from './complaints'
 import notifications1ce82a from './notifications'
 /**
 * @see \App\Http\Controllers\User\UserDashboardController::dashboard
@@ -237,7 +238,7 @@ notifications.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
     
     notifications.form = notificationsForm
 /**
- * @see routes/web.php:707
+ * @see routes/web.php:735
  * @route '/user/profile'
  */
 export const profile = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -251,7 +252,7 @@ profile.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:707
+ * @see routes/web.php:735
  * @route '/user/profile'
  */
 profile.url = (options?: RouteQueryOptions) => {
@@ -259,7 +260,7 @@ profile.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:707
+ * @see routes/web.php:735
  * @route '/user/profile'
  */
 profile.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -267,7 +268,7 @@ profile.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:707
+ * @see routes/web.php:735
  * @route '/user/profile'
  */
 profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -276,7 +277,7 @@ profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:707
+ * @see routes/web.php:735
  * @route '/user/profile'
  */
     const profileForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -285,7 +286,7 @@ profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:707
+ * @see routes/web.php:735
  * @route '/user/profile'
  */
         profileForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -293,7 +294,7 @@ profile.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:707
+ * @see routes/web.php:735
  * @route '/user/profile'
  */
         profileForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -311,6 +312,7 @@ const user = {
     dashboard: Object.assign(dashboard, dashboard),
 shops: Object.assign(shops, shops266a13),
 orders: Object.assign(orders, orders),
+complaints: Object.assign(complaints, complaints),
 notifications: Object.assign(notifications, notifications1ce82a),
 profile: Object.assign(profile, profile),
 }

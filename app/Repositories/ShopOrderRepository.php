@@ -101,6 +101,16 @@ class ShopOrderRepository
             ->first();
     }
 
+    /** The customer's own order with what is needed to decide whether a problem can be reported. */
+    public function findOwnedForComplaint(string $paymentPublicId, int $customerId): ?ShopOrder
+    {
+        return $this->model->newQuery()
+            ->with(['delivery', 'shop:id,shop_name,owner_id'])
+            ->where('payment_public_id', $paymentPublicId)
+            ->where('user_id', $customerId)
+            ->first();
+    }
+
     /**
      * The customer's most recent completed orders that have no rating yet. The rating
      * rules (delivery state, time window) are applied by the caller.

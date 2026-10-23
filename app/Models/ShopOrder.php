@@ -136,6 +136,12 @@ class ShopOrder extends Model
         return $this->hasOne(OrderRating::class);
     }
 
+    /** Problems the customer reported about this order. */
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(OrderComplaint::class);
+    }
+
     public function customerAgreementAcceptance(): HasOne
     {
         return $this->hasOne(CustomerAgreementAcceptance::class);

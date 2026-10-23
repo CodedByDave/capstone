@@ -192,6 +192,14 @@ const allOperationsSubActions = [
             : '/staff/operations/ratings',
         show: () => isOwner.value || can('Operations', 'view'),
     },
+    {
+        title: 'Complaints',
+        icon: AlertTriangle,
+        href: isOwner.value
+            ? '/shop/operations/complaints'
+            : '/staff/operations/complaints',
+        show: () => isOwner.value || can('Operations', 'view'),
+    },
 ];
 
 /* ─────────────────────────────────────────

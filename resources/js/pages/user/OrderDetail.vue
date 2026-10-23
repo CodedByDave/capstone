@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ComplaintStatusBadge from '@/components/ComplaintStatusBadge.vue';
 import BillingBreakdown, {
     type BillingBreakdown as BillingBreakdownData,
 } from '@/components/customer/BillingBreakdown.vue';
@@ -7,6 +8,7 @@ import DeliveryRequestPanel from '@/components/customer/DeliveryRequestPanel.vue
 import DeliveryTrackingCard, {
     type DeliveryTracking,
 } from '@/components/customer/DeliveryTrackingCard.vue';
+import OrderComplaintDialog from '@/components/customer/OrderComplaintDialog.vue';
 import OrderRatingDialog from '@/components/customer/OrderRatingDialog.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { isPostponed } from '@/lib/ratingPrompt';
@@ -82,6 +84,21 @@ interface Order {
             rated_at: string;
         } | null;
     };
+    complaints: {
+        can_report: boolean;
+        reason: string | null;
+        types: Record<string, string>;
+        items: {
+            public_id: string;
+            type: string;
+            description: string;
+            status: string;
+            shop_reply: string | null;
+            created_at: string;
+            replied_at: string | null;
+            photos: { public_id: string; url: string }[];
+        }[];
+    };
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -110,6 +127,18 @@ onMounted(() => {
         ratingOpen.value = true;
     }
 });
+
+// ─── Report a problem ─────────────────────────────────────────────────────────
+
+const complaintOpen = ref(false);
+
+function formatComplaintDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
@@ -863,6 +892,86 @@ const shopLocation = computed(() =>
                 :payment-public-id="order.payment_public_id"
                 :order-number="order.order_number"
                 :shop-name="order.shop?.name ?? 'the shop'"
+            />
+
+            <!-- ── Report a problem ───────────────────────────── -->
+            <div
+                v-if="
+                    order.complaints.can_report || order.complaints.items.length
+                "
+                class="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            >
+                <p
+                    class="text-xs font-semibold tracking-wide text-gray-400 uppercase"
+                >
+                    Problem with your order?
+                </p>
+
+                <div
+                    v-for="item in order.complaints.items"
+                    :key="item.public_id"
+                    class="space-y-2 rounded-xl border border-gray-100 p-3 dark:border-gray-800"
+                >
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-sm font-semibold">{{ item.type }}</p>
+                        <ComplaintStatusBadge :status="item.status" />
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        {{ item.description }}
+                    </p>
+                    <div v-if="item.photos.length" class="flex flex-wrap gap-2">
+                        <a
+                            v-for="photo in item.photos"
+                            :key="photo.public_id"
+                            :href="photo.url"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <img
+                                :src="photo.url"
+                                alt="Photo you attached to this report"
+                                class="h-16 w-16 rounded-lg border object-cover"
+                                loading="lazy"
+                            />
+                        </a>
+                    </div>
+                    <p class="text-xs text-gray-400">
+                        Sent {{ formatComplaintDate(item.created_at) }}
+                    </p>
+                    <div
+                        v-if="item.shop_reply"
+                        class="rounded-lg bg-blue-50 p-3 text-sm text-blue-900 dark:bg-blue-500/10 dark:text-blue-200"
+                    >
+                        <p class="mb-1 text-xs font-semibold uppercase">
+                            Reply from {{ order.shop?.name ?? 'the shop' }}
+                        </p>
+                        {{ item.shop_reply }}
+                    </div>
+                </div>
+
+                <button
+                    v-if="order.complaints.can_report"
+                    type="button"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                    @click="complaintOpen = true"
+                >
+                    <AlertTriangle class="h-4 w-4" aria-hidden="true" />
+                    Report a problem
+                </button>
+                <p
+                    v-else-if="order.complaints.reason"
+                    class="text-xs text-gray-400"
+                >
+                    {{ order.complaints.reason }}
+                </p>
+            </div>
+
+            <OrderComplaintDialog
+                v-model:open="complaintOpen"
+                :payment-public-id="order.payment_public_id"
+                :order-number="order.order_number"
+                :shop-name="order.shop?.name ?? 'the shop'"
+                :types="order.complaints.types"
             />
 
             <!-- ── Cancel order ───────────────────────────────── -->

@@ -28,6 +28,7 @@ use App\Http\Controllers\Shop\Inventory\InventoryController;
 use App\Http\Controllers\Shop\Inventory\LowStockAlertController;
 use App\Http\Controllers\Shop\Inventory\SupplierController;
 use App\Http\Controllers\Shop\LogisticsController;
+use App\Http\Controllers\Shop\Operations\OrderComplaintController;
 use App\Http\Controllers\Shop\Operations\OrderRatingController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
@@ -47,6 +48,7 @@ use App\Http\Controllers\Staff\SelfAttendanceController;
 use App\Http\Controllers\Staff\StaffDashboardController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
+use App\Http\Controllers\User\UserOrderComplaintController;
 use App\Http\Controllers\User\UserOrderController;
 use App\Http\Controllers\User\UserOrderRatingController;
 use App\Http\Controllers\User\UserPaymentController;
@@ -315,6 +317,15 @@ Route::prefix('shop')->middleware([
         ->middleware('shop.capability:delivery')
         ->name('shop.orders.send-for-delivery');
     Route::get('operations/ratings', [OrderRatingController::class, 'index'])->name('shop.ratings.index');
+    Route::get('operations/complaints', [OrderComplaintController::class, 'index'])->name('shop.complaints.index');
+    Route::get('operations/complaints/photos/{photo}', [OrderComplaintController::class, 'photo'])
+        ->whereUlid('photo')
+        ->middleware('throttle:120,1')
+        ->name('shop.complaints.photos.show');
+    Route::patch('operations/complaints/{complaint}', [OrderComplaintController::class, 'respond'])
+        ->whereUlid('complaint')
+        ->middleware('throttle:30,1')
+        ->name('shop.complaints.respond');
     Route::post('platform-rating', [ShopPlatformRatingController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('shop.platform-rating.store');
@@ -565,6 +576,11 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::get('/operations/services', [ShopServiceController::class, 'index'])->name('staff.services.index');
         Route::get('/operations/promos', [PromotionController::class, 'index'])->name('staff.promotions.index');
         Route::get('/operations/ratings', [OrderRatingController::class, 'index'])->name('staff.ratings.index');
+        Route::get('/operations/complaints', [OrderComplaintController::class, 'index'])->name('staff.complaints.index');
+        Route::get('/operations/complaints/photos/{photo}', [OrderComplaintController::class, 'photo'])
+            ->whereUlid('photo')
+            ->middleware('throttle:120,1')
+            ->name('staff.complaints.photos.show');
     });
     Route::middleware('permission:Operations,manage')->group(function () {
         Route::get('/operations/orders/{order:payment_public_id}/edit', [ShopOrderController::class, 'edit'])->name('staff.orders.edit');
@@ -573,6 +589,10 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/operations/orders/restore-all', [ShopOrderController::class, 'restoreAll'])->name('staff.orders.restore-all');
         Route::delete('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
         Route::patch('/operations/orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
+        Route::patch('/operations/complaints/{complaint}', [OrderComplaintController::class, 'respond'])
+            ->whereUlid('complaint')
+            ->middleware('throttle:30,1')
+            ->name('staff.complaints.respond');
         Route::post('/operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('staff.orders.payments.store');
         Route::post('/operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('staff.orders.payments.check');
         Route::post('/operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('staff.orders.payments.void');
@@ -687,6 +707,14 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/orders/delivery-photos/{photo}', [DeliveryProofController::class, 'showForCustomer'])
         ->middleware('throttle:120,1')
         ->name('orders.delivery-photos.show');
+    Route::post('/orders/{paymentPublicId}/complaints', [UserOrderComplaintController::class, 'store'])
+        ->whereUlid('paymentPublicId')
+        ->middleware('throttle:10,1')
+        ->name('orders.complaints.store');
+    Route::get('/complaints/photos/{photo}', [UserOrderComplaintController::class, 'photo'])
+        ->whereUlid('photo')
+        ->middleware('throttle:120,1')
+        ->name('complaints.photos.show');
     Route::post('/orders/{paymentPublicId}/rating', [UserOrderRatingController::class, 'store'])
         ->whereUlid('paymentPublicId')
         ->middleware('throttle:20,1')
