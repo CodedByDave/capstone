@@ -6,6 +6,7 @@ use App\Exceptions\RiderLocationException;
 use App\Http\Requests\Driver\UpdateRiderLocationRequest;
 use App\Models\Delivery;
 use App\Notifications\DeliveryNotification;
+use App\Services\LogisticsService;
 use App\Services\DeliveryTrackingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,7 +60,7 @@ class DriverPageController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, string $token)
+    public function updateStatus(Request $request, string $token, LogisticsService $logistics)
     {
         $delivery = Delivery::where('driver_token', $token)
             ->with(['order.customer', 'rider'])
@@ -100,6 +101,9 @@ class DriverPageController extends Controller
         if ($customer) {
             $customer->notify(new DeliveryNotification($delivery));
         }
+
+        // The rider may be free now: give them the next delivery that was waiting.
+        $logistics->assignWaitingDeliveries($delivery->shop_id);
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Status updated successfully.']);
     }

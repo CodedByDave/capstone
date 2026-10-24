@@ -257,6 +257,50 @@ class LogisticsService
         return $delivery;
     }
 
+    /**
+     * Hands deliveries that were waiting for a rider to the riders who are free now, oldest
+     * first. Called whenever a rider may have become available: a run finished, a rider was
+     * added or reactivated, or a delivery left the road.
+     *
+     * @return int how many waiting deliveries received a rider
+     */
+    public function assignWaitingDeliveries(int $shopId): int
+    {
+        $assigned = 0;
+
+        while (true) {
+            $delivery = DB::transaction(function () use ($shopId): ?Delivery {
+                $waiting = $this->deliveries->oldestWaitingForShop($shopId);
+                $rider = $waiting ? $this->riders->findAvailableForShop($shopId) : null;
+
+                if (! $waiting || ! $rider) {
+                    return null;
+                }
+
+                $this->deliveries->update($waiting, [
+                    'rider_id' => $rider->id,
+                    'status' => 'assigned',
+                    'assigned_at' => now(),
+                    'rider_lat' => null,
+                    'rider_lng' => null,
+                    'rider_located_at' => null,
+                ]);
+
+                return $waiting;
+            });
+
+            if ($delivery === null) {
+                break;
+            }
+
+            $assigned++;
+            $delivery->load(['rider', 'order.customer']);
+            $delivery->order?->customer?->notify(new DeliveryNotification($delivery));
+        }
+
+        return $assigned;
+    }
+
     public function updateStatus(User $user, Delivery $delivery, array $data): Delivery
     {
         $this->assertDeliveryInShop($user, $delivery);
@@ -290,6 +334,8 @@ class LogisticsService
             $customer->notify(new DeliveryNotification($delivery));
         }
 
+        $this->assignWaitingDeliveries($delivery->shop_id);
+
         return $delivery;
     }
 
@@ -309,13 +355,17 @@ class LogisticsService
 
     public function createRider(User $user, array $data): Rider
     {
-        return $this->riders->createForShop($this->shopIdFor($user), $data);
+        $rider = $this->riders->createForShop($this->shopIdFor($user), $data);
+        $this->assignWaitingDeliveries($rider->shop_id);
+
+        return $rider;
     }
 
     public function updateRider(User $user, Rider $rider, array $data): Rider
     {
         $this->assertRiderInShop($user, $rider);
         $this->riders->update($rider, $data);
+        $this->assignWaitingDeliveries($rider->shop_id);
 
         return $rider;
     }

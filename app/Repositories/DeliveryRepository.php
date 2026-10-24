@@ -18,6 +18,22 @@ class DeliveryRepository extends Repository
         return Delivery::query()->create($data);
     }
 
+    /**
+     * The longest-waiting delivery still without a rider, for the shop's own riders only.
+     * Meant to be called inside the caller's transaction: the row is locked while it is claimed.
+     */
+    public function oldestWaitingForShop(int $shopId): ?Delivery
+    {
+        return Delivery::query()
+            ->where('shop_id', $shopId)
+            ->where('status', 'pending')
+            ->whereNull('rider_id')
+            ->where('courier', Delivery::COURIER_OWN_RIDER)
+            ->oldest('id')
+            ->lockForUpdate()
+            ->first();
+    }
+
     public function paginateForShop(int $shopId, ?string $status, int $perPage = 15): LengthAwarePaginator
     {
         return Delivery::query()

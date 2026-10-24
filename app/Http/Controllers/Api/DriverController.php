@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Notifications\DeliveryNotification;
+use App\Services\LogisticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -40,7 +41,7 @@ class DriverController extends Controller
      * Update delivery status using the driver token.
      * Valid transitions: assigned → picked_up → delivered | failed
      */
-    public function updateStatus(Request $request, string $token): JsonResponse
+    public function updateStatus(Request $request, string $token, LogisticsService $logistics): JsonResponse
     {
         $delivery = Delivery::where('driver_token', $token)
             ->with(['order.customer', 'rider'])
@@ -80,6 +81,9 @@ class DriverController extends Controller
         if ($customer) {
             $customer->notify(new DeliveryNotification($delivery));
         }
+
+        // The rider may be free now: give them the next delivery that was waiting.
+        $logistics->assignWaitingDeliveries($delivery->shop_id);
 
         return response()->json([
             'message' => 'Status updated.',
