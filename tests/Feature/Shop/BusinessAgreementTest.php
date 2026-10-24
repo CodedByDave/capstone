@@ -306,3 +306,25 @@ test('approval cannot proceed without the platform signature', function () {
     expect($order->fresh()->status)->toBe('pending');
     $this->assertDatabaseCount('business_agreement_platform_signatures', 0);
 });
+
+test('a trial shop can upgrade to a paid plan and the admin can approve it', function () {
+    Storage::fake('private');
+    [$owner] = agreementOwner();
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+
+    $this->actingAs($owner)
+        ->post(route('trial.start'), trialPayload(agreementSignature()))
+        ->assertRedirect(route('shop.setup.show'));
+
+    $this->actingAs($owner)
+        ->post(route('shop.upgrade.process'), paidApplicationPayload())->assertSessionHasNoErrors();
+
+    $upgrade = $owner->orders()->where('is_trial', false)->firstOrFail();
+    expect($upgrade->status)->toBe('pending');
+
+    $this->actingAs($admin)
+        ->post(route('admin.orders.approve', $upgrade->public_id), platformSignature())
+        ->assertSessionHasNoErrors();
+
+    expect($upgrade->fresh()->status)->toBe('approved');
+});

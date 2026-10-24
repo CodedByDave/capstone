@@ -17,7 +17,7 @@ class EnsureShopSetupComplete
 
         if ($user?->role === 'owner'
             && ! $request->routeIs('shop.setup.*')
-            && ! $request->routeIs('payment.success', 'payment.cancel', 'shop.payment.pay')
+            && ! $request->routeIs('payment.success', 'payment.cancel', 'shop.payment.pay', 'shop.upgrade*')
             && $this->setup->needsSetup($user)) {
             return redirect()->route('shop.setup.show')->with('toast', [
                 'type' => 'info',

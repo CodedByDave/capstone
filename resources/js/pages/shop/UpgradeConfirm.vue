@@ -178,7 +178,12 @@ const kycDocs = ref<Record<string, UploadedFile | null>>({
     mayors: null,
     sanitary: null,
 });
-const permitExpiryDate = ref('');
+const expiryDates = ref<Record<string, string>>({
+    bir: '',
+    dti: '',
+    mayors: '',
+    sanitary: '',
+});
 
 const kycMeta: Record<
     string,
@@ -241,16 +246,21 @@ function removeFile(key: string) {
 // ─── Submit ───────────────────────────────────────────────────────────────────
 
 const submitting = ref(false);
+const submitError = ref('');
 
 const canSubmit = computed(() => {
     if (props.requiresKyc)
-        return requiredKycComplete.value && !!permitExpiryDate.value;
+        return (
+            requiredKycComplete.value &&
+            ['bir', 'dti', 'mayors'].every((k) => !!expiryDates.value[k])
+        );
     return !!selectedPayment.value;
 });
 
 function submit() {
     if (!canSubmit.value || submitting.value) return;
     submitting.value = true;
+    submitError.value = '';
 
     if (props.requiresKyc) {
         const formData = new FormData();
@@ -259,9 +269,15 @@ function submit() {
         Object.entries(kycDocs.value).forEach(([key, f]) => {
             if (f?.file) formData.append(`kyc_${key}`, f.file);
         });
-        formData.append('permit_expiry_date', permitExpiryDate.value);
+        Object.entries(expiryDates.value).forEach(([key, date]) => {
+            if (date) formData.append(`${key}_expiry_date`, date);
+        });
         router.post('/shop/upgrade/process', formData, {
             forceFormData: true,
+            onError: (errors) => {
+                submitError.value =
+                    Object.values(errors)[0] ?? 'Please check your details.';
+            },
             onFinish: () => {
                 submitting.value = false;
             },
@@ -581,23 +597,34 @@ function submit() {
                         </div>
                     </div>
 
-                    <!-- Permit expiry date -->
+                    <!-- Document expiry dates -->
                     <div
+                        v-for="(meta, key) in kycMeta"
+                        :key="`expiry-${key}`"
                         class="space-y-1.5 rounded-xl border border-stone-200 bg-stone-50 p-3.5"
                     >
-                        <label class="text-sm font-medium text-stone-700">
-                            Mayor's Permit Expiry Date
-                            <span class="text-red-400">*</span>
+                        <label
+                            :for="`expiry-${key}`"
+                            class="text-sm font-medium text-stone-700"
+                        >
+                            {{ meta.label }} Expiry Date
+                            <span v-if="meta.required" class="text-red-400"
+                                >*</span
+                            >
                         </label>
                         <input
+                            :id="`expiry-${key}`"
                             type="date"
-                            v-model="permitExpiryDate"
-                            :min="new Date().toISOString().split('T')[0]"
+                            v-model="expiryDates[key]"
+                            :min="
+                                new Date(Date.now() + 86400000)
+                                    .toISOString()
+                                    .split('T')[0]
+                            "
                             class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                         />
                         <p class="text-xs text-stone-400">
-                            Enter the expiry date printed on your Mayor's
-                            Business Permit.
+                            Enter the expiry date printed on this document.
                         </p>
                     </div>
 
@@ -670,6 +697,9 @@ function submit() {
             </div>
 
             <!-- CTA -->
+            <p v-if="submitError" class="pb-3 text-right text-sm text-red-600">
+                {{ submitError }}
+            </p>
             <div class="flex justify-end gap-3 pb-8">
                 <Button variant="outline" @click="router.get('/shop/upgrade')">
                     Back
