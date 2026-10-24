@@ -317,7 +317,10 @@ test('a trial shop can upgrade to a paid plan and the admin can approve it', fun
         ->assertRedirect(route('shop.setup.show'));
 
     $this->actingAs($owner)
-        ->post(route('shop.upgrade.process'), paidApplicationPayload())->assertSessionHasNoErrors();
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->post(route('shop.upgrade.process'), paidApplicationPayload())
+        ->assertStatus(409)
+        ->assertHeader('X-Inertia-Location', route('shop.dashboard'));
 
     $upgrade = $owner->orders()->where('is_trial', false)->firstOrFail();
     expect($upgrade->status)->toBe('pending');
