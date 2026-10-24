@@ -83,6 +83,15 @@ class BusinessAgreementRepository
         return $acceptance->refresh()->load(['agreement', 'platformSignature']);
     }
 
+    public function reassignOrder(
+        BusinessAgreementAcceptance $acceptance,
+        Order $order,
+    ): BusinessAgreementAcceptance {
+        $acceptance->update(['order_id' => $order->id]);
+
+        return $acceptance->refresh()->load(['agreement', 'platformSignature']);
+    }
+
     public function historyForShop(Shop $shop): Collection
     {
         return BusinessAgreementAcceptance::query()

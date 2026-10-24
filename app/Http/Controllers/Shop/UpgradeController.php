@@ -7,6 +7,7 @@ use App\Http\Requests\Shop\StoreUpgradeRequest;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Shop;
+use App\Services\BusinessAgreementService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\PaymongoService;
@@ -24,7 +25,8 @@ class UpgradeController extends Controller
     public function __construct(
         protected OrderService $orderService,
         protected PaymentService $paymentService,
-        protected PaymongoService $paymongoService
+        protected PaymongoService $paymongoService,
+        protected BusinessAgreementService $agreementService
     ) {}
 
     // ── Show upgrade plan selection ────────────────────────────────────────────
@@ -226,6 +228,8 @@ class UpgradeController extends Controller
                         'mayors_expiry_date' => $request->validated()['mayors_expiry_date'],
                         'sanitary_expiry_date' => $request->validated()['sanitary_expiry_date'] ?? null,
                     ]);
+
+                    $this->agreementService->carryAcceptanceToOrder($user, $order);
 
                     $kycPaths = [];
                     foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {

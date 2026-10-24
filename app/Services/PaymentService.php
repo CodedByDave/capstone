@@ -144,7 +144,8 @@ class PaymentService
             $this->orderRepository->markPaidWithExpiry($order);
             $this->shopRepository->syncFromApprovedOrder($order);
 
-            if ($order->is_upgrade) {
+            // A first paid plan also ends the free trial it replaces.
+            if ($order->is_upgrade || ! $order->is_trial) {
                 $this->orderRepository->expireOtherActiveSubscriptions($order);
             }
         });

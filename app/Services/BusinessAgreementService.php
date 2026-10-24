@@ -120,6 +120,27 @@ class BusinessAgreementService
             && $this->agreementRepository->acceptanceFor($shop, $agreement) === null;
     }
 
+    /**
+     * A shop signs the agreement once, during its free trial. When the trial
+     * owner applies for a paid plan, that signed acceptance moves to the new
+     * order so the admin can countersign it when approving the plan.
+     */
+    public function carryAcceptanceToOrder(User $user, Order $order): void
+    {
+        $shop = $this->shopRepository->findByOwnerId($user->id);
+        $agreement = $this->agreementRepository->current();
+
+        if (! $shop || ! $agreement) {
+            return;
+        }
+
+        $acceptance = $this->agreementRepository->acceptanceFor($shop, $agreement);
+
+        if ($acceptance && ! $acceptance->platformSignature) {
+            $this->agreementRepository->reassignOrder($acceptance, $order);
+        }
+    }
+
     public function acceptanceDataForOrder(Order $order): ?array
     {
         $acceptance = $this->agreementRepository->acceptanceForOrder($order);
