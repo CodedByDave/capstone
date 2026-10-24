@@ -50,15 +50,7 @@ class InventoryService
                 );
             }
 
-            // Trigger low stock alert if initial quantity is already at/below threshold
-            if ($inventory->quantity <= $inventory->min_stock) {
-                $this->alertRepository->createIfNotExists(
-                    inventoryId: $inventory->id,
-                    shopId: $shopId,
-                    quantityAtAlert: $inventory->quantity,
-                    minStockAtAlert: $inventory->min_stock,
-                );
-            }
+            $this->alertIfLowStock($inventory);
 
             return $inventory;
         });
@@ -68,6 +60,7 @@ class InventoryService
     {
         return DB::transaction(function () use ($inventory, $data) {
             $this->inventoryRepository->update($inventory, $data);
+            $this->alertIfLowStock($inventory->refresh());
 
             return $inventory->fresh(['category', 'supplier']);
         });
@@ -115,18 +108,43 @@ class InventoryService
             $this->inventoryRepository->update($inventory, ['quantity' => $newQuantity]);
             $inventory->refresh();
 
-            // Trigger low stock alert if threshold crossed
-            if ($inventory->quantity <= $inventory->min_stock) {
-                $this->alertRepository->createIfNotExists(
-                    inventoryId: $inventory->id,
-                    shopId: $inventory->shop_id,
-                    quantityAtAlert: $inventory->quantity,
-                    minStockAtAlert: $inventory->min_stock,
-                );
-            }
+            $this->alertIfLowStock($inventory);
 
             return $inventory;
         });
+    }
+
+    /**
+     * Raises an unread low stock alert when the item sits at or below its minimum. Every path
+     * that changes stock or the minimum calls this, so the alerts page never misses an item.
+     */
+    public function alertIfLowStock(Inventory $inventory): void
+    {
+        if ($inventory->quantity > $inventory->min_stock) {
+            return;
+        }
+
+        $this->alertRepository->createIfNotExists(
+            inventoryId: $inventory->id,
+            shopId: $inventory->shop_id,
+            quantityAtAlert: $inventory->quantity,
+            minStockAtAlert: $inventory->min_stock,
+        );
+    }
+
+    /**
+     * One-time catch-up for items that fell to their minimum before alerts were raised on every
+     * stock change. Items that already have an alert, even a dismissed one, are left alone.
+     *
+     * @return int how many alerts were created
+     */
+    public function backfillLowStockAlerts(): int
+    {
+        $items = $this->inventoryRepository->lowStockWithoutAlerts();
+
+        DB::transaction(fn () => $items->each(fn (Inventory $item) => $this->alertIfLowStock($item)));
+
+        return $items->count();
     }
 
     public function lowStock(int $shopId): Collection

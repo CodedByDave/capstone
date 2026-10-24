@@ -23,6 +23,7 @@ class ShopOrderService
         private readonly OrderBillingBreakdownService $billing,
         private readonly LogisticsService $logistics,
         private readonly OrderPaymentService $orderPayments,
+        private readonly InventoryService $inventory,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -102,6 +103,7 @@ class ShopOrderService
                 ]);
 
                 $item->decrement('quantity', (float) $supply['quantity_used']);
+                $this->inventory->alertIfLowStock($item->refresh());
             }
 
             $order->load('shop');
@@ -325,6 +327,7 @@ class ShopOrderService
                 ]);
 
                 $item->decrement('quantity', (float) $supply['quantity_used']);
+                $this->inventory->alertIfLowStock($item->refresh());
             }
 
             $updated = $order->fresh(['service', 'supplies', 'shop', 'customer']);

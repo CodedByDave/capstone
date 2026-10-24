@@ -78,6 +78,16 @@ class InventoryRepository extends Repository
             ->get();
     }
 
+    /** Active items at or below their minimum that have never had a low stock alert. */
+    public function lowStockWithoutAlerts(): Collection
+    {
+        return $this->query()
+            ->whereColumn('quantity', '<=', 'min_stock')
+            ->where('status', 'active')
+            ->whereDoesntHave('lowStockAlerts')
+            ->get();
+    }
+
     public function createForShop(int $shopId, array $data): Inventory
     {
         return $this->create([...$data, 'shop_id' => $shopId]);
