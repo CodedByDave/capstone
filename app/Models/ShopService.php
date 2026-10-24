@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class ShopService extends Model
 {
@@ -18,6 +20,7 @@ class ShopService extends Model
         'service_name',
         'category',
         'description',
+        'photo_path',
         'is_active',
         'pricing_model',
         'price_per_kg',
@@ -32,6 +35,8 @@ class ShopService extends Model
         'bundle_weight_kg' => 'decimal:2',
         'bundle_price' => 'decimal:2',
     ];
+
+    protected $appends = ['photo_url'];
 
     const PRICING_MODELS = ['per_kg', 'per_bundle'];
 
@@ -54,6 +59,18 @@ class ShopService extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(ShopOrder::class, 'service_id');
+    }
+
+    // ─── Accessors ─────────────────────────────────────
+
+    /** Public URL of the service photo, or null when the service has none (or the column was not selected). */
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            $path = $this->attributes['photo_path'] ?? null;
+
+            return $path ? Storage::disk('public')->url($path) : null;
+        });
     }
 
     // ─── Helpers ───────────────────────────────────────

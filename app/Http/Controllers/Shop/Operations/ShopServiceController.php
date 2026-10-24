@@ -56,9 +56,9 @@ class ShopServiceController extends Controller
     public function store(StoreShopServiceRequest $request): RedirectResponse
     {
         $this->service->create([
-            ...$request->validated(),
+            ...$request->safe()->except('photo'),
             'shop_id' => $this->getShopId(),
-        ]);
+        ], $request->file('photo'));
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
@@ -69,6 +69,8 @@ class ShopServiceController extends Controller
 
     public function edit(ShopService $service): Response
     {
+        $this->service->assertInShop($service, $this->getShopId());
+
         return Inertia::render('shop/operations/services/Edit', [
             'service' => $service,
             'pricingModels' => ShopService::PRICING_MODELS,
@@ -77,7 +79,14 @@ class ShopServiceController extends Controller
 
     public function update(UpdateShopServiceRequest $request, ShopService $service): RedirectResponse
     {
-        $this->service->update($service, $request->validated());
+        $this->service->assertInShop($service, $this->getShopId());
+
+        $this->service->update(
+            $service,
+            $request->safe()->except(['photo', 'remove_photo']),
+            $request->file('photo'),
+            $request->boolean('remove_photo'),
+        );
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
@@ -88,7 +97,7 @@ class ShopServiceController extends Controller
 
     public function destroy(ShopService $service): RedirectResponse
     {
-        $this->service->delete($service);
+        $this->service->delete($this->service->assertInShop($service, $this->getShopId()));
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
@@ -99,7 +108,7 @@ class ShopServiceController extends Controller
 
     public function toggleActive(ShopService $service): RedirectResponse
     {
-        $updated = $this->service->toggleActive($service);
+        $updated = $this->service->toggleActive($this->service->assertInShop($service, $this->getShopId()));
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
@@ -110,8 +119,7 @@ class ShopServiceController extends Controller
 
     public function restore(ShopService $service): RedirectResponse
     {
-        $service = ShopService::withTrashed()->findOrFail($service->id);
-        $this->service->restore($service);
+        $this->service->restore($this->service->assertInShop($service, $this->getShopId()));
 
         return redirect("{$this->base()}/operations/services?archived=true")
             ->with('toast', [

@@ -50,6 +50,7 @@ interface ShopService {
     bundle_weight_kg: string | null;
     bundle_price: string | null;
     estimated_hours: number | null;
+    photo_url: string | null;
 }
 
 interface ShopInfo {
@@ -446,6 +447,13 @@ function goBack() {
                         class="flex min-h-80 flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
                     >
                         <div>
+                            <img
+                                v-if="svc.photo_url"
+                                :src="svc.photo_url"
+                                :alt="svc.service_name"
+                                loading="lazy"
+                                class="mb-3 h-36 w-full rounded-xl object-cover"
+                            />
                             <span
                                 class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"
                             >

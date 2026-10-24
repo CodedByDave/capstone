@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,6 +31,7 @@ const form = useForm({
     bundle_weight_kg: '' as string | number,
     bundle_price: '' as string | number,
     estimated_hours: '' as string | number,
+    photo: null as File | null,
 });
 
 const isPerKg = computed(() => form.pricing_model === 'per_kg');
@@ -47,7 +49,7 @@ const onModelChange = () => {
     }
 };
 
-const submit = () => form.post(base.value);
+const submit = () => form.post(base.value, { forceFormData: true });
 </script>
 
 <template>
@@ -126,6 +128,13 @@ const submit = () => form.post(base.value);
                             >
                                 {{ form.errors.service_name }}
                             </p>
+                        </div>
+
+                        <div class="col-span-12">
+                            <ServicePhotoInput
+                                v-model="form.photo"
+                                :error="form.errors.photo"
+                            />
                         </div>
 
                         <div class="col-span-12 space-y-1 sm:col-span-4">

@@ -168,6 +168,7 @@ class UserDashboardController extends Controller
                 'service_name',
                 'category',
                 'description',
+                'photo_path',
                 'pricing_model',
                 'price_per_kg',
                 'bundle_weight_kg',

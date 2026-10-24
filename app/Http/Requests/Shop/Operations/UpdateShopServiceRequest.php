@@ -22,6 +22,8 @@ class UpdateShopServiceRequest extends FormRequest
             'is_active' => ['boolean'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
             'estimated_hours' => ['nullable', 'integer', 'min:1', 'max:720'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_photo' => ['boolean'],
             'price_per_kg' => [
                 Rule::requiredIf(fn () => $this->pricing_model === 'per_kg'),
                 'nullable', 'numeric', 'min:1', 'max:9999',
@@ -47,6 +49,9 @@ class UpdateShopServiceRequest extends FormRequest
             'bundle_price.min' => 'Bundle price must be at least ₱1.',
             'bundle_price.max' => 'Bundle price cannot exceed ₱99,999.',
             'bundle_weight_kg.max' => 'Bundle weight cannot exceed 500 kg.',
+            'photo.image' => 'The service photo must be an image.',
+            'photo.mimes' => 'The service photo must be a JPG, PNG, or WebP image.',
+            'photo.max' => 'The service photo must be 5 MB or smaller.',
             'estimated_hours.max' => 'Estimated time cannot exceed 720 hours (30 days).',
         ];
     }

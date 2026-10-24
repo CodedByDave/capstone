@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,6 +24,7 @@ interface ShopService {
     bundle_weight_kg: string | null;
     bundle_price: string | null;
     estimated_hours: number | null;
+    photo_url: string | null;
 }
 
 const props = defineProps<{
@@ -46,6 +48,8 @@ const form = useForm({
     bundle_weight_kg: props.service.bundle_weight_kg ?? '',
     bundle_price: props.service.bundle_price ?? '',
     estimated_hours: props.service.estimated_hours ?? '',
+    photo: null as File | null,
+    remove_photo: false,
 });
 
 const isPerKg = computed(() => form.pricing_model === 'per_kg');
@@ -63,7 +67,11 @@ const onModelChange = () => {
 };
 
 const submit = () => {
-    form.put(`${base.value}/${props.service.id}`);
+    // A file upload cannot ride on a real PUT, so it is sent as a POST that Laravel treats as PUT.
+    form.transform((data) => ({ ...data, _method: 'put' })).post(
+        `${base.value}/${props.service.id}`,
+        { forceFormData: true },
+    );
 };
 </script>
 
@@ -143,6 +151,15 @@ const submit = () => {
                             >
                                 {{ form.errors.service_name }}
                             </p>
+                        </div>
+
+                        <div class="col-span-12">
+                            <ServicePhotoInput
+                                v-model="form.photo"
+                                v-model:removed="form.remove_photo"
+                                :current-url="service.photo_url"
+                                :error="form.errors.photo"
+                            />
                         </div>
 
                         <div class="col-span-12 space-y-1 sm:col-span-4">
