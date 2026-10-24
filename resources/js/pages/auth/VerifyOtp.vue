@@ -3,16 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Head, useForm } from '@inertiajs/vue3';
 
-const csrfToken = document
-    .querySelector('meta[name="csrf-token"]')
-    ?.getAttribute('content');
-
 const form = useForm({
     otp: '',
 });
 
+const resendForm = useForm({ error: '' });
+
 const submit = () => {
     form.post('/verify-otp');
+};
+
+const resend = () => {
+    resendForm.post('/resend-otp', {
+        preserveScroll: true,
+        onSuccess: () => form.reset('otp'),
+    });
 };
 </script>
 
@@ -46,19 +51,22 @@ const submit = () => {
                 </p>
             </div>
 
+            <p v-if="resendForm.errors.error" class="text-sm text-red-500">
+                {{ resendForm.errors.error }}
+            </p>
+
             <Button class="w-full" @click="submit" :disabled="form.processing">
                 Verify
             </Button>
 
-            <form action="/otp/resend" method="POST">
-                <input type="hidden" name="_token" :value="csrfToken" />
-                <button
-                    type="submit"
-                    class="mt-2 w-full bg-transparent p-0 text-center text-sm text-blue-600 hover:underline"
-                >
-                    Resend OTP
-                </button>
-            </form>
+            <button
+                type="button"
+                class="mt-2 w-full bg-transparent p-0 text-center text-sm text-blue-600 hover:underline disabled:opacity-50"
+                :disabled="resendForm.processing"
+                @click="resend"
+            >
+                Resend OTP
+            </button>
         </div>
     </div>
 </template>
