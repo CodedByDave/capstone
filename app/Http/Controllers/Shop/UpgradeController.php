@@ -169,7 +169,7 @@ class UpgradeController extends Controller
 
     // ── Process upgrade order ──────────────────────────────────────────────────
 
-    public function process(StoreUpgradeRequest $request): RedirectResponse
+    public function process(StoreUpgradeRequest $request): RedirectResponse|SymfonyResponse
     {
         try {
             $user = auth()->user();
