@@ -214,6 +214,19 @@ const formatCurrency = (v: string | number | null) =>
 const formatLabel = (s: string) =>
     s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
+// The order's own supplies were already taken out of stock, so while editing it can use that
+// quantity again on top of what is left on the shelf.
+const heldByOrder = (inventoryId: number): number =>
+    props.shopOrder.supplies
+        .filter((s) => s.id === inventoryId)
+        .reduce((sum, s) => sum + Number(s.pivot.quantity_used), 0);
+
+const availableFor = (item: InventoryItem): number =>
+    Number(item.quantity) + heldByOrder(item.id);
+
+const selectedItem = (inventoryId: number): InventoryItem | undefined =>
+    props.inventoryItems?.find((i) => i.id === inventoryId);
+
 const addSupply = () =>
     form.supplies.push({ inventory_id: 0, quantity_used: 0, unit: '' });
 
@@ -836,7 +849,7 @@ watch(
                                         :key="item.id"
                                         :value="item.id"
                                     >
-                                        {{ item.name }} ({{ item.quantity }}
+                                        {{ item.name }} ({{ availableFor(item) }}
                                         {{ item.unit }}){{
                                             item.selling_price
                                                 ? ' — ₱' +
@@ -847,6 +860,33 @@ watch(
                                         }}
                                     </option>
                                 </select>
+                                <p
+                                    v-if="heldByOrder(supply.inventory_id) > 0"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ heldByOrder(supply.inventory_id) }}
+                                    already used on this order.
+                                </p>
+                                <p
+                                    v-if="
+                                        selectedItem(supply.inventory_id) &&
+                                        Number(supply.quantity_used) >
+                                            availableFor(
+                                                selectedItem(
+                                                    supply.inventory_id,
+                                                )!,
+                                            )
+                                    "
+                                    class="text-xs text-red-600"
+                                >
+                                    Only
+                                    {{
+                                        availableFor(
+                                            selectedItem(supply.inventory_id)!,
+                                        )
+                                    }}
+                                    available for this order.
+                                </p>
                             </div>
                             <div class="col-span-4 space-y-1 sm:col-span-2">
                                 <label
