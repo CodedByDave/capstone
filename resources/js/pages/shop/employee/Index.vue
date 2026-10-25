@@ -1048,6 +1048,6 @@ async function submitImport() {
 }
 
 :deep(.vue3-easy-data-table__main table) {
-    min-width: 2050px;
+    min-width: 900px;
 }
 </style>

@@ -775,6 +775,6 @@ function confirmArchive() {
 }
 
 :deep(.vue3-easy-data-table__main table) {
-    min-width: 1900px;
+    min-width: 1160px;
 }
 </style>

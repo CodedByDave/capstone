@@ -1136,6 +1136,6 @@ const statusBadge: Record<string, string> = {
 }
 
 :deep(.vue3-easy-data-table__main table) {
-    min-width: 1470px;
+    min-width: 1150px;
 }
 </style>
