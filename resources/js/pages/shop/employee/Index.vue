@@ -124,12 +124,12 @@ const sortableHeaders: {
     value: EmployeeSortKey;
     width: number;
 }[] = [
-    { text: 'Employee ID', value: 'employee_id', width: 145 },
-    { text: 'Name', value: 'full_name', width: 190 },
-    { text: 'Position', value: 'position', width: 150 },
-    { text: 'Employment Type', value: 'employment_type', width: 165 },
-    { text: 'Branch', value: 'branch_name', width: 175 },
-    { text: 'Status', value: 'status', width: 120 },
+    { text: 'Employee ID', value: 'employee_id', width: 110 },
+    { text: 'Name', value: 'full_name', width: 170 },
+    { text: 'Position', value: 'position', width: 130 },
+    { text: 'Employment Type', value: 'employment_type', width: 135 },
+    { text: 'Branch', value: 'branch_name', width: 140 },
+    { text: 'Status', value: 'status', width: 95 },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -162,7 +162,7 @@ const headers = computed<Header[]>(() => [
         (header) =>
             hasMultipleLocations.value || header.value !== 'branch_name',
     ),
-    { text: 'Actions', value: 'actions', width: 145 },
+    { text: 'Actions', value: 'actions', width: 115 },
 ]);
 const permissions = computed(() => user.value.permissions ?? {});
 
@@ -753,12 +753,6 @@ async function submitImport() {
                             </span>
                         </template>
 
-
-
-
-
-
-
                         <template #item-status="employee">
                             <span
                                 class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
@@ -772,13 +766,12 @@ async function submitImport() {
                             </span>
                         </template>
 
-
-
                         <template #item-actions="employee">
                             <div class="flex items-center justify-center gap-1">
                                 <Button
                                     v-if="can('HRM', 'view')"
                                     size="icon"
+                                    class="h-7 w-7"
                                     variant="ghost"
                                     aria-label="View employee"
                                     @click="
@@ -792,6 +785,7 @@ async function submitImport() {
                                 <Button
                                     v-if="can('HRM', 'update')"
                                     size="icon"
+                                    class="h-7 w-7"
                                     variant="ghost"
                                     aria-label="Edit employee"
                                     @click="
@@ -808,6 +802,7 @@ async function submitImport() {
                                 <Button
                                     v-if="can('HRM', 'archive')"
                                     size="icon"
+                                    class="h-7 w-7"
                                     variant="ghost"
                                     aria-label="Archive employee"
                                     @click="openArchiveDialog(employee)"
@@ -1008,8 +1003,8 @@ async function submitImport() {
     --easy-table-header-background-color: var(--muted);
     --easy-table-header-font-color: var(--muted-foreground);
     --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 52px;
-    --easy-table-header-item-padding: 10px 12px;
+    --easy-table-header-height: 40px;
+    --easy-table-header-item-padding: 6px 10px;
     --easy-table-body-row-background-color: var(--background);
     --easy-table-body-even-row-background-color: color-mix(
         in srgb,
@@ -1024,13 +1019,13 @@ async function submitImport() {
         transparent
     );
     --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 64px;
-    --easy-table-body-item-padding: 10px 12px;
+    --easy-table-body-row-height: 44px;
+    --easy-table-body-item-padding: 4px 10px;
     --easy-table-message-font-color: var(--muted-foreground);
     --easy-table-footer-background-color: var(--background);
     --easy-table-footer-font-color: var(--muted-foreground);
     --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
+    --easy-table-footer-height: 48px;
     --easy-table-footer-padding: 0 16px;
     --easy-table-buttons-pagination-border: 1px solid var(--border);
     width: 100%;
