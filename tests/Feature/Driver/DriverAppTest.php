@@ -12,26 +12,6 @@ use App\Services\DriverRosterService;
 use App\Services\LogisticsService;
 use Inertia\Testing\AssertableInertia as Assert;
 
-function driverShop(array $overrides = []): Shop
-{
-    $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
-
-    return Shop::create(array_merge([
-        'owner_id' => $owner->id,
-        'shop_name' => 'Driver Laundry',
-        'phone' => '09171234567',
-        'municipality' => 'Imus',
-        'barangay' => 'Poblacion',
-        'postal_code' => '4103',
-        'status' => 'active',
-        'offers_delivery' => true,
-        'delivery_pricing_set_at' => now(),
-        'setup_completed_at' => now(),
-        'latitude' => 14.43,
-        'longitude' => 120.93,
-    ], $overrides));
-}
-
 function driverRun(Shop $shop, ?Rider $rider, string $status = 'assigned', array $overrides = []): Delivery
 {
     return Delivery::create(array_merge([

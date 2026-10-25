@@ -1,13 +1,20 @@
 <script setup lang="ts">
+import AttendanceCard from '@/components/driver/AttendanceCard.vue';
 import DriverLayout from '@/components/driver/DriverLayout.vue';
 import JobCard from '@/components/driver/JobCard.vue';
-import type { DriverInfo, DriverJob, EarningsSummary } from '@/types/driver';
+import type {
+    DriverAttendance,
+    DriverInfo,
+    DriverJob,
+    EarningsSummary,
+} from '@/types/driver';
 import { Link, router } from '@inertiajs/vue3';
 import { MessageSquare, Navigation, Phone } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{
     driver: DriverInfo;
+    attendance: DriverAttendance;
     today: {
         earnings: EarningsSummary;
         jobs_completed: number;
@@ -129,6 +136,8 @@ function toggleOnline() {
             You are offline, so new orders are not assigned to you. Switch to
             online to receive orders.
         </p>
+
+        <AttendanceCard :attendance="attendance" />
 
         <!-- Today -->
         <section class="mt-4 rounded-3xl bg-[#12359b] p-4 text-white">

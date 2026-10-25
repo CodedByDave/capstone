@@ -35,6 +35,29 @@ export interface DriverJob {
     checklist: string[];
 }
 
+export interface AttendanceRecord {
+    status: 'present' | 'late' | 'absent' | string;
+    time_in: string | null;
+    time_out: string | null;
+    remarks: string | null;
+}
+
+export interface DriverAttendance {
+    day: string;
+    has_schedule: boolean;
+    is_work_day: boolean;
+    shift: { start: string | null; end: string | null } | null;
+    record: AttendanceRecord | null;
+    has_clocked_in: boolean;
+    has_clocked_out: boolean;
+    /** Why clock-in is not allowed today, or null when it is. */
+    blocked_reason: string | null;
+}
+
+export interface AttendanceHistoryItem extends AttendanceRecord {
+    date: string;
+}
+
 export interface EarningsSummary {
     mode: 'none' | 'delivery_fee' | 'daily_rate';
     enabled: boolean;

@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BusinessAgreementSignatureController;
 use App\Http\Controllers\Driver\DriverAppController;
+use App\Http\Controllers\Driver\DriverAttendanceController;
 use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
@@ -71,6 +72,8 @@ Route::prefix('driver')->middleware(['auth', 'verified', 'role:staff', 'driver']
     Route::get('/profile', [DriverAppController::class, 'profile'])->name('driver.profile');
 
     Route::patch('/availability', [DriverJobController::class, 'setAvailability'])->name('driver.availability');
+    Route::post('/attendance/clock-in', [DriverAttendanceController::class, 'clockIn'])->name('driver.attendance.clock-in');
+    Route::post('/attendance/clock-out', [DriverAttendanceController::class, 'clockOut'])->name('driver.attendance.clock-out');
     Route::patch('/jobs/{job}/status', [DriverJobController::class, 'updateStatus'])->whereUlid('job')->name('driver.jobs.status');
     Route::post('/jobs/{job}/location', [DriverJobController::class, 'updateLocation'])
         ->whereUlid('job')

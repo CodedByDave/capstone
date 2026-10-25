@@ -28,6 +28,7 @@ class DriverAppService
         private readonly RiderRepository $riders,
         private readonly LogisticsService $logistics,
         private readonly DriverEarningsService $earnings,
+        private readonly DriverAttendanceService $attendance,
     ) {}
 
     // ── Pages ─────────────────────────────────────────────────────────────────
@@ -40,6 +41,7 @@ class DriverAppService
 
         return [
             'driver' => $this->driverPayload($rider),
+            'attendance' => $this->attendance->state($rider),
             'today' => [
                 'earnings' => $this->earnings->today($rider),
                 'jobs_completed' => $delivered->count(),
@@ -98,6 +100,7 @@ class DriverAppService
         return [
             'driver' => $this->driverPayload($rider),
             'rating' => $this->deliveries->averageRatingForRider($rider->id),
+            'attendance_history' => $this->attendance->history($rider),
         ];
     }
 

@@ -70,3 +70,23 @@ function onlineRider(App\Models\Shop $shop, string $name = 'Rico', bool $online 
 
     return $rider->fresh();
 }
+
+function driverShop(array $overrides = []): App\Models\Shop
+{
+    $owner = App\Models\User::factory()->create(['role' => App\Enums\AccountType::ShopOwner->value]);
+
+    return App\Models\Shop::create(array_merge([
+        'owner_id' => $owner->id,
+        'shop_name' => 'Driver Laundry',
+        'phone' => '09171234567',
+        'municipality' => 'Imus',
+        'barangay' => 'Poblacion',
+        'postal_code' => '4103',
+        'status' => 'active',
+        'offers_delivery' => true,
+        'delivery_pricing_set_at' => now(),
+        'setup_completed_at' => now(),
+        'latitude' => 14.43,
+        'longitude' => 120.93,
+    ], $overrides));
+}

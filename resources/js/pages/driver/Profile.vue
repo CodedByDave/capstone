@@ -1,11 +1,36 @@
 <script setup lang="ts">
 import DriverLayout from '@/components/driver/DriverLayout.vue';
 import { Button } from '@/components/ui/button';
-import type { DriverInfo } from '@/types/driver';
+import type { AttendanceHistoryItem, DriverInfo } from '@/types/driver';
 import { router } from '@inertiajs/vue3';
 import { LogOut, Phone, Star, Store, Truck } from 'lucide-vue-next';
 
-defineProps<{ driver: DriverInfo; rating: number | null }>();
+defineProps<{
+    driver: DriverInfo;
+    rating: number | null;
+    attendance_history: AttendanceHistoryItem[];
+}>();
+
+const dayLabel = (date: string) =>
+    new Date(`${date}T00:00:00`).toLocaleDateString('en-PH', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+    });
+
+function time12(value: string | null): string {
+    if (!value) return '—';
+    const [h, m] = value.split(':');
+    const hour = parseInt(h, 10);
+    return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+}
+
+const statusClass = (status: string) =>
+    ({
+        present: 'bg-emerald-100 text-emerald-700',
+        late: 'bg-amber-100 text-amber-700',
+        absent: 'bg-red-100 text-red-600',
+    })[status] ?? 'bg-slate-100 text-slate-600';
 
 function logout() {
     router.post('/logout');
@@ -55,6 +80,39 @@ function logout() {
                 <span class="ml-auto font-medium">{{ rating ?? '—' }}</span>
             </li>
         </ul>
+
+        <section class="mt-4">
+            <h2 class="text-base font-bold">My attendance · last 14 days</h2>
+            <ul class="mt-2 space-y-2">
+                <li
+                    v-for="item in attendance_history"
+                    :key="item.date"
+                    class="flex items-center justify-between rounded-2xl bg-white p-4 text-sm"
+                >
+                    <div>
+                        <p class="font-semibold">{{ dayLabel(item.date) }}</p>
+                        <p class="text-xs text-slate-500">
+                            {{ time12(item.time_in) }} –
+                            {{ time12(item.time_out) }}
+                        </p>
+                    </div>
+                    <span
+                        :class="[
+                            'rounded-full px-2.5 py-1 text-xs font-semibold capitalize',
+                            statusClass(item.status),
+                        ]"
+                    >
+                        {{ item.status }}
+                    </span>
+                </li>
+                <li
+                    v-if="attendance_history.length === 0"
+                    class="rounded-2xl bg-white p-6 text-center text-sm text-slate-500"
+                >
+                    No attendance records yet.
+                </li>
+            </ul>
+        </section>
 
         <Button
             variant="outline"

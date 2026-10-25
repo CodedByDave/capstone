@@ -13,6 +13,16 @@ class AttendanceRepository extends Repository
         parent::__construct($attendance);
     }
 
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Attendance> the employee's own records since the date, newest first */
+    public function recentForEmployee(int $employeeId, \Illuminate\Support\Carbon $from): \Illuminate\Database\Eloquent\Collection
+    {
+        return Attendance::query()
+            ->where('employee_id', $employeeId)
+            ->where('date', '>=', $from->toDateString())
+            ->orderByDesc('date')
+            ->get(['date', 'status', 'time_in', 'time_out', 'remarks']);
+    }
+
     public function getPaginated(Shop $shop, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = Attendance::with(['employee', 'marker:id,name'])
