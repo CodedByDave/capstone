@@ -163,13 +163,10 @@ type SortColumn =
 const headers: Header[] = [
     { text: 'Transaction Reference', value: 'reference', width: 170 },
     { text: 'Shop', value: 'shop', width: 190 },
-    { text: 'Owner', value: 'owner', width: 210 },
     { text: 'Plan', value: 'plan', width: 120 },
-    { text: 'Modules', value: 'modules', width: 130 },
     { text: 'Payment', value: 'payment', width: 120 },
     { text: 'Total', value: 'total', width: 120 },
     { text: 'Status', value: 'status', width: 130 },
-    { text: 'Expires', value: 'expires', width: 130 },
     { text: 'Ordered', value: 'created_at', width: 140 },
     { text: 'Actions', value: 'actions', width: 160 },
 ];
@@ -643,15 +640,6 @@ const statusBadge: Record<string, string> = {
                             />
                         </template>
 
-                        <template #header-owner="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="owner"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('owner')"
-                            />
-                        </template>
 
                         <template #header-plan="{ text }">
                             <div class="column-filter">
@@ -711,15 +699,6 @@ const statusBadge: Record<string, string> = {
                             </div>
                         </template>
 
-                        <template #header-expires="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="expires"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('expires')"
-                            />
-                        </template>
 
                         <template #header-created_at="{ text }">
                             <div class="column-filter">
@@ -757,14 +736,6 @@ const statusBadge: Record<string, string> = {
                             </p>
                         </template>
 
-                        <template #item-owner="order">
-                            <p class="font-medium whitespace-nowrap">
-                                {{ order.owner_name }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                {{ order.email }}
-                            </p>
-                        </template>
 
                         <template #item-plan="order">
                             <p class="text-xs font-medium">
@@ -780,48 +751,6 @@ const statusBadge: Record<string, string> = {
                         </template>
 
                         <!-- Modules dropdown -->
-                        <template #item-modules="order">
-                            <div class="relative" @click.stop>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors hover:bg-muted/70"
-                                    @click="toggleModules(order.public_id)"
-                                >
-                                    {{ order.modules.length }}
-                                    module{{
-                                        order.modules.length !== 1 ? 's' : ''
-                                    }}
-                                    <ChevronDown
-                                        class="h-3 w-3 transition-transform duration-200"
-                                        :class="
-                                            expandedOrder === order.public_id
-                                                ? 'rotate-180'
-                                                : ''
-                                        "
-                                    />
-                                </button>
-                                <div
-                                    v-if="expandedOrder === order.public_id"
-                                    class="absolute left-0 z-20 mt-1 min-w-44 rounded-lg border border-border bg-card py-1 shadow-lg"
-                                >
-                                    <div
-                                        v-for="mod in order.modules"
-                                        :key="mod.id"
-                                        class="flex items-center justify-between gap-6 px-3 py-1.5 text-xs hover:bg-muted/50"
-                                    >
-                                        <span class="font-medium">{{
-                                            mod.name
-                                        }}</span>
-                                    </div>
-                                    <div
-                                        v-if="order.modules.length === 0"
-                                        class="px-3 py-2 text-xs text-muted-foreground"
-                                    >
-                                        No modules
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
 
                         <template #item-payment="order">
                             <span
@@ -860,27 +789,6 @@ const statusBadge: Record<string, string> = {
                             </span>
                         </template>
 
-                        <template #item-expires="order">
-                            <span
-                                v-if="order.expires_at"
-                                class="text-xs font-medium whitespace-nowrap"
-                                :class="
-                                    isExpired(order.expires_at)
-                                        ? 'text-red-500'
-                                        : 'text-muted-foreground'
-                                "
-                            >
-                                {{ formatDate(order.expires_at) }}
-                                <span
-                                    v-if="isExpired(order.expires_at)"
-                                    class="block"
-                                    >Expired</span
-                                >
-                            </span>
-                            <span v-else class="text-xs text-muted-foreground"
-                                >—</span
-                            >
-                        </template>
 
                         <template #item-created_at="order">
                             <span

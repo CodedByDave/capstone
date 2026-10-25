@@ -129,15 +129,7 @@ const sortableHeaders: {
     { text: 'Position', value: 'position', width: 150 },
     { text: 'Employment Type', value: 'employment_type', width: 165 },
     { text: 'Branch', value: 'branch_name', width: 175 },
-    { text: 'Phone', value: 'phone', width: 145 },
-    { text: 'Email', value: 'email', width: 220 },
-    { text: 'Address', value: 'address', width: 240 },
-    { text: 'Hire Date', value: 'hire_date', width: 155 },
-    { text: 'Pay Rate', value: 'pay_rate', width: 145 },
-    { text: 'Pay Basis', value: 'pay_basis', width: 135 },
     { text: 'Status', value: 'status', width: 120 },
-    { text: 'Added By', value: 'creator_name', width: 175 },
-    { text: 'Modified By', value: 'updater_name', width: 175 },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -761,44 +753,11 @@ async function submitImport() {
                             </span>
                         </template>
 
-                        <template #item-phone="employee">
-                            <span class="whitespace-nowrap">
-                                {{ employee.phone ?? '—' }}
-                            </span>
-                        </template>
 
-                        <template #item-email="employee">
-                            <span class="whitespace-nowrap">
-                                {{ employee.email ?? '—' }}
-                            </span>
-                        </template>
 
-                        <template #item-address="employee">
-                            <p
-                                class="max-w-60 truncate text-xs text-muted-foreground"
-                                :title="employee.address ?? ''"
-                            >
-                                {{ employee.address ?? '—' }}
-                            </p>
-                        </template>
 
-                        <template #item-hire_date="employee">
-                            <span class="whitespace-nowrap">
-                                {{ formatDate(employee.hire_date) }}
-                            </span>
-                        </template>
 
-                        <template #item-pay_rate="employee">
-                            <span class="whitespace-nowrap">
-                                {{ formatPayRate(employee.pay_rate) }}
-                            </span>
-                        </template>
 
-                        <template #item-pay_basis="employee">
-                            <span class="whitespace-nowrap">
-                                {{ payBasisLabel(employee.pay_basis) }}
-                            </span>
-                        </template>
 
                         <template #item-status="employee">
                             <span
@@ -813,35 +772,7 @@ async function submitImport() {
                             </span>
                         </template>
 
-                        <template #item-creator_name="employee">
-                            <div>
-                                <p
-                                    class="text-xs font-medium whitespace-nowrap"
-                                >
-                                    {{ employee.creator_name }}
-                                </p>
-                                <p
-                                    class="text-xs whitespace-nowrap text-muted-foreground"
-                                >
-                                    {{ formatDate(employee.created_at) }}
-                                </p>
-                            </div>
-                        </template>
 
-                        <template #item-updater_name="employee">
-                            <div>
-                                <p
-                                    class="text-xs font-medium whitespace-nowrap"
-                                >
-                                    {{ employee.updater_name }}
-                                </p>
-                                <p
-                                    class="text-xs whitespace-nowrap text-muted-foreground"
-                                >
-                                    {{ formatDate(employee.updated_at) }}
-                                </p>
-                            </div>
-                        </template>
 
                         <template #item-actions="employee">
                             <div class="flex items-center justify-center gap-1">

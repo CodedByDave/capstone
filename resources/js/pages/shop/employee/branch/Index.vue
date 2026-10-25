@@ -107,14 +107,9 @@ const sortableHeaders: { text: string; value: BranchSortKey; width: number }[] =
         { text: 'Branch Code', value: 'branch_code', width: 145 },
         { text: 'Branch Name', value: 'name', width: 180 },
         { text: 'Location', value: 'address', width: 260 },
-        { text: 'Contact No.', value: 'phone', width: 155 },
-        { text: 'Email', value: 'email', width: 220 },
         { text: 'Manager', value: 'manager_name', width: 175 },
         { text: 'Employees', value: 'employees_count', width: 130 },
-        { text: 'Opened', value: 'opened_at', width: 155 },
         { text: 'Status', value: 'status', width: 120 },
-        { text: 'Added By', value: 'creator_name', width: 175 },
-        { text: 'Modified By', value: 'updater_name', width: 175 },
     ];
 
 const headers: Header[] = [
@@ -502,17 +497,7 @@ function confirmArchive() {
                             </p>
                         </template>
 
-                        <template #item-phone="branch">
-                            <span class="whitespace-nowrap">
-                                {{ branch.phone ?? '—' }}
-                            </span>
-                        </template>
 
-                        <template #item-email="branch">
-                            <span class="whitespace-nowrap">
-                                {{ branch.email ?? '—' }}
-                            </span>
-                        </template>
 
                         <template #item-manager_name="branch">
                             <span class="whitespace-nowrap">
@@ -531,13 +516,6 @@ function confirmArchive() {
                             </span>
                         </template>
 
-                        <template #item-opened_at="branch">
-                            <span
-                                class="text-xs whitespace-nowrap text-muted-foreground"
-                            >
-                                {{ fmtDate(branch.opened_at) }}
-                            </span>
-                        </template>
 
                         <template #item-status="branch">
                             <span
@@ -552,35 +530,7 @@ function confirmArchive() {
                             </span>
                         </template>
 
-                        <template #item-creator_name="branch">
-                            <div>
-                                <p
-                                    class="text-xs font-medium whitespace-nowrap"
-                                >
-                                    {{ branch.creator_name }}
-                                </p>
-                                <p
-                                    class="text-xs whitespace-nowrap text-muted-foreground"
-                                >
-                                    {{ fmtDate(branch.created_at) }}
-                                </p>
-                            </div>
-                        </template>
 
-                        <template #item-updater_name="branch">
-                            <div>
-                                <p
-                                    class="text-xs font-medium whitespace-nowrap"
-                                >
-                                    {{ branch.updater_name }}
-                                </p>
-                                <p
-                                    class="text-xs whitespace-nowrap text-muted-foreground"
-                                >
-                                    {{ fmtDate(branch.updated_at) }}
-                                </p>
-                            </div>
-                        </template>
 
                         <template #item-actions="branch">
                             <div class="flex items-center justify-center gap-1">
