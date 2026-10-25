@@ -44,6 +44,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'business.agreement' => EnsureCurrentBusinessAgreementAccepted::class,
             'shop.setup' => EnsureShopSetupComplete::class,
             'shop.capability' => EnsureShopCapability::class,
+            'driver' => \App\Http\Middleware\EnsureDriver::class,
+            'driver.redirect' => \App\Http\Middleware\RedirectDriverToApp::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

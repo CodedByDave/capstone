@@ -43,26 +43,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application URL
-    |--------------------------------------------------------------------------
-    |
-    | This URL is used by the console to properly generate URLs when using
-    | the Artisan command line tool. You should set this to the root of
-    | the application so that it's available within Artisan commands.
-    |
-    */
-
-    'url' => env('APP_URL', 'http://localhost'),
-
-    /*
-    | Address riders open from the delivery QR code. Phones cannot reach localhost, so in
-    | local development this must be this computer's LAN address, e.g. http://192.168.1.5:8000.
-    | Falls back to APP_URL. Read through config so it survives `config:cache`.
-    */
-    'rider_base_url' => env('RIDER_BASE_URL'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

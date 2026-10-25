@@ -7,6 +7,7 @@ use App\Traits\HasPublicId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
@@ -54,6 +55,12 @@ class Employee extends Model
     public function schedules(): HasMany
     {
         return $this->hasMany(EmployeeSchedule::class);
+    }
+
+    /** The delivery rider record kept in sync while this employee's position is Driver. */
+    public function rider(): HasOne
+    {
+        return $this->hasOne(Rider::class);
     }
 
     public function user(): BelongsTo

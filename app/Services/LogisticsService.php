@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Delivery;
-use App\Models\Rider;
 use App\Models\ShopOrder;
 use App\Models\User;
 use App\Notifications\DeliveryNotification;
@@ -346,50 +345,12 @@ class LogisticsService
         $this->deliveries->delete($delivery);
     }
 
-    // ── Riders ────────────────────────────────────────────────────────────────
-
-    public function riderList(User $user)
-    {
-        return $this->riders->listForShop($this->shopIdFor($user));
-    }
-
-    public function createRider(User $user, array $data): Rider
-    {
-        $rider = $this->riders->createForShop($this->shopIdFor($user), $data);
-        $this->assignWaitingDeliveries($rider->shop_id);
-
-        return $rider;
-    }
-
-    public function updateRider(User $user, Rider $rider, array $data): Rider
-    {
-        $this->assertRiderInShop($user, $rider);
-        $this->riders->update($rider, $data);
-        $this->assignWaitingDeliveries($rider->shop_id);
-
-        return $rider;
-    }
-
-    public function deleteRider(User $user, Rider $rider): void
-    {
-        $this->assertRiderInShop($user, $rider);
-
-        $this->riders->delete($rider);
-    }
-
     // A record from another shop is reported exactly like a missing one.
 
     private function assertDeliveryInShop(User $user, Delivery $delivery): void
     {
         if ($delivery->shop_id !== $this->shopIdFor($user)) {
             throw (new ModelNotFoundException)->setModel(Delivery::class);
-        }
-    }
-
-    private function assertRiderInShop(User $user, Rider $rider): void
-    {
-        if ($rider->shop_id !== $this->shopIdFor($user)) {
-            throw (new ModelNotFoundException)->setModel(Rider::class);
         }
     }
 }

@@ -9,10 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Rider extends Model
 {
-    protected $fillable = ['shop_id', 'name', 'phone', 'vehicle_type', 'status'];
+    protected $fillable = [
+        'shop_id', 'employee_id', 'name', 'phone', 'vehicle_type', 'status', 'is_online', 'available_since',
+    ];
 
     protected $casts = [
         'phone' => PhilippinePhoneCast::class,
+        'is_online' => 'boolean',
+        'available_since' => 'datetime',
     ];
 
     /**
@@ -24,6 +28,11 @@ class Rider extends Model
         return preg_match('/\b(car|van|truck|sedan|suv|jeep|l300|vehicle|auto)\b/i', (string) $this->vehicle_type) === 1
             ? 'car'
             : 'motorcycle';
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
     }
 
     public function shop(): BelongsTo

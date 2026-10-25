@@ -2,7 +2,6 @@
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import QRCode from 'qrcode';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -31,7 +30,6 @@ import {
     Pencil,
     Phone,
     Plus,
-    QrCode,
     Trash2,
     Truck,
     User,
@@ -72,7 +70,6 @@ interface Delivery {
     delivery_address: string | null;
     status: string;
     notes: string | null;
-    driver_token: string | null;
     assigned_at: string | null;
     picked_up_at: string | null;
     delivered_at: string | null;
@@ -101,7 +98,6 @@ const props = defineProps<{
     riders: Rider[];
     stats: Stats;
     filters: { status?: string };
-    rider_base_url: string;
 }>();
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
@@ -364,35 +360,6 @@ function deleteDelivery(id: number) {
     });
 }
 
-// ─── QR Code Modal ───────────────────────────────────────────────────────────
-
-const qrModal = ref<{
-    open: boolean;
-    delivery: Delivery | null;
-    dataUrl: string;
-    riderUrl: string;
-}>({
-    open: false,
-    delivery: null,
-    dataUrl: '',
-    riderUrl: '',
-});
-
-const isLocalhost = computed(() =>
-    /localhost|127\.0\.0\.1/.test(props.rider_base_url),
-);
-
-async function openQr(delivery: Delivery) {
-    if (!delivery.driver_token) return;
-    const riderUrl = `${props.rider_base_url}/driver/${delivery.driver_token}`;
-    const dataUrl = await QRCode.toDataURL(riderUrl, {
-        width: 280,
-        margin: 2,
-        color: { dark: '#111827', light: '#ffffff' },
-    });
-    qrModal.value = { open: true, delivery, dataUrl, riderUrl };
-}
-
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
 function goPage(url: string | null) {
@@ -427,18 +394,9 @@ function fmtTime(d: string) {
                 <div>
                     <h2 class="text-lg font-semibold">Deliveries</h2>
                     <p class="text-sm text-muted-foreground">
-                        Track and manage laundry deliveries.
+                        Track and manage laundry deliveries. Drivers are
+                        employees whose position is Driver.
                     </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="router.visit(`${base}/riders`)"
-                    >
-                        <User class="mr-1.5 h-4 w-4" />
-                        Manage Riders
-                    </Button>
                 </div>
             </div>
 
@@ -671,16 +629,6 @@ function fmtTime(d: string) {
                                     >
                                         <ArrowRight class="h-3 w-3" />
                                         {{ nextLabel(d) }}
-                                    </button>
-                                    <!-- QR code for rider -->
-                                    <button
-                                        class="flex h-7 w-7 items-center justify-center rounded-lg border transition-colors hover:bg-muted"
-                                        title="Show rider QR code"
-                                        @click="openQr(d)"
-                                    >
-                                        <QrCode
-                                            class="h-3.5 w-3.5 text-muted-foreground"
-                                        />
                                     </button>
                                     <!-- Edit -->
                                     <button
@@ -1065,128 +1013,6 @@ function fmtTime(d: string) {
                             />
                             {{ updatingStatus ? 'Saving…' : 'Save' }}
                         </Button>
-                    </div>
-                </div>
-            </div>
-        </Transition>
-    </Teleport>
-
-    <!-- ── QR Code Modal ────────────────────────────────────────────────────── -->
-    <Teleport to="body">
-        <Transition name="fade">
-            <div
-                v-if="qrModal.open"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
-                @click.self="qrModal.open = false"
-            >
-                <div
-                    class="w-full max-w-xs overflow-hidden rounded-2xl border bg-background shadow-xl"
-                >
-                    <div
-                        class="flex items-center justify-between border-b px-5 py-4"
-                    >
-                        <div>
-                            <p class="text-sm font-semibold">Rider QR Code</p>
-                            <p class="mt-0.5 text-xs text-muted-foreground">
-                                {{ qrModal.delivery?.customer_name }}
-                                <span v-if="qrModal.delivery?.order">
-                                    ·
-                                    {{
-                                        qrModal.delivery.order.order_number
-                                    }}</span
-                                >
-                            </p>
-                        </div>
-                        <button
-                            @click="qrModal.open = false"
-                            class="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted"
-                        >
-                            <X class="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    <div class="flex flex-col items-center gap-4 px-5 py-6">
-                        <!-- Localhost warning -->
-                        <div
-                            v-if="isLocalhost"
-                            class="flex w-full items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-700"
-                        >
-                            <span class="mt-0.5 shrink-0 font-bold">⚠</span>
-                            <span>
-                                Your
-                                <code
-                                    class="rounded bg-amber-100 px-1 font-mono"
-                                    >RIDER_BASE_URL</code
-                                >
-                                is set to <strong>localhost</strong> — riders
-                                can't reach it. Set it to your LAN IP in
-                                <code
-                                    class="rounded bg-amber-100 px-1 font-mono"
-                                    >.env</code
-                                >, e.g.
-                                <code
-                                    class="rounded bg-amber-100 px-1 font-mono"
-                                    >RIDER_BASE_URL=http://192.168.x.x:8000</code
-                                >
-                            </span>
-                        </div>
-
-                        <!-- QR Image -->
-                        <div class="rounded-xl border bg-white p-2 shadow-sm">
-                            <img
-                                :src="qrModal.dataUrl"
-                                alt="Rider QR Code"
-                                class="h-56 w-56"
-                            />
-                        </div>
-
-                        <!-- URL chip -->
-                        <p
-                            class="px-2 text-center font-mono text-[11px] break-all text-muted-foreground"
-                        >
-                            {{ qrModal.riderUrl }}
-                        </p>
-
-                        <!-- Instruction -->
-                        <div class="space-y-1 text-center">
-                            <p class="text-xs font-medium text-gray-700">
-                                Share this QR with the rider
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                The rider scans it to open their delivery page
-                                and update the status directly.
-                            </p>
-                        </div>
-
-                        <!-- Rider info pill -->
-                        <div
-                            v-if="qrModal.delivery?.rider"
-                            class="flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-xs"
-                        >
-                            <User class="h-3.5 w-3.5 text-muted-foreground" />
-                            <span class="font-medium">{{
-                                qrModal.delivery.rider.name
-                            }}</span>
-                            <span
-                                v-if="qrModal.delivery.rider.vehicle_type"
-                                class="text-muted-foreground"
-                                >·
-                                {{ qrModal.delivery.rider.vehicle_type }}</span
-                            >
-                        </div>
-                        <p v-else class="text-xs font-medium text-amber-600">
-                            No rider assigned yet
-                        </p>
-                    </div>
-
-                    <div class="px-5 pb-5">
-                        <Button
-                            class="w-full"
-                            size="sm"
-                            variant="outline"
-                            @click="qrModal.open = false"
-                            >Close</Button
-                        >
                     </div>
                 </div>
             </div>

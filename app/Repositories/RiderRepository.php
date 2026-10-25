@@ -20,8 +20,9 @@ class RiderRepository extends Repository
         return Rider::query()
             ->where('shop_id', $shopId)
             ->active()
+            ->whereNotNull('employee_id')
             ->orderBy('name')
-            ->get(['id', 'name', 'vehicle_type'])
+            ->get(['id', 'name', 'vehicle_type', 'is_online'])
             ->each(fn (Rider $rider) => $rider->setAttribute('available', ! in_array($rider->id, $busy, true)));
     }
 
@@ -42,21 +43,55 @@ class RiderRepository extends Repository
     }
 
     /**
-     * An active rider with no delivery on the road. The rider who has waited longest
-     * since their last assignment is chosen so the work is shared. Meant to be called
-     * inside the caller's transaction: the rows are locked while the choice is made.
+     * A driver who is online with no delivery on the road. The one who has been free the
+     * longest (earliest available_since) gets the next order, so the work is shared. Only
+     * riders linked to an employee are considered. Meant to be called inside the caller's
+     * transaction: the rows are locked while the choice is made.
      */
     public function findAvailableForShop(int $shopId): ?Rider
     {
         return Rider::query()
             ->where('shop_id', $shopId)
             ->active()
+            ->whereNotNull('employee_id')
+            ->where('is_online', true)
             ->whereDoesntHave('deliveries', fn ($query) => $query->whereIn('status', self::BUSY_STATUSES))
-            ->withMax('deliveries', 'assigned_at')
-            ->orderBy('deliveries_max_assigned_at')
+            ->orderByRaw('available_since is null')
+            ->orderBy('available_since')
             ->orderBy('id')
             ->lockForUpdate()
             ->first();
+    }
+
+    public function findByEmployeeId(int $employeeId): ?Rider
+    {
+        return Rider::query()->where('employee_id', $employeeId)->first();
+    }
+
+    /** The active driver record behind a logged-in user, or null when the user is not a driver. */
+    public function findActiveForUser(int $userId): ?Rider
+    {
+        return Rider::query()
+            ->active()
+            ->whereHas('employee', fn ($query) => $query->where('user_id', $userId))
+            ->with('shop')
+            ->first();
+    }
+
+    public function setOnline(Rider $rider, bool $online): Rider
+    {
+        $rider->update([
+            'is_online' => $online,
+            'available_since' => $online ? now() : null,
+        ]);
+
+        return $rider;
+    }
+
+    /** A finished run puts the driver at the back of the queue of free drivers. */
+    public function markFree(Rider $rider): void
+    {
+        $rider->update(['available_since' => now()]);
     }
 
     public function listForShop(int $shopId): Collection
@@ -66,6 +101,15 @@ class RiderRepository extends Repository
             ->withCount('deliveries')
             ->orderBy('name')
             ->get();
+    }
+
+    /** Creates or refreshes the rider that mirrors an employee driver. */
+    public function saveForEmployee(int $shopId, int $employeeId, array $attributes): Rider
+    {
+        return Rider::query()->updateOrCreate(
+            ['employee_id' => $employeeId],
+            $attributes + ['shop_id' => $shopId],
+        );
     }
 
     public function createForShop(int $shopId, array $data): Rider

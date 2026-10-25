@@ -35,6 +35,8 @@ export interface DeliveryPricing {
     delivery_free_km: number;
     delivery_min_fee: number;
     delivery_max_km: number | null;
+    driver_pay_mode: 'none' | 'delivery_fee' | 'daily_rate';
+    driver_daily_rate: number;
 }
 
 const props = defineProps<{ pricing: DeliveryPricing }>();

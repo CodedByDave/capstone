@@ -24,6 +24,14 @@ class Shop extends Model
 
     public const OWNERSHIP_FRANCHISEE = 'franchisee';
 
+    public const DRIVER_PAY_NONE = 'none';
+
+    public const DRIVER_PAY_DELIVERY_FEE = 'delivery_fee';
+
+    public const DRIVER_PAY_DAILY_RATE = 'daily_rate';
+
+    public const DRIVER_PAY_MODES = [self::DRIVER_PAY_NONE, self::DRIVER_PAY_DELIVERY_FEE, self::DRIVER_PAY_DAILY_RATE];
+
     public const DELIVERY_FEE_FIXED = 'fixed';
 
     public const DELIVERY_FEE_PER_KM = 'per_km';
@@ -56,6 +64,8 @@ class Shop extends Model
         'delivery_min_fee',
         'delivery_max_km',
         'delivery_pricing_set_at',
+        'driver_pay_mode',
+        'driver_daily_rate',
         'platform_rating_prompted_at',
         'setup_completed_at',
         'phone',
@@ -92,6 +102,7 @@ class Shop extends Model
         'delivery_min_fee' => 'decimal:2',
         'delivery_max_km' => 'decimal:2',
         'delivery_pricing_set_at' => 'datetime',
+        'driver_daily_rate' => 'decimal:2',
         'platform_rating_prompted_at' => 'datetime',
         'setup_completed_at' => 'datetime',
         'deduct_sss' => 'boolean',

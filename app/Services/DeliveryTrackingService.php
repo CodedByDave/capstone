@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Exceptions\RiderLocationException;
 use App\Models\Delivery;
 use App\Models\ShopOrder;
 use App\Models\User;
@@ -142,21 +141,5 @@ class DeliveryTrackingService
                     : null,
             ],
         ];
-    }
-
-    /**
-     * @throws ModelNotFoundException for an unknown token
-     * @throws RiderLocationException when the delivery is not on the road
-     */
-    public function updateRiderLocation(string $driverToken, float $lat, float $lng): Delivery
-    {
-        $delivery = $this->deliveries->findByDriverToken($driverToken)
-            ?? throw (new ModelNotFoundException)->setModel(Delivery::class);
-
-        if (! $delivery->isTrackable()) {
-            throw new RiderLocationException('Live location can be shared only while the delivery is assigned or picked up.');
-        }
-
-        return $this->deliveries->updateRiderLocation($delivery, $lat, $lng);
     }
 }

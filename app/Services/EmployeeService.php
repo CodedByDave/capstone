@@ -37,6 +37,7 @@ class EmployeeService
         private readonly EmployeeRepository $employeeRepository,
         private readonly ActivityLogService $activityLogService,
         private readonly ShopSetupService $shopSetupService,
+        private readonly DriverRosterService $driverRoster,
     ) {}
 
     /* ─── READ ─────────────────────────── */
@@ -186,6 +187,8 @@ class EmployeeService
                 ]);
             }
 
+            $this->driverRoster->sync($employee);
+
             $this->activityLogService->log(
                 subject: $employee,
                 action: 'created',
@@ -238,6 +241,8 @@ class EmployeeService
             }
         }
 
+        $this->driverRoster->sync($updated);
+
         if (! empty($changes)) {
             $action = isset($changes['status'])
                 ? 'status_changed'
@@ -263,11 +268,13 @@ class EmployeeService
         );
 
         $this->employeeRepository->deleteEmployee($employee);
+        $this->driverRoster->sync($employee);
     }
 
     public function restoreEmployee(Employee $employee): void
     {
         $employee->restore();
+        $this->driverRoster->sync($employee);
 
         $this->activityLogService->log(
             subject: $employee,

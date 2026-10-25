@@ -37,12 +37,14 @@ function makeDelivery(Shop $shop, string $status, ?Rider $rider = null): Deliver
 
 test('a rider who finishes a run takes the oldest waiting delivery', function () {
     $shop = waitingShop();
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Rico', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Rico');
     $onRoad = makeDelivery($shop, 'picked_up', $rider);
     $first = makeDelivery($shop, 'pending');
     $second = makeDelivery($shop, 'pending');
 
-    $this->patchJson("/driver/{$onRoad->driver_token}/status", ['status' => 'delivered'])->assertRedirect();
+    $this->actingAs($rider->employee->user)
+        ->patch("/driver/jobs/{$onRoad->public_id}/status", ['status' => 'delivered'])
+        ->assertRedirect();
 
     expect($onRoad->fresh()->status)->toBe('delivered')
         ->and($first->fresh()->status)->toBe('assigned')
@@ -54,7 +56,7 @@ test('a rider who finishes a run takes the oldest waiting delivery', function ()
 
 test('waiting deliveries stay pending while every rider is busy', function () {
     $shop = waitingShop();
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Rico', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Rico');
     makeDelivery($shop, 'assigned', $rider);
     $waiting = makeDelivery($shop, 'pending');
 
@@ -64,8 +66,8 @@ test('waiting deliveries stay pending while every rider is busy', function () {
 
 test('several free riders each take one waiting delivery', function () {
     $shop = waitingShop();
-    Rider::create(['shop_id' => $shop->id, 'name' => 'Rico', 'status' => 'active']);
-    Rider::create(['shop_id' => $shop->id, 'name' => 'Rex', 'status' => 'active']);
+    onlineRider($shop, 'Rico');
+    onlineRider($shop, 'Rex');
     $a = makeDelivery($shop, 'pending');
     $b = makeDelivery($shop, 'pending');
     $c = makeDelivery($shop, 'pending');
@@ -79,10 +81,32 @@ test('several free riders each take one waiting delivery', function () {
 test('a rider from another shop never takes this shop\'s waiting delivery', function () {
     $shop = waitingShop();
     $other = waitingShop();
-    Rider::create(['shop_id' => $other->id, 'name' => 'Rex', 'status' => 'active']);
+    onlineRider($other, 'Rex');
     $waiting = makeDelivery($shop, 'pending');
 
     app(LogisticsService::class)->assignWaitingDeliveries($other->id);
 
     expect($waiting->fresh()->status)->toBe('pending');
+});
+
+test('the driver who has been free the longest takes the next waiting delivery', function () {
+    $shop = waitingShop();
+    $recent = onlineRider($shop, 'Recent', freeSince: now()->subMinutes(5));
+    $longest = onlineRider($shop, 'Longest', freeSince: now()->subMinutes(45));
+    $delivery = makeDelivery($shop, 'pending');
+
+    app(LogisticsService::class)->assignWaitingDeliveries($shop->id);
+
+    expect($delivery->fresh()->rider_id)->toBe($longest->id)
+        ->and($recent->deliveries()->count())->toBe(0);
+});
+
+test('offline drivers and riders without an employee record are never given a delivery', function () {
+    $shop = waitingShop();
+    onlineRider($shop, 'Offline', online: false);
+    Rider::create(['shop_id' => $shop->id, 'name' => 'Legacy', 'status' => 'active', 'is_online' => true]);
+    $delivery = makeDelivery($shop, 'pending');
+
+    expect(app(LogisticsService::class)->assignWaitingDeliveries($shop->id))->toBe(0)
+        ->and($delivery->fresh()->status)->toBe('pending');
 });

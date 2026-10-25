@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\UpdateDeliveryPricingRequest;
+use App\Http\Requests\Shop\UpdateDriverPayRequest;
 use App\Http\Requests\Shop\UpdatePaymongoSettingsRequest;
 use App\Models\Shop;
 use App\Services\ShopDeliveryPricingService;
@@ -55,6 +56,18 @@ class ShopSettingsController extends Controller
         ShopPaymentSettingsService $paymentSettings,
     ) {
         return back()->with('toast', $paymentSettings->update($request->user(), $request->validated()));
+    }
+
+    public function updateDriverPay(
+        UpdateDriverPayRequest $request,
+        ShopDeliveryPricingService $deliveryPricing,
+    ): RedirectResponse {
+        $deliveryPricing->updateDriverPay($request->user(), $request->validated());
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Driver earnings setting saved.',
+        ]);
     }
 
     public function updateDeliveryPricing(

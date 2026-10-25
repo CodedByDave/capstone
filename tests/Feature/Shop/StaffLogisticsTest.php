@@ -66,7 +66,7 @@ function dispatcher(Shop $shop, array $actions, string $role = 'dispatcher'): Us
 test('permitted staff can assign a rider to a delivery', function () {
     $shop = dispatchShop();
     $staff = dispatcher($shop, ['view', 'update']);
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Rico', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Rico');
     $delivery = Delivery::create(['shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'pending']);
 
     $this->actingAs($staff)
@@ -111,7 +111,7 @@ test('staff cannot reach another shop\'s deliveries or assign its riders', funct
     $other = dispatchShop(['shop_name' => 'Other Laundry']);
     $staff = dispatcher($shop, ['view', 'update']);
     $foreignDelivery = Delivery::create(['shop_id' => $other->id, 'customer_name' => 'Zed', 'status' => 'pending']);
-    $foreignRider = Rider::create(['shop_id' => $other->id, 'name' => 'Rex', 'status' => 'active']);
+    $foreignRider = onlineRider($other, 'Rex');
     $ownDelivery = Delivery::create(['shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'pending']);
 
     $this->actingAs($staff)
@@ -186,9 +186,9 @@ function autoOrder(Shop $shop, array $overrides = []): ShopOrder
 
 test('completing a pickup order that asked for delivery puts it on the board with the customer details and a free rider', function () {
     $shop = dispatchShop();
-    $busy = Rider::create(['shop_id' => $shop->id, 'name' => 'Busy', 'status' => 'active']);
+    $busy = onlineRider($shop, 'Busy');
     Delivery::create(['shop_id' => $shop->id, 'rider_id' => $busy->id, 'customer_name' => 'X', 'status' => 'picked_up']);
-    $free = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
+    $free = onlineRider($shop, 'Free');
     $order = autoOrder($shop, ['deliver_to_customer' => true]);
 
     app(ShopOrderService::class)->updateStatus($order, 'completed');
@@ -204,7 +204,7 @@ test('completing a pickup order that asked for delivery puts it on the board wit
 
 test('a pickup order waits as pending when every rider is on the road', function () {
     $shop = dispatchShop();
-    $busy = Rider::create(['shop_id' => $shop->id, 'name' => 'Busy', 'status' => 'active']);
+    $busy = onlineRider($shop, 'Busy');
     Delivery::create(['shop_id' => $shop->id, 'rider_id' => $busy->id, 'customer_name' => 'X', 'status' => 'assigned']);
     $order = autoOrder($shop, ['deliver_to_customer' => true]);
 
@@ -251,7 +251,7 @@ test('completing an order twice creates one delivery', function () {
 test('a delivery can be handed to Lalamove with the booking details and no shop rider', function () {
     $shop = dispatchShop();
     $staff = dispatcher($shop, ['view', 'update']);
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Rico', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Rico');
     $delivery = Delivery::create(['shop_id' => $shop->id, 'rider_id' => $rider->id, 'customer_name' => 'Ana', 'status' => 'assigned']);
 
     $this->actingAs($staff)
@@ -300,7 +300,7 @@ test('a Lalamove booking needs its reference once it is booked, and only a secur
 test('going back to an own rider clears the courier details', function () {
     $shop = dispatchShop();
     $staff = dispatcher($shop, ['view', 'update']);
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Rico', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Rico');
     $delivery = Delivery::create([
         'shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'assigned',
         'courier' => 'lalamove', 'courier_reference' => 'LLM-1', 'courier_cost' => 90,
@@ -440,9 +440,9 @@ test('removing a delivery removes its proof files', function () {
 
 test('a new pickup order gets a pickup run with the customer details and a free rider', function () {
     $shop = dispatchShop();
-    $busy = Rider::create(['shop_id' => $shop->id, 'name' => 'Busy', 'status' => 'active']);
+    $busy = onlineRider($shop, 'Busy');
     Delivery::create(['shop_id' => $shop->id, 'rider_id' => $busy->id, 'customer_name' => 'X', 'status' => 'assigned']);
-    $free = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
+    $free = onlineRider($shop, 'Free');
     $order = autoOrder($shop, ['status' => 'pending']);
 
     app(LogisticsService::class)->dispatchPickupRun($order);
@@ -527,7 +527,7 @@ function orderManager(Shop $shop, string $role = 'order-manager'): User
 
 test('a walk-in order marked deliver to customer joins the board when it is completed', function () {
     $shop = dispatchShop();
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Free');
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'deliver_to_customer' => true]);
 
     app(LogisticsService::class)->dispatchPickupRun($order);
@@ -545,7 +545,7 @@ test('a walk-in order marked deliver to customer joins the board when it is comp
 test('staff send a completed walk-in order for delivery in one click', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Free');
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed']);
 
     $this->actingAs($staff)
@@ -667,11 +667,11 @@ function editPayload(ShopOrder $order, array $changes = []): array
 test('completing a pickup order in the Edit form creates its return delivery', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
-    $pickupRider = Rider::create(['shop_id' => $shop->id, 'name' => 'Collector', 'status' => 'active']);
+    $pickupRider = onlineRider($shop, 'Collector');
     $order = autoOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 3, 'deliver_to_customer' => true]);
     app(LogisticsService::class)->dispatchPickupRun($order);
     // The first rider is out collecting, so a second rider takes the return trip.
-    $rider = Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
+    $rider = onlineRider($shop, 'Free');
 
     $this->actingAs($staff)
         ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['status' => 'completed']))
@@ -762,7 +762,7 @@ function pickupRunFor(ShopOrder $order, string $status): Delivery
 
 test('a pickup order that did not ask for delivery gets no return delivery when completed', function () {
     $shop = dispatchShop();
-    Rider::create(['shop_id' => $shop->id, 'name' => 'Free', 'status' => 'active']);
+    onlineRider($shop, 'Free');
     $order = autoOrder($shop, ['actual_weight_kg' => 3]);
 
     app(ShopOrderService::class)->updateStatus($order, 'completed');

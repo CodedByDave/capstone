@@ -2,6 +2,7 @@
 import DeliveryPricingCard, {
     type DeliveryPricing,
 } from '@/components/business/DeliveryPricingCard.vue';
+import DriverPayCard from '@/components/business/DriverPayCard.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -291,6 +292,13 @@ function clearGeo() {
 
             <!-- ── Delivery Pricing ── -->
             <DeliveryPricingCard :pricing="props.deliveryPricing" />
+
+            <!-- ── Driver Earnings ── -->
+            <DriverPayCard
+                v-if="props.deliveryPricing.offers_delivery"
+                :mode="props.deliveryPricing.driver_pay_mode"
+                :daily-rate="props.deliveryPricing.driver_daily_rate"
+            />
 
             <!-- ── Cover Photo ── -->
             <Card>

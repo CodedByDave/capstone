@@ -38,6 +38,8 @@ class ShopDeliveryPricingService
             'delivery_free_km' => (float) $shop->delivery_free_km,
             'delivery_min_fee' => (float) $shop->delivery_min_fee,
             'delivery_max_km' => $shop->delivery_max_km !== null ? (float) $shop->delivery_max_km : null,
+            'driver_pay_mode' => $shop->driver_pay_mode ?: Shop::DRIVER_PAY_NONE,
+            'driver_daily_rate' => (float) $shop->driver_daily_rate,
         ];
     }
 
@@ -63,6 +65,19 @@ class ShopDeliveryPricingService
         }
 
         return $this->shops->updateDeliveryPricing($shop, $values);
+    }
+
+    /** How the driver app shows earnings: nothing, the delivery fee per run, or a flat daily rate. */
+    public function updateDriverPay(User $owner, array $data): Shop
+    {
+        $shop = $this->shopForOwner($owner);
+
+        return $this->shops->updateDeliveryPricing($shop, [
+            'driver_pay_mode' => $data['driver_pay_mode'],
+            'driver_daily_rate' => $data['driver_pay_mode'] === Shop::DRIVER_PAY_DAILY_RATE
+                ? round((float) $data['driver_daily_rate'], 2)
+                : $shop->driver_daily_rate,
+        ]);
     }
 
     private function shopForOwner(User $owner): Shop

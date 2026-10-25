@@ -10,7 +10,8 @@ use App\Http\Controllers\Admin\PlatformRoleController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BusinessAgreementSignatureController;
-use App\Http\Controllers\DriverPageController;
+use App\Http\Controllers\Driver\DriverAppController;
+use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\CheckoutController;
@@ -57,14 +58,25 @@ use App\Http\Controllers\User\UserOrderRatingController;
 use App\Http\Controllers\User\UserPaymentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 // ── Driver / Rider routes ─────────────────────────
-Route::get('/driver/{token}', [DriverPageController::class, 'show']);
-Route::patch('/driver/{token}/status', [DriverPageController::class, 'updateStatus']);
-Route::post('/driver/{token}/location', [DriverPageController::class, 'updateLocation'])
-    ->middleware('throttle:60,1')
-    ->name('driver.location');
+Route::get('/driver/manifest.webmanifest', [DriverAppController::class, 'manifest'])->name('driver.manifest');
+
+Route::prefix('driver')->middleware(['auth', 'verified', 'role:staff', 'driver'])->group(function () {
+    Route::get('/', [DriverAppController::class, 'home'])->name('driver.home');
+    Route::get('/jobs', [DriverAppController::class, 'jobs'])->name('driver.jobs');
+    Route::get('/jobs/{job}', [DriverAppController::class, 'show'])->whereUlid('job')->name('driver.jobs.show');
+    Route::get('/map', [DriverAppController::class, 'map'])->name('driver.map');
+    Route::get('/earnings', [DriverAppController::class, 'earnings'])->name('driver.earnings');
+    Route::get('/profile', [DriverAppController::class, 'profile'])->name('driver.profile');
+
+    Route::patch('/availability', [DriverJobController::class, 'setAvailability'])->name('driver.availability');
+    Route::patch('/jobs/{job}/status', [DriverJobController::class, 'updateStatus'])->whereUlid('job')->name('driver.jobs.status');
+    Route::post('/jobs/{job}/location', [DriverJobController::class, 'updateLocation'])
+        ->whereUlid('job')
+        ->middleware('throttle:60,1')
+        ->name('driver.jobs.location');
+});
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 
@@ -400,6 +412,9 @@ Route::prefix('shop')->middleware([
     Route::post('/settings/cover-photo', [ShopSettingsController::class, 'updateCoverPhoto'])->name('shop.settings.cover-photo');
     Route::post('/settings/cover-photo/clear', [ShopSettingsController::class, 'removeCoverPhoto'])->name('shop.settings.cover-photo.clear');
     Route::post('/settings/paymongo', [ShopSettingsController::class, 'updatePaymongo'])->name('shop.settings.paymongo');
+    Route::patch('/settings/driver-pay', [ShopSettingsController::class, 'updateDriverPay'])
+        ->middleware('shop.capability:delivery')
+        ->name('shop.settings.driver-pay');
     Route::patch('/settings/delivery-pricing', [ShopSettingsController::class, 'updateDeliveryPricing'])
         ->middleware('shop.capability:delivery-setup')
         ->name('shop.settings.delivery-pricing');
@@ -412,10 +427,6 @@ Route::prefix('shop')->middleware([
         Route::delete('/logistics/photos/{photo}', [DeliveryProofController::class, 'destroy'])->name('shop.logistics.photos.destroy');
         Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
         Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
-        Route::get('/logistics/riders', [LogisticsController::class, 'riders'])->name('shop.logistics.riders');
-        Route::post('/logistics/riders', [LogisticsController::class, 'storeRider'])->name('shop.logistics.riders.store');
-        Route::patch('/logistics/riders/{rider}', [LogisticsController::class, 'updateRider'])->name('shop.logistics.riders.update');
-        Route::delete('/logistics/riders/{rider}', [LogisticsController::class, 'destroyRider'])->name('shop.logistics.riders.destroy');
     });
 });
 
@@ -423,7 +434,7 @@ Route::prefix('shop')->middleware([
 
 Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.activity'])->group(function () {
 
-    Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
+    Route::get('/dashboard', [StaffDashboardController::class, 'index'])->middleware('driver.redirect')->name('staff.dashboard');
 
     // ── Self attendance (clock-in / clock-out) ──
     Route::post('/attendance/clock-in', [SelfAttendanceController::class, 'clockIn'])->name('staff.attendance.clock-in');
@@ -621,21 +632,16 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::middleware('shop.capability:delivery')->group(function () {
         Route::middleware('permission:Logistics,view')->group(function () {
             Route::get('/logistics', [LogisticsController::class, 'index'])->name('staff.logistics');
-            Route::get('/logistics/riders', [LogisticsController::class, 'riders'])->name('staff.logistics.riders');
             Route::get('/logistics/photos/{photo}', [DeliveryProofController::class, 'show'])->name('staff.logistics.photos.show');
         });
-        Route::middleware('permission:Logistics,create')->group(function () {
-            Route::post('/logistics/riders', [LogisticsController::class, 'storeRider'])->name('staff.logistics.riders.store');
-        });
+        Route::middleware('permission:Logistics,create')->group(function () {});
         Route::middleware('permission:Logistics,update')->group(function () {
             Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('staff.logistics.status');
             Route::post('/logistics/{delivery}/photos', [DeliveryProofController::class, 'store'])->name('staff.logistics.photos.store');
-            Route::patch('/logistics/riders/{rider}', [LogisticsController::class, 'updateRider'])->name('staff.logistics.riders.update');
         });
         Route::middleware('permission:Logistics,archive')->group(function () {
             Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('staff.logistics.destroy');
             Route::delete('/logistics/photos/{photo}', [DeliveryProofController::class, 'destroy'])->name('staff.logistics.photos.destroy');
-            Route::delete('/logistics/riders/{rider}', [LogisticsController::class, 'destroyRider'])->name('staff.logistics.riders.destroy');
         });
     });
 

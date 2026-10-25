@@ -5,7 +5,7 @@ namespace App\Http\Requests\Driver;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Riders are authenticated by the unguessable driver token in the URL, not by a user session.
+ * The driver app shares its live position while a run is on the road.
  */
 class UpdateRiderLocationRequest extends FormRequest
 {

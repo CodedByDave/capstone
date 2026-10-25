@@ -45,3 +45,28 @@ function something()
 {
     // ..
 }
+
+/**
+ * A driver of the shop: an employee whose position is Driver, linked to a rider. Online and free
+ * since the given time unless told otherwise, so the shop can give them waiting orders.
+ */
+function onlineRider(App\Models\Shop $shop, string $name = 'Rico', bool $online = true, ?Carbon\Carbon $freeSince = null): App\Models\Rider
+{
+    $user = App\Models\User::factory()->create(['role' => App\Enums\AccountType::Staff->value, 'shop_id' => $shop->id]);
+
+    $employee = App\Models\Employee::create([
+        'shop_id' => $shop->id,
+        'user_id' => $user->id,
+        'employee_id' => 'DRV-'.Illuminate\Support\Str::random(8),
+        'first_name' => $name,
+        'last_name' => 'Driver',
+        'position' => 'Driver',
+        'hire_date' => today(),
+        'status' => 'Active',
+    ]);
+
+    $rider = app(App\Services\DriverRosterService::class)->sync($employee);
+    $rider->update(['is_online' => $online, 'available_since' => $online ? ($freeSince ?? now()) : null]);
+
+    return $rider->fresh();
+}

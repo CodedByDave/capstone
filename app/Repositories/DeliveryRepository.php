@@ -3,7 +3,9 @@
 namespace App\Repositories;
 
 use App\Models\Delivery;
+use App\Models\OrderRating;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class DeliveryRepository extends Repository
@@ -116,11 +118,6 @@ class DeliveryRepository extends Repository
             ->keyBy('type');
     }
 
-    public function findByDriverToken(string $token): ?Delivery
-    {
-        return Delivery::query()->where('driver_token', $token)->first();
-    }
-
     public function updateRiderLocation(Delivery $delivery, float $lat, float $lng): Delivery
     {
         $delivery->update([
@@ -130,5 +127,67 @@ class DeliveryRepository extends Repository
         ]);
 
         return $delivery;
+    }
+
+    // ── Driver app: everything is scoped to one rider ─────────────────────────
+
+    private const WITH_FOR_DRIVER = ['order:id,order_number,service_id,payment_public_id', 'order.service:id,service_name', 'shop:id,shop_name,latitude,longitude,block_street,barangay,municipality'];
+
+    /** @return Collection<int, Delivery> the rider's runs still on the road, oldest first */
+    public function openForRider(int $riderId): Collection
+    {
+        return Delivery::query()
+            ->with(self::WITH_FOR_DRIVER)
+            ->where('rider_id', $riderId)
+            ->whereIn('status', ['assigned', 'picked_up'])
+            ->orderBy('assigned_at')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /** @return Collection<int, Delivery> runs the rider finished today, newest first */
+    public function finishedTodayForRider(int $riderId): Collection
+    {
+        return Delivery::query()
+            ->with(self::WITH_FOR_DRIVER)
+            ->where('rider_id', $riderId)
+            ->whereIn('status', ['delivered', 'failed'])
+            ->whereDate('updated_at', today())
+            ->latest('updated_at')
+            ->get();
+    }
+
+    public function findForRider(string $publicId, int $riderId): ?Delivery
+    {
+        return Delivery::query()
+            ->with(self::WITH_FOR_DRIVER)
+            ->where('public_id', $publicId)
+            ->where('rider_id', $riderId)
+            ->first();
+    }
+
+    /** @return Collection<int, Delivery> finished runs of the rider within the period, newest first */
+    public function finishedBetweenForRider(int $riderId, Carbon $from, Carbon $to): Collection
+    {
+        return Delivery::query()
+            ->with(['order:id,order_number,delivery_fee'])
+            ->where('rider_id', $riderId)
+            ->where('status', 'delivered')
+            ->whereBetween('delivered_at', [$from, $to])
+            ->latest('delivered_at')
+            ->get();
+    }
+
+    /** Average star rating the customers gave the orders this rider delivered. */
+    public function averageRatingForRider(int $riderId): ?float
+    {
+        $average = OrderRating::query()
+            ->whereIn('shop_order_id', Delivery::query()
+                ->where('rider_id', $riderId)
+                ->where('status', 'delivered')
+                ->select('shop_order_id'))
+            ->avg('rating');
+
+        return $average === null ? null : round((float) $average, 1);
     }
 }
