@@ -247,7 +247,12 @@ test('a delivery run heads to the shop first and to the customer after pickup', 
     $this->actingAs($user)->get("/driver/jobs/{$run->public_id}")
         ->assertInertia(fn (Assert $page) => $page
             ->where('job.target.kind', 'shop')
-            ->where('job.action_label', 'Confirm pickup from shop'));
+            ->where('job.action_label', 'Confirm pickup from shop')
+            // Both stops are always sent so the driver can navigate to either one.
+            ->where('job.customer_stop.kind', 'customer')
+            ->where('job.customer_stop.address', 'Unit 4B, Palm Residences')
+            ->where('job.shop_stop.kind', 'shop')
+            ->where('job.shop_stop.lat', 14.43));
 
     $run->update(['status' => 'picked_up']);
 

@@ -236,6 +236,8 @@ class DriverAppService
             'assigned_at' => $run->assigned_at?->toIso8601String(),
             'finished_at' => $finished ? $run->updated_at?->toIso8601String() : null,
             'target' => ($headingToCustomer ? $customerStop : $shopStop) + ['kind' => $headingToCustomer ? 'customer' : 'shop'],
+            'customer_stop' => $customerStop + ['kind' => 'customer'],
+            'shop_stop' => $shopStop + ['kind' => 'shop'],
             'next_status' => match ($run->status) {
                 'assigned' => 'picked_up',
                 'picked_up' => 'delivered',

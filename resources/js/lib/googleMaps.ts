@@ -38,12 +38,29 @@ export function googleMapsNavigationUrl(destination: {
     lng: number | null;
     address?: string | null;
 }): string {
-    const target =
-        destination.lat !== null && destination.lng !== null
-            ? `${destination.lat},${destination.lng}`
-            : (destination.address ?? '');
+    const hasPin = destination.lat !== null && destination.lng !== null;
+    const target = hasPin
+        ? `${destination.lat},${destination.lng}`
+        : (destination.address ?? '').trim();
 
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(target)}&travelmode=driving`;
+    const url = new URL('https://www.google.com/maps/dir/');
+    url.searchParams.set('api', '1');
+    url.searchParams.set('travelmode', 'driving');
+    if (target !== '') url.searchParams.set('destination', target);
+
+    return url.toString();
+}
+
+/** Whether the stop has anything Google Maps can navigate to. */
+export function canNavigateTo(destination: {
+    lat: number | null;
+    lng: number | null;
+    address?: string | null;
+}): boolean {
+    return (
+        (destination.lat !== null && destination.lng !== null) ||
+        (destination.address ?? '').trim() !== ''
+    );
 }
 
 /** Asks the Directions service for the driving route; resolves null when no road route exists. */

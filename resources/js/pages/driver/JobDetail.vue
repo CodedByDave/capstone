@@ -12,7 +12,11 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useDriverLocation } from '@/composables/useDriverLocation';
-import { googleMapsNavigationUrl, type GoogleRoute } from '@/lib/googleMaps';
+import {
+    canNavigateTo,
+    googleMapsNavigationUrl,
+    type GoogleRoute,
+} from '@/lib/googleMaps';
 import type { DriverInfo, DriverJob } from '@/types/driver';
 import { router } from '@inertiajs/vue3';
 import { ChevronLeft, MessageSquare, Navigation, Phone } from 'lucide-vue-next';
@@ -204,16 +208,57 @@ const finishedLabel = computed(() =>
                         >
                             <MessageSquare class="h-5 w-5" />
                         </a>
-                        <a
-                            :href="googleMapsNavigationUrl(job.target)"
+                    </div>
+                </div>
+
+                <!-- Navigation: both stops, the one to head to now is highlighted -->
+                <div class="rounded-2xl bg-white p-4">
+                    <h2 class="font-bold">Navigate in Google Maps</h2>
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <component
+                            :is="canNavigateTo(stop.stop) ? 'a' : 'span'"
+                            v-for="stop in [
+                                {
+                                    label: 'To customer',
+                                    stop: job.customer_stop,
+                                },
+                                { label: 'To shop', stop: job.shop_stop },
+                            ]"
+                            :key="stop.label"
+                            :href="
+                                canNavigateTo(stop.stop)
+                                    ? googleMapsNavigationUrl(stop.stop)
+                                    : undefined
+                            "
                             target="_blank"
                             rel="noopener"
-                            class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white"
-                            aria-label="Open turn-by-turn navigation in Google Maps"
+                            :class="[
+                                'flex h-12 items-center justify-center gap-2 rounded-xl text-sm font-semibold',
+                                !canNavigateTo(stop.stop)
+                                    ? 'bg-slate-100 text-slate-400'
+                                    : stop.stop.kind === job.target.kind
+                                      ? 'bg-blue-600 text-white'
+                                      : 'border text-slate-700',
+                            ]"
                         >
-                            <Navigation class="h-5 w-5" />
-                        </a>
+                            <Navigation class="h-4 w-4" aria-hidden="true" />
+                            {{ stop.label }}
+                        </component>
                     </div>
+                    <p class="mt-2 text-xs text-slate-500">
+                        Heading now:
+                        {{
+                            job.target.kind === 'customer'
+                                ? 'the customer'
+                                : 'the shop'
+                        }}.
+                        <span
+                            v-if="!canNavigateTo(job.customer_stop)"
+                            class="text-amber-700"
+                        >
+                            The customer has no address saved.
+                        </span>
+                    </p>
                 </div>
 
                 <!-- Progress -->

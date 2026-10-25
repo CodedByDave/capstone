@@ -28,6 +28,8 @@ export interface DriverJob {
     assigned_at: string | null;
     finished_at: string | null;
     target: JobStop;
+    customer_stop: JobStop;
+    shop_stop: JobStop;
     next_status: 'picked_up' | 'delivered' | null;
     action_label: string | null;
     checklist: string[];
