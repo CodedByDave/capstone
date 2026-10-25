@@ -1,0 +1,1 @@
+import{d as e,b as o,m as s}from"./app-BTPi2rBz.js";const n={src:"/laundryhub.png",alt:"LaundryHub Logo",class:"h-10 w-10 rounded-full object-cover"},p=e({inheritAttrs:!1,__name:"AppLogoIcon",props:{className:{}},setup(r){return(t,a)=>(s(),o("img",n))}});export{p as _};
