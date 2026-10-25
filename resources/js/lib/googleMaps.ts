@@ -32,21 +32,37 @@ export function loadGoogleMaps(apiKey: string): Promise<any> {
     return loader;
 }
 
-/** A Google Maps link that opens turn-by-turn navigation to the stop. No API key is needed. */
-export function googleMapsNavigationUrl(destination: {
+interface MapStop {
     lat: number | null;
     lng: number | null;
     address?: string | null;
-}): string {
-    const hasPin = destination.lat !== null && destination.lng !== null;
-    const target = hasPin
-        ? `${destination.lat},${destination.lng}`
-        : (destination.address ?? '').trim();
+}
 
+/** The pin when the stop has one, otherwise its address text; empty when it has neither. */
+function stopTarget(stop: MapStop): string {
+    return stop.lat !== null && stop.lng !== null
+        ? `${stop.lat},${stop.lng}`
+        : (stop.address ?? '').trim();
+}
+
+/**
+ * A Google Maps link that opens turn-by-turn navigation to the stop. No API key is needed.
+ * With an origin the route starts there (for example the shop) instead of the phone's current
+ * location.
+ */
+export function googleMapsNavigationUrl(
+    destination: MapStop,
+    origin?: MapStop | null,
+): string {
     const url = new URL('https://www.google.com/maps/dir/');
     url.searchParams.set('api', '1');
     url.searchParams.set('travelmode', 'driving');
-    if (target !== '') url.searchParams.set('destination', target);
+
+    const from = origin ? stopTarget(origin) : '';
+    if (from !== '') url.searchParams.set('origin', from);
+
+    const to = stopTarget(destination);
+    if (to !== '') url.searchParams.set('destination', to);
 
     return url.toString();
 }

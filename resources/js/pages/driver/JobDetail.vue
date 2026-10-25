@@ -46,6 +46,19 @@ onMounted(start);
 
 const route = ref<GoogleRoute | null>(null);
 
+// The other stop is where the run starts from (the shop for a delivery); used until the phone
+// reports its own position.
+const startPin = computed(() => {
+    const from =
+        props.job.target.kind === 'customer'
+            ? props.job.shop_stop
+            : props.job.customer_stop;
+
+    return from.lat !== null && from.lng !== null
+        ? { lat: from.lat, lng: from.lng }
+        : null;
+});
+
 // ─── Progress ────────────────────────────────────────────────────────────────
 
 const steps = computed(() =>
@@ -115,7 +128,7 @@ const finishedLabel = computed(() =>
             <div class="relative">
                 <DirectionsMap
                     :api-key="maps_key"
-                    :origin="position"
+                    :origin="position ?? startPin"
                     :destination="job.target"
                     height-class="h-64"
                     @route="route = $event"
@@ -221,13 +234,21 @@ const finishedLabel = computed(() =>
                                 {
                                     label: 'To customer',
                                     stop: job.customer_stop,
+                                    from: job.shop_stop,
                                 },
-                                { label: 'To shop', stop: job.shop_stop },
+                                {
+                                    label: 'To shop',
+                                    stop: job.shop_stop,
+                                    from: job.customer_stop,
+                                },
                             ]"
                             :key="stop.label"
                             :href="
                                 canNavigateTo(stop.stop)
-                                    ? googleMapsNavigationUrl(stop.stop)
+                                    ? googleMapsNavigationUrl(
+                                          stop.stop,
+                                          stop.from,
+                                      )
                                     : undefined
                             "
                             target="_blank"

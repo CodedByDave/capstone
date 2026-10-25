@@ -64,7 +64,14 @@ const route = ref<GoogleRoute | null>(null);
                         Open job
                     </Link>
                     <a
-                        :href="googleMapsNavigationUrl(job.target)"
+                        :href="
+                            googleMapsNavigationUrl(
+                                job.target,
+                                job.target.kind === 'customer'
+                                    ? job.shop_stop
+                                    : job.customer_stop,
+                            )
+                        "
                         target="_blank"
                         rel="noopener"
                         class="flex h-11 items-center gap-2 rounded-xl border px-4 font-semibold"
