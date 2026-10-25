@@ -1,14 +1,31 @@
 <?php
 
+use App\Enums\AccountType;
 use App\Models\Shop;
+use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
-it('passes the number of active shops to the landing page', function () {
-    $before = Shop::where('status', 'active')->count();
-    Shop::factory()->count(2)->create(['status' => 'active']);
-    Shop::factory()->create(['status' => 'pending']);
+function landingShop(string $status): Shop
+{
+    $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
 
-    $this->get('/')->assertInertia(fn (Assert $page) => $page
+    return Shop::create([
+        'owner_id' => $owner->id,
+        'shop_name' => 'Landing Laundry',
+        'phone' => '09171234567',
+        'municipality' => 'Imus',
+        'barangay' => 'Poblacion',
+        'postal_code' => '4103',
+        'status' => $status,
+    ]);
+}
+
+it('passes the number of active shops to the landing page', function () {
+    landingShop('active');
+    landingShop('active');
+    landingShop('pending');
+
+    $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('Landing')
-        ->where('shopCount', $before + 2));
+        ->where('shopCount', 2));
 });
