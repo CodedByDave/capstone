@@ -20,6 +20,11 @@ class ShopRepository extends Repository
         ]);
     }
 
+    public function countActive(): int
+    {
+        return Shop::query()->where('status', 'active')->count();
+    }
+
     public function findByOwnerId(int $ownerId): ?Shop
     {
         return Shop::query()->where('owner_id', $ownerId)->first();

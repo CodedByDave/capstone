@@ -50,12 +50,12 @@ const MODULE_ICONS: Record<string, any> = {
 const PLANS: Plan[] = [
     {
         name: 'Basic',
-        price: 1999,
+        price: 999,
         moduleNames: ['HRM', 'Operations'],
     },
     {
         name: 'Standard',
-        price: 3999,
+        price: 1499,
         badge: 'Most popular',
         moduleNames: [
             'HRM',
@@ -66,7 +66,7 @@ const PLANS: Plan[] = [
     },
     {
         name: 'Premium',
-        price: 5999,
+        price: 1999,
         moduleNames: [
             'HRM',
             'Operations',

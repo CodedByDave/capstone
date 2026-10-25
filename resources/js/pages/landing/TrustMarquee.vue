@@ -1,16 +1,22 @@
 <script setup lang="ts">
-const trustSignals = [
-    '500+ Registered Shops',
+import { computed } from 'vue';
+
+const props = defineProps<{ shopCount?: number }>();
+
+const trustSignals = computed(() => [
+    `${(props.shopCount ?? 0).toLocaleString('en-PH')} Registered Shops`,
     'Employee Management',
     'Inventory Tracking',
     'Order Processing',
     'Custom Pricing Rules',
     'Sales Analytics',
     'Real-Time Reports',
-    'Multi-Branch Support',
-];
+]);
 
-const doubled = [...trustSignals, ...trustSignals];
+const doubled = computed(() => [
+    ...trustSignals.value,
+    ...trustSignals.value,
+]);
 </script>
 
 <template>

@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Services\BusinessAgreementService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
+use App\Services\ShopService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -24,6 +25,7 @@ class CheckoutController extends Controller
         protected OrderService $orderService,
         protected PaymentService $paymentService,
         protected BusinessAgreementService $businessAgreementService,
+        protected ShopService $shopService,
     ) {}
 
     // ── Plan selection page ────────────────────────────────────────────────────
@@ -49,7 +51,9 @@ class CheckoutController extends Controller
             ]);
         }
 
-        return Inertia::render('Landing');
+        return Inertia::render('Landing', [
+            'shopCount' => $this->shopService->countActiveShops(),
+        ]);
     }
 
     // ── Store selected plan + billing period in session ────────────────────────

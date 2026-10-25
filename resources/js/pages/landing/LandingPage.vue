@@ -8,14 +8,16 @@ import Navbar from './Navbar.vue';
 import TestimonialsSection from './TestimonialSection.vue';
 import ThemeProvider from './ThemeProvider.vue';
 import TrustMarquee from './TrustMarquee.vue';
+
+defineProps<{ shopCount?: number }>();
 </script>
 
 <template>
     <ThemeProvider>
         <div class="landing-page">
             <Navbar />
-            <HeroSection />
-            <TrustMarquee />
+            <HeroSection :shop-count="shopCount" />
+            <TrustMarquee :shop-count="shopCount" />
             <ModulesSection />
             <HowItWorksSection />
             <TestimonialsSection />

@@ -13,6 +13,11 @@ class ShopService
         protected UserService $userService
     ) {}
 
+    public function countActiveShops(): int
+    {
+        return $this->shopRepo->countActive();
+    }
+
     public function registerShop(array $data)
     {
         return DB::transaction(function () use ($data) {

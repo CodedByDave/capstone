@@ -4,6 +4,10 @@ import { router } from '@inertiajs/vue3';
 import { ArrowRight } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 
+function scrollToPricing() {
+    document.getElementById('modules')?.scrollIntoView({ behavior: 'smooth' });
+}
+
 const sectionRef = ref<HTMLElement | null>(null);
 const isVisible = ref(false);
 
@@ -55,7 +59,7 @@ onMounted(() => {
                 </Button>
 
                 <Button
-                    @click="router.visit('/plans')"
+                    @click="scrollToPricing"
                     variant="outline"
                     size="lg"
                     class="w-full border-white bg-transparent px-8 py-6 text-base text-white hover:bg-white/10 sm:w-auto"

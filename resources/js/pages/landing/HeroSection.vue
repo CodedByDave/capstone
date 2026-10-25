@@ -2,7 +2,11 @@
 import { Button } from '@/components/ui/button';
 import { router } from '@inertiajs/vue3';
 import { ArrowRight, Blocks } from 'lucide-vue-next';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+
+function scrollToPricing() {
+    document.getElementById('modules')?.scrollIntoView({ behavior: 'smooth' });
+}
 
 const isLoaded = ref(false);
 
@@ -10,12 +14,17 @@ onMounted(() => {
     isLoaded.value = true;
 });
 
-const stats = [
-    { value: '500+', label: 'Shops Registered' },
+const props = defineProps<{ shopCount?: number }>();
+
+const stats = computed(() => [
+    {
+        value: (props.shopCount ?? 0).toLocaleString('en-PH'),
+        label: 'Shops Registered',
+    },
     { value: '5', label: 'Powerful Modules' },
     { value: '99.9%', label: 'Uptime' },
     { value: '24/7', label: 'Support' },
-];
+]);
 </script>
 
 <template>
@@ -108,7 +117,7 @@ const stats = [
                     </Button>
 
                     <Button
-                        @click="router.visit('/plans')"
+                        @click="scrollToPricing"
                         variant="outline"
                         size="lg"
                         class="w-full border-border px-8 py-6 text-base text-foreground hover:bg-secondary sm:w-auto"

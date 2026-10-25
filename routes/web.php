@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BusinessAgreementSignatureController;
 use App\Http\Controllers\DriverPageController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\DeliveryProofController;
@@ -65,11 +66,7 @@ Route::post('/driver/{token}/location', [DriverPageController::class, 'updateLoc
     ->middleware('throttle:60,1')
     ->name('driver.location');
 
-Route::get('/', function () {
-    return Inertia::render('Landing', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('landing');
+Route::get('/', [LandingController::class, 'index'])->name('landing');
 
 Route::get('/shop/checkout/{plan}', [CheckoutController::class, 'show']);
 Route::post('/checkout/select', [CheckoutController::class, 'select']);
