@@ -45,6 +45,7 @@ import {
     Eye,
     FileWarning,
     Loader2,
+    MoreHorizontal,
     Pencil,
     RefreshCcw,
     Search,
@@ -162,7 +163,7 @@ const headers = computed<Header[]>(() => [
         (header) =>
             hasMultipleLocations.value || header.value !== 'branch_name',
     ),
-    { text: 'Actions', value: 'actions', width: 115 },
+    { text: 'Actions', value: 'actions', width: 100 },
 ]);
 const permissions = computed(() => user.value.permissions ?? {});
 
@@ -715,6 +716,13 @@ async function submitImport() {
                                     }"
                                 />
                             </button>
+                        </template>
+
+                        <template #header-actions>
+                            <span class="flex justify-center" title="Actions">
+                                <MoreHorizontal class="h-4 w-4" aria-hidden="true" />
+                                <span class="sr-only">Actions</span>
+                            </span>
                         </template>
 
                         <template #item-employee_id="employee">
