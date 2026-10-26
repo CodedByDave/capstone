@@ -417,7 +417,7 @@ function submit() {
             </div>
             <div class="flex justify-between gap-3">
                 <dt>
-                    {{ quote.breakdown.chargeable_km }} km ×
+                    {{ quote.breakdown.chargeable_km }} km Ã—
                     {{ formatPeso(quote.breakdown.rate_per_km) }}/km
                     <span v-if="quote.breakdown.free_km > 0">
                         (first {{ quote.breakdown.free_km }} km free)
