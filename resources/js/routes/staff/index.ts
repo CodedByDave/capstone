@@ -2,7 +2,6 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 import attendance from './attendance'
 import employee from './employee'
 import schedule from './schedule'
-import branch from './branch'
 import inventory from './inventory'
 import supplier from './supplier'
 import logs from './logs'
@@ -176,7 +175,6 @@ const staff = {
 attendance: Object.assign(attendance, attendance),
 employee: Object.assign(employee, employee),
 schedule: Object.assign(schedule, schedule),
-branch: Object.assign(branch, branch),
 inventory: Object.assign(inventory, inventory),
 supplier: Object.assign(supplier, supplier),
 logs: Object.assign(logs, logs),

@@ -925,7 +925,7 @@ enable.post = (args: { shop: string | { public_id: string } } | [shop: string | 
     enable.form = enableForm
 /**
 * @see \App\Http\Controllers\Shop\ShopDashboardController::dashboard
- * @see app/Http/Controllers/Shop/ShopDashboardController.php:27
+ * @see app/Http/Controllers/Shop/ShopDashboardController.php:26
  * @route '/shop/dashboard'
  */
 export const dashboard = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -940,7 +940,7 @@ dashboard.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopDashboardController::dashboard
- * @see app/Http/Controllers/Shop/ShopDashboardController.php:27
+ * @see app/Http/Controllers/Shop/ShopDashboardController.php:26
  * @route '/shop/dashboard'
  */
 dashboard.url = (options?: RouteQueryOptions) => {
@@ -949,7 +949,7 @@ dashboard.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopDashboardController::dashboard
- * @see app/Http/Controllers/Shop/ShopDashboardController.php:27
+ * @see app/Http/Controllers/Shop/ShopDashboardController.php:26
  * @route '/shop/dashboard'
  */
 dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -958,7 +958,7 @@ dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\ShopDashboardController::dashboard
- * @see app/Http/Controllers/Shop/ShopDashboardController.php:27
+ * @see app/Http/Controllers/Shop/ShopDashboardController.php:26
  * @route '/shop/dashboard'
  */
 dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -968,7 +968,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopDashboardController::dashboard
- * @see app/Http/Controllers/Shop/ShopDashboardController.php:27
+ * @see app/Http/Controllers/Shop/ShopDashboardController.php:26
  * @route '/shop/dashboard'
  */
     const dashboardForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -978,7 +978,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopDashboardController::dashboard
- * @see app/Http/Controllers/Shop/ShopDashboardController.php:27
+ * @see app/Http/Controllers/Shop/ShopDashboardController.php:26
  * @route '/shop/dashboard'
  */
         dashboardForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -987,7 +987,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\ShopDashboardController::dashboard
- * @see app/Http/Controllers/Shop/ShopDashboardController.php:27
+ * @see app/Http/Controllers/Shop/ShopDashboardController.php:26
  * @route '/shop/dashboard'
  */
         dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
