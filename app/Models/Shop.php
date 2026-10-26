@@ -65,6 +65,9 @@ class Shop extends Model
         'delivery_max_km',
         'delivery_pricing_set_at',
         'driver_pay_mode',
+        'is_open_24_7',
+        'opens_at',
+        'closes_at',
         'driver_daily_rate',
         'platform_rating_prompted_at',
         'setup_completed_at',
@@ -95,6 +98,7 @@ class Shop extends Model
         'phone' => PhilippinePhoneCast::class,
         'offers_pickup' => 'boolean',
         'offers_delivery' => 'boolean',
+        'is_open_24_7' => 'boolean',
         'delivery_fixed_fee' => 'decimal:2',
         'delivery_base_fee' => 'decimal:2',
         'delivery_per_km_rate' => 'decimal:2',
@@ -133,6 +137,20 @@ class Shop extends Model
     public function needsDeliveryPricing(): bool
     {
         return (bool) $this->offers_delivery && ! $this->hasDeliveryPricing();
+    }
+
+    /** Whether the shop is open at the given moment (now by default); hours may pass midnight. */
+    public function isOpenAt(?\DateTimeInterface $moment = null): bool
+    {
+        if ($this->is_open_24_7 || ! $this->opens_at || ! $this->closes_at) {
+            return true;
+        }
+
+        $time = ($moment ? \Illuminate\Support\Carbon::instance($moment) : now())->format('H:i:s');
+
+        return $this->opens_at < $this->closes_at
+            ? $time >= $this->opens_at && $time < $this->closes_at
+            : $time >= $this->opens_at || $time < $this->closes_at;
     }
 
     /** Delivery is available only once the pricing is set, so no run is ever given away free. */

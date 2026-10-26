@@ -222,7 +222,8 @@ class LogisticsService
                 return null;
             }
 
-            $rider = $this->riders->findAvailableForShop($order->shop_id);
+            // A closed shop gives no run to a rider; it waits until the shop is open again.
+            $rider = $order->shop->isOpenAt() ? $this->riders->findAvailableForShop($order->shop_id) : null;
 
             return $this->deliveries->createDelivery([
                 'shop_id' => $order->shop_id,
@@ -266,6 +267,10 @@ class LogisticsService
     public function assignWaitingDeliveries(int $shopId): int
     {
         $assigned = 0;
+
+        if (! $this->shops->findShopById($shopId)?->isOpenAt()) {
+            return 0;
+        }
 
         while (true) {
             $delivery = DB::transaction(function () use ($shopId): ?Delivery {

@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\UpdateDeliveryPricingRequest;
 use App\Http\Requests\Shop\UpdateDriverPayRequest;
+use App\Http\Requests\Shop\UpdateOperatingHoursRequest;
 use App\Http\Requests\Shop\UpdatePaymongoSettingsRequest;
 use App\Models\Shop;
 use App\Services\ShopDeliveryPricingService;
+use App\Services\ShopOperatingHoursService;
 use App\Services\ShopPaymentSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,12 +32,13 @@ class ShopSettingsController extends Controller
         return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
     }
 
-    public function index(ShopDeliveryPricingService $deliveryPricing)
+    public function index(ShopDeliveryPricingService $deliveryPricing, ShopOperatingHoursService $operatingHours)
     {
         $shop = $this->getShop();
 
         return Inertia::render('shop/Settings', [
             'deliveryPricing' => $deliveryPricing->pageData(auth()->user()),
+            'operatingHours' => $operatingHours->pageData(auth()->user()),
             'shop' => [
                 'shop_name' => $shop->shop_name,
                 'phone' => $shop->phone,
@@ -56,6 +59,18 @@ class ShopSettingsController extends Controller
         ShopPaymentSettingsService $paymentSettings,
     ) {
         return back()->with('toast', $paymentSettings->update($request->user(), $request->validated()));
+    }
+
+    public function updateOperatingHours(
+        UpdateOperatingHoursRequest $request,
+        ShopOperatingHoursService $operatingHours,
+    ): RedirectResponse {
+        $operatingHours->update($request->user(), $request->validated());
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Operating hours saved.',
+        ]);
     }
 
     public function updateDriverPay(

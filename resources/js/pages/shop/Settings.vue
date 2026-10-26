@@ -3,6 +3,7 @@ import DeliveryPricingCard, {
     type DeliveryPricing,
 } from '@/components/business/DeliveryPricingCard.vue';
 import DriverPayCard from '@/components/business/DriverPayCard.vue';
+import OperatingHoursCard from '@/components/business/OperatingHoursCard.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -47,6 +48,11 @@ const props = defineProps<{
         cover_photo: string | null;
     };
     deliveryPricing: DeliveryPricing;
+    operatingHours: {
+        is_open_24_7: boolean;
+        opens_at: string;
+        closes_at: string;
+    };
 }>();
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
@@ -289,6 +295,9 @@ function clearGeo() {
                     </Button>
                 </CardContent>
             </Card>
+
+            <!-- ── Operating Hours ── -->
+            <OperatingHoursCard :hours="props.operatingHours" />
 
             <!-- ── Delivery Pricing ── -->
             <DeliveryPricingCard :pricing="props.deliveryPricing" />

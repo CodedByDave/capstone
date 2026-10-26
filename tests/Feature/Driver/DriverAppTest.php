@@ -402,3 +402,58 @@ test('hiring a driver through the employee service adds them to the drivers', fu
         ->and($rider->name)->toBe('Marco Reyes')
         ->and($rider->is_online)->toBeFalse();
 });
+
+// ── Shop operating hours ──────────────────────────────────────────────────────
+
+test('a shop knows whether it is open, including hours that pass midnight', function () {
+    $always = new App\Models\Shop(['is_open_24_7' => true]);
+    $day = new App\Models\Shop(['is_open_24_7' => false, 'opens_at' => '08:00:00', 'closes_at' => '17:00:00']);
+    $night = new App\Models\Shop(['is_open_24_7' => false, 'opens_at' => '22:00:00', 'closes_at' => '06:00:00']);
+
+    expect($always->isOpenAt(now()->setTime(3, 0)))->toBeTrue()
+        ->and($day->isOpenAt(now()->setTime(9, 0)))->toBeTrue()
+        ->and($day->isOpenAt(now()->setTime(17, 0)))->toBeFalse()
+        ->and($day->isOpenAt(now()->setTime(2, 0)))->toBeFalse()
+        ->and($night->isOpenAt(now()->setTime(23, 0)))->toBeTrue()
+        ->and($night->isOpenAt(now()->setTime(5, 0)))->toBeTrue()
+        ->and($night->isOpenAt(now()->setTime(12, 0)))->toBeFalse();
+});
+
+test('a closed shop does not hand waiting orders to a driver', function () {
+    $shop = driverShop(['is_open_24_7' => false, 'opens_at' => '00:00:00', 'closes_at' => '00:01:00']);
+    $this->travelTo(now()->setTime(12, 0));
+    onlineRider($shop);
+    $waiting = driverRun($shop, null, 'pending');
+
+    expect(app(App\Services\LogisticsService::class)->assignWaitingDeliveries($shop->id))->toBe(0)
+        ->and($waiting->fresh()->rider_id)->toBeNull();
+});
+
+test('the owner saves operating hours from settings', function () {
+    $shop = driverShop();
+
+    $this->withoutMiddleware(ownerGates())->actingAs($shop->owner)
+        ->patch('/shop/settings/operating-hours', ['is_open_24_7' => false, 'opens_at' => '08:00', 'closes_at' => '17:00'])
+        ->assertSessionHasNoErrors();
+
+    expect($shop->fresh()->is_open_24_7)->toBeFalse()
+        ->and($shop->fresh()->opens_at)->toStartWith('08:00');
+
+    $this->withoutMiddleware(ownerGates())->actingAs($shop->owner)
+        ->patch('/shop/settings/operating-hours', ['is_open_24_7' => false, 'opens_at' => '08:00', 'closes_at' => ''])
+        ->assertSessionHasErrors('closes_at');
+
+    $this->withoutMiddleware(ownerGates())->actingAs($shop->owner)
+        ->patch('/shop/settings/operating-hours', ['is_open_24_7' => true])
+        ->assertSessionHasNoErrors();
+
+    expect($shop->fresh()->is_open_24_7)->toBeTrue();
+});
+
+function ownerGates(): array
+{
+    return [
+        App\Http\Middleware\EnforceOwnerPlatformPermissions::class,
+        App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted::class,
+    ];
+}

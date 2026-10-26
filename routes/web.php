@@ -415,6 +415,8 @@ Route::prefix('shop')->middleware([
     Route::post('/settings/cover-photo', [ShopSettingsController::class, 'updateCoverPhoto'])->name('shop.settings.cover-photo');
     Route::post('/settings/cover-photo/clear', [ShopSettingsController::class, 'removeCoverPhoto'])->name('shop.settings.cover-photo.clear');
     Route::post('/settings/paymongo', [ShopSettingsController::class, 'updatePaymongo'])->name('shop.settings.paymongo');
+    Route::patch('/settings/operating-hours', [ShopSettingsController::class, 'updateOperatingHours'])
+        ->name('shop.settings.operating-hours');
     Route::patch('/settings/driver-pay', [ShopSettingsController::class, 'updateDriverPay'])
         ->middleware('shop.capability:delivery')
         ->name('shop.settings.driver-pay');
