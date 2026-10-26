@@ -14,11 +14,14 @@ class DriverRosterService
 {
     public const DRIVER_POSITION = 'driver';
 
+    /** Position titles that make an employee a delivery rider. */
+    private const DRIVER_POSITIONS = [self::DRIVER_POSITION, 'rider'];
+
     public function __construct(private readonly RiderRepository $riders) {}
 
     public static function isDriverPosition(?string $position): bool
     {
-        return mb_strtolower(trim((string) $position)) === self::DRIVER_POSITION;
+        return in_array(mb_strtolower(trim((string) $position)), self::DRIVER_POSITIONS, true);
     }
 
     /** Creates, updates or deactivates the rider that mirrors the employee. */

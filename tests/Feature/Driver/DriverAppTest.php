@@ -334,7 +334,7 @@ test('only the position Driver, in any capitalization, makes an employee a drive
     expect(DriverRosterService::isDriverPosition('Driver'))->toBeTrue()
         ->and(DriverRosterService::isDriverPosition('  driver '))->toBeTrue()
         ->and(DriverRosterService::isDriverPosition('DRIVER'))->toBeTrue()
-        ->and(DriverRosterService::isDriverPosition('Rider'))->toBeFalse()
+        ->and(DriverRosterService::isDriverPosition('Rider'))->toBeTrue()
         ->and(DriverRosterService::isDriverPosition('Truck Driver'))->toBeFalse()
         ->and(DriverRosterService::isDriverPosition(null))->toBeFalse();
 });
