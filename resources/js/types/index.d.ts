@@ -40,7 +40,6 @@ export interface OrderModule {
 
 export interface ShopCapabilities {
     setup_completed: boolean;
-    multiple_locations: boolean;
     offers_pickup: boolean;
     offers_delivery: boolean;
     /** The shop delivers but has not set its delivery pricing yet. */

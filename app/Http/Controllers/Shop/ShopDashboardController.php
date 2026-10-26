@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
-use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Inventory;
 use App\Models\InventoryMovement;
@@ -150,7 +149,6 @@ class ShopDashboardController extends Controller
                 'stats' => null,
                 'movement_chart' => [],
                 'category_breakdown' => [],
-                'employees_per_branch' => [],
                 'low_stock_items' => [],
                 'recent_movements' => [],
                 'shop' => null,
@@ -169,10 +167,6 @@ class ShopDashboardController extends Controller
         $totalEmployees = Employee::where('shop_id', $shopId)->count();
         $employeesActive = Employee::where('shop_id', $shopId)->where('status', 'Active')->count();
         $employeesInactive = $totalEmployees - $employeesActive;
-
-        // Branches
-        $totalBranches = Branch::forShop($shopId)->count();
-        $activeBranches = Branch::forShop($shopId)->active()->count();
 
         // Inventory stats
         $totalInventory = Inventory::forShop($shopId)->count();
@@ -217,17 +211,6 @@ class ShopDashboardController extends Controller
             ->map(fn ($r) => [
                 'label' => $r->category?->name ?? 'Uncategorized',
                 'count' => (int) $r->count,
-            ])
-            ->values();
-
-        // Employees Per Branch
-        $employeesPerBranch = Branch::forShop($shopId)
-            ->withCount('employees')
-            ->get()
-            ->map(fn ($b) => [
-                'branch' => $b->name,
-                'count' => $b->employees_count,
-                'status' => $b->status,
             ])
             ->values();
 
@@ -361,14 +344,12 @@ class ShopDashboardController extends Controller
             ],
             'stats' => [
                 'employees' => ['total' => $totalEmployees,    'active' => $employeesActive,   'inactive' => $employeesInactive],
-                'branches' => ['total' => $totalBranches,     'active' => $activeBranches],
                 'inventory' => ['total' => $totalInventory,    'low_stock' => $lowStockCount,  'out_of_stock' => $outOfStockCount],
                 'low_stock_alerts' => $lowStockAlerts,
                 'movements' => ['this_month' => $movementsThisMonth, 'change' => $movementsChange],
             ],
             'movement_chart' => $movementChart,
             'category_breakdown' => $categoryBreakdown,
-            'employees_per_branch' => $employeesPerBranch,
             'low_stock_items' => $lowStockItems,
             'recent_movements' => $recentMovements,
 

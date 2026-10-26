@@ -27,7 +27,6 @@ import {
 import html2pdf from 'html2pdf.js';
 import {
     BarChart3,
-    Building2,
     Calendar,
     Download,
     FileDown,
@@ -80,11 +79,10 @@ async function downloadPDF() {
 
 function exportCSV() {
     const date = new Date().toISOString().slice(0, 10);
-    const headers = ['Name', 'Email', 'Branch', 'Joined'];
+    const headers = ['Name', 'Email', 'Joined'];
     const rows = props.recentEmployees.map((e) => [
         e.name,
         e.email,
-        e.branch,
         e.created_at,
     ]);
     const escape = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`;
@@ -111,16 +109,13 @@ const props = defineProps<{
     period: string;
     stats: {
         total_employees: number;
-        total_branches: number;
         new_employees: number;
         scheduled_week: number;
     };
-    employeesByBranch: { name: string; count: number }[];
     employeeGrowth: { month: string; count: number }[];
     recentEmployees: {
         name: string;
         email: string;
-        branch: string;
         created_at: string;
     }[];
     employeesByRole: { role: string; count: number }[];
@@ -141,19 +136,6 @@ function applyPeriod(val: string) {
         { preserveState: true, replace: true },
     );
 }
-
-const branchChartData = computed(() => ({
-    labels: props.employeesByBranch.map((b) => b.name),
-    datasets: [
-        {
-            label: 'Employees',
-            data: props.employeesByBranch.map((b) => b.count),
-            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-            borderColor: 'rgb(59, 130, 246)',
-            borderWidth: 2,
-        },
-    ],
-}));
 
 const growthChartData = computed(() => ({
     labels: props.employeeGrowth.map((g) => g.month),
@@ -213,7 +195,7 @@ const doughnutOptions = {
                 <div>
                     <h2 class="text-lg font-semibold">Employee Report</h2>
                     <p class="text-sm text-muted-foreground">
-                        Headcount, branches and growth overview.
+                        Headcount and growth overview.
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -278,7 +260,7 @@ const doughnutOptions = {
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
                 <Card>
                     <CardContent class="pt-5">
                         <div class="mb-2 flex items-center justify-between">
@@ -295,25 +277,6 @@ const doughnutOptions = {
                         </div>
                         <p class="text-3xl font-bold">
                             {{ stats.total_employees }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Branches
-                            </p>
-                            <div
-                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100"
-                            >
-                                <Building2 class="h-4 w-4 text-purple-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-purple-600">
-                            {{ stats.total_branches }}
                         </p>
                     </CardContent>
                 </Card>
@@ -361,31 +324,7 @@ const doughnutOptions = {
             </div>
 
             <!-- Charts row 1 -->
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2 text-sm">
-                            <Building2 class="h-4 w-4 text-muted-foreground" />
-                            Employees by Branch
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="h-56">
-                            <Bar
-                                v-if="employeesByBranch.length > 0"
-                                :data="branchChartData"
-                                :options="barOptions"
-                            />
-                            <div
-                                v-else
-                                class="flex h-full items-center justify-center text-sm text-muted-foreground"
-                            >
-                                No branches.
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
+            <div class="grid grid-cols-1 gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2 text-sm">
@@ -448,9 +387,6 @@ const doughnutOptions = {
                                         Email
                                     </th>
                                     <th class="px-4 py-3 text-left font-medium">
-                                        Branch
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
                                         Joined
                                     </th>
                                 </tr>
@@ -468,11 +404,6 @@ const doughnutOptions = {
                                         class="px-4 py-3 text-xs text-muted-foreground"
                                     >
                                         {{ e.email }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ e.branch }}
                                     </td>
                                     <td
                                         class="px-4 py-3 text-xs text-muted-foreground"

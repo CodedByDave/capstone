@@ -19,7 +19,6 @@ use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\DeliveryProofController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
 use App\Http\Controllers\Shop\Employee\AttendanceController;
-use App\Http\Controllers\Shop\Employee\BranchController;
 use App\Http\Controllers\Shop\Employee\EmployeeController;
 use App\Http\Controllers\Shop\Employee\PayrollController;
 use App\Http\Controllers\Shop\Employee\PermissionController;
@@ -260,19 +259,6 @@ Route::prefix('shop')->middleware([
     Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
     Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
 
-    // ── Branch ────────────────────────────────────────────────────────────────
-    Route::middleware('shop.capability:branches')->group(function () {
-        Route::get('/branch/create', [BranchController::class, 'create'])->name('branch.create');
-        Route::get('/branch/archive', [BranchController::class, 'archive'])->name('branch.archive');
-        Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('branch.restore');
-
-        Route::get('/branch', [BranchController::class, 'index'])->name('branch.index');
-        Route::post('/branch', [BranchController::class, 'store'])->name('branch.store');
-        Route::get('/branch/{branch}/edit', [BranchController::class, 'edit'])->name('branch.edit');
-        Route::put('/branch/{branch}', [BranchController::class, 'update'])->name('branch.update');
-        Route::delete('/branch/{branch}', [BranchController::class, 'destroy'])->name('branch.destroy');
-    });
-
     // ── Roles & Permissions ───────────────────────────────────────────────────
     Route::get('/permission', [PermissionController::class, 'index'])->name('shop.permission');
     Route::post('/permission/update', [PermissionController::class, 'updatePermission'])->name('shop.permission.update');
@@ -459,7 +445,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/employee/import', [EmployeeController::class, 'import'])->name('staff.employee.import');
     });
     // Dynamic (wildcard) routes after all static ones
-    Route::middleware(['permission:HRM,view', 'shop.capability:branches'])->group(function () {
+    Route::middleware('permission:HRM,view')->group(function () {
         Route::get('/employee', [EmployeeController::class, 'index'])->name('staff.employee.index');
         Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
     });
@@ -477,24 +463,6 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/employee/{employee}/schedule', [ScheduleController::class, 'store'])->name('staff.schedule.store');
         Route::put('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'update'])->name('staff.schedule.update');
         Route::delete('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('staff.schedule.destroy');
-    });
-
-    // ── Branch ────────────────────────────────────────────────────────────────
-    Route::middleware('permission:HRM,view')->group(function () {
-        Route::get('/branch', [BranchController::class, 'index'])->name('staff.branch.index');
-    });
-    Route::middleware(['permission:HRM,create', 'shop.capability:branches'])->group(function () {
-        Route::get('/branch/create', [BranchController::class, 'create'])->name('staff.branch.create');
-        Route::post('/branch', [BranchController::class, 'store'])->name('staff.branch.store');
-    });
-    Route::middleware(['permission:HRM,archive', 'shop.capability:branches'])->group(function () {
-        Route::get('/branch/archive', [BranchController::class, 'archive'])->name('staff.branch.archive');
-        Route::post('/branch/{id}/restore', [BranchController::class, 'restore'])->name('staff.branch.restore');
-        Route::delete('/branch/{branch}', [BranchController::class, 'destroy'])->name('staff.branch.destroy');
-    });
-    Route::middleware(['permission:HRM,update', 'shop.capability:branches'])->group(function () {
-        Route::get('/branch/{branch}/edit', [BranchController::class, 'edit'])->name('staff.branch.edit');
-        Route::put('/branch/{branch}', [BranchController::class, 'update'])->name('staff.branch.update');
     });
 
     // ── Inventory Categories ──────────────────────────────────────────────────

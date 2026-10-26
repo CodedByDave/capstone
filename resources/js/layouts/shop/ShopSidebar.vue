@@ -66,12 +66,10 @@ const shopCapabilities = computed(
     () =>
         ((props as any).shopCapabilities ?? {
             setup_completed: false,
-            multiple_locations: false,
             offers_pickup: false,
             offers_delivery: false,
         }) as {
             setup_completed: boolean;
-            multiple_locations: boolean;
             offers_pickup: boolean;
             offers_delivery: boolean;
         },
@@ -91,12 +89,6 @@ const isApproved = computed(
    HRM SUB-ACTIONS
 ───────────────────────────────────────── */
 const allHrmSubActions = [
-    {
-        title: 'Branch List',
-        icon: Building2,
-        href: '/shop/branch',
-        show: () => isOwner.value && shopCapabilities.value.multiple_locations,
-    },
     {
         title: 'Employee List',
         icon: List,
@@ -351,8 +343,6 @@ const areaChecks: Record<string, (url: string) => boolean> = {
     HRM: (url) =>
         url.startsWith('/shop/employee') ||
         url.startsWith('/staff/employee') ||
-        url.startsWith('/shop/branch') ||
-        url.startsWith('/staff/branch') ||
         url.startsWith('/shop/attendance') ||
         url.startsWith('/staff/attendance') ||
         url.startsWith('/shop/positions') ||
@@ -409,8 +399,6 @@ function toggleCollapsible(name: string) {
 const exactRoutes = [
     '/shop/employee',
     '/staff/employee',
-    '/shop/branch',
-    '/staff/branch',
     '/shop/attendance',
     '/staff/attendance',
     '/shop/positions',

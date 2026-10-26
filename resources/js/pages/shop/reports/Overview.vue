@@ -85,7 +85,6 @@ const props = defineProps<{
         low_stock_items: number;
         out_of_stock: number;
         total_employees: number;
-        total_branches: number;
         unresolved_alerts: number;
         movements_period: number;
     };
@@ -281,9 +280,6 @@ const doughnutOptions = {
                         </div>
                         <p class="text-3xl font-bold text-green-600">
                             {{ stats.total_employees }}
-                        </p>
-                        <p class="mt-1 text-xs text-muted-foreground">
-                            {{ stats.total_branches }} branches
                         </p>
                     </CardContent>
                 </Card>

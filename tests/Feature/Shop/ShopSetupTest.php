@@ -41,24 +41,6 @@ function setupOwnerWithPlan(string $plan = 'Basic', bool $trial = false): array
     return compact('owner', 'shop', 'order');
 }
 
-function setupBranchPayload(): array
-{
-    return [
-        'name' => 'Molino Branch',
-        'phone' => '09181234567',
-        'block_street' => '2 Molino Road',
-        'municipality' => 'Bacoor',
-        'barangay' => 'Molino I',
-        'postal_code' => '4102',
-        'mayors_permit_number' => 'BAC-2026-100',
-        'mayors_permit' => UploadedFile::fake()->create('mayors.pdf', 100, 'application/pdf'),
-        'mayors_expiry_date' => now()->addYear()->toDateString(),
-        'sanitary_permit_number' => 'SAN-2026-100',
-        'sanitary_permit' => UploadedFile::fake()->create('sanitary.pdf', 100, 'application/pdf'),
-        'sanitary_expiry_date' => now()->addYear()->toDateString(),
-    ];
-}
-
 beforeEach(function () {
     $this->withoutMiddleware([
         EnsureCurrentBusinessAgreementAccepted::class,
@@ -79,7 +61,6 @@ test('basic owner can complete single location setup', function () {
 
     $this->actingAs($owner)
         ->put(route('shop.setup.store'), [
-            'location_mode' => 'single',
             'offers_pickup' => true,
             'offers_delivery' => false,
         ])
@@ -87,56 +68,11 @@ test('basic owner can complete single location setup', function () {
 
     $shop->refresh();
 
-    expect($shop->location_mode)->toBe('single')
-        ->and($shop->offers_pickup)->toBeTrue()
+    expect($shop->offers_pickup)->toBeTrue()
         ->and($shop->offers_delivery)->toBeFalse()
         ->and($shop->setup_completed_at)->not->toBeNull()
         ->and($shop->status)->toBe('active');
 });
-
-test('basic and standard plans cannot enable multiple locations', function (string $plan) {
-    ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan($plan);
-
-    $this->actingAs($owner)
-        ->from(route('shop.setup.show'))
-        ->put(route('shop.setup.store'), [
-            'location_mode' => 'multiple',
-            'offers_pickup' => false,
-            'offers_delivery' => false,
-        ])
-        ->assertRedirect(route('shop.setup.show'))
-        ->assertSessionHasErrors('location_mode');
-
-    expect($shop->fresh()->setup_completed_at)->toBeNull();
-})->with(['Basic', 'Standard']);
-
-test('premium and trial plans can enable multiple locations', function (string $plan, bool $trial) {
-    Storage::fake('private');
-    ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan($plan, $trial);
-
-    $this->actingAs($owner)
-        ->post(route('shop.setup.store'), [
-            '_method' => 'put',
-            'location_mode' => 'multiple',
-            'ownership_type' => 'company_owned',
-            'branches' => [setupBranchPayload()],
-            'offers_pickup' => true,
-            'offers_delivery' => true,
-        ])
-        ->assertRedirect(route('shop.settings'));
-
-    expect($shop->fresh()->location_mode)->toBe('multiple')
-        ->and($shop->fresh()->ownership_type)->toBe('company_owned');
-
-    $this->assertDatabaseHas('branches', [
-        'shop_id' => $shop->id,
-        'name' => 'Molino Branch',
-        'mayors_permit_number' => 'BAC-2026-100',
-    ]);
-})->with([
-    'premium' => ['Premium', false],
-    'trial' => ['Standard', true],
-]);
 
 test('franchise setup records the brand separately from account ownership', function () {
     ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan();
@@ -146,7 +82,6 @@ test('franchise setup records the brand separately from account ownership', func
             'ownership_type' => 'franchisee',
             'franchise_brand_name' => 'CleanWave',
             'franchisor_name' => 'CleanWave Franchising Corporation',
-            'location_mode' => 'single',
             'offers_pickup' => false,
             'offers_delivery' => false,
         ])
@@ -158,24 +93,15 @@ test('franchise setup records the brand separately from account ownership', func
         ->and($shop->franchisor_name)->toBe('CleanWave Franchising Corporation');
 });
 
-test('single location shop cannot access branch management', function () {
-    ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan('Premium');
-    $shop->update([
-        'location_mode' => 'single',
-        'offers_pickup' => false,
-        'offers_delivery' => false,
-        'setup_completed_at' => now(),
-    ]);
+test('branch management is not available', function () {
+    ['owner' => $owner] = setupOwnerWithPlan('Premium');
 
-    $this->actingAs($owner)
-        ->get(route('branch.index'))
-        ->assertForbidden();
+    $this->actingAs($owner)->get('/shop/branch')->assertNotFound();
 });
 
 test('customer pickup request is rejected when shop pickup is disabled', function () {
     ['shop' => $shop] = setupOwnerWithPlan('Premium');
     $shop->update([
-        'location_mode' => 'single',
         'offers_pickup' => false,
         'offers_delivery' => false,
         'setup_completed_at' => now(),
@@ -193,7 +119,6 @@ test('customer pickup request is rejected when shop pickup is disabled', functio
 test('shop cannot create deliveries when delivery is disabled', function () {
     ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan('Premium');
     $shop->update([
-        'location_mode' => 'single',
         'offers_pickup' => false,
         'offers_delivery' => false,
         'setup_completed_at' => now(),
@@ -209,7 +134,6 @@ test('repeating setup updates preferences without changing completion time', fun
     ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan('Premium');
 
     $payload = [
-        'location_mode' => 'single',
         'offers_pickup' => false,
         'offers_delivery' => false,
     ];

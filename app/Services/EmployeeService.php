@@ -36,7 +36,6 @@ class EmployeeService
     public function __construct(
         private readonly EmployeeRepository $employeeRepository,
         private readonly ActivityLogService $activityLogService,
-        private readonly ShopSetupService $shopSetupService,
         private readonly DriverRosterService $driverRoster,
     ) {}
 
@@ -61,11 +60,10 @@ class EmployeeService
 
     public function indexData(Shop $shop, array $filters = []): array
     {
-        $usesBranches = $this->shopSetupService->shopSupports($shop->id, 'branches');
         $filters = [
             'search' => $filters['search'] ?? '',
             'status' => $filters['status'] ?? '',
-            'branch' => $usesBranches ? ($filters['branch'] ?? '') : '',
+            'branch' => '',
             'employment_type' => $filters['employment_type'] ?? '',
             'sort_by' => $filters['sort_by'] ?? 'employee_id',
             'sort_direction' => $filters['sort_direction'] ?? 'asc',
@@ -83,11 +81,7 @@ class EmployeeService
                 $isOwner ? null : $user->id,
             ),
             'stats' => $this->employeeRepository->getStatsByShop($shop, $staffBranch),
-            'branch_names' => ! $usesBranches
-                ? []
-                : ($staffBranch !== null
-                ? [$staffBranch]
-                : $this->employeeRepository->getBranchNames($shop)),
+            'branch_names' => [],
             'employment_types' => EmploymentType::options(),
             'pay_bases' => PayBasis::options(),
             'shop' => $shop,
@@ -102,23 +96,10 @@ class EmployeeService
         return $this->employeeRepository->getStatsByShop($shop, $branch);
     }
 
+    /** A shop is a single location, so there are no branch names to pick from. */
     public function getBranchNames(Shop $shop): array
     {
-        if (! $this->shopSetupService->shopSupports($shop->id, 'branches')) {
-            return [];
-        }
-
-        if (auth()->user()->role !== 'owner') {
-            $branch = $this->getStaffBranch();
-
-            // If the staff is branch-scoped, restrict them to their own branch only
-            if ($branch !== null) {
-                return [$branch];
-            }
-            // No branch assigned → can see and assign any branch (shop-level staff)
-        }
-
-        return $this->employeeRepository->getBranchNames($shop);
+        return [];
     }
 
     public function findEmployee(int $id, Shop $shop): Employee
@@ -135,9 +116,7 @@ class EmployeeService
 
     public function createEmployee(Shop $shop, array $data): Employee
     {
-        if (! $this->shopSetupService->shopSupports($shop->id, 'branches')) {
-            $data['branch_name'] = null;
-        }
+        $data['branch_name'] = null;
 
         return DB::transaction(function () use ($shop, $data) {
 
@@ -201,9 +180,7 @@ class EmployeeService
 
     public function updateEmployee(Employee $employee, array $data): Employee
     {
-        if (! $this->shopSetupService->shopSupports($employee->shop_id, 'branches')) {
-            $data['branch_name'] = null;
-        }
+        $data['branch_name'] = null;
 
         $changes = $this->diffChanges($employee, $data);
 

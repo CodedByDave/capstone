@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
-use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeeSchedule;
 use App\Models\Inventory;
@@ -76,7 +75,6 @@ class ReportsController extends Controller
         $lowStockItems = Inventory::where('shop_id', $shop->id)->whereColumn('quantity', '<=', 'min_stock')->count();
         $outOfStock = Inventory::where('shop_id', $shop->id)->where('quantity', 0)->count();
         $totalEmployees = $this->scopeEmployees($shop, $branch)->count();
-        $totalBranches = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
         $unresolvedAlerts = LowStockAlert::where('shop_id', $shop->id)->whereIn('status', ['unread', 'read'])->count();
         $movementsInPeriod = InventoryMovement::where('shop_id', $shop->id)
             ->whereBetween('created_at', [$from, $to])->count();
@@ -109,7 +107,6 @@ class ReportsController extends Controller
                 'low_stock_items' => $lowStockItems,
                 'out_of_stock' => $outOfStock,
                 'total_employees' => $totalEmployees,
-                'total_branches' => $totalBranches,
                 'unresolved_alerts' => $unresolvedAlerts,
                 'movements_period' => $movementsInPeriod,
             ],
@@ -213,15 +210,7 @@ class ReportsController extends Controller
         [$from, $to] = $this->getDateRange($period);
 
         $totalEmployees = $this->scopeEmployees($shop, $branch)->count();
-        $totalBranches = $branch !== null ? 1 : Branch::where('shop_id', $shop->id)->count();
         $newEmployees = $this->scopeEmployees($shop, $branch)->whereBetween('created_at', [$from, $to])->count();
-
-        $employeesByBranch = $branch !== null
-            ? collect([['name' => $branch, 'count' => $this->scopeEmployees($shop, $branch)->count()]])
-            : Branch::where('shop_id', $shop->id)
-                ->withCount('employees')
-                ->get()
-                ->map(fn ($b) => ['name' => $b->name, 'count' => $b->employees_count]);
 
         $growthStart = Carbon::now()->subMonths(5)->startOfMonth();
         $employeeGrowthCounts = $this->scopeEmployees($shop, $branch)
@@ -255,7 +244,6 @@ class ReportsController extends Controller
             ->map(fn ($e) => [
                 'name' => "{$e->first_name} {$e->last_name}",
                 'email' => $e->email,
-                'branch' => $e->branch_name ?? '—',
                 'created_at' => $e->created_at->format('M d, Y'),
             ]);
 
@@ -271,11 +259,9 @@ class ReportsController extends Controller
             'period' => $period,
             'stats' => [
                 'total_employees' => $totalEmployees,
-                'total_branches' => $totalBranches,
                 'new_employees' => $newEmployees,
                 'scheduled_week' => $scheduledThisWeek,
             ],
-            'employeesByBranch' => $employeesByBranch,
             'employeeGrowth' => $employeeGrowth,
             'recentEmployees' => $recentEmployees,
             'employeesByRole' => $employeesByRole,

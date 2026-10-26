@@ -39,11 +39,6 @@ interface CategoryPoint {
     label: string;
     count: number;
 }
-interface BranchEmployee {
-    branch: string;
-    count: number;
-    status: string;
-}
 interface LowStockItem {
     name: string;
     sku: string;
@@ -142,7 +137,6 @@ const { props } = usePage<{
     has_used_trial?: boolean;
     stats?: {
         employees: { total: number; active: number; inactive: number };
-        branches: { total: number; active: number };
         inventory: { total: number; low_stock: number; out_of_stock: number };
         low_stock_alerts: number;
         movements: { this_month: number; change: number };
@@ -158,7 +152,6 @@ const { props } = usePage<{
     } | null;
     movement_chart?: MovementPoint[];
     category_breakdown?: CategoryPoint[];
-    employees_per_branch?: BranchEmployee[];
     low_stock_items?: LowStockItem[];
     recent_movements?: RecentMovement[];
     order_stats?: OrderStats;
@@ -328,8 +321,6 @@ const dssRecommendations = computed<DSSInsight[]>(() => {
 
     const inactiveEmployees = stats?.employees.inactive ?? 0;
     const activeEmployees = stats?.employees.active ?? 0;
-    const activeBranches = stats?.branches.active ?? 0;
-    const totalBranches = stats?.branches.total ?? 0;
     const workforceRecommendation: DSSInsight =
         inactiveEmployees > 0 && openOrders > 0
             ? {
@@ -337,16 +328,10 @@ const dssRecommendations = computed<DSSInsight[]>(() => {
                   title: 'Align Staff With Workload',
                   message: `${inactiveEmployees} employee(s) are inactive while ${openOrders} order(s) remain open. Review shift coverage and task assignments.`,
               }
-            : activeBranches < totalBranches
-              ? {
-                    type: 'warning',
-                    title: 'Review Branch Availability',
-                    message: `${activeBranches} of ${totalBranches} branches are active. Confirm whether inactive locations need staffing or operational attention.`,
-                }
-              : {
+            : {
                     type: 'info',
                     title: 'Balance Team Capacity',
-                    message: `${activeEmployees} active employee(s) are supporting ${activeBranches} active branch(es) and ${openOrders} open order(s). Adjust assignments as demand changes.`,
+                    message: `${activeEmployees} active employee(s) are supporting ${openOrders} open order(s). Adjust assignments as demand changes.`,
                 };
 
     return [
@@ -364,7 +349,6 @@ const revenueChartRef = ref<HTMLCanvasElement | null>(null);
 const serviceChartRef = ref<HTMLCanvasElement | null>(null);
 const movementChartRef = ref<HTMLCanvasElement | null>(null);
 const categoryChartRef = ref<HTMLCanvasElement | null>(null);
-const branchChartRef = ref<HTMLCanvasElement | null>(null);
 
 onMounted(() => {
     if (!isPaid.value) return;
@@ -373,7 +357,6 @@ onMounted(() => {
     const services = props.service_popularity ?? [];
     const movData = props.movement_chart ?? [];
     const catData = props.category_breakdown ?? [];
-    const branchData = props.employees_per_branch ?? [];
 
     // Peak threshold — months >= 75% of max are peak (orange)
     const maxOrders = Math.max(...orders12.map((d) => d.total_orders), 1);
@@ -620,43 +603,6 @@ onMounted(() => {
         });
     }
 
-    /* ── Employees per Branch ── */
-    if (branchChartRef.value && branchData.length) {
-        new Chart(branchChartRef.value, {
-            type: 'bar',
-            data: {
-                labels: branchData.map((d) => d.branch),
-                datasets: [
-                    {
-                        label: 'Employees',
-                        data: branchData.map((d) => d.count),
-                        backgroundColor: branchData.map((d) =>
-                            d.status === 'Active'
-                                ? 'rgba(99,102,241,0.75)'
-                                : 'rgba(156,163,175,0.5)',
-                        ),
-                        borderRadius: 5,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, font: { size: 11 } },
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 11 } },
-                    },
-                },
-            },
-        });
-    }
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -677,7 +623,6 @@ function refreshDashboard() {
             'stats',
             'movement_chart',
             'category_breakdown',
-            'employees_per_branch',
             'low_stock_items',
             'recent_movements',
             'order_stats',
@@ -1514,22 +1459,6 @@ function proceedToPay() {
                                 </div>
                                 <p class="mt-1 text-xs text-muted-foreground">
                                     {{ props.stats?.employees.active ?? 0 }}
-                                    active
-                                </p>
-                            </div>
-                            <div>
-                                <div
-                                    class="flex items-center justify-between gap-3"
-                                >
-                                    <span class="text-sm text-muted-foreground"
-                                        >Branches</span
-                                    >
-                                    <span class="font-semibold tabular-nums">{{
-                                        props.stats?.branches.total ?? 0
-                                    }}</span>
-                                </div>
-                                <p class="mt-1 text-xs text-muted-foreground">
-                                    {{ props.stats?.branches.active ?? 0 }}
                                     active
                                 </p>
                             </div>

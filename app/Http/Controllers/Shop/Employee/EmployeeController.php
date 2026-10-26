@@ -13,7 +13,6 @@ use App\Models\Employee;
 use App\Models\EmployeeArchive;
 use App\Models\Shop;
 use App\Models\ShopRole;
-use App\Repositories\BranchRepository;
 use App\Services\EmployeeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -23,7 +22,6 @@ class EmployeeController extends Controller
 {
     public function __construct(
         private readonly EmployeeService $employeeService,
-        private readonly BranchRepository $branchRepository,
     ) {}
 
     /* ─── PRIVATE HELPERS ────────────────────────────────────── */
@@ -149,10 +147,6 @@ class EmployeeController extends Controller
                 ->with('employee')
                 ->latest('archived_at')
                 ->get(),
-
-            'archivedBranches' => $this->branchRepository
-                ->paginateArchivedForShop($shop->id, perPage: 999)
-                ->items(),
         ]);
     }
 

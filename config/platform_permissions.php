@@ -34,7 +34,6 @@ return [
         'shop/dashboard' => 'shop.dashboard',
         'shop/data' => 'shop.dashboard',
         'shop/employee*' => 'shop.staff',
-        'shop/branch*' => 'shop.staff',
         'shop/attendance*' => 'shop.staff',
         'shop/payroll*' => 'shop.staff',
         'shop/permission*' => 'shop.staff',
