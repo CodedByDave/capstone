@@ -22,7 +22,6 @@ const { shop } = defineProps<{
         id: number;
         public_id: string;
         shop_name: string;
-        branch_name: string | null;
         phone: string;
         block_street: string;
         municipality: string;
@@ -45,7 +44,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     shop_name: shop.shop_name,
-    branch_name: shop.branch_name ?? '',
     phone: shop.phone,
     block_street: shop.block_street,
     municipality: shop.municipality,
@@ -100,18 +98,6 @@ function submit() {
                 <Input v-model="form.shop_name" />
                 <p v-if="form.errors.shop_name" class="text-xs text-red-500">
                     {{ form.errors.shop_name }}
-                </p>
-            </div>
-
-            <!-- Branch Name (full width) -->
-            <div class="space-y-1 md:col-span-2">
-                <label class="text-sm font-medium">
-                    Branch Name
-                    <span class="text-muted-foreground">(optional)</span>
-                </label>
-                <Input v-model="form.branch_name" />
-                <p v-if="form.errors.branch_name" class="text-xs text-red-500">
-                    {{ form.errors.branch_name }}
                 </p>
             </div>
 

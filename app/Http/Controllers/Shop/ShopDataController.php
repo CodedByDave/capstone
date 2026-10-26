@@ -20,7 +20,6 @@ class ShopDataController extends Controller
             'email' => $user->email,
             'shop_name' => $shop->shop_name,
             'phone' => $shop->phone,
-            'branch_name' => $shop->branch_name,
             'block_street' => $shop->block_street,
             'municipality' => $shop->municipality,
             'barangay' => $shop->barangay,

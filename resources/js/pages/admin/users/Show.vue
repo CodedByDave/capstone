@@ -16,7 +16,6 @@ import {
 interface Shop {
     id: number;
     shop_name: string;
-    branch_name?: string | null;
     status?: string | null;
 }
 
@@ -239,16 +238,6 @@ function initials(name: string) {
                             </p>
                             <p class="mt-1 font-medium">
                                 {{ user.shop.shop_name }}
-                            </p>
-                        </div>
-                        <div>
-                            <p
-                                class="text-xs font-medium text-muted-foreground uppercase"
-                            >
-                                Branch
-                            </p>
-                            <p class="mt-1 font-medium">
-                                {{ user.shop.branch_name || 'Not specified' }}
                             </p>
                         </div>
                         <div>

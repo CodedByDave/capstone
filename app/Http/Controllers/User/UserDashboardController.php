@@ -53,7 +53,7 @@ class UserDashboardController extends Controller
                 ->whereNotNull('longitude')
                 ->with(['services' => fn ($q) => $q->where('is_active', true)
                     ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price')])
-                ->select('id', 'shop_name', 'branch_name', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo')
+                ->select('id', 'shop_name', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo')
                 ->get()
                 ->map(function ($shop) use ($lat, $lng) {
                     $startingPrice = $this->catalog->startingPrice($shop->services);
@@ -61,7 +61,6 @@ class UserDashboardController extends Controller
                     return [
                         'id' => $shop->id,
                         'shop_name' => $shop->shop_name,
-                        'branch_name' => $shop->branch_name,
                         'municipality' => $shop->municipality,
                         'barangay' => $shop->barangay,
                         'cover_photo' => $this->coverUrl($shop->cover_photo),
@@ -106,7 +105,7 @@ class UserDashboardController extends Controller
                 'services' => fn ($q) => $q->where('is_active', true)
                     ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price', 'bundle_weight_kg'),
             ])
-            ->select('id', 'shop_name', 'branch_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo');
+            ->select('id', 'shop_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -186,7 +185,6 @@ class UserDashboardController extends Controller
             'shop' => [
                 'id' => $shop->id,
                 'shop_name' => $shop->shop_name,
-                'branch_name' => $shop->branch_name,
                 'phone' => $shop->phone,
                 'block_street' => $shop->block_street,
                 'municipality' => $shop->municipality,

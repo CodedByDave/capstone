@@ -44,7 +44,6 @@ const form = useForm({
     phone: '',
 
     shop_name: '',
-    branch_name: '',
     block_street: '',
     municipality: '',
     barangay: '',

@@ -281,8 +281,8 @@ function clearGeo() {
                         <CardTitle class="text-sm">Operations Setup</CardTitle>
                     </div>
                     <CardDescription class="text-xs">
-                        Control branch management, customer pickup, and delivery
-                        without deleting historical records.
+                        Control customer pickup and delivery without deleting
+                        historical records.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

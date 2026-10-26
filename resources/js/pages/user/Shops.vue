@@ -28,7 +28,6 @@ interface ShopService {
 interface Shop {
     id: number;
     shop_name: string;
-    branch_name: string | null;
     phone: string | null;
     block_street: string | null;
     municipality: string;
@@ -244,12 +243,6 @@ function shopGradient(id: number) {
                                 class="text-base leading-tight font-bold text-white drop-shadow"
                             >
                                 {{ shop.shop_name }}
-                            </p>
-                            <p
-                                v-if="shop.branch_name"
-                                class="mt-0.5 text-xs text-white/80"
-                            >
-                                {{ shop.branch_name }}
                             </p>
                         </div>
                     </div>

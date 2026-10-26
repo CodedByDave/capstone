@@ -45,7 +45,6 @@ class Shop extends Model
         'public_id',
         'owner_id',
         'shop_name',
-        'branch_name',
         'ownership_type',
         'franchise_brand_name',
         'franchisor_name',

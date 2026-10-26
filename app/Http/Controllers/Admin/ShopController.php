@@ -476,7 +476,6 @@ class ShopController extends Controller
             'id' => $shop->id,
             'public_id' => $shop->public_id,
             'shop_name' => $shop->shop_name,
-            'branch_name' => $shop->branch_name,
             'phone' => $shop->phone,
             'municipality' => $shop->municipality,
             'barangay' => $shop->barangay,

@@ -45,7 +45,6 @@ interface ShopItem {
     id: number;
     public_id: string;
     shop_name: string;
-    branch_name: string | null;
     phone: string;
     municipality: string;
     barangay: string;
@@ -821,10 +820,7 @@ function badgeClass(type: string) {
                                     {{ shop.shop_name }}
                                 </p>
                                 <p class="text-xs text-muted-foreground">
-                                    {{
-                                        shop.branch_name ||
-                                        `${shop.barangay}, ${shop.municipality}`
-                                    }}
+                                    {{ shop.barangay }}, {{ shop.municipality }}
                                 </p>
                             </div>
                         </template>

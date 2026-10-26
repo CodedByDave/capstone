@@ -41,7 +41,6 @@ class OfflineTestAccountSeeder extends Seeder
             ['owner_id' => $owner->id],
             [
                 'shop_name' => 'Offline Test Laundry',
-                'branch_name' => 'Main Branch',
                 'phone' => '09171234567',
                 'block_street' => '123 Test Street',
                 'municipality' => 'Manila',

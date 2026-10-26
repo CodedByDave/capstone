@@ -91,15 +91,6 @@ const total = computed(() => subtotal.value + tax.value);
                                 >
                                     {{ order.shop_name }}
                                 </p>
-                                <p
-                                    v-if="
-                                        order.branch_name &&
-                                        order.branch_name !== 'N/A'
-                                    "
-                                    class="text-sm text-gray-600 dark:text-gray-400"
-                                >
-                                    Branch: {{ order.branch_name }}
-                                </p>
                             </div>
                         </div>
                         <div class="flex items-start gap-2">

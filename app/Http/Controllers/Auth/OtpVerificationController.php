@@ -172,7 +172,6 @@ class OtpVerificationController extends Controller
                     'password' => $pendingData['password'],
                     'shop_name' => $pendingData['shop_name'],
                     'phone' => $pendingData['phone'],
-                    'branch_name' => $pendingData['branch_name'] ?? null,
                     'block_street' => $pendingData['block_street'],
                     'municipality' => $pendingData['municipality'],
                     'barangay' => $pendingData['barangay'],

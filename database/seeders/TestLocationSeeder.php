@@ -92,7 +92,6 @@ class TestLocationSeeder extends Seeder
             ['owner_id' => $owner1->id],
             [
                 'shop_name' => 'QuickWash Laundry',
-                'branch_name' => 'Ermita Branch',
                 'phone' => '09171234567',
                 'block_street' => '123 Padre Faura St.',
                 'municipality' => 'Manila',

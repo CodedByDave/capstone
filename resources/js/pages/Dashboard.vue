@@ -37,7 +37,6 @@ interface RecentOrder {
 interface NearbyShop {
     id: number;
     shop_name: string;
-    branch_name: string | null;
     municipality: string;
     barangay: string;
     cover_photo: string | null;

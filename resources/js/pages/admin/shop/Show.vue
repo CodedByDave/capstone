@@ -50,7 +50,6 @@ interface ShopDetails {
     id: number;
     public_id: string;
     shop_name: string;
-    branch_name: string | null;
     phone: string;
     block_street: string | null;
     municipality: string;
@@ -420,7 +419,6 @@ function enableShop() {
                                 </span>
                             </div>
                             <p class="mt-1 text-sm text-muted-foreground">
-                                {{ shop.branch_name || 'Main shop' }} ·
                                 {{ shop.barangay }}, {{ shop.municipality }}
                             </p>
                             <div class="mt-4 flex flex-wrap gap-2">
@@ -479,12 +477,6 @@ function enableShop() {
                         <div>
                             <p class="detail-label">Shop name</p>
                             <p class="font-medium">{{ shop.shop_name }}</p>
-                        </div>
-                        <div>
-                            <p class="detail-label">Branch</p>
-                            <p class="font-medium">
-                                {{ shop.branch_name || 'Main shop' }}
-                            </p>
                         </div>
                         <div>
                             <p class="detail-label">Phone</p>

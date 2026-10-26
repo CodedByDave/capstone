@@ -56,7 +56,6 @@ interface ShopService {
 interface ShopInfo {
     id: number;
     shop_name: string;
-    branch_name: string | null;
     phone: string | null;
     block_street: string | null;
     municipality: string;
@@ -390,9 +389,6 @@ function goBack() {
                 >
                     {{ shop.shop_name }}
                 </h1>
-                <p v-if="shop.branch_name" class="mt-0.5 text-sm text-white/80">
-                    {{ shop.branch_name }}
-                </p>
                 <div
                     class="mt-1.5 inline-flex rounded-full bg-white/90 px-2.5 py-1"
                 >

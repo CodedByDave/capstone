@@ -21,7 +21,6 @@ class RegisterShopRequest extends FormRequest
 
             'shop_name' => 'required|string|max:150',
             'phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
-            'branch_name' => 'nullable|string|max:150',
             'block_street' => 'nullable|string|max:255',
             'municipality' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
