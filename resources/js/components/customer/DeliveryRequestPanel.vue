@@ -24,9 +24,22 @@ import {
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
+interface FeeBreakdown {
+    mode: 'fixed' | 'per_km';
+    fee: number;
+    base_fee: number;
+    free_km: number;
+    chargeable_km: number;
+    rate_per_km: number;
+    distance_fee: number;
+    min_fee: number;
+    min_applied: boolean;
+}
+
 interface Quote {
     distance_km: number | null;
     fee: number | null;
+    breakdown: FeeBreakdown | null;
     available: boolean;
     message: string;
 }
@@ -390,6 +403,42 @@ function submit() {
                 >Not available</span
             >
         </div>
+        <dl
+            v-if="
+                quote?.available &&
+                !quoting &&
+                quote.breakdown?.mode === 'per_km'
+            "
+            class="space-y-1 rounded-xl border border-gray-100 px-3 py-2 text-xs text-gray-600 dark:border-gray-700 dark:text-gray-300"
+        >
+            <div class="flex justify-between gap-3">
+                <dt>Base fee</dt>
+                <dd>{{ formatPeso(quote.breakdown.base_fee) }}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+                <dt>
+                    {{ quote.breakdown.chargeable_km }} km ×
+                    {{ formatPeso(quote.breakdown.rate_per_km) }}/km
+                    <span v-if="quote.breakdown.free_km > 0">
+                        (first {{ quote.breakdown.free_km }} km free)
+                    </span>
+                </dt>
+                <dd>{{ formatPeso(quote.breakdown.distance_fee) }}</dd>
+            </div>
+            <div
+                v-if="quote.breakdown.min_applied"
+                class="flex justify-between gap-3"
+            >
+                <dt>Minimum delivery fee applied</dt>
+                <dd>{{ formatPeso(quote.breakdown.min_fee) }}</dd>
+            </div>
+            <div
+                class="flex justify-between gap-3 border-t pt-1 font-semibold text-gray-900 dark:text-gray-100"
+            >
+                <dt>Delivery fee</dt>
+                <dd>{{ formatPeso(quote.breakdown.fee) }}</dd>
+            </div>
+        </dl>
         <p
             v-if="quote?.available && quote.fee && !quoting"
             class="text-xs text-gray-500 dark:text-gray-400"

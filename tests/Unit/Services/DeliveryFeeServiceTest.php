@@ -101,3 +101,33 @@ it('rejects quotes when the shop does not offer delivery', function () {
     expect(fn () => (new DeliveryFeeService)->calculate(feeShop(['offers_delivery' => false]), 1))
         ->toThrow(DeliveryNotAvailableException::class);
 });
+
+it('breaks a per-km fee into base, chargeable distance and minimum', function () {
+    $shop = feeShop([
+        'delivery_fee_mode' => 'per_km',
+        'delivery_base_fee' => 30,
+        'delivery_per_km_rate' => 10,
+        'delivery_free_km' => 1,
+        'delivery_min_fee' => 20,
+    ]);
+
+    $far = (new DeliveryFeeService)->breakdown($shop, 4.2);
+
+    expect($far['mode'])->toBe('per_km')
+        ->and($far['base_fee'])->toBe(30.0)
+        ->and($far['chargeable_km'])->toBe(3.2)
+        ->and($far['distance_fee'])->toBe(32.0)
+        ->and($far['fee'])->toBe(62.0)
+        ->and($far['min_applied'])->toBeFalse();
+
+    $shop->delivery_base_fee = 0;
+    $near = (new DeliveryFeeService)->breakdown($shop, 1.5);
+
+    expect($near['fee'])->toBe(20.0)->and($near['min_applied'])->toBeTrue();
+});
+
+it('reports a fixed fee as a single amount', function () {
+    $breakdown = (new DeliveryFeeService)->breakdown(feeShop(), 3.0);
+
+    expect($breakdown['mode'])->toBe('fixed')->and($breakdown['fee'])->toBe(50.0);
+});

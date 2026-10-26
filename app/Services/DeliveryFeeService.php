@@ -12,16 +12,52 @@ class DeliveryFeeService
 {
     public function calculate(Shop $shop, float $distanceKm): float
     {
+        return $this->breakdown($shop, $distanceKm)['fee'];
+    }
+
+    /**
+     * The fee and how it was worked out, so a customer can see where the amount comes from.
+     *
+     * @return array{mode: string, fee: float, base_fee: float, free_km: float, chargeable_km: float, rate_per_km: float, distance_fee: float, min_fee: float, min_applied: bool}
+     */
+    public function breakdown(Shop $shop, float $distanceKm): array
+    {
         $this->assertDeliverable($shop, $distanceKm);
 
-        if ($shop->delivery_fee_mode === Shop::DELIVERY_FEE_PER_KM) {
-            $chargeableKm = max(0, $distanceKm - (float) $shop->delivery_free_km);
-            $fee = (float) $shop->delivery_base_fee + $chargeableKm * (float) $shop->delivery_per_km_rate;
+        if ($shop->delivery_fee_mode !== Shop::DELIVERY_FEE_PER_KM) {
+            $fixed = round((float) $shop->delivery_fixed_fee, 2);
 
-            return round(max((float) $shop->delivery_min_fee, $fee), 2);
+            return [
+                'mode' => Shop::DELIVERY_FEE_FIXED,
+                'fee' => $fixed,
+                'base_fee' => $fixed,
+                'free_km' => 0.0,
+                'chargeable_km' => 0.0,
+                'rate_per_km' => 0.0,
+                'distance_fee' => 0.0,
+                'min_fee' => 0.0,
+                'min_applied' => false,
+            ];
         }
 
-        return round((float) $shop->delivery_fixed_fee, 2);
+        $freeKm = (float) $shop->delivery_free_km;
+        $chargeableKm = round(max(0, $distanceKm - $freeKm), 1);
+        $rate = (float) $shop->delivery_per_km_rate;
+        $base = (float) $shop->delivery_base_fee;
+        $minFee = (float) $shop->delivery_min_fee;
+        $fee = $base + max(0, $distanceKm - $freeKm) * $rate;
+
+        return [
+            'mode' => Shop::DELIVERY_FEE_PER_KM,
+            'fee' => round(max($minFee, $fee), 2),
+            'base_fee' => round($base, 2),
+            'free_km' => $freeKm,
+            'chargeable_km' => $chargeableKm,
+            'rate_per_km' => round($rate, 2),
+            'distance_fee' => round(max(0, $distanceKm - $freeKm) * $rate, 2),
+            'min_fee' => round($minFee, 2),
+            'min_applied' => $minFee > $fee,
+        ];
     }
 
     public function assertShopCanQuote(Shop $shop): void

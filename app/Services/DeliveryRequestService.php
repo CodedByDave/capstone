@@ -28,7 +28,7 @@ class DeliveryRequestService
     ) {}
 
     /**
-     * @return array{distance_km: float|null, fee: float|null, available: bool, message: string}
+     * @return array{distance_km: float|null, fee: float|null, breakdown: array<string, mixed>|null, available: bool, message: string}
      */
     public function quote(User $customer, string $paymentPublicId, float $lat, float $lng): array
     {
@@ -38,11 +38,13 @@ class DeliveryRequestService
         try {
             $this->fees->assertShopCanQuote($order->shop);
             $distanceKm = $this->distanceTo($order->shop, $lat, $lng);
-            $fee = $this->fees->calculate($order->shop, $distanceKm);
+            $breakdown = $this->fees->breakdown($order->shop, $distanceKm);
+            $fee = $breakdown['fee'];
         } catch (DeliveryNotAvailableException $exception) {
             return [
                 'distance_km' => $distanceKm,
                 'fee' => null,
+                'breakdown' => null,
                 'available' => false,
                 'message' => $exception->getMessage(),
             ];
@@ -51,6 +53,7 @@ class DeliveryRequestService
         return [
             'distance_km' => $distanceKm,
             'fee' => $fee,
+            'breakdown' => $breakdown,
             'available' => true,
             'message' => $fee > 0
                 ? 'Delivery fee of ₱'.number_format($fee, 2).' will be added to your balance.'
