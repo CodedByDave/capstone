@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::pay
- * @see app/Http/Controllers/Shop/CheckoutController.php:141
+ * @see app/Http/Controllers/Shop/CheckoutController.php:145
  * @route '/shop/payment/pay'
  */
 export const pay = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ pay.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::pay
- * @see app/Http/Controllers/Shop/CheckoutController.php:141
+ * @see app/Http/Controllers/Shop/CheckoutController.php:145
  * @route '/shop/payment/pay'
  */
 pay.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ pay.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::pay
- * @see app/Http/Controllers/Shop/CheckoutController.php:141
+ * @see app/Http/Controllers/Shop/CheckoutController.php:145
  * @route '/shop/payment/pay'
  */
 pay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ pay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\CheckoutController::pay
- * @see app/Http/Controllers/Shop/CheckoutController.php:141
+ * @see app/Http/Controllers/Shop/CheckoutController.php:145
  * @route '/shop/payment/pay'
  */
     const payForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ pay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\CheckoutController::pay
- * @see app/Http/Controllers/Shop/CheckoutController.php:141
+ * @see app/Http/Controllers/Shop/CheckoutController.php:145
  * @route '/shop/payment/pay'
  */
         payForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

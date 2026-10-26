@@ -1,5 +1,6 @@
 import Auth from './Auth'
-import DriverPageController from './DriverPageController'
+import Driver from './Driver'
+import LandingController from './LandingController'
 import Shop from './Shop'
 import BusinessAgreementSignatureController from './BusinessAgreementSignatureController'
 import Admin from './Admin'
@@ -8,7 +9,8 @@ import User from './User'
 import Settings from './Settings'
 const Controllers = {
     Auth: Object.assign(Auth, Auth),
-DriverPageController: Object.assign(DriverPageController, DriverPageController),
+Driver: Object.assign(Driver, Driver),
+LandingController: Object.assign(LandingController, LandingController),
 Shop: Object.assign(Shop, Shop),
 BusinessAgreementSignatureController: Object.assign(BusinessAgreementSignatureController, BusinessAgreementSignatureController),
 Admin: Object.assign(Admin, Admin),

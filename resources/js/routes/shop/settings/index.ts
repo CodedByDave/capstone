@@ -3,7 +3,7 @@ import geo1a384f from './geo'
 import coverPhoto500c46 from './cover-photo'
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::geo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:111
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
  * @route '/shop/settings/geo'
  */
 export const geo = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -18,7 +18,7 @@ geo.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::geo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:111
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
  * @route '/shop/settings/geo'
  */
 geo.url = (options?: RouteQueryOptions) => {
@@ -27,7 +27,7 @@ geo.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::geo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:111
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
  * @route '/shop/settings/geo'
  */
 geo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -37,7 +37,7 @@ geo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::geo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:111
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
  * @route '/shop/settings/geo'
  */
     const geoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -47,7 +47,7 @@ geo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::geo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:111
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
  * @route '/shop/settings/geo'
  */
         geoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -58,7 +58,7 @@ geo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     geo.form = geoForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::coverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:72
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
  * @route '/shop/settings/cover-photo'
  */
 export const coverPhoto = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -73,7 +73,7 @@ coverPhoto.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::coverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:72
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
  * @route '/shop/settings/cover-photo'
  */
 coverPhoto.url = (options?: RouteQueryOptions) => {
@@ -82,7 +82,7 @@ coverPhoto.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::coverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:72
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
  * @route '/shop/settings/cover-photo'
  */
 coverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -92,7 +92,7 @@ coverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::coverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:72
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
  * @route '/shop/settings/cover-photo'
  */
     const coverPhotoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -102,7 +102,7 @@ coverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::coverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:72
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
  * @route '/shop/settings/cover-photo'
  */
         coverPhotoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -113,7 +113,7 @@ coverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     coverPhoto.form = coverPhotoForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::paymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:53
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
  * @route '/shop/settings/paymongo'
  */
 export const paymongo = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -128,7 +128,7 @@ paymongo.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::paymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:53
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
  * @route '/shop/settings/paymongo'
  */
 paymongo.url = (options?: RouteQueryOptions) => {
@@ -137,7 +137,7 @@ paymongo.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::paymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:53
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
  * @route '/shop/settings/paymongo'
  */
 paymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -147,7 +147,7 @@ paymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::paymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:53
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
  * @route '/shop/settings/paymongo'
  */
     const paymongoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -157,7 +157,7 @@ paymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::paymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:53
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
  * @route '/shop/settings/paymongo'
  */
         paymongoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -167,8 +167,73 @@ paymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     
     paymongo.form = paymongoForm
 /**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::driverPay
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @route '/shop/settings/driver-pay'
+ */
+export const driverPay = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: driverPay.url(options),
+    method: 'patch',
+})
+
+driverPay.definition = {
+    methods: ["patch"],
+    url: '/shop/settings/driver-pay',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::driverPay
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @route '/shop/settings/driver-pay'
+ */
+driverPay.url = (options?: RouteQueryOptions) => {
+    return driverPay.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::driverPay
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @route '/shop/settings/driver-pay'
+ */
+driverPay.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: driverPay.url(options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::driverPay
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @route '/shop/settings/driver-pay'
+ */
+    const driverPayForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: driverPay.url({
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::driverPay
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @route '/shop/settings/driver-pay'
+ */
+        driverPayForm.patch = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: driverPay.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    driverPay.form = driverPayForm
+/**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::deliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:60
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
  * @route '/shop/settings/delivery-pricing'
  */
 export const deliveryPricing = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -183,7 +248,7 @@ deliveryPricing.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::deliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:60
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
  * @route '/shop/settings/delivery-pricing'
  */
 deliveryPricing.url = (options?: RouteQueryOptions) => {
@@ -192,7 +257,7 @@ deliveryPricing.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::deliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:60
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
  * @route '/shop/settings/delivery-pricing'
  */
 deliveryPricing.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -202,7 +267,7 @@ deliveryPricing.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> 
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::deliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:60
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
  * @route '/shop/settings/delivery-pricing'
  */
     const deliveryPricingForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -217,7 +282,7 @@ deliveryPricing.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> 
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::deliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:60
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
  * @route '/shop/settings/delivery-pricing'
  */
         deliveryPricingForm.patch = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -235,6 +300,7 @@ const settings = {
     geo: Object.assign(geo, geo1a384f),
 coverPhoto: Object.assign(coverPhoto, coverPhoto500c46),
 paymongo: Object.assign(paymongo, paymongo),
+driverPay: Object.assign(driverPay, driverPay),
 deliveryPricing: Object.assign(deliveryPricing, deliveryPricing),
 }
 

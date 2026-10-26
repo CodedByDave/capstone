@@ -212,7 +212,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:123
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
  * @route '/shop/operations/services/restore-all'
  */
 export const restoreAll = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ restoreAll.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:123
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
  * @route '/shop/operations/services/restore-all'
  */
 restoreAll.url = (options?: RouteQueryOptions) => {
@@ -236,7 +236,7 @@ restoreAll.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:123
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
  * @route '/shop/operations/services/restore-all'
  */
 restoreAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -246,7 +246,7 @@ restoreAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:123
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
  * @route '/shop/operations/services/restore-all'
  */
     const restoreAllForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -256,7 +256,7 @@ restoreAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:123
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
  * @route '/shop/operations/services/restore-all'
  */
         restoreAllForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ edit.head = (args: { service: number | { id: number } } | [service: number | { i
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
  * @route '/shop/operations/services/{service}'
  */
 export const update = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -384,7 +384,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
  * @route '/shop/operations/services/{service}'
  */
 update.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -417,7 +417,7 @@ update.url = (args: { service: number | { id: number } } | [service: number | { 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
  * @route '/shop/operations/services/{service}'
  */
 update.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -427,7 +427,7 @@ update.put = (args: { service: number | { id: number } } | [service: number | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
  * @route '/shop/operations/services/{service}'
  */
     const updateForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -442,7 +442,7 @@ update.put = (args: { service: number | { id: number } } | [service: number | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
  * @route '/shop/operations/services/{service}'
  */
         updateForm.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -458,7 +458,7 @@ update.put = (args: { service: number | { id: number } } | [service: number | { 
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:89
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
  * @route '/shop/operations/services/{service}'
  */
 export const destroy = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -473,7 +473,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:89
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
  * @route '/shop/operations/services/{service}'
  */
 destroy.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -506,7 +506,7 @@ destroy.url = (args: { service: number | { id: number } } | [service: number | {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:89
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
  * @route '/shop/operations/services/{service}'
  */
 destroy.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -516,7 +516,7 @@ destroy.delete = (args: { service: number | { id: number } } | [service: number 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:89
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
  * @route '/shop/operations/services/{service}'
  */
     const destroyForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -531,7 +531,7 @@ destroy.delete = (args: { service: number | { id: number } } | [service: number 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:89
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
  * @route '/shop/operations/services/{service}'
  */
         destroyForm.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -547,7 +547,7 @@ destroy.delete = (args: { service: number | { id: number } } | [service: number 
     destroy.form = destroyForm
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggle
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}/toggle'
  */
 export const toggle = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -562,7 +562,7 @@ toggle.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggle
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}/toggle'
  */
 toggle.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -595,7 +595,7 @@ toggle.url = (args: { service: number | { id: number } } | [service: number | { 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggle
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}/toggle'
  */
 toggle.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -605,7 +605,7 @@ toggle.patch = (args: { service: number | { id: number } } | [service: number | 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggle
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}/toggle'
  */
     const toggleForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -620,7 +620,7 @@ toggle.patch = (args: { service: number | { id: number } } | [service: number | 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggle
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}/toggle'
  */
         toggleForm.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -636,7 +636,7 @@ toggle.patch = (args: { service: number | { id: number } } | [service: number | 
     toggle.form = toggleForm
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:111
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
  * @route '/shop/operations/services/{service}/restore'
  */
 export const restore = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -651,7 +651,7 @@ restore.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:111
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
  * @route '/shop/operations/services/{service}/restore'
  */
 restore.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -684,7 +684,7 @@ restore.url = (args: { service: number | { id: number } } | [service: number | {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:111
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
  * @route '/shop/operations/services/{service}/restore'
  */
 restore.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -694,7 +694,7 @@ restore.patch = (args: { service: number | { id: number } } | [service: number |
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:111
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
  * @route '/shop/operations/services/{service}/restore'
  */
     const restoreForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -709,7 +709,7 @@ restore.patch = (args: { service: number | { id: number } } | [service: number |
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:111
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
  * @route '/shop/operations/services/{service}/restore'
  */
         restoreForm.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

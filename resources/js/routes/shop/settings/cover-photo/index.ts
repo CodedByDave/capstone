@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clear
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:95
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
  * @route '/shop/settings/cover-photo/clear'
  */
 export const clear = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ clear.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clear
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:95
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
  * @route '/shop/settings/cover-photo/clear'
  */
 clear.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ clear.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clear
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:95
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
  * @route '/shop/settings/cover-photo/clear'
  */
 clear.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ clear.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clear
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:95
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
  * @route '/shop/settings/cover-photo/clear'
  */
     const clearForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ clear.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clear
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:95
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
  * @route '/shop/settings/cover-photo/clear'
  */
         clearForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::confirm
- * @see app/Http/Controllers/Shop/CheckoutController.php:80
+ * @see app/Http/Controllers/Shop/CheckoutController.php:84
  * @route '/checkout/confirm'
  */
 export const confirm = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ confirm.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::confirm
- * @see app/Http/Controllers/Shop/CheckoutController.php:80
+ * @see app/Http/Controllers/Shop/CheckoutController.php:84
  * @route '/checkout/confirm'
  */
 confirm.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ confirm.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::confirm
- * @see app/Http/Controllers/Shop/CheckoutController.php:80
+ * @see app/Http/Controllers/Shop/CheckoutController.php:84
  * @route '/checkout/confirm'
  */
 confirm.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ confirm.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::confirm
- * @see app/Http/Controllers/Shop/CheckoutController.php:80
+ * @see app/Http/Controllers/Shop/CheckoutController.php:84
  * @route '/checkout/confirm'
  */
 confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\CheckoutController::confirm
- * @see app/Http/Controllers/Shop/CheckoutController.php:80
+ * @see app/Http/Controllers/Shop/CheckoutController.php:84
  * @route '/checkout/confirm'
  */
     const confirmForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\CheckoutController::confirm
- * @see app/Http/Controllers/Shop/CheckoutController.php:80
+ * @see app/Http/Controllers/Shop/CheckoutController.php:84
  * @route '/checkout/confirm'
  */
         confirmForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\CheckoutController::confirm
- * @see app/Http/Controllers/Shop/CheckoutController.php:80
+ * @see app/Http/Controllers/Shop/CheckoutController.php:84
  * @route '/checkout/confirm'
  */
         confirmForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     confirm.form = confirmForm
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::process
- * @see app/Http/Controllers/Shop/CheckoutController.php:99
+ * @see app/Http/Controllers/Shop/CheckoutController.php:103
  * @route '/checkout/process'
  */
 export const process = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ process.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::process
- * @see app/Http/Controllers/Shop/CheckoutController.php:99
+ * @see app/Http/Controllers/Shop/CheckoutController.php:103
  * @route '/checkout/process'
  */
 process.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ process.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\CheckoutController::process
- * @see app/Http/Controllers/Shop/CheckoutController.php:99
+ * @see app/Http/Controllers/Shop/CheckoutController.php:103
  * @route '/checkout/process'
  */
 process.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ process.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\CheckoutController::process
- * @see app/Http/Controllers/Shop/CheckoutController.php:99
+ * @see app/Http/Controllers/Shop/CheckoutController.php:103
  * @route '/checkout/process'
  */
     const processForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ process.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\CheckoutController::process
- * @see app/Http/Controllers/Shop/CheckoutController.php:99
+ * @see app/Http/Controllers/Shop/CheckoutController.php:103
  * @route '/checkout/process'
  */
         processForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

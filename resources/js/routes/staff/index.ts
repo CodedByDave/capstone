@@ -95,7 +95,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     dashboard.form = dashboardForm
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::logistics
- * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @see app/Http/Controllers/Shop/LogisticsController.php:24
  * @route '/staff/logistics'
  */
 export const logistics = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -110,7 +110,7 @@ logistics.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::logistics
- * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @see app/Http/Controllers/Shop/LogisticsController.php:24
  * @route '/staff/logistics'
  */
 logistics.url = (options?: RouteQueryOptions) => {
@@ -119,7 +119,7 @@ logistics.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::logistics
- * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @see app/Http/Controllers/Shop/LogisticsController.php:24
  * @route '/staff/logistics'
  */
 logistics.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -128,7 +128,7 @@ logistics.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::logistics
- * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @see app/Http/Controllers/Shop/LogisticsController.php:24
  * @route '/staff/logistics'
  */
 logistics.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -138,7 +138,7 @@ logistics.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::logistics
- * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @see app/Http/Controllers/Shop/LogisticsController.php:24
  * @route '/staff/logistics'
  */
     const logisticsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -148,7 +148,7 @@ logistics.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::logistics
- * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @see app/Http/Controllers/Shop/LogisticsController.php:24
  * @route '/staff/logistics'
  */
         logisticsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ logistics.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::logistics
- * @see app/Http/Controllers/Shop/LogisticsController.php:27
+ * @see app/Http/Controllers/Shop/LogisticsController.php:24
  * @route '/staff/logistics'
  */
         logisticsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

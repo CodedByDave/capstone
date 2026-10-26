@@ -1,9 +1,8 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 import photos from './photos'
-import riders13f500 from './riders'
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:36
+ * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
 export const status = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -18,7 +17,7 @@ status.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:36
+ * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
 status.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -51,7 +50,7 @@ status.url = (args: { delivery: string | { public_id: string } } | [delivery: st
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:36
+ * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
 status.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -61,7 +60,7 @@ status.patch = (args: { delivery: string | { public_id: string } } | [delivery: 
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:36
+ * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
     const statusForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -76,7 +75,7 @@ status.patch = (args: { delivery: string | { public_id: string } } | [delivery: 
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::status
- * @see app/Http/Controllers/Shop/LogisticsController.php:36
+ * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
         statusForm.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -92,7 +91,7 @@ status.patch = (args: { delivery: string | { public_id: string } } | [delivery: 
     status.form = statusForm
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:43
+ * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
 export const destroy = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -107,7 +106,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:43
+ * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
 destroy.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -140,7 +139,7 @@ destroy.url = (args: { delivery: string | { public_id: string } } | [delivery: s
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:43
+ * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
 destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -150,7 +149,7 @@ destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:43
+ * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
     const destroyForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -165,7 +164,7 @@ destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:43
+ * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
         destroyForm.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -179,89 +178,10 @@ destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery
         })
     
     destroy.form = destroyForm
-/**
-* @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:52
- * @route '/shop/logistics/riders'
- */
-export const riders = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: riders.url(options),
-    method: 'get',
-})
-
-riders.definition = {
-    methods: ["get","head"],
-    url: '/shop/logistics/riders',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:52
- * @route '/shop/logistics/riders'
- */
-riders.url = (options?: RouteQueryOptions) => {
-    return riders.definition.url + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:52
- * @route '/shop/logistics/riders'
- */
-riders.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: riders.url(options),
-    method: 'get',
-})
-/**
-* @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:52
- * @route '/shop/logistics/riders'
- */
-riders.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: riders.url(options),
-    method: 'head',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:52
- * @route '/shop/logistics/riders'
- */
-    const ridersForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: riders.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:52
- * @route '/shop/logistics/riders'
- */
-        ridersForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: riders.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\Shop\LogisticsController::riders
- * @see app/Http/Controllers/Shop/LogisticsController.php:52
- * @route '/shop/logistics/riders'
- */
-        ridersForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: riders.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    riders.form = ridersForm
 const logistics = {
     photos: Object.assign(photos, photos),
 status: Object.assign(status, status),
 destroy: Object.assign(destroy, destroy),
-riders: Object.assign(riders, riders13f500),
 }
 
 export default logistics

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::show
- * @see app/Http/Controllers/Shop/UpgradeController.php:32
+ * @see app/Http/Controllers/Shop/UpgradeController.php:35
  * @route '/shop/upgrade'
  */
 export const show = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::show
- * @see app/Http/Controllers/Shop/UpgradeController.php:32
+ * @see app/Http/Controllers/Shop/UpgradeController.php:35
  * @route '/shop/upgrade'
  */
 show.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ show.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::show
- * @see app/Http/Controllers/Shop/UpgradeController.php:32
+ * @see app/Http/Controllers/Shop/UpgradeController.php:35
  * @route '/shop/upgrade'
  */
 show.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ show.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::show
- * @see app/Http/Controllers/Shop/UpgradeController.php:32
+ * @see app/Http/Controllers/Shop/UpgradeController.php:35
  * @route '/shop/upgrade'
  */
 show.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ show.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\UpgradeController::show
- * @see app/Http/Controllers/Shop/UpgradeController.php:32
+ * @see app/Http/Controllers/Shop/UpgradeController.php:35
  * @route '/shop/upgrade'
  */
     const showForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ show.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\UpgradeController::show
- * @see app/Http/Controllers/Shop/UpgradeController.php:32
+ * @see app/Http/Controllers/Shop/UpgradeController.php:35
  * @route '/shop/upgrade'
  */
         showForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ show.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\UpgradeController::show
- * @see app/Http/Controllers/Shop/UpgradeController.php:32
+ * @see app/Http/Controllers/Shop/UpgradeController.php:35
  * @route '/shop/upgrade'
  */
         showForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ show.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::select
- * @see app/Http/Controllers/Shop/UpgradeController.php:71
+ * @see app/Http/Controllers/Shop/UpgradeController.php:74
  * @route '/shop/upgrade/select'
  */
 export const select = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ select.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::select
- * @see app/Http/Controllers/Shop/UpgradeController.php:71
+ * @see app/Http/Controllers/Shop/UpgradeController.php:74
  * @route '/shop/upgrade/select'
  */
 select.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ select.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::select
- * @see app/Http/Controllers/Shop/UpgradeController.php:71
+ * @see app/Http/Controllers/Shop/UpgradeController.php:74
  * @route '/shop/upgrade/select'
  */
 select.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ select.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\UpgradeController::select
- * @see app/Http/Controllers/Shop/UpgradeController.php:71
+ * @see app/Http/Controllers/Shop/UpgradeController.php:74
  * @route '/shop/upgrade/select'
  */
     const selectForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ select.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\UpgradeController::select
- * @see app/Http/Controllers/Shop/UpgradeController.php:71
+ * @see app/Http/Controllers/Shop/UpgradeController.php:74
  * @route '/shop/upgrade/select'
  */
         selectForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ select.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     select.form = selectForm
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::confirm
- * @see app/Http/Controllers/Shop/UpgradeController.php:117
+ * @see app/Http/Controllers/Shop/UpgradeController.php:120
  * @route '/shop/upgrade/confirm'
  */
 export const confirm = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -149,7 +149,7 @@ confirm.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::confirm
- * @see app/Http/Controllers/Shop/UpgradeController.php:117
+ * @see app/Http/Controllers/Shop/UpgradeController.php:120
  * @route '/shop/upgrade/confirm'
  */
 confirm.url = (options?: RouteQueryOptions) => {
@@ -158,7 +158,7 @@ confirm.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::confirm
- * @see app/Http/Controllers/Shop/UpgradeController.php:117
+ * @see app/Http/Controllers/Shop/UpgradeController.php:120
  * @route '/shop/upgrade/confirm'
  */
 confirm.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -167,7 +167,7 @@ confirm.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::confirm
- * @see app/Http/Controllers/Shop/UpgradeController.php:117
+ * @see app/Http/Controllers/Shop/UpgradeController.php:120
  * @route '/shop/upgrade/confirm'
  */
 confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -177,7 +177,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\UpgradeController::confirm
- * @see app/Http/Controllers/Shop/UpgradeController.php:117
+ * @see app/Http/Controllers/Shop/UpgradeController.php:120
  * @route '/shop/upgrade/confirm'
  */
     const confirmForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -187,7 +187,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\UpgradeController::confirm
- * @see app/Http/Controllers/Shop/UpgradeController.php:117
+ * @see app/Http/Controllers/Shop/UpgradeController.php:120
  * @route '/shop/upgrade/confirm'
  */
         confirmForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -196,7 +196,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\UpgradeController::confirm
- * @see app/Http/Controllers/Shop/UpgradeController.php:117
+ * @see app/Http/Controllers/Shop/UpgradeController.php:120
  * @route '/shop/upgrade/confirm'
  */
         confirmForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -212,7 +212,7 @@ confirm.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     confirm.form = confirmForm
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::process
- * @see app/Http/Controllers/Shop/UpgradeController.php:170
+ * @see app/Http/Controllers/Shop/UpgradeController.php:173
  * @route '/shop/upgrade/process'
  */
 export const process = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ process.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::process
- * @see app/Http/Controllers/Shop/UpgradeController.php:170
+ * @see app/Http/Controllers/Shop/UpgradeController.php:173
  * @route '/shop/upgrade/process'
  */
 process.url = (options?: RouteQueryOptions) => {
@@ -236,7 +236,7 @@ process.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\UpgradeController::process
- * @see app/Http/Controllers/Shop/UpgradeController.php:170
+ * @see app/Http/Controllers/Shop/UpgradeController.php:173
  * @route '/shop/upgrade/process'
  */
 process.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -246,7 +246,7 @@ process.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\UpgradeController::process
- * @see app/Http/Controllers/Shop/UpgradeController.php:170
+ * @see app/Http/Controllers/Shop/UpgradeController.php:173
  * @route '/shop/upgrade/process'
  */
     const processForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -256,7 +256,7 @@ process.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\UpgradeController::process
- * @see app/Http/Controllers/Shop/UpgradeController.php:170
+ * @see app/Http/Controllers/Shop/UpgradeController.php:173
  * @route '/shop/upgrade/process'
  */
         processForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
