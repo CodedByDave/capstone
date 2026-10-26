@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::index
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::index
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::index
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::index
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::index
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::index
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::index
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:139
  * @route '/shop/settings/geo'
  */
 export const updateGeo = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ updateGeo.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:139
  * @route '/shop/settings/geo'
  */
 updateGeo.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ updateGeo.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:139
  * @route '/shop/settings/geo'
  */
 updateGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ updateGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:139
  * @route '/shop/settings/geo'
  */
     const updateGeoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ updateGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:124
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:139
  * @route '/shop/settings/geo'
  */
         updateGeoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ updateGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     updateGeo.form = updateGeoForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clearGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:143
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:158
  * @route '/shop/settings/geo/clear'
  */
 export const clearGeo = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -149,7 +149,7 @@ clearGeo.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clearGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:143
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:158
  * @route '/shop/settings/geo/clear'
  */
 clearGeo.url = (options?: RouteQueryOptions) => {
@@ -158,7 +158,7 @@ clearGeo.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clearGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:143
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:158
  * @route '/shop/settings/geo/clear'
  */
 clearGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -168,7 +168,7 @@ clearGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clearGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:143
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:158
  * @route '/shop/settings/geo/clear'
  */
     const clearGeoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -178,7 +178,7 @@ clearGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::clearGeo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:143
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:158
  * @route '/shop/settings/geo/clear'
  */
         clearGeoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -189,7 +189,7 @@ clearGeo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     clearGeo.form = clearGeoForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:100
  * @route '/shop/settings/cover-photo'
  */
 export const updateCoverPhoto = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -204,7 +204,7 @@ updateCoverPhoto.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:100
  * @route '/shop/settings/cover-photo'
  */
 updateCoverPhoto.url = (options?: RouteQueryOptions) => {
@@ -213,7 +213,7 @@ updateCoverPhoto.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:100
  * @route '/shop/settings/cover-photo'
  */
 updateCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -223,7 +223,7 @@ updateCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:100
  * @route '/shop/settings/cover-photo'
  */
     const updateCoverPhotoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -233,7 +233,7 @@ updateCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:85
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:100
  * @route '/shop/settings/cover-photo'
  */
         updateCoverPhotoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -244,7 +244,7 @@ updateCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
     updateCoverPhoto.form = updateCoverPhotoForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::removeCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:123
  * @route '/shop/settings/cover-photo/clear'
  */
 export const removeCoverPhoto = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -259,7 +259,7 @@ removeCoverPhoto.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::removeCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:123
  * @route '/shop/settings/cover-photo/clear'
  */
 removeCoverPhoto.url = (options?: RouteQueryOptions) => {
@@ -268,7 +268,7 @@ removeCoverPhoto.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::removeCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:123
  * @route '/shop/settings/cover-photo/clear'
  */
 removeCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -278,7 +278,7 @@ removeCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::removeCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:123
  * @route '/shop/settings/cover-photo/clear'
  */
     const removeCoverPhotoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -288,7 +288,7 @@ removeCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::removeCoverPhoto
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:108
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:123
  * @route '/shop/settings/cover-photo/clear'
  */
         removeCoverPhotoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -299,7 +299,7 @@ removeCoverPhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =
     removeCoverPhoto.form = removeCoverPhotoForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updatePaymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:57
  * @route '/shop/settings/paymongo'
  */
 export const updatePaymongo = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -314,7 +314,7 @@ updatePaymongo.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updatePaymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:57
  * @route '/shop/settings/paymongo'
  */
 updatePaymongo.url = (options?: RouteQueryOptions) => {
@@ -323,7 +323,7 @@ updatePaymongo.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updatePaymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:57
  * @route '/shop/settings/paymongo'
  */
 updatePaymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -333,7 +333,7 @@ updatePaymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => 
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updatePaymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:57
  * @route '/shop/settings/paymongo'
  */
     const updatePaymongoForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -343,7 +343,7 @@ updatePaymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => 
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updatePaymongo
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:54
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:57
  * @route '/shop/settings/paymongo'
  */
         updatePaymongoForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -353,8 +353,73 @@ updatePaymongo.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => 
     
     updatePaymongo.form = updatePaymongoForm
 /**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::updateOperatingHours
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:64
+ * @route '/shop/settings/operating-hours'
+ */
+export const updateOperatingHours = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateOperatingHours.url(options),
+    method: 'patch',
+})
+
+updateOperatingHours.definition = {
+    methods: ["patch"],
+    url: '/shop/settings/operating-hours',
+} satisfies RouteDefinition<["patch"]>
+
+/**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::updateOperatingHours
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:64
+ * @route '/shop/settings/operating-hours'
+ */
+updateOperatingHours.url = (options?: RouteQueryOptions) => {
+    return updateOperatingHours.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::updateOperatingHours
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:64
+ * @route '/shop/settings/operating-hours'
+ */
+updateOperatingHours.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateOperatingHours.url(options),
+    method: 'patch',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::updateOperatingHours
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:64
+ * @route '/shop/settings/operating-hours'
+ */
+    const updateOperatingHoursForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updateOperatingHours.url({
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PATCH',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\ShopSettingsController::updateOperatingHours
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:64
+ * @route '/shop/settings/operating-hours'
+ */
+        updateOperatingHoursForm.patch = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updateOperatingHours.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PATCH',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    updateOperatingHours.form = updateOperatingHoursForm
+/**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDriverPay
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:76
  * @route '/shop/settings/driver-pay'
  */
 export const updateDriverPay = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -369,7 +434,7 @@ updateDriverPay.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDriverPay
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:76
  * @route '/shop/settings/driver-pay'
  */
 updateDriverPay.url = (options?: RouteQueryOptions) => {
@@ -378,7 +443,7 @@ updateDriverPay.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDriverPay
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:76
  * @route '/shop/settings/driver-pay'
  */
 updateDriverPay.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -388,7 +453,7 @@ updateDriverPay.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> 
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDriverPay
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:76
  * @route '/shop/settings/driver-pay'
  */
     const updateDriverPayForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -403,7 +468,7 @@ updateDriverPay.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> 
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDriverPay
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:61
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:76
  * @route '/shop/settings/driver-pay'
  */
         updateDriverPayForm.patch = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -419,7 +484,7 @@ updateDriverPay.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> 
     updateDriverPay.form = updateDriverPayForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDeliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:88
  * @route '/shop/settings/delivery-pricing'
  */
 export const updateDeliveryPricing = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -434,7 +499,7 @@ updateDeliveryPricing.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDeliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:88
  * @route '/shop/settings/delivery-pricing'
  */
 updateDeliveryPricing.url = (options?: RouteQueryOptions) => {
@@ -443,7 +508,7 @@ updateDeliveryPricing.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDeliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:88
  * @route '/shop/settings/delivery-pricing'
  */
 updateDeliveryPricing.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -453,7 +518,7 @@ updateDeliveryPricing.patch = (options?: RouteQueryOptions): RouteDefinition<'pa
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDeliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:88
  * @route '/shop/settings/delivery-pricing'
  */
     const updateDeliveryPricingForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -468,7 +533,7 @@ updateDeliveryPricing.patch = (options?: RouteQueryOptions): RouteDefinition<'pa
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::updateDeliveryPricing
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:73
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:88
  * @route '/shop/settings/delivery-pricing'
  */
         updateDeliveryPricingForm.patch = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -482,6 +547,6 @@ updateDeliveryPricing.patch = (options?: RouteQueryOptions): RouteDefinition<'pa
         })
     
     updateDeliveryPricing.form = updateDeliveryPricingForm
-const ShopSettingsController = { index, updateGeo, clearGeo, updateCoverPhoto, removeCoverPhoto, updatePaymongo, updateDriverPay, updateDeliveryPricing }
+const ShopSettingsController = { index, updateGeo, clearGeo, updateCoverPhoto, removeCoverPhoto, updatePaymongo, updateOperatingHours, updateDriverPay, updateDeliveryPricing }
 
 export default ShopSettingsController

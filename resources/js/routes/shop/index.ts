@@ -1315,7 +1315,7 @@ upgrade.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     upgrade.form = upgradeForm
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::settings
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 export const settings = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1330,7 +1330,7 @@ settings.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::settings
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 settings.url = (options?: RouteQueryOptions) => {
@@ -1339,7 +1339,7 @@ settings.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::settings
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 settings.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1348,7 +1348,7 @@ settings.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::settings
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
 settings.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -1358,7 +1358,7 @@ settings.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::settings
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
     const settingsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1368,7 +1368,7 @@ settings.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::settings
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
         settingsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1377,7 +1377,7 @@ settings.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\ShopSettingsController::settings
- * @see app/Http/Controllers/Shop/ShopSettingsController.php:33
+ * @see app/Http/Controllers/Shop/ShopSettingsController.php:35
  * @route '/shop/settings'
  */
         settingsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
