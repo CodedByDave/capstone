@@ -13,6 +13,10 @@
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->beforeEach(function () {
+        // Shops default to 8am-5pm, so tests that hand out deliveries must not depend on the real clock.
+        $this->travelTo(now()->setTime(12, 0));
+    })
     ->in('Feature');
 
 /*
