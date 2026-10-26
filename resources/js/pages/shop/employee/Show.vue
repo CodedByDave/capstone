@@ -30,7 +30,6 @@ interface Employee {
     employment_type: string | null;
     pay_rate: string | null;
     pay_basis: string;
-    branch_name: string | null;
     hire_date: string;
     status: 'Active' | 'Inactive';
     created_at: string;
@@ -271,16 +270,6 @@ const formatDateTime = (val: string) =>
                                     </dt>
                                     <dd class="mt-1 text-sm font-medium">
                                         {{ employee.position }}
-                                    </dd>
-                                </div>
-                                <div class="border-b px-5 py-4">
-                                    <dt
-                                        class="text-xs font-medium text-muted-foreground"
-                                    >
-                                        Branch
-                                    </dt>
-                                    <dd class="mt-1 text-sm font-medium">
-                                        {{ employee.branch_name ?? '—' }}
                                     </dd>
                                 </div>
                                 <div class="border-b px-5 py-4 sm:border-r">

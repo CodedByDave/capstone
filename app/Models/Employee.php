@@ -17,7 +17,6 @@ class Employee extends Model
     protected $fillable = [
         'user_id',
         'shop_id',
-        'branch_name',
         'employee_id',
         'first_name',
         'last_name',
@@ -92,11 +91,6 @@ class Employee extends Model
     public function scopeInactive($query)
     {
         return $query->where('status', 'Inactive');
-    }
-
-    public function scopeByBranch($query, string $branch)
-    {
-        return $query->where('branch_name', $branch);
     }
 
     // Accessors

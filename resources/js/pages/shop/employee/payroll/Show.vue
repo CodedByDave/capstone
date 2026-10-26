@@ -45,7 +45,6 @@ interface Employee {
     first_name: string;
     last_name: string;
     position: string;
-    branch_name: string | null;
     pay_rate: string | null;
     pay_basis: string;
 }
@@ -255,7 +254,6 @@ function exportCSV() {
         'Employee ID',
         'Name',
         'Position',
-        'Branch',
         'Pay Rate',
         'Pay Basis',
         'Monthly Equivalent',
@@ -277,7 +275,6 @@ function exportCSV() {
         i.employee.employee_id,
         `${i.employee.first_name} ${i.employee.last_name}`,
         i.employee.position,
-        i.employee.branch_name ?? '',
         i.pay_rate,
         payBasisLabels[i.pay_basis] ?? i.pay_basis,
         i.basic_salary,
@@ -555,17 +552,6 @@ function exportCSV() {
                                                 class="text-xs text-muted-foreground"
                                             >
                                                 {{ item.employee.position }}
-                                                <span
-                                                    v-if="
-                                                        item.employee
-                                                            .branch_name
-                                                    "
-                                                    >·
-                                                    {{
-                                                        item.employee
-                                                            .branch_name
-                                                    }}</span
-                                                >
                                             </p>
                                         </div>
                                     </div>

@@ -12,7 +12,7 @@ class ModuleSeeder extends Seeder
         $modules = [
             [
                 'name' => 'HRM',
-                'description' => 'Manage employee profiles, branches, attendance, roles & positions, and activity logs.',
+                'description' => 'Manage employee profiles, attendance, roles & positions, and activity logs.',
                 'price' => 1800,
             ],
             [

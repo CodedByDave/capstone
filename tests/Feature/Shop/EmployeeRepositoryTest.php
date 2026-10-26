@@ -49,7 +49,6 @@ test('employee pagination searches filters sorts and preserves staff scope', fun
         'employee_id' => 'EMP-001',
         'first_name' => 'John',
         'last_name' => 'Santos',
-        'branch_name' => 'Imus Branch',
         'phone' => '09170000001',
         'created_by' => $owner->id,
     ]);
@@ -57,7 +56,6 @@ test('employee pagination searches filters sorts and preserves staff scope', fun
         'employee_id' => 'EMP-002',
         'first_name' => 'Maria',
         'last_name' => 'Cruz',
-        'branch_name' => 'Bacoor Branch',
         'phone' => '09170000002',
         'employment_type' => 'part_time',
         'created_by' => $owner->id,
@@ -67,14 +65,12 @@ test('employee pagination searches filters sorts and preserves staff scope', fun
         'employee_id' => 'EMP-003',
         'first_name' => 'Current',
         'last_name' => 'Staff',
-        'branch_name' => 'Imus Branch',
         'created_by' => $owner->id,
     ]);
     createRepositoryTestEmployee($shop, [
         'employee_id' => 'EMP-004',
         'first_name' => 'Inactive',
         'last_name' => 'Worker',
-        'branch_name' => 'Imus Branch',
         'status' => 'Inactive',
         'created_by' => $owner->id,
     ]);
@@ -83,7 +79,6 @@ test('employee pagination searches filters sorts and preserves staff scope', fun
     $filtered = $repository->paginateForShop($shop, [
         'search' => 'John Santos',
         'status' => 'Active',
-        'branch' => 'Imus Branch',
         'sort_by' => 'full_name',
         'sort_direction' => 'asc',
         'per_page' => 5,
@@ -109,13 +104,12 @@ test('employee pagination searches filters sorts and preserves staff scope', fun
             'sort_direction' => 'asc',
             'per_page' => 5,
         ],
-        'Imus Branch',
         $staffUser->id,
     );
 
-    expect($staffScoped->total())->toBe(2)
+    expect($staffScoped->total())->toBe(3)
         ->and($staffScoped->pluck('employee_id')->all())
-        ->toBe(['EMP-001', 'EMP-004']);
+        ->toBe(['EMP-001', 'EMP-002', 'EMP-004']);
 });
 
 test('active manager options include only active managers from the shop', function () {

@@ -44,7 +44,7 @@ class ShopSetupController extends Controller
                 'message' => 'Your shop setup is complete.',
             ]);
         } catch (ShopSetupException $exception) {
-            return back()->withErrors(['location_mode' => $exception->getMessage()]);
+            return back()->withErrors(['setup' => $exception->getMessage()]);
         }
     }
 }

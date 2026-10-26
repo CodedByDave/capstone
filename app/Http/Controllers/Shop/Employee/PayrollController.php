@@ -84,19 +84,16 @@ class PayrollController extends Controller
         $shop = $this->getShop();
         abort_if($payroll->shop_id !== $shop->id, 403);
 
-        $payroll->load(['items.employee:id,user_id,employee_id,first_name,last_name,position,branch_name,pay_rate,pay_basis', 'creator:id,name']);
+        $payroll->load(['items.employee:id,user_id,employee_id,first_name,last_name,position,pay_rate,pay_basis', 'creator:id,name']);
 
-        // Non-owners see only their own branch's items, excluding themselves
+        // Non-owners see every employee's item except their own
         if (auth()->user()->role !== 'owner') {
             $userId = auth()->id();
-            $branch = Employee::where('user_id', $userId)->value('branch_name');
 
-            $payroll->setRelation('items', $payroll->items->filter(function ($item) use ($branch, $userId) {
+            $payroll->setRelation('items', $payroll->items->filter(function ($item) use ($userId) {
                 $emp = $item->employee;
 
-                return $emp
-                    && $emp->branch_name === $branch
-                    && ($emp->user_id === null || $emp->user_id !== $userId);
+                return $emp && ($emp->user_id === null || $emp->user_id !== $userId);
             })->values());
         }
 

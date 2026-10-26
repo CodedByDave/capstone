@@ -160,7 +160,7 @@ class DashboardService
 
         $employees = Employee::where('shop_id', $shop->id)
             ->where('status', 'Active')
-            ->get(['id', 'first_name', 'last_name', 'position', 'branch_name']);
+            ->get(['id', 'first_name', 'last_name', 'position']);
 
         $attendanceByEmployee = Attendance::whereIn('employee_id', $employees->pluck('id'))
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
@@ -183,7 +183,6 @@ class DashboardService
                 'id' => $emp->id,
                 'name' => $emp->first_name.' '.$emp->last_name,
                 'position' => $emp->position,
-                'branch' => $emp->branch_name,
                 'total' => $total,
                 'present' => $present,
                 'absent' => $absent,

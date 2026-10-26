@@ -40,7 +40,6 @@ interface ArchivedEmployee {
     first_name: string;
     last_name: string;
     position: string;
-    branch_name: string | null;
     hire_date: string;
     status: 'Active' | 'Inactive' | 'Archived';
     archived_at: string;
@@ -73,8 +72,7 @@ const filtered = computed(() =>
         return (
             fullName.includes(q) ||
             emp.employee_id.toLowerCase().includes(q) ||
-            emp.position.toLowerCase().includes(q) ||
-            (emp.branch_name ?? '').toLowerCase().includes(q)
+            emp.position.toLowerCase().includes(q)
         );
     }),
 );
@@ -220,7 +218,6 @@ function executeBulkRestore() {
                                     <TableHead>Employee ID</TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Position</TableHead>
-                                    <TableHead>Branch</TableHead>
                                     <TableHead>Hire Date</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Archived On</TableHead>
@@ -276,9 +273,6 @@ function executeBulkRestore() {
                                     >
                                     <TableCell class="whitespace-nowrap">{{
                                         emp.position
-                                    }}</TableCell>
-                                    <TableCell class="whitespace-nowrap">{{
-                                        emp.branch_name ?? '—'
                                     }}</TableCell>
                                     <TableCell class="whitespace-nowrap">{{
                                         formatDate(emp.hire_date)

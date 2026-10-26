@@ -99,7 +99,7 @@ function listedRating(Shop $shop, int $stars, ?string $comment = null, string $c
     return $rating;
 }
 
-function listedStaff(Shop $shop, bool $canViewOperations, ?string $branch = null): User
+function listedStaff(Shop $shop, bool $canViewOperations): User
 {
     $user = User::factory()->create(['role' => AccountType::Staff->value]);
     $employee = Employee::create([
@@ -111,7 +111,6 @@ function listedStaff(Shop $shop, bool $canViewOperations, ?string $branch = null
         'position' => 'Staff',
         'hire_date' => today(),
         'status' => 'Active',
-        'branch_name' => $branch,
     ]);
     EmployeeRole::create(['employee_id' => $employee->id, 'role' => 'clerk']);
 
@@ -223,27 +222,12 @@ test('staff without the permission, customers and guests are turned away', funct
     expect($this->get('/shop/operations/ratings')->status())->toBeIn([302, 403]);
 });
 
-test('branch staff see only their branch and unassigned orders, like the orders list', function () {
-    $shop = listedShop('Two Branches');
-    $mine = listedRating($shop, 5, 'branch a feedback', 'Ana');
-    $theirs = listedRating($shop, 1, 'branch b feedback', 'Ben');
-    $either = listedRating($shop, 3, 'unassigned feedback', 'Cara');
-    $mine->order->update(['branch_name' => 'Branch A']);
-    $theirs->order->update(['branch_name' => 'Branch B']);
-    $either->order->update(['branch_name' => null]);
+test('the owner and staff see the whole shop', function () {
+    $shop = listedShop('One Shop');
+    listedRating($shop, 5, 'first feedback', 'Ana');
+    listedRating($shop, 1, 'second feedback', 'Ben');
+    listedRating($shop, 3, 'third feedback', 'Cara');
 
-    $this->actingAs(listedStaff($shop, true, 'Branch A'))
-        ->get('/staff/operations/ratings')
-        ->assertOk()
-        ->assertSee('branch a feedback')
-        ->assertSee('unassigned feedback')
-        ->assertDontSee('branch b feedback')
-        ->assertInertia(fn ($page) => $page
-            ->where('summary.count', 2)
-            ->where('summary.average', 4)
-            ->has('ratings.data', 2));
-
-    // The owner and staff without a branch still see the whole shop.
     $this->actingAs($shop->owner)->get('/shop/operations/ratings')
         ->assertInertia(fn ($page) => $page->where('summary.count', 3));
     $this->actingAs(listedStaff($shop, true))->get('/staff/operations/ratings')

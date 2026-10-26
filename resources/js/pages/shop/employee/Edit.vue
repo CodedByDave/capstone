@@ -34,7 +34,6 @@ interface Employee {
     employment_type: string | null;
     pay_rate: string | null;
     pay_basis: string;
-    branch_name: string | null;
     hire_date: string;
     status: 'Active' | 'Inactive';
 }
@@ -58,13 +57,8 @@ interface EmploymentTypeOption {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const {
-    employee,
-    branch_names,
-    schedules: initialSchedules,
-} = defineProps<{
+const { employee, schedules: initialSchedules } = defineProps<{
     employee: Employee;
-    branch_names: string[];
     schedules: Schedule[];
     roles: string[];
     employment_types: EmploymentTypeOption[];
@@ -77,9 +71,6 @@ const page = usePage<AppPageProps>();
 const user = computed(() => page.props.auth.user);
 const isOwner = computed(() => user.value.role === 'owner');
 const isStaff = computed(() => !isOwner.value);
-const hasMultipleLocations = computed(() =>
-    Boolean((page.props as any).shopCapabilities?.multiple_locations),
-);
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
@@ -204,7 +195,6 @@ const createAccount = ref(false);
 
 const form = ref({
     employee_id: employee.employee_id,
-    branch_name: employee.branch_name ?? '',
     first_name: employee.first_name,
     last_name: employee.last_name,
     phone: employee.phone ?? '',
@@ -226,10 +216,6 @@ function submit() {
         `${baseRoute.value}/employee/${employee.public_id}`,
         {
             ...form.value,
-            branch_name:
-                form.value.branch_name === '__none__'
-                    ? ''
-                    : form.value.branch_name,
             create_account: createAccount.value ? 1 : 0,
         },
         {
@@ -450,50 +436,6 @@ async function saveSchedule() {
                             {{ errors.employment_type }}
                         </p>
                     </div>
-                    <div
-                        v-if="hasMultipleLocations"
-                        class="col-span-12 space-y-1 sm:col-span-3"
-                    >
-                        <label class="text-sm font-medium">Branch</label>
-                        <template v-if="branch_names.length > 0">
-                            <Select v-model="form.branch_name">
-                                <SelectTrigger
-                                    :class="{
-                                        'border-red-500': errors.branch_name,
-                                    }"
-                                >
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__none__"
-                                        >— No Branch —</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="b in branch_names"
-                                        :key="b"
-                                        :value="b"
-                                        >{{ b }}</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                        </template>
-                        <template v-else>
-                            <Input
-                                v-model="form.branch_name"
-                                placeholder="e.g. Main Branch"
-                                :class="{
-                                    'border-red-500': errors.branch_name,
-                                }"
-                            />
-                        </template>
-                        <p
-                            v-if="errors.branch_name"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.branch_name }}
-                        </p>
-                    </div>
-
                     <div class="col-span-12 space-y-1 sm:col-span-3">
                         <label class="text-sm font-medium">
                             Hire Date <span class="text-red-500">*</span>

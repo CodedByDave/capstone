@@ -23,7 +23,6 @@ import { Loader2, Mail } from 'lucide-vue-next';
 interface Shop {
     id: number;
     shop_name: string;
-    branch_name: string | null;
 }
 
 interface PsgcItem {
@@ -36,9 +35,8 @@ interface EmploymentTypeOption {
     label: string;
 }
 
-const { branch_names, shop, roles, employment_types, pay_bases } = defineProps<{
+const { shop, roles, employment_types, pay_bases } = defineProps<{
     roles: string[];
-    branch_names: string[];
     shop: Shop;
     employment_types: EmploymentTypeOption[];
     pay_bases: EmploymentTypeOption[];
@@ -46,9 +44,6 @@ const { branch_names, shop, roles, employment_types, pay_bases } = defineProps<{
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
-const hasMultipleLocations = computed(() =>
-    Boolean((page.props as any).shopCapabilities?.multiple_locations),
-);
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -144,13 +139,8 @@ const fullAddress = computed(() => {
     return parts.join(', ');
 });
 
-// For staff, pre-select their only available branch; for owners use the shop default
-const defaultBranch =
-    branch_names.length === 1 ? branch_names[0] : (shop.branch_name ?? '');
-
 const form = ref({
     employee_id: generateEmployeeId(),
-    branch_name: defaultBranch,
     first_name: '',
     last_name: '',
     email: '',
@@ -186,12 +176,7 @@ function cancel() {
 function submit() {
     form.value.address = fullAddress.value;
     isSubmitting.value = true;
-    const payload = {
-        ...form.value,
-        branch_name:
-            form.value.branch_name === '__none__' ? '' : form.value.branch_name,
-    };
-    router.post(`${baseRoute.value}/employee`, payload, {
+    router.post(`${baseRoute.value}/employee`, form.value, {
         preserveScroll: true,
         onError: () => {
             toast.error('Failed to add employee', {
@@ -380,47 +365,6 @@ function submit() {
                         </p>
                     </div>
 
-                    <div v-if="hasMultipleLocations" class="space-y-1">
-                        <label class="text-sm font-medium">Branch</label>
-                        <template v-if="branch_names.length > 0">
-                            <Select v-model="form.branch_name">
-                                <SelectTrigger
-                                    class="w-full"
-                                    :class="{
-                                        'border-red-500': errors.branch_name,
-                                    }"
-                                >
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__none__"
-                                        >— No Branch —</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="b in branch_names"
-                                        :key="b"
-                                        :value="b"
-                                        >{{ b }}</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                        </template>
-                        <template v-else>
-                            <Input
-                                v-model="form.branch_name"
-                                placeholder="e.g. Main Branch"
-                                :class="{
-                                    'border-red-500': errors.branch_name,
-                                }"
-                            />
-                        </template>
-                        <p
-                            v-if="errors.branch_name"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.branch_name }}
-                        </p>
-                    </div>
                 </div>
 
                 <div

@@ -91,7 +91,6 @@ class EmployeeController extends Controller
 
         return Inertia::render('shop/employee/Create', [
             'roles' => $this->getRoles($shop),
-            'branch_names' => $this->employeeService->getBranchNames($shop),
             'shop' => $shop,
             'employment_types' => EmploymentType::options(),
             'pay_bases' => PayBasis::options(),
@@ -126,11 +125,9 @@ class EmployeeController extends Controller
                 'employment_type' => $employee->employment_type,
                 'pay_rate' => $employee->pay_rate,
                 'pay_basis' => $employee->pay_basis,
-                'branch_name' => $employee->branch_name,
                 'hire_date' => $employee->getRawOriginal('hire_date'),
                 'status' => $employee->status,
             ],
-            'branch_names' => $this->employeeService->getBranchNames($shop),
             'roles' => $this->getRoles($shop),
             'employment_types' => EmploymentType::options(),
             'pay_bases' => PayBasis::options(),
@@ -227,7 +224,6 @@ class EmployeeController extends Controller
             'email',
             'phone',
             'address',
-            'branch_name',
             'position',
             'employment_type',
             'pay_rate',

@@ -14,10 +14,6 @@ class Shop extends Model
 {
     use SoftDeletes;
 
-    public const LOCATION_SINGLE = 'single';
-
-    public const LOCATION_MULTIPLE = 'multiple';
-
     public const OWNERSHIP_INDEPENDENT = 'independent';
 
     public const OWNERSHIP_COMPANY = 'company_owned';
@@ -53,7 +49,6 @@ class Shop extends Model
         'ownership_type',
         'franchise_brand_name',
         'franchisor_name',
-        'location_mode',
         'offers_pickup',
         'offers_delivery',
         'delivery_fee_mode',
@@ -199,21 +194,5 @@ class Shop extends Model
     public function agreementAcceptances(): HasMany
     {
         return $this->hasMany(BusinessAgreementAcceptance::class);
-    }
-
-    public function getBranchNames(): array
-    {
-        $branches = $this->employees()
-            ->whereNotNull('branch_name')
-            ->distinct()
-            ->pluck('branch_name')
-            ->toArray();
-
-        // Include the shop's own branch name if set
-        if ($this->branch_name && ! in_array($this->branch_name, $branches)) {
-            array_unshift($branches, $this->branch_name);
-        }
-
-        return $branches;
     }
 }

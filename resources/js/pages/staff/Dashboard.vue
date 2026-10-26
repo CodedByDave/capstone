@@ -53,7 +53,6 @@ const props = defineProps<{
         first_name: string;
         last_name: string;
         position: string;
-        branch_name: string | null;
     };
     permissions: Record<string, string[]>;
     today_attendance: TodayAttendance | null;
@@ -302,9 +301,6 @@ function fmtDate(d: string): string {
                 </h2>
                 <p class="text-sm text-muted-foreground capitalize">
                     {{ props.employee.position }}
-                    <span v-if="props.employee.branch_name">
-                        · {{ props.employee.branch_name }}</span
-                    >
                 </p>
             </div>
 

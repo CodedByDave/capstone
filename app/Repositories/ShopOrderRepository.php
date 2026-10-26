@@ -12,17 +12,12 @@ class ShopOrderRepository
 {
     public function __construct(protected ShopOrder $model) {}
 
-    public function paginateByShop(int $shopId, int $perPage = 15, array $filters = [], bool $onlyTrashed = false, ?string $branch = null): LengthAwarePaginator
+    public function paginateByShop(int $shopId, int $perPage = 15, array $filters = [], bool $onlyTrashed = false): LengthAwarePaginator
     {
         $query = $this->model->newQuery()
             ->with(['service', 'supplies'])
             ->when($onlyTrashed, fn ($q) => $q->onlyTrashed())
-            ->forShop($shopId)
-            ->when($branch !== null, fn ($q) => $q->where(function ($q) use ($branch) {
-                $q->where('branch_name', $branch)
-                    ->orWhereNull('branch_name')
-                    ->orWhere('branch_name', '');
-            }));
+            ->forShop($shopId);
 
         if (! empty($filters['status']) && ! $onlyTrashed) {
             $query->where('status', $filters['status']);
@@ -236,14 +231,9 @@ class ShopOrderRepository
         return $this->model->forShop($shopId)->where('payment_status', 'unpaid')->count();
     }
 
-    public function countByStatus(int $shopId, ?string $branch = null): array
+    public function countByStatus(int $shopId): array
     {
         return $this->model->forShop($shopId)
-            ->when($branch !== null, fn ($q) => $q->where(function ($q) use ($branch) {
-                $q->where('branch_name', $branch)
-                    ->orWhereNull('branch_name')
-                    ->orWhere('branch_name', '');
-            }))
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')

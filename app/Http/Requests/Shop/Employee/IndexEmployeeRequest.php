@@ -18,7 +18,6 @@ class IndexEmployeeRequest extends FormRequest
         $this->merge([
             'search' => trim((string) $this->input('search', '')),
             'status' => $this->input('status') === 'all' ? null : $this->input('status'),
-            'branch' => $this->input('branch') === 'all' ? null : $this->input('branch'),
             'employment_type' => $this->input('employment_type') === 'all'
                 ? null
                 : $this->input('employment_type'),
@@ -30,7 +29,6 @@ class IndexEmployeeRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', Rule::in(['Active', 'Inactive'])],
-            'branch' => ['nullable', 'string', 'max:255'],
             'employment_type' => ['nullable', Rule::enum(EmploymentType::class)],
             'sort_by' => [
                 'nullable',
@@ -41,7 +39,6 @@ class IndexEmployeeRequest extends FormRequest
                     'employment_type',
                     'pay_rate',
                     'pay_basis',
-                    'branch_name',
                     'phone',
                     'email',
                     'address',

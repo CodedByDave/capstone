@@ -19,7 +19,6 @@ class StoreEmployeeRequest extends FormRequest
     {
         return [
             'employee_id' => 'required|string|max:50|unique:employees,employee_id',
-            'branch_name' => 'nullable|string|max:150',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email|unique:employees,email',

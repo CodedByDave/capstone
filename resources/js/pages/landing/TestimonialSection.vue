@@ -21,7 +21,7 @@ const testimonials = [
         name: 'Ana De La Cruz',
         role: 'Owner, Sparkle Clean Co.',
         content:
-            "I run three branches and LaundryHub's Reports & Analytics module gives me a clear picture of all locations in real time. The insights helped us increase revenue by 30% in the first quarter.",
+            "LaundryHub's Reports & Analytics module gives me a clear picture of my whole shop in real time. The insights helped us increase revenue by 30% in the first quarter.",
         rating: 5,
     },
     {

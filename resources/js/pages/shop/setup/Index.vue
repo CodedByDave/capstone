@@ -363,6 +363,7 @@ function submit() {
                                     Check your answers before saving.
                                 </p>
                             </div>
+                            <InputError :message="errorFor('setup')" />
                             <dl class="divide-y rounded-xl border">
                                 <div
                                     class="flex items-center justify-between gap-4 p-4"

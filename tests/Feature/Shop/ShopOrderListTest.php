@@ -93,7 +93,7 @@ function listOrder(Shop $shop, array $overrides = []): ShopOrder
     return $order;
 }
 
-function listStaff(Shop $shop, bool $canView = true, ?string $branch = null): User
+function listStaff(Shop $shop, bool $canView = true): User
 {
     $user = User::factory()->create(['role' => AccountType::Staff->value]);
     $employee = Employee::create([
@@ -105,7 +105,6 @@ function listStaff(Shop $shop, bool $canView = true, ?string $branch = null): Us
         'position' => 'Staff',
         'hire_date' => today(),
         'status' => 'Active',
-        'branch_name' => $branch,
     ]);
     $role = $canView ? 'clerk' : 'no-access';
     EmployeeRole::create(['employee_id' => $employee->id, 'role' => $role]);
@@ -274,18 +273,18 @@ test('staff see their shops orders only and need the Operations view permission'
         ->assertRedirect(route('staff.dashboard'));
 });
 
-test('branch staff see their branch and unassigned orders, sorted and paged on the server', function () {
+test('staff see the shop orders, sorted and paged on the server', function () {
     $shop = listShop();
-    listOrder($shop, ['order_number' => 'A-1', 'branch_name' => 'Branch A', 'total_amount' => 100]);
-    listOrder($shop, ['order_number' => 'A-2', 'branch_name' => 'Branch A', 'total_amount' => 300]);
-    listOrder($shop, ['order_number' => 'B-1', 'branch_name' => 'Branch B', 'total_amount' => 200]);
-    listOrder($shop, ['order_number' => 'U-1', 'branch_name' => null, 'total_amount' => 200]);
+    listOrder($shop, ['order_number' => 'A-1', 'total_amount' => 100]);
+    listOrder($shop, ['order_number' => 'A-2', 'total_amount' => 300]);
+    listOrder($shop, ['order_number' => 'B-1', 'total_amount' => 250]);
+    listOrder($shop, ['order_number' => 'U-1', 'total_amount' => 200]);
 
-    $response = $this->actingAs(listStaff($shop, true, 'Branch A'))
+    $response = $this->actingAs(listStaff($shop, true))
         ->get('/staff/operations/orders?sort_by=total&sort_direction=desc&per_page=5');
 
-    expect(listed($response))->toBe(['A-2', 'U-1', 'A-1']);
-    $response->assertInertia(fn ($page) => $page->where('orders.total', 3));
+    expect(listed($response))->toBe(['A-2', 'B-1', 'U-1', 'A-1']);
+    $response->assertInertia(fn ($page) => $page->where('orders.total', 4));
 });
 
 test('guests and customers cannot open the orders list', function () {

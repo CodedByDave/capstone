@@ -65,7 +65,6 @@ class StaffDashboardController extends Controller
                 'first_name' => $employee->first_name,
                 'last_name' => $employee->last_name,
                 'position' => $employee->position,
-                'branch_name' => $employee->branch_name,
             ],
             'permissions' => $permissions,
             'today_attendance' => $today ? [

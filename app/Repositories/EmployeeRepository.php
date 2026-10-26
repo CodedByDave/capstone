@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Shop;
 use App\Models\User;
@@ -27,15 +26,11 @@ class EmployeeRepository extends Repository
             ->get();
     }
 
-    // Stats scoped to shop (and optionally to a specific branch)
+    // Stats scoped to shop
 
-    public function getStatsByShop(Shop $shop, ?string $branch = null): array
+    public function getStatsByShop(Shop $shop): array
     {
         $query = $shop->employees();
-
-        if ($branch !== null && $branch !== '') {
-            $query->where('branch_name', $branch);
-        }
 
         return [
             'total' => (clone $query)->count(),
@@ -87,17 +82,6 @@ class EmployeeRepository extends Repository
         $this->delete($employee);
     }
 
-    // ── Get unique branch names for shop ───────────────────────────────────────
-
-    public function getBranchNames(Shop $shop): array
-    {
-        return Branch::where('shop_id', $shop->id)
-            ->where('status', 'Active')
-            ->orderBy('name')
-            ->pluck('name')
-            ->toArray();
-    }
-
     // Pagination
 
     public function getPaginatedByShop(Shop $shop, int $perPage = 10): LengthAwarePaginator
@@ -106,13 +90,6 @@ class EmployeeRepository extends Repository
             ->with(['creator:id,name', 'updater:id,name'])
             ->latest()
             ->paginate($perPage);
-    }
-
-    public function branchNameForUser(int $userId): ?string
-    {
-        return $this->query()
-            ->where('user_id', $userId)
-            ->value('branch_name');
     }
 
     public function activeManagerOptionsForShop(int $shopId): array
@@ -136,13 +113,11 @@ class EmployeeRepository extends Repository
     public function paginateForShop(
         Shop $shop,
         array $filters = [],
-        ?string $branchScope = null,
         ?int $excludeUserId = null,
     ): LengthAwarePaginator {
         $query = $this->query()
             ->with(['creator:id,name', 'updater:id,name'])
             ->where('shop_id', $shop->id)
-            ->when($branchScope !== null, fn ($query) => $query->where('branch_name', $branchScope))
             ->when($excludeUserId !== null, function ($query) use ($excludeUserId) {
                 $query->where(function ($query) use ($excludeUserId) {
                     $query->where('user_id', '!=', $excludeUserId)
@@ -159,7 +134,6 @@ class EmployeeRepository extends Repository
                             ->orWhere('position', 'like', "%{$term}%")
                             ->orWhere('employment_type', 'like', "%{$term}%")
                             ->orWhere('pay_basis', 'like', "%{$term}%")
-                            ->orWhere('branch_name', 'like', "%{$term}%")
                             ->orWhere('phone', 'like', "%{$term}%")
                             ->orWhere('email', 'like', "%{$term}%")
                             ->orWhere('address', 'like', "%{$term}%");
@@ -167,7 +141,6 @@ class EmployeeRepository extends Repository
                 }
             })
             ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
-            ->when($filters['branch'] ?? null, fn ($query, string $branch) => $query->where('branch_name', $branch))
             ->when(
                 $filters['employment_type'] ?? null,
                 fn ($query, string $type) => $query->where('employment_type', $type),

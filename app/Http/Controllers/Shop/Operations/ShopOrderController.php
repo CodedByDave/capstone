@@ -20,7 +20,6 @@ use App\Services\LogisticsService;
 use App\Services\OrderPaymentService;
 use App\Services\ShopOrderPaymentService;
 use App\Services\ShopOrderService;
-use App\Traits\BranchScoped;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,8 +27,6 @@ use Inertia\Response;
 
 class ShopOrderController extends Controller
 {
-    use BranchScoped;
-
     public function __construct(
         protected ShopOrderService $service,
         private readonly CustomerAgreementService $customerAgreementService,
@@ -56,7 +53,6 @@ class ShopOrderController extends Controller
     public function index(ShopOrderFilterRequest $request): Response
     {
         $shopId = $this->getShopId();
-        $branch = $this->getStaffBranch();
         $filters = $request->filters();
 
         $orders = $this->service->getPaginatedOrders(
@@ -64,12 +60,11 @@ class ShopOrderController extends Controller
             perPage: $filters['per_page'],
             filters: $filters,
             onlyTrashed: $filters['archived'],
-            branch: $branch,
         );
 
         return Inertia::render('shop/operations/orders/Index', [
             'orders' => $orders,
-            'statusSummary' => $this->service->getStatusSummary($shopId, $branch),
+            'statusSummary' => $this->service->getStatusSummary($shopId),
             'filters' => $filters,
             'showArchived' => $filters['archived'],
         ]);
@@ -107,7 +102,6 @@ class ShopOrderController extends Controller
             [
                 ...$request->validated(),
                 'shop_id' => $this->getShopId(),
-                'branch_name' => $this->getStaffBranch(),
             ],
             $request->user(),
             $request->ip(),
@@ -259,9 +253,7 @@ class ShopOrderController extends Controller
 
     public function restoreAll(): RedirectResponse
     {
-        $query = ShopOrder::onlyTrashed()->where('shop_id', $this->getShopId());
-        $this->scopeBranch($query);
-        $query->restore();
+        ShopOrder::onlyTrashed()->where('shop_id', $this->getShopId())->restore();
 
         return redirect("{$this->base()}/operations/orders?archived=true")
             ->with('toast', [

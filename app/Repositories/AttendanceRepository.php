@@ -60,17 +60,14 @@ class AttendanceRepository extends Repository
         return $query->latest('date')->paginate($perPage);
     }
 
-    public function getByDate(Shop $shop, string $date, ?string $branch = null, ?int $excludeUserId = null): \Illuminate\Database\Eloquent\Collection
+    public function getByDate(Shop $shop, string $date, ?int $excludeUserId = null): \Illuminate\Database\Eloquent\Collection
     {
         $query = Attendance::with(['employee', 'marker:id,name'])
             ->where('shop_id', $shop->id)
             ->whereDate('date', $date);
 
-        if ($branch !== null || $excludeUserId !== null) {
-            $query->whereHas('employee', function ($q) use ($branch, $excludeUserId) {
-                if ($branch !== null) {
-                    $q->where('branch_name', $branch);
-                }
+        if ($excludeUserId !== null) {
+            $query->whereHas('employee', function ($q) use ($excludeUserId) {
                 if ($excludeUserId !== null) {
                     $q->where(function ($inner) use ($excludeUserId) {
                         $inner->where('user_id', '!=', $excludeUserId)
@@ -83,15 +80,12 @@ class AttendanceRepository extends Repository
         return $query->get();
     }
 
-    public function getStats(Shop $shop, string $date, ?string $branch = null, ?int $excludeUserId = null): array
+    public function getStats(Shop $shop, string $date, ?int $excludeUserId = null): array
     {
         $base = Attendance::where('shop_id', $shop->id)->whereDate('date', $date);
 
-        if ($branch !== null || $excludeUserId !== null) {
-            $base->whereHas('employee', function ($q) use ($branch, $excludeUserId) {
-                if ($branch !== null) {
-                    $q->where('branch_name', $branch);
-                }
+        if ($excludeUserId !== null) {
+            $base->whereHas('employee', function ($q) use ($excludeUserId) {
                 if ($excludeUserId !== null) {
                     $q->where(function ($inner) use ($excludeUserId) {
                         $inner->where('user_id', '!=', $excludeUserId)

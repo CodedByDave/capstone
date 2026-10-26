@@ -33,20 +33,14 @@ class OrderRatingRepository extends Repository
     }
 
     /**
-     * @param  string|null  $branch  limit to one branch's orders, like the orders list does for staff
      * @return array{average: float|null, count: int, distribution: array<int, int>}
      */
-    public function summaryForShop(int $shopId, ?string $branch = null): array
+    public function summaryForShop(int $shopId): array
     {
         $query = OrderRating::query()
             ->where('order_ratings.shop_id', $shopId)
             ->selectRaw('order_ratings.rating as rating, COUNT(*) as total')
             ->groupBy('order_ratings.rating');
-
-        if ($branch !== null) {
-            $query->join('shop_orders', 'shop_orders.id', '=', 'order_ratings.shop_order_id');
-            $this->limitToBranch($query, $branch);
-        }
 
         return $this->summarize($query->pluck('total', 'rating')->all());
     }
@@ -78,7 +72,7 @@ class OrderRatingRepository extends Repository
     }
 
     /** One shop's ratings with the order and customer they belong to, filtered and sorted in SQL. */
-    public function paginateForShop(int $shopId, array $filters, int $perPage, ?string $branch = null): LengthAwarePaginator
+    public function paginateForShop(int $shopId, array $filters, int $perPage): LengthAwarePaginator
     {
         $column = self::SORTABLE[$filters['sort_by'] ?? 'created_at'] ?? self::SORTABLE['created_at'];
         $direction = ($filters['sort_direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
@@ -97,10 +91,6 @@ class OrderRatingRepository extends Repository
                     ->orWhere('order_ratings.comment', 'like', $like));
             });
 
-        if ($branch !== null) {
-            $this->limitToBranch($query, $branch);
-        }
-
         return $query
             ->orderBy($column, $direction)
             ->orderByDesc('order_ratings.id')
@@ -108,14 +98,6 @@ class OrderRatingRepository extends Repository
             ->withQueryString();
     }
 
-    /** The same branch rule as the orders list: the branch's orders plus orders with no branch. */
-    private function limitToBranch(Builder $query, string $branch): void
-    {
-        $query->where(fn ($inner) => $inner
-            ->where('shop_orders.branch_name', $branch)
-            ->orWhereNull('shop_orders.branch_name')
-            ->orWhere('shop_orders.branch_name', ''));
-    }
 
     /**
      * @param  array<int|string, int|string>  $totals  star value => how many ratings

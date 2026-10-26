@@ -82,7 +82,6 @@ interface Employee {
     employment_type: string | null;
     pay_rate: string | null;
     pay_basis: string;
-    branch_name: string | null;
     hire_date: string;
     status: 'Active' | 'Inactive';
     created_at: string;
@@ -106,7 +105,6 @@ type EmployeeSortKey =
     | 'full_name'
     | 'position'
     | 'employment_type'
-    | 'branch_name'
     | 'phone'
     | 'email'
     | 'address'
@@ -128,13 +126,12 @@ const sortableHeaders: {
     { text: 'Name', value: 'full_name', width: 180 },
     { text: 'Position', value: 'position', width: 140 },
     { text: 'Employment Type', value: 'employment_type', width: 150 },
-    { text: 'Branch', value: 'branch_name', width: 160 },
     { text: 'Status', value: 'status', width: 110 },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { employees, stats, branch_names, employment_types, pay_bases, filters } =
+const { employees, stats, employment_types, pay_bases, filters } =
     defineProps<{
         employees: PaginatedEmployees;
         stats: {
@@ -143,7 +140,6 @@ const { employees, stats, branch_names, employment_types, pay_bases, filters } =
             new_this_month: number;
             inactive: number;
         };
-        branch_names: string[];
         employment_types: EmploymentTypeOption[];
         pay_bases: EmploymentTypeOption[];
         filters: Record<string, string | number>;
@@ -154,14 +150,8 @@ const { employees, stats, branch_names, employment_types, pay_bases, filters } =
 const page = usePage<AppPageProps>();
 const user = computed(() => page.props.auth.user);
 const isOwner = computed(() => user.value.role === 'owner');
-const hasMultipleLocations = computed(() =>
-    Boolean((page.props as any).shopCapabilities?.multiple_locations),
-);
 const headers = computed<Header[]>(() => [
-    ...sortableHeaders.filter(
-        (header) =>
-            hasMultipleLocations.value || header.value !== 'branch_name',
-    ),
+    ...sortableHeaders,
     { text: 'Actions', value: 'actions', width: 115 },
 ]);
 const permissions = computed(() => user.value.permissions ?? {});
@@ -211,7 +201,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const searchQuery = ref(String(filters.search ?? ''));
 const statusFilter = ref(String(filters.status ?? 'all') || 'all');
-const branchFilter = ref(String(filters.branch ?? 'all') || 'all');
 const employmentTypeFilter = ref(
     String(filters.employment_type ?? 'all') || 'all',
 );
@@ -245,7 +234,6 @@ function tableQuery() {
     return {
         search: searchQuery.value || undefined,
         status: statusFilter.value === 'all' ? undefined : statusFilter.value,
-        branch: branchFilter.value === 'all' ? undefined : branchFilter.value,
         employment_type:
             employmentTypeFilter.value === 'all'
                 ? undefined
@@ -285,7 +273,6 @@ function filterTable() {
 function resetFilters() {
     searchQuery.value = '';
     statusFilter.value = 'all';
-    branchFilter.value = 'all';
     employmentTypeFilter.value = 'all';
 
     const optionsChanged =
@@ -389,7 +376,6 @@ function exportCSV() {
         'last_name',
         'phone',
         'address',
-        'branch_name',
         'position',
         'employment_type',
         'hire_date',
@@ -406,7 +392,6 @@ function exportCSV() {
         emp.last_name,
         emp.phone ?? '',
         emp.address ?? '',
-        emp.branch_name ?? '',
         emp.position,
         employmentTypeLabel(emp.employment_type),
         emp.hire_date,
@@ -603,26 +588,6 @@ async function submitImport() {
                         </SelectContent>
                     </Select>
 
-                    <Select
-                        v-if="hasMultipleLocations"
-                        v-model="branchFilter"
-                        @update:model-value="filterTable"
-                    >
-                        <SelectTrigger class="w-44">
-                            <SelectValue placeholder="Branch" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All branches</SelectItem>
-                            <SelectItem
-                                v-for="branch in branch_names"
-                                :key="branch"
-                                :value="branch"
-                            >
-                                {{ branch }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-
                     <Button
                         size="sm"
                         variant="outline"
@@ -751,12 +716,6 @@ async function submitImport() {
                             </span>
                         </template>
 
-                        <template #item-branch_name="employee">
-                            <span class="whitespace-nowrap">
-                                {{ employee.branch_name ?? '—' }}
-                            </span>
-                        </template>
-
                         <template #item-status="employee">
                             <span
                                 class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
@@ -853,8 +812,8 @@ async function submitImport() {
                         </p>
                         <code class="block font-mono break-all">
                             employee_id, first_name, last_name, phone, address,
-                            branch_name, position, employment_type, hire_date,
-                            pay_rate, pay_basis, status
+                            position, employment_type, hire_date, pay_rate,
+                            pay_basis, status
                         </code>
                         <p class="mt-2">
                             <span class="font-medium">hire_date</span>:

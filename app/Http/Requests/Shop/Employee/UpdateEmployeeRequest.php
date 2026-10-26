@@ -18,7 +18,6 @@ class UpdateEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_name' => 'nullable|string|max:150',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],

@@ -45,7 +45,7 @@ const plans = [
         name: 'Premium',
         price: 1999,
         description:
-            'The full suite for multi-branch shops that need deep analytics and financial control.',
+            'The full suite for shops that need deep analytics and financial control.',
         featured: false,
         savings: null,
         modules: [

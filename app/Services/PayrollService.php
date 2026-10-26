@@ -46,20 +46,9 @@ class PayrollService
             $employeeQuery = Employee::where('shop_id', $shop->id)
                 ->where('status', 'Active');
 
-            // Non-owners generate payroll only for their branch, excluding themselves
+            // Non-owners cannot generate payroll for the shop's employees
             if (auth()->user()->role !== 'owner') {
-                $userId = auth()->id();
-                $branch = Employee::where('user_id', $userId)->value('branch_name');
-
-                if ($branch) {
-                    $employeeQuery->where('branch_name', $branch)
-                        ->where(function ($q) use ($userId) {
-                            $q->where('user_id', '!=', $userId)
-                                ->orWhereNull('user_id');
-                        });
-                } else {
-                    $employeeQuery->whereRaw('1 = 0');
-                }
+                $employeeQuery->whereRaw('1 = 0');
             }
 
             $employees = $employeeQuery->get();

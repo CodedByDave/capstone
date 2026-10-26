@@ -22,7 +22,6 @@ class EmployeeObserver
                 'last_name' => $employee->last_name,
                 'phone' => $employee->phone,
                 'address' => $employee->address,
-                'branch_name' => $employee->branch_name,
                 'position' => $employee->position,
                 'employment_type' => $employee->employment_type,
                 'pay_rate' => $employee->pay_rate,

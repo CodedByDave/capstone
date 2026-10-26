@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Branch;
 use App\Models\Delivery;
 use App\Models\Employee;
 use App\Models\EmployeeArchive;
@@ -43,7 +42,6 @@ it('applies the display format to every phone-bearing model', function (string $
     'subscription order' => [Order::class, 'phone'],
     'employee' => [Employee::class, 'phone'],
     'employee archive' => [EmployeeArchive::class, 'phone'],
-    'branch' => [Branch::class, 'phone'],
     'supplier' => [Supplier::class, 'phone'],
     'rider' => [Rider::class, 'phone'],
     'customer order' => [ShopOrder::class, 'customer_phone'],

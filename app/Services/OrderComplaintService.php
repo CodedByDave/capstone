@@ -8,7 +8,6 @@ use App\Models\OrderComplaintPhoto;
 use App\Models\ShopOrder;
 use App\Models\User;
 use App\Notifications\OrderComplaintNotification;
-use App\Repositories\EmployeeRepository;
 use App\Repositories\OrderComplaintRepository;
 use App\Repositories\ShopOrderRepository;
 use Carbon\CarbonInterface;
@@ -40,7 +39,6 @@ class OrderComplaintService
         private readonly OrderComplaintRepository $complaints,
         private readonly ShopOrderRepository $orders,
         private readonly ShopContext $shopContext,
-        private readonly EmployeeRepository $employees,
         private readonly ActivityLogService $activityLog,
     ) {}
 
@@ -139,10 +137,9 @@ class OrderComplaintService
     public function shopPageData(User $user, array $filters): array
     {
         $shopId = $this->shopContext->shopIdFor($user);
-        $branch = $this->branchFor($user);
         $prefix = $this->shopPrefix($user).'/operations/complaints/photos/';
 
-        $page = $this->complaints->paginateForShop($shopId, $filters, (int) $filters['per_page'], $branch)
+        $page = $this->complaints->paginateForShop($shopId, $filters, (int) $filters['per_page'])
             ->through(fn (OrderComplaint $complaint) => [
                 'public_id' => $complaint->public_id,
                 'order_number' => $complaint->order_number,
@@ -158,7 +155,7 @@ class OrderComplaintService
             ]);
 
         return [
-            'stats' => $this->complaints->statsForShop($shopId, $branch),
+            'stats' => $this->complaints->statsForShop($shopId),
             'complaints' => $page,
             'types' => OrderComplaint::TYPES,
             'filters' => $filters,
@@ -166,13 +163,13 @@ class OrderComplaintService
     }
 
     /**
-     * @throws ModelNotFoundException when the complaint is not in the user's shop (or branch)
+     * @throws ModelNotFoundException when the complaint is not in the user's shop
      * @throws OrderComplaintException when the complaint is already closed
      */
     public function respond(User $user, string $complaintPublicId, string $status, ?string $reply): OrderComplaint
     {
         $shopId = $this->shopContext->shopIdFor($user);
-        $complaint = $this->complaints->findForShop($complaintPublicId, $shopId, $this->branchFor($user))
+        $complaint = $this->complaints->findForShop($complaintPublicId, $shopId)
             ?? throw (new ModelNotFoundException)->setModel(OrderComplaint::class);
 
         DB::transaction(function () use ($user, $complaint, $shopId, $status, $reply): void {
@@ -218,7 +215,6 @@ class OrderComplaintService
         return $this->existingPath($this->complaints->findPhotoForShop(
             $photoPublicId,
             $this->shopContext->shopIdFor($user),
-            $this->branchFor($user),
         ));
     }
 
@@ -254,12 +250,6 @@ class OrderComplaintService
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /** Staff only see their own branch's complaints, like the orders list. */
-    private function branchFor(User $user): ?string
-    {
-        return $user->isStaff() ? $this->employees->branchNameForUser($user->id) : null;
-    }
 
     private function shopPrefix(User $user): string
     {

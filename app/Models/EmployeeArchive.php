@@ -17,7 +17,6 @@ class EmployeeArchive extends Model
         'last_name',
         'phone',
         'address',
-        'branch_name',
         'position',
         'employment_type',
         'pay_rate',

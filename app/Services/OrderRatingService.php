@@ -6,7 +6,6 @@ use App\Exceptions\OrderRatingException;
 use App\Models\OrderRating;
 use App\Models\ShopOrder;
 use App\Models\User;
-use App\Repositories\EmployeeRepository;
 use App\Repositories\OrderRatingRepository;
 use App\Repositories\ShopOrderRepository;
 use Carbon\CarbonInterface;
@@ -27,7 +26,6 @@ class OrderRatingService
         private readonly OrderRatingRepository $ratings,
         private readonly ShopOrderRepository $orders,
         private readonly ShopContext $shopContext,
-        private readonly EmployeeRepository $employees,
     ) {}
 
     // ── Customer side ─────────────────────────────────────────────────────────
@@ -105,10 +103,7 @@ class OrderRatingService
     public function shopPageData(User $user, array $filters): array
     {
         $shopId = $this->shopContext->shopIdFor($user);
-        // Staff see what the orders list shows them: their own branch, like the orders list.
-        $branch = $user->isStaff() ? $this->employees->branchNameForUser($user->id) : null;
-
-        $page = $this->ratings->paginateForShop($shopId, $filters, (int) $filters['per_page'], $branch)
+        $page = $this->ratings->paginateForShop($shopId, $filters, (int) $filters['per_page'])
             ->through(fn (OrderRating $rating) => [
                 'order_number' => $rating->order_number,
                 'customer_name' => $rating->customer_name,
@@ -118,7 +113,7 @@ class OrderRatingService
             ]);
 
         return [
-            'summary' => $this->ratings->summaryForShop($shopId, $branch),
+            'summary' => $this->ratings->summaryForShop($shopId),
             'ratings' => $page,
             'filters' => $filters,
         ];

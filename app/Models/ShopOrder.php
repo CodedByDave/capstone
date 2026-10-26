@@ -27,7 +27,6 @@ class ShopOrder extends Model
         'shop_id',
         'user_id',
         'order_source',
-        'branch_name',
         'service_id',
         'order_number',
         'customer_name',

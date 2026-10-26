@@ -123,7 +123,7 @@ function complaintFor(ShopOrder $order, array $overrides = []): OrderComplaint
     ], $overrides));
 }
 
-function complaintStaff(Shop $shop, array $actions, ?string $branch = null): User
+function complaintStaff(Shop $shop, array $actions): User
 {
     $user = User::factory()->create(['role' => AccountType::Staff->value]);
     $employee = Employee::create([
@@ -135,7 +135,6 @@ function complaintStaff(Shop $shop, array $actions, ?string $branch = null): Use
         'position' => 'Staff',
         'hire_date' => today(),
         'status' => 'Active',
-        'branch_name' => $branch,
     ]);
     $role = 'clerk-'.$user->id;
     EmployeeRole::create(['employee_id' => $employee->id, 'role' => $role]);
@@ -367,18 +366,6 @@ test('staff with Operations view see the page but staff without it do not', func
         ->assertRedirect('/staff/dashboard');
 });
 
-test('staff only see complaints for their own branch', function () {
-    $shop = complaintShop();
-    $buyer = complaintCustomer();
-    complaintFor(complaintOrder($shop, $buyer, ['branch_name' => 'North']));
-    complaintFor(complaintOrder($shop, $buyer, ['branch_name' => 'South']));
-    complaintFor(complaintOrder($shop, $buyer, ['branch_name' => null]));
-
-    $this->actingAs(complaintStaff($shop, ['view'], 'North'))
-        ->get('/staff/operations/complaints')
-        ->assertInertia(fn ($page) => $page->where('stats.total', 2)->has('complaints.data', 2));
-});
-
 test('customers cannot open the shop complaints page', function () {
     $this->actingAs(complaintCustomer())->get('/shop/operations/complaints')->assertRedirect();
 });
@@ -462,17 +449,6 @@ test('staff need Operations manage to respond', function () {
 
     $this->actingAs(complaintStaff($shop, ['manage']))->patch($url, $payload)->assertRedirect();
     expect($complaint->refresh()->status)->toBe('under_review');
-});
-
-test('staff cannot respond to another branchs complaint', function () {
-    $shop = complaintShop();
-    $complaint = complaintFor(complaintOrder($shop, complaintCustomer(), ['branch_name' => 'South']));
-
-    $this->actingAs(complaintStaff($shop, ['manage'], 'North'))
-        ->patch("/staff/operations/complaints/{$complaint->public_id}", ['status' => 'under_review'])
-        ->assertNotFound();
-
-    expect($complaint->refresh()->status)->toBe('open');
 });
 
 test('a blank reply keeps the reply the shop already sent', function () {

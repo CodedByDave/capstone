@@ -40,7 +40,6 @@ interface Employee {
     first_name: string;
     last_name: string;
     position: string;
-    branch_name: string | null;
 }
 
 interface Attendance {
@@ -79,7 +78,6 @@ const props = defineProps<{
     attendances: Attendance[];
     stats: Stats;
     date: string;
-    branches: string[];
     filters: Record<string, string>;
     schedules: Schedule[];
     can_edit: boolean;
@@ -88,11 +86,7 @@ const props = defineProps<{
 // ─── Page setup ───────────────────────────────────────────────────────────────
 
 const page = usePage<AppPageProps>();
-const selectedBranch = ref(props.filters?.branch ?? 'all');
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
-const hasMultipleLocations = computed(() =>
-    Boolean((page.props as any).shopCapabilities?.multiple_locations),
-);
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 
 onMounted(() => {
@@ -143,27 +137,12 @@ function loadDate() {
         {
             date: selectedDate.value,
             search: search.value,
-            branch:
-                selectedBranch.value === 'all'
-                    ? undefined
-                    : selectedBranch.value,
         },
         { preserveState: true, preserveScroll: true },
     );
 }
 
 watch(selectedDate, () => loadDate());
-watch(selectedBranch, (val) => {
-    router.get(
-        `${baseRoute.value}/attendance`,
-        {
-            date: selectedDate.value,
-            search: search.value,
-            branch: val === 'all' ? undefined : val,
-        },
-        { preserveState: true, preserveScroll: true },
-    );
-});
 
 const isToday = computed(
     () => selectedDate.value === new Date().toISOString().split('T')[0],
@@ -497,24 +476,6 @@ function saveModal() {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <Select
-                        v-if="hasMultipleLocations"
-                        v-model="selectedBranch"
-                    >
-                        <SelectTrigger class="h-9 w-44 text-sm">
-                            <SelectValue placeholder="All Branches" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Branches</SelectItem>
-                            <SelectItem value="__none__">No Branch</SelectItem>
-                            <SelectItem
-                                v-for="b in branches"
-                                :key="b"
-                                :value="b"
-                                >{{ b }}</SelectItem
-                            >
-                        </SelectContent>
-                    </Select>
                     <div class="relative">
                         <Search
                             class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -597,15 +558,6 @@ function saveModal() {
                                             class="text-xs text-muted-foreground"
                                         >
                                             {{ emp.position }}
-                                            <span
-                                                v-if="
-                                                    hasMultipleLocations &&
-                                                    emp.branch_name
-                                                "
-                                                class="ml-1 text-muted-foreground/60"
-                                            >
-                                                · {{ emp.branch_name }}
-                                            </span>
                                         </p>
                                     </div>
                                 </div>

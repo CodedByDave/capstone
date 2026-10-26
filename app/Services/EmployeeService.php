@@ -28,7 +28,6 @@ class EmployeeService
         'employment_type',
         'pay_rate',
         'pay_basis',
-        'branch_name',
         'hire_date',
         'status',
     ];
@@ -41,29 +40,11 @@ class EmployeeService
 
     /* ─── READ ─────────────────────────── */
 
-    /**
-     * Returns the authenticated staff member's branch name, or null for owners.
-     * An empty branch_name is treated as "unassigned" (returns null).
-     */
-    private function getStaffBranch(): ?string
-    {
-        $user = auth()->user();
-
-        if ($user->role === 'owner') {
-            return null;
-        }
-
-        $branch = $this->employeeRepository->branchNameForUser($user->id);
-
-        return ($branch !== null && $branch !== '') ? $branch : null;
-    }
-
     public function indexData(Shop $shop, array $filters = []): array
     {
         $filters = [
             'search' => $filters['search'] ?? '',
             'status' => $filters['status'] ?? '',
-            'branch' => '',
             'employment_type' => $filters['employment_type'] ?? '',
             'sort_by' => $filters['sort_by'] ?? 'employee_id',
             'sort_direction' => $filters['sort_direction'] ?? 'asc',
@@ -71,17 +52,14 @@ class EmployeeService
         ];
         $user = auth()->user();
         $isOwner = $user->role === 'owner';
-        $staffBranch = $isOwner ? null : $this->getStaffBranch();
 
         return [
             'employees' => $this->employeeRepository->paginateForShop(
                 $shop,
                 $filters,
-                $staffBranch,
                 $isOwner ? null : $user->id,
             ),
-            'stats' => $this->employeeRepository->getStatsByShop($shop, $staffBranch),
-            'branch_names' => [],
+            'stats' => $this->employeeRepository->getStatsByShop($shop),
             'employment_types' => EmploymentType::options(),
             'pay_bases' => PayBasis::options(),
             'shop' => $shop,
@@ -91,15 +69,7 @@ class EmployeeService
 
     public function getStats(Shop $shop): array
     {
-        $branch = $this->getStaffBranch(); // null for owners → no filter applied
-
-        return $this->employeeRepository->getStatsByShop($shop, $branch);
-    }
-
-    /** A shop is a single location, so there are no branch names to pick from. */
-    public function getBranchNames(Shop $shop): array
-    {
-        return [];
+        return $this->employeeRepository->getStatsByShop($shop);
     }
 
     public function findEmployee(int $id, Shop $shop): Employee
@@ -116,8 +86,6 @@ class EmployeeService
 
     public function createEmployee(Shop $shop, array $data): Employee
     {
-        $data['branch_name'] = null;
-
         return DB::transaction(function () use ($shop, $data) {
 
             // Always create a login account for every employee.
@@ -180,8 +148,6 @@ class EmployeeService
 
     public function updateEmployee(Employee $employee, array $data): Employee
     {
-        $data['branch_name'] = null;
-
         $changes = $this->diffChanges($employee, $data);
 
         $updated = $this->employeeRepository->updateEmployee($employee, [

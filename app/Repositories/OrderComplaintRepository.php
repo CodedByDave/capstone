@@ -84,20 +84,20 @@ class OrderComplaintRepository extends Repository
 
     // ── Shop side ─────────────────────────────────────────────────────────────
 
-    /** A complaint only when it belongs to this shop (and branch, for staff). */
-    public function findForShop(string $publicId, int $shopId, ?string $branch = null): ?OrderComplaint
+    /** A complaint only when it belongs to this shop . */
+    public function findForShop(string $publicId, int $shopId): ?OrderComplaint
     {
-        return $this->scopedToShop($shopId, $branch)
+        return $this->scopedToShop($shopId)
             ->with(['order:id,order_number,customer_name', 'customer:id,name', 'photos'])
             ->where('public_id', $publicId)
             ->first();
     }
 
-    public function findPhotoForShop(string $publicId, int $shopId, ?string $branch = null): ?OrderComplaintPhoto
+    public function findPhotoForShop(string $publicId, int $shopId): ?OrderComplaintPhoto
     {
         return OrderComplaintPhoto::query()
             ->where('public_id', $publicId)
-            ->whereHas('complaint', fn (Builder $complaint) => $this->limitScope($complaint, $shopId, $branch))
+            ->whereHas('complaint', fn (Builder $complaint) => $this->limitScope($complaint, $shopId))
             ->first();
     }
 
@@ -107,9 +107,9 @@ class OrderComplaintRepository extends Repository
     }
 
     /** @return array{total: int, open: int, under_review: int, resolved: int} */
-    public function statsForShop(int $shopId, ?string $branch = null): array
+    public function statsForShop(int $shopId): array
     {
-        $counts = $this->scopedToShop($shopId, $branch)
+        $counts = $this->scopedToShop($shopId)
             ->selectRaw('order_complaints.status as status, COUNT(*) as total')
             ->groupBy('order_complaints.status')
             ->pluck('total', 'status');
@@ -122,7 +122,7 @@ class OrderComplaintRepository extends Repository
         ];
     }
 
-    public function paginateForShop(int $shopId, array $filters, int $perPage, ?string $branch = null): LengthAwarePaginator
+    public function paginateForShop(int $shopId, array $filters, int $perPage): LengthAwarePaginator
     {
         $column = self::SORTABLE[$filters['sort_by'] ?? 'created_at'] ?? self::SORTABLE['created_at'];
         $direction = ($filters['sort_direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
@@ -144,13 +144,6 @@ class OrderComplaintRepository extends Repository
                     ->orWhere('order_complaints.description', 'like', $like));
             });
 
-        if ($branch !== null) {
-            $query->where(fn ($inner) => $inner
-                ->where('shop_orders.branch_name', $branch)
-                ->orWhereNull('shop_orders.branch_name')
-                ->orWhere('shop_orders.branch_name', ''));
-        }
-
         return $query
             ->orderBy($column, $direction)
             ->orderByDesc('order_complaints.id')
@@ -158,24 +151,16 @@ class OrderComplaintRepository extends Repository
             ->withQueryString();
     }
 
-    private function scopedToShop(int $shopId, ?string $branch): Builder
+    private function scopedToShop(int $shopId): Builder
     {
-        return $this->limitScope(OrderComplaint::query(), $shopId, $branch);
+        return $this->limitScope(OrderComplaint::query(), $shopId);
     }
 
-    /** The same branch rule as the orders list: the branch's orders plus orders with no branch. */
-    private function limitScope(Builder $query, int $shopId, ?string $branch): Builder
+    private function limitScope(Builder $query, int $shopId): Builder
     {
         $query->where('order_complaints.shop_id', $shopId);
 
         // Complaints on trashed orders are hidden everywhere (list, stats, respond, photos).
-        return $query->whereHas('order', function (Builder $order) use ($branch) {
-            if ($branch !== null) {
-                $order->where(fn (Builder $inner) => $inner
-                    ->where('branch_name', $branch)
-                    ->orWhereNull('branch_name')
-                    ->orWhere('branch_name', ''));
-            }
-        });
+        return $query->whereHas('order');
     }
 }
