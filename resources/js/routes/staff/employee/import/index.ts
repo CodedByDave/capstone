@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::template
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:218
  * @route '/staff/employee/import-template'
  */
 export const template = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ template.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::template
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:218
  * @route '/staff/employee/import-template'
  */
 template.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ template.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::template
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:218
  * @route '/staff/employee/import-template'
  */
 template.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ template.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::template
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:218
  * @route '/staff/employee/import-template'
  */
 template.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ template.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::template
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:218
  * @route '/staff/employee/import-template'
  */
     const templateForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ template.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::template
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:218
  * @route '/staff/employee/import-template'
  */
         templateForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ template.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::template
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:218
  * @route '/staff/employee/import-template'
  */
         templateForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

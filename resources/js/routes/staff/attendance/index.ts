@@ -111,7 +111,7 @@ clockOut.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     clockOut.form = clockOutForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::index
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:38
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:35
  * @route '/staff/attendance'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -126,7 +126,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::index
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:38
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:35
  * @route '/staff/attendance'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -135,7 +135,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::index
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:38
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:35
  * @route '/staff/attendance'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -144,7 +144,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::index
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:38
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:35
  * @route '/staff/attendance'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -154,7 +154,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::index
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:38
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:35
  * @route '/staff/attendance'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -164,7 +164,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::index
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:38
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:35
  * @route '/staff/attendance'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -173,7 +173,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::index
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:38
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:35
  * @route '/staff/attendance'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -189,7 +189,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::store
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:97
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:62
  * @route '/staff/attendance'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -204,7 +204,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::store
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:97
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:62
  * @route '/staff/attendance'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -213,7 +213,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::store
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:97
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:62
  * @route '/staff/attendance'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -223,7 +223,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::store
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:97
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:62
  * @route '/staff/attendance'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -233,7 +233,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::store
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:97
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:62
  * @route '/staff/attendance'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -244,7 +244,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::update
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:110
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
 export const update = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -259,7 +259,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::update
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:110
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
 update.url = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -292,7 +292,7 @@ update.url = (args: { attendance: number | { id: number } } | [attendance: numbe
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::update
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:110
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
 update.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -302,7 +302,7 @@ update.put = (args: { attendance: number | { id: number } } | [attendance: numbe
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::update
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:110
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
     const updateForm = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -317,7 +317,7 @@ update.put = (args: { attendance: number | { id: number } } | [attendance: numbe
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\AttendanceController::update
- * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:110
+ * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
         updateForm.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

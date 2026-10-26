@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/shop/reports'
  */
 const overviewf58b9d3d1e3618d266e743fc8f274ed1 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ overviewf58b9d3d1e3618d266e743fc8f274ed1.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/shop/reports'
  */
 overviewf58b9d3d1e3618d266e743fc8f274ed1.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ overviewf58b9d3d1e3618d266e743fc8f274ed1.url = (options?: RouteQueryOptions) => 
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/shop/reports'
  */
 overviewf58b9d3d1e3618d266e743fc8f274ed1.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ overviewf58b9d3d1e3618d266e743fc8f274ed1.get = (options?: RouteQueryOptions): Ro
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/shop/reports'
  */
 overviewf58b9d3d1e3618d266e743fc8f274ed1.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ overviewf58b9d3d1e3618d266e743fc8f274ed1.head = (options?: RouteQueryOptions): R
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/shop/reports'
  */
     const overviewf58b9d3d1e3618d266e743fc8f274ed1Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ overviewf58b9d3d1e3618d266e743fc8f274ed1.head = (options?: RouteQueryOptions): R
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/shop/reports'
  */
         overviewf58b9d3d1e3618d266e743fc8f274ed1Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ overviewf58b9d3d1e3618d266e743fc8f274ed1.head = (options?: RouteQueryOptions): R
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/shop/reports'
  */
         overviewf58b9d3d1e3618d266e743fc8f274ed1Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ overviewf58b9d3d1e3618d266e743fc8f274ed1.head = (options?: RouteQueryOptions): R
     overviewf58b9d3d1e3618d266e743fc8f274ed1.form = overviewf58b9d3d1e3618d266e743fc8f274ed1Form
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 const overviewc104b9a411d6d369d06701bcdf2f77d9 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ overviewc104b9a411d6d369d06701bcdf2f77d9.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 overviewc104b9a411d6d369d06701bcdf2f77d9.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ overviewc104b9a411d6d369d06701bcdf2f77d9.url = (options?: RouteQueryOptions) => 
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 overviewc104b9a411d6d369d06701bcdf2f77d9.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ overviewc104b9a411d6d369d06701bcdf2f77d9.get = (options?: RouteQueryOptions): Ro
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 overviewc104b9a411d6d369d06701bcdf2f77d9.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ overviewc104b9a411d6d369d06701bcdf2f77d9.head = (options?: RouteQueryOptions): R
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
     const overviewc104b9a411d6d369d06701bcdf2f77d9Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ overviewc104b9a411d6d369d06701bcdf2f77d9.head = (options?: RouteQueryOptions): R
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
         overviewc104b9a411d6d369d06701bcdf2f77d9Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ overviewc104b9a411d6d369d06701bcdf2f77d9.head = (options?: RouteQueryOptions): R
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
         overviewc104b9a411d6d369d06701bcdf2f77d9Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const overview = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/shop/reports/inventory'
  */
 const inventory0b8cee2e227e86df6bd8c2cd699d33f8 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +178,7 @@ inventory0b8cee2e227e86df6bd8c2cd699d33f8.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/shop/reports/inventory'
  */
 inventory0b8cee2e227e86df6bd8c2cd699d33f8.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ inventory0b8cee2e227e86df6bd8c2cd699d33f8.url = (options?: RouteQueryOptions) =>
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/shop/reports/inventory'
  */
 inventory0b8cee2e227e86df6bd8c2cd699d33f8.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ inventory0b8cee2e227e86df6bd8c2cd699d33f8.get = (options?: RouteQueryOptions): R
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/shop/reports/inventory'
  */
 inventory0b8cee2e227e86df6bd8c2cd699d33f8.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ inventory0b8cee2e227e86df6bd8c2cd699d33f8.head = (options?: RouteQueryOptions): 
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/shop/reports/inventory'
  */
     const inventory0b8cee2e227e86df6bd8c2cd699d33f8Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ inventory0b8cee2e227e86df6bd8c2cd699d33f8.head = (options?: RouteQueryOptions): 
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/shop/reports/inventory'
  */
         inventory0b8cee2e227e86df6bd8c2cd699d33f8Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -225,7 +225,7 @@ inventory0b8cee2e227e86df6bd8c2cd699d33f8.head = (options?: RouteQueryOptions): 
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/shop/reports/inventory'
  */
         inventory0b8cee2e227e86df6bd8c2cd699d33f8Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -241,7 +241,7 @@ inventory0b8cee2e227e86df6bd8c2cd699d33f8.head = (options?: RouteQueryOptions): 
     inventory0b8cee2e227e86df6bd8c2cd699d33f8.form = inventory0b8cee2e227e86df6bd8c2cd699d33f8Form
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 const inventory8d299b25c5c83abf10e77cfedc02892c = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -256,7 +256,7 @@ inventory8d299b25c5c83abf10e77cfedc02892c.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 inventory8d299b25c5c83abf10e77cfedc02892c.url = (options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ inventory8d299b25c5c83abf10e77cfedc02892c.url = (options?: RouteQueryOptions) =>
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 inventory8d299b25c5c83abf10e77cfedc02892c.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ inventory8d299b25c5c83abf10e77cfedc02892c.get = (options?: RouteQueryOptions): R
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 inventory8d299b25c5c83abf10e77cfedc02892c.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ inventory8d299b25c5c83abf10e77cfedc02892c.head = (options?: RouteQueryOptions): 
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
     const inventory8d299b25c5c83abf10e77cfedc02892cForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ inventory8d299b25c5c83abf10e77cfedc02892c.head = (options?: RouteQueryOptions): 
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
         inventory8d299b25c5c83abf10e77cfedc02892cForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ inventory8d299b25c5c83abf10e77cfedc02892c.head = (options?: RouteQueryOptions): 
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
         inventory8d299b25c5c83abf10e77cfedc02892cForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -325,7 +325,7 @@ export const inventory = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/shop/reports/employee'
  */
 const employee7941040f71f94ad13b5d474f4917db7f = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -340,7 +340,7 @@ employee7941040f71f94ad13b5d474f4917db7f.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/shop/reports/employee'
  */
 employee7941040f71f94ad13b5d474f4917db7f.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ employee7941040f71f94ad13b5d474f4917db7f.url = (options?: RouteQueryOptions) => 
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/shop/reports/employee'
  */
 employee7941040f71f94ad13b5d474f4917db7f.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -358,7 +358,7 @@ employee7941040f71f94ad13b5d474f4917db7f.get = (options?: RouteQueryOptions): Ro
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/shop/reports/employee'
  */
 employee7941040f71f94ad13b5d474f4917db7f.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -368,7 +368,7 @@ employee7941040f71f94ad13b5d474f4917db7f.head = (options?: RouteQueryOptions): R
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/shop/reports/employee'
  */
     const employee7941040f71f94ad13b5d474f4917db7fForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -378,7 +378,7 @@ employee7941040f71f94ad13b5d474f4917db7f.head = (options?: RouteQueryOptions): R
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/shop/reports/employee'
  */
         employee7941040f71f94ad13b5d474f4917db7fForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -387,7 +387,7 @@ employee7941040f71f94ad13b5d474f4917db7f.head = (options?: RouteQueryOptions): R
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/shop/reports/employee'
  */
         employee7941040f71f94ad13b5d474f4917db7fForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -403,7 +403,7 @@ employee7941040f71f94ad13b5d474f4917db7f.head = (options?: RouteQueryOptions): R
     employee7941040f71f94ad13b5d474f4917db7f.form = employee7941040f71f94ad13b5d474f4917db7fForm
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 const employee99d20509669d4860b9bc0427a6a6844d = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -418,7 +418,7 @@ employee99d20509669d4860b9bc0427a6a6844d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 employee99d20509669d4860b9bc0427a6a6844d.url = (options?: RouteQueryOptions) => {
@@ -427,7 +427,7 @@ employee99d20509669d4860b9bc0427a6a6844d.url = (options?: RouteQueryOptions) => 
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 employee99d20509669d4860b9bc0427a6a6844d.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -436,7 +436,7 @@ employee99d20509669d4860b9bc0427a6a6844d.get = (options?: RouteQueryOptions): Ro
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 employee99d20509669d4860b9bc0427a6a6844d.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -446,7 +446,7 @@ employee99d20509669d4860b9bc0427a6a6844d.head = (options?: RouteQueryOptions): R
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
     const employee99d20509669d4860b9bc0427a6a6844dForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -456,7 +456,7 @@ employee99d20509669d4860b9bc0427a6a6844d.head = (options?: RouteQueryOptions): R
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
         employee99d20509669d4860b9bc0427a6a6844dForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -465,7 +465,7 @@ employee99d20509669d4860b9bc0427a6a6844d.head = (options?: RouteQueryOptions): R
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
         employee99d20509669d4860b9bc0427a6a6844dForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

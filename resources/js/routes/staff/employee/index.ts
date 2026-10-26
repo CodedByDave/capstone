@@ -79,7 +79,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     create.form = createForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::store
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:155
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:152
  * @route '/staff/employee'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::store
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:155
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:152
  * @route '/staff/employee'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::store
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:155
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:152
  * @route '/staff/employee'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::store
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:155
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:152
  * @route '/staff/employee'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::store
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:155
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:152
  * @route '/staff/employee'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::archive
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:141
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:138
  * @route '/staff/employee/archive'
  */
 export const archive = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -149,7 +149,7 @@ archive.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::archive
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:141
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:138
  * @route '/staff/employee/archive'
  */
 archive.url = (options?: RouteQueryOptions) => {
@@ -158,7 +158,7 @@ archive.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::archive
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:141
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:138
  * @route '/staff/employee/archive'
  */
 archive.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -167,7 +167,7 @@ archive.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::archive
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:141
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:138
  * @route '/staff/employee/archive'
  */
 archive.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -177,7 +177,7 @@ archive.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::archive
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:141
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:138
  * @route '/staff/employee/archive'
  */
     const archiveForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -187,7 +187,7 @@ archive.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::archive
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:141
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:138
  * @route '/staff/employee/archive'
  */
         archiveForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -196,7 +196,7 @@ archive.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::archive
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:141
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:138
  * @route '/staff/employee/archive'
  */
         archiveForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -212,7 +212,7 @@ archive.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     archive.form = archiveForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:199
  * @route '/staff/employee/bulk-restore'
  */
 export const bulkRestore = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ bulkRestore.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:199
  * @route '/staff/employee/bulk-restore'
  */
 bulkRestore.url = (options?: RouteQueryOptions) => {
@@ -236,7 +236,7 @@ bulkRestore.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:199
  * @route '/staff/employee/bulk-restore'
  */
 bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -246,7 +246,7 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:199
  * @route '/staff/employee/bulk-restore'
  */
     const bulkRestoreForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -256,7 +256,7 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:199
  * @route '/staff/employee/bulk-restore'
  */
         bulkRestoreForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -267,7 +267,7 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     bulkRestore.form = bulkRestoreForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:252
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:248
  * @route '/staff/employee/import'
  */
 export const importMethod = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -282,7 +282,7 @@ importMethod.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:252
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:248
  * @route '/staff/employee/import'
  */
 importMethod.url = (options?: RouteQueryOptions) => {
@@ -291,7 +291,7 @@ importMethod.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:252
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:248
  * @route '/staff/employee/import'
  */
 importMethod.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -301,7 +301,7 @@ importMethod.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:252
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:248
  * @route '/staff/employee/import'
  */
     const importMethodForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -311,7 +311,7 @@ importMethod.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:252
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:248
  * @route '/staff/employee/import'
  */
         importMethodForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -502,7 +502,7 @@ show.head = (args: { employee: string | { public_id: string } } | [employee: str
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::edit
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:101
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
 export const edit = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -517,7 +517,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::edit
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:101
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
 edit.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -550,7 +550,7 @@ edit.url = (args: { employee: string | { public_id: string } } | [employee: stri
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::edit
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:101
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
 edit.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -559,7 +559,7 @@ edit.get = (args: { employee: string | { public_id: string } } | [employee: stri
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::edit
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:101
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
 edit.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -569,7 +569,7 @@ edit.head = (args: { employee: string | { public_id: string } } | [employee: str
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::edit
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:101
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
     const editForm = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -579,7 +579,7 @@ edit.head = (args: { employee: string | { public_id: string } } | [employee: str
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::edit
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:101
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
         editForm.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -588,7 +588,7 @@ edit.head = (args: { employee: string | { public_id: string } } | [employee: str
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::edit
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:101
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
         editForm.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -604,7 +604,7 @@ edit.head = (args: { employee: string | { public_id: string } } | [employee: str
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::update
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:165
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
 export const update = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -619,7 +619,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::update
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:165
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
 update.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -652,7 +652,7 @@ update.url = (args: { employee: string | { public_id: string } } | [employee: st
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::update
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:165
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
 update.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -662,7 +662,7 @@ update.put = (args: { employee: string | { public_id: string } } | [employee: st
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::update
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:165
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
     const updateForm = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -677,7 +677,7 @@ update.put = (args: { employee: string | { public_id: string } } | [employee: st
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::update
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:165
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
         updateForm.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -693,7 +693,7 @@ update.put = (args: { employee: string | { public_id: string } } | [employee: st
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::destroy
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:177
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
 export const destroy = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -708,7 +708,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::destroy
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:177
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
 destroy.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -741,7 +741,7 @@ destroy.url = (args: { employee: string | { public_id: string } } | [employee: s
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::destroy
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:177
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
 destroy.delete = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -751,7 +751,7 @@ destroy.delete = (args: { employee: string | { public_id: string } } | [employee
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::destroy
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:177
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
     const destroyForm = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -766,7 +766,7 @@ destroy.delete = (args: { employee: string | { public_id: string } } | [employee
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::destroy
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:177
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
         destroyForm.delete = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -782,7 +782,7 @@ destroy.delete = (args: { employee: string | { public_id: string } } | [employee
     destroy.form = destroyForm
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::restore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:189
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:186
  * @route '/staff/employee/{publicId}/restore'
  */
 export const restore = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -797,7 +797,7 @@ restore.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::restore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:189
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:186
  * @route '/staff/employee/{publicId}/restore'
  */
 restore.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -825,7 +825,7 @@ restore.url = (args: { publicId: string | number } | [publicId: string | number 
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::restore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:189
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:186
  * @route '/staff/employee/{publicId}/restore'
  */
 restore.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -835,7 +835,7 @@ restore.post = (args: { publicId: string | number } | [publicId: string | number
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::restore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:189
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:186
  * @route '/staff/employee/{publicId}/restore'
  */
     const restoreForm = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -845,7 +845,7 @@ restore.post = (args: { publicId: string | number } | [publicId: string | number
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::restore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:189
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:186
  * @route '/staff/employee/{publicId}/restore'
  */
         restoreForm.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

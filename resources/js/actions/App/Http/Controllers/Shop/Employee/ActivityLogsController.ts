@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/shop/logs'
  */
 const index458b8fb441f569641a33bf5d213e92c4 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index458b8fb441f569641a33bf5d213e92c4.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/shop/logs'
  */
 index458b8fb441f569641a33bf5d213e92c4.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index458b8fb441f569641a33bf5d213e92c4.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/shop/logs'
  */
 index458b8fb441f569641a33bf5d213e92c4.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index458b8fb441f569641a33bf5d213e92c4.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/shop/logs'
  */
 index458b8fb441f569641a33bf5d213e92c4.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index458b8fb441f569641a33bf5d213e92c4.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/shop/logs'
  */
     const index458b8fb441f569641a33bf5d213e92c4Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index458b8fb441f569641a33bf5d213e92c4.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/shop/logs'
  */
         index458b8fb441f569641a33bf5d213e92c4Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index458b8fb441f569641a33bf5d213e92c4.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/shop/logs'
  */
         index458b8fb441f569641a33bf5d213e92c4Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index458b8fb441f569641a33bf5d213e92c4.head = (options?: RouteQueryOptions): Rout
     index458b8fb441f569641a33bf5d213e92c4.form = index458b8fb441f569641a33bf5d213e92c4Form
     /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/staff/logs'
  */
 const indexad897ca4c68881def2f1bb2e683e7b11 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ indexad897ca4c68881def2f1bb2e683e7b11.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/staff/logs'
  */
 indexad897ca4c68881def2f1bb2e683e7b11.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ indexad897ca4c68881def2f1bb2e683e7b11.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/staff/logs'
  */
 indexad897ca4c68881def2f1bb2e683e7b11.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ indexad897ca4c68881def2f1bb2e683e7b11.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/staff/logs'
  */
 indexad897ca4c68881def2f1bb2e683e7b11.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ indexad897ca4c68881def2f1bb2e683e7b11.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/staff/logs'
  */
     const indexad897ca4c68881def2f1bb2e683e7b11Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ indexad897ca4c68881def2f1bb2e683e7b11.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/staff/logs'
  */
         indexad897ca4c68881def2f1bb2e683e7b11Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ indexad897ca4c68881def2f1bb2e683e7b11.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\ActivityLogsController::index
- * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:34
+ * @see app/Http/Controllers/Shop/Employee/ActivityLogsController.php:31
  * @route '/staff/logs'
  */
         indexad897ca4c68881def2f1bb2e683e7b11Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

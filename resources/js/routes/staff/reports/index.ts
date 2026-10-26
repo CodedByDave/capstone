@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 export const overview = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ overview.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 overview.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ overview.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 overview.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ overview.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
 overview.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ overview.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
     const overviewForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ overview.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
         overviewForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ overview.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::overview
- * @see app/Http/Controllers/Shop/ReportsController.php:66
+ * @see app/Http/Controllers/Shop/ReportsController.php:48
  * @route '/staff/reports'
  */
         overviewForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ overview.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     overview.form = overviewForm
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 export const inventory = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ inventory.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 inventory.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ inventory.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 inventory.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ inventory.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
 inventory.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ inventory.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
     const inventoryForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ inventory.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
         inventoryForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ inventory.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::inventory
- * @see app/Http/Controllers/Shop/ReportsController.php:118
+ * @see app/Http/Controllers/Shop/ReportsController.php:99
  * @route '/staff/reports/inventory'
  */
         inventoryForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ inventory.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     inventory.form = inventoryForm
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 export const employee = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -172,7 +172,7 @@ employee.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 employee.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ employee.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 employee.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -190,7 +190,7 @@ employee.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
 employee.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -200,7 +200,7 @@ employee.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
     const employeeForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -210,7 +210,7 @@ employee.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
         employeeForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -219,7 +219,7 @@ employee.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Shop\ReportsController::employee
- * @see app/Http/Controllers/Shop/ReportsController.php:205
+ * @see app/Http/Controllers/Shop/ReportsController.php:186
  * @route '/staff/reports/employee'
  */
         employeeForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

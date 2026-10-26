@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::update
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:127
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
 export const update = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -16,7 +16,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::update
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:127
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
 update.url = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ update.url = (args: { payrollItem: string | { public_id: string } } | [payrollIt
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::update
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:127
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
 update.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -59,7 +59,7 @@ update.put = (args: { payrollItem: string | { public_id: string } } | [payrollIt
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::update
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:127
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
     const updateForm = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -74,7 +74,7 @@ update.put = (args: { payrollItem: string | { public_id: string } } | [payrollIt
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::update
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:127
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
         updateForm.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
