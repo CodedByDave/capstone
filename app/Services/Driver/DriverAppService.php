@@ -106,8 +106,13 @@ class DriverAppService
 
     // ── Actions ───────────────────────────────────────────────────────────────
 
+    /** @throws DriverJobException when the driver tries to go online without a shift today */
     public function setOnline(Rider $rider, bool $online): Rider
     {
+        if ($online && $this->attendance->state($rider)['blocked_reason'] !== null) {
+            throw new DriverJobException('You can only go online on a day in your work schedule.');
+        }
+
         $rider = DB::transaction(fn () => $this->riders->setOnline($rider, $online));
 
         // A driver who just came online may take an order that was waiting for a driver.

@@ -45,7 +45,7 @@ class RiderRepository extends Repository
     /**
      * A driver who is online with no delivery on the road. The one who has been free the
      * longest (earliest available_since) gets the next order, so the work is shared. Only
-     * riders linked to an employee are considered. Meant to be called inside the caller's
+     * riders linked to an employee who is scheduled to work today are considered. Meant to be called inside the caller's
      * transaction: the rows are locked while the choice is made.
      */
     public function findAvailableForShop(int $shopId): ?Rider
@@ -55,6 +55,7 @@ class RiderRepository extends Repository
             ->active()
             ->whereNotNull('employee_id')
             ->where('is_online', true)
+            ->whereHas('employee.schedules', fn ($query) => $query->where('day', now()->format('l')))
             ->whereDoesntHave('deliveries', fn ($query) => $query->whereIn('status', self::BUSY_STATUSES))
             ->orderByRaw('available_since is null')
             ->orderBy('available_since')

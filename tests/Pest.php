@@ -50,7 +50,7 @@ function something()
  * A driver of the shop: an employee whose position is Driver, linked to a rider. Online and free
  * since the given time unless told otherwise, so the shop can give them waiting orders.
  */
-function onlineRider(App\Models\Shop $shop, string $name = 'Rico', bool $online = true, ?Carbon\Carbon $freeSince = null): App\Models\Rider
+function onlineRider(App\Models\Shop $shop, string $name = 'Rico', bool $online = true, ?Carbon\Carbon $freeSince = null, bool $scheduled = true): App\Models\Rider
 {
     $user = App\Models\User::factory()->create(['role' => App\Enums\AccountType::Staff->value, 'shop_id' => $shop->id]);
 
@@ -64,6 +64,15 @@ function onlineRider(App\Models\Shop $shop, string $name = 'Rico', bool $online 
         'hire_date' => today(),
         'status' => 'Active',
     ]);
+
+    if ($scheduled) {
+        App\Models\EmployeeSchedule::create([
+            'employee_id' => $employee->id,
+            'day' => now()->format('l'),
+            'start_time' => '00:00',
+            'end_time' => '23:59',
+        ]);
+    }
 
     $rider = app(App\Services\DriverRosterService::class)->sync($employee);
     $rider->update(['is_online' => $online, 'available_since' => $online ? ($freeSince ?? now()) : null]);

@@ -176,6 +176,25 @@ test('going online takes an order that was waiting for a driver', function () {
         ->and($waiting->fresh()->rider_id)->toBe($rider->id);
 });
 
+test('a driver without a shift today cannot go online', function () {
+    $rider = onlineRider(driverShop(), online: false, scheduled: false);
+
+    $this->actingAs($rider->employee->user)
+        ->patch('/driver/availability', ['online' => true])
+        ->assertRedirect();
+
+    expect($rider->fresh()->is_online)->toBeFalse();
+});
+
+test('an order is never given to a driver without a shift today', function () {
+    $shop = driverShop();
+    onlineRider($shop, scheduled: false);
+    $waiting = driverRun($shop, null, 'pending');
+
+    expect(app(App\Repositories\RiderRepository::class)->findAvailableForShop($shop->id))->toBeNull()
+        ->and($waiting->fresh()->rider_id)->toBeNull();
+});
+
 test('going offline stops new orders and clears the waiting time', function () {
     $shop = driverShop();
     $rider = onlineRider($shop);

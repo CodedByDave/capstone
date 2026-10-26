@@ -19,10 +19,14 @@ class DriverJobController extends Controller
 
     public function setAvailability(SetAvailabilityRequest $request): RedirectResponse
     {
-        $rider = $this->service->setOnline(
-            $request->attributes->get('rider'),
-            $request->boolean('online'),
-        );
+        try {
+            $rider = $this->service->setOnline(
+                $request->attributes->get('rider'),
+                $request->boolean('online'),
+            );
+        } catch (DriverJobException $e) {
+            return back()->with('toast', ['type' => 'error', 'message' => $e->getMessage()]);
+        }
 
         return back()->with('toast', [
             'type' => 'success',
