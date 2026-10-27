@@ -76,7 +76,7 @@ function lineError(index: number, field: string): string | undefined {
 </script>
 
 <template>
-    <div>
+    <div id="service-supplies">
         <div class="mb-4 flex items-center justify-between gap-3">
             <p
                 class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
@@ -193,6 +193,12 @@ function lineError(index: number, field: string): string | undefined {
                             update(index, { unit: $event as string })
                         "
                     />
+                    <p
+                        v-if="lineError(index, 'unit')"
+                        class="text-xs text-red-500"
+                    >
+                        {{ lineError(index, 'unit') }}
+                    </p>
                 </div>
 
                 <div class="col-span-12 flex justify-end sm:col-span-1 sm:pt-5">

@@ -40,6 +40,14 @@ trait ValidatesServiceCatalogue
     {
         return [
             'supplies.required' => 'Add at least one supply, or turn off "Uses supplies".',
+            'supplies.array' => 'The supplies list is not valid. Reload the page and try again.',
+            'supplies.max' => 'A service can use at most 20 supplies.',
+            'supplies.*.inventory_id.required' => 'Select a supply for this row, or remove the row.',
+            'supplies.*.inventory_id.integer' => 'Select a supply from the list.',
+            'supplies.*.quantity.required' => 'Enter how much of this supply the service uses.',
+            'supplies.*.quantity.numeric' => 'The quantity must be a number.',
+            'supplies.*.quantity.max' => 'The quantity cannot be more than 9,999.',
+            'supplies.*.unit.required' => 'Enter the unit, for example sachet or ml.',
             'supplies.*.inventory_id.exists' => 'One of the selected supplies is not in your inventory.',
             'supplies.*.inventory_id.distinct' => 'Each supply can only be listed once.',
             'supplies.*.quantity.min' => 'Supply quantity must be at least 0.01.',

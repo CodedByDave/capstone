@@ -8,6 +8,7 @@ import ServiceSuppliesField, {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { scrollToFirstError } from '@/composables/useScrollToFormError';
 import {
     serviceCategories,
     type ServiceCategory,
@@ -175,7 +176,11 @@ const photoPreview = computed(() =>
     form.photo ? URL.createObjectURL(form.photo) : null,
 );
 
-const submit = () => form.post(base.value, { forceFormData: true });
+const submit = () =>
+    form.post(base.value, {
+        forceFormData: true,
+        onError: scrollToFirstError,
+    });
 
 const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
 </script>

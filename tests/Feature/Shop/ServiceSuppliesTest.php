@@ -230,3 +230,21 @@ it('shows customers the supplies of a service without costs or stock levels', fu
     expect($cards[0]['supplies'])->toBe([['name' => 'Fabric Softener', 'quantity' => 1.0, 'unit' => 'cap', 'per' => 'kg']])
         ->and(json_encode($cards))->not->toContain('unit_price')->not->toContain('selling_price');
 });
+
+it('explains an empty supply row in plain words', function () {
+    $shop = svcShop();
+
+    $request = new App\Http\Requests\Shop\Operations\StoreShopServiceRequest;
+    $request->setUserResolver(fn () => $shop->owner);
+    $request->merge([
+        'service_name' => 'X', 'category' => 'full_service', 'pricing_model' => 'per_kg', 'price_per_kg' => 60,
+        'uses_supplies' => true,
+        'supplies' => [['inventory_id' => '', 'quantity' => '', 'unit' => '']],
+    ]);
+
+    $errors = validator($request->all(), $request->rules(), $request->messages())->errors();
+
+    expect($errors->first('supplies.0.inventory_id'))->toBe('Select a supply for this row, or remove the row.')
+        ->and($errors->first('supplies.0.quantity'))->toBe('Enter how much of this supply the service uses.')
+        ->and($errors->first('supplies.0.unit'))->toBe('Enter the unit, for example sachet or ml.');
+});
