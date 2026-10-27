@@ -24,7 +24,6 @@ import {
     BadgeDollarSign,
     Banknote,
     BarChart3,
-    Building2,
     CalendarClock,
     ChevronRight,
     ClipboardCheck,
@@ -330,6 +329,20 @@ const moduleDisplayNameMap: Record<string, string> = {
     Operations: 'Operation Management',
 };
 
+// Sidebar order: operations first, then people, stock, money and insights.
+const moduleOrder = [
+    'Operations',
+    'HRM',
+    'Inventory Management',
+    'Finance Management',
+    'Reports & Analytics',
+];
+
+function moduleRank(name: string): number {
+    const index = moduleOrder.indexOf(name);
+    return index === -1 ? moduleOrder.length : index;
+}
+
 function getHref(name: string): string {
     const map = moduleIconMap[name];
     if (!map) return '#';
@@ -488,7 +501,8 @@ const moduleNavItems = computed<ModuleNavItem[]>(() => {
         'Reports & Analytics': 'shop.analytics',
     };
 
-    return props.order.modules
+    return [...props.order.modules]
+        .sort((a: any, b: any) => moduleRank(a.name) - moduleRank(b.name))
         .filter((m: any) =>
             isOwner.value
                 ? ownerCan(ownerModulePermissions[m.name] ?? '')
