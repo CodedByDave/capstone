@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    RowActions,
+    type DataTableHeader,
+} from '@/components/data-table';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -34,8 +41,6 @@ import {
 } from '@/components/ui/select';
 import {
     Archive,
-    ChevronLeft,
-    ChevronRight,
     Loader2,
     Pencil,
     Plus,
@@ -68,6 +73,7 @@ interface PaginatedExpenses {
     data: Expense[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     from: number | null;
     to: number | null;
@@ -318,29 +324,30 @@ function deleteCategory(id: number) {
     });
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-function goToPage(p: number) {
-    router.get(
-        `${base.value}/finance/expenses`,
-        { page: p, ...props.filters },
-        { preserveScroll: true },
-    );
-}
+const { options, loading } = usePaginatorTable(
+    () => props.expenses,
+    ['expenses'],
+);
 
-const visiblePages = computed(() => {
-    const pages: number[] = [];
-    const current = props.expenses.current_page;
-    const total = props.expenses.last_page;
-    for (
-        let i = Math.max(1, current - 2);
-        i <= Math.min(total, current + 2);
-        i++
-    ) {
-        pages.push(i);
-    }
-    return pages;
-});
+const hasFilters = computed(
+    () =>
+        Boolean(props.filters.search) ||
+        Boolean(props.filters.category_id) ||
+        Boolean(props.filters.date_from) ||
+        Boolean(props.filters.date_to),
+);
+
+const headers: DataTableHeader[] = [
+    { text: 'Title', value: 'title' },
+    { text: 'Category', value: 'category' },
+    { text: 'Date', value: 'expense_date', width: 140 },
+    { text: 'Reference', value: 'reference_number' },
+    { text: 'Recorded by', value: 'creator' },
+    { text: 'Amount', value: 'amount', align: 'right', width: 140 },
+    { text: 'Actions', value: 'actions', align: 'center', width: 120 },
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -452,204 +459,136 @@ function formatDate(val: string): string {
                 </Card>
             </div>
 
-            <!-- ── Filters ─────────────────────────────────────── -->
-            <div class="flex flex-col flex-wrap gap-2 sm:flex-row">
-                <Input
-                    v-model="search"
-                    placeholder="Search title..."
-                    class="sm:w-48"
-                    @keyup.enter="applyFilters"
-                />
-                <Select v-model="categoryId">
-                    <SelectTrigger class="sm:w-48">
-                        <SelectValue placeholder="All categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All categories</SelectItem>
-                        <SelectItem
-                            v-for="cat in categories"
-                            :key="cat.id"
-                            :value="cat.id.toString()"
-                        >
-                            {{ cat.name }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-                <Input v-model="dateFrom" type="date" class="sm:w-40" />
-                <Input v-model="dateTo" type="date" class="sm:w-40" />
-                <Button @click="applyFilters">Filter</Button>
-                <Button variant="outline" @click="clearFilters">Clear</Button>
-            </div>
-
             <!-- ── Table ───────────────────────────────────────── -->
-            <div class="overflow-hidden rounded-xl border">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr
-                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                        >
-                            <th class="px-4 py-3 text-left font-medium">
-                                Title
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium sm:table-cell"
-                            >
-                                Category
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium md:table-cell"
-                            >
-                                Date
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium lg:table-cell"
-                            >
-                                Reference
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium lg:table-cell"
-                            >
-                                Recorded By
-                            </th>
-                            <th class="px-4 py-3 text-right font-medium">
-                                Amount
-                            </th>
-                            <th class="px-4 py-3 text-right font-medium">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="exp in expenses.data"
-                            :key="exp.id"
-                            class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                        >
-                            <td class="px-4 py-3">
-                                <p class="font-medium">{{ exp.title }}</p>
-                                <p
-                                    v-if="exp.description"
-                                    class="max-w-[160px] truncate text-xs text-muted-foreground"
-                                >
-                                    {{ exp.description }}
-                                </p>
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground sm:table-cell"
-                            >
-                                {{ exp.category?.name ?? '—' }}
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground md:table-cell"
-                            >
-                                {{ formatDate(exp.expense_date) }}
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground lg:table-cell"
-                            >
-                                {{ exp.reference_number ?? '—' }}
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell"
-                            >
-                                {{ exp.creator?.name ?? '—' }}
-                            </td>
-                            <td
-                                class="px-4 py-3 text-right font-semibold text-red-600"
-                            >
-                                {{ currency(exp.amount) }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <div
-                                    class="flex items-center justify-end gap-1"
-                                >
-                                    <Button
-                                        v-if="
-                                            can(
-                                                'Finance Management',
-                                                'update',
-                                            ) || isOwner
-                                        "
-                                        size="icon"
-                                        variant="ghost"
-                                        @click="openEdit(exp)"
-                                    >
-                                        <Pencil class="h-4 w-4 text-blue-500" />
-                                    </Button>
-                                    <Button
-                                        v-if="
-                                            can(
-                                                'Finance Management',
-                                                'archive',
-                                            ) || isOwner
-                                        "
-                                        size="icon"
-                                        variant="ghost"
-                                        @click="openDelete(exp)"
-                                    >
-                                        <Trash2 class="h-4 w-4 text-red-500" />
-                                    </Button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr v-if="expenses.data.length === 0">
-                            <td
-                                colspan="7"
-                                class="px-4 py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <TrendingDown
-                                    class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                />
-                                <p>
-                                    No expenses found. Click "Add Expense" to
-                                    record one.
-                                </p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ── Pagination ──────────────────────────────────── -->
-            <div
-                v-if="expenses.last_page > 1"
-                class="flex items-center justify-between px-4 py-3"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="expenses.data"
+                :total="expenses.total"
+                :loading="loading"
+                noun="expenses"
+                :empty-icon="TrendingDown"
+                :empty-message="
+                    hasFilters
+                        ? 'No expenses match the current filters.'
+                        : 'No expenses found. Click “Add Expense” to record one.'
+                "
+                :resettable="hasFilters"
+                :min-width="960"
+                hide-rows-per-page
+                @reset="clearFilters"
             >
-                <p class="text-xs text-muted-foreground">
-                    Showing {{ expenses.from }}–{{ expenses.to }} of
-                    {{ expenses.total }}
-                </p>
-                <div class="flex items-center gap-1">
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="expenses.current_page === 1"
-                        @click="goToPage(expenses.current_page - 1)"
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        search-placeholder="Search title..."
+                        search-label="Search expenses"
+                        @submit="applyFilters"
                     >
-                        <ChevronLeft class="h-4 w-4" />
-                    </Button>
-                    <Button
-                        v-for="p in visiblePages"
-                        :key="p"
-                        size="icon"
-                        :variant="
-                            p === expenses.current_page ? 'default' : 'outline'
-                        "
-                        @click="goToPage(p)"
+                        <Select v-model="categoryId">
+                            <SelectTrigger
+                                class="sm:w-48"
+                                aria-label="Filter by category"
+                            >
+                                <SelectValue placeholder="All categories" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all"
+                                    >All categories</SelectItem
+                                >
+                                <SelectItem
+                                    v-for="cat in categories"
+                                    :key="cat.id"
+                                    :value="cat.id.toString()"
+                                >
+                                    {{ cat.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            v-model="dateFrom"
+                            type="date"
+                            class="sm:w-40"
+                            aria-label="From date"
+                        />
+                        <Input
+                            v-model="dateTo"
+                            type="date"
+                            class="sm:w-40"
+                            aria-label="To date"
+                        />
+                        <Button @click="applyFilters">Filter</Button>
+                        <Button variant="outline" @click="clearFilters"
+                            >Clear</Button
+                        >
+                    </DataTableToolbar>
+                </template>
+
+                <template #item-title="exp">
+                    <p class="font-medium">{{ exp.title }}</p>
+                    <p
+                        v-if="exp.description"
+                        class="max-w-[160px] truncate text-xs text-muted-foreground"
                     >
-                        {{ p }}
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="expenses.current_page === expenses.last_page"
-                        @click="goToPage(expenses.current_page + 1)"
-                    >
-                        <ChevronRight class="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
+                        {{ exp.description }}
+                    </p>
+                </template>
+
+                <template #item-category="exp">
+                    <span class="text-muted-foreground">
+                        {{ exp.category?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-expense_date="exp">
+                    <span class="whitespace-nowrap text-muted-foreground">
+                        {{ formatDate(exp.expense_date) }}
+                    </span>
+                </template>
+
+                <template #item-reference_number="exp">
+                    <span class="text-muted-foreground">
+                        {{ exp.reference_number ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-creator="exp">
+                    <span class="text-xs text-muted-foreground">
+                        {{ exp.creator?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-amount="exp">
+                    <span class="font-semibold whitespace-nowrap text-red-600">
+                        {{ currency(exp.amount) }}
+                    </span>
+                </template>
+
+                <template #item-actions="exp">
+                    <RowActions
+                        :label="exp.title"
+                        :actions="[
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show:
+                                    can('Finance Management', 'update') ||
+                                    isOwner,
+                                onSelect: () => openEdit(exp),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: Trash2,
+                                destructive: true,
+                                show:
+                                    can('Finance Management', 'archive') ||
+                                    isOwner,
+                                onSelect: () => openDelete(exp),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- ── Create Dialog ────────────────────────────────────── -->

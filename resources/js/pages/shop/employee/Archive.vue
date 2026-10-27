@@ -5,17 +5,17 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 // shadcn components
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
+import { Button } from '@/components/ui/button';
+import { useDataTable } from '@/composables/useDataTable';
 
 // icons
 import { Archive, ArchiveRestore, ArrowLeft } from 'lucide-vue-next';
@@ -61,47 +61,62 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Archive', href: `${baseRoute.value}/employee/archive` },
 ];
 
-// ─── Search ───────────────────────────────────────────────────────────────────
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-const searchQuery = ref('');
+const {
+    search: searchQuery,
+    status: statusFilter,
+    options,
+    pageItems,
+    total,
+    statusCounts,
+    isFiltered,
+    reset,
+} = useDataTable(() => archived, {
+    searchFields: (emp) => [
+        `${emp.first_name} ${emp.last_name}`,
+        emp.employee_id,
+        emp.position,
+    ],
+    status: (emp) => emp.status,
+    sortValue: (emp, column) =>
+        column === 'name'
+            ? `${emp.first_name} ${emp.last_name}`
+            : emp[column as keyof ArchivedEmployee],
+    sortBy: 'archived_at',
+    sortType: 'desc',
+});
 
-const filtered = computed(() =>
-    archived.filter((emp) => {
-        const fullName = `${emp.first_name} ${emp.last_name}`.toLowerCase();
-        const q = searchQuery.value.toLowerCase();
-        return (
-            fullName.includes(q) ||
-            emp.employee_id.toLowerCase().includes(q) ||
-            emp.position.toLowerCase().includes(q)
-        );
-    }),
-);
+const statusOptions = computed(() => [
+    { value: '', label: 'All', count: archived.length },
+    ...(['Active', 'Inactive', 'Archived'] as const)
+        .filter((value) => statusCounts.value[value])
+        .map((value) => ({
+            value,
+            label: value,
+            count: statusCounts.value[value],
+        })),
+]);
+
+const headers: DataTableHeader[] = [
+    { text: 'Employee ID', value: 'employee_id', sortable: true },
+    { text: 'Name', value: 'name', sortable: true },
+    { text: 'Position', value: 'position', sortable: true },
+    { text: 'Hire date', value: 'hire_date', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
+    { text: 'Archived on', value: 'archived_at', sortable: true },
+    { text: 'Actions', value: 'actions', align: 'center', width: 100 },
+];
+
+function employeeStatusTone(status: string): StatusTone {
+    if (status === 'Active') return 'success';
+    if (status === 'Inactive') return 'danger';
+    return 'warning';
+}
 
 // ─── Selected rows ────────────────────────────────────────────────────────────
 
-const selected = ref<number[]>([]);
-
-const allSelected = computed(
-    () =>
-        filtered.value.length > 0 &&
-        filtered.value.every((e) => selected.value.includes(e.employee_id_ref)),
-);
-
-function toggleAll() {
-    if (allSelected.value) {
-        selected.value = [];
-    } else {
-        selected.value = filtered.value.map((e) => e.employee_id_ref);
-    }
-}
-
-function toggleOne(id: number) {
-    if (selected.value.includes(id)) {
-        selected.value = selected.value.filter((i) => i !== id);
-    } else {
-        selected.value.push(id);
-    }
-}
+const selected = ref<Array<string | number>>([]);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -164,160 +179,107 @@ function executeBulkRestore() {
                 </Button>
             </div>
 
-            <Card>
-                <CardHeader
-                    class="flex flex-row flex-wrap items-center justify-between gap-2"
-                >
-                    <div class="flex items-center gap-2">
-                        <Archive class="h-5 w-5 text-muted-foreground" />
-                        <CardTitle>Archived Employees</CardTitle>
-                        <span
-                            class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+            <DataTable
+                v-model:options="options"
+                v-model:selected="selected"
+                :headers="headers"
+                :items="pageItems"
+                :total="total"
+                item-key="employee_id_ref"
+                :row-label="(emp) => `${emp.first_name} ${emp.last_name}`"
+                selectable
+                noun="archived employees"
+                :empty-icon="Archive"
+                empty-message="No archived employees found."
+                :resettable="isFiltered"
+                :min-width="980"
+                @reset="reset"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="searchQuery"
+                        v-model:status="statusFilter"
+                        :statuses="statusOptions"
+                        search-placeholder="Search archived..."
+                        search-label="Search archived employees"
+                        status-label="Filter by employee status"
+                    >
+                        <h2
+                            class="order-first flex w-full items-center gap-2 font-semibold sm:w-auto"
                         >
-                            {{ archived.length }} total
-                        </span>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Input
-                            v-model="searchQuery"
-                            placeholder="Search archived..."
-                            class="w-52"
-                        />
-
-                        <template v-if="selected.length > 0">
-                            <span class="text-xs text-muted-foreground"
-                                >{{ selected.length }} selected</span
+                            <Archive class="h-5 w-5 text-muted-foreground" />
+                            Archived Employees
+                            <span
+                                class="rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground"
                             >
-                            <Button
-                                type="button"
-                                variant="outline"
-                                class="border-green-300 text-green-600 hover:bg-green-50"
-                                @click="confirmBulk"
-                            >
-                                <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                                Restore Selected
-                            </Button>
-                        </template>
-                    </div>
-                </CardHeader>
+                                {{ archived.length }} total
+                            </span>
+                        </h2>
+                    </DataTableToolbar>
+                </template>
 
-                <CardContent>
-                    <div class="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead class="w-10">
-                                        <input
-                                            type="checkbox"
-                                            :checked="allSelected"
-                                            @change="toggleAll"
-                                            class="rounded border-gray-300"
-                                        />
-                                    </TableHead>
-                                    <TableHead>Employee ID</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Position</TableHead>
-                                    <TableHead>Hire Date</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Archived On</TableHead>
-                                    <TableHead class="text-center"
-                                        >Actions</TableHead
-                                    >
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-if="filtered.length === 0">
-                                    <TableCell
-                                        colspan="9"
-                                        class="py-12 text-center text-muted-foreground"
-                                    >
-                                        <div
-                                            class="flex flex-col items-center gap-2"
-                                        >
-                                            <Archive
-                                                class="h-8 w-8 text-muted-foreground/40"
-                                            />
-                                            <p>No archived employees found.</p>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                <template #bulk-actions>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        class="border-green-300 text-green-600 hover:bg-green-50"
+                        @click="confirmBulk"
+                    >
+                        <ArchiveRestore class="mr-1.5 h-4 w-4" />
+                        Restore Selected
+                    </Button>
+                </template>
 
-                                <TableRow
-                                    v-for="emp in filtered"
-                                    :key="emp.id"
-                                    class="opacity-75"
-                                >
-                                    <TableCell>
-                                        <input
-                                            type="checkbox"
-                                            :checked="
-                                                selected.includes(
-                                                    emp.employee_id_ref,
-                                                )
-                                            "
-                                            @change="
-                                                toggleOne(emp.employee_id_ref)
-                                            "
-                                            class="rounded border-gray-300"
-                                        />
-                                    </TableCell>
-                                    <TableCell
-                                        class="font-mono text-xs whitespace-nowrap"
-                                        >{{ emp.employee_id }}</TableCell
-                                    >
-                                    <TableCell
-                                        class="font-medium whitespace-nowrap"
-                                        >{{ emp.first_name }}
-                                        {{ emp.last_name }}</TableCell
-                                    >
-                                    <TableCell class="whitespace-nowrap">{{
-                                        emp.position
-                                    }}</TableCell>
-                                    <TableCell class="whitespace-nowrap">{{
-                                        formatDate(emp.hire_date)
-                                    }}</TableCell>
-                                    <TableCell>
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-                                            :class="{
-                                                'bg-green-500':
-                                                    emp.status === 'Active',
-                                                'bg-red-500':
-                                                    emp.status === 'Inactive',
-                                                'bg-amber-500':
-                                                    emp.status === 'Archived',
-                                            }"
-                                        >
-                                            {{ emp.status }}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell
-                                        class="text-sm whitespace-nowrap text-muted-foreground"
-                                    >
-                                        {{ formatDate(emp.archived_at) }}
-                                    </TableCell>
-                                    <TableCell class="text-center">
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            variant="ghost"
-                                            title="Restore employee"
-                                            @click="
-                                                restore(emp.employee_public_id)
-                                            "
-                                        >
-                                            <ArchiveRestore
-                                                class="h-4 w-4 text-green-500"
-                                            />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+                <template #item-employee_id="emp">
+                    <span class="font-mono text-xs whitespace-nowrap">{{
+                        emp.employee_id
+                    }}</span>
+                </template>
+
+                <template #item-name="emp">
+                    <IdentityCell
+                        :name="`${emp.first_name} ${emp.last_name}`"
+                    />
+                </template>
+
+                <template #item-position="emp">
+                    <span class="whitespace-nowrap">{{ emp.position }}</span>
+                </template>
+
+                <template #item-hire_date="emp">
+                    <span class="whitespace-nowrap">{{
+                        formatDate(emp.hire_date)
+                    }}</span>
+                </template>
+
+                <template #item-status="emp">
+                    <StatusPill :tone="employeeStatusTone(emp.status)">
+                        {{ emp.status }}
+                    </StatusPill>
+                </template>
+
+                <template #item-archived_at="emp">
+                    <span
+                        class="text-sm whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(emp.archived_at) }}
+                    </span>
+                </template>
+
+                <template #item-actions="emp">
+                    <RowActions
+                        :label="`${emp.first_name} ${emp.last_name}`"
+                        :actions="[
+                            {
+                                label: 'Restore',
+                                icon: ArchiveRestore,
+                                onSelect: () => restore(emp.employee_public_id),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- Bulk restore confirm dialog -->

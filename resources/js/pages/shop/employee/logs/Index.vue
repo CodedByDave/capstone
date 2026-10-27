@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -9,23 +15,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
     CircleDot,
     Clock,
     DollarSign,
@@ -36,7 +32,7 @@ import {
     UserPlus,
     X,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch, type Component } from 'vue';
 
 /* ───────── TYPES ───────── */
 
@@ -116,6 +112,35 @@ const dateTo = ref(filters.date_to ?? '');
 
 /* ───────── FILTER FUNCTIONS ───────── */
 
+const tableLoading = ref(false);
+const options = ref<DataTableOptions>({
+    page: logs.current_page,
+    rowsPerPage: logs.per_page,
+});
+
+const hasFilters = computed(
+    () =>
+        Boolean(filters.search) ||
+        Boolean(filters.action) ||
+        Boolean(filters.performed_by) ||
+        Boolean(filters.module) ||
+        Boolean(filters.date_from) ||
+        Boolean(filters.date_to),
+);
+
+const headers: DataTableHeader[] = [
+    { text: 'Date', value: 'created_at', width: 170 },
+    { text: 'Module', value: 'module' },
+    { text: 'Subject', value: 'subject' },
+    { text: 'Action', value: 'action' },
+    { text: 'Performed by', value: 'performer' },
+    { text: 'Changes', value: 'changes', width: 320 },
+];
+
+watch([() => options.value.page, () => options.value.rowsPerPage], ([page]) =>
+    applyFilters(page),
+);
+
 function applyFilters(currentPage = 1) {
     router.get(
         `${baseRoute.value}/logs`,
@@ -130,10 +155,19 @@ function applyFilters(currentPage = 1) {
                     : moduleFilter.value,
             date_from: dateFrom.value || undefined,
             date_to: dateTo.value || undefined,
-            per_page: 10,
+            per_page: options.value.rowsPerPage,
             page: currentPage,
         },
-        { preserveScroll: true, preserveState: false },
+        {
+            preserveScroll: true,
+            preserveState: false,
+            onStart: () => {
+                tableLoading.value = true;
+            },
+            onFinish: () => {
+                tableLoading.value = false;
+            },
+        },
     );
 }
 
@@ -145,22 +179,6 @@ function clearFilters() {
     dateFrom.value = '';
     dateTo.value = '';
     applyFilters();
-}
-
-function goToPage(page: number) {
-    applyFilters(page);
-}
-
-function visiblePages(current: number, total: number): number[] {
-    const pages: number[] = [];
-    for (
-        let i = Math.max(1, current - 2);
-        i <= Math.min(total, current + 2);
-        i++
-    ) {
-        pages.push(i);
-    }
-    return pages;
 }
 
 /* ───────── SUBJECT HELPERS ───────── */
@@ -194,70 +212,38 @@ function subjectUrl(log: ActivityLog): string | null {
 
 const actionConfig: Record<
     string,
-    { label: string; color: string; icon: any }
+    { label: string; tone: StatusTone; icon: Component }
 > = {
-    created: {
-        label: 'Created',
-        color: 'bg-green-100 text-green-700 border-green-200',
-        icon: UserPlus,
-    },
-    updated: {
-        label: 'Updated',
-        color: 'bg-blue-100 text-blue-700 border-blue-200',
-        icon: Pencil,
-    },
+    created: { label: 'Created', tone: 'success', icon: UserPlus },
+    updated: { label: 'Updated', tone: 'info', icon: Pencil },
     status_changed: {
         label: 'Status Changed',
-        color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        tone: 'warning',
         icon: CircleDot,
     },
     salary_changed: {
         label: 'Pay Rate Changed',
-        color: 'bg-purple-100 text-purple-700 border-purple-200',
+        tone: 'info',
         icon: DollarSign,
     },
-    archived: {
-        label: 'Archived',
-        color: 'bg-red-100 text-red-700 border-red-200',
-        icon: Archive,
-    },
-    restored: {
-        label: 'Restored',
-        color: 'bg-teal-100 text-teal-700 border-teal-200',
-        icon: RefreshCw,
-    },
-    imported: {
-        label: 'Imported',
-        color: 'bg-orange-100 text-orange-700 border-orange-200',
-        icon: FileUp,
-    },
-    clocked_in: {
-        label: 'Clocked In',
-        color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        icon: Clock,
-    },
-    clocked_out: {
-        label: 'Clocked Out',
-        color: 'bg-slate-100 text-slate-700 border-slate-200',
-        icon: Clock,
-    },
+    archived: { label: 'Archived', tone: 'danger', icon: Archive },
+    restored: { label: 'Restored', tone: 'success', icon: RefreshCw },
+    imported: { label: 'Imported', tone: 'warning', icon: FileUp },
+    clocked_in: { label: 'Clocked In', tone: 'success', icon: Clock },
+    clocked_out: { label: 'Clocked Out', tone: 'neutral', icon: Clock },
     marked_present: {
         label: 'Marked Present',
-        color: 'bg-green-100 text-green-700 border-green-200',
+        tone: 'success',
         icon: UserPlus,
     },
-    marked_absent: {
-        label: 'Marked Absent',
-        color: 'bg-red-100 text-red-700 border-red-200',
-        icon: X,
-    },
+    marked_absent: { label: 'Marked Absent', tone: 'danger', icon: X },
 };
 
 function getConfig(a: string) {
     return (
         actionConfig[a] ?? {
             label: a,
-            color: 'bg-gray-100 text-gray-700 border-gray-200',
+            tone: 'neutral' as StatusTone,
             icon: Clock,
         }
     );
@@ -465,320 +451,131 @@ function toggleRow(id: number) {
             </Card>
 
             <!-- TABLE -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="text-base">
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="logs.data"
+                :total="logs.total"
+                :loading="tableLoading"
+                noun="activity logs"
+                :empty-icon="Clock"
+                empty-message="No activity logs found."
+                :resettable="hasFilters"
+                :min-width="980"
+                :rows-items="[10, 25, 50, 100]"
+                @reset="clearFilters"
+            >
+                <template #toolbar>
+                    <h2 class="text-base font-semibold">
                         All Activity
                         <span
                             class="ml-1 text-sm font-normal text-muted-foreground"
                         >
                             ({{ logs.total }} records)
                         </span>
-                    </CardTitle>
-                </CardHeader>
+                    </h2>
+                </template>
 
-                <CardContent class="p-0">
-                    <div class="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Module</TableHead>
-                                    <TableHead>Subject</TableHead>
-                                    <TableHead>Action</TableHead>
-                                    <TableHead>Performed By</TableHead>
-                                    <TableHead>Changes</TableHead>
-                                </TableRow>
-                            </TableHeader>
-
-                            <TableBody>
-                                <TableRow v-if="logs.data.length === 0">
-                                    <TableCell
-                                        colspan="6"
-                                        class="py-10 text-center text-muted-foreground"
-                                    >
-                                        No activity logs found.
-                                    </TableCell>
-                                </TableRow>
-
-                                <template
-                                    v-for="log in logs.data"
-                                    :key="log.id"
-                                >
-                                    <TableRow class="hover:bg-muted/40">
-                                        <!-- Date -->
-                                        <TableCell
-                                            class="text-xs whitespace-nowrap text-muted-foreground"
-                                        >
-                                            {{ formatDate(log.created_at) }}
-                                        </TableCell>
-
-                                        <!-- Module badge -->
-                                        <TableCell>
-                                            <span
-                                                class="rounded bg-muted px-2 py-1 text-xs font-semibold"
-                                            >
-                                                {{ log.module }}
-                                            </span>
-                                        </TableCell>
-
-                                        <!-- Subject -->
-                                        <TableCell>
-                                            <template v-if="log.subject">
-                                                <button
-                                                    v-if="subjectUrl(log)"
-                                                    class="text-left text-sm font-medium hover:underline"
-                                                    @click="
-                                                        router.visit(
-                                                            subjectUrl(log)!,
-                                                        )
-                                                    "
-                                                >
-                                                    {{ subjectLabel(log) }}
-                                                </button>
-                                                <span
-                                                    v-else
-                                                    class="text-sm font-medium"
-                                                >
-                                                    {{ subjectLabel(log) }}
-                                                </span>
-                                                <p
-                                                    v-if="subjectMeta(log)"
-                                                    class="font-mono text-xs text-muted-foreground"
-                                                >
-                                                    {{ subjectMeta(log) }}
-                                                </p>
-                                            </template>
-                                            <span
-                                                v-else
-                                                class="text-xs text-muted-foreground italic"
-                                            >
-                                                Deleted Record
-                                            </span>
-                                        </TableCell>
-
-                                        <!-- Action badge -->
-                                        <TableCell>
-                                            <span
-                                                class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                                                :class="
-                                                    getConfig(log.action).color
-                                                "
-                                            >
-                                                <component
-                                                    :is="
-                                                        getConfig(log.action)
-                                                            .icon
-                                                    "
-                                                    class="h-3 w-3"
-                                                />
-                                                {{
-                                                    getConfig(log.action).label
-                                                }}
-                                            </span>
-                                        </TableCell>
-
-                                        <!-- Performer -->
-                                        <TableCell class="text-sm">
-                                            {{ log.performer?.name ?? '—' }}
-                                        </TableCell>
-
-                                        <!-- Changes toggle -->
-                                        <TableCell>
-                                            <Button
-                                                v-if="
-                                                    log.changes &&
-                                                    Object.keys(log.changes)
-                                                        .length
-                                                "
-                                                size="sm"
-                                                variant="ghost"
-                                                class="h-7 text-xs"
-                                                @click="toggleRow(log.id)"
-                                            >
-                                                {{
-                                                    expandedRows.has(log.id)
-                                                        ? 'Hide'
-                                                        : 'View'
-                                                }}
-                                                changes
-                                            </Button>
-                                            <span
-                                                v-else
-                                                class="text-xs text-muted-foreground"
-                                                >—</span
-                                            >
-                                        </TableCell>
-                                    </TableRow>
-
-                                    <!-- Expanded change details -->
-                                    <TableRow
-                                        v-if="
-                                            expandedRows.has(log.id) &&
-                                            log.changes
-                                        "
-                                        class="bg-muted/20"
-                                    >
-                                        <TableCell
-                                            colspan="6"
-                                            class="px-6 py-3"
-                                        >
-                                            <table
-                                                class="w-full rounded-md border text-xs"
-                                            >
-                                                <thead
-                                                    class="bg-muted text-muted-foreground"
-                                                >
-                                                    <tr>
-                                                        <th
-                                                            class="px-3 py-1.5 text-left"
-                                                        >
-                                                            Field
-                                                        </th>
-                                                        <th
-                                                            class="px-3 py-1.5 text-left"
-                                                        >
-                                                            Old
-                                                        </th>
-                                                        <th
-                                                            class="px-3 py-1.5 text-left"
-                                                        >
-                                                            New
-                                                        </th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr
-                                                        v-for="(
-                                                            change, field
-                                                        ) in log.changes"
-                                                        :key="field"
-                                                        class="border-t"
-                                                    >
-                                                        <td
-                                                            class="px-3 py-1.5 font-medium"
-                                                        >
-                                                            {{
-                                                                formatFieldName(
-                                                                    String(
-                                                                        field,
-                                                                    ),
-                                                                )
-                                                            }}
-                                                        </td>
-                                                        <td
-                                                            class="px-3 py-1.5 text-red-600 line-through"
-                                                        >
-                                                            {{
-                                                                change.old ??
-                                                                '—'
-                                                            }}
-                                                        </td>
-                                                        <td
-                                                            class="px-3 py-1.5 font-medium text-green-600"
-                                                        >
-                                                            {{
-                                                                change.new ??
-                                                                '—'
-                                                            }}
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </TableCell>
-                                    </TableRow>
-                                </template>
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    <!-- PAGINATION -->
-                    <div
-                        v-if="logs.last_page >= 1"
-                        class="flex items-center justify-between border-t px-4 py-3 text-sm"
+                <!-- Date -->
+                <template #item-created_at="log">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
                     >
-                        <!-- Record count -->
-                        <span class="text-xs text-muted-foreground">
-                            <template v-if="logs.total === 0"
-                                >No records</template
-                            >
-                            <template v-else>
-                                Showing {{ logs.from }}–{{ logs.to }} of
-                                {{ logs.total }} records
-                            </template>
-                        </span>
+                        {{ formatDate(log.created_at) }}
+                    </span>
+                </template>
 
-                        <!-- Page controls -->
-                        <div
-                            v-if="logs.last_page > 1"
-                            class="flex items-center gap-1"
+                <!-- Module badge -->
+                <template #item-module="log">
+                    <span
+                        class="rounded bg-muted px-2 py-1 text-xs font-semibold"
+                    >
+                        {{ log.module }}
+                    </span>
+                </template>
+
+                <!-- Subject -->
+                <template #item-subject="log">
+                    <template v-if="log.subject">
+                        <button
+                            v-if="subjectUrl(log)"
+                            type="button"
+                            class="text-left text-sm font-medium hover:underline"
+                            @click="router.visit(subjectUrl(log)!)"
                         >
-                            <!-- First page -->
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                :disabled="logs.current_page === 1"
-                                class="h-8 w-8 p-0"
-                                @click="goToPage(1)"
-                            >
-                                <ChevronsLeft class="h-3.5 w-3.5" />
-                            </Button>
+                            {{ subjectLabel(log) }}
+                        </button>
+                        <span v-else class="text-sm font-medium">
+                            {{ subjectLabel(log) }}
+                        </span>
+                        <p
+                            v-if="subjectMeta(log)"
+                            class="font-mono text-xs text-muted-foreground"
+                        >
+                            {{ subjectMeta(log) }}
+                        </p>
+                    </template>
+                    <span v-else class="text-xs text-muted-foreground italic">
+                        Deleted Record
+                    </span>
+                </template>
 
-                            <!-- Prev page -->
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                :disabled="logs.current_page === 1"
-                                class="h-8 w-8 p-0"
-                                @click="goToPage(logs.current_page - 1)"
-                            >
-                                <ChevronLeft class="h-3.5 w-3.5" />
-                            </Button>
+                <!-- Action badge -->
+                <template #item-action="log">
+                    <StatusPill
+                        :tone="getConfig(log.action).tone"
+                        :icon="getConfig(log.action).icon"
+                    >
+                        {{ getConfig(log.action).label }}
+                    </StatusPill>
+                </template>
 
-                            <!-- Numbered pages -->
-                            <Button
-                                v-for="page in visiblePages(
-                                    logs.current_page,
-                                    logs.last_page,
-                                )"
-                                :key="page"
-                                size="sm"
-                                class="h-8 w-8 p-0"
-                                :variant="
-                                    page === logs.current_page
-                                        ? 'default'
-                                        : 'outline'
-                                "
-                                @click="goToPage(page)"
-                            >
-                                {{ page }}
-                            </Button>
+                <!-- Performer -->
+                <template #item-performer="log">
+                    <span class="text-sm">{{
+                        log.performer?.name ?? '—'
+                    }}</span>
+                </template>
 
-                            <!-- Next page -->
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                :disabled="logs.current_page === logs.last_page"
-                                class="h-8 w-8 p-0"
-                                @click="goToPage(logs.current_page + 1)"
+                <!-- Changes toggle + details -->
+                <template #item-changes="log">
+                    <div
+                        v-if="log.changes && Object.keys(log.changes).length"
+                        class="space-y-2 py-1"
+                    >
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            class="h-8 text-xs"
+                            :aria-expanded="expandedRows.has(log.id)"
+                            @click="toggleRow(log.id)"
+                        >
+                            {{ expandedRows.has(log.id) ? 'Hide' : 'View' }}
+                            changes
+                        </Button>
+                        <dl
+                            v-if="expandedRows.has(log.id)"
+                            class="grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-1 rounded-md border bg-muted/20 p-2 text-xs"
+                        >
+                            <template
+                                v-for="(change, field) in log.changes"
+                                :key="field"
                             >
-                                <ChevronRight class="h-3.5 w-3.5" />
-                            </Button>
-
-                            <!-- Last page -->
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                :disabled="logs.current_page === logs.last_page"
-                                class="h-8 w-8 p-0"
-                                @click="goToPage(logs.last_page)"
-                            >
-                                <ChevronsRight class="h-3.5 w-3.5" />
-                            </Button>
-                        </div>
+                                <dt class="font-medium">
+                                    {{ formatFieldName(String(field)) }}
+                                </dt>
+                                <dd class="text-red-600 line-through">
+                                    {{ change.old ?? '—' }}
+                                </dd>
+                                <dd class="font-medium text-green-600">
+                                    {{ change.new ?? '—' }}
+                                </dd>
+                            </template>
+                        </dl>
                     </div>
-                </CardContent>
-            </Card>
+                    <span v-else class="text-xs text-muted-foreground">—</span>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

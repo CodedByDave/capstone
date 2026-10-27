@@ -3,20 +3,25 @@
 namespace App\Http\Controllers\Shop\Operations;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Operations\ImportShopServicesRequest;
 use App\Http\Requests\Shop\Operations\StoreShopServiceRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopServiceRequest;
 use App\Models\Employee;
 use App\Models\ShopService;
+use App\Services\ShopServiceCsvService;
 use App\Services\ShopServiceService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ShopServiceController extends Controller
 {
     public function __construct(
-        protected ShopServiceService $service
+        protected ShopServiceService $service,
+        protected ShopServiceCsvService $csv,
     ) {}
 
     private function getShopId(): int
@@ -44,6 +49,30 @@ class ShopServiceController extends Controller
             'pricingModels' => ShopService::PRICING_MODELS,
             'showArchived' => $showTrashed,
         ]);
+    }
+
+    public function export(): StreamedResponse
+    {
+        return $this->csvDownload(
+            $this->csv->exportRows($this->getShopId()),
+            'services_'.now()->format('Y-m-d').'.csv',
+        );
+    }
+
+    public function importTemplate(): StreamedResponse
+    {
+        return $this->csvDownload($this->csv->templateRows(), 'services_import_template.csv');
+    }
+
+    public function import(ImportShopServicesRequest $request): JsonResponse
+    {
+        $result = $this->csv->import($this->getShopId(), $request->file('csv_file'));
+
+        if ($result['errors'] !== []) {
+            return response()->json(['errors' => $result['errors']], 422);
+        }
+
+        return response()->json(['message' => "{$result['imported']} service(s) imported.", 'imported' => $result['imported']]);
     }
 
     public function create(): Response
@@ -137,5 +166,20 @@ class ShopServiceController extends Controller
                 'type' => 'success',
                 'message' => 'All archived services restored.',
             ]);
+    }
+
+    /** @param list<list<string|int|float|null>> $rows */
+    private function csvDownload(array $rows, string $filename): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+
+            foreach ($rows as $row) {
+                fputcsv($out, $row);
+            }
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

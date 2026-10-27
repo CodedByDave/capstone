@@ -7,6 +7,13 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    type DataTableHeader,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogDescription,
@@ -15,8 +22,6 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -24,13 +29,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    ArchiveRestore,
-    ArrowLeft,
-    Search,
-    Trash2,
-    Users,
-} from 'lucide-vue-next';
+import { usePaginatorTable } from '@/composables/useDataTable';
+import { ArchiveRestore, ArrowLeft, Trash2, Users } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,6 +53,7 @@ interface Paginator {
     data: UserItem[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
@@ -110,30 +111,33 @@ function applyFilters() {
     );
 }
 
-// ─── Selection ────────────────────────────────────────────────────────────────
+function resetFilters() {
+    search.value = '';
+    role.value = 'all';
+    applyFilters();
+}
 
-const selected = ref<number[]>([]);
-const allSelected = computed(
-    () =>
-        props.users.data.length > 0 &&
-        props.users.data.every((u) => selected.value.includes(u.id)),
+const hasFilters = computed(
+    () => Boolean(props.filters.search) || Boolean(props.filters.role),
 );
 
-function toggleAll() {
-    if (allSelected.value) {
-        selected.value = [];
-    } else {
-        selected.value = props.users.data.map((u) => u.id);
-    }
-}
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-function toggleOne(id: number) {
-    if (selected.value.includes(id)) {
-        selected.value = selected.value.filter((i) => i !== id);
-    } else {
-        selected.value.push(id);
-    }
-}
+const { options, loading } = usePaginatorTable(() => props.users, ['users']);
+
+const headers: DataTableHeader[] = [
+    { text: 'Name', value: 'name', width: 200 },
+    { text: 'Email', value: 'email' },
+    { text: 'Role', value: 'role' },
+    { text: 'Shop', value: 'shop' },
+    { text: 'Joined', value: 'created_at' },
+    { text: 'Archived at', value: 'deleted_at' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 120 },
+];
+
+// ─── Selection ────────────────────────────────────────────────────────────────
+
+const selected = ref<Array<string | number>>([]);
 
 // ─── Restore ──────────────────────────────────────────────────────────────────
 
@@ -220,32 +224,38 @@ const roleBadge: Record<string, string> = {
     <Head title="Users — Archive" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="Users Archive">
         <div class="space-y-6 px-6">
-            <Card>
-                <CardHeader class="pb-3">
-                    <div
-                        class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
-                    >
-                        <CardTitle class="flex items-center gap-2">
-                            <ArchiveRestore
-                                class="h-4 w-4 text-muted-foreground"
-                            />
-                            Archived Users
-                            <span
-                                class="ml-1 text-xs font-normal text-muted-foreground"
-                                >({{ total }} total)</span
-                            >
-                        </CardTitle>
-                        <div class="flex flex-wrap gap-2">
-                            <Button
-                                v-if="selected.length > 0"
-                                size="sm"
-                                variant="outline"
-                                class="border-green-300 text-green-700 hover:bg-green-50"
-                                @click="bulkRestore"
-                            >
-                                <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                                Restore ({{ selected.length }})
-                            </Button>
+            <DataTable
+                v-model:options="options"
+                v-model:selected="selected"
+                :headers="headers"
+                :items="users.data"
+                :total="users.total"
+                :loading="loading"
+                :row-label="(u) => u.name"
+                selectable
+                noun="archived users"
+                :empty-icon="Users"
+                empty-message="No archived users found."
+                :resettable="hasFilters"
+                :min-width="1000"
+                hide-rows-per-page
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <div
+                            class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
+                        >
+                            <h2 class="flex items-center gap-2 font-semibold">
+                                <ArchiveRestore
+                                    class="h-4 w-4 text-muted-foreground"
+                                />
+                                Archived Users
+                                <span
+                                    class="ml-1 text-xs font-normal text-muted-foreground"
+                                    >({{ total }} total)</span
+                                >
+                            </h2>
                             <Button
                                 size="sm"
                                 variant="outline"
@@ -255,198 +265,114 @@ const roleBadge: Record<string, string> = {
                                 Users
                             </Button>
                         </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent class="space-y-4">
-                    <!-- Filters -->
-                    <div class="flex flex-wrap gap-2">
-                        <div class="relative min-w-48 flex-1">
-                            <Search
-                                class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                placeholder="Search name or email..."
-                                class="pl-8"
-                                @keyup.enter="applyFilters"
-                            />
-                        </div>
-                        <Select
-                            v-model="role"
-                            @update:model-value="applyFilters"
+                        <DataTableToolbar
+                            v-model:search="search"
+                            search-placeholder="Search name or email..."
+                            search-label="Search archived users"
+                            @submit="applyFilters"
                         >
-                            <SelectTrigger class="w-36">
-                                <SelectValue placeholder="Role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Roles</SelectItem>
-                                <SelectItem value="owner">Owner</SelectItem>
-                                <SelectItem value="manager">Manager</SelectItem>
-                                <SelectItem value="staff">Staff</SelectItem>
-                                <SelectItem value="user">Customer</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="w-8 px-4 py-3">
-                                        <input
-                                            type="checkbox"
-                                            :checked="allSelected"
-                                            @change="toggleAll"
-                                            class="rounded"
-                                        />
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Name
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Email
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Role
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Shop
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Joined
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Archived At
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-center font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="u in users.data"
-                                    :key="u.id"
-                                    class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                                    :class="{
-                                        'bg-muted/10': selected.includes(u.id),
-                                    }"
-                                >
-                                    <td class="px-4 py-3">
-                                        <input
-                                            type="checkbox"
-                                            :checked="selected.includes(u.id)"
-                                            @change="toggleOne(u.id)"
-                                            class="rounded"
-                                        />
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 font-medium whitespace-nowrap"
-                                    >
-                                        {{ u.name }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ u.email }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                            :class="
-                                                roleBadge[u.role] ??
-                                                'bg-gray-100 text-gray-600'
-                                            "
-                                        >
-                                            {{ u.role.replace('_', ' ') }}
-                                        </span>
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ u.shop?.shop_name ?? '—' }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
-                                    >
-                                        {{ formatDate(u.created_at) }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
-                                    >
-                                        {{ formatDate(u.deleted_at) }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div
-                                            class="flex items-center justify-center gap-1"
-                                        >
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="restore(u.id)"
-                                            >
-                                                <ArchiveRestore
-                                                    class="h-4 w-4 text-green-500"
-                                                />
-                                            </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="openDelete(u)"
-                                            >
-                                                <Trash2
-                                                    class="h-4 w-4 text-red-400"
-                                                />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="users.data.length === 0">
-                                    <td
-                                        colspan="8"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <Users
-                                            class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                        />
-                                        No archived users found.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div
-                        v-if="users.last_page > 1"
-                        class="flex items-center justify-between pt-2"
-                    >
-                        <p class="text-xs text-muted-foreground">
-                            Showing {{ users.data.length }} of
-                            {{ users.total }} users
-                        </p>
-                        <div class="flex gap-1">
-                            <Button
-                                v-for="link in users.links"
-                                :key="link.label"
-                                size="sm"
-                                :variant="link.active ? 'default' : 'outline'"
-                                :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs"
-                                @click="link.url && router.visit(link.url)"
+                            <Select
+                                v-model="role"
+                                @update:model-value="applyFilters"
                             >
-                                <span v-html="link.label" />
-                            </Button>
-                        </div>
+                                <SelectTrigger
+                                    class="w-36"
+                                    aria-label="Filter by role"
+                                >
+                                    <SelectValue placeholder="Role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all"
+                                        >All Roles</SelectItem
+                                    >
+                                    <SelectItem value="owner">Owner</SelectItem>
+                                    <SelectItem value="manager"
+                                        >Manager</SelectItem
+                                    >
+                                    <SelectItem value="staff">Staff</SelectItem>
+                                    <SelectItem value="user"
+                                        >Customer</SelectItem
+                                    >
+                                </SelectContent>
+                            </Select>
+                        </DataTableToolbar>
                     </div>
-                </CardContent>
-            </Card>
+                </template>
+
+                <template #bulk-actions>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-green-300 text-green-700 hover:bg-green-50"
+                        @click="bulkRestore"
+                    >
+                        <ArchiveRestore class="mr-1.5 h-4 w-4" />
+                        Restore ({{ selected.length }})
+                    </Button>
+                </template>
+
+                <template #item-name="u">
+                    <IdentityCell :name="u.name" />
+                </template>
+
+                <template #item-email="u">
+                    <span class="text-xs text-muted-foreground">{{
+                        u.email
+                    }}</span>
+                </template>
+
+                <template #item-role="u">
+                    <span
+                        class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap capitalize"
+                        :class="
+                            roleBadge[u.role] ?? 'bg-gray-100 text-gray-600'
+                        "
+                    >
+                        {{ u.role.replace('_', ' ') }}
+                    </span>
+                </template>
+
+                <template #item-shop="u">
+                    <span class="text-xs text-muted-foreground">
+                        {{ u.shop?.shop_name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-created_at="u">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(u.created_at) }}
+                    </span>
+                </template>
+
+                <template #item-deleted_at="u">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(u.deleted_at) }}
+                    </span>
+                </template>
+
+                <template #item-actions="u">
+                    <RowActions
+                        :label="u.name"
+                        :actions="[
+                            {
+                                label: 'Restore',
+                                icon: ArchiveRestore,
+                                onSelect: () => restore(u.id),
+                            },
+                            {
+                                label: 'Delete permanently',
+                                icon: Trash2,
+                                destructive: true,
+                                onSelect: () => openDelete(u),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- Permanent delete confirm -->

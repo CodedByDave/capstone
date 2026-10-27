@@ -3,26 +3,27 @@ import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import Vue3EasyDataTable, {
-    type Header,
-    type ServerOptions,
-} from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
-import SortableHeader from '@/components/SortableHeader.vue';
+import {
+    DataTable,
+    DataTableToolbar,
+    RowActions,
+    StatusPill,
+    statusLabel,
+    statusTone,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import {
-    ChevronDown,
     Download,
     Eye,
     FileText,
     ListOrdered,
     RefreshCcw,
-    Search,
     ShieldCheck,
     ShieldX,
     Upload,
@@ -102,8 +103,6 @@ const props = defineProps<{
     filters: Record<string, string | number | null | undefined>;
 }>();
 
-const EasyDataTable = Vue3EasyDataTable;
-
 // ─── Flash ────────────────────────────────────────────────────────────────────
 
 const page = usePage();
@@ -150,50 +149,42 @@ const importInput = ref<HTMLInputElement | null>(null);
 const importing = ref(false);
 const tableLoading = ref(false);
 
-type SortColumn =
-    | 'reference'
-    | 'shop'
-    | 'owner'
-    | 'plan'
-    | 'total'
-    | 'status'
-    | 'expires'
-    | 'created_at';
-
-const headers: Header[] = [
-    { text: 'Transaction Reference', value: 'reference', width: 170 },
-    { text: 'Shop', value: 'shop', width: 190 },
-    { text: 'Plan', value: 'plan', width: 120 },
+const headers: DataTableHeader[] = [
+    {
+        text: 'Transaction reference',
+        value: 'reference',
+        width: 170,
+        sortable: true,
+    },
+    { text: 'Shop', value: 'shop', width: 190, sortable: true },
+    { text: 'Plan', value: 'plan', width: 120, sortable: true },
     { text: 'Payment', value: 'payment', width: 120 },
-    { text: 'Total', value: 'total', width: 120 },
-    { text: 'Status', value: 'status', width: 130 },
-    { text: 'Ordered', value: 'created_at', width: 140 },
-    { text: 'Actions', value: 'actions', width: 160 },
+    { text: 'Total', value: 'total', width: 120, sortable: true },
+    { text: 'Status', value: 'status', width: 130, sortable: true },
+    { text: 'Ordered', value: 'created_at', width: 140, sortable: true },
+    { text: 'Actions', value: 'actions', width: 170, align: 'center' },
 ];
 
-const serverOptions = ref<ServerOptions>({
+const statusOptions = computed(() => [
+    { value: '', label: 'All', count: props.stats.total },
+    { value: 'paid', label: 'Paid', count: props.stats.paid },
+    { value: 'approved', label: 'Approved' },
+    { value: 'pending', label: 'Pending', count: props.stats.pending },
+    { value: 'rejected', label: 'Rejected', count: props.stats.rejected },
+    { value: 'failed', label: 'Failed' },
+]);
+
+function setStatus(value: string) {
+    status.value = value;
+    filterTable();
+}
+
+const serverOptions = ref<DataTableOptions>({
     page: props.orders.current_page,
     rowsPerPage: props.orders.per_page,
     sortBy: String(props.filters.sort_by ?? 'created_at'),
     sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
 });
-
-// Plain strings for the header component; the table library types these more loosely.
-const sortBy = computed(() => String(serverOptions.value.sortBy));
-const sortType = computed<'asc' | 'desc'>(() =>
-    serverOptions.value.sortType === 'asc' ? 'asc' : 'desc',
-);
-
-function toggleSort(column: SortColumn) {
-    if (serverOptions.value.sortBy === column) {
-        serverOptions.value.sortType =
-            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
-        return;
-    }
-
-    serverOptions.value.sortBy = column;
-    serverOptions.value.sortType = 'asc';
-}
 
 const tableItems = computed(() =>
     props.orders.data.map((order) => ({
@@ -475,14 +466,6 @@ function isExpired(expiresAt: string | null) {
     if (!expiresAt) return false;
     return new Date(expiresAt) < new Date();
 }
-
-const statusBadge: Record<string, string> = {
-    paid: 'bg-green-100 text-green-700',
-    approved: 'bg-emerald-100 text-emerald-700',
-    rejected: 'bg-red-100 text-red-600',
-    pending: 'bg-amber-100 text-amber-700',
-    failed: 'bg-red-100 text-red-600',
-};
 </script>
 
 <template>
@@ -554,318 +537,195 @@ const statusBadge: Record<string, string> = {
             </div>
 
             <!-- Orders table -->
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2 pt-6">
-                    <div class="relative min-w-48 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            placeholder="Search reference, shop, owner, email..."
-                            class="pl-8"
-                            @keyup.enter="filterTable"
-                        />
-                    </div>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-                        @click="resetFilters"
-                    >
-                        <RefreshCcw class="mr-1.5 h-4 w-4" />
-                        Reset
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                        @click="exportCsv"
-                    >
-                        <Download class="mr-1.5 h-4 w-4" />
-                        Export CSV
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
-                        :disabled="importing"
-                        @click="chooseCsvFile"
-                    >
-                        <Upload class="mr-1.5 h-4 w-4" />
-                        {{ importing ? 'Importing...' : 'Import CSV' }}
-                    </Button>
-                    <input
-                        ref="importInput"
-                        type="file"
-                        accept=".csv,text/csv"
-                        class="hidden"
-                        @change="importCsv"
-                    />
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        v-model:server-options="serverOptions"
-                        class="admin-orders-table"
-                        :headers="headers"
-                        :items="tableItems"
-                        :server-items-length="orders.total"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 15, 20, 50, 100]"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        buttons-pagination
-                        alternating
-                        must-sort
-                    >
-                        <template #header-reference="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="reference"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('reference')"
-                            />
-                        </template>
-
-                        <template #header-shop="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="shop"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('shop')"
-                            />
-                        </template>
-
-
-                        <template #header-plan="{ text }">
-                            <div class="column-filter">
-                                <SortableHeader
-                                    :label="text"
-                                    column="plan"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('plan')"
-                                />
-                                <select
-                                    v-model="plan"
-                                    class="column-filter-input"
-                                    aria-label="Filter by plan"
-                                    @change="filterTable"
+            <DataTable
+                v-model:options="serverOptions"
+                :headers="headers"
+                :items="tableItems"
+                :total="orders.total"
+                :loading="tableLoading"
+                item-key="public_id"
+                noun="orders"
+                :empty-icon="ListOrdered"
+                empty-message="No orders found."
+                :min-width="1150"
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <DataTableToolbar
+                            v-model:search="search"
+                            :status="status"
+                            :statuses="statusOptions"
+                            search-placeholder="Search reference, shop, owner, email..."
+                            search-label="Search orders"
+                            status-label="Filter by order status"
+                            @update:status="setStatus"
+                            @submit="filterTable"
+                        >
+                            <template #actions>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
+                                    @click="resetFilters"
                                 >
-                                    <option value="">All plans</option>
-                                    <option value="Basic">Basic</option>
-                                    <option value="Standard">Standard</option>
-                                    <option value="Premium">Premium</option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #header-total="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="total"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('total')"
-                            />
-                        </template>
-
-                        <template #header-status="{ text }">
-                            <div class="column-filter">
-                                <SortableHeader
-                                    :label="text"
-                                    column="status"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('status')"
-                                />
-                                <select
-                                    v-model="status"
-                                    class="column-filter-input"
-                                    aria-label="Filter by order status"
-                                    @change="filterTable"
+                                    <RefreshCcw class="mr-1.5 h-4 w-4" />
+                                    Reset
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                                    @click="exportCsv"
                                 >
-                                    <option value="">All statuses</option>
-                                    <option value="paid">Paid</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="rejected">Rejected</option>
-                                    <option value="failed">Failed</option>
-                                </select>
-                            </div>
-                        </template>
-
-
-                        <template #header-created_at="{ text }">
-                            <div class="column-filter">
-                                <SortableHeader
-                                    :label="text"
-                                    column="created_at"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('created_at')"
-                                />
+                                    <Download class="mr-1.5 h-4 w-4" />
+                                    Export CSV
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                                    :disabled="importing"
+                                    @click="chooseCsvFile"
+                                >
+                                    <Upload class="mr-1.5 h-4 w-4" />
+                                    {{
+                                        importing
+                                            ? 'Importing...'
+                                            : 'Import CSV'
+                                    }}
+                                </Button>
                                 <input
-                                    v-model="date"
-                                    type="date"
-                                    class="column-filter-input"
-                                    aria-label="Filter by order date"
-                                    @change="filterTable"
+                                    ref="importInput"
+                                    type="file"
+                                    accept=".csv,text/csv"
+                                    class="hidden"
+                                    @change="importCsv"
                                 />
-                            </div>
-                        </template>
-
-                        <template #item-reference="order">
-                            <span
-                                class="font-mono text-xs text-muted-foreground"
+                            </template>
+                        </DataTableToolbar>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <select
+                                v-model="plan"
+                                class="filter-input"
+                                aria-label="Filter by plan"
+                                @change="filterTable"
                             >
-                                {{ order.transaction_reference }}
-                            </span>
-                        </template>
+                                <option value="">All plans</option>
+                                <option value="Basic">Basic</option>
+                                <option value="Standard">Standard</option>
+                                <option value="Premium">Premium</option>
+                            </select>
+                            <input
+                                v-model="date"
+                                type="date"
+                                class="filter-input"
+                                aria-label="Filter by order date"
+                                @change="filterTable"
+                            />
+                        </div>
+                    </div>
+                </template>
 
-                        <template #item-shop="order">
-                            <p class="font-medium whitespace-nowrap">
-                                {{ order.shop_name }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                {{ order.municipality }}, {{ order.barangay }}
-                            </p>
-                        </template>
+                <template #item-reference="order">
+                    <span class="font-mono text-xs text-muted-foreground">
+                        {{ order.transaction_reference }}
+                    </span>
+                </template>
 
+                <template #item-shop="order">
+                    <p class="font-medium whitespace-nowrap">
+                        {{ order.shop_name }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ order.municipality }}, {{ order.barangay }}
+                    </p>
+                </template>
 
-                        <template #item-plan="order">
-                            <p class="text-xs font-medium">
-                                {{ order.plan_name ?? '—' }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                {{
-                                    order.billing_months
-                                        ? `${order.billing_months} mo`
-                                        : '—'
-                                }}
-                            </p>
-                        </template>
+                <template #item-plan="order">
+                    <p class="text-xs font-medium">
+                        {{ order.plan_name ?? '—' }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        {{
+                            order.billing_months
+                                ? `${order.billing_months} mo`
+                                : '—'
+                        }}
+                    </p>
+                </template>
 
-                        <!-- Modules dropdown -->
+                <template #item-payment="order">
+                    <span
+                        v-if="order.payment_method"
+                        class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
+                        :class="
+                            paymentBadge[order.payment_method]?.cls ??
+                            'bg-gray-100 text-gray-500'
+                        "
+                    >
+                        {{
+                            paymentBadge[order.payment_method]?.label ??
+                            order.payment_method
+                        }}
+                    </span>
+                    <span v-else class="text-xs text-muted-foreground">—</span>
+                </template>
 
-                        <template #item-payment="order">
-                            <span
-                                v-if="order.payment_method"
-                                class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                :class="
-                                    paymentBadge[order.payment_method]?.cls ??
-                                    'bg-gray-100 text-gray-500'
-                                "
-                            >
-                                {{
-                                    paymentBadge[order.payment_method]?.label ??
-                                    order.payment_method
-                                }}
-                            </span>
-                            <span v-else class="text-xs text-muted-foreground"
-                                >—</span
-                            >
-                        </template>
+                <template #item-total="order">
+                    <span class="font-medium whitespace-nowrap">{{
+                        formatPrice(order.total_price)
+                    }}</span>
+                </template>
 
-                        <template #item-total="order">
-                            <span class="font-medium whitespace-nowrap">{{
-                                formatPrice(order.total_price)
-                            }}</span>
-                        </template>
+                <template #item-status="order">
+                    <StatusPill :tone="statusTone(order.status)">
+                        {{ statusLabel(order.status) }}
+                    </StatusPill>
+                </template>
 
-                        <template #item-status="order">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                :class="
-                                    statusBadge[order.status] ??
-                                    'bg-gray-100 text-gray-500'
-                                "
-                            >
-                                {{ order.status }}
-                            </span>
-                        </template>
+                <template #item-created_at="order">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                        >{{ formatDate(order.created_at) }}</span
+                    >
+                </template>
 
-
-                        <template #item-created_at="order">
-                            <span
-                                class="text-xs whitespace-nowrap text-muted-foreground"
-                                >{{ formatDate(order.created_at) }}</span
-                            >
-                        </template>
-
-                        <!-- Actions -->
-                        <template #item-actions="order">
-                            <div class="flex items-center justify-center gap-1">
-                                <!-- View order detail -->
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label="View order"
-                                    @click="
-                                        router.visit(
-                                            `/admin/orders/${order.public_id}`,
-                                        )
-                                    "
-                                >
-                                    <Eye class="h-4 w-4 text-blue-500" />
-                                </Button>
-
-                                <!-- View KYC files -->
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    title="View KYC Documents"
-                                    aria-label="View KYC documents"
-                                    @click="openKyc(order)"
-                                >
-                                    <FileText class="h-4 w-4 text-violet-500" />
-                                </Button>
-
-                                <!-- Approve (only while awaiting admin review) -->
-                                <Button
-                                    v-if="order.status === 'pending'"
-                                    size="icon"
-                                    variant="ghost"
-                                    title="Approve"
-                                    aria-label="Approve order"
-                                    @click="openConfirm('approve', order)"
-                                >
-                                    <ShieldCheck
-                                        class="h-4 w-4 text-emerald-500"
-                                    />
-                                </Button>
-
-                                <!-- Reject (only while awaiting admin review) -->
-                                <Button
-                                    v-if="order.status === 'pending'"
-                                    size="icon"
-                                    variant="ghost"
-                                    title="Reject"
-                                    aria-label="Reject order"
-                                    @click="openConfirm('reject', order)"
-                                >
-                                    <ShieldX class="h-4 w-4 text-red-500" />
-                                </Button>
-                            </div>
-                        </template>
-
-                        <template #empty-message>
-                            <div
-                                class="py-10 text-center text-muted-foreground"
-                            >
-                                <ListOrdered
-                                    class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                />
-                                No orders found.
-                            </div>
-                        </template>
-                    </EasyDataTable>
-                </div>
-            </CardContent>
+                <!-- Actions -->
+                <template #item-actions="order">
+                    <RowActions
+                        :label="`order ${order.transaction_reference}`"
+                        :actions="[
+                            {
+                                label: 'View order',
+                                icon: Eye,
+                                onSelect: () =>
+                                    router.visit(
+                                        `/admin/orders/${order.public_id}`,
+                                    ),
+                            },
+                            {
+                                label: 'View KYC documents',
+                                icon: FileText,
+                                onSelect: () => openKyc(order),
+                            },
+                            {
+                                label: 'Approve',
+                                icon: ShieldCheck,
+                                show: order.status === 'pending',
+                                onSelect: () => openConfirm('approve', order),
+                            },
+                            {
+                                label: 'Reject',
+                                icon: ShieldX,
+                                destructive: true,
+                                show: order.status === 'pending',
+                                onSelect: () => openConfirm('reject', order),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- ── KYC Modal ──────────────────────────────────────────────────────── -->
@@ -1070,72 +930,20 @@ const statusBadge: Record<string, string> = {
 </template>
 
 <style scoped>
-.admin-orders-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 92px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 64px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-.column-filter {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 6px;
-    text-align: left;
-}
-
-.column-filter-input {
-    height: 30px;
-    width: 100%;
-    min-width: 82px;
+.filter-input {
+    height: 36px;
+    min-width: 150px;
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--background);
-    padding: 0 7px;
+    padding: 0 10px;
     color: var(--foreground);
-    font-size: 11px;
-    font-weight: 400;
+    font-size: 13px;
     outline: none;
 }
 
-.column-filter-input:focus {
+.filter-input:focus-visible {
     border-color: var(--ring);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 1150px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 25%, transparent);
 }
 </style>

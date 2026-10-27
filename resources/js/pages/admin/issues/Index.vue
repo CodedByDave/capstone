@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import SortableTableHeader from '@/components/management/SortableTableHeader.vue';
+import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { Download, Eye, RefreshCcw, Search, Upload, X } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
-import Vue3EasyDataTable, {
-    type Header,
-    type ServerOptions,
-} from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
+import { Download, Eye, Inbox, RefreshCcw, Upload, X } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -40,15 +43,6 @@ interface Paginator {
     total: number;
 }
 
-type SortColumn =
-    | 'reporter'
-    | 'subject'
-    | 'category'
-    | 'priority'
-    | 'status'
-    | 'created_at';
-
-const EasyDataTable = Vue3EasyDataTable;
 const props = defineProps<{
     reports: Paginator;
     stats: {
@@ -65,14 +59,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/admin/dashboard' },
     { title: 'Issue Reports', href: '/admin/issue-reports' },
 ];
-const headers: Header[] = [
-    { text: 'Reported by', value: 'reporter', width: 215 },
-    { text: 'Issue', value: 'subject', width: 320 },
-    { text: 'Category', value: 'category', width: 165 },
-    { text: 'Priority', value: 'priority', width: 140 },
-    { text: 'Status', value: 'status', width: 150 },
-    { text: 'Reported', value: 'created_at', width: 180 },
-    { text: 'Action', value: 'actions', width: 90 },
+const headers: DataTableHeader[] = [
+    { text: 'Reported by', value: 'reporter', width: 230, sortable: true },
+    { text: 'Issue', value: 'subject', width: 320, sortable: true },
+    { text: 'Category', value: 'category', width: 165, sortable: true },
+    { text: 'Priority', value: 'priority', width: 140, sortable: true },
+    { text: 'Status', value: 'status', width: 150, sortable: true },
+    { text: 'Reported', value: 'created_at', width: 180, sortable: true },
+    { text: 'Action', value: 'actions', width: 90, align: 'center' },
 ];
 const statCards = [
     { label: 'Total reports', value: props.stats.total },
@@ -94,7 +88,7 @@ const editStatus = ref('open');
 const editPriority = ref('medium');
 const adminNotes = ref('');
 const saving = ref(false);
-const serverOptions = ref<ServerOptions>({
+const serverOptions = ref<DataTableOptions>({
     page: props.reports.current_page,
     rowsPerPage: props.reports.per_page,
     sortBy: props.filters.sort_by ?? 'created_at',
@@ -155,20 +149,31 @@ watch(
     ],
     applyFilters,
 );
-function toggleSort(column: SortColumn) {
-    if (serverOptions.value.sortBy === column) {
-        serverOptions.value.sortType =
-            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
-    } else {
-        serverOptions.value.sortBy = column;
-        serverOptions.value.sortType = 'asc';
-    }
-}
-function isSorted(column: SortColumn) {
-    return serverOptions.value.sortBy === column;
-}
-function sortDirection(): 'asc' | 'desc' {
-    return serverOptions.value.sortType === 'asc' ? 'asc' : 'desc';
+const statusOptions = computed(() => [
+    { value: '', label: 'All', count: props.stats.total },
+    { value: 'open', label: 'Open', count: props.stats.open },
+    {
+        value: 'in_progress',
+        label: 'In progress',
+        count: props.stats.in_progress,
+    },
+    { value: 'resolved', label: 'Resolved', count: props.stats.resolved },
+    {
+        value: 'closed',
+        label: 'Closed',
+        count: Math.max(
+            0,
+            props.stats.total -
+                props.stats.open -
+                props.stats.in_progress -
+                props.stats.resolved,
+        ),
+    },
+]);
+
+function setStatus(value: string) {
+    status.value = value;
+    filterTable();
 }
 
 function exportCsv() {
@@ -242,23 +247,18 @@ const formatDate = (value: string | null) =>
               minute: '2-digit',
           }).format(new Date(value))
         : '—';
-const statusClass = (value: string) =>
-    ({
-        open: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
-        in_progress:
-            'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
-        resolved:
-            'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
-        closed: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-    })[value];
-const priorityClass = (value: string) =>
-    ({
-        low: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-        medium: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
-        high: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
-        critical:
-            'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300',
-    })[value];
+const statusTone: Record<string, StatusTone> = {
+    open: 'info',
+    in_progress: 'warning',
+    resolved: 'success',
+    closed: 'neutral',
+};
+const priorityTone: Record<string, StatusTone> = {
+    low: 'neutral',
+    medium: 'info',
+    high: 'warning',
+    critical: 'danger',
+};
 const categoryClass = (value: string) =>
     ({
         bug: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
@@ -300,232 +300,153 @@ const categoryClass = (value: string) =>
                 </Card>
             </div>
 
-            <section class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2">
-                    <div class="relative min-w-56 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            class="pl-8"
-                            placeholder="Search issue, reporter, or email..."
-                            @keyup.enter="filterTable"
-                        />
-                    </div>
-                    <Button size="sm" variant="outline" @click="resetFilters"
-                        ><RefreshCcw class="mr-1.5 h-4 w-4" />Reset</Button
+            <DataTable
+                v-model:options="serverOptions"
+                :headers="headers"
+                :items="reports.data"
+                :total="reports.total"
+                :loading="tableLoading"
+                item-key="public_id"
+                noun="issue reports"
+                :empty-icon="Inbox"
+                empty-message="No issue reports found. New user reports will appear here for review."
+                :min-width="1220"
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        :status="status"
+                        :statuses="statusOptions"
+                        search-placeholder="Search issue, reporter, or email..."
+                        search-label="Search issue reports"
+                        status-label="Filter by status"
+                        @update:status="setStatus"
+                        @submit="filterTable"
                     >
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                        @click="exportCsv"
-                    >
-                        <Download class="mr-1.5 h-4 w-4" />Export CSV
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
-                        :disabled="importing"
-                        @click="importInput?.click()"
-                    >
-                        <Upload class="mr-1.5 h-4 w-4" />{{
-                            importing ? 'Importing...' : 'Import CSV'
-                        }}
-                    </Button>
-                    <input
-                        ref="importInput"
-                        type="file"
-                        accept=".csv,text/csv"
-                        class="hidden"
-                        @change="importCsv"
-                    />
-                </div>
+                        <select
+                            v-model="category"
+                            class="filter-input"
+                            aria-label="Filter by category"
+                            @change="filterTable"
+                        >
+                            <option value="">All categories</option>
+                            <option value="bug">Bug</option>
+                            <option value="account">Account</option>
+                            <option value="billing">Billing</option>
+                            <option value="feature_request">
+                                Feature request
+                            </option>
+                            <option value="general">General</option>
+                        </select>
+                        <select
+                            v-model="priority"
+                            class="filter-input"
+                            aria-label="Filter by priority"
+                            @change="filterTable"
+                        >
+                            <option value="">All priorities</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
 
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        v-model:server-options="serverOptions"
-                        class="issue-data-table"
-                        :headers="headers"
-                        :items="reports.data"
-                        :server-items-length="reports.total"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 15, 20, 50, 100]"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        buttons-pagination
-                        alternating
-                        must-sort
-                    >
-                        <template #header-reporter
-                            ><SortableTableHeader
-                                label="Reported by"
-                                :active="isSorted('reporter')"
-                                :direction="sortDirection()"
-                                @sort="toggleSort('reporter')"
-                        /></template>
-                        <template #header-subject
-                            ><SortableTableHeader
-                                label="Issue"
-                                :active="isSorted('subject')"
-                                :direction="sortDirection()"
-                                @sort="toggleSort('subject')"
-                        /></template>
-                        <template #header-category>
-                            <SortableTableHeader
-                                label="Category"
-                                :active="isSorted('category')"
-                                :direction="sortDirection()"
-                                @sort="toggleSort('category')"
+                        <template #actions>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                @click="resetFilters"
+                                ><RefreshCcw
+                                    class="mr-1.5 h-4 w-4"
+                                />Reset</Button
                             >
-                                <select
-                                    v-model="category"
-                                    class="column-filter-input"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="">All categories</option>
-                                    <option value="bug">Bug</option>
-                                    <option value="account">Account</option>
-                                    <option value="billing">Billing</option>
-                                    <option value="feature_request">
-                                        Feature request
-                                    </option>
-                                    <option value="general">General</option>
-                                </select>
-                            </SortableTableHeader>
-                        </template>
-                        <template #header-priority>
-                            <SortableTableHeader
-                                label="Priority"
-                                :active="isSorted('priority')"
-                                :direction="sortDirection()"
-                                @sort="toggleSort('priority')"
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                                @click="exportCsv"
                             >
-                                <select
-                                    v-model="priority"
-                                    class="column-filter-input"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="">All priorities</option>
-                                    <option value="critical">Critical</option>
-                                    <option value="high">High</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="low">Low</option>
-                                </select>
-                            </SortableTableHeader>
-                        </template>
-                        <template #header-status>
-                            <SortableTableHeader
-                                label="Status"
-                                :active="isSorted('status')"
-                                :direction="sortDirection()"
-                                @sort="toggleSort('status')"
+                                <Download class="mr-1.5 h-4 w-4" />Export CSV
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                                :disabled="importing"
+                                @click="importInput?.click()"
                             >
-                                <select
-                                    v-model="status"
-                                    class="column-filter-input"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="">All statuses</option>
-                                    <option value="open">Open</option>
-                                    <option value="in_progress">
-                                        In progress
-                                    </option>
-                                    <option value="resolved">Resolved</option>
-                                    <option value="closed">Closed</option>
-                                </select>
-                            </SortableTableHeader>
-                        </template>
-                        <template #header-created_at
-                            ><SortableTableHeader
-                                label="Reported"
-                                :active="isSorted('created_at')"
-                                :direction="sortDirection()"
-                                @sort="toggleSort('created_at')"
-                        /></template>
-
-                        <template #item-reporter="report"
-                            ><p class="font-medium">
-                                {{ report.reporter?.name ?? 'Guest user' }}
-                            </p>
-                            <p class="mt-0.5 text-xs text-muted-foreground">
-                                {{
-                                    report.reporter?.email ??
-                                    'No email available'
+                                <Upload class="mr-1.5 h-4 w-4" />{{
+                                    importing ? 'Importing...' : 'Import CSV'
                                 }}
-                            </p></template
-                        >
-                        <template #item-subject="report"
-                            ><div class="max-w-[300px]">
-                                <p class="truncate font-medium">
-                                    {{ report.subject }}
-                                </p>
-                                <p
-                                    class="mt-1 truncate text-xs text-muted-foreground"
-                                >
-                                    {{ report.description }}
-                                </p>
-                            </div></template
-                        >
-                        <template #item-category="report"
-                            ><span
-                                :class="[
-                                    'inline-flex rounded-full px-2.5 py-1 text-xs font-medium',
-                                    categoryClass(report.category),
-                                ]"
-                                >{{ label(report.category) }}</span
-                            ></template
-                        >
-                        <template #item-priority="report"
-                            ><span
-                                :class="[
-                                    'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
-                                    priorityClass(report.priority),
-                                ]"
-                                >{{ label(report.priority) }}</span
-                            ></template
-                        >
-                        <template #item-status="report"
-                            ><span
-                                :class="[
-                                    'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
-                                    statusClass(report.status),
-                                ]"
-                                >{{ label(report.status) }}</span
-                            ></template
-                        >
-                        <template #item-created_at="report"
-                            ><span class="text-xs text-muted-foreground">{{
-                                formatDate(report.created_at)
-                            }}</span></template
-                        >
-                        <template #item-actions="report"
-                            ><Button
-                                size="icon"
-                                variant="ghost"
-                                aria-label="View issue report"
-                                @click="openReport(report)"
-                                ><Eye class="h-4 w-4" /></Button
-                        ></template>
-                        <template #empty-message
-                            ><div class="py-10 text-center">
-                                <p class="font-medium">
-                                    No issue reports found
-                                </p>
-                                <p class="mt-1 text-sm text-muted-foreground">
-                                    New user reports will appear here for
-                                    review.
-                                </p>
-                            </div></template
-                        >
-                    </EasyDataTable>
-                </div>
-            </section>
+                            </Button>
+                            <input
+                                ref="importInput"
+                                type="file"
+                                accept=".csv,text/csv"
+                                class="hidden"
+                                @change="importCsv"
+                            />
+                        </template>
+                    </DataTableToolbar>
+                </template>
+
+                <template #item-reporter="report">
+                    <IdentityCell
+                        :name="report.reporter?.name ?? 'Guest user'"
+                        :secondary="
+                            report.reporter?.email ?? 'No email available'
+                        "
+                    />
+                </template>
+                <template #item-subject="report">
+                    <div class="max-w-[300px]">
+                        <p class="truncate font-medium">{{ report.subject }}</p>
+                        <p class="mt-1 truncate text-xs text-muted-foreground">
+                            {{ report.description }}
+                        </p>
+                    </div>
+                </template>
+                <template #item-category="report">
+                    <span
+                        :class="[
+                            'inline-flex rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap',
+                            categoryClass(report.category),
+                        ]"
+                        >{{ label(report.category) }}</span
+                    >
+                </template>
+                <template #item-priority="report">
+                    <StatusPill
+                        :tone="priorityTone[report.priority] ?? 'neutral'"
+                    >
+                        {{ label(report.priority) }}
+                    </StatusPill>
+                </template>
+                <template #item-status="report">
+                    <StatusPill :tone="statusTone[report.status] ?? 'neutral'">
+                        {{ label(report.status) }}
+                    </StatusPill>
+                </template>
+                <template #item-created_at="report">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                        >{{ formatDate(report.created_at) }}</span
+                    >
+                </template>
+                <template #item-actions="report">
+                    <RowActions
+                        :label="`issue report ${report.subject}`"
+                        :actions="[
+                            {
+                                label: 'View and update',
+                                icon: Eye,
+                                onSelect: () => openReport(report),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <Teleport to="body">
@@ -674,66 +595,26 @@ const categoryClass = (value: string) =>
 </template>
 
 <style scoped>
-.issue-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 92px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 64px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-.column-filter-input,
+.filter-input,
 .form-control {
-    height: 30px;
+    height: 36px;
     width: 100%;
-    min-width: 90px;
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--background);
     padding: 0 8px;
     color: var(--foreground);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 400;
     outline: none;
 }
-.form-control {
-    height: 36px;
-    font-size: 13px;
+.filter-input {
+    width: auto;
+    min-width: 140px;
 }
-.column-filter-input:focus,
+.filter-input:focus,
 .form-control:focus {
     border-color: var(--ring);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
-}
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 1220px;
 }
 </style>

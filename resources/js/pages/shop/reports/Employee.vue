@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    IdentityCell,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -167,6 +172,12 @@ const roleChartData = computed(() => ({
         },
     ],
 }));
+
+const recentHeaders: DataTableHeader[] = [
+    { text: 'Name', value: 'name' },
+    { text: 'Email', value: 'email' },
+    { text: 'Joined', value: 'created_at' },
+];
 
 const barOptions = {
     responsive: true,
@@ -366,64 +377,43 @@ const doughnutOptions = {
             </Card>
 
             <!-- Recent employees -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2 text-sm">
+            <DataTable
+                :headers="recentHeaders"
+                :items="recentEmployees"
+                item-key="email"
+                noun="employees"
+                :empty-icon="Users"
+                empty-message="No employees yet."
+                :resettable="false"
+                :min-width="560"
+                compact
+                hide-footer
+            >
+                <template #toolbar>
+                    <h2 class="flex items-center gap-2 text-sm font-semibold">
                         <Users class="h-4 w-4 text-muted-foreground" /> Recently
                         Added Employees
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Name
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Email
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Joined
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="e in recentEmployees"
-                                    :key="e.email"
-                                    class="border-b last:border-0"
-                                >
-                                    <td class="px-4 py-3 font-medium">
-                                        {{ e.name }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ e.email }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ e.created_at }}
-                                    </td>
-                                </tr>
-                                <tr v-if="recentEmployees.length === 0">
-                                    <td
-                                        colspan="4"
-                                        class="px-4 py-8 text-center text-sm text-muted-foreground"
-                                    >
-                                        No employees yet.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+                    </h2>
+                </template>
+
+                <template #item-name="e">
+                    <IdentityCell :name="e.name" />
+                </template>
+
+                <template #item-email="e">
+                    <span class="text-xs text-muted-foreground">{{
+                        e.email
+                    }}</span>
+                </template>
+
+                <template #item-created_at="e">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ e.created_at }}
+                    </span>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

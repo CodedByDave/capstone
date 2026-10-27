@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -57,13 +64,52 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const dateFrom = ref(props.filters.dateFrom ?? '');
 const dateTo = ref(props.filters.dateTo ?? '');
-const typeFilter = ref<'all' | 'income' | 'expense'>('all');
+const {
+    search,
+    status: typeFilter,
+    options,
+    pageItems,
+    total,
+    statusCounts,
+    isFiltered,
+    reset,
+} = useDataTable(() => props.transactions, {
+    searchFields: (tx) => [tx.title, tx.reference, tx.category],
+    status: (tx) => tx.type,
+    sortBy: 'date',
+    sortType: 'desc',
+});
 
-const filtered = computed(() =>
-    typeFilter.value === 'all'
-        ? props.transactions
-        : props.transactions.filter((t) => t.type === typeFilter.value),
-);
+const typeOptions = computed(() => [
+    {
+        value: '',
+        label: 'All',
+        count:
+            (statusCounts.value.income ?? 0) +
+            (statusCounts.value.expense ?? 0),
+    },
+    { value: 'income', label: 'Income', count: statusCounts.value.income ?? 0 },
+    {
+        value: 'expense',
+        label: 'Expenses',
+        count: statusCounts.value.expense ?? 0,
+    },
+]);
+
+const headers: DataTableHeader[] = [
+    { text: 'Date', value: 'date', sortable: true, width: 130 },
+    { text: 'Type', value: 'type', sortable: true, width: 120 },
+    { text: 'Description', value: 'title', sortable: true },
+    { text: 'Category / method', value: 'category', sortable: true },
+    { text: 'Reference', value: 'reference' },
+    {
+        text: 'Amount',
+        value: 'amount',
+        sortable: true,
+        align: 'right',
+        width: 150,
+    },
+];
 
 function applyFilters() {
     router.get(
@@ -208,193 +254,126 @@ function formatDate(val: string): string {
                 </Card>
             </div>
 
-            <!-- ── Filters ─────────────────────────────────────── -->
-            <div class="flex flex-col flex-wrap items-center gap-2 sm:flex-row">
-                <Input v-model="dateFrom" type="date" class="sm:w-40" />
-                <span class="text-sm text-muted-foreground">to</span>
-                <Input v-model="dateTo" type="date" class="sm:w-40" />
-                <Button @click="applyFilters">Apply</Button>
-                <Button variant="outline" @click="clearFilters"
-                    >This Month</Button
-                >
-
-                <!-- Type toggle -->
-                <div class="ml-auto flex overflow-hidden rounded-lg border">
-                    <button
-                        class="px-3 py-1.5 text-xs font-medium transition-colors"
-                        :class="
-                            typeFilter === 'all'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-muted'
-                        "
-                        @click="typeFilter = 'all'"
-                    >
-                        All
-                    </button>
-                    <button
-                        class="border-l px-3 py-1.5 text-xs font-medium transition-colors"
-                        :class="
-                            typeFilter === 'income'
-                                ? 'bg-green-600 text-white'
-                                : 'hover:bg-muted'
-                        "
-                        @click="typeFilter = 'income'"
-                    >
-                        Income
-                    </button>
-                    <button
-                        class="border-l px-3 py-1.5 text-xs font-medium transition-colors"
-                        :class="
-                            typeFilter === 'expense'
-                                ? 'bg-red-600 text-white'
-                                : 'hover:bg-muted'
-                        "
-                        @click="typeFilter = 'expense'"
-                    >
-                        Expenses
-                    </button>
-                </div>
-            </div>
-
             <!-- ── Ledger Table ────────────────────────────────── -->
-            <div class="overflow-hidden rounded-xl border">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr
-                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                        >
-                            <th class="px-4 py-3 text-left font-medium">
-                                Date
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Type
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Description
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium sm:table-cell"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="pageItems"
+                :total="total"
+                noun="transactions"
+                :empty-icon="ArrowUpDown"
+                :empty-message="
+                    isFiltered
+                        ? 'No transactions match the current filters.'
+                        : 'No transactions found for the selected period.'
+                "
+                :resettable="isFiltered"
+                :min-width="820"
+                @reset="reset"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <Input
+                                v-model="dateFrom"
+                                type="date"
+                                class="sm:w-40"
+                                aria-label="From date"
+                            />
+                            <span class="text-sm text-muted-foreground"
+                                >to</span
                             >
-                                Category / Method
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium md:table-cell"
+                            <Input
+                                v-model="dateTo"
+                                type="date"
+                                class="sm:w-40"
+                                aria-label="To date"
+                            />
+                            <Button @click="applyFilters">Apply</Button>
+                            <Button variant="outline" @click="clearFilters"
+                                >This Month</Button
                             >
-                                Reference
-                            </th>
-                            <th class="px-4 py-3 text-right font-medium">
-                                Amount
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="tx in filtered"
-                            :key="tx.id"
-                            class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                        >
-                            <td
-                                class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
-                            >
-                                {{ formatDate(tx.date) }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <span
-                                    class="flex items-center gap-1 text-xs font-semibold"
-                                    :class="
-                                        tx.type === 'income'
-                                            ? 'text-green-700'
-                                            : 'text-red-600'
-                                    "
-                                >
-                                    <TrendingUp
-                                        v-if="tx.type === 'income'"
-                                        class="h-3.5 w-3.5"
-                                    />
-                                    <TrendingDown v-else class="h-3.5 w-3.5" />
-                                    {{
-                                        tx.type === 'income'
-                                            ? 'Income'
-                                            : 'Expense'
-                                    }}
-                                </span>
-                            </td>
-                            <td
-                                class="max-w-[180px] truncate px-4 py-3 font-medium"
-                            >
-                                {{ tx.title }}
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground sm:table-cell"
-                            >
-                                {{ tx.category }}
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell"
-                            >
-                                {{ tx.reference }}
-                            </td>
-                            <td
-                                class="px-4 py-3 text-right font-bold"
-                                :class="
-                                    tx.type === 'income'
-                                        ? 'text-green-700'
-                                        : 'text-red-600'
-                                "
-                            >
-                                {{ tx.type === 'income' ? '+' : '-'
-                                }}{{ currency(tx.amount) }}
-                            </td>
-                        </tr>
+                        </div>
+                        <DataTableToolbar
+                            v-model:search="search"
+                            v-model:status="typeFilter"
+                            :statuses="typeOptions"
+                            search-placeholder="Search description, reference, category..."
+                            search-label="Search transactions"
+                            status-label="Filter by transaction type"
+                        />
+                    </div>
+                </template>
 
-                        <tr v-if="filtered.length === 0">
-                            <td
-                                colspan="6"
-                                class="px-4 py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <ArrowUpDown
-                                    class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                />
-                                <p>
-                                    No transactions found for the selected
-                                    period.
-                                </p>
-                            </td>
-                        </tr>
-                    </tbody>
-                    <tfoot v-if="filtered.length > 0">
-                        <tr class="border-t bg-muted/30 text-sm font-semibold">
-                            <td
-                                colspan="5"
-                                class="px-4 py-3 text-right text-muted-foreground"
-                            >
-                                {{ filtered.length }} transaction{{
-                                    filtered.length !== 1 ? 's' : ''
-                                }}
-                            </td>
-                            <td
-                                class="px-4 py-3 text-right"
-                                :class="
-                                    summary.net >= 0
-                                        ? 'text-blue-700'
-                                        : 'text-orange-600'
-                                "
-                            >
-                                Net:
-                                {{
-                                    currency(
-                                        typeFilter === 'income'
-                                            ? summary.total_income
-                                            : typeFilter === 'expense'
-                                              ? summary.total_expenses
-                                              : summary.net,
-                                    )
-                                }}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                <template #item-date="tx">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(tx.date) }}
+                    </span>
+                </template>
+
+                <template #item-type="tx">
+                    <StatusPill
+                        :tone="tx.type === 'income' ? 'success' : 'danger'"
+                        :icon="tx.type === 'income' ? TrendingUp : TrendingDown"
+                    >
+                        {{ tx.type === 'income' ? 'Income' : 'Expense' }}
+                    </StatusPill>
+                </template>
+
+                <template #item-title="tx">
+                    <span class="block max-w-[220px] truncate font-medium">
+                        {{ tx.title }}
+                    </span>
+                </template>
+
+                <template #item-category="tx">
+                    <span class="text-muted-foreground">{{ tx.category }}</span>
+                </template>
+
+                <template #item-reference="tx">
+                    <span class="text-xs text-muted-foreground">
+                        {{ tx.reference }}
+                    </span>
+                </template>
+
+                <template #item-amount="tx">
+                    <span
+                        class="font-bold whitespace-nowrap"
+                        :class="
+                            tx.type === 'income'
+                                ? 'text-green-700'
+                                : 'text-red-600'
+                        "
+                    >
+                        {{ tx.type === 'income' ? '+' : '-'
+                        }}{{ currency(tx.amount) }}
+                    </span>
+                </template>
+
+                <template #footer>
+                    <span
+                        class="font-semibold"
+                        :class="
+                            summary.net >= 0
+                                ? 'text-blue-700'
+                                : 'text-orange-600'
+                        "
+                    >
+                        Net:
+                        {{
+                            currency(
+                                typeFilter === 'income'
+                                    ? summary.total_income
+                                    : typeFilter === 'expense'
+                                      ? summary.total_expenses
+                                      : summary.net,
+                            )
+                        }}
+                    </span>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

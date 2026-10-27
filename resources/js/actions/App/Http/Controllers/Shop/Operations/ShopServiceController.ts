@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/shop/operations/services'
  */
 const indexc2022b34c03cfcdd3e3ae396048f9985 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ indexc2022b34c03cfcdd3e3ae396048f9985.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/shop/operations/services'
  */
 indexc2022b34c03cfcdd3e3ae396048f9985.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ indexc2022b34c03cfcdd3e3ae396048f9985.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/shop/operations/services'
  */
 indexc2022b34c03cfcdd3e3ae396048f9985.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ indexc2022b34c03cfcdd3e3ae396048f9985.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/shop/operations/services'
  */
 indexc2022b34c03cfcdd3e3ae396048f9985.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ indexc2022b34c03cfcdd3e3ae396048f9985.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/shop/operations/services'
  */
     const indexc2022b34c03cfcdd3e3ae396048f9985Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ indexc2022b34c03cfcdd3e3ae396048f9985.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/shop/operations/services'
  */
         indexc2022b34c03cfcdd3e3ae396048f9985Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ indexc2022b34c03cfcdd3e3ae396048f9985.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/shop/operations/services'
  */
         indexc2022b34c03cfcdd3e3ae396048f9985Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ indexc2022b34c03cfcdd3e3ae396048f9985.head = (options?: RouteQueryOptions): Rout
     indexc2022b34c03cfcdd3e3ae396048f9985.form = indexc2022b34c03cfcdd3e3ae396048f9985Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/staff/operations/services'
  */
 const index803712c8ef05166c8ed1abbc87997ea5 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ index803712c8ef05166c8ed1abbc87997ea5.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/staff/operations/services'
  */
 index803712c8ef05166c8ed1abbc87997ea5.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ index803712c8ef05166c8ed1abbc87997ea5.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/staff/operations/services'
  */
 index803712c8ef05166c8ed1abbc87997ea5.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ index803712c8ef05166c8ed1abbc87997ea5.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/staff/operations/services'
  */
 index803712c8ef05166c8ed1abbc87997ea5.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ index803712c8ef05166c8ed1abbc87997ea5.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/staff/operations/services'
  */
     const index803712c8ef05166c8ed1abbc87997ea5Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ index803712c8ef05166c8ed1abbc87997ea5.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/staff/operations/services'
  */
         index803712c8ef05166c8ed1abbc87997ea5Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ index803712c8ef05166c8ed1abbc87997ea5.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::index
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:37
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:42
  * @route '/staff/operations/services'
  */
         index803712c8ef05166c8ed1abbc87997ea5Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/shop/operations/services/create'
  */
 const createe90efd62acece0aa3b66f235459feb13 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +178,7 @@ createe90efd62acece0aa3b66f235459feb13.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/shop/operations/services/create'
  */
 createe90efd62acece0aa3b66f235459feb13.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ createe90efd62acece0aa3b66f235459feb13.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/shop/operations/services/create'
  */
 createe90efd62acece0aa3b66f235459feb13.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ createe90efd62acece0aa3b66f235459feb13.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/shop/operations/services/create'
  */
 createe90efd62acece0aa3b66f235459feb13.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ createe90efd62acece0aa3b66f235459feb13.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/shop/operations/services/create'
  */
     const createe90efd62acece0aa3b66f235459feb13Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ createe90efd62acece0aa3b66f235459feb13.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/shop/operations/services/create'
  */
         createe90efd62acece0aa3b66f235459feb13Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -225,7 +225,7 @@ createe90efd62acece0aa3b66f235459feb13.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/shop/operations/services/create'
  */
         createe90efd62acece0aa3b66f235459feb13Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -241,7 +241,7 @@ createe90efd62acece0aa3b66f235459feb13.head = (options?: RouteQueryOptions): Rou
     createe90efd62acece0aa3b66f235459feb13.form = createe90efd62acece0aa3b66f235459feb13Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/staff/operations/services/create'
  */
 const create375cb51c967a6371cfdd48e70569819f = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -256,7 +256,7 @@ create375cb51c967a6371cfdd48e70569819f.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/staff/operations/services/create'
  */
 create375cb51c967a6371cfdd48e70569819f.url = (options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ create375cb51c967a6371cfdd48e70569819f.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/staff/operations/services/create'
  */
 create375cb51c967a6371cfdd48e70569819f.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ create375cb51c967a6371cfdd48e70569819f.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/staff/operations/services/create'
  */
 create375cb51c967a6371cfdd48e70569819f.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ create375cb51c967a6371cfdd48e70569819f.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/staff/operations/services/create'
  */
     const create375cb51c967a6371cfdd48e70569819fForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ create375cb51c967a6371cfdd48e70569819f.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/staff/operations/services/create'
  */
         create375cb51c967a6371cfdd48e70569819fForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ create375cb51c967a6371cfdd48e70569819f.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::create
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:49
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:78
  * @route '/staff/operations/services/create'
  */
         create375cb51c967a6371cfdd48e70569819fForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -325,7 +325,7 @@ export const create = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/shop/operations/services'
  */
 const storec2022b34c03cfcdd3e3ae396048f9985 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +340,7 @@ storec2022b34c03cfcdd3e3ae396048f9985.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/shop/operations/services'
  */
 storec2022b34c03cfcdd3e3ae396048f9985.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ storec2022b34c03cfcdd3e3ae396048f9985.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/shop/operations/services'
  */
 storec2022b34c03cfcdd3e3ae396048f9985.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +359,7 @@ storec2022b34c03cfcdd3e3ae396048f9985.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/shop/operations/services'
  */
     const storec2022b34c03cfcdd3e3ae396048f9985Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ storec2022b34c03cfcdd3e3ae396048f9985.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/shop/operations/services'
  */
         storec2022b34c03cfcdd3e3ae396048f9985Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +380,7 @@ storec2022b34c03cfcdd3e3ae396048f9985.post = (options?: RouteQueryOptions): Rout
     storec2022b34c03cfcdd3e3ae396048f9985.form = storec2022b34c03cfcdd3e3ae396048f9985Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/staff/operations/services'
  */
 const store803712c8ef05166c8ed1abbc87997ea5 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +395,7 @@ store803712c8ef05166c8ed1abbc87997ea5.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/staff/operations/services'
  */
 store803712c8ef05166c8ed1abbc87997ea5.url = (options?: RouteQueryOptions) => {
@@ -404,7 +404,7 @@ store803712c8ef05166c8ed1abbc87997ea5.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/staff/operations/services'
  */
 store803712c8ef05166c8ed1abbc87997ea5.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +414,7 @@ store803712c8ef05166c8ed1abbc87997ea5.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/staff/operations/services'
  */
     const store803712c8ef05166c8ed1abbc87997ea5Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +424,7 @@ store803712c8ef05166c8ed1abbc87997ea5.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::store
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:56
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:85
  * @route '/staff/operations/services'
  */
         store803712c8ef05166c8ed1abbc87997ea5Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -440,8 +440,448 @@ export const store = {
 }
 
 /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/shop/operations/services/export'
+ */
+const exportMethod11b2bec68271b8c2aab4bbb123659c1e = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: exportMethod11b2bec68271b8c2aab4bbb123659c1e.url(options),
+    method: 'get',
+})
+
+exportMethod11b2bec68271b8c2aab4bbb123659c1e.definition = {
+    methods: ["get","head"],
+    url: '/shop/operations/services/export',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/shop/operations/services/export'
+ */
+exportMethod11b2bec68271b8c2aab4bbb123659c1e.url = (options?: RouteQueryOptions) => {
+    return exportMethod11b2bec68271b8c2aab4bbb123659c1e.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/shop/operations/services/export'
+ */
+exportMethod11b2bec68271b8c2aab4bbb123659c1e.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: exportMethod11b2bec68271b8c2aab4bbb123659c1e.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/shop/operations/services/export'
+ */
+exportMethod11b2bec68271b8c2aab4bbb123659c1e.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: exportMethod11b2bec68271b8c2aab4bbb123659c1e.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/shop/operations/services/export'
+ */
+    const exportMethod11b2bec68271b8c2aab4bbb123659c1eForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: exportMethod11b2bec68271b8c2aab4bbb123659c1e.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/shop/operations/services/export'
+ */
+        exportMethod11b2bec68271b8c2aab4bbb123659c1eForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: exportMethod11b2bec68271b8c2aab4bbb123659c1e.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/shop/operations/services/export'
+ */
+        exportMethod11b2bec68271b8c2aab4bbb123659c1eForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: exportMethod11b2bec68271b8c2aab4bbb123659c1e.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    exportMethod11b2bec68271b8c2aab4bbb123659c1e.form = exportMethod11b2bec68271b8c2aab4bbb123659c1eForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/staff/operations/services/export'
+ */
+const exportMethod7048c9ad286b8ba47c7bf15131776b2e = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: exportMethod7048c9ad286b8ba47c7bf15131776b2e.url(options),
+    method: 'get',
+})
+
+exportMethod7048c9ad286b8ba47c7bf15131776b2e.definition = {
+    methods: ["get","head"],
+    url: '/staff/operations/services/export',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/staff/operations/services/export'
+ */
+exportMethod7048c9ad286b8ba47c7bf15131776b2e.url = (options?: RouteQueryOptions) => {
+    return exportMethod7048c9ad286b8ba47c7bf15131776b2e.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/staff/operations/services/export'
+ */
+exportMethod7048c9ad286b8ba47c7bf15131776b2e.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: exportMethod7048c9ad286b8ba47c7bf15131776b2e.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/staff/operations/services/export'
+ */
+exportMethod7048c9ad286b8ba47c7bf15131776b2e.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: exportMethod7048c9ad286b8ba47c7bf15131776b2e.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/staff/operations/services/export'
+ */
+    const exportMethod7048c9ad286b8ba47c7bf15131776b2eForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: exportMethod7048c9ad286b8ba47c7bf15131776b2e.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/staff/operations/services/export'
+ */
+        exportMethod7048c9ad286b8ba47c7bf15131776b2eForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: exportMethod7048c9ad286b8ba47c7bf15131776b2e.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::exportMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:54
+ * @route '/staff/operations/services/export'
+ */
+        exportMethod7048c9ad286b8ba47c7bf15131776b2eForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: exportMethod7048c9ad286b8ba47c7bf15131776b2e.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    exportMethod7048c9ad286b8ba47c7bf15131776b2e.form = exportMethod7048c9ad286b8ba47c7bf15131776b2eForm
+
+export const exportMethod = {
+    '/shop/operations/services/export': exportMethod11b2bec68271b8c2aab4bbb123659c1e,
+    '/staff/operations/services/export': exportMethod7048c9ad286b8ba47c7bf15131776b2e,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/shop/operations/services/import-template'
+ */
+const importTemplatee517ad76fbd3d1929c2d72d925a06837 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: importTemplatee517ad76fbd3d1929c2d72d925a06837.url(options),
+    method: 'get',
+})
+
+importTemplatee517ad76fbd3d1929c2d72d925a06837.definition = {
+    methods: ["get","head"],
+    url: '/shop/operations/services/import-template',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/shop/operations/services/import-template'
+ */
+importTemplatee517ad76fbd3d1929c2d72d925a06837.url = (options?: RouteQueryOptions) => {
+    return importTemplatee517ad76fbd3d1929c2d72d925a06837.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/shop/operations/services/import-template'
+ */
+importTemplatee517ad76fbd3d1929c2d72d925a06837.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: importTemplatee517ad76fbd3d1929c2d72d925a06837.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/shop/operations/services/import-template'
+ */
+importTemplatee517ad76fbd3d1929c2d72d925a06837.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: importTemplatee517ad76fbd3d1929c2d72d925a06837.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/shop/operations/services/import-template'
+ */
+    const importTemplatee517ad76fbd3d1929c2d72d925a06837Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: importTemplatee517ad76fbd3d1929c2d72d925a06837.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/shop/operations/services/import-template'
+ */
+        importTemplatee517ad76fbd3d1929c2d72d925a06837Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: importTemplatee517ad76fbd3d1929c2d72d925a06837.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/shop/operations/services/import-template'
+ */
+        importTemplatee517ad76fbd3d1929c2d72d925a06837Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: importTemplatee517ad76fbd3d1929c2d72d925a06837.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    importTemplatee517ad76fbd3d1929c2d72d925a06837.form = importTemplatee517ad76fbd3d1929c2d72d925a06837Form
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/staff/operations/services/import-template'
+ */
+const importTemplateddd938f2fd5f0410d4f0a673aa77d2ff = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.url(options),
+    method: 'get',
+})
+
+importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.definition = {
+    methods: ["get","head"],
+    url: '/staff/operations/services/import-template',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/staff/operations/services/import-template'
+ */
+importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.url = (options?: RouteQueryOptions) => {
+    return importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/staff/operations/services/import-template'
+ */
+importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/staff/operations/services/import-template'
+ */
+importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/staff/operations/services/import-template'
+ */
+    const importTemplateddd938f2fd5f0410d4f0a673aa77d2ffForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/staff/operations/services/import-template'
+ */
+        importTemplateddd938f2fd5f0410d4f0a673aa77d2ffForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importTemplate
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:62
+ * @route '/staff/operations/services/import-template'
+ */
+        importTemplateddd938f2fd5f0410d4f0a673aa77d2ffForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    importTemplateddd938f2fd5f0410d4f0a673aa77d2ff.form = importTemplateddd938f2fd5f0410d4f0a673aa77d2ffForm
+
+export const importTemplate = {
+    '/shop/operations/services/import-template': importTemplatee517ad76fbd3d1929c2d72d925a06837,
+    '/staff/operations/services/import-template': importTemplateddd938f2fd5f0410d4f0a673aa77d2ff,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/shop/operations/services/import'
+ */
+const importMethodc5bf634f3d8e908370efe6531b26558f = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: importMethodc5bf634f3d8e908370efe6531b26558f.url(options),
+    method: 'post',
+})
+
+importMethodc5bf634f3d8e908370efe6531b26558f.definition = {
+    methods: ["post"],
+    url: '/shop/operations/services/import',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/shop/operations/services/import'
+ */
+importMethodc5bf634f3d8e908370efe6531b26558f.url = (options?: RouteQueryOptions) => {
+    return importMethodc5bf634f3d8e908370efe6531b26558f.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/shop/operations/services/import'
+ */
+importMethodc5bf634f3d8e908370efe6531b26558f.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: importMethodc5bf634f3d8e908370efe6531b26558f.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/shop/operations/services/import'
+ */
+    const importMethodc5bf634f3d8e908370efe6531b26558fForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: importMethodc5bf634f3d8e908370efe6531b26558f.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/shop/operations/services/import'
+ */
+        importMethodc5bf634f3d8e908370efe6531b26558fForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: importMethodc5bf634f3d8e908370efe6531b26558f.url(options),
+            method: 'post',
+        })
+    
+    importMethodc5bf634f3d8e908370efe6531b26558f.form = importMethodc5bf634f3d8e908370efe6531b26558fForm
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/staff/operations/services/import'
+ */
+const importMethodffda4e931fa27de99f8a9bece6e9220d = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: importMethodffda4e931fa27de99f8a9bece6e9220d.url(options),
+    method: 'post',
+})
+
+importMethodffda4e931fa27de99f8a9bece6e9220d.definition = {
+    methods: ["post"],
+    url: '/staff/operations/services/import',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/staff/operations/services/import'
+ */
+importMethodffda4e931fa27de99f8a9bece6e9220d.url = (options?: RouteQueryOptions) => {
+    return importMethodffda4e931fa27de99f8a9bece6e9220d.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/staff/operations/services/import'
+ */
+importMethodffda4e931fa27de99f8a9bece6e9220d.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: importMethodffda4e931fa27de99f8a9bece6e9220d.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/staff/operations/services/import'
+ */
+    const importMethodffda4e931fa27de99f8a9bece6e9220dForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: importMethodffda4e931fa27de99f8a9bece6e9220d.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Operations\ShopServiceController::importMethod
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:67
+ * @route '/staff/operations/services/import'
+ */
+        importMethodffda4e931fa27de99f8a9bece6e9220dForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: importMethodffda4e931fa27de99f8a9bece6e9220d.url(options),
+            method: 'post',
+        })
+    
+    importMethodffda4e931fa27de99f8a9bece6e9220d.form = importMethodffda4e931fa27de99f8a9bece6e9220dForm
+
+export const importMethod = {
+    '/shop/operations/services/import': importMethodc5bf634f3d8e908370efe6531b26558f,
+    '/staff/operations/services/import': importMethodffda4e931fa27de99f8a9bece6e9220d,
+}
+
+/**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/shop/operations/services/restore-all'
  */
 const restoreAll2c8131e5baea3dee26b995f349c1452a = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -456,7 +896,7 @@ restoreAll2c8131e5baea3dee26b995f349c1452a.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/shop/operations/services/restore-all'
  */
 restoreAll2c8131e5baea3dee26b995f349c1452a.url = (options?: RouteQueryOptions) => {
@@ -465,7 +905,7 @@ restoreAll2c8131e5baea3dee26b995f349c1452a.url = (options?: RouteQueryOptions) =
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/shop/operations/services/restore-all'
  */
 restoreAll2c8131e5baea3dee26b995f349c1452a.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -475,7 +915,7 @@ restoreAll2c8131e5baea3dee26b995f349c1452a.post = (options?: RouteQueryOptions):
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/shop/operations/services/restore-all'
  */
     const restoreAll2c8131e5baea3dee26b995f349c1452aForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -485,7 +925,7 @@ restoreAll2c8131e5baea3dee26b995f349c1452a.post = (options?: RouteQueryOptions):
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/shop/operations/services/restore-all'
  */
         restoreAll2c8131e5baea3dee26b995f349c1452aForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -496,7 +936,7 @@ restoreAll2c8131e5baea3dee26b995f349c1452a.post = (options?: RouteQueryOptions):
     restoreAll2c8131e5baea3dee26b995f349c1452a.form = restoreAll2c8131e5baea3dee26b995f349c1452aForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/staff/operations/services/restore-all'
  */
 const restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -511,7 +951,7 @@ restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/staff/operations/services/restore-all'
  */
 restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20.url = (options?: RouteQueryOptions) => {
@@ -520,7 +960,7 @@ restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20.url = (options?: RouteQueryOptions) =
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/staff/operations/services/restore-all'
  */
 restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -530,7 +970,7 @@ restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20.post = (options?: RouteQueryOptions):
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/staff/operations/services/restore-all'
  */
     const restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -540,7 +980,7 @@ restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20.post = (options?: RouteQueryOptions):
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:160
  * @route '/staff/operations/services/restore-all'
  */
         restoreAll3a9d9c697ccbeb2854f59f7b7be1bb20Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -557,7 +997,7 @@ export const restoreAll = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/shop/operations/services/{service}/edit'
  */
 const editff96fda3a296604b1e57cdb10db1fd42 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -572,7 +1012,7 @@ editff96fda3a296604b1e57cdb10db1fd42.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/shop/operations/services/{service}/edit'
  */
 editff96fda3a296604b1e57cdb10db1fd42.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -605,7 +1045,7 @@ editff96fda3a296604b1e57cdb10db1fd42.url = (args: { service: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/shop/operations/services/{service}/edit'
  */
 editff96fda3a296604b1e57cdb10db1fd42.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -614,7 +1054,7 @@ editff96fda3a296604b1e57cdb10db1fd42.get = (args: { service: number | { id: numb
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/shop/operations/services/{service}/edit'
  */
 editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -624,7 +1064,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: number | { id: num
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/shop/operations/services/{service}/edit'
  */
     const editff96fda3a296604b1e57cdb10db1fd42Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -634,7 +1074,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: number | { id: num
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/shop/operations/services/{service}/edit'
  */
         editff96fda3a296604b1e57cdb10db1fd42Form.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -643,7 +1083,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: number | { id: num
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/shop/operations/services/{service}/edit'
  */
         editff96fda3a296604b1e57cdb10db1fd42Form.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -659,7 +1099,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: number | { id: num
     editff96fda3a296604b1e57cdb10db1fd42.form = editff96fda3a296604b1e57cdb10db1fd42Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/staff/operations/services/{service}/edit'
  */
 const editae2dfaae269ba2620585b7ae9512af71 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -674,7 +1114,7 @@ editae2dfaae269ba2620585b7ae9512af71.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/staff/operations/services/{service}/edit'
  */
 editae2dfaae269ba2620585b7ae9512af71.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -707,7 +1147,7 @@ editae2dfaae269ba2620585b7ae9512af71.url = (args: { service: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/staff/operations/services/{service}/edit'
  */
 editae2dfaae269ba2620585b7ae9512af71.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -716,7 +1156,7 @@ editae2dfaae269ba2620585b7ae9512af71.get = (args: { service: number | { id: numb
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/staff/operations/services/{service}/edit'
  */
 editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -726,7 +1166,7 @@ editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: number | { id: num
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/staff/operations/services/{service}/edit'
  */
     const editae2dfaae269ba2620585b7ae9512af71Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -736,7 +1176,7 @@ editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: number | { id: num
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/staff/operations/services/{service}/edit'
  */
         editae2dfaae269ba2620585b7ae9512af71Form.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -745,7 +1185,7 @@ editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: number | { id: num
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:70
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:99
  * @route '/staff/operations/services/{service}/edit'
  */
         editae2dfaae269ba2620585b7ae9512af71Form.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -767,7 +1207,7 @@ export const edit = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}'
  */
 const updatee9ab3d744718a35303c175ccfb883b75 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -782,7 +1222,7 @@ updatee9ab3d744718a35303c175ccfb883b75.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}'
  */
 updatee9ab3d744718a35303c175ccfb883b75.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -815,7 +1255,7 @@ updatee9ab3d744718a35303c175ccfb883b75.url = (args: { service: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}'
  */
 updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -825,7 +1265,7 @@ updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: number | { id: nu
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}'
  */
     const updatee9ab3d744718a35303c175ccfb883b75Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -840,7 +1280,7 @@ updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: number | { id: nu
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/shop/operations/services/{service}'
  */
         updatee9ab3d744718a35303c175ccfb883b75Form.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -856,7 +1296,7 @@ updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: number | { id: nu
     updatee9ab3d744718a35303c175ccfb883b75.form = updatee9ab3d744718a35303c175ccfb883b75Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/staff/operations/services/{service}'
  */
 const updatebb9db02789b70ee0b379bb45f3d6ad78 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -871,7 +1311,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/staff/operations/services/{service}'
  */
 updatebb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -904,7 +1344,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/staff/operations/services/{service}'
  */
 updatebb9db02789b70ee0b379bb45f3d6ad78.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -914,7 +1354,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.put = (args: { service: number | { id: nu
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/staff/operations/services/{service}'
  */
     const updatebb9db02789b70ee0b379bb45f3d6ad78Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -929,7 +1369,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.put = (args: { service: number | { id: nu
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::update
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:80
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
  * @route '/staff/operations/services/{service}'
  */
         updatebb9db02789b70ee0b379bb45f3d6ad78Form.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -951,7 +1391,7 @@ export const update = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/shop/operations/services/{service}'
  */
 const destroye9ab3d744718a35303c175ccfb883b75 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -966,7 +1406,7 @@ destroye9ab3d744718a35303c175ccfb883b75.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/shop/operations/services/{service}'
  */
 destroye9ab3d744718a35303c175ccfb883b75.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -999,7 +1439,7 @@ destroye9ab3d744718a35303c175ccfb883b75.url = (args: { service: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/shop/operations/services/{service}'
  */
 destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1009,7 +1449,7 @@ destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: number | { id
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/shop/operations/services/{service}'
  */
     const destroye9ab3d744718a35303c175ccfb883b75Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1024,7 +1464,7 @@ destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: number | { id
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/shop/operations/services/{service}'
  */
         destroye9ab3d744718a35303c175ccfb883b75Form.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1040,7 +1480,7 @@ destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: number | { id
     destroye9ab3d744718a35303c175ccfb883b75.form = destroye9ab3d744718a35303c175ccfb883b75Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/staff/operations/services/{service}'
  */
 const destroybb9db02789b70ee0b379bb45f3d6ad78 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1055,7 +1495,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/staff/operations/services/{service}'
  */
 destroybb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1088,7 +1528,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/staff/operations/services/{service}'
  */
 destroybb9db02789b70ee0b379bb45f3d6ad78.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1098,7 +1538,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.delete = (args: { service: number | { id
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/staff/operations/services/{service}'
  */
     const destroybb9db02789b70ee0b379bb45f3d6ad78Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1113,7 +1553,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.delete = (args: { service: number | { id
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:98
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:127
  * @route '/staff/operations/services/{service}'
  */
         destroybb9db02789b70ee0b379bb45f3d6ad78Form.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1135,7 +1575,7 @@ export const destroy = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/shop/operations/services/{service}/toggle'
  */
 const toggleActivea265d049ab0a5a58628af29b925615ee = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1150,7 +1590,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/shop/operations/services/{service}/toggle'
  */
 toggleActivea265d049ab0a5a58628af29b925615ee.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1183,7 +1623,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.url = (args: { service: number | { 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/shop/operations/services/{service}/toggle'
  */
 toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1193,7 +1633,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: number | 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/shop/operations/services/{service}/toggle'
  */
     const toggleActivea265d049ab0a5a58628af29b925615eeForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1208,7 +1648,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: number | 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/shop/operations/services/{service}/toggle'
  */
         toggleActivea265d049ab0a5a58628af29b925615eeForm.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1224,7 +1664,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: number | 
     toggleActivea265d049ab0a5a58628af29b925615ee.form = toggleActivea265d049ab0a5a58628af29b925615eeForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/staff/operations/services/{service}/toggle'
  */
 const toggleActive3ce389933df36d1be9f98e9cc88d9278 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1239,7 +1679,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/staff/operations/services/{service}/toggle'
  */
 toggleActive3ce389933df36d1be9f98e9cc88d9278.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1272,7 +1712,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.url = (args: { service: number | { 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/staff/operations/services/{service}/toggle'
  */
 toggleActive3ce389933df36d1be9f98e9cc88d9278.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1282,7 +1722,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.patch = (args: { service: number | 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/staff/operations/services/{service}/toggle'
  */
     const toggleActive3ce389933df36d1be9f98e9cc88d9278Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1297,7 +1737,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.patch = (args: { service: number | 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:109
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:138
  * @route '/staff/operations/services/{service}/toggle'
  */
         toggleActive3ce389933df36d1be9f98e9cc88d9278Form.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1319,7 +1759,7 @@ export const toggleActive = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/shop/operations/services/{service}/restore'
  */
 const restore702ff9ce9291e339ce7ead51131a5a13 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1334,7 +1774,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/shop/operations/services/{service}/restore'
  */
 restore702ff9ce9291e339ce7ead51131a5a13.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1367,7 +1807,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.url = (args: { service: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/shop/operations/services/{service}/restore'
  */
 restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1377,7 +1817,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: number | { id:
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/shop/operations/services/{service}/restore'
  */
     const restore702ff9ce9291e339ce7ead51131a5a13Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1392,7 +1832,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: number | { id:
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/shop/operations/services/{service}/restore'
  */
         restore702ff9ce9291e339ce7ead51131a5a13Form.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1408,7 +1848,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: number | { id:
     restore702ff9ce9291e339ce7ead51131a5a13.form = restore702ff9ce9291e339ce7ead51131a5a13Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/staff/operations/services/{service}/restore'
  */
 const restore223fb1e6f3bda34708848fd57a7eea19 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1423,7 +1863,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/staff/operations/services/{service}/restore'
  */
 restore223fb1e6f3bda34708848fd57a7eea19.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1456,7 +1896,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.url = (args: { service: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/staff/operations/services/{service}/restore'
  */
 restore223fb1e6f3bda34708848fd57a7eea19.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1466,7 +1906,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.patch = (args: { service: number | { id:
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/staff/operations/services/{service}/restore'
  */
     const restore223fb1e6f3bda34708848fd57a7eea19Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1481,7 +1921,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.patch = (args: { service: number | { id:
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopServiceController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:120
+ * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:149
  * @route '/staff/operations/services/{service}/restore'
  */
         restore223fb1e6f3bda34708848fd57a7eea19Form.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1501,6 +1941,6 @@ export const restore = {
     '/staff/operations/services/{service}/restore': restore223fb1e6f3bda34708848fd57a7eea19,
 }
 
-const ShopServiceController = { index, create, store, restoreAll, edit, update, destroy, toggleActive, restore }
+const ShopServiceController = { index, create, store, exportMethod, importTemplate, importMethod, restoreAll, edit, update, destroy, toggleActive, restore, export: exportMethod, import: importMethod }
 
 export default ShopServiceController

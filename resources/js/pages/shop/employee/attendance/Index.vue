@@ -6,6 +6,15 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
+import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useDataTable } from '@/composables/useDataTable';
 import {
     AlertCircle,
     CalendarClock,
@@ -25,7 +35,6 @@ import {
     Loader2,
     MapPin,
     Pencil,
-    Search,
     UserCheck,
     Users,
     UserX,
@@ -117,7 +126,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 // ─── Date Navigation ──────────────────────────────────────────────────────────
 
 const selectedDate = ref(props.date);
-const search = ref(props.filters?.search ?? '');
 
 function navigateDate(offset: number) {
     const d = new Date(selectedDate.value);
@@ -189,19 +197,95 @@ function isScheduledDay(employeeId: number): boolean {
     return empSchedules.some((s) => s.day === selectedDayName.value);
 }
 
-// ─── Search / filter ──────────────────────────────────────────────────────────
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-const filteredEmployees = computed(() => {
-    if (!search.value.trim()) return props.employees;
-    const q = search.value.toLowerCase();
-    return props.employees.filter(
-        (e) =>
-            e.first_name.toLowerCase().includes(q) ||
-            e.last_name.toLowerCase().includes(q) ||
-            e.employee_id.toLowerCase().includes(q) ||
-            e.position?.toLowerCase().includes(q),
-    );
+const tableRows = computed(() =>
+    props.employees.map((emp) => {
+        const attendance = getAttendance(emp.id);
+        const scheduled = isScheduledDay(emp.id);
+
+        return {
+            ...emp,
+            full_name: `${emp.first_name} ${emp.last_name}`,
+            attendance,
+            scheduled,
+            day_status: !scheduled
+                ? 'day_off'
+                : (attendance?.status ?? 'unmarked'),
+            time_in: attendance?.time_in ?? null,
+            time_out: attendance?.time_out ?? null,
+            location: '',
+            remarks: attendance?.remarks ?? null,
+            actions: '',
+        };
+    }),
+);
+
+const {
+    search,
+    status: dayStatusFilter,
+    options,
+    pageItems,
+    total,
+    statusCounts,
+    isFiltered,
+    reset,
+} = useDataTable(tableRows, {
+    searchFields: (row) => [
+        row.first_name,
+        row.last_name,
+        row.full_name,
+        row.employee_id,
+        row.position,
+    ],
+    status: (row) => row.day_status,
+    sortBy: 'full_name',
+    rowsPerPage: 20,
 });
+search.value = props.filters?.search ?? '';
+
+const dayStatusOptions = computed(() => [
+    { value: '', label: 'All', count: props.employees.length },
+    ...[
+        { value: 'present', label: 'Present' },
+        { value: 'absent', label: 'Absent' },
+        { value: 'late', label: 'Late' },
+        { value: 'half_day', label: 'Half Day' },
+        { value: 'unmarked', label: 'Not marked' },
+        { value: 'day_off', label: 'Day off' },
+    ]
+        .filter((option) => statusCounts.value[option.value])
+        .map((option) => ({
+            ...option,
+            count: statusCounts.value[option.value],
+        })),
+]);
+
+const attendanceTone: Record<string, StatusTone> = {
+    present: 'success',
+    absent: 'danger',
+    late: 'warning',
+    half_day: 'info',
+};
+
+const headers = computed<DataTableHeader[]>(() => [
+    { text: 'Employee', value: 'full_name', sortable: true, width: 260 },
+    { text: 'Status', value: 'day_status', sortable: true },
+    { text: 'Clock in', value: 'time_in', sortable: true },
+    { text: 'Clock out', value: 'time_out', sortable: true },
+    { text: 'Location', value: 'location' },
+    { text: 'Remarks', value: 'remarks' },
+    ...(props.can_edit
+        ? [
+              {
+                  text: 'Actions',
+                  value: 'actions',
+                  align: 'center' as const,
+                  width: 90,
+              },
+          ]
+        : []),
+]);
 
 // ─── Data lookup helpers ──────────────────────────────────────────────────────
 
@@ -474,266 +558,163 @@ function saveModal() {
                         <ChevronRight class="h-4 w-4" />
                     </Button>
                 </div>
-
-                <div class="flex items-center gap-2">
-                    <div class="relative">
-                        <Search
-                            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            placeholder="Search employee..."
-                            class="w-56 pl-9"
-                        />
-                    </div>
-                </div>
             </div>
 
             <p class="text-sm font-medium text-muted-foreground">
                 <CalendarClock class="-mt-0.5 mr-1 inline h-4 w-4" />
                 {{ formatDateDisplay(selectedDate) }}
-                <span class="ml-2 text-xs"
-                    >({{ filteredEmployees.length }} employees)</span
-                >
+                <span class="ml-2 text-xs">({{ total }} employees)</span>
             </p>
 
             <!-- ── Attendance Table ────────────────────────────────── -->
-            <div class="overflow-hidden rounded-xl border">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr
-                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                        >
-                            <th class="w-[28%] px-4 py-3 text-left font-medium">
-                                Employee
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Status
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Clock In
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Clock Out
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Location
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Remarks
-                            </th>
-                            <th v-if="props.can_edit" class="w-12 px-4 py-3" />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="emp in filteredEmployees"
-                            :key="emp.id"
-                            class="border-b transition-colors last:border-0"
-                            :class="
-                                isScheduledDay(emp.id)
-                                    ? 'hover:bg-muted/20'
-                                    : 'bg-muted/10 opacity-60'
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="pageItems"
+                :total="total"
+                noun="employees"
+                :empty-icon="Users"
+                :empty-message="
+                    isFiltered
+                        ? 'No employees match the current filters.'
+                        : 'No active employees found.'
+                "
+                :resettable="isFiltered"
+                :row-class="(row) => (row.scheduled ? '' : 'opacity-60')"
+                :min-width="900"
+                @reset="reset"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        v-model:status="dayStatusFilter"
+                        :statuses="dayStatusOptions"
+                        search-placeholder="Search employee..."
+                        search-label="Search employees"
+                        status-label="Filter by attendance status"
+                    />
+                </template>
+
+                <!-- Employee -->
+                <template #item-full_name="row">
+                    <IdentityCell
+                        :name="row.full_name"
+                        :secondary="row.position"
+                    />
+                </template>
+
+                <!-- Status -->
+                <template #item-day_status="row">
+                    <span
+                        v-if="!row.scheduled"
+                        class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground italic"
+                    >
+                        Day Off
+                    </span>
+                    <StatusPill
+                        v-else-if="row.attendance?.status"
+                        :tone="
+                            attendanceTone[row.attendance.status] ?? 'neutral'
+                        "
+                    >
+                        {{ statusCfg(row.attendance.status)?.label }}
+                    </StatusPill>
+                    <span v-else class="text-xs text-muted-foreground italic"
+                        >Not marked</span
+                    >
+                </template>
+
+                <!-- Clock In -->
+                <template #item-time_in="row">
+                    <span
+                        v-if="!row.scheduled"
+                        class="font-mono text-xs text-muted-foreground"
+                        >—</span
+                    >
+                    <span v-else class="font-mono text-xs whitespace-nowrap">{{
+                        fmtTime(row.attendance?.time_in ?? null)
+                    }}</span>
+                </template>
+
+                <!-- Clock Out -->
+                <template #item-time_out="row">
+                    <span
+                        v-if="!row.scheduled"
+                        class="font-mono text-xs text-muted-foreground"
+                        >—</span
+                    >
+                    <span v-else class="font-mono text-xs whitespace-nowrap">{{
+                        fmtTime(row.attendance?.time_out ?? null)
+                    }}</span>
+                </template>
+
+                <!-- Location -->
+                <template #item-location="row">
+                    <div v-if="row.attendance" class="flex flex-col gap-1">
+                        <a
+                            v-if="row.attendance.check_in_lat"
+                            :href="
+                                mapsUrl(
+                                    row.attendance.check_in_lat,
+                                    row.attendance.check_in_lng,
+                                )
                             "
+                            target="_blank"
+                            class="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline"
                         >
-                            <!-- Employee -->
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10"
-                                    >
-                                        <span
-                                            class="text-xs font-bold text-primary"
-                                        >
-                                            {{ emp.first_name[0]
-                                            }}{{ emp.last_name[0] }}
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="truncate font-medium">
-                                            {{ emp.first_name }}
-                                            {{ emp.last_name }}
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ emp.position }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </td>
+                            <MapPin class="h-3 w-3 shrink-0" />
+                            Clock In
+                        </a>
+                        <a
+                            v-if="row.attendance.check_out_lat"
+                            :href="
+                                mapsUrl(
+                                    row.attendance.check_out_lat,
+                                    row.attendance.check_out_lng,
+                                )
+                            "
+                            target="_blank"
+                            class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                        >
+                            <MapPin class="h-3 w-3 shrink-0" />
+                            Clock Out
+                        </a>
+                        <span
+                            v-if="
+                                !row.attendance.check_in_lat &&
+                                !row.attendance.check_out_lat
+                            "
+                            class="text-xs text-muted-foreground"
+                            >—</span
+                        >
+                    </div>
+                    <span v-else class="text-xs text-muted-foreground">—</span>
+                </template>
 
-                            <!-- Status -->
-                            <td class="px-4 py-3">
-                                <span
-                                    v-if="!isScheduledDay(emp.id)"
-                                    class="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground italic"
-                                >
-                                    Day Off
-                                </span>
-                                <template
-                                    v-else-if="getAttendance(emp.id)?.status"
-                                >
-                                    <span
-                                        class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
-                                        :class="
-                                            statusCfg(
-                                                getAttendance(emp.id)!.status,
-                                            )?.badge
-                                        "
-                                    >
-                                        <span
-                                            class="h-1.5 w-1.5 rounded-full"
-                                            :class="
-                                                statusCfg(
-                                                    getAttendance(emp.id)!
-                                                        .status,
-                                                )?.dot
-                                            "
-                                        />
-                                        {{
-                                            statusCfg(
-                                                getAttendance(emp.id)!.status,
-                                            )?.label
-                                        }}
-                                    </span>
-                                </template>
-                                <span
-                                    v-else
-                                    class="text-xs text-muted-foreground italic"
-                                    >Not marked</span
-                                >
-                            </td>
+                <!-- Remarks -->
+                <template #item-remarks="row">
+                    <span class="text-xs text-muted-foreground">
+                        {{
+                            row.scheduled ? row.attendance?.remarks || '—' : '—'
+                        }}
+                    </span>
+                </template>
 
-                            <!-- Clock In -->
-                            <td class="px-4 py-3 font-mono text-xs">
-                                <span
-                                    v-if="!isScheduledDay(emp.id)"
-                                    class="text-muted-foreground"
-                                    >—</span
-                                >
-                                <span v-else>{{
-                                    fmtTime(
-                                        getAttendance(emp.id)?.time_in ?? null,
-                                    )
-                                }}</span>
-                            </td>
-
-                            <!-- Clock Out -->
-                            <td class="px-4 py-3 font-mono text-xs">
-                                <span
-                                    v-if="!isScheduledDay(emp.id)"
-                                    class="text-muted-foreground"
-                                    >—</span
-                                >
-                                <span v-else>{{
-                                    fmtTime(
-                                        getAttendance(emp.id)?.time_out ?? null,
-                                    )
-                                }}</span>
-                            </td>
-
-                            <!-- Location -->
-                            <td class="px-4 py-3">
-                                <template v-if="getAttendance(emp.id)">
-                                    <div class="flex flex-col gap-1">
-                                        <a
-                                            v-if="
-                                                getAttendance(emp.id)!
-                                                    .check_in_lat
-                                            "
-                                            :href="
-                                                mapsUrl(
-                                                    getAttendance(emp.id)!
-                                                        .check_in_lat!,
-                                                    getAttendance(emp.id)!
-                                                        .check_in_lng!,
-                                                )
-                                            "
-                                            target="_blank"
-                                            class="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline"
-                                        >
-                                            <MapPin class="h-3 w-3 shrink-0" />
-                                            Clock In
-                                        </a>
-                                        <a
-                                            v-if="
-                                                getAttendance(emp.id)!
-                                                    .check_out_lat
-                                            "
-                                            :href="
-                                                mapsUrl(
-                                                    getAttendance(emp.id)!
-                                                        .check_out_lat!,
-                                                    getAttendance(emp.id)!
-                                                        .check_out_lng!,
-                                                )
-                                            "
-                                            target="_blank"
-                                            class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
-                                        >
-                                            <MapPin class="h-3 w-3 shrink-0" />
-                                            Clock Out
-                                        </a>
-                                        <span
-                                            v-if="
-                                                !getAttendance(emp.id)!
-                                                    .check_in_lat &&
-                                                !getAttendance(emp.id)!
-                                                    .check_out_lat
-                                            "
-                                            class="text-xs text-muted-foreground"
-                                            >—</span
-                                        >
-                                    </div>
-                                </template>
-                                <span
-                                    v-else
-                                    class="text-xs text-muted-foreground"
-                                    >—</span
-                                >
-                            </td>
-
-                            <!-- Remarks -->
-                            <td class="px-4 py-3 text-xs text-muted-foreground">
-                                <span v-if="!isScheduledDay(emp.id)">—</span>
-                                <span v-else>{{
-                                    getAttendance(emp.id)?.remarks || '—'
-                                }}</span>
-                            </td>
-
-                            <!-- Edit button (owner only) -->
-                            <td
-                                v-if="props.can_edit"
-                                class="px-3 py-3 text-right"
-                            >
-                                <button
-                                    v-if="isScheduledDay(emp.id)"
-                                    class="inline-flex h-7 w-7 items-center justify-center rounded-lg border transition-colors hover:bg-muted"
-                                    title="Mark attendance"
-                                    @click="openModal(emp)"
-                                >
-                                    <Pencil
-                                        class="h-3.5 w-3.5 text-muted-foreground"
-                                    />
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr v-if="filteredEmployees.length === 0">
-                            <td
-                                :colspan="props.can_edit ? 7 : 6"
-                                class="px-4 py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <Users
-                                    class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                />
-                                <p>No active employees found.</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <!-- Edit button (owner only) -->
+                <template #item-actions="row">
+                    <RowActions
+                        :label="row.full_name"
+                        :actions="[
+                            {
+                                label: 'Mark attendance',
+                                icon: Pencil,
+                                show: row.scheduled,
+                                onSelect: () => openModal(row),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 

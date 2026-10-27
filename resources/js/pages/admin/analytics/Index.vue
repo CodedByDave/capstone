@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { DataTable, type DataTableHeader } from '@/components/data-table';
 import { Card, CardContent } from '@/components/ui/card';
+import { useDataTable } from '@/composables/useDataTable';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
@@ -51,6 +53,25 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/admin/dashboard' },
     { title: 'Analytics Overview', href: '/admin/analytics' },
 ];
+
+const topHeaders: DataTableHeader[] = [
+    { text: 'Rank', value: 'rank', sortable: true, width: 90 },
+    { text: 'Shop', value: 'name', sortable: true },
+    { text: 'Revenue', value: 'revenue', sortable: true, align: 'right' },
+    { text: 'Paid orders', value: 'orders', sortable: true, align: 'right' },
+    {
+        text: 'Monthly growth',
+        value: 'growth',
+        sortable: true,
+        align: 'right',
+    },
+];
+
+const {
+    options: topOptions,
+    pageItems: topPage,
+    total: topTotal,
+} = useDataTable(() => props.top_shops, { sortBy: 'rank', rowsPerPage: 100 });
 
 const formatCurrency = (value: number) =>
     new Intl.NumberFormat('en-PH', {
@@ -630,122 +651,93 @@ const registrationsArea = computed(() => {
                 </article>
             </section>
 
-            <section class="rounded-xl border bg-card shadow-sm">
-                <div
-                    class="flex flex-col gap-2 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6"
-                >
-                    <div>
-                        <h2 class="font-semibold">Top-performing shops</h2>
-                        <p class="mt-1 text-xs text-muted-foreground">
-                            Ranked by successfully collected subscription
-                            revenue
-                        </p>
-                    </div>
+            <DataTable
+                v-model:options="topOptions"
+                :headers="topHeaders"
+                :items="topPage"
+                :total="topTotal"
+                item-key="rank"
+                noun="shops"
+                :empty-icon="Store"
+                empty-message="No paid shop activity is available for this period."
+                :resettable="false"
+                :min-width="760"
+                hide-footer
+            >
+                <template #toolbar>
                     <div
-                        class="inline-flex w-fit items-center gap-2 rounded-full bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400"
+                        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
                     >
-                        <Store class="h-3.5 w-3.5" />
-                        Top {{ top_shops.length }} shops
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[760px] text-sm">
-                        <thead
-                            class="bg-muted/60 text-xs text-muted-foreground"
+                        <div>
+                            <h2 class="font-semibold">Top-performing shops</h2>
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                Ranked by successfully collected subscription
+                                revenue
+                            </p>
+                        </div>
+                        <div
+                            class="inline-flex w-fit items-center gap-2 rounded-full bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400"
                         >
-                            <tr>
-                                <th
-                                    class="w-20 px-6 py-3 text-left font-medium"
-                                >
-                                    Rank
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Shop
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Revenue
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Paid orders
-                                </th>
-                                <th class="px-6 py-3 text-right font-medium">
-                                    Monthly growth
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y">
-                            <tr
-                                v-for="shop in top_shops"
-                                :key="shop.rank"
-                                class="transition-colors hover:bg-muted/40"
-                            >
-                                <td class="px-6 py-4">
-                                    <span
-                                        :class="[
-                                            'inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold',
-                                            shop.rank === 1
-                                                ? 'bg-amber-400/20 text-amber-600 dark:text-amber-400'
-                                                : shop.rank === 2
-                                                  ? 'bg-slate-400/20 text-slate-600 dark:text-slate-300'
-                                                  : shop.rank === 3
-                                                    ? 'bg-orange-400/20 text-orange-600 dark:text-orange-400'
-                                                    : 'bg-muted text-muted-foreground',
-                                        ]"
-                                    >
-                                        {{ shop.rank }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-4">
-                                    <p class="font-medium">{{ shop.name }}</p>
-                                    <p
-                                        class="mt-0.5 text-xs text-muted-foreground"
-                                    >
-                                        {{ shop.location }}
-                                    </p>
-                                </td>
-                                <td class="px-4 py-4 text-right font-semibold">
-                                    {{ formatCurrency(shop.revenue) }}
-                                </td>
-                                <td
-                                    class="px-4 py-4 text-right text-muted-foreground"
-                                >
-                                    {{ shop.orders.toLocaleString() }}
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <span
-                                        :class="[
-                                            'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
-                                            shop.growth >= 0
-                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                                : 'bg-red-500/10 text-red-600 dark:text-red-400',
-                                        ]"
-                                    >
-                                        <ArrowUpRight
-                                            v-if="shop.growth >= 0"
-                                            class="h-3.5 w-3.5"
-                                        />
-                                        <ArrowDownRight
-                                            v-else
-                                            class="h-3.5 w-3.5"
-                                        />
-                                        {{ Math.abs(shop.growth) }}%
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr v-if="!top_shops.length">
-                                <td
-                                    colspan="5"
-                                    class="px-6 py-12 text-center text-sm text-muted-foreground"
-                                >
-                                    No paid shop activity is available for this
-                                    period.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                            <Store class="h-3.5 w-3.5" />
+                            Top {{ top_shops.length }} shops
+                        </div>
+                    </div>
+                </template>
+
+                <template #item-rank="shop">
+                    <span
+                        :class="[
+                            'inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold',
+                            shop.rank === 1
+                                ? 'bg-amber-400/20 text-amber-600 dark:text-amber-400'
+                                : shop.rank === 2
+                                  ? 'bg-slate-400/20 text-slate-600 dark:text-slate-300'
+                                  : shop.rank === 3
+                                    ? 'bg-orange-400/20 text-orange-600 dark:text-orange-400'
+                                    : 'bg-muted text-muted-foreground',
+                        ]"
+                    >
+                        {{ shop.rank }}
+                    </span>
+                </template>
+
+                <template #item-name="shop">
+                    <p class="font-medium">{{ shop.name }}</p>
+                    <p class="mt-0.5 text-xs text-muted-foreground">
+                        {{ shop.location }}
+                    </p>
+                </template>
+
+                <template #item-revenue="shop">
+                    <span class="font-semibold whitespace-nowrap">
+                        {{ formatCurrency(shop.revenue) }}
+                    </span>
+                </template>
+
+                <template #item-orders="shop">
+                    <span class="text-muted-foreground">
+                        {{ shop.orders.toLocaleString() }}
+                    </span>
+                </template>
+
+                <template #item-growth="shop">
+                    <span
+                        :class="[
+                            'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
+                            shop.growth >= 0
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                : 'bg-red-500/10 text-red-600 dark:text-red-400',
+                        ]"
+                    >
+                        <ArrowUpRight
+                            v-if="shop.growth >= 0"
+                            class="h-3.5 w-3.5"
+                        />
+                        <ArrowDownRight v-else class="h-3.5 w-3.5" />
+                        {{ Math.abs(shop.growth) }}%
+                    </span>
+                </template>
+            </DataTable>
         </div>
     </AdminLayout>
 </template>

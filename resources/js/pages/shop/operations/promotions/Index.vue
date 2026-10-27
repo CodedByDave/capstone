@@ -7,6 +7,12 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    DataTable,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogDescription,
@@ -16,6 +22,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+    useDataTable,
+    usePaginatorTable,
+    type DataTableOptions,
+} from '@/composables/useDataTable';
 import {
     Archive,
     BadgeDollarSign,
@@ -59,6 +70,7 @@ interface Paginated {
     data: Promotion[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     from: number | null;
     to: number | null;
@@ -111,6 +123,53 @@ const rows = computed<Promotion[]>(() =>
 const paginated = computed(() =>
     Array.isArray(props.promotions) ? null : props.promotions,
 );
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+
+// Active promotions are paginated by the backend; the archive is a full list.
+const { options: serverOptions, loading } = usePaginatorTable(
+    () =>
+        paginated.value ?? {
+            current_page: 1,
+            per_page: Math.max(rows.value.length, 1),
+            data: rows.value,
+        },
+    ['promotions'],
+);
+
+const {
+    options: clientOptions,
+    pageItems: clientItems,
+    total: clientTotal,
+} = useDataTable(() => (paginated.value ? [] : rows.value), {
+    sortBy: 'name',
+});
+
+const tableOptions = computed(() =>
+    paginated.value ? serverOptions.value : clientOptions.value,
+);
+const tableItems = computed(() =>
+    paginated.value ? rows.value : clientItems.value,
+);
+const tableTotal = computed(() =>
+    paginated.value ? paginated.value.total : clientTotal.value,
+);
+
+function setTableOptions(next: DataTableOptions) {
+    if (paginated.value) serverOptions.value = next;
+    else clientOptions.value = next;
+}
+
+const headers: DataTableHeader[] = [
+    { text: 'Name', value: 'name' },
+    { text: 'Type', value: 'type' },
+    { text: 'Value', value: 'value' },
+    { text: 'Min. order', value: 'min_order_amount' },
+    { text: 'Validity', value: 'validity' },
+    { text: 'Orders used', value: 'orders_count', align: 'center' },
+    { text: 'Status', value: 'status' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 150 },
+];
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
@@ -254,271 +313,151 @@ function formatDate(d: string | null) {
             </div>
 
             <!-- Table -->
-            <div class="overflow-hidden rounded-xl border">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr
-                                class="border-b bg-muted/40 text-xs text-muted-foreground"
-                            >
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Name
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Type
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Value
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Min. Order
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Validity
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Orders Used
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Status
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="promo in rows"
-                                :key="promo.id"
-                                class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                            >
-                                <td class="px-4 py-3">
-                                    <p class="font-medium">{{ promo.name }}</p>
-                                    <p
-                                        v-if="promo.description"
-                                        class="max-w-[200px] truncate text-xs text-muted-foreground"
-                                    >
-                                        {{ promo.description }}
-                                    </p>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span
-                                        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
-                                        :class="
-                                            promo.type === 'percentage'
-                                                ? 'bg-violet-100 text-violet-700'
-                                                : 'bg-amber-100 text-amber-700'
-                                        "
-                                    >
-                                        <Percent
-                                            v-if="promo.type === 'percentage'"
-                                            class="h-3 w-3"
-                                        />
-                                        <BadgeDollarSign
-                                            v-else
-                                            class="h-3 w-3"
-                                        />
-                                        {{
-                                            promo.type === 'percentage'
-                                                ? 'Percentage'
-                                                : 'Fixed Amount'
-                                        }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 font-semibold">
-                                    {{ formatValue(promo) }}
-                                </td>
-                                <td
-                                    class="px-4 py-3 text-xs text-muted-foreground"
-                                >
-                                    {{
-                                        promo.min_order_amount
-                                            ? `₱${parseFloat(promo.min_order_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
-                                            : '—'
-                                    }}
-                                </td>
-                                <td
-                                    class="px-4 py-3 text-xs text-muted-foreground"
-                                >
-                                    <span
-                                        v-if="
-                                            !promo.starts_at && !promo.ends_at
-                                        "
-                                        >No limit</span
-                                    >
-                                    <span v-else
-                                        >{{ formatDate(promo.starts_at) }} –
-                                        {{ formatDate(promo.ends_at) }}</span
-                                    >
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex h-6 w-10 items-center justify-center rounded bg-blue-100 text-xs font-semibold text-blue-700"
-                                    >
-                                        {{ promo.orders_count ?? 0 }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span
-                                        v-if="!archived"
-                                        class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                                        :class="
-                                            promo.is_active
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700'
-                                        "
-                                    >
-                                        {{
-                                            promo.is_active
-                                                ? 'Active'
-                                                : 'Inactive'
-                                        }}
-                                    </span>
-                                    <span
-                                        v-else
-                                        class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600"
-                                    >
-                                        Archived
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div
-                                        class="flex items-center justify-end gap-1"
-                                    >
-                                        <template v-if="!archived">
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.patch(
-                                                        `${base}/${promo.id}/toggle`,
-                                                    )
-                                                "
-                                                :title="
-                                                    promo.is_active
-                                                        ? 'Deactivate'
-                                                        : 'Activate'
-                                                "
-                                            >
-                                                <ToggleRight
-                                                    v-if="promo.is_active"
-                                                    class="h-4 w-4 text-green-500"
-                                                />
-                                                <ToggleLeft
-                                                    v-else
-                                                    class="h-4 w-4 text-gray-400"
-                                                />
-                                            </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.visit(
-                                                        `${base}/${promo.id}/edit`,
-                                                    )
-                                                "
-                                            >
-                                                <Pencil
-                                                    class="h-4 w-4 text-blue-500"
-                                                />
-                                            </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    toDelete = promo;
-                                                    isDeleteOpen = true;
-                                                "
-                                            >
-                                                <Trash2
-                                                    class="h-4 w-4 text-red-500"
-                                                />
-                                            </Button>
-                                        </template>
-                                        <template v-else>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.patch(
-                                                        `${base}/${promo.id}/restore`,
-                                                    )
-                                                "
-                                            >
-                                                <RotateCcw
-                                                    class="h-4 w-4 text-green-500"
-                                                />
-                                            </Button>
-                                        </template>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr v-if="rows.length === 0">
-                                <td
-                                    colspan="8"
-                                    class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                >
-                                    <Tag
-                                        class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                    />
-                                    <p>
-                                        {{
-                                            archived
-                                                ? 'No archived promotions.'
-                                                : 'No promotions yet. Create one to get started.'
-                                        }}
-                                    </p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <div
-                v-if="paginated && paginated.last_page > 1"
-                class="flex items-center justify-between px-2 py-2"
+            <DataTable
+                :options="tableOptions"
+                :headers="headers"
+                :items="tableItems"
+                :total="tableTotal"
+                :loading="loading"
+                noun="promotions"
+                :empty-icon="Tag"
+                :empty-message="
+                    archived
+                        ? 'No archived promotions.'
+                        : 'No promotions yet. Create one to get started.'
+                "
+                :resettable="false"
+                :min-width="1080"
+                :hide-rows-per-page="Boolean(paginated)"
+                @update:options="setTableOptions"
             >
-                <p class="text-xs text-muted-foreground">
-                    Showing {{ paginated.from }}–{{ paginated.to }} of
-                    {{ paginated.total }}
-                </p>
-                <div class="flex items-center gap-1">
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        :disabled="paginated.current_page === 1"
-                        @click="
-                            router.get(
-                                base,
-                                { page: paginated.current_page - 1 },
-                                { preserveState: true },
-                            )
+                <template #item-name="promo">
+                    <p class="font-medium">{{ promo.name }}</p>
+                    <p
+                        v-if="promo.description"
+                        class="max-w-[200px] truncate text-xs text-muted-foreground"
+                    >
+                        {{ promo.description }}
+                    </p>
+                </template>
+
+                <template #item-type="promo">
+                    <span
+                        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap"
+                        :class="
+                            promo.type === 'percentage'
+                                ? 'bg-violet-100 text-violet-700'
+                                : 'bg-amber-100 text-amber-700'
                         "
                     >
-                        Prev
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        :disabled="
-                            paginated.current_page === paginated.last_page
-                        "
-                        @click="
-                            router.get(
-                                base,
-                                { page: paginated.current_page + 1 },
-                                { preserveState: true },
-                            )
-                        "
+                        <Percent
+                            v-if="promo.type === 'percentage'"
+                            class="h-3 w-3"
+                        />
+                        <BadgeDollarSign v-else class="h-3 w-3" />
+                        {{
+                            promo.type === 'percentage'
+                                ? 'Percentage'
+                                : 'Fixed Amount'
+                        }}
+                    </span>
+                </template>
+
+                <template #item-value="promo">
+                    <span class="font-semibold whitespace-nowrap">
+                        {{ formatValue(promo) }}
+                    </span>
+                </template>
+
+                <template #item-min_order_amount="promo">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
                     >
-                        Next
-                    </Button>
-                </div>
-            </div>
+                        {{
+                            promo.min_order_amount
+                                ? `₱${parseFloat(promo.min_order_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
+                                : '—'
+                        }}
+                    </span>
+                </template>
+
+                <template #item-validity="promo">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        <template v-if="!promo.starts_at && !promo.ends_at"
+                            >No limit</template
+                        >
+                        <template v-else
+                            >{{ formatDate(promo.starts_at) }} –
+                            {{ formatDate(promo.ends_at) }}</template
+                        >
+                    </span>
+                </template>
+
+                <template #item-orders_count="promo">
+                    <span
+                        class="inline-flex h-6 w-10 items-center justify-center rounded bg-blue-100 text-xs font-semibold text-blue-700"
+                    >
+                        {{ promo.orders_count ?? 0 }}
+                    </span>
+                </template>
+
+                <template #item-status="promo">
+                    <StatusPill v-if="archived" tone="neutral"
+                        >Archived</StatusPill
+                    >
+                    <StatusPill
+                        v-else
+                        :tone="promo.is_active ? 'success' : 'danger'"
+                    >
+                        {{ promo.is_active ? 'Active' : 'Inactive' }}
+                    </StatusPill>
+                </template>
+
+                <template #item-actions="promo">
+                    <RowActions
+                        :label="promo.name"
+                        :actions="[
+                            {
+                                label: promo.is_active
+                                    ? 'Deactivate'
+                                    : 'Activate',
+                                icon: promo.is_active
+                                    ? ToggleRight
+                                    : ToggleLeft,
+                                show: !archived,
+                                onSelect: () =>
+                                    router.patch(`${base}/${promo.id}/toggle`),
+                            },
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show: !archived,
+                                onSelect: () =>
+                                    router.visit(`${base}/${promo.id}/edit`),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: Trash2,
+                                destructive: true,
+                                show: !archived,
+                                onSelect: () => {
+                                    toDelete = promo;
+                                    isDeleteOpen = true;
+                                },
+                            },
+                            {
+                                label: 'Restore',
+                                icon: RotateCcw,
+                                show: archived,
+                                onSelect: () =>
+                                    router.patch(`${base}/${promo.id}/restore`),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- Delete confirm -->

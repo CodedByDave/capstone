@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    type DataTableHeader,
+    RowActions,
+} from '@/components/data-table';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -8,12 +14,7 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import { Button } from '@/components/ui/button';
-import {
-    ChevronLeft,
-    ChevronRight,
-    RotateCcw,
-    TrendingDown,
-} from 'lucide-vue-next';
+import { RotateCcw, TrendingDown } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,7 @@ interface PaginatedExpenses {
     data: Expense[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     from: number | null;
     to: number | null;
@@ -86,29 +88,20 @@ function restore(publicId: string) {
     );
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-function goToPage(p: number) {
-    router.get(
-        `${base.value}/finance/expenses/archive`,
-        { page: p },
-        { preserveScroll: true, preserveState: true },
-    );
-}
+const { options, loading } = usePaginatorTable(
+    () => props.expenses,
+    ['expenses'],
+);
 
-const visiblePages = computed(() => {
-    const pages: number[] = [];
-    const current = props.expenses.current_page;
-    const total = props.expenses.last_page;
-    for (
-        let i = Math.max(1, current - 2);
-        i <= Math.min(total, current + 2);
-        i++
-    ) {
-        pages.push(i);
-    }
-    return pages;
-});
+const headers: DataTableHeader[] = [
+    { text: 'Title', value: 'title' },
+    { text: 'Category', value: 'category' },
+    { text: 'Date', value: 'expense_date', width: 140 },
+    { text: 'Amount', value: 'amount', align: 'right', width: 140 },
+    { text: 'Actions', value: 'actions', align: 'center', width: 100 },
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -148,128 +141,60 @@ function formatDate(val: string): string {
             </div>
 
             <!-- ── Table ───────────────────────────────────────── -->
-            <div class="overflow-hidden rounded-xl border">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr
-                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                        >
-                            <th class="px-4 py-3 text-left font-medium">
-                                Title
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium sm:table-cell"
-                            >
-                                Category
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium md:table-cell"
-                            >
-                                Date
-                            </th>
-                            <th class="px-4 py-3 text-right font-medium">
-                                Amount
-                            </th>
-                            <th class="px-4 py-3 text-right font-medium">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="exp in expenses.data"
-                            :key="exp.id"
-                            class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                        >
-                            <td class="px-4 py-3">
-                                <p class="font-medium">{{ exp.title }}</p>
-                                <p
-                                    v-if="exp.description"
-                                    class="text-xs text-muted-foreground"
-                                >
-                                    {{ exp.description }}
-                                </p>
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground sm:table-cell"
-                            >
-                                {{ exp.category?.name ?? '—' }}
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground md:table-cell"
-                            >
-                                {{ formatDate(exp.expense_date) }}
-                            </td>
-                            <td
-                                class="px-4 py-3 text-right font-semibold text-red-600"
-                            >
-                                {{ currency(exp.amount) }}
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    @click="restore(exp.public_id)"
-                                >
-                                    <RotateCcw class="h-4 w-4 text-green-600" />
-                                </Button>
-                            </td>
-                        </tr>
-
-                        <tr v-if="expenses.data.length === 0">
-                            <td
-                                colspan="5"
-                                class="px-4 py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <TrendingDown
-                                    class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                />
-                                <p>No archived expenses.</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ── Pagination ──────────────────────────────────── -->
-            <div
-                v-if="expenses.last_page > 1"
-                class="flex items-center justify-between px-4 py-3"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="expenses.data"
+                :total="expenses.total"
+                :loading="loading"
+                noun="archived expenses"
+                :empty-icon="TrendingDown"
+                empty-message="No archived expenses."
+                :resettable="false"
+                :min-width="720"
+                hide-rows-per-page
             >
-                <p class="text-xs text-muted-foreground">
-                    Showing {{ expenses.from }}–{{ expenses.to }} of
-                    {{ expenses.total }}
-                </p>
-                <div class="flex items-center gap-1">
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="expenses.current_page === 1"
-                        @click="goToPage(expenses.current_page - 1)"
+                <template #item-title="exp">
+                    <p class="font-medium">{{ exp.title }}</p>
+                    <p
+                        v-if="exp.description"
+                        class="text-xs text-muted-foreground"
                     >
-                        <ChevronLeft class="h-4 w-4" />
-                    </Button>
-                    <Button
-                        v-for="p in visiblePages"
-                        :key="p"
-                        size="icon"
-                        :variant="
-                            p === expenses.current_page ? 'default' : 'outline'
-                        "
-                        @click="goToPage(p)"
-                    >
-                        {{ p }}
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="expenses.current_page === expenses.last_page"
-                        @click="goToPage(expenses.current_page + 1)"
-                    >
-                        <ChevronRight class="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
+                        {{ exp.description }}
+                    </p>
+                </template>
+
+                <template #item-category="exp">
+                    <span class="text-muted-foreground">
+                        {{ exp.category?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-expense_date="exp">
+                    <span class="whitespace-nowrap text-muted-foreground">
+                        {{ formatDate(exp.expense_date) }}
+                    </span>
+                </template>
+
+                <template #item-amount="exp">
+                    <span class="font-semibold whitespace-nowrap text-red-600">
+                        {{ currency(exp.amount) }}
+                    </span>
+                </template>
+
+                <template #item-actions="exp">
+                    <RowActions
+                        :label="exp.title"
+                        :actions="[
+                            {
+                                label: 'Restore',
+                                icon: RotateCcw,
+                                onSelect: () => restore(exp.public_id),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

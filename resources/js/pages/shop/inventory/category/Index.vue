@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    RowActions,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -53,6 +59,29 @@ const editingId = ref<number | null>(null);
 const editForm = ref({ name: '', description: '' });
 const savingEdit = ref(false);
 const deletingId = ref<number | null>(null);
+
+const NEW_ROW = -1;
+
+const headers: DataTableHeader[] = [
+    { text: 'Name', value: 'name', sortable: true, width: 260 },
+    { text: 'Description', value: 'description', sortable: true },
+    { text: 'Actions', value: 'actions', align: 'center', width: 130 },
+];
+
+const { search, options, pageItems, total, isFiltered, reset } = useDataTable(
+    categories,
+    {
+        searchFields: (cat) => [cat.name, cat.description],
+        sortBy: 'name',
+    },
+);
+
+// The inline "new category" row is shown above the current page.
+const tableItems = computed<Category[]>(() =>
+    showNewRow.value
+        ? [{ id: NEW_ROW, name: '', description: null }, ...pageItems.value]
+        : pageItems.value,
+);
 
 async function addCategory() {
     if (!newForm.value.name.trim()) {
@@ -135,14 +164,52 @@ async function deleteCategory(id: number) {
     <Head title="Inventory Categories" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Inventory Categories">
         <div class="space-y-6 px-6">
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <CardTitle class="flex items-center gap-2">
+            <div
+                v-if="saveError"
+                role="alert"
+                class="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700"
+            >
+                <span>{{ saveError }}</span>
+                <button
+                    type="button"
+                    aria-label="Dismiss error"
+                    @click="saveError = null"
+                >
+                    <X
+                        class="ml-2 h-3.5 w-3.5 text-red-400 hover:text-red-600"
+                    />
+                </button>
+            </div>
+
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="tableItems"
+                :total="total"
+                noun="categories"
+                :empty-icon="Layers"
+                :empty-message="
+                    isFiltered
+                        ? 'No categories match your search.'
+                        : 'No categories yet. Click “Add Category” to create one.'
+                "
+                :resettable="isFiltered"
+                :min-width="640"
+                @reset="reset"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        search-placeholder="Search name or description..."
+                        search-label="Search categories"
+                    >
+                        <h2
+                            class="order-first flex w-full items-center gap-2 font-semibold sm:w-auto"
+                        >
                             <Layers class="h-4 w-4 text-muted-foreground" />
                             Categories
-                        </CardTitle>
-                        <div class="flex gap-2">
+                        </h2>
+                        <template #actions>
                             <Button
                                 v-if="
                                     isOwner ||
@@ -174,248 +241,141 @@ async function deleteCategory(id: number) {
                             >
                                 <Plus class="mr-1.5 h-4 w-4" /> Add Category
                             </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <!-- Inline error -->
+                        </template>
+                    </DataTableToolbar>
+                </template>
+
+                <template #item-name="cat">
+                    <Input
+                        v-if="cat.id === NEW_ROW"
+                        v-model="newForm.name"
+                        placeholder="Category name"
+                        aria-label="New category name"
+                        class="h-8 text-sm"
+                        @keyup.enter="addCategory"
+                    />
+                    <Input
+                        v-else-if="editingId === cat.id"
+                        v-model="editForm.name"
+                        :aria-label="`Name for ${cat.name}`"
+                        class="h-8 text-sm"
+                        @keyup.enter="saveEdit(cat.id)"
+                    />
+                    <span v-else class="font-medium">{{ cat.name }}</span>
+                </template>
+
+                <template #item-description="cat">
+                    <Input
+                        v-if="cat.id === NEW_ROW"
+                        v-model="newForm.description"
+                        placeholder="Optional description"
+                        aria-label="New category description"
+                        class="h-8 text-sm"
+                        @keyup.enter="addCategory"
+                    />
+                    <Input
+                        v-else-if="editingId === cat.id"
+                        v-model="editForm.description"
+                        :aria-label="`Description for ${cat.name}`"
+                        class="h-8 text-sm"
+                        @keyup.enter="saveEdit(cat.id)"
+                    />
+                    <span v-else class="text-xs text-muted-foreground">
+                        {{ cat.description ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-actions="cat">
                     <div
-                        v-if="saveError"
-                        class="mb-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700"
+                        v-if="cat.id === NEW_ROW"
+                        class="flex items-center justify-center gap-1"
                     >
-                        <span>{{ saveError }}</span>
-                        <button @click="saveError = null">
-                            <X
-                                class="ml-2 h-3.5 w-3.5 text-red-400 hover:text-red-600"
+                        <Button
+                            size="sm"
+                            class="h-8 w-8 bg-green-500 p-0 text-white hover:bg-green-600"
+                            aria-label="Save new category"
+                            :disabled="savingNew"
+                            @click="addCategory"
+                        >
+                            <Loader2
+                                v-if="savingNew"
+                                class="h-3 w-3 animate-spin"
                             />
-                        </button>
+                            <Check v-else class="h-3 w-3" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            class="h-8 w-8 p-0"
+                            aria-label="Cancel new category"
+                            @click="
+                                showNewRow = false;
+                                newForm = {
+                                    name: '',
+                                    description: '',
+                                };
+                                saveError = null;
+                            "
+                        >
+                            <X class="h-3 w-3" />
+                        </Button>
                     </div>
-
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th
-                                        class="w-1/3 px-4 py-3 text-left font-medium"
-                                    >
-                                        Name
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Description
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-right font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- New row -->
-                                <tr
-                                    v-if="showNewRow"
-                                    class="border-b bg-blue-50/50"
-                                >
-                                    <td class="px-3 py-2">
-                                        <Input
-                                            v-model="newForm.name"
-                                            placeholder="Category name"
-                                            class="h-8 text-sm"
-                                            @keyup.enter="addCategory"
-                                        />
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <Input
-                                            v-model="newForm.description"
-                                            placeholder="Optional description"
-                                            class="h-8 text-sm"
-                                            @keyup.enter="addCategory"
-                                        />
-                                    </td>
-                                    <td class="px-3 py-2 text-right">
-                                        <div
-                                            class="flex items-center justify-end gap-1"
-                                        >
-                                            <Button
-                                                size="sm"
-                                                class="h-7 w-7 bg-green-500 p-0 text-white hover:bg-green-600"
-                                                :disabled="savingNew"
-                                                @click="addCategory"
-                                            >
-                                                <Loader2
-                                                    v-if="savingNew"
-                                                    class="h-3 w-3 animate-spin"
-                                                />
-                                                <Check v-else class="h-3 w-3" />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                class="h-7 w-7 p-0"
-                                                @click="
-                                                    showNewRow = false;
-                                                    newForm = {
-                                                        name: '',
-                                                        description: '',
-                                                    };
-                                                    saveError = null;
-                                                "
-                                            >
-                                                <X class="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <!-- Existing rows -->
-                                <template
-                                    v-for="cat in categories"
-                                    :key="cat.id"
-                                >
-                                    <!-- View mode -->
-                                    <tr
-                                        v-if="editingId !== cat.id"
-                                        class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                                    >
-                                        <td class="px-4 py-3 font-medium">
-                                            {{ cat.name }}
-                                        </td>
-                                        <td
-                                            class="px-4 py-3 text-xs text-muted-foreground"
-                                        >
-                                            {{ cat.description ?? '—' }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right">
-                                            <div
-                                                class="flex items-center justify-end gap-1"
-                                            >
-                                                <Button
-                                                    v-if="
-                                                        isOwner ||
-                                                        can(
-                                                            'Inventory Management',
-                                                            'update',
-                                                        )
-                                                    "
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    @click="startEdit(cat)"
-                                                >
-                                                    <Pencil
-                                                        class="h-3.5 w-3.5 text-blue-500"
-                                                    />
-                                                </Button>
-                                                <Button
-                                                    v-if="
-                                                        isOwner ||
-                                                        can(
-                                                            'Inventory Management',
-                                                            'archive',
-                                                        )
-                                                    "
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    :disabled="
-                                                        deletingId === cat.id
-                                                    "
-                                                    @click="
-                                                        deleteCategory(cat.id)
-                                                    "
-                                                >
-                                                    <Loader2
-                                                        v-if="
-                                                            deletingId ===
-                                                            cat.id
-                                                        "
-                                                        class="h-3.5 w-3.5 animate-spin"
-                                                    />
-                                                    <Trash2
-                                                        v-else
-                                                        class="h-3.5 w-3.5 text-red-400"
-                                                    />
-                                                </Button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- Edit mode -->
-                                    <tr
-                                        v-else
-                                        class="border-b bg-amber-50/50 last:border-0"
-                                    >
-                                        <td class="px-3 py-2">
-                                            <Input
-                                                v-model="editForm.name"
-                                                class="h-8 text-sm"
-                                                @keyup.enter="saveEdit(cat.id)"
-                                            />
-                                        </td>
-                                        <td class="px-3 py-2">
-                                            <Input
-                                                v-model="editForm.description"
-                                                class="h-8 text-sm"
-                                                @keyup.enter="saveEdit(cat.id)"
-                                            />
-                                        </td>
-                                        <td class="px-3 py-2 text-right">
-                                            <div
-                                                class="flex items-center justify-end gap-1"
-                                            >
-                                                <Button
-                                                    size="sm"
-                                                    class="h-7 w-7 bg-green-500 p-0 text-white hover:bg-green-600"
-                                                    :disabled="savingEdit"
-                                                    @click="saveEdit(cat.id)"
-                                                >
-                                                    <Loader2
-                                                        v-if="savingEdit"
-                                                        class="h-3 w-3 animate-spin"
-                                                    />
-                                                    <Check
-                                                        v-else
-                                                        class="h-3 w-3"
-                                                    />
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    class="h-7 w-7 p-0"
-                                                    @click="
-                                                        editingId = null;
-                                                        saveError = null;
-                                                    "
-                                                >
-                                                    <X class="h-3 w-3" />
-                                                </Button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-
-                                <!-- Empty state -->
-                                <tr
-                                    v-if="
-                                        categories.length === 0 && !showNewRow
-                                    "
-                                >
-                                    <td
-                                        colspan="3"
-                                        class="px-4 py-10 text-center text-sm text-muted-foreground"
-                                    >
-                                        <Layers
-                                            class="mx-auto mb-2 h-8 w-8 opacity-20"
-                                        />
-                                        No categories yet. Click "Add Category"
-                                        to create one.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div
+                        v-else-if="editingId === cat.id"
+                        class="flex items-center justify-center gap-1"
+                    >
+                        <Button
+                            size="sm"
+                            class="h-8 w-8 bg-green-500 p-0 text-white hover:bg-green-600"
+                            :aria-label="`Save ${cat.name}`"
+                            :disabled="savingEdit"
+                            @click="saveEdit(cat.id)"
+                        >
+                            <Loader2
+                                v-if="savingEdit"
+                                class="h-3 w-3 animate-spin"
+                            />
+                            <Check v-else class="h-3 w-3" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            class="h-8 w-8 p-0"
+                            :aria-label="`Cancel editing ${cat.name}`"
+                            @click="
+                                editingId = null;
+                                saveError = null;
+                            "
+                        >
+                            <X class="h-3 w-3" />
+                        </Button>
                     </div>
-                </CardContent>
-            </Card>
+                    <RowActions
+                        v-else
+                        :label="cat.name"
+                        :actions="[
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show:
+                                    isOwner ||
+                                    can('Inventory Management', 'update'),
+                                onSelect: () => startEdit(cat),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: deletingId === cat.id ? Loader2 : Trash2,
+                                destructive: true,
+                                disabled: deletingId === cat.id,
+                                show:
+                                    isOwner ||
+                                    can('Inventory Management', 'archive'),
+                                onSelect: () => deleteCategory(cat.id),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

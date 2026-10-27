@@ -1,13 +1,20 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    RowActions,
+    StatusPill,
+    statusLabel,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Loader2, Pencil, Plus, Trash2, Truck } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -27,6 +34,7 @@ interface Paginator {
     data: Supplier[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
@@ -49,6 +57,33 @@ const breadcrumbs: BreadcrumbItem[] = [
 const supplierList = ref([...props.suppliers.data]);
 const deletingId = ref<number | null>(null);
 
+watch(
+    () => props.suppliers.data,
+    (data) => {
+        supplierList.value = [...data];
+    },
+);
+
+const { options, loading } = usePaginatorTable(
+    () => props.suppliers,
+    ['suppliers'],
+);
+const total = computed(
+    () =>
+        props.suppliers.total -
+        (props.suppliers.data.length - supplierList.value.length),
+);
+
+const headers: DataTableHeader[] = [
+    { text: 'Supplier', value: 'name' },
+    { text: 'Contact person', value: 'contact_person' },
+    { text: 'Phone', value: 'phone' },
+    { text: 'Email address', value: 'email' },
+    { text: 'Items', value: 'inventory_count' },
+    { text: 'Status', value: 'status' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 120 },
+];
+
 async function deleteSupplier(id: number) {
     deletingId.value = id;
     try {
@@ -67,14 +102,28 @@ async function deleteSupplier(id: number) {
     <Head title="Suppliers" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Suppliers">
         <div class="space-y-6 px-6">
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <CardTitle class="flex items-center gap-2">
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="supplierList"
+                :total="total"
+                :loading="loading"
+                noun="suppliers"
+                :empty-icon="Truck"
+                empty-message="No suppliers yet."
+                :resettable="false"
+                :min-width="900"
+                hide-rows-per-page
+            >
+                <template #toolbar>
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
+                        <h2 class="flex items-center gap-2 font-semibold">
                             <Truck class="h-4 w-4 text-muted-foreground" />
                             Supplier List
-                        </CardTitle>
-                        <div class="flex gap-2">
+                        </h2>
+                        <div class="flex flex-wrap gap-2">
                             <Button
                                 v-if="
                                     isOwner ||
@@ -99,169 +148,73 @@ async function deleteSupplier(id: number) {
                             </Button>
                         </div>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Supplier
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Contact Person
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Phone
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Email Address
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Items
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Status
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-center font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="s in supplierList"
-                                    :key="s.id"
-                                    class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                                >
-                                    <td class="px-4 py-3">
-                                        <p class="font-medium">{{ s.name }}</p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p
-                                            v-if="s.contact_person"
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ s.contact_person }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p
-                                            v-if="s.phone"
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ s.phone }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p
-                                            v-if="s.email"
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ s.email }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground">
-                                        {{ s.inventory_count ?? 0 }} items
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                            :class="
-                                                s.status === 'active'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-gray-100 text-gray-500'
-                                            "
-                                        >
-                                            {{ s.status }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <div
-                                            class="flex items-center justify-center gap-1"
-                                        >
-                                            <Button
-                                                v-if="
-                                                    isOwner ||
-                                                    can(
-                                                        'Inventory Management',
-                                                        'update',
-                                                    )
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.visit(
-                                                        `${base}/${s.id}/edit`,
-                                                    )
-                                                "
-                                            >
-                                                <Pencil
-                                                    class="h-4 w-4 text-green-500"
-                                                />
-                                            </Button>
-                                            <Button
-                                                v-if="
-                                                    isOwner ||
-                                                    can(
-                                                        'Inventory Management',
-                                                        'archive',
-                                                    )
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                :disabled="deletingId === s.id"
-                                                @click="deleteSupplier(s.id)"
-                                            >
-                                                <Loader2
-                                                    v-if="deletingId === s.id"
-                                                    class="h-4 w-4 animate-spin"
-                                                />
-                                                <Trash2
-                                                    v-else
-                                                    class="h-4 w-4 text-red-400"
-                                                />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="supplierList.length === 0">
-                                    <td
-                                        colspan="7"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <Truck
-                                            class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                        />
-                                        No suppliers yet.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                </template>
 
-                    <div
-                        v-if="suppliers.last_page > 1"
-                        class="flex justify-end gap-1 pt-4"
+                <template #item-name="s">
+                    <p class="font-medium">{{ s.name }}</p>
+                </template>
+
+                <template #item-contact_person="s">
+                    <span class="text-xs text-muted-foreground">
+                        {{ s.contact_person ?? '' }}
+                    </span>
+                </template>
+
+                <template #item-phone="s">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
                     >
-                        <Button
-                            v-for="link in suppliers.links"
-                            :key="link.label"
-                            size="sm"
-                            :variant="link.active ? 'default' : 'outline'"
-                            :disabled="!link.url"
-                            class="h-7 min-w-7 text-xs"
-                            @click="link.url && router.visit(link.url)"
-                        >
-                            <span v-html="link.label" />
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                        {{ s.phone ?? '' }}
+                    </span>
+                </template>
+
+                <template #item-email="s">
+                    <span class="text-xs text-muted-foreground">
+                        {{ s.email ?? '' }}
+                    </span>
+                </template>
+
+                <template #item-inventory_count="s">
+                    <span class="whitespace-nowrap text-muted-foreground">
+                        {{ s.inventory_count ?? 0 }} items
+                    </span>
+                </template>
+
+                <template #item-status="s">
+                    <StatusPill
+                        :tone="s.status === 'active' ? 'success' : 'neutral'"
+                    >
+                        {{ statusLabel(s.status) }}
+                    </StatusPill>
+                </template>
+
+                <template #item-actions="s">
+                    <RowActions
+                        :label="s.name"
+                        :actions="[
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show:
+                                    isOwner ||
+                                    can('Inventory Management', 'update'),
+                                onSelect: () =>
+                                    router.visit(`${base}/${s.id}/edit`),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: deletingId === s.id ? Loader2 : Trash2,
+                                destructive: true,
+                                disabled: deletingId === s.id,
+                                show:
+                                    isOwner ||
+                                    can('Inventory Management', 'archive'),
+                                onSelect: () => deleteSupplier(s.id),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

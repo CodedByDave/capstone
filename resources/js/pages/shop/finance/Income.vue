@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    StatusPill,
+    statusLabel,
+    statusTone,
+    type DataTableHeader,
+} from '@/components/data-table';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -15,7 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, TrendingUp } from 'lucide-vue-next';
+import { TrendingUp } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,6 +45,7 @@ interface PaginatedIncome {
     data: IncomeEntry[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     from: number | null;
     to: number | null;
@@ -97,29 +107,26 @@ function clearFilters() {
     router.get(`${base.value}/finance/income`, {}, { replace: true });
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-function goToPage(p: number) {
-    router.get(
-        `${base.value}/finance/income`,
-        { page: p, ...props.filters },
-        { preserveScroll: true },
-    );
-}
+const { options, loading } = usePaginatorTable(() => props.income, ['income']);
 
-const visiblePages = computed(() => {
-    const pages: number[] = [];
-    const current = props.income.current_page;
-    const total = props.income.last_page;
-    for (
-        let i = Math.max(1, current - 2);
-        i <= Math.min(total, current + 2);
-        i++
-    ) {
-        pages.push(i);
-    }
-    return pages;
-});
+const hasFilters = computed(
+    () =>
+        Boolean(props.filters.dateFrom) ||
+        Boolean(props.filters.dateTo) ||
+        Boolean(props.filters.method),
+);
+
+const headers: DataTableHeader[] = [
+    { text: 'Order #', value: 'order_number' },
+    { text: 'Customer', value: 'customer_name' },
+    { text: 'Service', value: 'service' },
+    { text: 'Method', value: 'payment_method' },
+    { text: 'Date paid', value: 'paid_at' },
+    { text: 'Status', value: 'payment_status' },
+    { text: 'Amount', value: 'amount_paid', align: 'right', width: 140 },
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -144,16 +151,6 @@ function methodLabel(val: string | null): string {
         maya: 'Maya',
     };
     return val ? (map[val] ?? val) : '—';
-}
-
-function statusClass(status: string): string {
-    return (
-        {
-            paid: 'bg-green-100 text-green-700',
-            partial: 'bg-amber-100 text-amber-700',
-            unpaid: 'bg-red-100 text-red-700',
-        }[status] ?? 'bg-gray-100 text-gray-700'
-    );
 }
 </script>
 
@@ -238,176 +235,102 @@ function statusClass(status: string): string {
                 </Card>
             </div>
 
-            <!-- ── Filters ─────────────────────────────────────── -->
-            <div class="flex flex-col flex-wrap gap-2 sm:flex-row">
-                <Input
-                    v-model="dateFrom"
-                    type="date"
-                    class="sm:w-40"
-                    placeholder="From"
-                />
-                <Input
-                    v-model="dateTo"
-                    type="date"
-                    class="sm:w-40"
-                    placeholder="To"
-                />
-                <Select v-model="method">
-                    <SelectTrigger class="sm:w-40">
-                        <SelectValue placeholder="All methods" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="">All methods</SelectItem>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="gcash">GCash</SelectItem>
-                        <SelectItem value="maya">Maya</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Button @click="applyFilters">Filter</Button>
-                <Button variant="outline" @click="clearFilters">Clear</Button>
-            </div>
-
             <!-- ── Table ───────────────────────────────────────── -->
-            <div class="overflow-hidden rounded-xl border">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr
-                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                        >
-                            <th class="px-4 py-3 text-left font-medium">
-                                Order #
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Customer
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium sm:table-cell"
-                            >
-                                Service
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium md:table-cell"
-                            >
-                                Method
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium md:table-cell"
-                            >
-                                Date Paid
-                            </th>
-                            <th
-                                class="hidden px-4 py-3 text-left font-medium lg:table-cell"
-                            >
-                                Status
-                            </th>
-                            <th class="px-4 py-3 text-right font-medium">
-                                Amount
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="entry in income.data"
-                            :key="entry.id"
-                            class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                        >
-                            <td
-                                class="px-4 py-3 font-mono text-xs text-muted-foreground"
-                            >
-                                {{ entry.order_number }}
-                            </td>
-                            <td class="px-4 py-3 font-medium">
-                                {{ entry.customer_name }}
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground sm:table-cell"
-                            >
-                                {{ entry.service?.service_name ?? '—' }}
-                            </td>
-                            <td class="hidden px-4 py-3 md:table-cell">
-                                <span
-                                    class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
-                                >
-                                    {{ methodLabel(entry.payment_method) }}
-                                </span>
-                            </td>
-                            <td
-                                class="hidden px-4 py-3 text-muted-foreground md:table-cell"
-                            >
-                                {{ formatDate(entry.paid_at) }}
-                            </td>
-                            <td class="hidden px-4 py-3 lg:table-cell">
-                                <span
-                                    class="rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize"
-                                    :class="statusClass(entry.payment_status)"
-                                >
-                                    {{ entry.payment_status }}
-                                </span>
-                            </td>
-                            <td
-                                class="px-4 py-3 text-right font-semibold text-green-700"
-                            >
-                                {{ currency(entry.amount_paid) }}
-                            </td>
-                        </tr>
-
-                        <tr v-if="income.data.length === 0">
-                            <td
-                                colspan="7"
-                                class="px-4 py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <TrendingUp
-                                    class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                />
-                                <p>
-                                    No income records found for the selected
-                                    filters.
-                                </p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ── Pagination ──────────────────────────────────── -->
-            <div
-                v-if="income.last_page > 1"
-                class="flex items-center justify-between px-4 py-3"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="income.data"
+                :total="income.total"
+                :loading="loading"
+                noun="income records"
+                :empty-icon="TrendingUp"
+                empty-message="No income records found for the selected filters."
+                :resettable="hasFilters"
+                :min-width="900"
+                hide-rows-per-page
+                @reset="clearFilters"
             >
-                <p class="text-xs text-muted-foreground">
-                    Showing {{ income.from }}–{{ income.to }} of
-                    {{ income.total }}
-                </p>
-                <div class="flex items-center gap-1">
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="income.current_page === 1"
-                        @click="goToPage(income.current_page - 1)"
+                <template #toolbar>
+                    <DataTableToolbar hide-search>
+                        <Input
+                            v-model="dateFrom"
+                            type="date"
+                            class="sm:w-40"
+                            placeholder="From"
+                            aria-label="From date"
+                        />
+                        <Input
+                            v-model="dateTo"
+                            type="date"
+                            class="sm:w-40"
+                            placeholder="To"
+                            aria-label="To date"
+                        />
+                        <Select v-model="method">
+                            <SelectTrigger
+                                class="sm:w-40"
+                                aria-label="Filter by payment method"
+                            >
+                                <SelectValue placeholder="All methods" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">All methods</SelectItem>
+                                <SelectItem value="cash">Cash</SelectItem>
+                                <SelectItem value="gcash">GCash</SelectItem>
+                                <SelectItem value="maya">Maya</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button @click="applyFilters">Filter</Button>
+                        <Button variant="outline" @click="clearFilters"
+                            >Clear</Button
+                        >
+                    </DataTableToolbar>
+                </template>
+
+                <template #item-order_number="entry">
+                    <span class="font-mono text-xs text-muted-foreground">
+                        {{ entry.order_number }}
+                    </span>
+                </template>
+
+                <template #item-customer_name="entry">
+                    <span class="font-medium">{{ entry.customer_name }}</span>
+                </template>
+
+                <template #item-service="entry">
+                    <span class="text-muted-foreground">
+                        {{ entry.service?.service_name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-payment_method="entry">
+                    <span
+                        class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-blue-700"
                     >
-                        <ChevronLeft class="h-4 w-4" />
-                    </Button>
-                    <Button
-                        v-for="p in visiblePages"
-                        :key="p"
-                        size="icon"
-                        :variant="
-                            p === income.current_page ? 'default' : 'outline'
-                        "
-                        @click="goToPage(p)"
+                        {{ methodLabel(entry.payment_method) }}
+                    </span>
+                </template>
+
+                <template #item-paid_at="entry">
+                    <span class="whitespace-nowrap text-muted-foreground">
+                        {{ formatDate(entry.paid_at) }}
+                    </span>
+                </template>
+
+                <template #item-payment_status="entry">
+                    <StatusPill :tone="statusTone(entry.payment_status)">
+                        {{ statusLabel(entry.payment_status) }}
+                    </StatusPill>
+                </template>
+
+                <template #item-amount_paid="entry">
+                    <span
+                        class="font-semibold whitespace-nowrap text-green-700"
                     >
-                        {{ p }}
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="income.current_page === income.last_page"
-                        @click="goToPage(income.current_page + 1)"
-                    >
-                        <ChevronRight class="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
+                        {{ currency(entry.amount_paid) }}
+                    </span>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

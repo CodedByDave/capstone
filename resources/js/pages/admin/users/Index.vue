@@ -3,14 +3,17 @@ import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
-import Vue3EasyDataTable, {
-    type Header,
-    type ServerOptions,
-} from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
+import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
 import {
     AlertDialog,
     AlertDialogContent,
@@ -21,14 +24,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import {
     Archive,
     ArchiveRestore,
     Download,
     Eye,
     RefreshCcw,
-    Search,
     Trash2,
     Upload,
     Users,
@@ -61,10 +63,6 @@ interface Paginator {
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
-
-// Keep a script-level reference so the import organizer preserves the
-// component used by the template.
-const EasyDataTable = Vue3EasyDataTable;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -114,18 +112,32 @@ const role = ref(props.filters.role ?? 'all');
 const verified = ref(props.filters.verified ?? 'all');
 const tableLoading = ref(false);
 
-const headers: Header[] = [
-    { text: '', value: 'selection', width: 48 },
-    { text: 'Name', value: 'name', width: 180, sortable: true },
+const headers: DataTableHeader[] = [
+    { text: 'Name', value: 'name', width: 200, sortable: true },
     { text: 'Email', value: 'email', width: 220, sortable: true },
     { text: 'Role', value: 'role', width: 140 },
     { text: 'Shop', value: 'shop_name', width: 180, sortable: true },
     { text: 'Account', value: 'account', width: 140 },
     { text: 'Joined', value: 'created_at', width: 160, sortable: true },
-    { text: 'Actions', value: 'actions', width: 110 },
+    { text: 'Actions', value: 'actions', width: 110, align: 'center' },
 ];
 
-const serverOptions = ref<ServerOptions>({
+const accountOptions = computed(() => [
+    { value: 'all', label: 'All', count: props.stats.total },
+    { value: 'yes', label: 'Verified', count: props.stats.verified },
+    {
+        value: 'no',
+        label: 'Unverified',
+        count: Math.max(0, props.stats.total - props.stats.verified),
+    },
+]);
+
+function setVerified(value: string) {
+    verified.value = value;
+    filterTable();
+}
+
+const serverOptions = ref<DataTableOptions>({
     page: props.users.current_page,
     rowsPerPage: props.users.per_page,
     sortBy: props.filters.sort_by ?? 'created_at',
@@ -244,28 +256,7 @@ function importCsv(event: Event) {
 
 // ─── Selection ────────────────────────────────────────────────────────────────
 
-const selected = ref<number[]>([]);
-const allSelected = computed(
-    () =>
-        props.users.data.length > 0 &&
-        props.users.data.every((u) => selected.value.includes(u.id)),
-);
-
-function toggleAll() {
-    if (allSelected.value) {
-        selected.value = [];
-    } else {
-        selected.value = props.users.data.map((u) => u.id);
-    }
-}
-
-function toggleOne(id: number) {
-    if (selected.value.includes(id)) {
-        selected.value = selected.value.filter((i) => i !== id);
-    } else {
-        selected.value.push(id);
-    }
-}
+const selected = ref<Array<string | number>>([]);
 
 // ─── Archive single ───────────────────────────────────────────────────────────
 
@@ -408,22 +399,98 @@ const tableItems = computed(() =>
             </div>
 
             <!-- Table card -->
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2 pt-6">
-                    <div class="relative min-w-48 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            placeholder="Search name or email..."
-                            class="pl-8"
-                            @keyup.enter="filterTable"
-                        />
-                    </div>
+            <DataTable
+                v-model:options="serverOptions"
+                v-model:selected="selected"
+                :headers="headers"
+                :items="tableItems"
+                :total="users.total"
+                :loading="tableLoading"
+                :row-label="(u) => u.name"
+                :rows-items="[5, 10, 20, 50, 100]"
+                selectable
+                noun="users"
+                :empty-icon="Users"
+                empty-message="No users found."
+                :min-width="1120"
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        :status="verified"
+                        :statuses="accountOptions"
+                        search-placeholder="Search name or email..."
+                        search-label="Search users"
+                        status-label="Filter by account status"
+                        @update:status="setVerified"
+                        @submit="filterTable"
+                    >
+                        <select
+                            v-model="role"
+                            class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                            aria-label="Filter by role"
+                            @change="filterTable"
+                        >
+                            <option value="all">All roles</option>
+                            <option value="owner">Owner</option>
+                            <option value="user">User</option>
+                        </select>
 
+                        <template #actions>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                                @click="router.visit('/admin/users/archive')"
+                            >
+                                <ArchiveRestore class="mr-1.5 h-4 w-4" />
+                                Archive
+                            </Button>
+
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800"
+                                @click="resetFilters"
+                            >
+                                <RefreshCcw class="mr-1.5 h-4 w-4" />
+                                Reset
+                            </Button>
+
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                                @click="exportCsv"
+                            >
+                                <Download class="mr-1.5 h-4 w-4" />
+                                Export CSV
+                            </Button>
+
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                                :disabled="importing"
+                                @click="chooseCsvFile"
+                            >
+                                <Upload class="mr-1.5 h-4 w-4" />
+                                {{ importing ? 'Importing...' : 'Import CSV' }}
+                            </Button>
+                            <input
+                                ref="importInput"
+                                type="file"
+                                accept=".csv,text/csv"
+                                class="hidden"
+                                @change="importCsv"
+                            />
+                        </template>
+                    </DataTableToolbar>
+                </template>
+
+                <template #bulk-actions>
                     <Button
-                        v-if="selected.length > 0"
                         size="sm"
                         variant="outline"
                         class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40"
@@ -432,215 +499,71 @@ const tableItems = computed(() =>
                         <Archive class="mr-1.5 h-4 w-4" />
                         Archive ({{ selected.length }})
                     </Button>
+                </template>
 
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
-                        @click="router.visit('/admin/users/archive')"
-                    >
-                        <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                        Archive
-                    </Button>
+                <template #item-name="u">
+                    <IdentityCell :name="u.name" />
+                </template>
 
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800"
-                        @click="resetFilters"
-                    >
-                        <RefreshCcw class="mr-1.5 h-4 w-4" />
-                        Reset
-                    </Button>
+                <template #item-email="u">
+                    <span class="text-xs text-muted-foreground">{{
+                        u.email
+                    }}</span>
+                </template>
 
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
-                        @click="exportCsv"
+                <template #item-role="u">
+                    <span
+                        class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap capitalize"
+                        :class="
+                            roleBadge[u.role] ?? 'bg-gray-100 text-gray-600'
+                        "
                     >
-                        <Download class="mr-1.5 h-4 w-4" />
-                        Export CSV
-                    </Button>
+                        {{ u.role.replace('_', ' ') }}
+                    </span>
+                </template>
 
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
-                        :disabled="importing"
-                        @click="chooseCsvFile"
+                <template #item-shop_name="u">
+                    <span class="text-xs text-muted-foreground">{{
+                        u.shop_name
+                    }}</span>
+                </template>
+
+                <template #item-account="u">
+                    <StatusPill
+                        :tone="u.email_verified_at ? 'success' : 'danger'"
                     >
-                        <Upload class="mr-1.5 h-4 w-4" />
-                        {{ importing ? 'Importing...' : 'Import CSV' }}
-                    </Button>
-                    <input
-                        ref="importInput"
-                        type="file"
-                        accept=".csv,text/csv"
-                        class="hidden"
-                        @change="importCsv"
+                        {{ u.account }}
+                    </StatusPill>
+                </template>
+
+                <template #item-created_at="u">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(u.created_at) }}
+                    </span>
+                </template>
+
+                <template #item-actions="u">
+                    <RowActions
+                        :label="u.name"
+                        :actions="[
+                            {
+                                label: 'View',
+                                icon: Eye,
+                                onSelect: () =>
+                                    router.visit(`/admin/users/${u.public_id}`),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: Trash2,
+                                destructive: true,
+                                onSelect: () => openArchive(u),
+                            },
+                        ]"
                     />
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        v-model:server-options="serverOptions"
-                        class="user-data-table"
-                        :headers="headers"
-                        :items="tableItems"
-                        :server-items-length="users.total"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 20, 50, 100]"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        buttons-pagination
-                        alternating
-                        must-sort
-                    >
-                        <template #header-selection>
-                            <input
-                                type="checkbox"
-                                aria-label="Select all users on this page"
-                                :checked="allSelected"
-                                class="rounded"
-                                @change="toggleAll"
-                            />
-                        </template>
-
-                        <template #header-role="{ text }">
-                            <div class="column-filter">
-                                <span>{{ text }}</span>
-                                <select
-                                    v-model="role"
-                                    class="column-filter-input"
-                                    aria-label="Filter by role"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="all">All roles</option>
-                                    <option value="owner">Owner</option>
-                                    <option value="user">User</option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #header-account="{ text }">
-                            <div class="column-filter">
-                                <span>{{ text }}</span>
-                                <select
-                                    v-model="verified"
-                                    class="column-filter-input"
-                                    aria-label="Filter by account status"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="all">All accounts</option>
-                                    <option value="yes">Verified</option>
-                                    <option value="no">Unverified</option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #item-selection="u">
-                            <input
-                                type="checkbox"
-                                :checked="selected.includes(u.id)"
-                                :aria-label="`Select ${u.name}`"
-                                class="rounded"
-                                @change="toggleOne(u.id)"
-                            />
-                        </template>
-
-                        <template #item-name="u">
-                            <span class="font-medium whitespace-nowrap">{{
-                                u.name
-                            }}</span>
-                        </template>
-
-                        <template #item-email="u">
-                            <span class="text-xs text-muted-foreground">{{
-                                u.email
-                            }}</span>
-                        </template>
-
-                        <template #item-role="u">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                :class="
-                                    roleBadge[u.role] ??
-                                    'bg-gray-100 text-gray-600'
-                                "
-                            >
-                                {{ u.role.replace('_', ' ') }}
-                            </span>
-                        </template>
-
-                        <template #item-shop_name="u">
-                            <span class="text-xs text-muted-foreground">{{
-                                u.shop_name
-                            }}</span>
-                        </template>
-
-                        <template #item-account="u">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                :class="
-                                    u.email_verified_at
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-red-100 text-red-600'
-                                "
-                            >
-                                {{ u.account }}
-                            </span>
-                        </template>
-
-                        <template #item-created_at="u">
-                            <span
-                                class="text-xs whitespace-nowrap text-muted-foreground"
-                            >
-                                {{ formatDate(u.created_at) }}
-                            </span>
-                        </template>
-
-                        <template #item-actions="u">
-                            <div class="flex items-center justify-center gap-1">
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label="View user"
-                                    @click="
-                                        router.visit(
-                                            `/admin/users/${u.public_id}`,
-                                        )
-                                    "
-                                >
-                                    <Eye class="h-4 w-4 text-blue-500" />
-                                </Button>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label="Archive user"
-                                    @click="openArchive(u)"
-                                >
-                                    <Trash2 class="h-4 w-4 text-amber-500" />
-                                </Button>
-                            </div>
-                        </template>
-
-                        <template #empty-message>
-                            <div
-                                class="py-10 text-center text-sm text-muted-foreground"
-                            >
-                                <Users
-                                    class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                />
-                                No users found.
-                            </div>
-                        </template>
-                    </EasyDataTable>
-                </div>
-            </CardContent>
+                </template>
+            </DataTable>
         </div>
 
         <!-- Archive confirm -->
@@ -669,74 +592,3 @@ const tableItems = computed(() =>
         </AlertDialog>
     </AdminLayout>
 </template>
-
-<style scoped>
-.user-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 82px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 58px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-.column-filter {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 6px;
-    text-align: left;
-}
-
-.column-filter-input {
-    height: 30px;
-    width: 100%;
-    min-width: 90px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--background);
-    padding: 0 8px;
-    color: var(--foreground);
-    font-size: 12px;
-    font-weight: 400;
-    outline: none;
-}
-
-.column-filter-input:focus {
-    border-color: var(--ring);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 1120px;
-}
-</style>

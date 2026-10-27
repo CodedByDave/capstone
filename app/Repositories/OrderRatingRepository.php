@@ -5,7 +5,6 @@ namespace App\Repositories;
 use App\Models\OrderRating;
 use App\Models\ShopOrder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 
 class OrderRatingRepository extends Repository
 {
@@ -97,7 +96,6 @@ class OrderRatingRepository extends Repository
             ->paginate($perPage)
             ->withQueryString();
     }
-
 
     /**
      * @param  array<int|string, int|string>  $totals  star value => how many ratings

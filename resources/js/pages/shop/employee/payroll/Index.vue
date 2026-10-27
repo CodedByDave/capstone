@@ -7,6 +7,12 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    DataTable,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogDescription,
@@ -24,11 +30,10 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import {
     Banknote,
     CheckCircle2,
-    ChevronLeft,
-    ChevronRight,
     Clock,
     Eye,
     FileText,
@@ -57,6 +62,7 @@ interface PaginatedPayrolls {
     data: Payroll[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     from: number | null;
     to: number | null;
@@ -249,29 +255,22 @@ function formatDate(val: string): string {
     });
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-function goToPage(p: number) {
-    router.get(
-        `${baseRoute.value}/payroll`,
-        { page: p },
-        { preserveScroll: true, preserveState: true },
-    );
-}
+const { options, loading } = usePaginatorTable(
+    () => props.payrolls,
+    ['payrolls'],
+);
 
-const visiblePages = computed(() => {
-    const pages: number[] = [];
-    const current = props.payrolls.current_page;
-    const total = props.payrolls.last_page;
-    for (
-        let i = Math.max(1, current - 2);
-        i <= Math.min(total, current + 2);
-        i++
-    ) {
-        pages.push(i);
-    }
-    return pages;
-});
+const headers: DataTableHeader[] = [
+    { text: 'Period', value: 'period_label' },
+    { text: 'Date range', value: 'period_range' },
+    { text: 'Employees', value: 'items_count' },
+    { text: 'Total net pay', value: 'items_sum_net_pay' },
+    { text: 'Status', value: 'status' },
+    { text: 'Created by', value: 'creator' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 110 },
+];
 </script>
 
 <template>
@@ -372,155 +371,75 @@ const visiblePages = computed(() => {
             </div>
 
             <!-- ── Table ───────────────────────────────────────── -->
-            <div class="overflow-hidden rounded-xl border">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr
-                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                        >
-                            <th class="px-4 py-3 text-left font-medium">
-                                Period
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Date Range
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Employees
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Total Net Pay
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Status
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Created By
-                            </th>
-                            <th class="px-4 py-3 text-right font-medium">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="p in payrolls.data"
-                            :key="p.id"
-                            class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                        >
-                            <td class="px-4 py-3 font-medium">
-                                {{ p.period_label }}
-                            </td>
-                            <td class="px-4 py-3 text-xs text-muted-foreground">
-                                {{ formatDate(p.period_start) }} –
-                                {{ formatDate(p.period_end) }}
-                            </td>
-                            <td class="px-4 py-3">{{ p.items_count }}</td>
-                            <td class="px-4 py-3 font-semibold">
-                                {{ formatCurrency(p.items_sum_net_pay) }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <span
-                                    class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                                    :class="
-                                        p.status === 'finalized'
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-amber-100 text-amber-700'
-                                    "
-                                >
-                                    {{
-                                        p.status === 'finalized'
-                                            ? 'Finalized'
-                                            : 'Draft'
-                                    }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-xs text-muted-foreground">
-                                {{ p.creator?.name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <div
-                                    class="flex items-center justify-end gap-1"
-                                >
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        @click="
-                                            router.visit(
-                                                `${baseRoute}/payroll/${p.public_id}`,
-                                            )
-                                        "
-                                    >
-                                        <Eye class="h-4 w-4 text-blue-500" />
-                                    </Button>
-                                    <Button
-                                        v-if="p.status === 'draft'"
-                                        size="icon"
-                                        variant="ghost"
-                                        @click="openDelete(p)"
-                                    >
-                                        <Trash2 class="h-4 w-4 text-red-500" />
-                                    </Button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr v-if="payrolls.data.length === 0">
-                            <td
-                                colspan="7"
-                                class="px-4 py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <Banknote
-                                    class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                />
-                                <p>
-                                    No payroll records yet. Click "Generate
-                                    Payroll" to create one.
-                                </p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ── Pagination ──────────────────────────────────── -->
-            <div
-                v-if="payrolls.last_page > 1"
-                class="flex items-center justify-between px-4 py-3"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="payrolls.data"
+                :total="payrolls.total"
+                :loading="loading"
+                noun="payroll records"
+                :empty-icon="Banknote"
+                empty-message="No payroll records yet. Click “Generate Payroll” to create one."
+                :resettable="false"
+                :min-width="900"
+                hide-rows-per-page
             >
-                <p class="text-xs text-muted-foreground">
-                    Showing {{ payrolls.from }}–{{ payrolls.to }} of
-                    {{ payrolls.total }}
-                </p>
-                <div class="flex items-center gap-1">
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="payrolls.current_page === 1"
-                        @click="goToPage(payrolls.current_page - 1)"
+                <template #item-period_label="p">
+                    <span class="font-medium">{{ p.period_label }}</span>
+                </template>
+
+                <template #item-period_range="p">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
                     >
-                        <ChevronLeft class="h-4 w-4" />
-                    </Button>
-                    <Button
-                        v-for="p in visiblePages"
-                        :key="p"
-                        size="icon"
-                        :variant="
-                            p === payrolls.current_page ? 'default' : 'outline'
-                        "
-                        @click="goToPage(p)"
+                        {{ formatDate(p.period_start) }} –
+                        {{ formatDate(p.period_end) }}
+                    </span>
+                </template>
+
+                <template #item-items_sum_net_pay="p">
+                    <span class="font-semibold whitespace-nowrap">
+                        {{ formatCurrency(p.items_sum_net_pay) }}
+                    </span>
+                </template>
+
+                <template #item-status="p">
+                    <StatusPill
+                        :tone="p.status === 'finalized' ? 'success' : 'warning'"
                     >
-                        {{ p }}
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        :disabled="payrolls.current_page === payrolls.last_page"
-                        @click="goToPage(payrolls.current_page + 1)"
-                    >
-                        <ChevronRight class="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
+                        {{ p.status === 'finalized' ? 'Finalized' : 'Draft' }}
+                    </StatusPill>
+                </template>
+
+                <template #item-creator="p">
+                    <span class="text-xs text-muted-foreground">
+                        {{ p.creator?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-actions="p">
+                    <RowActions
+                        :label="`payroll for ${p.period_label}`"
+                        :actions="[
+                            {
+                                label: 'View',
+                                icon: Eye,
+                                onSelect: () =>
+                                    router.visit(
+                                        `${baseRoute}/payroll/${p.public_id}`,
+                                    ),
+                            },
+                            {
+                                label: 'Delete',
+                                icon: Trash2,
+                                destructive: true,
+                                show: p.status === 'draft',
+                                onSelect: () => openDelete(p),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- ── Generate Dialog ─────────────────────────────────── -->

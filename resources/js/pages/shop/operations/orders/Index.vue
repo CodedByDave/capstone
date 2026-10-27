@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import SortableHeader from '@/components/SortableHeader.vue';
+import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    statusTone,
+    type DataTableHeader,
+} from '@/components/data-table';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,8 +19,8 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -29,16 +37,10 @@ import {
     Pencil,
     Plus,
     RotateCcw,
-    Search,
     Trash2,
     X,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
-import Vue3EasyDataTable, {
-    type Header,
-    type ServerOptions,
-} from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -66,18 +68,7 @@ interface Paginator {
     total: number;
 }
 
-type SortColumn =
-    | 'order_number'
-    | 'customer'
-    | 'service'
-    | 'status'
-    | 'payment_status'
-    | 'total'
-    | 'created_at';
-
 // ─── Props ─────────────────────────────────────────
-
-const EasyDataTable = Vue3EasyDataTable;
 
 const props = defineProps<{
     orders: Paginator;
@@ -116,29 +107,12 @@ const status = ref(String(props.filters.status ?? ''));
 const paymentStatus = ref(String(props.filters.payment_status ?? ''));
 const tableLoading = ref(false);
 
-const serverOptions = ref<ServerOptions>({
+const serverOptions = ref<DataTableOptions>({
     page: props.orders.current_page,
     rowsPerPage: props.orders.per_page,
     sortBy: String(props.filters.sort_by ?? 'created_at'),
     sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
 });
-
-// Plain strings for the header component; the table library types these more loosely.
-const sortBy = computed(() => String(serverOptions.value.sortBy));
-const sortType = computed<'asc' | 'desc'>(() =>
-    serverOptions.value.sortType === 'asc' ? 'asc' : 'desc',
-);
-
-function toggleSort(column: SortColumn) {
-    if (serverOptions.value.sortBy === column) {
-        serverOptions.value.sortType =
-            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
-        return;
-    }
-
-    serverOptions.value.sortBy = column;
-    serverOptions.value.sortType = 'asc';
-}
 
 function query() {
     return {
@@ -203,24 +177,50 @@ const clearFilters = () => {
     paymentStatus.value = '';
 };
 
+// Clears search, filters, and sort; the watchers reload the first page.
+const resetTable = () => {
+    clearFilters();
+    serverOptions.value = {
+        ...serverOptions.value,
+        page: 1,
+        sortBy: 'created_at',
+        sortType: 'desc',
+    };
+};
+
+const statusOptions = computed(() => [
+    { value: '', label: 'All', count: totalOrders.value },
+    ...['pending', 'in_progress', 'completed'].map((value) => ({
+        value,
+        label: formatLabel(value),
+        count: props.statusSummary[value] ?? 0,
+    })),
+]);
+
 // ─── Table ─────────────────────────────────────────
 
-const headers = computed<Header[]>(() => [
-    { text: 'Order #', value: 'order_number', width: 150 },
-    { text: 'Customer', value: 'customer', width: 210 },
-    { text: 'Service', value: 'service', width: 180 },
+const headers = computed<DataTableHeader[]>(() => [
+    { text: 'Order #', value: 'order_number', width: 150, sortable: true },
+    { text: 'Customer', value: 'customer', width: 220, sortable: true },
+    { text: 'Service', value: 'service', width: 180, sortable: true },
     ...(props.showArchived
         ? []
         : [
-              { text: 'Status', value: 'status', width: 150 },
-              { text: 'Payment', value: 'payment_status', width: 130 },
+              { text: 'Status', value: 'status', width: 150, sortable: true },
+              {
+                  text: 'Payment',
+                  value: 'payment_status',
+                  width: 130,
+                  sortable: true,
+              },
           ]),
-    { text: 'Total', value: 'total', width: 130 },
-    { text: 'Date', value: 'created_at', width: 140 },
+    { text: 'Total', value: 'total', width: 130, sortable: true },
+    { text: 'Date', value: 'created_at', width: 140, sortable: true },
     {
         text: 'Actions',
         value: 'actions',
         width: props.showArchived ? 130 : 140,
+        align: 'center',
     },
 ]);
 
@@ -277,20 +277,6 @@ const statusIcon = (s: string) =>
         in_progress: Loader,
         completed: CheckCircle,
     })[s] ?? Package;
-
-const statusStyle = (s: string) =>
-    ({
-        pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-        in_progress: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-        completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-    })[s] ?? 'bg-gray-50 text-gray-700 ring-1 ring-gray-200';
-
-const paymentStyle = (s: string) =>
-    ({
-        unpaid: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-        partial: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200',
-        paid: 'bg-green-50 text-green-700 ring-1 ring-green-200',
-    })[s] ?? 'bg-gray-50 text-gray-700 ring-1 ring-gray-200';
 
 // ─── Toggle Archive View ───────────────────────────
 
@@ -469,357 +455,194 @@ const handleDelete = () => {
             </div>
 
             <!-- ── Table Card ─────────────────────────────── -->
-            <Card>
-                <CardHeader>
-                    <div
-                        class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"
-                    >
-                        <CardTitle>{{
-                            showArchived ? 'Archived Orders' : 'Orders List'
-                        }}</CardTitle>
-                        <div class="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                class="gap-1.5"
-                                :class="
-                                    showArchived
-                                        ? 'border-amber-400 bg-amber-50 text-amber-700'
-                                        : ''
-                                "
-                                @click="toggleArchived"
-                            >
-                                <Archive class="h-4 w-4" />
+            <DataTable
+                v-model:options="serverOptions"
+                :headers="headers"
+                :items="tableItems"
+                :total="orders.total"
+                :loading="tableLoading"
+                noun="orders"
+                :empty-icon="showArchived ? Archive : Package"
+                :empty-message="
+                    showArchived
+                        ? 'No archived orders'
+                        : hasActiveFilters
+                          ? 'No orders found. Try adjusting your filters.'
+                          : 'No orders found'
+                "
+                :resettable="!showArchived"
+                :min-width="980"
+                @reset="resetTable"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <div
+                            class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"
+                        >
+                            <h2 class="font-semibold">
                                 {{
                                     showArchived
-                                        ? 'Back to Active'
-                                        : 'View Archives'
+                                        ? 'Archived Orders'
+                                        : 'Orders List'
                                 }}
-                            </Button>
-                            <Button
-                                v-if="!showArchived"
-                                @click="router.visit(`${base}/create`)"
-                            >
-                                <Plus class="mr-1 h-4 w-4" /> New Order
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent class="space-y-4">
-                    <!-- Filters (active view only) -->
-                    <div
-                        v-if="!showArchived"
-                        class="flex flex-col gap-2 sm:flex-row"
-                    >
-                        <div class="relative flex-1">
-                            <Search
-                                class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                class="pl-8"
-                                placeholder="Search by name, order # or phone…"
-                            />
-                        </div>
-                        <select
-                            v-model="status"
-                            aria-label="Filter by status"
-                            class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                        <select
-                            v-model="paymentStatus"
-                            aria-label="Filter by payment"
-                            class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                        >
-                            <option value="">All Payments</option>
-                            <option value="unpaid">Unpaid</option>
-                            <option value="partial">Partial</option>
-                            <option value="paid">Paid</option>
-                        </select>
-                        <Button
-                            v-if="hasActiveFilters"
-                            variant="ghost"
-                            size="sm"
-                            class="h-9 gap-1"
-                            @click="clearFilters"
-                        >
-                            <X class="h-3.5 w-3.5" /> Clear
-                        </Button>
-                    </div>
-
-                    <!-- Active filter tags -->
-                    <div v-if="hasActiveFilters" class="flex flex-wrap gap-2">
-                        <span
-                            v-if="status"
-                            class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
-                        >
-                            Status: {{ formatLabel(status) }}
-                            <button
-                                class="hover:text-primary/70"
-                                aria-label="Remove status filter"
-                                @click="status = ''"
-                            >
-                                <X class="h-3 w-3" />
-                            </button>
-                        </span>
-                        <span
-                            v-if="paymentStatus"
-                            class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
-                        >
-                            Payment: {{ formatLabel(paymentStatus) }}
-                            <button
-                                class="hover:text-primary/70"
-                                aria-label="Remove payment filter"
-                                @click="paymentStatus = ''"
-                            >
-                                <X class="h-3 w-3" />
-                            </button>
-                        </span>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-hidden rounded-lg border">
-                        <EasyDataTable
-                            v-model:server-options="serverOptions"
-                            class="orders-data-table"
-                            :headers="headers"
-                            :items="tableItems"
-                            :server-items-length="orders.total"
-                            :loading="tableLoading"
-                            :rows-items="[5, 10, 15, 20, 50, 100]"
-                            rows-of-page-separator-message="out of"
-                            rows-per-page-message="Rows per page:"
-                            buttons-pagination
-                            alternating
-                            must-sort
-                        >
-                            <template #header-order_number="{ text }">
-                                <SortableHeader
-                                    :label="text"
-                                    column="order_number"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('order_number')"
-                                />
-                            </template>
-                            <template #header-customer="{ text }">
-                                <SortableHeader
-                                    :label="text"
-                                    column="customer"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('customer')"
-                                />
-                            </template>
-                            <template #header-service="{ text }">
-                                <SortableHeader
-                                    :label="text"
-                                    column="service"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('service')"
-                                />
-                            </template>
-                            <template #header-status="{ text }">
-                                <SortableHeader
-                                    :label="text"
-                                    column="status"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('status')"
-                                />
-                            </template>
-                            <template #header-payment_status="{ text }">
-                                <SortableHeader
-                                    :label="text"
-                                    column="payment_status"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('payment_status')"
-                                />
-                            </template>
-                            <template #header-total="{ text }">
-                                <SortableHeader
-                                    :label="text"
-                                    column="total"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('total')"
-                                />
-                            </template>
-                            <template #header-created_at="{ text }">
-                                <SortableHeader
-                                    :label="text"
-                                    column="created_at"
-                                    :sort-by="sortBy"
-                                    :sort-type="sortType"
-                                    @toggle="toggleSort('created_at')"
-                                />
-                            </template>
-
-                            <template #item-order_number="order">
-                                <button
-                                    v-if="!showArchived"
-                                    class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                                    @click="
-                                        router.visit(
-                                            `${base}/${order.payment_public_id}`,
-                                        )
+                            </h2>
+                            <div class="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    class="gap-1.5"
+                                    :class="
+                                        showArchived
+                                            ? 'border-amber-400 bg-amber-50 text-amber-700'
+                                            : ''
                                     "
+                                    @click="toggleArchived"
                                 >
-                                    {{ order.order_number }}
-                                </button>
-                                <span
-                                    v-else
-                                    class="font-medium text-muted-foreground"
+                                    <Archive class="h-4 w-4" />
+                                    {{
+                                        showArchived
+                                            ? 'Back to Active'
+                                            : 'View Archives'
+                                    }}
+                                </Button>
+                                <Button
+                                    v-if="!showArchived"
+                                    size="sm"
+                                    @click="router.visit(`${base}/create`)"
                                 >
-                                    {{ order.order_number }}
-                                </span>
-                            </template>
+                                    <Plus class="mr-1 h-4 w-4" /> New Order
+                                </Button>
+                            </div>
+                        </div>
 
-                            <template #item-customer="order">
-                                <div class="py-1">
-                                    <p class="font-medium">
-                                        {{ order.customer_name }}
-                                    </p>
-                                    <p
-                                        v-if="order.customer_phone"
-                                        class="text-xs text-muted-foreground"
-                                    >
-                                        {{ order.customer_phone }}
-                                    </p>
-                                </div>
-                            </template>
-
-                            <template #item-service="order">
-                                <span class="text-muted-foreground">{{
-                                    order.service
-                                }}</span>
-                            </template>
-
-                            <template #item-status="order">
-                                <span
-                                    :class="statusStyle(order.status)"
-                                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
-                                >
-                                    <component
-                                        :is="statusIcon(order.status)"
-                                        class="h-3 w-3"
-                                    />
-                                    {{ formatLabel(order.status) }}
-                                </span>
-                            </template>
-
-                            <template #item-payment_status="order">
-                                <span
-                                    :class="paymentStyle(order.payment_status)"
-                                    class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
-                                >
-                                    {{ formatLabel(order.payment_status) }}
-                                </span>
-                            </template>
-
-                            <template #item-total="order">
-                                <span class="font-medium">{{
-                                    formatCurrency(order.total_amount)
-                                }}</span>
-                            </template>
-
-                            <template #item-created_at="order">
-                                <span
-                                    class="whitespace-nowrap text-muted-foreground"
-                                    >{{ formatDate(order.created_at) }}</span
-                                >
-                            </template>
-
-                            <template #item-actions="order">
-                                <div class="flex gap-0.5">
-                                    <!-- Active view actions -->
-                                    <template v-if="!showArchived">
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            aria-label="View order"
-                                            @click="
-                                                router.visit(
-                                                    `${base}/${order.payment_public_id}`,
-                                                )
-                                            "
-                                        >
-                                            <Eye class="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            aria-label="Edit order"
-                                            @click="
-                                                router.visit(
-                                                    `${base}/${order.payment_public_id}/edit`,
-                                                )
-                                            "
-                                        >
-                                            <Pencil
-                                                class="h-4 w-4 text-green-500"
-                                            />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            aria-label="Archive order"
-                                            @click="confirmDelete(order)"
-                                        >
-                                            <Trash2
-                                                class="h-4 w-4 text-red-500"
-                                            />
-                                        </Button>
-                                    </template>
-
-                                    <!-- Archived view actions -->
-                                    <template v-else>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            class="gap-1.5 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                                            @click="restoreOrder(order)"
-                                        >
-                                            <RotateCcw class="h-3.5 w-3.5" />
-                                            Restore
-                                        </Button>
-                                    </template>
-                                </div>
-                            </template>
-
-                            <template #empty-message>
-                                <div class="py-10 text-center">
-                                    <component
-                                        :is="showArchived ? Archive : Package"
-                                        class="mx-auto mb-2 h-10 w-10 text-muted-foreground opacity-30"
-                                    />
-                                    <p class="text-muted-foreground">
-                                        {{
-                                            showArchived
-                                                ? 'No archived orders'
-                                                : 'No orders found'
-                                        }}
-                                    </p>
-                                    <p
-                                        v-if="hasActiveFilters"
-                                        class="mt-1 text-xs text-muted-foreground"
-                                    >
-                                        Try adjusting your filters
-                                    </p>
-                                </div>
-                            </template>
-                        </EasyDataTable>
+                        <!-- Filters (active view only) -->
+                        <DataTableToolbar
+                            v-if="!showArchived"
+                            v-model:search="search"
+                            v-model:status="status"
+                            :statuses="statusOptions"
+                            search-placeholder="Search by name, order # or phone…"
+                            search-label="Search orders"
+                            status-label="Filter by order status"
+                        >
+                            <select
+                                v-model="paymentStatus"
+                                aria-label="Filter by payment"
+                                class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
+                            >
+                                <option value="">All Payments</option>
+                                <option value="unpaid">Unpaid</option>
+                                <option value="partial">Partial</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                            <Button
+                                v-if="hasActiveFilters"
+                                variant="ghost"
+                                size="sm"
+                                class="h-9 gap-1"
+                                @click="clearFilters"
+                            >
+                                <X class="h-3.5 w-3.5" /> Clear
+                            </Button>
+                        </DataTableToolbar>
                     </div>
-                </CardContent>
-            </Card>
+                </template>
+
+                <template #item-order_number="order">
+                    <button
+                        v-if="!showArchived"
+                        type="button"
+                        class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        @click="
+                            router.visit(`${base}/${order.payment_public_id}`)
+                        "
+                    >
+                        {{ order.order_number }}
+                    </button>
+                    <span v-else class="font-medium text-muted-foreground">
+                        {{ order.order_number }}
+                    </span>
+                </template>
+
+                <template #item-customer="order">
+                    <IdentityCell
+                        :name="order.customer_name"
+                        :secondary="order.customer_phone"
+                    />
+                </template>
+
+                <template #item-service="order">
+                    <span class="text-muted-foreground">{{
+                        order.service
+                    }}</span>
+                </template>
+
+                <template #item-status="order">
+                    <StatusPill
+                        :tone="statusTone(order.status)"
+                        :icon="statusIcon(order.status)"
+                    >
+                        {{ formatLabel(order.status) }}
+                    </StatusPill>
+                </template>
+
+                <template #item-payment_status="order">
+                    <StatusPill :tone="statusTone(order.payment_status)">
+                        {{ formatLabel(order.payment_status) }}
+                    </StatusPill>
+                </template>
+
+                <template #item-total="order">
+                    <span class="font-medium whitespace-nowrap">{{
+                        formatCurrency(order.total_amount)
+                    }}</span>
+                </template>
+
+                <template #item-created_at="order">
+                    <span class="whitespace-nowrap text-muted-foreground">{{
+                        formatDate(order.created_at)
+                    }}</span>
+                </template>
+
+                <template #item-actions="order">
+                    <RowActions
+                        :label="`order ${order.order_number}`"
+                        :actions="[
+                            {
+                                label: 'View',
+                                icon: Eye,
+                                show: !showArchived,
+                                onSelect: () =>
+                                    router.visit(
+                                        `${base}/${order.payment_public_id}`,
+                                    ),
+                            },
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show: !showArchived,
+                                onSelect: () =>
+                                    router.visit(
+                                        `${base}/${order.payment_public_id}/edit`,
+                                    ),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: Trash2,
+                                destructive: true,
+                                show: !showArchived,
+                                onSelect: () => confirmDelete(order),
+                            },
+                            {
+                                label: 'Restore',
+                                icon: RotateCcw,
+                                show: showArchived,
+                                onSelect: () => restoreOrder(order),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- ── Delete Alert Dialog ────────────────────── -->
@@ -858,47 +681,3 @@ const handleDelete = () => {
         </AlertDialog>
     </ShopLayout>
 </template>
-
-<style scoped>
-.orders-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 52px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 64px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 980px;
-}
-</style>

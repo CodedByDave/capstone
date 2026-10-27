@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    StatusPill,
+    statusLabel,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -125,13 +134,46 @@ function formatDateTime(dt: string) {
     });
 }
 
-const movementTypeStyle: Record<string, string> = {
-    restock: 'bg-green-100 text-green-700',
-    usage: 'bg-blue-100 text-blue-700',
-    adjustment: 'bg-purple-100 text-purple-700',
-    return: 'bg-teal-100 text-teal-700',
-    damage: 'bg-red-100 text-red-700',
+const movementTypeTone: Record<string, StatusTone> = {
+    restock: 'success',
+    usage: 'info',
+    adjustment: 'neutral',
+    return: 'info',
+    damage: 'danger',
 };
+
+const movementHeaders: DataTableHeader[] = [
+    { text: 'Type', value: 'type', sortable: true },
+    { text: 'Quantity', value: 'quantity', sortable: true },
+    { text: 'Before', value: 'quantity_before' },
+    { text: 'After', value: 'quantity_after' },
+    { text: 'Reference', value: 'reference_number' },
+    { text: 'By', value: 'user' },
+    { text: 'Date', value: 'created_at', sortable: true },
+];
+
+const {
+    status: movementType,
+    options: movementOptions,
+    pageItems: movementPage,
+    total: movementTotal,
+    statusCounts: movementCounts,
+    isFiltered: movementFiltered,
+    reset: resetMovements,
+} = useDataTable(() => inventory.movements, {
+    status: (movement) => movement.type,
+    sortBy: 'created_at',
+    sortType: 'desc',
+});
+
+const movementTypeOptions = computed(() => [
+    { value: '', label: 'All', count: inventory.movements.length },
+    ...Object.keys(movementCounts.value).map((type) => ({
+        value: type,
+        label: statusLabel(type),
+        count: movementCounts.value[type],
+    })),
+]);
 </script>
 
 <template>
@@ -416,103 +458,84 @@ const movementTypeStyle: Record<string, string> = {
             </div>
 
             <!-- Movement history -->
-            <Card>
-                <CardHeader
-                    ><CardTitle>Stock Movement History</CardTitle></CardHeader
-                >
-                <CardContent>
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Type
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Quantity
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Before
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        After
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Reference
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        By
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Date
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="m in inventory.movements"
-                                    :key="m.id"
-                                    class="border-b last:border-0"
-                                >
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                            :class="
-                                                movementTypeStyle[m.type] ??
-                                                'bg-gray-100 text-gray-600'
-                                            "
-                                        >
-                                            {{ m.type }}
-                                        </span>
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 font-medium"
-                                        :class="
-                                            m.quantity > 0
-                                                ? 'text-green-600'
-                                                : 'text-red-600'
-                                        "
-                                    >
-                                        {{ m.quantity > 0 ? '+' : ''
-                                        }}{{ m.quantity }}
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground">
-                                        {{ m.quantity_before }}
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground">
-                                        {{ m.quantity_after }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 font-mono text-xs text-muted-foreground"
-                                    >
-                                        {{ m.reference_number ?? '—' }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ m.user?.name ?? '—' }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ formatDateTime(m.created_at) }}
-                                    </td>
-                                </tr>
-                                <tr v-if="inventory.movements.length === 0">
-                                    <td
-                                        colspan="7"
-                                        class="px-4 py-8 text-center text-sm text-muted-foreground"
-                                    >
-                                        No stock movements recorded yet.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+            <DataTable
+                v-model:options="movementOptions"
+                :headers="movementHeaders"
+                :items="movementPage"
+                :total="movementTotal"
+                noun="stock movements"
+                :empty-icon="ArrowUpDown"
+                :empty-message="
+                    movementFiltered
+                        ? 'No stock movements match the selected type.'
+                        : 'No stock movements recorded yet.'
+                "
+                :resettable="movementFiltered"
+                :min-width="820"
+                compact
+                @reset="resetMovements"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <h2 class="font-semibold">Stock Movement History</h2>
+                        <DataTableToolbar
+                            v-model:status="movementType"
+                            :statuses="movementTypeOptions"
+                            status-label="Filter by movement type"
+                            hide-search
+                        />
                     </div>
-                </CardContent>
-            </Card>
+                </template>
+
+                <template #item-type="m">
+                    <StatusPill :tone="movementTypeTone[m.type] ?? 'neutral'">
+                        {{ statusLabel(m.type) }}
+                    </StatusPill>
+                </template>
+
+                <template #item-quantity="m">
+                    <span
+                        class="font-medium"
+                        :class="
+                            m.quantity > 0 ? 'text-green-600' : 'text-red-600'
+                        "
+                    >
+                        {{ m.quantity > 0 ? '+' : '' }}{{ m.quantity }}
+                    </span>
+                </template>
+
+                <template #item-quantity_before="m">
+                    <span class="text-muted-foreground">{{
+                        m.quantity_before
+                    }}</span>
+                </template>
+
+                <template #item-quantity_after="m">
+                    <span class="text-muted-foreground">{{
+                        m.quantity_after
+                    }}</span>
+                </template>
+
+                <template #item-reference_number="m">
+                    <span class="font-mono text-xs text-muted-foreground">
+                        {{ m.reference_number ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-user="m">
+                    <span class="text-xs text-muted-foreground">
+                        {{ m.user?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-created_at="m">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDateTime(m.created_at) }}
+                    </span>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

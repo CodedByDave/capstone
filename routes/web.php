@@ -342,6 +342,9 @@ Route::prefix('shop')->middleware([
     Route::get('operations/services', [ShopServiceController::class, 'index'])->name('shop.services.index');
     Route::get('operations/services/create', [ShopServiceController::class, 'create'])->name('shop.services.create');
     Route::post('operations/services', [ShopServiceController::class, 'store'])->name('shop.services.store');
+    Route::get('operations/services/export', [ShopServiceController::class, 'export'])->name('shop.services.export');
+    Route::get('operations/services/import-template', [ShopServiceController::class, 'importTemplate'])->name('shop.services.import-template');
+    Route::post('operations/services/import', [ShopServiceController::class, 'import'])->name('shop.services.import');
     Route::post('operations/services/restore-all', [ShopServiceController::class, 'restoreAll'])->name('shop.services.restore-all');  // ← before {service}
     Route::get('operations/services/{service}/edit', [ShopServiceController::class, 'edit'])->name('shop.services.edit');
     Route::put('operations/services/{service}', [ShopServiceController::class, 'update'])->name('shop.services.update');
@@ -554,6 +557,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
             ->name('staff.orders.store');
         Route::get('/operations/services/create', [ShopServiceController::class, 'create'])->name('staff.services.create');
         Route::post('/operations/services', [ShopServiceController::class, 'store'])->name('staff.services.store');
+        Route::post('/operations/services/import', [ShopServiceController::class, 'import'])->name('staff.services.import');
         Route::get('/operations/promos/create', [PromotionController::class, 'create'])->name('staff.promotions.create');
         Route::post('/operations/promos', [PromotionController::class, 'store'])->name('staff.promotions.store');
     });
@@ -562,6 +566,8 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::get('/operations/orders', [ShopOrderController::class, 'index'])->name('staff.orders.index');
         Route::get('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('staff.orders.show');
         Route::get('/operations/services', [ShopServiceController::class, 'index'])->name('staff.services.index');
+        Route::get('/operations/services/export', [ShopServiceController::class, 'export'])->name('staff.services.export');
+        Route::get('/operations/services/import-template', [ShopServiceController::class, 'importTemplate'])->name('staff.services.import-template');
         Route::get('/operations/promos', [PromotionController::class, 'index'])->name('staff.promotions.index');
         Route::get('/operations/ratings', [OrderRatingController::class, 'index'])->name('staff.ratings.index');
         Route::get('/operations/complaints', [OrderComplaintController::class, 'index'])->name('staff.complaints.index');

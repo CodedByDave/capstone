@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DataTable, type DataTableHeader } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePermissions } from '@/composables/usePermissions';
@@ -141,6 +142,15 @@ const chartOptions = {
         },
     },
 };
+
+// ─── Recent expenses table ────────────────────────────────────────────────────
+
+const recentHeaders: DataTableHeader[] = [
+    { text: 'Title', value: 'title' },
+    { text: 'Category', value: 'category' },
+    { text: 'Date', value: 'expense_date' },
+    { text: 'Amount', value: 'amount', align: 'right' },
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -396,81 +406,52 @@ function formatDate(val: string): string {
             </div>
 
             <!-- ── Recent Expenses ────────────────────────────── -->
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between">
-                    <CardTitle class="text-sm font-semibold"
-                        >Recent Expenses</CardTitle
-                    >
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        @click="router.visit(`${base}/finance/expenses`)"
-                    >
-                        View All <ArrowRight class="ml-1 h-3.5 w-3.5" />
-                    </Button>
-                </CardHeader>
-                <CardContent class="p-0">
-                    <div
-                        v-if="data.recent_expenses.length === 0"
-                        class="flex flex-col items-center justify-center py-10 text-sm text-muted-foreground"
-                    >
-                        <ReceiptText class="mb-2 h-6 w-6 opacity-40" />
-                        No expenses recorded yet.
+            <DataTable
+                :headers="recentHeaders"
+                :items="data.recent_expenses"
+                noun="expenses"
+                :empty-icon="ReceiptText"
+                empty-message="No expenses recorded yet."
+                :resettable="false"
+                :min-width="560"
+                compact
+                hide-footer
+            >
+                <template #toolbar>
+                    <div class="flex items-center justify-between gap-2">
+                        <h2 class="text-sm font-semibold">Recent Expenses</h2>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            @click="router.visit(`${base}/finance/expenses`)"
+                        >
+                            View All <ArrowRight class="ml-1 h-3.5 w-3.5" />
+                        </Button>
                     </div>
-                    <table v-else class="w-full text-sm">
-                        <thead>
-                            <tr
-                                class="border-b bg-muted/40 text-xs text-muted-foreground"
-                            >
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Title
-                                </th>
-                                <th
-                                    class="hidden px-4 py-3 text-left font-medium sm:table-cell"
-                                >
-                                    Category
-                                </th>
-                                <th
-                                    class="hidden px-4 py-3 text-left font-medium sm:table-cell"
-                                >
-                                    Date
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Amount
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="exp in data.recent_expenses"
-                                :key="exp.id"
-                                class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                            >
-                                <td class="px-4 py-3 font-medium">
-                                    {{ exp.title }}
-                                </td>
-                                <td
-                                    class="hidden px-4 py-3 text-muted-foreground sm:table-cell"
-                                >
-                                    {{ exp.category?.name ?? '—' }}
-                                </td>
-                                <td
-                                    class="hidden px-4 py-3 text-muted-foreground sm:table-cell"
-                                >
-                                    {{ formatDate(exp.expense_date) }}
-                                </td>
-                                <td
-                                    class="px-4 py-3 text-right font-semibold text-red-600"
-                                >
-                                    {{
-                                        currency(parseFloat(exp.amount as any))
-                                    }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </CardContent>
-            </Card>
+                </template>
+
+                <template #item-title="exp">
+                    <span class="font-medium">{{ exp.title }}</span>
+                </template>
+
+                <template #item-category="exp">
+                    <span class="text-muted-foreground">
+                        {{ exp.category?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-expense_date="exp">
+                    <span class="whitespace-nowrap text-muted-foreground">
+                        {{ formatDate(exp.expense_date) }}
+                    </span>
+                </template>
+
+                <template #item-amount="exp">
+                    <span class="font-semibold whitespace-nowrap text-red-600">
+                        {{ currency(parseFloat(exp.amount)) }}
+                    </span>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

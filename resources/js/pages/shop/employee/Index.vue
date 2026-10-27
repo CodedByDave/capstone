@@ -3,14 +3,17 @@ import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
-import Vue3EasyDataTable, {
-    type Header,
-    type ServerOptions,
-} from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
+import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
 import {
     AlertDialog,
     AlertDialogContent,
@@ -28,7 +31,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -36,10 +38,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import {
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
     CheckCircle2,
     Download,
     Eye,
@@ -47,11 +47,11 @@ import {
     Loader2,
     Pencil,
     RefreshCcw,
-    Search,
     Trash,
     Trash2,
     Upload,
     UserPlus,
+    Users,
     X,
 } from 'lucide-vue-next';
 
@@ -100,60 +100,39 @@ interface PaginatedEmployees {
     to: number | null;
 }
 
-type EmployeeSortKey =
-    | 'employee_id'
-    | 'full_name'
-    | 'position'
-    | 'employment_type'
-    | 'phone'
-    | 'email'
-    | 'address'
-    | 'hire_date'
-    | 'pay_rate'
-    | 'pay_basis'
-    | 'status'
-    | 'creator_name'
-    | 'updater_name';
-
-const EasyDataTable = Vue3EasyDataTable;
-
-const sortableHeaders: {
-    text: string;
-    value: EmployeeSortKey;
-    width: number;
-}[] = [
-    { text: 'Employee ID', value: 'employee_id', width: 130 },
-    { text: 'Name', value: 'full_name', width: 180 },
-    { text: 'Position', value: 'position', width: 140 },
-    { text: 'Employment Type', value: 'employment_type', width: 150 },
-    { text: 'Status', value: 'status', width: 110 },
-];
-
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { employees, stats, employment_types, pay_bases, filters } =
-    defineProps<{
-        employees: PaginatedEmployees;
-        stats: {
-            total: number;
-            active: number;
-            new_this_month: number;
-            inactive: number;
-        };
-        employment_types: EmploymentTypeOption[];
-        pay_bases: EmploymentTypeOption[];
-        filters: Record<string, string | number>;
-    }>();
+const { employees, stats, employment_types, pay_bases, filters } = defineProps<{
+    employees: PaginatedEmployees;
+    stats: {
+        total: number;
+        active: number;
+        new_this_month: number;
+        inactive: number;
+    };
+    employment_types: EmploymentTypeOption[];
+    pay_bases: EmploymentTypeOption[];
+    filters: Record<string, string | number>;
+}>();
 
 // ─── RBAC ─────────────────────────────────────────────────────────────────────
 
 const page = usePage<AppPageProps>();
 const user = computed(() => page.props.auth.user);
 const isOwner = computed(() => user.value.role === 'owner');
-const headers = computed<Header[]>(() => [
-    ...sortableHeaders,
-    { text: 'Actions', value: 'actions', width: 115 },
-]);
+const headers: DataTableHeader[] = [
+    { text: 'Employee ID', value: 'employee_id', width: 130, sortable: true },
+    { text: 'Name', value: 'full_name', width: 220, sortable: true },
+    { text: 'Position', value: 'position', width: 140, sortable: true },
+    {
+        text: 'Employment type',
+        value: 'employment_type',
+        width: 150,
+        sortable: true,
+    },
+    { text: 'Status', value: 'status', width: 110, sortable: true },
+    { text: 'Actions', value: 'actions', width: 130, align: 'center' },
+];
 const permissions = computed(() => user.value.permissions ?? {});
 
 function can(module: string, action: string): boolean {
@@ -206,7 +185,7 @@ const employmentTypeFilter = ref(
 );
 const tableLoading = ref(false);
 
-const serverOptions = ref<ServerOptions>({
+const serverOptions = ref<DataTableOptions>({
     page: employees.current_page,
     rowsPerPage: employees.per_page,
     sortBy: String(filters.sort_by ?? 'employee_id'),
@@ -219,6 +198,17 @@ const statCards = computed(() => [
     { label: 'Inactive employees', value: stats.inactive },
     { label: 'New this month', value: stats.new_this_month },
 ]);
+
+const statusOptions = computed(() => [
+    { value: 'all', label: 'All', count: stats.total },
+    { value: 'Active', label: 'Active', count: stats.active },
+    { value: 'Inactive', label: 'Inactive', count: stats.inactive },
+]);
+
+function setStatus(value: string) {
+    statusFilter.value = value;
+    filterTable();
+}
 
 const tableItems = computed(() =>
     employees.data.map((employee) => ({
@@ -285,23 +275,6 @@ function resetFilters() {
     serverOptions.value.sortType = 'asc';
 
     if (!optionsChanged) applyFilters();
-}
-
-function toggleSort(key: EmployeeSortKey) {
-    if (serverOptions.value.sortBy === key) {
-        serverOptions.value.sortType =
-            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
-        return;
-    }
-
-    serverOptions.value.sortBy = key;
-    serverOptions.value.sortType = 'asc';
-}
-
-function sortIcon(key: EmployeeSortKey) {
-    if (serverOptions.value.sortBy !== key) return ArrowUpDown;
-
-    return serverOptions.value.sortType === 'asc' ? ArrowUp : ArrowDown;
 }
 
 watch(
@@ -539,262 +512,186 @@ async function submitImport() {
             </div>
 
             <!-- Employee table -->
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2 pt-6">
-                    <div class="relative min-w-48 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="searchQuery"
-                            placeholder="Search employee, ID, contact..."
-                            class="pl-8"
-                            @keyup.enter="filterTable"
-                        />
-                    </div>
-
-                    <Select
-                        v-model="statusFilter"
-                        @update:model-value="filterTable"
+            <DataTable
+                v-model:options="serverOptions"
+                :headers="headers"
+                :items="tableItems"
+                :total="employees.total"
+                :loading="tableLoading"
+                noun="employees"
+                :empty-icon="Users"
+                empty-message="No employees match the selected filters."
+                :min-width="1000"
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="searchQuery"
+                        :status="statusFilter"
+                        :statuses="statusOptions"
+                        search-placeholder="Search employee, ID, contact..."
+                        search-label="Search employees"
+                        status-label="Filter by employee status"
+                        @update:status="setStatus"
+                        @submit="filterTable"
                     >
-                        <SelectTrigger class="w-36">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All statuses</SelectItem>
-                            <SelectItem value="Active">Active</SelectItem>
-                            <SelectItem value="Inactive">Inactive</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        v-model="employmentTypeFilter"
-                        @update:model-value="filterTable"
-                    >
-                        <SelectTrigger class="w-44">
-                            <SelectValue placeholder="Employment type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all"
-                                >All employment types</SelectItem
-                            >
-                            <SelectItem
-                                v-for="type in employment_types"
-                                :key="type.value"
-                                :value="type.value"
-                            >
-                                {{ type.label }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-                        @click="resetFilters"
-                    >
-                        <RefreshCcw class="mr-1.5 h-4 w-4" />
-                        Reset
-                    </Button>
-
-                    <Button
-                        v-if="can('HRM', 'view')"
-                        size="sm"
-                        variant="outline"
-                        class="bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:text-white dark:hover:bg-green-700"
-                        @click="exportCSV"
-                    >
-                        <Download class="mr-1.5 h-4 w-4" />
-                        Export CSV
-                    </Button>
-
-                    <Button
-                        v-if="isOwner"
-                        size="sm"
-                        variant="outline"
-                        class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
-                        @click="openImport"
-                    >
-                        <Upload class="mr-1.5 h-4 w-4" />
-                        Import CSV
-                    </Button>
-
-                    <Button
-                        v-if="isOwner"
-                        size="sm"
-                        variant="outline"
-                        class="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700"
-                        @click="router.visit('/shop/employee/archive')"
-                    >
-                        <Trash class="mr-1.5 h-4 w-4" />
-                        Archive
-                    </Button>
-
-                    <Button
-                        v-if="can('HRM', 'create')"
-                        size="sm"
-                        @click="router.visit(`${baseRoute}/employee/create`)"
-                        variant="outline"
-                        class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
-                    >
-                        <UserPlus class="mr-1.5 h-4 w-4" />
-                        Add Employee
-                    </Button>
-                </div>
-
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        v-model:server-options="serverOptions"
-                        class="employee-data-table"
-                        :headers="headers"
-                        :items="tableItems"
-                        :server-items-length="employees.total"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 15, 20, 50, 100]"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        buttons-pagination
-                        alternating
-                        must-sort
-                    >
-                        <template
-                            v-for="header in sortableHeaders"
-                            :key="header.value"
-                            #[`header-${header.value}`]
+                        <Select
+                            v-model="employmentTypeFilter"
+                            @update:model-value="filterTable"
                         >
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                :aria-label="`Sort by ${header.text}`"
-                                @click="toggleSort(header.value)"
+                            <SelectTrigger
+                                class="w-44"
+                                aria-label="Filter by employment type"
                             >
-                                <span>{{ header.text }}</span>
-                                <component
-                                    :is="sortIcon(header.value)"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            serverOptions.sortBy !==
-                                            header.value,
-                                    }"
-                                />
-                            </button>
-                        </template>
+                                <SelectValue placeholder="Employment type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all"
+                                    >All employment types</SelectItem
+                                >
+                                <SelectItem
+                                    v-for="type in employment_types"
+                                    :key="type.value"
+                                    :value="type.value"
+                                >
+                                    {{ type.label }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                        <template #header-actions="{ text }">
-                            <div class="w-full text-center">{{ text }}</div>
-                        </template>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
+                            @click="resetFilters"
+                        >
+                            <RefreshCcw class="mr-1.5 h-4 w-4" />
+                            Reset
+                        </Button>
 
-                        <template #item-employee_id="employee">
-                            <span class="font-mono text-xs whitespace-nowrap">
-                                {{ employee.employee_id }}
-                            </span>
-                        </template>
-
-                        <template #item-full_name="employee">
-                            <span class="font-medium whitespace-nowrap">
-                                {{ employee.full_name }}
-                            </span>
-                        </template>
-
-                        <template #item-position="employee">
-                            <span class="whitespace-nowrap">
-                                {{ employee.position }}
-                            </span>
-                        </template>
-
-                        <template #item-employment_type="employee">
-                            <span
-                                class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                        <template #actions>
+                            <Button
+                                v-if="can('HRM', 'view')"
+                                size="sm"
+                                variant="outline"
+                                class="bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:text-white dark:hover:bg-green-700"
+                                @click="exportCSV"
                             >
-                                {{
-                                    employmentTypeLabel(
-                                        employee.employment_type,
-                                    )
-                                }}
-                            </span>
-                        </template>
+                                <Download class="mr-1.5 h-4 w-4" />
+                                Export CSV
+                            </Button>
 
-                        <template #item-status="employee">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
-                                :class="
-                                    employee.status === 'Active'
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                            <Button
+                                v-if="isOwner"
+                                size="sm"
+                                variant="outline"
+                                class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
+                                @click="openImport"
+                            >
+                                <Upload class="mr-1.5 h-4 w-4" />
+                                Import CSV
+                            </Button>
+
+                            <Button
+                                v-if="isOwner"
+                                size="sm"
+                                variant="outline"
+                                class="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700"
+                                @click="router.visit('/shop/employee/archive')"
+                            >
+                                <Trash class="mr-1.5 h-4 w-4" />
+                                Archive
+                            </Button>
+
+                            <Button
+                                v-if="can('HRM', 'create')"
+                                size="sm"
+                                @click="
+                                    router.visit(`${baseRoute}/employee/create`)
                                 "
+                                variant="outline"
+                                class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
                             >
-                                {{ employee.status }}
-                            </span>
+                                <UserPlus class="mr-1.5 h-4 w-4" />
+                                Add Employee
+                            </Button>
                         </template>
+                    </DataTableToolbar>
+                </template>
 
-                        <template #item-actions="employee">
-                            <div class="flex items-center justify-center gap-1">
-                                <Button
-                                    v-if="can('HRM', 'view')"
-                                    size="icon"
-                                    class="h-9 w-9"
-                                    variant="ghost"
-                                    aria-label="View employee"
-                                    @click="
-                                        router.visit(
-                                            employeeUrl(employee.public_id),
-                                        )
-                                    "
-                                >
-                                    <Eye class="h-4 w-4 text-blue-500" />
-                                </Button>
-                                <Button
-                                    v-if="can('HRM', 'update')"
-                                    size="icon"
-                                    class="h-9 w-9"
-                                    variant="ghost"
-                                    aria-label="Edit employee"
-                                    @click="
-                                        router.visit(
-                                            employeeUrl(
-                                                employee.public_id,
-                                                '/edit',
-                                            ),
-                                        )
-                                    "
-                                >
-                                    <Pencil class="h-4 w-4 text-slate-500" />
-                                </Button>
-                                <Button
-                                    v-if="can('HRM', 'archive')"
-                                    size="icon"
-                                    class="h-9 w-9"
-                                    variant="ghost"
-                                    aria-label="Archive employee"
-                                    @click="openArchiveDialog(employee)"
-                                >
-                                    <Trash2 class="h-4 w-4 text-amber-500" />
-                                </Button>
-                                <span
-                                    v-if="
-                                        !can('HRM', 'view') &&
-                                        !can('HRM', 'update') &&
-                                        !can('HRM', 'archive')
-                                    "
-                                    class="text-xs text-muted-foreground"
-                                >
-                                    —
-                                </span>
-                            </div>
-                        </template>
+                <template #item-employee_id="employee">
+                    <span class="font-mono text-xs whitespace-nowrap">
+                        {{ employee.employee_id }}
+                    </span>
+                </template>
 
-                        <template #empty-message>
-                            <div
-                                class="py-10 text-center text-sm text-muted-foreground"
-                            >
-                                No employees match the selected filters.
-                            </div>
-                        </template>
-                    </EasyDataTable>
-                </div>
-            </CardContent>
+                <template #item-full_name="employee">
+                    <IdentityCell
+                        :name="employee.full_name"
+                        :secondary="employee.email"
+                    />
+                </template>
+
+                <template #item-position="employee">
+                    <span class="whitespace-nowrap">
+                        {{ employee.position }}
+                    </span>
+                </template>
+
+                <template #item-employment_type="employee">
+                    <span
+                        class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                    >
+                        {{ employmentTypeLabel(employee.employment_type) }}
+                    </span>
+                </template>
+
+                <template #item-status="employee">
+                    <StatusPill
+                        :tone="
+                            employee.status === 'Active' ? 'success' : 'neutral'
+                        "
+                    >
+                        {{ employee.status }}
+                    </StatusPill>
+                </template>
+
+                <template #item-actions="employee">
+                    <RowActions
+                        :label="employee.full_name"
+                        :actions="[
+                            {
+                                label: 'View',
+                                icon: Eye,
+                                show: can('HRM', 'view'),
+                                onSelect: () =>
+                                    router.visit(
+                                        employeeUrl(employee.public_id),
+                                    ),
+                            },
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show: can('HRM', 'update'),
+                                onSelect: () =>
+                                    router.visit(
+                                        employeeUrl(
+                                            employee.public_id,
+                                            '/edit',
+                                        ),
+                                    ),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: Trash2,
+                                destructive: true,
+                                show: can('HRM', 'archive'),
+                                onSelect: () => openArchiveDialog(employee),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- Import Dialog -->
@@ -958,59 +855,3 @@ async function submitImport() {
         </AlertDialog>
     </ShopLayout>
 </template>
-
-<style scoped>
-.employee-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 52px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 64px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-.sortable-column {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: inherit;
-    font: inherit;
-}
-
-.sortable-column:hover {
-    color: var(--foreground);
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 1000px;
-}
-</style>

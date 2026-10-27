@@ -1,7 +1,14 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useDataTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
@@ -10,7 +17,6 @@ import {
     Check,
     Package,
     Plus,
-    Search,
     Shield,
     Trash2,
     UserCog,
@@ -243,15 +249,25 @@ async function saveAction(moduleName: string, actionKey: string) {
 // ─── Staff ────────────────────────────────────────────────────────────────────
 
 const staffList = ref<StaffUser[]>(props.staff ?? []);
-const searchQuery = ref('');
 
-const filteredStaff = computed(() =>
-    staffList.value.filter(
-        (u) =>
-            u.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            u.email.toLowerCase().includes(searchQuery.value.toLowerCase()),
-    ),
-);
+const {
+    search: searchQuery,
+    options: staffOptions,
+    pageItems: staffPage,
+    total: staffTotal,
+    isFiltered: staffFiltered,
+    reset: resetStaff,
+} = useDataTable(staffList, {
+    searchFields: (user) => [user.name, user.email],
+    sortBy: 'name',
+});
+
+const staffHeaders: DataTableHeader[] = [
+    { text: 'Name', value: 'name', sortable: true, width: 220 },
+    { text: 'Email', value: 'email', sortable: true },
+    { text: 'Current roles', value: 'roles' },
+    { text: 'Assign roles', value: 'assign' },
+];
 
 function userHasRole(user: StaffUser, role: string): boolean {
     return user.roles.includes(role);
@@ -549,141 +565,102 @@ function roleColor(role: string) {
 
                 <!-- ══ STAFF ASSIGNMENT TAB ══ -->
                 <div v-if="activeTab === 'users'">
-                    <Card>
-                        <CardHeader class="pb-3">
-                            <div class="flex items-center justify-between">
-                                <CardTitle
-                                    class="flex items-center gap-2 text-sm font-semibold tracking-widest text-muted-foreground uppercase"
-                                >
-                                    <UserCog class="h-4 w-4" /> Staff Role
-                                    Assignment
-                                </CardTitle>
-                                <div class="relative">
-                                    <Search
-                                        class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                                    />
-                                    <Input
-                                        v-model="searchQuery"
-                                        placeholder="Search staff..."
-                                        class="h-8 w-56 pl-8 text-sm"
-                                    />
+                    <!-- No staff fallback -->
+                    <div
+                        v-if="staffList.length === 0"
+                        class="rounded-[14px] border bg-card py-12 text-center text-sm text-muted-foreground"
+                    >
+                        <UserCog class="mx-auto mb-3 h-10 w-10 opacity-30" />
+                        No staff found for this shop.
+                    </div>
+
+                    <DataTable
+                        v-else
+                        v-model:options="staffOptions"
+                        :headers="staffHeaders"
+                        :items="staffPage"
+                        :total="staffTotal"
+                        noun="staff"
+                        :empty-icon="UserCog"
+                        empty-message="No staff matched your search."
+                        :resettable="staffFiltered"
+                        :min-width="820"
+                        @reset="resetStaff"
+                    >
+                        <template #toolbar>
+                            <div class="space-y-3">
+                                <div>
+                                    <h2
+                                        class="flex items-center gap-2 text-sm font-semibold"
+                                    >
+                                        <UserCog class="h-4 w-4" /> Staff Role
+                                        Assignment
+                                    </h2>
+                                    <p
+                                        class="mt-1 text-xs text-muted-foreground"
+                                    >
+                                        Staff can hold multiple roles. Toggle
+                                        roles on/off per employee.
+                                    </p>
                                 </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="mb-4 text-xs text-muted-foreground">
-                                Staff can hold multiple roles. Toggle roles
-                                on/off per employee.
-                            </p>
-
-                            <!-- No staff fallback -->
-                            <div
-                                v-if="staffList.length === 0"
-                                class="py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <UserCog
-                                    class="mx-auto mb-3 h-10 w-10 opacity-30"
+                                <DataTableToolbar
+                                    v-model:search="searchQuery"
+                                    search-placeholder="Search staff..."
+                                    search-label="Search staff"
                                 />
-                                No staff found for this shop.
                             </div>
+                        </template>
 
-                            <table v-else class="w-full text-sm">
-                                <thead>
-                                    <tr
-                                        class="border-b text-left text-xs text-muted-foreground"
-                                    >
-                                        <th class="w-1/4 pb-2 font-medium">
-                                            Name
-                                        </th>
-                                        <th class="w-1/4 pb-2 font-medium">
-                                            Email
-                                        </th>
-                                        <th class="pb-2 font-medium">
-                                            Current Roles
-                                        </th>
-                                        <th class="pb-2 font-medium">
-                                            Assign Roles
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="user in filteredStaff"
-                                        :key="user.id"
-                                        class="border-b last:border-0"
-                                    >
-                                        <td class="py-3 font-medium">
-                                            {{ user.name }}
-                                        </td>
-                                        <td
-                                            class="py-3 text-xs text-muted-foreground"
-                                        >
-                                            {{ user.email }}
-                                        </td>
+                        <template #item-name="user">
+                            <IdentityCell :name="user.name" />
+                        </template>
 
-                                        <!-- Current roles -->
-                                        <td class="py-3">
-                                            <div class="flex flex-wrap gap-1">
-                                                <span
-                                                    v-for="role in user.roles"
-                                                    :key="role"
-                                                    class="rounded-full px-2 py-0.5 text-xs font-semibold capitalize"
-                                                    :class="roleColor(role)"
-                                                >
-                                                    {{ role }}
-                                                </span>
-                                            </div>
-                                        </td>
+                        <template #item-email="user">
+                            <span class="text-xs text-muted-foreground">{{
+                                user.email
+                            }}</span>
+                        </template>
 
-                                        <!-- Toggle roles -->
-                                        <td class="py-3">
-                                            <div class="flex flex-wrap gap-1">
-                                                <button
-                                                    v-for="role in nonOwnerRoles"
-                                                    :key="role.name"
-                                                    @click="
-                                                        toggleUserRole(
-                                                            user.id,
-                                                            role.name,
-                                                        )
-                                                    "
-                                                    class="rounded-full border px-2 py-0.5 text-xs font-medium capitalize transition-colors"
-                                                    :class="
-                                                        userHasRole(
-                                                            user,
-                                                            role.name,
-                                                        )
-                                                            ? 'border-blue-300 bg-blue-50 text-blue-700'
-                                                            : 'border-border text-muted-foreground hover:bg-muted'
-                                                    "
-                                                >
-                                                    <Check
-                                                        v-if="
-                                                            userHasRole(
-                                                                user,
-                                                                role.name,
-                                                            )
-                                                        "
-                                                        class="mr-0.5 inline h-2.5 w-2.5"
-                                                    />
-                                                    {{ role.name }}
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                        <!-- Current roles -->
+                        <template #item-roles="user">
+                            <div class="flex flex-wrap gap-1">
+                                <span
+                                    v-for="role in user.roles"
+                                    :key="role"
+                                    class="rounded-full px-2 py-0.5 text-xs font-semibold capitalize"
+                                    :class="roleColor(role)"
+                                >
+                                    {{ role }}
+                                </span>
+                            </div>
+                        </template>
 
-                                    <tr v-if="filteredStaff.length === 0">
-                                        <td
-                                            colspan="4"
-                                            class="py-8 text-center text-muted-foreground"
-                                        >
-                                            No staff matched your search.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </CardContent>
-                    </Card>
+                        <!-- Toggle roles -->
+                        <template #item-assign="user">
+                            <div class="flex flex-wrap gap-1">
+                                <button
+                                    v-for="role in nonOwnerRoles"
+                                    :key="role.name"
+                                    type="button"
+                                    class="rounded-full border px-2 py-0.5 text-xs font-medium capitalize transition-colors"
+                                    :class="
+                                        userHasRole(user, role.name)
+                                            ? 'border-blue-300 bg-blue-50 text-blue-700'
+                                            : 'border-border text-muted-foreground hover:bg-muted'
+                                    "
+                                    :aria-pressed="userHasRole(user, role.name)"
+                                    :aria-label="`${userHasRole(user, role.name) ? 'Remove' : 'Assign'} ${role.name} role ${userHasRole(user, role.name) ? 'from' : 'to'} ${user.name}`"
+                                    @click="toggleUserRole(user.id, role.name)"
+                                >
+                                    <Check
+                                        v-if="userHasRole(user, role.name)"
+                                        class="mr-0.5 inline h-2.5 w-2.5"
+                                    />
+                                    {{ role.name }}
+                                </button>
+                            </div>
+                        </template>
+                    </DataTable>
                 </div>
             </template>
         </div>

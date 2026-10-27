@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    RowActions,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -39,6 +45,22 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const archivedList = ref<Category[]>([...props.archived]);
 const restoringId = ref<number | null>(null);
+
+const headers: DataTableHeader[] = [
+    { text: 'Name', value: 'name', sortable: true },
+    { text: 'Description', value: 'description' },
+    { text: 'Archived on', value: 'deleted_at', sortable: true, width: 160 },
+    { text: 'Actions', value: 'actions', align: 'center', width: 140 },
+];
+
+const { search, options, pageItems, total, isFiltered, reset } = useDataTable(
+    archivedList,
+    {
+        searchFields: (cat) => [cat.name, cat.description],
+        sortBy: 'deleted_at',
+        sortType: 'desc',
+    },
+);
 
 function formatDate(dt: string) {
     return new Date(dt).toLocaleDateString('en-PH', {
@@ -81,99 +103,81 @@ async function restoreCategory(id: number) {
                 </Button>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Layers class="h-4 w-4 text-muted-foreground" />
-                        Archived
-                        <span
-                            class="rounded-full bg-muted px-2 py-0.5 text-xs font-normal"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="pageItems"
+                :total="total"
+                noun="archived categories"
+                :empty-icon="Inbox"
+                :empty-message="
+                    isFiltered
+                        ? 'No archived categories match your search.'
+                        : 'No archived categories.'
+                "
+                :resettable="isFiltered"
+                :min-width="640"
+                @reset="reset"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        search-placeholder="Search name or description..."
+                        search-label="Search archived categories"
+                    >
+                        <p
+                            class="order-first flex w-full items-center gap-2 text-sm font-semibold sm:order-none sm:w-auto"
                         >
-                            {{ archivedList.length }}
-                        </span>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Name
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Description
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Archived On
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-right font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="cat in archivedList"
-                                    :key="cat.id"
-                                    class="border-b opacity-70 transition-colors last:border-0 hover:bg-muted/20 hover:opacity-100"
-                                >
-                                    <td
-                                        class="px-4 py-3 font-medium text-muted-foreground line-through"
-                                    >
-                                        {{ cat.name }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ cat.description ?? '—' }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ formatDate(cat.deleted_at) }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            :disabled="restoringId === cat.id"
-                                            class="h-7 gap-1.5 text-xs"
-                                            @click="restoreCategory(cat.id)"
-                                        >
-                                            <Loader2
-                                                v-if="restoringId === cat.id"
-                                                class="h-3 w-3 animate-spin"
-                                            />
-                                            <ArchiveRestore
-                                                v-else
-                                                class="h-3 w-3"
-                                            />
-                                            Restore
-                                        </Button>
-                                    </td>
-                                </tr>
+                            <Layers class="h-4 w-4 text-muted-foreground" />
+                            Archived
+                            <span
+                                class="rounded-full bg-muted px-2 py-0.5 text-xs font-normal"
+                            >
+                                {{ archivedList.length }}
+                            </span>
+                        </p>
+                    </DataTableToolbar>
+                </template>
 
-                                <tr v-if="archivedList.length === 0">
-                                    <td
-                                        colspan="4"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <Inbox
-                                            class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                        />
-                                        No archived categories.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+                <template #item-name="cat">
+                    <span
+                        class="font-medium text-muted-foreground line-through"
+                    >
+                        {{ cat.name }}
+                    </span>
+                </template>
+
+                <template #item-description="cat">
+                    <span class="text-xs text-muted-foreground">
+                        {{ cat.description ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-deleted_at="cat">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(cat.deleted_at) }}
+                    </span>
+                </template>
+
+                <template #item-actions="cat">
+                    <RowActions
+                        :label="cat.name"
+                        :actions="[
+                            {
+                                label: 'Restore',
+                                icon:
+                                    restoringId === cat.id
+                                        ? Loader2
+                                        : ArchiveRestore,
+                                disabled: restoringId === cat.id,
+                                onSelect: () => restoreCategory(cat.id),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

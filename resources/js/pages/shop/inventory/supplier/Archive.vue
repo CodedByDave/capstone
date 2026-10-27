@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    type DataTableHeader,
+    RowActions,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -15,7 +20,7 @@ import {
     Phone,
     Truck,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -35,6 +40,7 @@ interface Paginator {
     data: Supplier[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
@@ -57,6 +63,31 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const restoringId = ref<number | null>(null);
 const archivedList = ref([...props.archived.data]);
+
+watch(
+    () => props.archived.data,
+    (data) => {
+        archivedList.value = [...data];
+    },
+);
+
+const { options, loading } = usePaginatorTable(
+    () => props.archived,
+    ['archived'],
+);
+const total = computed(
+    () =>
+        props.archived.total -
+        (props.archived.data.length - archivedList.value.length),
+);
+
+const headers: DataTableHeader[] = [
+    { text: 'Supplier', value: 'name' },
+    { text: 'Contact', value: 'contact' },
+    { text: 'Items', value: 'inventory_count' },
+    { text: 'Archived on', value: 'deleted_at', width: 150 },
+    { text: 'Actions', value: 'actions', align: 'center', width: 140 },
+];
 
 function formatDate(dt: string) {
     return new Date(dt).toLocaleDateString('en-PH', {
@@ -96,9 +127,21 @@ async function restoreSupplier(id: number) {
                 </Button>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="archivedList"
+                :total="total"
+                :loading="loading"
+                noun="archived suppliers"
+                :empty-icon="Inbox"
+                empty-message="No archived suppliers."
+                :resettable="false"
+                :min-width="760"
+                hide-rows-per-page
+            >
+                <template #toolbar>
+                    <h2 class="flex items-center gap-2 font-semibold">
                         <Truck class="h-4 w-4 text-muted-foreground" />
                         Archived
                         <span
@@ -106,134 +149,73 @@ async function restoreSupplier(id: number) {
                         >
                             {{ archived.total }}
                         </span>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Supplier
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Contact
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Items
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Archived On
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-right font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="s in archivedList"
-                                    :key="s.id"
-                                    class="border-b opacity-70 transition-colors last:border-0 hover:bg-muted/20 hover:opacity-100"
-                                >
-                                    <td class="px-4 py-3">
-                                        <p
-                                            class="font-medium text-muted-foreground line-through"
-                                        >
-                                            {{ s.name }}
-                                        </p>
-                                        <p
-                                            v-if="s.contact_person"
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ s.contact_person }}
-                                        </p>
-                                    </td>
-                                    <td class="space-y-0.5 px-4 py-3">
-                                        <div
-                                            v-if="s.phone"
-                                            class="flex items-center gap-1 text-xs text-muted-foreground"
-                                        >
-                                            <Phone class="h-3 w-3" />
-                                            {{ s.phone }}
-                                        </div>
-                                        <div
-                                            v-if="s.email"
-                                            class="flex items-center gap-1 text-xs text-muted-foreground"
-                                        >
-                                            <Mail class="h-3 w-3" />
-                                            {{ s.email }}
-                                        </div>
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ s.inventory_count ?? 0 }} items
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ formatDate(s.deleted_at) }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            :disabled="restoringId === s.id"
-                                            class="h-7 gap-1.5 text-xs"
-                                            @click="restoreSupplier(s.id)"
-                                        >
-                                            <Loader2
-                                                v-if="restoringId === s.id"
-                                                class="h-3 w-3 animate-spin"
-                                            />
-                                            <ArchiveRestore
-                                                v-else
-                                                class="h-3 w-3"
-                                            />
-                                            Restore
-                                        </Button>
-                                    </td>
-                                </tr>
+                    </h2>
+                </template>
 
-                                <tr v-if="archivedList.length === 0">
-                                    <td
-                                        colspan="5"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <Inbox
-                                            class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                        />
-                                        No archived suppliers.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div
-                        v-if="archived.last_page > 1"
-                        class="flex justify-end gap-1 pt-4"
+                <template #item-name="s">
+                    <p class="font-medium text-muted-foreground line-through">
+                        {{ s.name }}
+                    </p>
+                    <p
+                        v-if="s.contact_person"
+                        class="text-xs text-muted-foreground"
                     >
-                        <Button
-                            v-for="link in archived.links"
-                            :key="link.label"
-                            size="sm"
-                            :variant="link.active ? 'default' : 'outline'"
-                            :disabled="!link.url"
-                            class="h-7 min-w-7 text-xs"
-                            @click="link.url && router.visit(link.url)"
+                        {{ s.contact_person }}
+                    </p>
+                </template>
+
+                <template #item-contact="s">
+                    <div class="space-y-0.5">
+                        <div
+                            v-if="s.phone"
+                            class="flex items-center gap-1 text-xs text-muted-foreground"
                         >
-                            <span v-html="link.label" />
-                        </Button>
+                            <Phone class="h-3 w-3" />
+                            {{ s.phone }}
+                        </div>
+                        <div
+                            v-if="s.email"
+                            class="flex items-center gap-1 text-xs text-muted-foreground"
+                        >
+                            <Mail class="h-3 w-3" />
+                            {{ s.email }}
+                        </div>
                     </div>
-                </CardContent>
-            </Card>
+                </template>
+
+                <template #item-inventory_count="s">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ s.inventory_count ?? 0 }} items
+                    </span>
+                </template>
+
+                <template #item-deleted_at="s">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(s.deleted_at) }}
+                    </span>
+                </template>
+
+                <template #item-actions="s">
+                    <RowActions
+                        :label="s.name"
+                        :actions="[
+                            {
+                                label: 'Restore',
+                                icon:
+                                    restoringId === s.id
+                                        ? Loader2
+                                        : ArchiveRestore,
+                                disabled: restoringId === s.id,
+                                onSelect: () => restoreSupplier(s.id),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

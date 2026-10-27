@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import {
+    DataTable,
+    DataTableToolbar,
+    RowActions,
+    StatusPill,
+    statusLabel,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogDescription,
@@ -8,8 +17,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Select,
     SelectContent,
@@ -17,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -28,11 +37,11 @@ import {
     Package,
     Pencil,
     Plus,
-    Search,
+    RefreshCcw,
     Trash2,
     Truck,
 } from 'lucide-vue-next';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -135,7 +144,59 @@ const supplierId = ref(props.filters.supplier_id ?? 'all');
 const status = ref(props.filters.status ?? 'all');
 const stock = ref(props.filters.stock ?? 'all');
 
-function applyFilters() {
+const tableLoading = ref(false);
+const options = ref<DataTableOptions>({
+    page: props.inventory.current_page,
+    rowsPerPage: props.inventory.per_page,
+});
+
+const statusOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+];
+
+const hasFilters = computed(
+    () =>
+        search.value !== '' ||
+        categoryId.value !== 'all' ||
+        supplierId.value !== 'all' ||
+        status.value !== 'all' ||
+        stock.value !== 'all',
+);
+
+const headers: DataTableHeader[] = [
+    { text: 'Item', value: 'name' },
+    { text: 'SKU', value: 'sku' },
+    { text: 'Category', value: 'category' },
+    { text: 'Supplier', value: 'supplier' },
+    { text: 'Stock', value: 'quantity' },
+    { text: 'Unit price', value: 'unit_price' },
+    { text: 'Status', value: 'status' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 150 },
+];
+
+watch(
+    () => props.inventory,
+    (inventory) => {
+        options.value = {
+            ...options.value,
+            page: inventory.current_page,
+            rowsPerPage: inventory.per_page,
+        };
+    },
+);
+
+watch(
+    () => options.value.page,
+    (page) => {
+        if (page !== props.inventory.current_page) applyFilters(page);
+    },
+);
+
+watch(status, () => applyFilters());
+
+function applyFilters(page = 1) {
     router.get(
         base.value,
         {
@@ -146,18 +207,31 @@ function applyFilters() {
                 supplierId.value !== 'all' ? supplierId.value : undefined,
             status: status.value !== 'all' ? status.value : undefined,
             stock: stock.value !== 'all' ? stock.value : undefined,
+            page: page > 1 ? page : undefined,
         },
-        { preserveState: true, replace: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            onStart: () => {
+                tableLoading.value = true;
+            },
+            onFinish: () => {
+                tableLoading.value = false;
+            },
+        },
     );
 }
 
 function resetFilters() {
+    const statusChanged = status.value !== 'all';
     search.value = '';
     categoryId.value = 'all';
     supplierId.value = 'all';
     status.value = 'all';
     stock.value = 'all';
-    router.get(base.value, {}, { preserveState: true, replace: true });
+    // A status change already reloads through the status watcher.
+    if (!statusChanged) applyFilters();
 }
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
@@ -199,12 +273,10 @@ function isOutOfStock(item: InventoryItem) {
     return item.quantity === 0;
 }
 
-function stockBadge(item: InventoryItem) {
-    if (isOutOfStock(item))
-        return { label: 'Out of stock', class: 'bg-red-100 text-red-700' };
-    if (isLowStock(item))
-        return { label: 'Low stock', class: 'bg-amber-100 text-amber-700' };
-    return { label: 'In stock', class: 'bg-green-100 text-green-700' };
+function stockBadge(item: InventoryItem): { label: string; tone: StatusTone } {
+    if (isOutOfStock(item)) return { label: 'Out of stock', tone: 'danger' };
+    if (isLowStock(item)) return { label: 'Low stock', tone: 'warning' };
+    return { label: 'In stock', tone: 'success' };
 }
 
 function formatPrice(price: string | null) {
@@ -334,324 +406,226 @@ function formatPrice(price: string | null) {
             </div>
 
             <!-- Table card -->
-            <Card>
-                <CardHeader class="pb-3">
-                    <div
-                        class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="inventory.data"
+                :total="inventory.total"
+                :loading="tableLoading"
+                noun="inventory items"
+                :empty-icon="Package"
+                :empty-message="
+                    hasFilters
+                        ? 'No inventory items match the current filters.'
+                        : 'No inventory items found.'
+                "
+                :resettable="hasFilters"
+                :min-width="1080"
+                hide-rows-per-page
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <div
+                            class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
+                        >
+                            <h2 class="flex items-center gap-2 font-semibold">
+                                <Package
+                                    class="h-4 w-4 text-muted-foreground"
+                                />
+                                Inventory List
+                            </h2>
+                            <div class="flex flex-wrap gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    @click="router.visit(categoryBase)"
+                                >
+                                    <Layers class="mr-1.5 h-4 w-4" /> Categories
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="bg-yellow-500 text-white hover:bg-yellow-600 hover:text-white"
+                                    @click="router.visit(supplierBase)"
+                                >
+                                    <Truck class="mr-1.5 h-4 w-4" /> Suppliers
+                                </Button>
+                                <Button
+                                    v-if="
+                                        isOwner ||
+                                        can('Inventory Management', 'create')
+                                    "
+                                    size="sm"
+                                    @click="router.visit(`${base}/create`)"
+                                >
+                                    <Plus class="mr-1.5 h-4 w-4" /> Add Item
+                                </Button>
+                            </div>
+                        </div>
+
+                        <DataTableToolbar
+                            v-model:search="search"
+                            v-model:status="status"
+                            :statuses="statusOptions"
+                            search-placeholder="Search name or SKU..."
+                            search-label="Search inventory"
+                            status-label="Filter by item status"
+                            @submit="applyFilters()"
+                        >
+                            <Select
+                                v-model="categoryId"
+                                @update:model-value="() => applyFilters()"
+                            >
+                                <SelectTrigger
+                                    class="w-40"
+                                    aria-label="Filter by category"
+                                    ><SelectValue placeholder="Category"
+                                /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all"
+                                        >All Categories</SelectItem
+                                    >
+                                    <SelectItem
+                                        v-for="c in categories"
+                                        :key="c.id"
+                                        :value="String(c.id)"
+                                        >{{ c.name }}</SelectItem
+                                    >
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                v-model="supplierId"
+                                @update:model-value="() => applyFilters()"
+                            >
+                                <SelectTrigger
+                                    class="w-40"
+                                    aria-label="Filter by supplier"
+                                    ><SelectValue placeholder="Supplier"
+                                /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all"
+                                        >All Suppliers</SelectItem
+                                    >
+                                    <SelectItem
+                                        v-for="s in suppliers"
+                                        :key="s.id"
+                                        :value="String(s.id)"
+                                        >{{ s.name }}</SelectItem
+                                    >
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                v-model="stock"
+                                @update:model-value="() => applyFilters()"
+                            >
+                                <SelectTrigger
+                                    class="w-32"
+                                    aria-label="Filter by stock level"
+                                    ><SelectValue placeholder="Stock"
+                                /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all"
+                                        >All Stock</SelectItem
+                                    >
+                                    <SelectItem value="low"
+                                        >Low Stock</SelectItem
+                                    >
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                @click="resetFilters"
+                            >
+                                <RefreshCcw class="mr-1.5 h-4 w-4" />
+                                Reset
+                            </Button>
+                        </DataTableToolbar>
+                    </div>
+                </template>
+
+                <template #item-name="item">
+                    <p class="font-medium">{{ item.name }}</p>
+                    <p class="text-xs text-muted-foreground">{{ item.unit }}</p>
+                </template>
+
+                <template #item-sku="item">
+                    <span class="font-mono text-xs text-muted-foreground">
+                        {{ item.sku }}
+                    </span>
+                </template>
+
+                <template #item-category="item">
+                    <span class="text-xs text-muted-foreground">
+                        {{ item.category?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-supplier="item">
+                    <span class="text-xs text-muted-foreground">
+                        {{ item.supplier?.name ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-quantity="item">
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium">{{ item.quantity }}</span>
+                        <StatusPill :tone="stockBadge(item).tone">
+                            {{ stockBadge(item).label }}
+                        </StatusPill>
+                    </div>
+                    <p class="mt-0.5 text-xs text-muted-foreground">
+                        Min: {{ item.min_stock }}
+                    </p>
+                </template>
+
+                <template #item-unit_price="item">
+                    <span class="whitespace-nowrap text-muted-foreground">
+                        {{ formatPrice(item.unit_price) }}
+                    </span>
+                </template>
+
+                <template #item-status="item">
+                    <StatusPill
+                        :tone="item.status === 'active' ? 'success' : 'neutral'"
                     >
-                        <CardTitle class="flex items-center gap-2">
-                            <Package class="h-4 w-4 text-muted-foreground" />
-                            Inventory List
-                        </CardTitle>
-                        <div class="flex gap-2">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                @click="router.visit(categoryBase)"
-                            >
-                                <Layers class="mr-1.5 h-4 w-4" /> Categories
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                class="bg-yellow-500 text-white hover:bg-yellow-600 hover:text-white"
-                                @click="router.visit(supplierBase)"
-                            >
-                                <Truck class="mr-1.5 h-4 w-4" /> Suppliers
-                            </Button>
-                            <Button
-                                v-if="
+                        {{ statusLabel(item.status) }}
+                    </StatusPill>
+                </template>
+
+                <template #item-actions="item">
+                    <RowActions
+                        :label="item.name"
+                        :actions="[
+                            {
+                                label: 'View',
+                                icon: Eye,
+                                onSelect: () =>
+                                    router.visit(`${base}/${item.id}`),
+                            },
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show:
                                     isOwner ||
-                                    can('Inventory Management', 'create')
-                                "
-                                size="sm"
-                                @click="router.visit(`${base}/create`)"
-                            >
-                                <Plus class="mr-1.5 h-4 w-4" /> Add Item
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent class="space-y-4">
-                    <!-- Filters -->
-                    <div class="flex flex-wrap gap-2">
-                        <div class="relative min-w-48 flex-1">
-                            <Search
-                                class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                placeholder="Search name or SKU..."
-                                class="pl-8"
-                                @keyup.enter="applyFilters"
-                            />
-                        </div>
-                        <Select
-                            v-model="categoryId"
-                            @update:model-value="applyFilters"
-                        >
-                            <SelectTrigger class="w-40"
-                                ><SelectValue placeholder="Category"
-                            /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all"
-                                    >All Categories</SelectItem
-                                >
-                                <SelectItem
-                                    v-for="c in categories"
-                                    :key="c.id"
-                                    :value="String(c.id)"
-                                    >{{ c.name }}</SelectItem
-                                >
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            v-model="supplierId"
-                            @update:model-value="applyFilters"
-                        >
-                            <SelectTrigger class="w-40"
-                                ><SelectValue placeholder="Supplier"
-                            /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all"
-                                    >All Suppliers</SelectItem
-                                >
-                                <SelectItem
-                                    v-for="s in suppliers"
-                                    :key="s.id"
-                                    :value="String(s.id)"
-                                    >{{ s.name }}</SelectItem
-                                >
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            v-model="status"
-                            @update:model-value="applyFilters"
-                        >
-                            <SelectTrigger class="w-32"
-                                ><SelectValue placeholder="Status"
-                            /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="inactive"
-                                    >Inactive</SelectItem
-                                >
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            v-model="stock"
-                            @update:model-value="applyFilters"
-                        >
-                            <SelectTrigger class="w-32"
-                                ><SelectValue placeholder="Stock"
-                            /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Stock</SelectItem>
-                                <SelectItem value="low">Low Stock</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Button variant="ghost" size="sm" @click="resetFilters"
-                            >Reset</Button
-                        >
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Item
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        SKU
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Category
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Supplier
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Stock
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Unit Price
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Status
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-center font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="item in inventory.data"
-                                    :key="item.id"
-                                    class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                                >
-                                    <td class="px-4 py-3">
-                                        <p class="font-medium">
-                                            {{ item.name }}
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ item.unit }}
-                                        </p>
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 font-mono text-xs text-muted-foreground"
-                                    >
-                                        {{ item.sku }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ item.category?.name ?? '—' }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ item.supplier?.name ?? '—' }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-medium">{{
-                                                item.quantity
-                                            }}</span>
-                                            <span
-                                                class="rounded-full px-1.5 py-0.5 text-xs font-medium"
-                                                :class="stockBadge(item).class"
-                                            >
-                                                {{ stockBadge(item).label }}
-                                            </span>
-                                        </div>
-                                        <p
-                                            class="mt-0.5 text-xs text-muted-foreground"
-                                        >
-                                            Min: {{ item.min_stock }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground">
-                                        {{ formatPrice(item.unit_price) }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                            :class="
-                                                item.status === 'active'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-gray-100 text-gray-500'
-                                            "
-                                        >
-                                            {{ item.status }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div
-                                            class="flex items-center justify-center gap-1"
-                                        >
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.visit(
-                                                        `${base}/${item.id}`,
-                                                    )
-                                                "
-                                            >
-                                                <Eye
-                                                    class="h-4 w-4 text-blue-500"
-                                                />
-                                            </Button>
-                                            <Button
-                                                v-if="
-                                                    isOwner ||
-                                                    can(
-                                                        'Inventory Management',
-                                                        'update',
-                                                    )
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.visit(
-                                                        `${base}/${item.id}/edit`,
-                                                    )
-                                                "
-                                            >
-                                                <Pencil
-                                                    class="h-4 w-4 text-green-500"
-                                                />
-                                            </Button>
-                                            <Button
-                                                v-if="
-                                                    isOwner ||
-                                                    can(
-                                                        'Inventory Management',
-                                                        'archive',
-                                                    )
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="openDeleteDialog(item)"
-                                            >
-                                                <Trash2
-                                                    class="h-4 w-4 text-red-400"
-                                                />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="inventory.data.length === 0">
-                                    <td
-                                        colspan="8"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <Package
-                                            class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                        />
-                                        No inventory items found.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div
-                        v-if="inventory.last_page > 1"
-                        class="flex items-center justify-between pt-2"
-                    >
-                        <p class="text-xs text-muted-foreground">
-                            Showing {{ inventory.data.length }} of
-                            {{ inventory.total }} items
-                        </p>
-                        <div class="flex gap-1">
-                            <Button
-                                v-for="link in inventory.links"
-                                :key="link.label"
-                                size="sm"
-                                :variant="link.active ? 'default' : 'outline'"
-                                :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs"
-                                @click="link.url && router.visit(link.url)"
-                            >
-                                <span v-html="link.label" />
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                                    can('Inventory Management', 'update'),
+                                onSelect: () =>
+                                    router.visit(`${base}/${item.id}/edit`),
+                            },
+                            {
+                                label: 'Delete',
+                                icon: Trash2,
+                                destructive: true,
+                                show:
+                                    isOwner ||
+                                    can('Inventory Management', 'archive'),
+                                onSelect: () => openDeleteDialog(item),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- Delete Confirm Dialog -->

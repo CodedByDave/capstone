@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import AgreementSignatureInput from '@/components/business/AgreementSignatureInput.vue';
+import {
+    DataTable,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -176,13 +182,21 @@ const statusBadge: Record<string, string> = {
     failed: 'bg-red-100 text-red-600',
 };
 
-const paymentStatusBadge: Record<string, string> = {
-    paid: 'bg-green-100 text-green-700',
-    pending: 'bg-amber-100 text-amber-700',
-    failed: 'bg-red-100 text-red-600',
-    refund_pending: 'bg-orange-100 text-orange-700',
-    refunded: 'bg-gray-100 text-gray-500',
+const paymentStatusTone: Record<string, StatusTone> = {
+    paid: 'success',
+    pending: 'warning',
+    failed: 'danger',
+    refund_pending: 'warning',
+    refunded: 'neutral',
 };
+
+const paymentHeaders: DataTableHeader[] = [
+    { text: 'Method', value: 'payment_method' },
+    { text: 'Amount', value: 'amount' },
+    { text: 'Status', value: 'status' },
+    { text: 'Transaction ID', value: 'transaction_id' },
+    { text: 'Paid at', value: 'paid_at' },
+];
 
 const paymentStatusLabel: Record<string, string> = {
     paid: 'Paid',
@@ -423,113 +437,69 @@ function submitReject() {
                     </Card>
 
                     <!-- Payment history -->
-                    <Card>
-                        <CardHeader class="pb-3">
-                            <CardTitle
-                                class="flex items-center gap-2 text-sm font-semibold"
-                            >
+                    <DataTable
+                        :headers="paymentHeaders"
+                        :items="order.payments"
+                        noun="payments"
+                        :empty-icon="CreditCard"
+                        empty-message="No payment records found."
+                        :resettable="false"
+                        :min-width="640"
+                        compact
+                        hide-footer
+                    >
+                        <template #toolbar>
+                            <h2 class="text-sm font-semibold">
                                 Payment History
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div
-                                v-if="order.payments.length > 0"
-                                class="overflow-hidden rounded-lg border"
+                            </h2>
+                        </template>
+
+                        <template #item-payment_method="payment">
+                            <span class="capitalize">{{
+                                payment.payment_method
+                            }}</span>
+                        </template>
+
+                        <template #item-amount="payment">
+                            <span class="font-medium whitespace-nowrap">{{
+                                formatPrice(payment.amount)
+                            }}</span>
+                        </template>
+
+                        <template #item-status="payment">
+                            <StatusPill
+                                :tone="
+                                    paymentStatusTone[payment.status] ??
+                                    'neutral'
+                                "
                             >
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr
-                                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                        >
-                                            <th
-                                                class="px-4 py-2.5 text-left font-medium"
-                                            >
-                                                Method
-                                            </th>
-                                            <th
-                                                class="px-4 py-2.5 text-left font-medium"
-                                            >
-                                                Amount
-                                            </th>
-                                            <th
-                                                class="px-4 py-2.5 text-left font-medium"
-                                            >
-                                                Status
-                                            </th>
-                                            <th
-                                                class="px-4 py-2.5 text-left font-medium"
-                                            >
-                                                Transaction ID
-                                            </th>
-                                            <th
-                                                class="px-4 py-2.5 text-left font-medium"
-                                            >
-                                                Paid At
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="payment in order.payments"
-                                            :key="payment.id"
-                                            class="border-b last:border-0"
-                                        >
-                                            <td class="px-4 py-2.5 capitalize">
-                                                {{ payment.payment_method }}
-                                            </td>
-                                            <td class="px-4 py-2.5 font-medium">
-                                                {{
-                                                    formatPrice(payment.amount)
-                                                }}
-                                            </td>
-                                            <td class="px-4 py-2.5">
-                                                <span
-                                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                                    :class="
-                                                        paymentStatusBadge[
-                                                            payment.status
-                                                        ] ??
-                                                        'bg-gray-100 text-gray-500'
-                                                    "
-                                                >
-                                                    {{
-                                                        paymentStatusLabel[
-                                                            payment.status
-                                                        ] ?? payment.status
-                                                    }}
-                                                </span>
-                                            </td>
-                                            <td
-                                                class="px-4 py-2.5 font-mono text-xs text-muted-foreground"
-                                            >
-                                                {{
-                                                    payment.transaction_id ??
-                                                    payment.paymongo_payment_id ??
-                                                    '—'
-                                                }}
-                                            </td>
-                                            <td
-                                                class="px-4 py-2.5 text-xs whitespace-nowrap text-muted-foreground"
-                                            >
-                                                {{
-                                                    formatDate(payment.paid_at)
-                                                }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div
-                                v-else
-                                class="py-8 text-center text-sm text-muted-foreground"
+                                {{
+                                    paymentStatusLabel[payment.status] ??
+                                    payment.status
+                                }}
+                            </StatusPill>
+                        </template>
+
+                        <template #item-transaction_id="payment">
+                            <span
+                                class="font-mono text-xs text-muted-foreground"
                             >
-                                <CreditCard
-                                    class="mx-auto mb-2 h-8 w-8 opacity-20"
-                                />
-                                No payment records found.
-                            </div>
-                        </CardContent>
-                    </Card>
+                                {{
+                                    payment.transaction_id ??
+                                    payment.paymongo_payment_id ??
+                                    '—'
+                                }}
+                            </span>
+                        </template>
+
+                        <template #item-paid_at="payment">
+                            <span
+                                class="text-xs whitespace-nowrap text-muted-foreground"
+                            >
+                                {{ formatDate(payment.paid_at) }}
+                            </span>
+                        </template>
+                    </DataTable>
                 </div>
 
                 <!-- Right col — subscription summary -->

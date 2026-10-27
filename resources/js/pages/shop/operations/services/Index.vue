@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import {
+    DataTable,
+    DataTableToolbar,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -11,7 +18,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { useDataTable } from '@/composables/useDataTable';
 import {
     serviceCategories,
     serviceCategoryLabel,
@@ -22,24 +36,24 @@ import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
+    CheckCircle2,
+    Download,
+    FileWarning,
+    Loader2,
     Package,
     Pencil,
     Plus,
     RefreshCcw,
     RotateCcw,
     Scissors,
-    Search,
     ToggleLeft,
     ToggleRight,
     Trash2,
+    Upload,
     Weight,
+    X,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
-import Vue3EasyDataTable, { type Header } from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -62,15 +76,6 @@ type ServiceTableItem = ShopService & {
     actions: string;
 };
 
-type ServiceSortColumn =
-    | 'service_name'
-    | 'category_label'
-    | 'pricing_model'
-    | 'price_sort'
-    | 'estimated_hours'
-    | 'is_active';
-
-const EasyDataTable = Vue3EasyDataTable;
 const props = defineProps<{
     services: ShopService[];
     showArchived: boolean;
@@ -82,26 +87,39 @@ const base = computed(() =>
     isOwner.value ? '/shop/operations/services' : '/staff/operations/services',
 );
 
-const search = ref('');
 const categoryFilter = ref('');
 const pricingFilter = ref('');
-const statusFilter = ref('');
 const tableLoading = ref(false);
-const sortBy = ref<ServiceSortColumn>('service_name');
-const sortType = ref<'asc' | 'desc'>('asc');
 const serviceToDelete = ref<ShopService | null>(null);
 const showDeleteDialog = ref(false);
 
-const headers = computed<Header[]>(() => [
-    { text: 'Service', value: 'service_name', width: 230 },
-    { text: 'Category', value: 'category_label', width: 240 },
-    { text: 'Pricing Model', value: 'pricing_model', width: 150 },
-    { text: 'Price', value: 'price_sort', width: 160 },
-    { text: 'Turnaround', value: 'estimated_hours', width: 135 },
+const headers = computed<DataTableHeader[]>(() => [
+    { text: 'Service', value: 'service_name', width: 230, sortable: true },
+    { text: 'Category', value: 'category_label', width: 240, sortable: true },
+    {
+        text: 'Pricing model',
+        value: 'pricing_model',
+        width: 150,
+        sortable: true,
+    },
+    { text: 'Price', value: 'price_sort', width: 160, sortable: true },
+    {
+        text: 'Turnaround',
+        value: 'estimated_hours',
+        width: 135,
+        sortable: true,
+    },
     ...(!props.showArchived
-        ? [{ text: 'Status', value: 'is_active', width: 115 }]
+        ? [
+              {
+                  text: 'Status',
+                  value: 'is_active',
+                  width: 115,
+                  sortable: true,
+              },
+          ]
         : []),
-    { text: 'Actions', value: 'actions', width: 145 },
+    { text: 'Actions', value: 'actions', width: 145, align: 'center' as const },
 ]);
 
 const totalServices = computed(() => props.services.length);
@@ -126,57 +144,61 @@ const statCards = computed(() => [
     { label: 'Per Bundle', value: perBundleServices.value },
 ]);
 
-const tableItems = computed<ServiceTableItem[]>(() => {
-    const query = search.value.trim().toLowerCase();
-    const items = props.services
-        .map((service) => ({
-            ...service,
-            category_label: serviceCategoryLabel(service.category),
-            price_sort: Number(
-                service.pricing_model === 'per_kg'
-                    ? service.price_per_kg
-                    : service.bundle_price,
-            ),
-            actions: '',
-        }))
-        .filter((service) => {
-            const matchesSearch =
-                !query ||
-                service.service_name.toLowerCase().includes(query) ||
-                service.category_label.toLowerCase().includes(query) ||
-                service.description?.toLowerCase().includes(query);
-            const matchesCategory =
-                !categoryFilter.value ||
-                service.category === categoryFilter.value;
-            const matchesPricing =
-                !pricingFilter.value ||
-                service.pricing_model === pricingFilter.value;
-            const matchesStatus =
-                props.showArchived ||
-                !statusFilter.value ||
-                (statusFilter.value === 'active'
-                    ? service.is_active
-                    : !service.is_active);
+const serviceRows = computed<ServiceTableItem[]>(() =>
+    props.services.map((service) => ({
+        ...service,
+        category_label: serviceCategoryLabel(service.category),
+        price_sort: Number(
+            service.pricing_model === 'per_kg'
+                ? service.price_per_kg
+                : service.bundle_price,
+        ),
+        actions: '',
+    })),
+);
 
-            return (
-                matchesSearch &&
-                matchesCategory &&
-                matchesPricing &&
-                matchesStatus
-            );
-        });
+const {
+    search,
+    status: statusFilter,
+    options,
+    pageItems,
+    total,
+    statusCounts,
+    reset,
+} = useDataTable(serviceRows, {
+    searchFields: (service) => [
+        service.service_name,
+        service.category_label,
+        service.description,
+    ],
+    status: (service) =>
+        props.showArchived ? '' : service.is_active ? 'active' : 'inactive',
+    filter: (service) =>
+        (!categoryFilter.value || service.category === categoryFilter.value) &&
+        (!pricingFilter.value || service.pricing_model === pricingFilter.value),
+    sortValue: (service, column) => {
+        const value = service[column as keyof ServiceTableItem];
 
-    return items.sort((left, right) => {
-        const leftValue = left[sortBy.value] ?? '';
-        const rightValue = right[sortBy.value] ?? '';
-        const result =
-            typeof leftValue === 'number' && typeof rightValue === 'number'
-                ? leftValue - rightValue
-                : String(leftValue).localeCompare(String(rightValue));
-
-        return sortType.value === 'asc' ? result : -result;
-    });
+        return typeof value === 'boolean' ? Number(value) : value;
+    },
+    sortBy: 'service_name',
 });
+
+const statusOptions = computed(() => [
+    {
+        value: '',
+        label: 'All',
+        count:
+            (statusCounts.value.active ?? 0) +
+            (statusCounts.value.inactive ?? 0),
+    },
+    { value: 'active', label: 'Active', count: statusCounts.value.active ?? 0 },
+    {
+        value: 'inactive',
+        label: 'Inactive',
+        count: statusCounts.value.inactive ?? 0,
+    },
+]);
 
 watch(
     () => page.props.toast as { type: string; message: string } | undefined,
@@ -205,28 +227,89 @@ function formatPrice(service: ShopService) {
         : `${formatCurrency(service.bundle_price)} / ${service.bundle_weight_kg}kg bundle`;
 }
 
-function toggleSort(column: ServiceSortColumn) {
-    if (sortBy.value === column) {
-        sortType.value = sortType.value === 'asc' ? 'desc' : 'asc';
-        return;
-    }
-
-    sortBy.value = column;
-    sortType.value = 'asc';
-}
-
-function sortIcon(column: ServiceSortColumn) {
-    if (sortBy.value !== column) return ArrowUpDown;
-    return sortType.value === 'asc' ? ArrowUp : ArrowDown;
-}
-
 function resetFilters() {
-    search.value = '';
     categoryFilter.value = '';
     pricingFilter.value = '';
-    statusFilter.value = '';
-    sortBy.value = 'service_name';
-    sortType.value = 'asc';
+    reset();
+}
+
+// ─── CSV Import ───────────────────────────────────────────────────────────────
+
+const isImportOpen = ref(false);
+const importFile = ref<File | null>(null);
+const importErrors = ref<string[]>([]);
+const importing = ref(false);
+const isDragging = ref(false);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+
+function openImport() {
+    importFile.value = null;
+    importErrors.value = [];
+    isImportOpen.value = true;
+}
+
+function acceptFile(file: File | undefined) {
+    if (file?.name.toLowerCase().endsWith('.csv')) {
+        importFile.value = file;
+        importErrors.value = [];
+    } else {
+        importFile.value = null;
+        importErrors.value = ['Please choose a valid .csv file.'];
+    }
+}
+
+function clearFile() {
+    importFile.value = null;
+    importErrors.value = [];
+    if (fileInputRef.value) fileInputRef.value.value = '';
+}
+
+async function submitImport() {
+    if (!importFile.value || importing.value) return;
+
+    importing.value = true;
+    importErrors.value = [];
+
+    const formData = new FormData();
+    formData.append('csv_file', importFile.value);
+
+    try {
+        const response = await fetch(`${base.value}/import`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN':
+                    document
+                        .querySelector<HTMLMetaElement>(
+                            'meta[name="csrf-token"]',
+                        )
+                        ?.getAttribute('content') ?? '',
+                Accept: 'application/json',
+            },
+            body: formData,
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const validation = data.errors?.csv_file;
+            importErrors.value = Array.isArray(data.errors)
+                ? data.errors
+                : Array.isArray(validation)
+                  ? validation
+                  : [data.message ?? 'The import failed. Please try again.'];
+            toast.error('Import failed. Please fix the errors and try again.');
+            return;
+        }
+
+        toast.success(data.message ?? 'Services imported successfully.');
+        isImportOpen.value = false;
+        router.reload({ only: ['services'] });
+    } catch {
+        importErrors.value = [
+            'Failed to connect to the server. Please try again.',
+        ];
+    } finally {
+        importing.value = false;
+    }
 }
 
 function toggleArchived() {
@@ -305,6 +388,35 @@ function toggleActive(service: ShopService) {
         :title="showArchived ? 'Archived Services' : 'Services & Pricing'"
     >
         <div class="space-y-6 px-6">
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :class="
+                        showArchived
+                            ? 'border-blue-300 bg-blue-50 text-blue-700'
+                            : 'border-amber-300 bg-amber-50 text-amber-700'
+                    "
+                    @click="toggleArchived"
+                >
+                    <Archive class="mr-1.5 h-4 w-4" />
+                    {{ showArchived ? 'Active Services' : 'Archive' }}
+                </Button>
+                <template v-if="!showArchived">
+                    <Button size="sm" variant="outline" as-child>
+                        <a :href="`${base}/export`">
+                            <Download class="mr-1.5 h-4 w-4" /> Export CSV
+                        </a>
+                    </Button>
+                    <Button size="sm" variant="outline" @click="openImport">
+                        <Upload class="mr-1.5 h-4 w-4" /> Import CSV
+                    </Button>
+                    <Button size="sm" @click="router.visit(`${base}/create`)">
+                        <Plus class="mr-1.5 h-4 w-4" /> New Service
+                    </Button>
+                </template>
+            </div>
+
             <div
                 v-if="!showArchived"
                 class="grid grid-cols-2 gap-3 md:grid-cols-4"
@@ -345,339 +457,167 @@ function toggleActive(service: ShopService) {
                 </Button>
             </div>
 
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2 pt-6">
-                    <div class="relative min-w-52 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            class="pl-8"
-                            :placeholder="
-                                showArchived
-                                    ? 'Search archived services or categories...'
-                                    : 'Search services or categories...'
-                            "
-                        />
-                    </div>
-
-                    <select
-                        v-model="categoryFilter"
-                        class="h-9 rounded-md border bg-background px-3 text-sm"
-                        aria-label="Filter services by category"
-                    >
-                        <option value="">All categories</option>
-                        <option
-                            v-for="category in serviceCategories"
-                            :key="category.value"
-                            :value="category.value"
-                        >
-                            {{ category.label }}
-                        </option>
-                    </select>
-
-                    <select
-                        v-model="pricingFilter"
-                        class="h-9 rounded-md border bg-background px-3 text-sm"
-                        aria-label="Filter services by pricing model"
-                    >
-                        <option value="">All pricing</option>
-                        <option value="per_kg">Per KG</option>
-                        <option value="per_bundle">Per Bundle</option>
-                    </select>
-
-                    <select
-                        v-if="!showArchived"
-                        v-model="statusFilter"
-                        class="h-9 rounded-md border bg-background px-3 text-sm"
-                        aria-label="Filter services by status"
-                    >
-                        <option value="">All statuses</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-
-                    <Button size="sm" variant="outline" @click="resetFilters">
-                        <RefreshCcw class="mr-1.5 h-4 w-4" /> Reset
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        :class="
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="pageItems"
+                :total="total"
+                :loading="tableLoading"
+                noun="services"
+                :empty-icon="showArchived ? Archive : Scissors"
+                :empty-message="
+                    showArchived
+                        ? 'No archived services found. Try adjusting the search or filters.'
+                        : 'No services found. Try adjusting the search or filters.'
+                "
+                :min-width="1080"
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        v-model:status="statusFilter"
+                        :statuses="showArchived ? [] : statusOptions"
+                        :search-placeholder="
                             showArchived
-                                ? 'border-blue-300 bg-blue-50 text-blue-700'
-                                : 'border-amber-300 bg-amber-50 text-amber-700'
+                                ? 'Search archived services or categories...'
+                                : 'Search services or categories...'
                         "
-                        @click="toggleArchived"
+                        search-label="Search services"
+                        status-label="Filter services by status"
                     >
-                        <Archive class="mr-1.5 h-4 w-4" />
-                        {{ showArchived ? 'Active Services' : 'Archive' }}
-                    </Button>
-                    <Button
-                        v-if="!showArchived"
-                        size="sm"
-                        @click="router.visit(`${base}/create`)"
-                    >
-                        <Plus class="mr-1.5 h-4 w-4" /> New Service
-                    </Button>
-                </div>
+                        <select
+                            v-model="categoryFilter"
+                            class="h-9 rounded-md border bg-background px-3 text-sm"
+                            aria-label="Filter services by category"
+                        >
+                            <option value="">All categories</option>
+                            <option
+                                v-for="category in serviceCategories"
+                                :key="category.value"
+                                :value="category.value"
+                            >
+                                {{ category.label }}
+                            </option>
+                        </select>
 
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        class="shop-data-table"
-                        :headers="headers"
-                        :items="tableItems"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 15, 20, 50]"
-                        :rows-per-page="10"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        buttons-pagination
-                        alternating
-                        hide-footer-if-one-page
-                    >
-                        <template #header-service_name="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                @click="toggleSort('service_name')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('service_name')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60': sortBy !== 'service_name',
-                                    }"
-                                />
-                            </button>
-                        </template>
-                        <template #header-category_label="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                @click="toggleSort('category_label')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('category_label')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            sortBy !== 'category_label',
-                                    }"
-                                />
-                            </button>
-                        </template>
-                        <template #header-pricing_model="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                @click="toggleSort('pricing_model')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('pricing_model')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            sortBy !== 'pricing_model',
-                                    }"
-                                />
-                            </button>
-                        </template>
-                        <template #header-price_sort="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                @click="toggleSort('price_sort')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('price_sort')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60': sortBy !== 'price_sort',
-                                    }"
-                                />
-                            </button>
-                        </template>
-                        <template #header-estimated_hours="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                @click="toggleSort('estimated_hours')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('estimated_hours')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            sortBy !== 'estimated_hours',
-                                    }"
-                                />
-                            </button>
-                        </template>
-                        <template #header-is_active="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                @click="toggleSort('is_active')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('is_active')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60': sortBy !== 'is_active',
-                                    }"
-                                />
-                            </button>
-                        </template>
+                        <select
+                            v-model="pricingFilter"
+                            class="h-9 rounded-md border bg-background px-3 text-sm"
+                            aria-label="Filter services by pricing model"
+                        >
+                            <option value="">All pricing</option>
+                            <option value="per_kg">Per KG</option>
+                            <option value="per_bundle">Per Bundle</option>
+                        </select>
 
-                        <template #item-service_name="service">
-                            <div class="py-1">
-                                <p class="font-medium text-foreground">
-                                    {{ service.service_name }}
-                                </p>
-                                <p
-                                    v-if="service.description"
-                                    class="mt-0.5 max-w-56 truncate text-xs text-muted-foreground"
-                                >
-                                    {{ service.description }}
-                                </p>
-                            </div>
-                        </template>
-                        <template #item-category_label="service">
-                            <span
-                                class="inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200"
-                                >{{ service.category_label }}</span
-                            >
-                        </template>
-                        <template #item-pricing_model="service">
-                            <span
-                                class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1"
-                                :class="
-                                    service.pricing_model === 'per_kg'
-                                        ? 'bg-blue-50 text-blue-700 ring-blue-200'
-                                        : 'bg-violet-50 text-violet-700 ring-violet-200'
-                                "
-                            >
-                                <Weight
-                                    v-if="service.pricing_model === 'per_kg'"
-                                    class="h-3.5 w-3.5"
-                                />
-                                <Package v-else class="h-3.5 w-3.5" />
-                                {{
-                                    service.pricing_model === 'per_kg'
-                                        ? 'Per KG'
-                                        : 'Per Bundle'
-                                }}
-                            </span>
-                        </template>
-                        <template #item-price_sort="service">
-                            <span class="font-medium text-foreground">{{
-                                formatPrice(service)
-                            }}</span>
-                        </template>
-                        <template #item-estimated_hours="service">
-                            <span class="text-muted-foreground">{{
-                                service.estimated_hours
-                                    ? `${service.estimated_hours}h`
-                                    : '—'
-                            }}</span>
-                        </template>
-                        <template #item-is_active="service">
-                            <span
-                                class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1"
-                                :class="
-                                    service.is_active
-                                        ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
-                                        : 'bg-slate-100 text-slate-600 ring-slate-200'
-                                "
-                            >
-                                {{ service.is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </template>
-                        <template #item-actions="service">
-                            <div class="flex items-center justify-center gap-1">
-                                <template v-if="!showArchived">
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        :title="
-                                            service.is_active
-                                                ? 'Deactivate'
-                                                : 'Activate'
-                                        "
-                                        @click="toggleActive(service)"
-                                    >
-                                        <ToggleRight
-                                            v-if="service.is_active"
-                                            class="h-4 w-4 text-emerald-600"
-                                        />
-                                        <ToggleLeft
-                                            v-else
-                                            class="h-4 w-4 text-slate-500"
-                                        />
-                                    </Button>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        title="Edit service"
-                                        @click="
-                                            router.visit(
-                                                `${base}/${service.id}/edit`,
-                                            )
-                                        "
-                                    >
-                                        <Pencil class="h-4 w-4 text-blue-600" />
-                                    </Button>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        title="Archive service"
-                                        @click="confirmDelete(service)"
-                                    >
-                                        <Trash2 class="h-4 w-4 text-red-600" />
-                                    </Button>
-                                </template>
-                                <Button
-                                    v-else
-                                    size="sm"
-                                    variant="outline"
-                                    class="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                                    @click="restoreService(service)"
-                                >
-                                    <RotateCcw class="mr-1.5 h-4 w-4" /> Restore
-                                </Button>
-                            </div>
-                        </template>
-                        <template #empty-message>
-                            <div
-                                class="py-10 text-center text-muted-foreground"
-                            >
-                                <component
-                                    :is="showArchived ? Archive : Scissors"
-                                    class="mx-auto mb-2 h-10 w-10 opacity-30"
-                                />
-                                <p class="font-medium">
-                                    {{
-                                        showArchived
-                                            ? 'No archived services found'
-                                            : 'No services found'
-                                    }}
-                                </p>
-                                <p class="mt-1 text-xs">
-                                    Try adjusting the search or filters.
-                                </p>
-                            </div>
-                        </template>
-                    </EasyDataTable>
-                </div>
-            </CardContent>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            @click="resetFilters"
+                        >
+                            <RefreshCcw class="mr-1.5 h-4 w-4" /> Reset
+                        </Button>
+                    </DataTableToolbar>
+                </template>
+
+                <template #item-service_name="service">
+                    <div class="py-1">
+                        <p class="font-medium text-foreground">
+                            {{ service.service_name }}
+                        </p>
+                        <p
+                            v-if="service.description"
+                            class="mt-0.5 max-w-56 truncate text-xs text-muted-foreground"
+                        >
+                            {{ service.description }}
+                        </p>
+                    </div>
+                </template>
+                <template #item-category_label="service">
+                    <span
+                        class="inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200"
+                        >{{ service.category_label }}</span
+                    >
+                </template>
+                <template #item-pricing_model="service">
+                    <span
+                        class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ring-1"
+                        :class="
+                            service.pricing_model === 'per_kg'
+                                ? 'bg-blue-50 text-blue-700 ring-blue-200'
+                                : 'bg-violet-50 text-violet-700 ring-violet-200'
+                        "
+                    >
+                        <Weight
+                            v-if="service.pricing_model === 'per_kg'"
+                            class="h-3.5 w-3.5"
+                        />
+                        <Package v-else class="h-3.5 w-3.5" />
+                        {{
+                            service.pricing_model === 'per_kg'
+                                ? 'Per KG'
+                                : 'Per Bundle'
+                        }}
+                    </span>
+                </template>
+                <template #item-price_sort="service">
+                    <span class="font-medium text-foreground">{{
+                        formatPrice(service)
+                    }}</span>
+                </template>
+                <template #item-estimated_hours="service">
+                    <span class="text-muted-foreground">{{
+                        service.estimated_hours
+                            ? `${service.estimated_hours}h`
+                            : '—'
+                    }}</span>
+                </template>
+                <template #item-is_active="service">
+                    <StatusPill
+                        :tone="service.is_active ? 'success' : 'neutral'"
+                    >
+                        {{ service.is_active ? 'Active' : 'Inactive' }}
+                    </StatusPill>
+                </template>
+                <template #item-actions="service">
+                    <RowActions
+                        :label="service.service_name"
+                        :actions="[
+                            {
+                                label: service.is_active
+                                    ? 'Deactivate'
+                                    : 'Activate',
+                                icon: service.is_active
+                                    ? ToggleRight
+                                    : ToggleLeft,
+                                show: !showArchived,
+                                onSelect: () => toggleActive(service),
+                            },
+                            {
+                                label: 'Edit',
+                                icon: Pencil,
+                                show: !showArchived,
+                                onSelect: () =>
+                                    router.visit(`${base}/${service.id}/edit`),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: Trash2,
+                                destructive: true,
+                                show: !showArchived,
+                                onSelect: () => confirmDelete(service),
+                            },
+                            {
+                                label: 'Restore',
+                                icon: RotateCcw,
+                                show: showArchived,
+                                onSelect: () => restoreService(service),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <AlertDialog
@@ -707,61 +647,154 @@ function toggleActive(service: ShopService) {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+
+        <!-- Import Dialog -->
+        <Dialog v-model:open="isImportOpen">
+            <DialogContent class="max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Import Services via CSV</DialogTitle>
+                </DialogHeader>
+                <div class="space-y-4 text-sm">
+                    <div
+                        class="rounded-lg border bg-muted/40 px-4 py-3 text-xs leading-relaxed text-muted-foreground"
+                    >
+                        <p class="mb-1 font-semibold text-foreground">
+                            Required CSV columns:
+                        </p>
+                        <code class="block font-mono break-all">
+                            service_name, category, description, pricing_model,
+                            price_per_kg, bundle_price, bundle_weight_kg,
+                            estimated_hours, status
+                        </code>
+                        <p class="mt-2">
+                            <span class="font-medium">category</span>:
+                            <code>self_service</code>,
+                            <code>full_service</code>,
+                            <code>dry_cleaning</code>,
+                            <code>ironing_pressing</code>,
+                            <code>pickup_delivery</code>, or
+                            <code>specialty_bulk</code>
+                        </p>
+                        <p class="mt-1">
+                            <span class="font-medium">pricing_model</span>:
+                            <code>per_kg</code> (needs price_per_kg) or
+                            <code>per_bundle</code> (needs bundle_price and
+                            bundle_weight_kg) &nbsp;|&nbsp;
+                            <span class="font-medium">status</span>:
+                            <code>Active</code> or <code>Inactive</code>
+                        </p>
+                        <a
+                            :href="`${base}/import-template`"
+                            class="mt-2 inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                        >
+                            <Download class="h-3 w-3" /> Download blank template
+                        </a>
+                    </div>
+
+                    <div
+                        class="relative cursor-pointer rounded-xl border-2 border-dashed transition-colors"
+                        :class="
+                            isDragging
+                                ? 'border-primary bg-primary/5'
+                                : 'border-muted-foreground/30 hover:border-primary/50'
+                        "
+                        @dragover.prevent="isDragging = true"
+                        @dragleave="isDragging = false"
+                        @drop.prevent="
+                            isDragging = false;
+                            acceptFile($event.dataTransfer?.files?.[0]);
+                        "
+                        @click="fileInputRef?.click()"
+                    >
+                        <input
+                            ref="fileInputRef"
+                            type="file"
+                            accept=".csv"
+                            class="hidden"
+                            @change="
+                                acceptFile(
+                                    ($event.target as HTMLInputElement)
+                                        .files?.[0],
+                                )
+                            "
+                        />
+                        <div
+                            class="flex flex-col items-center justify-center px-4 py-8 text-center select-none"
+                        >
+                            <template v-if="!importFile">
+                                <Upload
+                                    class="mb-2 h-8 w-8 text-muted-foreground"
+                                />
+                                <p class="font-medium text-foreground">
+                                    Click to browse or drag & drop
+                                </p>
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    Only .csv files are accepted
+                                </p>
+                            </template>
+                            <template v-else>
+                                <div
+                                    class="flex items-center gap-2 text-green-600"
+                                >
+                                    <CheckCircle2 class="h-5 w-5" />
+                                    <span class="font-medium">{{
+                                        importFile.name
+                                    }}</span>
+                                </div>
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    {{ (importFile.size / 1024).toFixed(1) }} KB
+                                </p>
+                                <button
+                                    type="button"
+                                    class="mt-2 flex items-center gap-1 text-xs text-red-500 hover:underline"
+                                    @click.stop="clearFile"
+                                >
+                                    <X class="h-3 w-3" /> Remove file
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="importErrors.length"
+                        class="max-h-48 overflow-y-auto rounded-lg border border-red-200 bg-red-50 px-4 py-3"
+                    >
+                        <div
+                            class="mb-2 flex items-center gap-2 font-semibold text-red-700"
+                        >
+                            <FileWarning class="h-4 w-4 flex-shrink-0" />
+                            Import failed. Nothing was imported; please fix:
+                        </div>
+                        <ul class="space-y-1">
+                            <li
+                                v-for="(error, i) in importErrors"
+                                :key="i"
+                                class="flex items-start gap-1.5 text-xs text-red-600"
+                            >
+                                <span class="mt-0.5 flex-shrink-0">•</span
+                                >{{ error }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <DialogFooter class="mt-2">
+                    <Button variant="outline" @click="isImportOpen = false"
+                        >Cancel</Button
+                    >
+                    <Button
+                        :disabled="!importFile || importing"
+                        @click="submitImport"
+                    >
+                        <Loader2
+                            v-if="importing"
+                            class="mr-1.5 h-4 w-4 animate-spin"
+                        />
+                        <Upload v-else class="mr-1.5 h-4 w-4" />
+                        {{ importing ? 'Importing...' : 'Import' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </ShopLayout>
 </template>
-
-<style scoped>
-.shop-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 52px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 64px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-.sortable-column {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: inherit;
-    font: inherit;
-}
-
-.sortable-column:hover {
-    color: var(--foreground);
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 1080px;
-}
-</style>

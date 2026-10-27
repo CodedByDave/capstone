@@ -7,6 +7,13 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    type DataTableHeader,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogDescription,
@@ -24,6 +31,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useDataTable } from '@/composables/useDataTable';
 import {
     ArrowLeft,
     Banknote,
@@ -152,6 +160,79 @@ const totalGovContributions = computed(() =>
 const totalBonuses = computed(() =>
     props.payroll.items.reduce((sum, i) => sum + parseFloat(i.bonuses), 0),
 );
+
+// ─── Items table ──────────────────────────────────────────────────────────────
+
+const numericColumns = new Set([
+    'pay_rate',
+    'deductions',
+    'sss_contribution',
+    'philhealth_contribution',
+    'pagibig_contribution',
+    'withholding_tax',
+    'bonuses',
+    'net_pay',
+]);
+
+const { search, options, pageItems, total, isFiltered, reset } = useDataTable(
+    () => props.payroll.items,
+    {
+        searchFields: (item) => [
+            `${item.employee.first_name} ${item.employee.last_name}`,
+            item.employee.employee_id,
+            item.employee.position,
+        ],
+        sortValue: (item, column) => {
+            if (column === 'employee_name') {
+                return `${item.employee.first_name} ${item.employee.last_name}`;
+            }
+            const value = item[column as keyof PayrollItem];
+
+            return numericColumns.has(column)
+                ? parseFloat(String(value))
+                : value;
+        },
+        sortBy: 'employee_name',
+        rowsPerPage: 20,
+    },
+);
+
+const headers = computed<DataTableHeader[]>(() => [
+    { text: 'Employee', value: 'employee_name', sortable: true, width: 220 },
+    {
+        text: 'Pay rate / basis',
+        value: 'pay_rate',
+        sortable: true,
+        align: 'right',
+    },
+    { text: 'Worked', value: 'days_worked', sortable: true, align: 'center' },
+    { text: 'Absent', value: 'days_absent', sortable: true, align: 'center' },
+    { text: 'Late', value: 'days_late', sortable: true, align: 'center' },
+    { text: '½ day', value: 'days_half_day', sortable: true, align: 'center' },
+    {
+        text: 'Att. deduct.',
+        value: 'deductions',
+        sortable: true,
+        align: 'right',
+    },
+    { text: 'SSS', value: 'sss_contribution', align: 'right' },
+    { text: 'PhilHealth', value: 'philhealth_contribution', align: 'right' },
+    { text: 'Pag-IBIG', value: 'pagibig_contribution', align: 'right' },
+    { text: 'W. tax', value: 'withholding_tax', align: 'right' },
+    { text: 'Bonuses', value: 'bonuses', sortable: true, align: 'right' },
+    { text: 'Net pay', value: 'net_pay', sortable: true, align: 'right' },
+    { text: 'Remarks', value: 'remarks' },
+    ...(isDraft.value
+        ? [
+              {
+                  text: 'Actions',
+                  value: 'actions',
+                  align: 'center' as const,
+                  width: 90,
+              },
+          ]
+        : []),
+]);
 
 // ─── Edit Item Dialog ─────────────────────────────────────────────────────────
 
@@ -458,276 +539,207 @@ function exportCSV() {
             </div>
 
             <!-- ── Payroll Items Table ──────────────────────────── -->
-            <div class="overflow-hidden rounded-xl border">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr
-                                class="border-b bg-muted/40 text-xs text-muted-foreground"
-                            >
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Employee
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Pay Rate / Basis
-                                </th>
-                                <th class="px-4 py-3 text-center font-medium">
-                                    Worked
-                                </th>
-                                <th class="px-4 py-3 text-center font-medium">
-                                    Absent
-                                </th>
-                                <th class="px-4 py-3 text-center font-medium">
-                                    Late
-                                </th>
-                                <th class="px-4 py-3 text-center font-medium">
-                                    ½ Day
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Att. Deduct.
-                                </th>
-                                <th
-                                    class="bg-orange-50 px-4 py-3 text-right font-medium"
-                                >
-                                    SSS
-                                </th>
-                                <th
-                                    class="bg-orange-50 px-4 py-3 text-right font-medium"
-                                >
-                                    PhilHealth
-                                </th>
-                                <th
-                                    class="bg-orange-50 px-4 py-3 text-right font-medium"
-                                >
-                                    Pag-IBIG
-                                </th>
-                                <th
-                                    class="bg-orange-50 px-4 py-3 text-right font-medium"
-                                >
-                                    W. Tax
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Bonuses
-                                </th>
-                                <th class="px-4 py-3 text-right font-medium">
-                                    Net Pay
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Remarks
-                                </th>
-                                <th
-                                    v-if="isDraft"
-                                    class="px-4 py-3 text-right font-medium"
-                                >
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="item in payroll.items"
-                                :key="item.id"
-                                class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                            >
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
-                                        >
-                                            <span
-                                                class="text-xs font-bold text-primary"
-                                            >
-                                                {{ item.employee.first_name[0]
-                                                }}{{
-                                                    item.employee.last_name[0]
-                                                }}
-                                            </span>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="truncate font-medium">
-                                                {{ item.employee.first_name }}
-                                                {{ item.employee.last_name }}
-                                            </p>
-                                            <p
-                                                class="text-xs text-muted-foreground"
-                                            >
-                                                {{ item.employee.position }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-right">
-                                    <p class="font-mono text-xs">
-                                        {{ formatCurrency(item.pay_rate) }}
-                                    </p>
-                                    <p class="text-xs text-muted-foreground">
-                                        {{
-                                            payBasisLabels[item.pay_basis] ??
-                                            item.pay_basis
-                                        }}
-                                    </p>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex h-6 w-8 items-center justify-center rounded bg-green-100 text-xs font-semibold text-green-700"
-                                    >
-                                        {{ item.days_worked }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
-                                        :class="
-                                            item.days_absent > 0
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-muted text-muted-foreground'
-                                        "
-                                    >
-                                        {{ item.days_absent }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
-                                        :class="
-                                            item.days_late > 0
-                                                ? 'bg-amber-100 text-amber-700'
-                                                : 'bg-muted text-muted-foreground'
-                                        "
-                                    >
-                                        {{ item.days_late }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <span
-                                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
-                                        :class="
-                                            item.days_half_day > 0
-                                                ? 'bg-blue-100 text-blue-700'
-                                                : 'bg-muted text-muted-foreground'
-                                        "
-                                    >
-                                        {{ item.days_half_day }}
-                                    </span>
-                                </td>
-                                <td
-                                    class="px-4 py-3 text-right font-mono text-xs text-red-600"
-                                >
-                                    {{
-                                        parseFloat(item.deductions) > 0
-                                            ? `-${formatCurrency(item.deductions)}`
-                                            : '—'
-                                    }}
-                                </td>
-                                <td
-                                    class="bg-orange-50/40 px-4 py-3 text-right font-mono text-xs text-orange-600"
-                                >
-                                    -{{ formatCurrency(item.sss_contribution) }}
-                                </td>
-                                <td
-                                    class="bg-orange-50/40 px-4 py-3 text-right font-mono text-xs text-orange-600"
-                                >
-                                    -{{
-                                        formatCurrency(
-                                            item.philhealth_contribution,
-                                        )
-                                    }}
-                                </td>
-                                <td
-                                    class="bg-orange-50/40 px-4 py-3 text-right font-mono text-xs text-orange-600"
-                                >
-                                    -{{
-                                        formatCurrency(
-                                            item.pagibig_contribution,
-                                        )
-                                    }}
-                                </td>
-                                <td
-                                    class="bg-orange-50/40 px-4 py-3 text-right font-mono text-xs text-orange-600"
-                                >
-                                    {{
-                                        parseFloat(item.withholding_tax) > 0
-                                            ? `-${formatCurrency(item.withholding_tax)}`
-                                            : '—'
-                                    }}
-                                </td>
-                                <td
-                                    class="px-4 py-3 text-right font-mono text-xs text-green-600"
-                                >
-                                    {{
-                                        parseFloat(item.bonuses) > 0
-                                            ? `+${formatCurrency(item.bonuses)}`
-                                            : '—'
-                                    }}
-                                </td>
-                                <td class="px-4 py-3 text-right font-semibold">
-                                    {{ formatCurrency(item.net_pay) }}
-                                </td>
-                                <td
-                                    class="max-w-[120px] truncate px-4 py-3 text-xs text-muted-foreground"
-                                >
-                                    {{ item.remarks ?? '—' }}
-                                </td>
-                                <td v-if="isDraft" class="px-4 py-3 text-right">
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        @click="openEdit(item)"
-                                    >
-                                        <Pencil class="h-4 w-4 text-blue-500" />
-                                    </Button>
-                                </td>
-                            </tr>
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="pageItems"
+                :total="total"
+                noun="payroll items"
+                :empty-icon="Users"
+                :empty-message="
+                    isFiltered
+                        ? 'No payroll items match your search.'
+                        : 'No payroll items found.'
+                "
+                :resettable="isFiltered"
+                :min-width="1500"
+                @reset="reset"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        search-placeholder="Search employee, ID, position..."
+                        search-label="Search payroll items"
+                    />
+                </template>
 
-                            <tr v-if="payroll.items.length === 0">
-                                <td
-                                    :colspan="isDraft ? 15 : 14"
-                                    class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                >
-                                    No payroll items found.
-                                </td>
-                            </tr>
+                <template #item-employee_name="item">
+                    <IdentityCell
+                        :name="`${item.employee.first_name} ${item.employee.last_name}`"
+                        :secondary="item.employee.position"
+                    />
+                </template>
 
-                            <!-- Totals row -->
-                            <tr
-                                v-if="payroll.items.length > 0"
-                                class="border-t bg-muted/30 font-semibold"
-                            >
-                                <td class="px-4 py-3" colspan="6">Total</td>
-                                <td
-                                    class="px-4 py-3 text-right font-mono text-xs text-red-600"
-                                >
-                                    {{
-                                        totalDeductions > 0
-                                            ? `-${formatCurrency(totalDeductions)}`
-                                            : '—'
-                                    }}
-                                </td>
-                                <td
-                                    class="bg-orange-50/40 px-4 py-3 text-right font-mono text-xs text-orange-600"
-                                    colspan="4"
-                                >
-                                    -{{ formatCurrency(totalGovContributions) }}
-                                </td>
-                                <td
-                                    class="px-4 py-3 text-right font-mono text-xs text-green-600"
-                                >
-                                    {{
-                                        totalBonuses > 0
-                                            ? `+${formatCurrency(totalBonuses)}`
-                                            : '—'
-                                    }}
-                                </td>
-                                <td class="px-4 py-3 text-right text-base">
-                                    {{ formatCurrency(totalNetPay) }}
-                                </td>
-                                <td class="px-4 py-3"></td>
-                                <td v-if="isDraft" class="px-4 py-3"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                <template #item-pay_rate="item">
+                    <p class="font-mono text-xs">
+                        {{ formatCurrency(item.pay_rate) }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ payBasisLabels[item.pay_basis] ?? item.pay_basis }}
+                    </p>
+                </template>
+
+                <template #item-days_worked="item">
+                    <span
+                        class="inline-flex h-6 w-8 items-center justify-center rounded bg-green-100 text-xs font-semibold text-green-700"
+                    >
+                        {{ item.days_worked }}
+                    </span>
+                </template>
+
+                <template #item-days_absent="item">
+                    <span
+                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
+                        :class="
+                            item.days_absent > 0
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-muted text-muted-foreground'
+                        "
+                    >
+                        {{ item.days_absent }}
+                    </span>
+                </template>
+
+                <template #item-days_late="item">
+                    <span
+                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
+                        :class="
+                            item.days_late > 0
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-muted text-muted-foreground'
+                        "
+                    >
+                        {{ item.days_late }}
+                    </span>
+                </template>
+
+                <template #item-days_half_day="item">
+                    <span
+                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
+                        :class="
+                            item.days_half_day > 0
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-muted text-muted-foreground'
+                        "
+                    >
+                        {{ item.days_half_day }}
+                    </span>
+                </template>
+
+                <template #item-deductions="item">
+                    <span
+                        class="font-mono text-xs whitespace-nowrap text-red-600"
+                    >
+                        {{
+                            parseFloat(item.deductions) > 0
+                                ? `-${formatCurrency(item.deductions)}`
+                                : '—'
+                        }}
+                    </span>
+                </template>
+
+                <template #item-sss_contribution="item">
+                    <span
+                        class="font-mono text-xs whitespace-nowrap text-orange-600"
+                    >
+                        -{{ formatCurrency(item.sss_contribution) }}
+                    </span>
+                </template>
+
+                <template #item-philhealth_contribution="item">
+                    <span
+                        class="font-mono text-xs whitespace-nowrap text-orange-600"
+                    >
+                        -{{ formatCurrency(item.philhealth_contribution) }}
+                    </span>
+                </template>
+
+                <template #item-pagibig_contribution="item">
+                    <span
+                        class="font-mono text-xs whitespace-nowrap text-orange-600"
+                    >
+                        -{{ formatCurrency(item.pagibig_contribution) }}
+                    </span>
+                </template>
+
+                <template #item-withholding_tax="item">
+                    <span
+                        class="font-mono text-xs whitespace-nowrap text-orange-600"
+                    >
+                        {{
+                            parseFloat(item.withholding_tax) > 0
+                                ? `-${formatCurrency(item.withholding_tax)}`
+                                : '—'
+                        }}
+                    </span>
+                </template>
+
+                <template #item-bonuses="item">
+                    <span
+                        class="font-mono text-xs whitespace-nowrap text-green-600"
+                    >
+                        {{
+                            parseFloat(item.bonuses) > 0
+                                ? `+${formatCurrency(item.bonuses)}`
+                                : '—'
+                        }}
+                    </span>
+                </template>
+
+                <template #item-net_pay="item">
+                    <span class="font-semibold whitespace-nowrap">
+                        {{ formatCurrency(item.net_pay) }}
+                    </span>
+                </template>
+
+                <template #item-remarks="item">
+                    <span
+                        class="block max-w-[120px] truncate text-xs text-muted-foreground"
+                    >
+                        {{ item.remarks ?? '—' }}
+                    </span>
+                </template>
+
+                <template #item-actions="item">
+                    <RowActions
+                        :label="`${item.employee.first_name} ${item.employee.last_name}`"
+                        :actions="[
+                            {
+                                label: 'Edit bonuses and remarks',
+                                icon: Pencil,
+                                onSelect: () => openEdit(item),
+                            },
+                        ]"
+                    />
+                </template>
+
+                <template #footer>
+                    <span class="font-semibold text-foreground">
+                        Total net pay {{ formatCurrency(totalNetPay) }}
+                    </span>
+                    <span class="font-mono text-red-600">
+                        Att. deductions
+                        {{
+                            totalDeductions > 0
+                                ? `-${formatCurrency(totalDeductions)}`
+                                : '—'
+                        }}
+                    </span>
+                    <span class="font-mono text-orange-600">
+                        Gov. contributions -{{
+                            formatCurrency(totalGovContributions)
+                        }}
+                    </span>
+                    <span class="font-mono text-green-600">
+                        Bonuses
+                        {{
+                            totalBonuses > 0
+                                ? `+${formatCurrency(totalBonuses)}`
+                                : '—'
+                        }}
+                    </span>
+                </template>
+            </DataTable>
         </div>
 
         <!-- ── Edit Item Dialog ────────────────────────────────── -->

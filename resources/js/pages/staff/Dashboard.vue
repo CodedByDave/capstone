@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    DataTableToolbar,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
+import { useDataTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
@@ -264,21 +272,45 @@ const accessibleModules = computed(() =>
 
 // ─── Attendance history helpers ───────────────────────────────────────────────
 
-const statusCfg: Record<string, { label: string; dot: string; text: string }> =
-    {
-        present: {
-            label: 'Present',
-            dot: 'bg-emerald-500',
-            text: 'text-emerald-700',
-        },
-        absent: { label: 'Absent', dot: 'bg-red-500', text: 'text-red-600' },
-        late: { label: 'Late', dot: 'bg-amber-500', text: 'text-amber-700' },
-        half_day: {
-            label: 'Half Day',
-            dot: 'bg-blue-500',
-            text: 'text-blue-700',
-        },
-    };
+const statusCfg: Record<string, { label: string; tone: StatusTone }> = {
+    present: { label: 'Present', tone: 'success' },
+    absent: { label: 'Absent', tone: 'danger' },
+    late: { label: 'Late', tone: 'warning' },
+    half_day: { label: 'Half Day', tone: 'info' },
+};
+
+const historyHeaders: DataTableHeader[] = [
+    { text: 'Date', value: 'date', sortable: true, width: 140 },
+    { text: 'Status', value: 'status', sortable: true },
+    { text: 'Clock in', value: 'time_in' },
+    { text: 'Clock out', value: 'time_out' },
+    { text: 'Remarks', value: 'remarks' },
+];
+
+const {
+    status: historyStatus,
+    options: historyOptions,
+    pageItems: historyPage,
+    total: historyTotal,
+    statusCounts: historyCounts,
+    isFiltered: historyFiltered,
+    reset: resetHistory,
+} = useDataTable(() => props.own_attendances, {
+    status: (rec) => rec.status,
+    sortBy: 'date',
+    sortType: 'desc',
+});
+
+const historyStatusOptions = computed(() => [
+    { value: '', label: 'All', count: props.own_attendances.length },
+    ...Object.entries(statusCfg)
+        .filter(([key]) => historyCounts.value[key])
+        .map(([key, cfg]) => ({
+            value: key,
+            label: cfg.label,
+            count: historyCounts.value[key],
+        })),
+]);
 
 function fmtDate(d: string): string {
     return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', {
@@ -587,87 +619,71 @@ function fmtDate(d: string): string {
                     </h3>
                 </div>
 
-                <div class="overflow-hidden rounded-xl border">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr
-                                class="border-b bg-muted/40 text-xs text-muted-foreground"
-                            >
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Date
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Status
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Clock In
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Clock Out
-                                </th>
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Remarks
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="rec in props.own_attendances"
-                                :key="rec.date"
-                                class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                            >
-                                <td class="px-4 py-3 text-xs font-medium">
-                                    {{ fmtDate(rec.date) }}
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span
-                                        v-if="statusCfg[rec.status]"
-                                        class="flex items-center gap-1.5"
-                                    >
-                                        <span
-                                            class="h-2 w-2 shrink-0 rounded-full"
-                                            :class="statusCfg[rec.status].dot"
-                                        />
-                                        <span
-                                            class="text-xs font-medium"
-                                            :class="statusCfg[rec.status].text"
-                                        >
-                                            {{ statusCfg[rec.status].label }}
-                                        </span>
-                                    </span>
-                                    <span
-                                        v-else
-                                        class="text-xs text-muted-foreground italic"
-                                        >—</span
-                                    >
-                                </td>
-                                <td class="px-4 py-3 font-mono text-xs">
-                                    {{ rec.time_in ? fmt(rec.time_in) : '—' }}
-                                </td>
-                                <td class="px-4 py-3 font-mono text-xs">
-                                    {{ rec.time_out ? fmt(rec.time_out) : '—' }}
-                                </td>
-                                <td
-                                    class="px-4 py-3 text-xs text-muted-foreground"
-                                >
-                                    {{ rec.remarks || '—' }}
-                                </td>
-                            </tr>
+                <DataTable
+                    v-model:options="historyOptions"
+                    :headers="historyHeaders"
+                    :items="historyPage"
+                    :total="historyTotal"
+                    item-key="date"
+                    noun="attendance records"
+                    :empty-icon="CalendarClock"
+                    :empty-message="
+                        historyFiltered
+                            ? 'No attendance records match the selected status.'
+                            : 'No attendance records in the last 30 days.'
+                    "
+                    :resettable="historyFiltered"
+                    :min-width="640"
+                    compact
+                    @reset="resetHistory"
+                >
+                    <template #toolbar>
+                        <DataTableToolbar
+                            v-model:status="historyStatus"
+                            :statuses="historyStatusOptions"
+                            status-label="Filter attendance by status"
+                            hide-search
+                        />
+                    </template>
 
-                            <tr v-if="props.own_attendances.length === 0">
-                                <td
-                                    colspan="5"
-                                    class="px-4 py-10 text-center text-sm text-muted-foreground"
-                                >
-                                    <CalendarClock
-                                        class="mx-auto mb-2 h-7 w-7 opacity-30"
-                                    />
-                                    No attendance records in the last 30 days.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                    <template #item-date="rec">
+                        <span class="text-xs font-medium whitespace-nowrap">
+                            {{ fmtDate(rec.date) }}
+                        </span>
+                    </template>
+
+                    <template #item-status="rec">
+                        <StatusPill
+                            v-if="statusCfg[rec.status]"
+                            :tone="statusCfg[rec.status].tone"
+                        >
+                            {{ statusCfg[rec.status].label }}
+                        </StatusPill>
+                        <span
+                            v-else
+                            class="text-xs text-muted-foreground italic"
+                            >—</span
+                        >
+                    </template>
+
+                    <template #item-time_in="rec">
+                        <span class="font-mono text-xs whitespace-nowrap">
+                            {{ rec.time_in ? fmt(rec.time_in) : '—' }}
+                        </span>
+                    </template>
+
+                    <template #item-time_out="rec">
+                        <span class="font-mono text-xs whitespace-nowrap">
+                            {{ rec.time_out ? fmt(rec.time_out) : '—' }}
+                        </span>
+                    </template>
+
+                    <template #item-remarks="rec">
+                        <span class="text-xs text-muted-foreground">
+                            {{ rec.remarks || '—' }}
+                        </span>
+                    </template>
+                </DataTable>
             </div>
         </div>
     </ShopLayout>

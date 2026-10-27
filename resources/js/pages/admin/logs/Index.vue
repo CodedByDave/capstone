@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogDescription,
@@ -9,29 +18,20 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ArchiveRestore,
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
     Download,
     Eye,
     FileClock,
     RefreshCcw,
-    Search,
     Trash2,
     Upload,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
-import Vue3EasyDataTable, {
-    type Header,
-    type ServerOptions,
-} from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -60,8 +60,6 @@ interface Paginator {
     per_page: number;
     total: number;
 }
-
-const EasyDataTable = Vue3EasyDataTable;
 
 const props = defineProps<{
     logs: Paginator;
@@ -101,50 +99,43 @@ const tableLoading = ref(false);
 const importing = ref(false);
 const importInput = ref<HTMLInputElement | null>(null);
 
-type AuditSortColumn =
-    | 'name'
-    | 'email'
-    | 'category'
-    | 'module'
-    | 'event'
-    | 'occurred_at';
-
-const headers: Header[] = [
-    { text: '', value: 'selection', width: 48 },
-    { text: 'User', value: 'name', width: 185 },
-    { text: 'Email', value: 'email', width: 210 },
+const headers: DataTableHeader[] = [
+    { text: 'User', value: 'name', width: 200, sortable: true },
+    { text: 'Email', value: 'email', width: 210, sortable: true },
     { text: 'Role', value: 'role', width: 125 },
-    { text: 'Type', value: 'category', width: 150 },
-    { text: 'Module', value: 'module', width: 155 },
-    { text: 'Event', value: 'event', width: 135 },
+    { text: 'Type', value: 'category', width: 150, sortable: true },
+    { text: 'Module', value: 'module', width: 155, sortable: true },
+    { text: 'Event', value: 'event', width: 135, sortable: true },
     { text: 'Context', value: 'context', width: 230 },
-    { text: 'Date & Time', value: 'occurred_at', width: 190 },
-    { text: 'Actions', value: 'actions', width: 105 },
+    { text: 'Date & time', value: 'occurred_at', width: 190, sortable: true },
+    { text: 'Actions', value: 'actions', width: 105, align: 'center' },
 ];
 
-const serverOptions = ref<ServerOptions>({
+const categoryOptions = computed(() => [
+    { value: 'all', label: 'All', count: props.stats.total },
+    {
+        value: 'authentication',
+        label: 'Authentication',
+        count: props.stats.authentication,
+    },
+    {
+        value: 'activity',
+        label: 'User Activity',
+        count: props.stats.activities,
+    },
+]);
+
+function setCategory(value: string) {
+    category.value = value;
+    filterTable();
+}
+
+const serverOptions = ref<DataTableOptions>({
     page: props.logs.current_page,
     rowsPerPage: props.logs.per_page,
     sortBy: props.filters.sort_by ?? 'occurred_at',
     sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
 });
-
-function toggleSort(column: AuditSortColumn) {
-    if (serverOptions.value.sortBy === column) {
-        serverOptions.value.sortType =
-            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
-        return;
-    }
-
-    serverOptions.value.sortBy = column;
-    serverOptions.value.sortType = 'asc';
-}
-
-function sortIcon(column: AuditSortColumn) {
-    if (serverOptions.value.sortBy !== column) return ArrowUpDown;
-
-    return serverOptions.value.sortType === 'asc' ? ArrowUp : ArrowDown;
-}
 
 function queryParams() {
     return {
@@ -198,32 +189,10 @@ function resetFilters() {
 
 watch(serverOptions, () => applyFilters(), { deep: true });
 
-const selected = ref<string[]>([]);
-const selectableLogs = computed(() => props.logs.data);
+const selected = ref<Array<string | number>>([]);
 
 function entryKey(log: AuditLog) {
     return `${log.category}:${log.record_id}`;
-}
-
-const allSelected = computed(
-    () =>
-        selectableLogs.value.length > 0 &&
-        selectableLogs.value.every((log) =>
-            selected.value.includes(entryKey(log)),
-        ),
-);
-
-function toggleAll() {
-    selected.value = allSelected.value
-        ? []
-        : selectableLogs.value.map(entryKey);
-}
-
-function toggleOne(log: AuditLog) {
-    const key = entryKey(log);
-    selected.value = selected.value.includes(key)
-        ? selected.value.filter((selectedKey) => selectedKey !== key)
-        : [...selected.value, key];
 }
 
 const archiveLog = ref<AuditLog | null>(null);
@@ -260,7 +229,7 @@ function bulkArchive() {
         '/admin/audit-logs/bulk-archive',
         {
             entries: selected.value.map((key) => {
-                const [category, id] = key.split(':');
+                const [category, id] = String(key).split(':');
                 return { category, id: Number(id) };
             }),
         },
@@ -380,16 +349,16 @@ const roleBadge: Record<string, string> = {
     user: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
 };
 
-const eventBadge: Record<string, string> = {
-    success:
-        'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
-    failed: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
-    logout: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
+const eventTone: Record<string, StatusTone> = {
+    success: 'success',
+    failed: 'danger',
+    logout: 'neutral',
 };
 
 const tableItems = computed(() =>
     props.logs.data.map((log) => ({
         ...log,
+        entry_key: entryKey(log),
         context: context(log),
         actions: '',
     })),
@@ -473,22 +442,142 @@ const tableItems = computed(() =>
                 </Card>
             </div>
 
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2 pt-6">
-                    <div class="relative min-w-48 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            placeholder="Search users, emails, IPs, modules or shops..."
-                            class="pl-8"
-                            @keyup.enter="filterTable"
-                        />
-                    </div>
+            <DataTable
+                v-model:options="serverOptions"
+                v-model:selected="selected"
+                :headers="headers"
+                :items="tableItems"
+                :total="logs.total"
+                :loading="tableLoading"
+                item-key="entry_key"
+                :row-label="(log) => `audit log ${log.record_id}`"
+                :rows-items="[5, 10, 20, 50, 100]"
+                selectable
+                noun="audit logs"
+                :empty-icon="FileClock"
+                empty-message="No audit events found."
+                :min-width="1500"
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <DataTableToolbar
+                            v-model:search="search"
+                            :status="category"
+                            :statuses="categoryOptions"
+                            search-placeholder="Search users, emails, IPs, modules or shops..."
+                            search-label="Search audit logs"
+                            status-label="Filter by log type"
+                            @update:status="setCategory"
+                            @submit="filterTable"
+                        >
+                            <template #actions>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
+                                    @click="
+                                        router.visit(
+                                            '/admin/audit-logs/archive',
+                                        )
+                                    "
+                                >
+                                    <ArchiveRestore class="mr-1.5 h-4 w-4" />
+                                    Archive
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
+                                    @click="resetFilters"
+                                >
+                                    <RefreshCcw class="mr-1.5 h-4 w-4" />
+                                    Reset
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                                    @click="exportCsv"
+                                >
+                                    <Download class="mr-1.5 h-4 w-4" />
+                                    Export CSV
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                                    :disabled="importing"
+                                    @click="chooseCsvFile"
+                                >
+                                    <Upload class="mr-1.5 h-4 w-4" />
+                                    {{
+                                        importing
+                                            ? 'Importing...'
+                                            : 'Import CSV'
+                                    }}
+                                </Button>
+                                <input
+                                    ref="importInput"
+                                    type="file"
+                                    accept=".csv,text/csv"
+                                    class="hidden"
+                                    @change="importCsv"
+                                />
+                            </template>
+                        </DataTableToolbar>
 
+                        <div class="flex flex-wrap items-center gap-2">
+                            <select
+                                v-model="role"
+                                class="filter-input"
+                                aria-label="Filter by role"
+                                @change="filterTable"
+                            >
+                                <option value="all">All roles</option>
+                                <option value="super_admin">Super Admin</option>
+                                <option value="owner">Owner</option>
+                                <option value="staff">Staff</option>
+                                <option value="user">Customer</option>
+                            </select>
+                            <select
+                                v-model="module"
+                                class="filter-input"
+                                aria-label="Filter by module"
+                                @change="filterTable"
+                            >
+                                <option value="all">All modules</option>
+                                <option value="Authentication">
+                                    Authentication
+                                </option>
+                                <option
+                                    v-for="item in modules"
+                                    :key="item"
+                                    :value="item"
+                                >
+                                    {{ item }}
+                                </option>
+                            </select>
+                            <input
+                                v-model="event"
+                                class="filter-input"
+                                placeholder="Filter event"
+                                aria-label="Filter by event"
+                                @keyup.enter="filterTable"
+                            />
+                            <input
+                                v-model="date"
+                                type="date"
+                                class="filter-input"
+                                aria-label="Filter by date"
+                                @change="filterTable"
+                            />
+                        </div>
+                    </div>
+                </template>
+
+                <template #bulk-actions>
                     <Button
-                        v-if="selected.length"
                         size="sm"
                         variant="outline"
                         class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
@@ -497,384 +586,84 @@ const tableItems = computed(() =>
                         <Archive class="mr-1.5 h-4 w-4" />
                         Archive ({{ selected.length }})
                     </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
-                        @click="router.visit('/admin/audit-logs/archive')"
+                </template>
+
+                <template #item-name="log">
+                    <IdentityCell :name="log.name || 'Unknown user'" />
+                </template>
+                <template #item-email="log">
+                    <span class="text-xs text-muted-foreground">{{
+                        log.email || '—'
+                    }}</span>
+                </template>
+                <template #item-role="log">
+                    <span
+                        v-if="log.role"
+                        class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap capitalize"
+                        :class="roleBadge[log.role] ?? roleBadge.user"
                     >
-                        <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                        Archive
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-                        @click="resetFilters"
+                        {{ log.role.replace('_', ' ') }}
+                    </span>
+                    <span v-else class="text-xs text-muted-foreground">—</span>
+                </template>
+                <template #item-category="log">
+                    <StatusPill
+                        :tone="
+                            log.category === 'authentication'
+                                ? 'info'
+                                : 'success'
+                        "
                     >
-                        <RefreshCcw class="mr-1.5 h-4 w-4" />
-                        Reset
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                        @click="exportCsv"
+                        {{
+                            log.category === 'authentication'
+                                ? 'Authentication'
+                                : 'User Activity'
+                        }}
+                    </StatusPill>
+                </template>
+                <template #item-module="log">
+                    <span class="text-xs font-medium">{{ log.module }}</span>
+                </template>
+                <template #item-event="log">
+                    <StatusPill :tone="eventTone[log.event] ?? 'info'">
+                        {{ eventLabel(log.event) }}
+                    </StatusPill>
+                </template>
+                <template #item-context="log">
+                    <span
+                        class="line-clamp-2 text-xs text-muted-foreground"
+                        :title="log.context"
+                        >{{ log.context }}</span
                     >
-                        <Download class="mr-1.5 h-4 w-4" />
-                        Export CSV
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
-                        :disabled="importing"
-                        @click="chooseCsvFile"
+                </template>
+                <template #item-occurred_at="log">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                        >{{ formatDate(log.occurred_at) }}</span
                     >
-                        <Upload class="mr-1.5 h-4 w-4" />
-                        {{ importing ? 'Importing...' : 'Import CSV' }}
-                    </Button>
-                    <input
-                        ref="importInput"
-                        type="file"
-                        accept=".csv,text/csv"
-                        class="hidden"
-                        @change="importCsv"
+                </template>
+                <template #item-actions="log">
+                    <RowActions
+                        :label="`audit event ${log.record_id}`"
+                        :actions="[
+                            {
+                                label: 'View details',
+                                icon: Eye,
+                                onSelect: () =>
+                                    router.visit(
+                                        `/admin/audit-logs/${log.category}/${log.record_id}`,
+                                    ),
+                            },
+                            {
+                                label: 'Archive',
+                                icon: Trash2,
+                                destructive: true,
+                                onSelect: () => openArchive(log),
+                            },
+                        ]"
                     />
-                </div>
-
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        v-model:server-options="serverOptions"
-                        class="audit-data-table"
-                        :headers="headers"
-                        :items="tableItems"
-                        :server-items-length="logs.total"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 20, 50, 100]"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        buttons-pagination
-                        alternating
-                        must-sort
-                    >
-                        <template #header-selection>
-                            <input
-                                type="checkbox"
-                                aria-label="Select all authentication logs on this page"
-                                :checked="allSelected"
-                                class="rounded"
-                                @change="toggleAll"
-                            />
-                        </template>
-
-                        <template #header-name="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                :aria-label="`Sort users ${serverOptions.sortBy === 'name' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                @click="toggleSort('name')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('name')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            serverOptions.sortBy !== 'name',
-                                    }"
-                                />
-                            </button>
-                        </template>
-
-                        <template #header-email="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                :aria-label="`Sort emails ${serverOptions.sortBy === 'email' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                @click="toggleSort('email')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('email')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            serverOptions.sortBy !== 'email',
-                                    }"
-                                />
-                            </button>
-                        </template>
-
-                        <template #header-role="{ text }">
-                            <div class="column-filter">
-                                <span>{{ text }}</span>
-                                <select
-                                    v-model="role"
-                                    class="column-filter-input"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="all">All roles</option>
-                                    <option value="super_admin">
-                                        Super Admin
-                                    </option>
-                                    <option value="owner">Owner</option>
-                                    <option value="staff">Staff</option>
-                                    <option value="user">Customer</option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #header-category="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort types ${serverOptions.sortBy === 'category' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('category')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('category')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'category',
-                                        }"
-                                    />
-                                </button>
-                                <select
-                                    v-model="category"
-                                    class="column-filter-input"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="all">All types</option>
-                                    <option value="authentication">
-                                        Authentication
-                                    </option>
-                                    <option value="activity">
-                                        User Activity
-                                    </option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #header-module="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort modules ${serverOptions.sortBy === 'module' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('module')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('module')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'module',
-                                        }"
-                                    />
-                                </button>
-                                <select
-                                    v-model="module"
-                                    class="column-filter-input"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="all">All modules</option>
-                                    <option value="Authentication">
-                                        Authentication
-                                    </option>
-                                    <option
-                                        v-for="item in modules"
-                                        :key="item"
-                                        :value="item"
-                                    >
-                                        {{ item }}
-                                    </option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #header-event="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort events ${serverOptions.sortBy === 'event' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('event')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('event')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'event',
-                                        }"
-                                    />
-                                </button>
-                                <input
-                                    v-model="event"
-                                    class="column-filter-input"
-                                    placeholder="Filter event"
-                                    @click.stop
-                                    @keyup.enter="filterTable"
-                                />
-                            </div>
-                        </template>
-
-                        <template #header-occurred_at="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort dates ${serverOptions.sortBy === 'occurred_at' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('occurred_at')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('occurred_at')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'occurred_at',
-                                        }"
-                                    />
-                                </button>
-                                <input
-                                    v-model="date"
-                                    type="date"
-                                    class="column-filter-input"
-                                    @click.stop
-                                    @change="filterTable"
-                                />
-                            </div>
-                        </template>
-
-                        <template #item-selection="log">
-                            <input
-                                type="checkbox"
-                                :checked="selected.includes(entryKey(log))"
-                                :aria-label="`Select audit log ${log.record_id}`"
-                                class="rounded"
-                                @change="toggleOne(log)"
-                            />
-                        </template>
-
-                        <template #item-name="log">
-                            <span class="font-medium whitespace-nowrap">{{
-                                log.name || 'Unknown user'
-                            }}</span>
-                        </template>
-                        <template #item-email="log">
-                            <span class="text-xs text-muted-foreground">{{
-                                log.email || '—'
-                            }}</span>
-                        </template>
-                        <template #item-role="log">
-                            <span
-                                v-if="log.role"
-                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                :class="roleBadge[log.role] ?? roleBadge.user"
-                            >
-                                {{ log.role.replace('_', ' ') }}
-                            </span>
-                            <span v-else class="text-xs text-muted-foreground"
-                                >—</span
-                            >
-                        </template>
-                        <template #item-category="log">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                :class="
-                                    log.category === 'authentication'
-                                        ? 'bg-indigo-100 text-indigo-700'
-                                        : 'bg-emerald-100 text-emerald-700'
-                                "
-                            >
-                                {{
-                                    log.category === 'authentication'
-                                        ? 'Authentication'
-                                        : 'User Activity'
-                                }}
-                            </span>
-                        </template>
-                        <template #item-module="log">
-                            <span class="text-xs font-medium">{{
-                                log.module
-                            }}</span>
-                        </template>
-                        <template #item-event="log">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium"
-                                :class="
-                                    eventBadge[log.event] ??
-                                    'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
-                                "
-                            >
-                                {{ eventLabel(log.event) }}
-                            </span>
-                        </template>
-                        <template #item-context="log">
-                            <span
-                                class="line-clamp-2 text-xs text-muted-foreground"
-                                :title="log.context"
-                                >{{ log.context }}</span
-                            >
-                        </template>
-                        <template #item-occurred_at="log">
-                            <span
-                                class="text-xs whitespace-nowrap text-muted-foreground"
-                                >{{ formatDate(log.occurred_at) }}</span
-                            >
-                        </template>
-                        <template #item-actions="log">
-                            <div class="flex items-center justify-center gap-1">
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label="View audit event"
-                                    @click="
-                                        router.visit(
-                                            `/admin/audit-logs/${log.category}/${log.record_id}`,
-                                        )
-                                    "
-                                >
-                                    <Eye class="h-4 w-4 text-blue-500" />
-                                </Button>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label="Archive log"
-                                    @click="openArchive(log)"
-                                >
-                                    <Trash2 class="h-4 w-4 text-amber-500" />
-                                </Button>
-                            </div>
-                        </template>
-
-                        <template #empty-message>
-                            <div
-                                class="py-10 text-center text-sm text-muted-foreground"
-                            >
-                                <FileClock
-                                    class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                />
-                                No audit events found.
-                            </div>
-                        </template>
-                    </EasyDataTable>
-                </div>
-            </CardContent>
+                </template>
+            </DataTable>
         </div>
 
         <AlertDialog v-model:open="archiveOpen">
@@ -902,84 +691,20 @@ const tableItems = computed(() =>
 </template>
 
 <style scoped>
-.audit-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 82px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 62px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-.sortable-column {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: inherit;
-    font: inherit;
-}
-
-.sortable-column:hover {
-    color: var(--foreground);
-}
-
-.column-filter {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 6px;
-    text-align: left;
-}
-
-.column-filter-input {
-    height: 30px;
-    width: 100%;
-    min-width: 95px;
+.filter-input {
+    height: 36px;
+    min-width: 140px;
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--background);
-    padding: 0 8px;
+    padding: 0 10px;
     color: var(--foreground);
-    font-size: 12px;
-    font-weight: 400;
+    font-size: 13px;
     outline: none;
 }
 
-.column-filter-input:focus {
+.filter-input:focus-visible {
     border-color: var(--ring);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 1500px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 25%, transparent);
 }
 </style>

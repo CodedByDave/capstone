@@ -7,6 +7,14 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogDescription,
@@ -15,19 +23,10 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import {
     ArchiveRestore,
     ArrowLeft,
-    Search,
     ShieldCheck,
     Trash2,
 } from 'lucide-vue-next';
@@ -53,6 +52,7 @@ interface Paginator {
     data: AuditLog[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
@@ -110,32 +110,49 @@ function applyFilters() {
     );
 }
 
-// ─── Selection ────────────────────────────────────────────────────────────────
+function setCategory(value: string) {
+    category.value = value;
+    applyFilters();
+}
 
-const selected = ref<string[]>([]);
-const entryKey = (log: AuditLog) => `${log.category}:${log.record_id}`;
-const allSelected = computed(
-    () =>
-        props.logs.data.length > 0 &&
-        props.logs.data.every((log) => selected.value.includes(entryKey(log))),
+function resetFilters() {
+    search.value = '';
+    category.value = 'all';
+    applyFilters();
+}
+
+const hasFilters = computed(
+    () => Boolean(props.filters.search) || Boolean(props.filters.category),
 );
 
-function toggleAll() {
-    if (allSelected.value) {
-        selected.value = [];
-    } else {
-        selected.value = props.logs.data.map(entryKey);
-    }
-}
+const categoryOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'authentication', label: 'Authentication' },
+    { value: 'activity', label: 'User Activity' },
+];
 
-function toggleOne(log: AuditLog) {
-    const key = entryKey(log);
-    if (selected.value.includes(key)) {
-        selected.value = selected.value.filter((item) => item !== key);
-    } else {
-        selected.value.push(key);
-    }
-}
+// ─── Table ────────────────────────────────────────────────────────────────────
+
+const { options, loading } = usePaginatorTable(() => props.logs, ['logs']);
+
+const headers: DataTableHeader[] = [
+    { text: 'User', value: 'name', width: 240 },
+    { text: 'Role', value: 'role' },
+    { text: 'Type', value: 'category' },
+    { text: 'Module / event', value: 'module' },
+    { text: 'Context', value: 'context' },
+    { text: 'Archived at', value: 'archived_at' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 120 },
+];
+
+// ─── Selection ────────────────────────────────────────────────────────────────
+
+const selected = ref<Array<string | number>>([]);
+const entryKey = (log: AuditLog) => `${log.category}:${log.record_id}`;
+
+const tableItems = computed(() =>
+    props.logs.data.map((log) => ({ ...log, entry_key: entryKey(log) })),
+);
 
 // ─── Restore ──────────────────────────────────────────────────────────────────
 
@@ -157,7 +174,7 @@ function bulkRestore() {
         '/admin/audit-logs/archive/bulk-restore',
         {
             entries: selected.value.map((key) => {
-                const [category, id] = key.split(':');
+                const [category, id] = String(key).split(':');
                 return { category, id: Number(id) };
             }),
         },
@@ -235,32 +252,39 @@ const roleBadge: Record<string, string> = {
     <Head title="Audit & Logs — Archive" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="Audit Log Archive">
         <div class="space-y-6 px-6">
-            <Card>
-                <CardHeader class="pb-3">
-                    <div
-                        class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
-                    >
-                        <CardTitle class="flex items-center gap-2">
-                            <ArchiveRestore
-                                class="h-4 w-4 text-muted-foreground"
-                            />
-                            Archived Audit Logs
-                            <span
-                                class="ml-1 text-xs font-normal text-muted-foreground"
-                                >({{ total }} total)</span
-                            >
-                        </CardTitle>
-                        <div class="flex flex-wrap gap-2">
-                            <Button
-                                v-if="selected.length > 0"
-                                size="sm"
-                                variant="outline"
-                                class="border-green-300 text-green-700 hover:bg-green-50"
-                                @click="bulkRestore"
-                            >
-                                <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                                Restore ({{ selected.length }})
-                            </Button>
+            <DataTable
+                v-model:options="options"
+                v-model:selected="selected"
+                :headers="headers"
+                :items="tableItems"
+                :total="logs.total"
+                :loading="loading"
+                item-key="entry_key"
+                :row-label="(log) => `audit log ${log.record_id}`"
+                selectable
+                noun="archived logs"
+                :empty-icon="ShieldCheck"
+                empty-message="No archived logs found."
+                :resettable="hasFilters"
+                :min-width="1080"
+                hide-rows-per-page
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <div class="space-y-3">
+                        <div
+                            class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
+                        >
+                            <h2 class="flex items-center gap-2 font-semibold">
+                                <ArchiveRestore
+                                    class="h-4 w-4 text-muted-foreground"
+                                />
+                                Archived Audit Logs
+                                <span
+                                    class="ml-1 text-xs font-normal text-muted-foreground"
+                                    >({{ total }} total)</span
+                                >
+                            </h2>
                             <Button
                                 size="sm"
                                 variant="outline"
@@ -270,233 +294,111 @@ const roleBadge: Record<string, string> = {
                                 Logs
                             </Button>
                         </div>
+                        <DataTableToolbar
+                            v-model:search="search"
+                            :status="category"
+                            :statuses="categoryOptions"
+                            search-placeholder="Search email or name..."
+                            search-label="Search archived logs"
+                            status-label="Filter by log type"
+                            @update:status="setCategory"
+                            @submit="applyFilters"
+                        />
                     </div>
-                </CardHeader>
+                </template>
 
-                <CardContent class="space-y-4">
-                    <!-- Filters -->
-                    <div class="flex flex-wrap gap-2">
-                        <div class="relative min-w-48 flex-1">
-                            <Search
-                                class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                placeholder="Search email or name..."
-                                class="pl-8"
-                                @keyup.enter="applyFilters"
-                            />
-                        </div>
-                        <Select
-                            v-model="category"
-                            @update:model-value="applyFilters"
-                        >
-                            <SelectTrigger class="w-36">
-                                <SelectValue placeholder="Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Types</SelectItem>
-                                <SelectItem value="authentication"
-                                    >Authentication</SelectItem
-                                >
-                                <SelectItem value="activity"
-                                    >User Activity</SelectItem
-                                >
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="w-8 px-4 py-3">
-                                        <input
-                                            type="checkbox"
-                                            :checked="allSelected"
-                                            @change="toggleAll"
-                                            class="rounded"
-                                        />
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        User
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Role
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Type
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Module / Event
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Context
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Archived At
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-center font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="log in logs.data"
-                                    :key="entryKey(log)"
-                                    class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                                    :class="{
-                                        'bg-muted/10': selected.includes(
-                                            entryKey(log),
-                                        ),
-                                    }"
-                                >
-                                    <td class="px-4 py-3">
-                                        <input
-                                            type="checkbox"
-                                            :checked="
-                                                selected.includes(entryKey(log))
-                                            "
-                                            @change="toggleOne(log)"
-                                            class="rounded"
-                                        />
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <p class="font-medium">
-                                            {{ log.name ?? '—' }}
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ log.email || '—' }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            v-if="log.role"
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                            :class="
-                                                roleBadge[log.role] ??
-                                                'bg-gray-100 text-gray-600'
-                                            "
-                                        >
-                                            {{ log.role.replace('_', ' ') }}
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-xs text-muted-foreground"
-                                            >—</span
-                                        >
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                            :class="
-                                                log.category ===
-                                                'authentication'
-                                                    ? 'bg-indigo-100 text-indigo-700'
-                                                    : 'bg-emerald-100 text-emerald-700'
-                                            "
-                                        >
-                                            {{
-                                                log.category ===
-                                                'authentication'
-                                                    ? 'Authentication'
-                                                    : 'User Activity'
-                                            }}
-                                        </span>
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        <span class="font-medium">{{
-                                            log.module
-                                        }}</span>
-                                        <span class="block capitalize">{{
-                                            log.event.replace('_', ' ')
-                                        }}</span>
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
-                                    >
-                                        {{ context(log) }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground"
-                                    >
-                                        {{ formatDate(log.archived_at) }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div
-                                            class="flex items-center justify-center gap-1"
-                                        >
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="restore(log)"
-                                            >
-                                                <ArchiveRestore
-                                                    class="h-4 w-4 text-green-500"
-                                                />
-                                            </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="openDelete(log)"
-                                            >
-                                                <Trash2
-                                                    class="h-4 w-4 text-red-400"
-                                                />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="logs.data.length === 0">
-                                    <td
-                                        colspan="8"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <ShieldCheck
-                                            class="mx-auto mb-2 h-10 w-10 opacity-20"
-                                        />
-                                        No archived logs found.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div
-                        v-if="logs.last_page > 1"
-                        class="flex items-center justify-between pt-2"
+                <template #bulk-actions>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        class="border-green-300 text-green-700 hover:bg-green-50"
+                        @click="bulkRestore"
                     >
-                        <p class="text-xs text-muted-foreground">
-                            Showing {{ logs.data.length }} of
-                            {{ logs.total }} logs
-                        </p>
-                        <div class="flex gap-1">
-                            <Button
-                                v-for="link in logs.links"
-                                :key="link.label"
-                                size="sm"
-                                :variant="link.active ? 'default' : 'outline'"
-                                :disabled="!link.url"
-                                class="h-7 min-w-7 text-xs"
-                                @click="link.url && router.visit(link.url)"
-                            >
-                                <span v-html="link.label" />
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                        <ArchiveRestore class="mr-1.5 h-4 w-4" />
+                        Restore ({{ selected.length }})
+                    </Button>
+                </template>
+
+                <template #item-name="log">
+                    <IdentityCell
+                        :name="log.name ?? '—'"
+                        :secondary="log.email || '—'"
+                    />
+                </template>
+
+                <template #item-role="log">
+                    <span
+                        v-if="log.role"
+                        class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap capitalize"
+                        :class="
+                            roleBadge[log.role] ?? 'bg-gray-100 text-gray-600'
+                        "
+                    >
+                        {{ log.role.replace('_', ' ') }}
+                    </span>
+                    <span v-else class="text-xs text-muted-foreground">—</span>
+                </template>
+
+                <template #item-category="log">
+                    <StatusPill
+                        :tone="
+                            log.category === 'authentication'
+                                ? 'info'
+                                : 'success'
+                        "
+                    >
+                        {{
+                            log.category === 'authentication'
+                                ? 'Authentication'
+                                : 'User Activity'
+                        }}
+                    </StatusPill>
+                </template>
+
+                <template #item-module="log">
+                    <span class="text-xs text-muted-foreground">
+                        <span class="font-medium">{{ log.module }}</span>
+                        <span class="block capitalize">{{
+                            log.event.replace('_', ' ')
+                        }}</span>
+                    </span>
+                </template>
+
+                <template #item-context="log">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ context(log) }}
+                    </span>
+                </template>
+
+                <template #item-archived_at="log">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(log.archived_at) }}
+                    </span>
+                </template>
+
+                <template #item-actions="log">
+                    <RowActions
+                        :label="`audit log ${log.record_id}`"
+                        :actions="[
+                            {
+                                label: 'Restore',
+                                icon: ArchiveRestore,
+                                onSelect: () => restore(log),
+                            },
+                            {
+                                label: 'Delete permanently',
+                                icon: Trash2,
+                                destructive: true,
+                                onSelect: () => openDelete(log),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <!-- Permanent delete confirm -->

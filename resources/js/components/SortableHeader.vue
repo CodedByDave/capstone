@@ -3,14 +3,15 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 /**
- * A table column header that always shows a sort arrow: neutral when the column is not sorted,
- * up or down when it is. Matches the sortable headers on the admin Shop Management table.
+ * A table column header that always shows a sort arrow: a faint neutral arrow when the column is
+ * not sorted, and an accent-colored up or down arrow when it is. Matches the sortable headers on
+ * the admin Shop Management table.
  */
 const props = defineProps<{
     label: string;
     column: string;
-    sortBy?: string;
-    sortType?: 'asc' | 'desc';
+    sortBy?: string | string[];
+    sortType?: 'asc' | 'desc' | Array<'asc' | 'desc'>;
 }>();
 
 defineEmits<{ toggle: [] }>();
@@ -33,8 +34,9 @@ const icon = computed(() => {
         <span>{{ label }}</span>
         <component
             :is="icon"
-            class="h-3.5 w-3.5"
-            :class="{ 'opacity-60': !active }"
+            class="h-3.5 w-3.5 shrink-0"
+            :class="active ? 'text-primary' : 'opacity-40'"
+            aria-hidden="true"
         />
     </button>
 </template>
@@ -44,11 +46,20 @@ const icon = computed(() => {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-height: 32px;
+    border-radius: 4px;
     color: inherit;
     font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    outline: none;
 }
 
 .sortable-column:hover {
     color: var(--foreground);
+}
+
+.sortable-column:focus-visible {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 50%, transparent);
 }
 </style>

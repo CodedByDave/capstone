@@ -1,6 +1,14 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    RowActions,
+    StatusPill,
+    statusLabel,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -12,7 +20,7 @@ import {
     Eye,
     Loader2,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 interface AlertItem {
     id: number;
@@ -34,6 +42,7 @@ interface Paginator {
     data: AlertItem[];
     current_page: number;
     last_page: number;
+    per_page?: number;
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
 }
@@ -60,6 +69,27 @@ const breadcrumbs: BreadcrumbItem[] = [
 const alertList = ref<AlertItem[]>([...props.alerts.data]);
 const updatingId = ref<number | null>(null);
 const markingAll = ref(false);
+
+watch(
+    () => props.alerts.data,
+    (data) => {
+        alertList.value = [...data];
+    },
+);
+
+const { options, loading } = usePaginatorTable(
+    () => props.alerts,
+    ['alerts', 'unreadCount'],
+);
+
+const headers: DataTableHeader[] = [
+    { text: 'Item', value: 'item' },
+    { text: 'Stock at alert', value: 'quantity_at_alert' },
+    { text: 'Current stock', value: 'current' },
+    { text: 'Status', value: 'status' },
+    { text: 'Triggered', value: 'created_at' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 140 },
+];
 
 async function updateAlert(
     id: number,
@@ -101,11 +131,11 @@ function formatDate(dt: string) {
     });
 }
 
-const statusStyle: Record<string, string> = {
-    unread: 'bg-red-100 text-red-700',
-    read: 'bg-gray-100 text-gray-600',
-    resolved: 'bg-green-100 text-green-700',
-    dismissed: 'bg-gray-100 text-gray-400',
+const statusTones: Record<string, StatusTone> = {
+    unread: 'danger',
+    read: 'neutral',
+    resolved: 'success',
+    dismissed: 'neutral',
 };
 </script>
 
@@ -141,218 +171,116 @@ const statusStyle: Record<string, string> = {
                 </Button>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="alertList"
+                :total="alerts.total"
+                :loading="loading"
+                noun="alerts"
+                :empty-icon="CheckCircle2"
+                empty-message="No alerts. All stock levels are healthy!"
+                :resettable="false"
+                :row-class="
+                    (alert) =>
+                        alert.status === 'dismissed' ? 'opacity-50' : ''
+                "
+                :min-width="860"
+                hide-rows-per-page
+            >
+                <template #toolbar>
+                    <h2 class="flex items-center gap-2 font-semibold">
                         <AlertTriangle class="h-4 w-4 text-amber-500" />
                         Alert History
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Item
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Stock at Alert
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Current Stock
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Status
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Triggered
-                                    </th>
-                                    <th
-                                        class="px-4 py-3 text-right font-medium"
-                                    >
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="alert in alertList"
-                                    :key="alert.id"
-                                    class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                                    :class="{
-                                        'opacity-50':
-                                            alert.status === 'dismissed',
-                                    }"
-                                >
-                                    <td class="px-4 py-3">
-                                        <p class="font-medium">
-                                            {{
-                                                alert.inventory?.name ??
-                                                'Deleted item'
-                                            }}
-                                        </p>
-                                        <p
-                                            class="font-mono text-xs text-muted-foreground"
-                                        >
-                                            {{ alert.inventory?.sku }}
-                                        </p>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="font-medium text-red-600"
-                                            >{{ alert.quantity_at_alert }}</span
-                                        >
-                                        <span
-                                            class="ml-1 text-xs text-muted-foreground"
-                                            >/ min
-                                            {{ alert.min_stock_at_alert }}</span
-                                        >
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            v-if="alert.inventory"
-                                            :class="
-                                                alert.inventory.quantity <=
-                                                alert.min_stock_at_alert
-                                                    ? 'font-medium text-red-600'
-                                                    : 'font-medium text-green-600'
-                                            "
-                                        >
-                                            {{ alert.inventory.quantity }}
-                                            {{ alert.inventory.unit }}
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-muted-foreground"
-                                            >—</span
-                                        >
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                            :class="statusStyle[alert.status]"
-                                        >
-                                            {{ alert.status }}
-                                        </span>
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 text-xs text-muted-foreground"
-                                    >
-                                        {{ formatDate(alert.created_at) }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                        <div
-                                            class="flex items-center justify-end gap-1"
-                                        >
-                                            <!-- View item -->
-                                            <Button
-                                                v-if="alert.inventory"
-                                                size="icon"
-                                                variant="ghost"
-                                                @click="
-                                                    router.visit(
-                                                        `${inventoryBase}/${alert.inventory.id}`,
-                                                    )
-                                                "
-                                            >
-                                                <Eye
-                                                    class="h-3.5 w-3.5 text-blue-500"
-                                                />
-                                            </Button>
+                    </h2>
+                </template>
 
-                                            <!-- Mark resolved -->
-                                            <Button
-                                                v-if="
-                                                    ['unread', 'read'].includes(
-                                                        alert.status,
-                                                    )
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                :disabled="
-                                                    updatingId === alert.id
-                                                "
-                                                @click="
-                                                    updateAlert(
-                                                        alert.id,
-                                                        'resolved',
-                                                    )
-                                                "
-                                            >
-                                                <Loader2
-                                                    v-if="
-                                                        updatingId === alert.id
-                                                    "
-                                                    class="h-3.5 w-3.5 animate-spin"
-                                                />
-                                                <CheckCircle2
-                                                    v-else
-                                                    class="h-3.5 w-3.5 text-green-500"
-                                                />
-                                            </Button>
+                <template #item-item="alert">
+                    <p class="font-medium">
+                        {{ alert.inventory?.name ?? 'Deleted item' }}
+                    </p>
+                    <p class="font-mono text-xs text-muted-foreground">
+                        {{ alert.inventory?.sku }}
+                    </p>
+                </template>
 
-                                            <!-- Dismiss -->
-                                            <Button
-                                                v-if="
-                                                    alert.status !== 'dismissed'
-                                                "
-                                                size="icon"
-                                                variant="ghost"
-                                                :disabled="
-                                                    updatingId === alert.id
-                                                "
-                                                @click="
-                                                    updateAlert(
-                                                        alert.id,
-                                                        'dismissed',
-                                                    )
-                                                "
-                                            >
-                                                <BellOff
-                                                    class="h-3.5 w-3.5 text-gray-400"
-                                                />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr v-if="alertList.length === 0">
-                                    <td
-                                        colspan="6"
-                                        class="px-4 py-12 text-center text-sm text-muted-foreground"
-                                    >
-                                        <CheckCircle2
-                                            class="mx-auto mb-2 h-10 w-10 text-green-500 opacity-20"
-                                        />
-                                        No alerts. All stock levels are healthy!
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div
-                        v-if="alerts.last_page > 1"
-                        class="flex justify-end gap-1 pt-4"
-                    >
-                        <Button
-                            v-for="link in alerts.links"
-                            :key="link.label"
-                            size="sm"
-                            :variant="link.active ? 'default' : 'outline'"
-                            :disabled="!link.url"
-                            class="h-7 min-w-7 text-xs"
-                            @click="link.url && router.visit(link.url)"
+                <template #item-quantity_at_alert="alert">
+                    <span class="whitespace-nowrap">
+                        <span class="font-medium text-red-600">{{
+                            alert.quantity_at_alert
+                        }}</span>
+                        <span class="ml-1 text-xs text-muted-foreground"
+                            >/ min {{ alert.min_stock_at_alert }}</span
                         >
-                            <span v-html="link.label" />
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                    </span>
+                </template>
+
+                <template #item-current="alert">
+                    <span
+                        v-if="alert.inventory"
+                        class="whitespace-nowrap"
+                        :class="
+                            alert.inventory.quantity <= alert.min_stock_at_alert
+                                ? 'font-medium text-red-600'
+                                : 'font-medium text-green-600'
+                        "
+                    >
+                        {{ alert.inventory.quantity }}
+                        {{ alert.inventory.unit }}
+                    </span>
+                    <span v-else class="text-muted-foreground">—</span>
+                </template>
+
+                <template #item-status="alert">
+                    <StatusPill :tone="statusTones[alert.status]">
+                        {{ statusLabel(alert.status) }}
+                    </StatusPill>
+                </template>
+
+                <template #item-created_at="alert">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ formatDate(alert.created_at) }}
+                    </span>
+                </template>
+
+                <template #item-actions="alert">
+                    <RowActions
+                        :label="alert.inventory?.name ?? 'deleted item'"
+                        :actions="[
+                            {
+                                label: 'View item',
+                                icon: Eye,
+                                show: Boolean(alert.inventory),
+                                onSelect: () =>
+                                    router.visit(
+                                        `${inventoryBase}/${alert.inventory?.id}`,
+                                    ),
+                            },
+                            {
+                                label: 'Mark resolved',
+                                icon:
+                                    updatingId === alert.id
+                                        ? Loader2
+                                        : CheckCircle2,
+                                disabled: updatingId === alert.id,
+                                show: ['unread', 'read'].includes(alert.status),
+                                onSelect: () =>
+                                    updateAlert(alert.id, 'resolved'),
+                            },
+                            {
+                                label: 'Dismiss',
+                                icon: BellOff,
+                                disabled: updatingId === alert.id,
+                                show: alert.status !== 'dismissed',
+                                onSelect: () =>
+                                    updateAlert(alert.id, 'dismissed'),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    StatusPill,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -224,6 +229,13 @@ const movementTypeData = computed(() => ({
         },
     ],
 }));
+
+const topHeaders: DataTableHeader[] = [
+    { text: 'Item', value: 'name' },
+    { text: 'Quantity', value: 'quantity' },
+    { text: 'Min stock', value: 'min_stock' },
+    { text: 'Status', value: 'status' },
+];
 
 const chartOptions = {
     responsive: true,
@@ -487,70 +499,44 @@ const doughnutOptions = {
             </div>
 
             <!-- Top stocked -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2 text-sm">
+            <DataTable
+                :headers="topHeaders"
+                :items="topStocked"
+                noun="items"
+                :empty-icon="Package"
+                empty-message="No items."
+                :resettable="false"
+                :min-width="560"
+                compact
+                hide-footer
+            >
+                <template #toolbar>
+                    <h2 class="flex items-center gap-2 text-sm font-semibold">
                         <Package class="h-4 w-4 text-muted-foreground" /> Top
                         Stocked Items
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="overflow-hidden rounded-lg border">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr
-                                    class="border-b bg-muted/40 text-xs text-muted-foreground"
-                                >
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Item
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Quantity
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Min Stock
-                                    </th>
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Status
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="item in topStocked"
-                                    :key="item.id"
-                                    class="border-b last:border-0"
-                                >
-                                    <td class="px-4 py-3 font-medium">
-                                        {{ item.name }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        {{ item.quantity }} {{ item.unit }}
-                                    </td>
-                                    <td class="px-4 py-3 text-muted-foreground">
-                                        {{ item.min_stock }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"
-                                        >
-                                            In Stock
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr v-if="topStocked.length === 0">
-                                    <td
-                                        colspan="4"
-                                        class="px-4 py-8 text-center text-sm text-muted-foreground"
-                                    >
-                                        No items.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+                    </h2>
+                </template>
+
+                <template #item-name="item">
+                    <span class="font-medium">{{ item.name }}</span>
+                </template>
+
+                <template #item-quantity="item">
+                    <span class="whitespace-nowrap">
+                        {{ item.quantity }} {{ item.unit }}
+                    </span>
+                </template>
+
+                <template #item-min_stock="item">
+                    <span class="text-muted-foreground">{{
+                        item.min_stock
+                    }}</span>
+                </template>
+
+                <template #item-status>
+                    <StatusPill tone="success">In Stock</StatusPill>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 </template>

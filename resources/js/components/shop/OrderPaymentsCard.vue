@@ -1,7 +1,15 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import { router } from '@inertiajs/vue3';
 import {
@@ -13,8 +21,6 @@ import {
     Wallet,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-import Vue3EasyDataTable, { type Header } from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 
 export interface OrderPayment {
     id: string;
@@ -44,7 +50,6 @@ const props = defineProps<{
     base: string;
 }>();
 
-const EasyDataTable = Vue3EasyDataTable;
 const { can } = usePermissions();
 const canManage = computed(() => can('Operations', 'manage'));
 
@@ -87,35 +92,26 @@ const statusStyle = (status: string) =>
         paid: 'bg-green-50 text-green-700 ring-1 ring-green-200',
     })[status] ?? 'bg-gray-50 text-gray-700 ring-1 ring-gray-200';
 
-const paymentBadge = (status: string) =>
+const paymentBadge = (status: string): { label: string; tone: StatusTone } =>
     ({
-        confirmed: {
-            label: 'Received',
-            class: 'bg-green-50 text-green-700 ring-1 ring-green-200',
-        },
+        confirmed: { label: 'Received', tone: 'success' as StatusTone },
         pending: {
             label: 'Waiting for online payment',
-            class: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+            tone: 'warning' as StatusTone,
         },
-        voided: {
-            label: 'Voided',
-            class: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200',
-        },
-    })[status] ?? {
-        label: status,
-        class: 'bg-gray-50 text-gray-700 ring-1 ring-gray-200',
-    };
+        voided: { label: 'Voided', tone: 'neutral' as StatusTone },
+    })[status] ?? { label: status, tone: 'neutral' };
 
 // ─── History table ──────────────────────────────────
 
-const headers: Header[] = [
+const headers: DataTableHeader[] = [
     { text: 'Date', value: 'date', width: 160 },
     { text: 'Method', value: 'method', width: 110 },
     { text: 'Reference', value: 'reference', width: 150 },
     { text: 'Amount', value: 'amount', width: 120 },
     { text: 'Status', value: 'status', width: 190 },
     { text: 'Recorded by', value: 'recorder', width: 140 },
-    { text: '', value: 'actions', width: 90 },
+    { text: 'Actions', value: 'actions', width: 90, align: 'center' },
 ];
 
 const rows = computed(() =>
@@ -126,6 +122,13 @@ const rows = computed(() =>
         actions: '',
     })),
 );
+
+// Newest first, as recorded; paged five at a time.
+const {
+    options,
+    pageItems,
+    total: tableTotal,
+} = useDataTable(rows, { rowsPerPage: 5 });
 
 // ─── Record a payment ───────────────────────────────
 
@@ -307,89 +310,86 @@ function checkStatus() {
                 paid.
             </p>
 
-            <div class="overflow-hidden rounded-lg border">
-                <EasyDataTable
-                    class="payments-data-table"
-                    :headers="headers"
-                    :items="rows"
-                    :rows-per-page="5"
-                    :rows-items="[5, 10, 20]"
-                    rows-of-page-separator-message="out of"
-                    rows-per-page-message="Rows per page:"
-                    buttons-pagination
-                    hide-footer-when-single-page
-                    alternating
-                    empty-message="No payments recorded yet."
-                >
-                    <template #item-date="{ paid_at, created_at }">
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="pageItems"
+                :total="tableTotal"
+                noun="payments"
+                :empty-icon="Wallet"
+                empty-message="No payments recorded yet."
+                :resettable="false"
+                :rows-items="[5, 10, 20]"
+                :hide-footer="rows.length <= 5"
+                :min-width="760"
+                compact
+            >
+                <template #item-date="{ paid_at, created_at }">
+                    <span class="whitespace-nowrap">
                         {{ formatDate(paid_at ?? created_at) }}
-                    </template>
-                    <template #item-method="{ method }">
-                        {{ methodLabel(method) }}
-                    </template>
-                    <template #item-reference="{ reference, note }">
-                        <span class="block">{{ reference ?? '—' }}</span>
-                        <span
-                            v-if="note"
-                            class="block text-xs text-muted-foreground"
-                            >{{ note }}</span
-                        >
-                    </template>
-                    <template #item-amount="{ amount, status }">
-                        <span
-                            class="font-medium"
-                            :class="
-                                status === 'voided'
-                                    ? 'text-muted-foreground line-through'
-                                    : ''
-                            "
-                            >{{ money(amount) }}</span
-                        >
-                    </template>
-                    <template
-                        #item-status="{
-                            status,
-                            void_reason,
-                            voided_by,
-                            voided_at,
-                        }"
+                    </span>
+                </template>
+                <template #item-method="{ method }">
+                    {{ methodLabel(method) }}
+                </template>
+                <template #item-reference="{ reference, note }">
+                    <span class="block">{{ reference ?? '—' }}</span>
+                    <span
+                        v-if="note"
+                        class="block text-xs text-muted-foreground"
+                        >{{ note }}</span
                     >
-                        <span
-                            class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
-                            :class="paymentBadge(status).class"
-                            >{{ paymentBadge(status).label }}</span
+                </template>
+                <template #item-amount="{ amount, status }">
+                    <span
+                        class="font-medium whitespace-nowrap"
+                        :class="
+                            status === 'voided'
+                                ? 'text-muted-foreground line-through'
+                                : ''
+                        "
+                        >{{ money(amount) }}</span
+                    >
+                </template>
+                <template
+                    #item-status="{ status, void_reason, voided_by, voided_at }"
+                >
+                    <StatusPill :tone="paymentBadge(status).tone">
+                        {{ paymentBadge(status).label }}
+                    </StatusPill>
+                    <span
+                        v-if="status === 'voided'"
+                        class="mt-1 block text-xs text-muted-foreground"
+                    >
+                        {{ void_reason }}
+                        <template v-if="voided_by">
+                            — {{ voided_by }},
+                            {{ formatDate(voided_at) }}</template
                         >
-                        <span
-                            v-if="status === 'voided'"
-                            class="mt-1 block text-xs text-muted-foreground"
-                        >
-                            {{ void_reason }}
-                            <template v-if="voided_by">
-                                — {{ voided_by }},
-                                {{ formatDate(voided_at) }}</template
-                            >
-                        </span>
-                    </template>
-                    <template #item-recorder="{ recorded_by, source }">
-                        {{
-                            source === 'online'
-                                ? 'Customer (online)'
-                                : (recorded_by ?? '—')
-                        }}
-                    </template>
-                    <template #item-actions="item">
-                        <Button
-                            v-if="canManage && item.status === 'confirmed'"
-                            size="sm"
-                            variant="ghost"
-                            class="text-red-600 hover:text-red-700"
-                            @click="openVoid(item as OrderPayment)"
-                        >
-                            <Ban class="mr-1 h-3.5 w-3.5" /> Void
-                        </Button>
-                    </template>
-                </EasyDataTable>
-            </div>
+                    </span>
+                </template>
+                <template #item-recorder="{ recorded_by, source }">
+                    {{
+                        source === 'online'
+                            ? 'Customer (online)'
+                            : (recorded_by ?? '—')
+                    }}
+                </template>
+                <template #item-actions="item">
+                    <RowActions
+                        :label="`${money(item.amount)} ${methodLabel(item.method)} payment`"
+                        :actions="[
+                            {
+                                label: 'Void payment',
+                                icon: Ban,
+                                destructive: true,
+                                show: canManage && item.status === 'confirmed',
+                                onSelect: () => openVoid(item as OrderPayment),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </CardContent>
     </Card>
 
@@ -547,47 +547,3 @@ function checkStatus() {
         </form>
     </div>
 </template>
-
-<style scoped>
-.payments-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 44px;
-    --easy-table-header-item-padding: 8px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 56px;
-    --easy-table-body-item-padding: 8px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 48px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 760px;
-}
-</style>

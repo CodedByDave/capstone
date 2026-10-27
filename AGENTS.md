@@ -151,6 +151,25 @@ When the user asks to create, change, update, improve, or refactor a table layou
 - Reuse the admin table classes, shared slots, and UI components where available instead of duplicating table behavior unnecessarily.
 - If the user explicitly identifies another table or design as the reference, follow that instruction instead.
 
+#### Table UX and design details
+
+Apply these on top of the rules above, using `EasyDataTable` as the implementation and the project's existing theme tokens and accent color (do not introduce new fonts or colors, gradients, or emoji):
+
+- **Toolbar:** a search input bound with `v-model` that filters across the table's key text columns, plus segmented status filter chips that show a count per status. The toolbar wraps on small screens.
+- **Sortable headers:** clicking toggles asc/desc; the active column shows an accent-colored arrow and the others a faint neutral ↕. Keep `aria-sort` correct on each sortable header.
+- **Header row:** small, uppercase, muted labels on a slightly tinted header row.
+- **Selection:** row checkboxes with a select-all for the current page. When rows are selected, show a bulk-action bar (feature-appropriate actions plus Clear). Selected rows get a light tint of the accent color; rows have a subtle hover.
+- **Identity cell:** for people or entities, show an initials avatar with a bold name and the muted secondary line (e.g. email) beneath it.
+- **Status:** pill badges with a colored dot and a text label, never color alone.
+- **Row actions:** a kebab "more actions" button per row with an `aria-label` naming the row.
+- **Empty state:** an icon, a message, and a "Reset filters" button that clears search, filters, and sort.
+- **Footer:** "Showing 1–6 of 12" on the left; prev/next and page numbers on the right, with prev/next disabled at the ends.
+- **Paging:** reset to page 1 whenever search, filter, or sort changes.
+- **Container:** white card with a 1px border and a 14px radius on a light grey page background; the table scrolls horizontally inside its card on small screens.
+- **Accent usage:** reserve the accent color for primary actions, the active sort, and selection.
+- **Accessibility:** text contrast of at least 4.5:1, touch targets of at least 44px, visible focus rings, and real `<button>`, `<input>`, and `<label>` elements so the table is fully keyboard accessible.
+- **Reusability:** keep filter/sort/paginate/selection state in a composable (for example `useDataTable`) separate from the presentational component, with scoped slots for cell, bulk-action, and empty-state customization, so the logic is easy to test.
+
 When the user asks to create, change, update, improve, or refactor KPI cards without naming a different visual reference, use the KPI section on the admin **Shop Management** page in `resources/js/pages/admin/shop/Index.vue` as the canonical layout and styling reference.
 
 - Match its compact card grid, card treatment, spacing, typography, labels, and value hierarchy.

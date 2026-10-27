@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
+import { DataTable, type DataTableHeader } from '@/components/data-table';
 import OrderPaymentsCard, {
     type OrderPayment,
 } from '@/components/shop/OrderPaymentsCard.vue';
@@ -142,6 +143,12 @@ onMounted(() => {
     if (t.type === 'success') toast.success(t.message);
     if (t.type === 'error') toast.error(t.message);
 });
+
+const supplyHeaders: DataTableHeader[] = [
+    { text: 'Item', value: 'name' },
+    { text: 'Qty used', value: 'quantity_used' },
+    { text: 'Unit', value: 'unit' },
+];
 
 // ─── Helpers ───────────────────────────────────────
 
@@ -566,65 +573,34 @@ const statusIcon = (s: string) =>
                     </Card>
 
                     <!-- Supplies -->
-                    <Card>
-                        <CardHeader
-                            ><CardTitle>Supplies Used</CardTitle></CardHeader
-                        >
-                        <CardContent>
-                            <div
-                                v-if="shopOrder.supplies.length === 0"
-                                class="text-sm text-muted-foreground italic"
-                            >
-                                No supplies recorded.
-                            </div>
-                            <div
-                                v-else
-                                class="overflow-hidden rounded-lg border"
-                            >
-                                <table class="w-full text-sm">
-                                    <thead
-                                        class="bg-muted/40 text-xs tracking-wide uppercase"
-                                    >
-                                        <tr>
-                                            <th class="px-4 py-2 text-left">
-                                                Item
-                                            </th>
-                                            <th class="px-4 py-2 text-left">
-                                                Qty Used
-                                            </th>
-                                            <th class="px-4 py-2 text-left">
-                                                Unit
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="supply in shopOrder.supplies"
-                                            :key="supply.id"
-                                            class="border-t hover:bg-muted/20"
-                                        >
-                                            <td class="px-4 py-2 font-medium">
-                                                {{ supply.name }}
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                {{
-                                                    formatQty(
-                                                        supply.pivot
-                                                            .quantity_used,
-                                                    )
-                                                }}
-                                            </td>
-                                            <td
-                                                class="px-4 py-2 text-muted-foreground"
-                                            >
-                                                {{ supply.pivot.unit }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <DataTable
+                        :headers="supplyHeaders"
+                        :items="shopOrder.supplies"
+                        noun="supplies"
+                        :empty-icon="Package"
+                        empty-message="No supplies recorded."
+                        :resettable="false"
+                        compact
+                        hide-footer
+                    >
+                        <template #toolbar>
+                            <h2 class="font-semibold">Supplies Used</h2>
+                        </template>
+
+                        <template #item-name="supply">
+                            <span class="font-medium">{{ supply.name }}</span>
+                        </template>
+
+                        <template #item-quantity_used="supply">
+                            {{ formatQty(supply.pivot.quantity_used) }}
+                        </template>
+
+                        <template #item-unit="supply">
+                            <span class="text-muted-foreground">{{
+                                supply.pivot.unit
+                            }}</span>
+                        </template>
+                    </DataTable>
                 </div>
 
                 <!-- Right Column -->

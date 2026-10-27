@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DataTable, type DataTableHeader } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
@@ -45,44 +46,60 @@ const parsedDetails = computed<Record<string, unknown> | null>(() => {
     }
 });
 
-const detailRows = computed(() => {
+interface DetailRow {
+    field: string;
+    oldValue: string | null;
+    newValue: string;
+}
+
+const detailRows = computed<DetailRow[]>(() => {
     if (!parsedDetails.value) return [];
 
-    return Object.entries(parsedDetails.value).flatMap(([field, value]) => {
-        if (field === 'target_user' && value && typeof value === 'object') {
-            return Object.entries(value as Record<string, unknown>).map(
-                ([targetField, targetValue]) => ({
-                    field: `Target ${label(targetField)}`,
-                    oldValue: null,
-                    newValue: displayValue(targetValue),
-                }),
-            );
-        }
+    return Object.entries(parsedDetails.value).flatMap<DetailRow>(
+        ([field, value]) => {
+            if (field === 'target_user' && value && typeof value === 'object') {
+                return Object.entries(value as Record<string, unknown>).map(
+                    ([targetField, targetValue]) => ({
+                        field: `Target ${label(targetField)}`,
+                        oldValue: null,
+                        newValue: displayValue(targetValue),
+                    }),
+                );
+            }
 
-        if (
-            value &&
-            typeof value === 'object' &&
-            ('old' in value || 'new' in value)
-        ) {
-            const change = value as { old?: unknown; new?: unknown };
+            if (
+                value &&
+                typeof value === 'object' &&
+                ('old' in value || 'new' in value)
+            ) {
+                const change = value as { old?: unknown; new?: unknown };
+                return [
+                    {
+                        field: label(field),
+                        oldValue: displayValue(change.old),
+                        newValue: displayValue(change.new),
+                    },
+                ];
+            }
+
             return [
                 {
                     field: label(field),
-                    oldValue: displayValue(change.old),
-                    newValue: displayValue(change.new),
+                    oldValue: null,
+                    newValue: displayValue(value),
                 },
             ];
-        }
-
-        return [
-            {
-                field: label(field),
-                oldValue: null,
-                newValue: displayValue(value),
-            },
-        ];
-    });
+        },
+    );
 });
+
+const detailHeaders = computed<DataTableHeader[]>(() => [
+    { text: 'Field', value: 'field', width: 220 },
+    ...(detailRows.value.some((row) => row.oldValue !== null)
+        ? [{ text: 'Previous value', value: 'oldValue' }]
+        : []),
+    { text: 'Recorded value', value: 'newValue' },
+]);
 
 function label(value: string) {
     return value
@@ -308,71 +325,39 @@ function parseAgent(userAgent: string | null) {
                 </Card>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle class="text-lg">Activity Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div
-                        v-if="detailRows.length"
-                        class="overflow-hidden rounded-lg border"
-                    >
-                        <table class="w-full text-sm">
-                            <thead
-                                class="bg-muted/60 text-xs text-muted-foreground uppercase"
-                            >
-                                <tr>
-                                    <th class="px-4 py-3 text-left">Field</th>
-                                    <th
-                                        v-if="
-                                            detailRows.some(
-                                                (row) => row.oldValue !== null,
-                                            )
-                                        "
-                                        class="px-4 py-3 text-left"
-                                    >
-                                        Previous value
-                                    </th>
-                                    <th class="px-4 py-3 text-left">
-                                        Recorded value
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="row in detailRows"
-                                    :key="row.field"
-                                    class="border-t"
-                                >
-                                    <td class="px-4 py-3 font-medium">
-                                        {{ row.field }}
-                                    </td>
-                                    <td
-                                        v-if="
-                                            detailRows.some(
-                                                (item) =>
-                                                    item.oldValue !== null,
-                                            )
-                                        "
-                                        class="px-4 py-3 text-muted-foreground"
-                                    >
-                                        {{ row.oldValue ?? '—' }}
-                                    </td>
-                                    <td class="px-4 py-3 break-all">
-                                        {{ row.newValue }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <p v-else class="text-sm text-muted-foreground">
-                        {{
-                            log.details ||
-                            'No additional details were recorded for this event.'
-                        }}
-                    </p>
-                </CardContent>
-            </Card>
+            <DataTable
+                :headers="detailHeaders"
+                :items="detailRows"
+                item-key="field"
+                noun="details"
+                :empty-icon="Activity"
+                :empty-message="
+                    log.details ||
+                    'No additional details were recorded for this event.'
+                "
+                :resettable="false"
+                :min-width="560"
+                compact
+                hide-footer
+            >
+                <template #toolbar>
+                    <h2 class="text-lg font-semibold">Activity Details</h2>
+                </template>
+
+                <template #item-field="row">
+                    <span class="font-medium">{{ row.field }}</span>
+                </template>
+
+                <template #item-oldValue="row">
+                    <span class="text-muted-foreground">{{
+                        row.oldValue ?? '—'
+                    }}</span>
+                </template>
+
+                <template #item-newValue="row">
+                    <span class="break-all">{{ row.newValue }}</span>
+                </template>
+            </DataTable>
         </div>
     </AdminLayout>
 </template>

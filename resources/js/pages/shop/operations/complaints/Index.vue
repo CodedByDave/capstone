@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import ComplaintStatusBadge from '@/components/ComplaintStatusBadge.vue';
-import SortableHeader from '@/components/SortableHeader.vue';
+import {
+    DataTable,
+    DataTableToolbar,
+    IdentityCell,
+    RowActions,
+    type DataTableHeader,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -11,25 +17,14 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import {
-    AlertTriangle,
-    Eye,
-    Loader2,
-    RefreshCcw,
-    Search,
-} from 'lucide-vue-next';
+import { AlertTriangle, Eye, Loader2, RefreshCcw } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
-import Vue3EasyDataTable, {
-    type Header,
-    type ServerOptions,
-} from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -54,7 +49,6 @@ interface Paginator {
     current_page: number;
 }
 
-const EasyDataTable = Vue3EasyDataTable;
 const props = defineProps<{
     stats: {
         total: number;
@@ -88,46 +82,53 @@ const status = ref(String(props.filters.status ?? ''));
 const type = ref(String(props.filters.type ?? ''));
 const tableLoading = ref(false);
 
-type SortColumn =
-    | 'order_number'
-    | 'customer'
-    | 'type'
-    | 'status'
-    | 'created_at';
-
-const headers: Header[] = [
-    { text: 'Order', value: 'order_number', width: 150 },
-    { text: 'Customer', value: 'customer', width: 170 },
-    { text: 'Issue', value: 'type', width: 170 },
+const headers: DataTableHeader[] = [
+    { text: 'Order', value: 'order_number', width: 150, sortable: true },
+    { text: 'Customer', value: 'customer', width: 190, sortable: true },
+    { text: 'Issue', value: 'type', width: 170, sortable: true },
     { text: 'Description', value: 'description' },
-    { text: 'Status', value: 'status', width: 140 },
-    { text: 'Reported', value: 'created_at', width: 130 },
-    { text: 'Action', value: 'action', width: 100 },
+    { text: 'Status', value: 'status', width: 140, sortable: true },
+    { text: 'Reported', value: 'created_at', width: 130, sortable: true },
+    { text: 'Action', value: 'action', width: 110, align: 'center' },
 ];
 
-const serverOptions = ref<ServerOptions>({
+const statusOptions = computed(() => [
+    { value: '', label: 'All', count: props.stats.total },
+    { value: 'open', label: 'Open', count: props.stats.open },
+    {
+        value: 'under_review',
+        label: 'Under review',
+        count: props.stats.under_review,
+    },
+    { value: 'resolved', label: 'Resolved', count: props.stats.resolved },
+    {
+        value: 'rejected',
+        label: 'Closed',
+        count: Math.max(
+            0,
+            props.stats.total -
+                props.stats.open -
+                props.stats.under_review -
+                props.stats.resolved,
+        ),
+    },
+]);
+
+const hasFilters = computed(
+    () => search.value !== '' || status.value !== '' || type.value !== '',
+);
+
+function setStatus(value: string) {
+    status.value = value;
+    filterTable();
+}
+
+const serverOptions = ref<DataTableOptions>({
     page: props.complaints.current_page,
     rowsPerPage: props.complaints.per_page,
     sortBy: String(props.filters.sort_by ?? 'created_at'),
     sortType: props.filters.sort_direction === 'asc' ? 'asc' : 'desc',
 });
-
-// Plain strings for the header component; the table library types these more loosely.
-const sortBy = computed(() => String(serverOptions.value.sortBy));
-const sortType = computed<'asc' | 'desc'>(() =>
-    serverOptions.value.sortType === 'asc' ? 'asc' : 'desc',
-);
-
-function toggleSort(column: SortColumn) {
-    if (serverOptions.value.sortBy === column) {
-        serverOptions.value.sortType =
-            serverOptions.value.sortType === 'asc' ? 'desc' : 'asc';
-        return;
-    }
-
-    serverOptions.value.sortBy = column;
-    serverOptions.value.sortType = 'asc';
-}
 
 const tableItems = computed(() =>
     props.complaints.data.map((row) => ({
@@ -295,173 +296,110 @@ function submitResponse() {
                 </Card>
             </div>
 
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2 pt-6">
-                    <div class="relative min-w-48 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            placeholder="Search order, customer or description..."
-                            class="pl-8"
-                            @keyup.enter="filterTable"
-                        />
-                    </div>
-
-                    <label class="sr-only" for="complaints-status-filter"
-                        >Filter by status</label
+            <DataTable
+                v-model:options="serverOptions"
+                :headers="headers"
+                :items="tableItems"
+                :total="complaints.total"
+                :loading="tableLoading"
+                item-key="public_id"
+                noun="complaints"
+                :empty-icon="AlertTriangle"
+                :empty-message="
+                    hasFilters
+                        ? 'No complaints match the current filters.'
+                        : 'No complaints yet. Customers can report a problem once an order is completed.'
+                "
+                :resettable="hasFilters"
+                :min-width="900"
+                @reset="resetFilters"
+            >
+                <template #toolbar>
+                    <DataTableToolbar
+                        v-model:search="search"
+                        :status="status"
+                        :statuses="statusOptions"
+                        search-placeholder="Search order, customer or description..."
+                        search-label="Search complaints"
+                        status-label="Filter by status"
+                        @update:status="setStatus"
+                        @submit="filterTable"
                     >
-                    <select
-                        id="complaints-status-filter"
-                        v-model="status"
-                        class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                        @change="filterTable"
-                    >
-                        <option value="">All statuses</option>
-                        <option value="open">Open</option>
-                        <option value="under_review">Under review</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="rejected">Closed</option>
-                    </select>
-
-                    <label class="sr-only" for="complaints-type-filter"
-                        >Filter by issue</label
-                    >
-                    <select
-                        id="complaints-type-filter"
-                        v-model="type"
-                        class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                        @change="filterTable"
-                    >
-                        <option value="">All issues</option>
-                        <option
-                            v-for="(label, value) in types"
-                            :key="value"
-                            :value="value"
+                        <label class="sr-only" for="complaints-type-filter"
+                            >Filter by issue</label
                         >
-                            {{ label }}
-                        </option>
-                    </select>
-
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-                        @click="resetFilters"
-                    >
-                        <RefreshCcw class="mr-1.5 h-4 w-4" />
-                        Reset
-                    </Button>
-                </div>
-
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        v-model:server-options="serverOptions"
-                        class="complaints-data-table"
-                        :headers="headers"
-                        :items="tableItems"
-                        :server-items-length="complaints.total"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 15, 20, 50, 100]"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        empty-message="No complaints yet. Customers can report a problem once an order is completed."
-                        buttons-pagination
-                        alternating
-                        must-sort
-                    >
-                        <template #header-order_number="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="order_number"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('order_number')"
-                            />
-                        </template>
-                        <template #header-customer="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="customer"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('customer')"
-                            />
-                        </template>
-                        <template #header-type="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="type"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('type')"
-                            />
-                        </template>
-                        <template #header-status="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="status"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('status')"
-                            />
-                        </template>
-                        <template #header-created_at="{ text }">
-                            <SortableHeader
-                                :label="text"
-                                column="created_at"
-                                :sort-by="sortBy"
-                                :sort-type="sortType"
-                                @toggle="toggleSort('created_at')"
-                            />
-                        </template>
-
-                        <template #item-order_number="row">
-                            <span class="font-mono text-xs">{{
-                                row.order_number
-                            }}</span>
-                        </template>
-                        <template #item-type="row">
-                            <span
-                                class="inline-flex items-center gap-1.5 text-sm"
+                        <select
+                            id="complaints-type-filter"
+                            v-model="type"
+                            class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                            @change="filterTable"
+                        >
+                            <option value="">All issues</option>
+                            <option
+                                v-for="(label, value) in types"
+                                :key="value"
+                                :value="value"
                             >
-                                <AlertTriangle
-                                    class="h-3.5 w-3.5 text-amber-500"
-                                    aria-hidden="true"
-                                />
-                                {{ row.type_label }}
-                            </span>
-                        </template>
-                        <template #item-description="row">
-                            <p class="line-clamp-2 py-1 text-sm">
-                                {{ row.description }}
-                            </p>
-                        </template>
-                        <template #item-status="row">
-                            <ComplaintStatusBadge :status="row.status" />
-                        </template>
-                        <template #item-created_at="row">
-                            <span class="text-xs text-muted-foreground">{{
-                                formatDate(row.created_at)
-                            }}</span>
-                        </template>
-                        <template #item-action="row">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                @click="openComplaint(row)"
-                            >
-                                <Eye
-                                    class="mr-1.5 h-4 w-4"
-                                    aria-hidden="true"
-                                />
-                                View
-                            </Button>
-                        </template>
-                    </EasyDataTable>
-                </div>
-            </CardContent>
+                                {{ label }}
+                            </option>
+                        </select>
+
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
+                            @click="resetFilters"
+                        >
+                            <RefreshCcw class="mr-1.5 h-4 w-4" />
+                            Reset
+                        </Button>
+                    </DataTableToolbar>
+                </template>
+
+                <template #item-order_number="row">
+                    <span class="font-mono text-xs">{{
+                        row.order_number
+                    }}</span>
+                </template>
+                <template #item-customer="row">
+                    <IdentityCell :name="row.customer_name" />
+                </template>
+                <template #item-type="row">
+                    <span class="inline-flex items-center gap-1.5 text-sm">
+                        <AlertTriangle
+                            class="h-3.5 w-3.5 text-amber-500"
+                            aria-hidden="true"
+                        />
+                        {{ row.type_label }}
+                    </span>
+                </template>
+                <template #item-description="row">
+                    <p class="line-clamp-2 py-1 text-sm">
+                        {{ row.description }}
+                    </p>
+                </template>
+                <template #item-status="row">
+                    <ComplaintStatusBadge :status="row.status" />
+                </template>
+                <template #item-created_at="row">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                        >{{ formatDate(row.created_at) }}</span
+                    >
+                </template>
+                <template #item-action="row">
+                    <RowActions
+                        :label="`complaint for order ${row.order_number}`"
+                        :actions="[
+                            {
+                                label: 'View and respond',
+                                icon: Eye,
+                                onSelect: () => openComplaint(row),
+                            },
+                        ]"
+                    />
+                </template>
+            </DataTable>
         </div>
 
         <Dialog v-model:open="detailOpen">
@@ -606,47 +544,3 @@ function submitResponse() {
         </Dialog>
     </ShopLayout>
 </template>
-
-<style scoped>
-.complaints-data-table {
-    --easy-table-border: 0;
-    --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
-    --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 52px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
-    --easy-table-body-row-font-color: var(--foreground);
-    --easy-table-body-even-row-font-color: var(--foreground);
-    --easy-table-body-row-hover-background-color: color-mix(
-        in srgb,
-        var(--muted) 65%,
-        transparent
-    );
-    --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 56px;
-    --easy-table-body-item-padding: 10px 12px;
-    --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
-    --easy-table-footer-font-color: var(--muted-foreground);
-    --easy-table-footer-font-size: 12px;
-    --easy-table-footer-height: 56px;
-    --easy-table-footer-padding: 0 16px;
-    --easy-table-buttons-pagination-border: 1px solid var(--border);
-    width: 100%;
-}
-
-:deep(.vue3-easy-data-table__main) {
-    background: var(--background);
-}
-
-:deep(.vue3-easy-data-table__main table) {
-    min-width: 900px;
-}
-</style>

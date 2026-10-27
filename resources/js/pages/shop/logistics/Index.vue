@@ -7,6 +7,14 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import {
+    DataTable,
+    DataTableToolbar,
+    RowActions,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,12 +25,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePaginatorTable } from '@/composables/useDataTable';
 import {
     ArrowRight,
     Camera,
     CheckCircle2,
-    ChevronLeft,
-    ChevronRight,
     Clock,
     Loader2,
     MapPin,
@@ -94,6 +101,8 @@ const props = defineProps<{
         links: any[];
         current_page: number;
         last_page: number;
+        per_page?: number;
+        total: number;
     };
     riders: Rider[];
     stats: Stats;
@@ -360,12 +369,45 @@ function deleteDelivery(id: number) {
     });
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+// ─── Table ────────────────────────────────────────────────────────────────────
 
-function goPage(url: string | null) {
-    if (!url) return;
-    router.get(url, {}, { preserveState: true, preserveScroll: true });
-}
+const { options, loading } = usePaginatorTable(
+    () => props.deliveries,
+    ['deliveries'],
+);
+
+const STATUS_TONE: Record<string, StatusTone> = {
+    pending: 'warning',
+    assigned: 'info',
+    picked_up: 'info',
+    delivered: 'success',
+    failed: 'danger',
+};
+
+const statusFilterOptions = computed(() => [
+    {
+        value: 'all',
+        label: 'All',
+        count: Object.values(props.stats).reduce(
+            (sum, count) => sum + Number(count ?? 0),
+            0,
+        ),
+    },
+    ...Object.keys(STATUS).map((key) => ({
+        value: key,
+        label: STATUS[key].label,
+        count: props.stats[key as keyof Stats],
+    })),
+]);
+
+const headers: DataTableHeader[] = [
+    { text: 'Customer', value: 'customer_name', width: 260 },
+    { text: 'Order', value: 'order' },
+    { text: 'Rider / courier', value: 'rider' },
+    { text: 'Status', value: 'status' },
+    { text: 'Date', value: 'created_at' },
+    { text: 'Actions', value: 'actions', align: 'center', width: 230 },
+];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -426,290 +468,184 @@ function fmtTime(d: string) {
                 </Card>
             </div>
 
-            <!-- ── Filter pills ── -->
-            <div class="flex flex-wrap items-center gap-2">
-                <button
-                    v-for="f in [
-                        'all',
-                        'pending',
-                        'assigned',
-                        'picked_up',
-                        'delivered',
-                        'failed',
-                    ]"
-                    :key="f"
-                    class="rounded-full border px-3 py-1 text-xs transition-colors"
-                    :class="
-                        activeFilter === f
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-muted-foreground/20 text-muted-foreground hover:bg-muted'
-                    "
-                    @click="setFilter(f)"
-                >
-                    {{ f === 'all' ? 'All' : (STATUS[f]?.label ?? f) }}
-                </button>
-            </div>
-
             <!-- ── Deliveries Table ── -->
-            <div class="overflow-hidden rounded-xl border">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr
-                            class="border-b bg-muted/40 text-xs text-muted-foreground"
-                        >
-                            <th class="px-4 py-3 text-left font-medium">
-                                Customer
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Order
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Rider / Courier
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Status
-                            </th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Date
-                            </th>
-                            <th class="w-32 px-4 py-3" />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="d in props.deliveries.data"
-                            :key="d.id"
-                            class="border-b transition-colors last:border-0 hover:bg-muted/20"
-                        >
-                            <!-- Customer -->
-                            <td class="px-4 py-3">
-                                <p class="text-sm font-medium">
-                                    {{ d.customer_name }}
-                                </p>
-                                <span
-                                    class="mt-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                                    :class="
-                                        d.type === 'pickup'
-                                            ? 'bg-sky-100 text-sky-700'
-                                            : 'bg-emerald-100 text-emerald-700'
-                                    "
-                                >
-                                    <Package class="h-2.5 w-2.5" />
-                                    {{
-                                        d.type === 'pickup'
-                                            ? 'Pickup from customer'
-                                            : 'Deliver to customer'
-                                    }}
-                                </span>
-                                <p
-                                    v-if="d.customer_phone"
-                                    class="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground"
-                                >
-                                    <Phone class="h-3 w-3" />
-                                    {{ d.customer_phone }}
-                                </p>
-                                <p
-                                    v-if="d.delivery_address"
-                                    class="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground"
-                                >
-                                    <MapPin class="mt-0.5 h-3 w-3 shrink-0" />
-                                    <span class="line-clamp-1">{{
-                                        d.delivery_address
-                                    }}</span>
-                                </p>
-                            </td>
-
-                            <!-- Order -->
-                            <td
-                                class="px-4 py-3 font-mono text-xs text-muted-foreground"
-                            >
-                                {{ d.order?.order_number ?? '—' }}
-                            </td>
-
-                            <!-- Rider -->
-                            <td class="px-4 py-3 text-xs">
-                                <template v-if="d.courier === 'lalamove'">
-                                    <span
-                                        class="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 font-medium text-orange-700"
-                                    >
-                                        <Truck class="h-3 w-3" />
-                                        Lalamove
-                                    </span>
-                                    <p
-                                        v-if="d.courier_driver_name"
-                                        class="mt-1 font-medium"
-                                    >
-                                        {{ d.courier_driver_name }}
-                                    </p>
-                                    <p
-                                        v-if="d.courier_reference"
-                                        class="font-mono text-muted-foreground"
-                                    >
-                                        {{ d.courier_reference }}
-                                    </p>
-                                    <p
-                                        v-if="d.courier_cost"
-                                        class="text-muted-foreground"
-                                    >
-                                        Cost {{ formatCost(d.courier_cost) }}
-                                    </p>
-                                </template>
-                                <template v-else>
-                                    <span v-if="d.rider" class="font-medium">{{
-                                        d.rider.name
-                                    }}</span>
-                                    <span
-                                        v-else
-                                        class="text-muted-foreground italic"
-                                        >Unassigned</span
-                                    >
-                                </template>
-                                <p
-                                    v-if="d.photos?.length"
-                                    class="mt-1 flex items-center gap-1 text-muted-foreground"
-                                >
-                                    <Camera class="h-3 w-3" />
-                                    {{ d.photos.length }}
-                                    proof
-                                    {{
-                                        d.photos.length === 1
-                                            ? 'photo'
-                                            : 'photos'
-                                    }}
-                                </p>
-                            </td>
-
-                            <!-- Status -->
-                            <td class="px-4 py-3">
-                                <span
-                                    class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
-                                    :class="STATUS[d.status]?.badge"
-                                >
-                                    <span
-                                        class="h-1.5 w-1.5 rounded-full"
-                                        :class="STATUS[d.status]?.dot"
-                                    />
-                                    {{ statusLabel(d) }}
-                                </span>
-                                <div
-                                    class="mt-1 space-y-0.5 text-xs text-muted-foreground"
-                                >
-                                    <p v-if="d.picked_up_at">
-                                        Picked up {{ fmtTime(d.picked_up_at) }}
-                                    </p>
-                                    <p v-if="d.delivered_at">
-                                        Delivered {{ fmtTime(d.delivered_at) }}
-                                    </p>
-                                </div>
-                            </td>
-
-                            <!-- Date -->
-                            <td class="px-4 py-3 text-xs text-muted-foreground">
-                                {{ fmtDate(d.created_at) }}
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="px-4 py-3">
-                                <div
-                                    class="flex items-center justify-end gap-1.5"
-                                >
-                                    <!-- Quick advance -->
-                                    <button
-                                        v-if="
-                                            NEXT_STATUS[d.status] &&
-                                            can('Logistics', 'update')
-                                        "
-                                        class="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs text-primary-foreground transition-colors hover:bg-primary/90"
-                                        @click="
-                                            openStatusModal(
-                                                d,
-                                                NEXT_STATUS[d.status]!,
-                                            )
-                                        "
-                                    >
-                                        <ArrowRight class="h-3 w-3" />
-                                        {{ nextLabel(d) }}
-                                    </button>
-                                    <!-- Edit -->
-                                    <button
-                                        class="flex h-7 w-7 items-center justify-center rounded-lg border transition-colors hover:bg-muted"
-                                        v-if="can('Logistics', 'update')"
-                                        @click="openStatusModal(d)"
-                                    >
-                                        <Pencil
-                                            class="h-3.5 w-3.5 text-muted-foreground"
-                                        />
-                                    </button>
-                                    <!-- Delete -->
-                                    <button
-                                        class="flex h-7 w-7 items-center justify-center rounded-lg border border-red-200 transition-colors hover:bg-red-50"
-                                        v-if="can('Logistics', 'archive')"
-                                        :disabled="deleting === d.id"
-                                        @click="deleteDelivery(d.id)"
-                                    >
-                                        <Loader2
-                                            v-if="deleting === d.id"
-                                            class="h-3.5 w-3.5 animate-spin text-muted-foreground"
-                                        />
-                                        <Trash2
-                                            v-else
-                                            class="h-3.5 w-3.5 text-red-500"
-                                        />
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr v-if="props.deliveries.data.length === 0">
-                            <td
-                                colspan="6"
-                                class="px-4 py-12 text-center text-sm text-muted-foreground"
-                            >
-                                <Truck
-                                    class="mx-auto mb-2 h-8 w-8 opacity-30"
-                                />
-                                <p>No deliveries found.</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- ── Pagination ── -->
-            <div
-                v-if="props.deliveries.last_page > 1"
-                class="flex items-center justify-center gap-2"
+            <DataTable
+                v-model:options="options"
+                :headers="headers"
+                :items="props.deliveries.data"
+                :total="props.deliveries.total"
+                :loading="loading"
+                noun="deliveries"
+                :empty-icon="Truck"
+                empty-message="No deliveries found."
+                :resettable="activeFilter !== 'all'"
+                :min-width="960"
+                hide-rows-per-page
+                @reset="setFilter('all')"
             >
-                <Button
-                    size="sm"
-                    variant="outline"
-                    :disabled="props.deliveries.current_page === 1"
-                    @click="goPage(props.deliveries.links[0]?.url)"
-                >
-                    <ChevronLeft class="h-4 w-4" />
-                </Button>
-                <span class="text-sm text-muted-foreground">
-                    Page {{ props.deliveries.current_page }} of
-                    {{ props.deliveries.last_page }}
-                </span>
-                <Button
-                    size="sm"
-                    variant="outline"
-                    :disabled="
-                        props.deliveries.current_page ===
-                        props.deliveries.last_page
-                    "
-                    @click="
-                        goPage(
-                            props.deliveries.links[
-                                props.deliveries.links.length - 1
-                            ]?.url,
-                        )
-                    "
-                >
-                    <ChevronRight class="h-4 w-4" />
-                </Button>
-            </div>
+                <template #toolbar>
+                    <DataTableToolbar
+                        :status="activeFilter"
+                        :statuses="statusFilterOptions"
+                        status-label="Filter by delivery status"
+                        hide-search
+                        @update:status="setFilter"
+                    />
+                </template>
+
+                <!-- Customer -->
+                <template #item-customer_name="d">
+                    <p class="text-sm font-medium">{{ d.customer_name }}</p>
+                    <span
+                        class="mt-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                        :class="
+                            d.type === 'pickup'
+                                ? 'bg-sky-100 text-sky-700'
+                                : 'bg-emerald-100 text-emerald-700'
+                        "
+                    >
+                        <Package class="h-2.5 w-2.5" />
+                        {{
+                            d.type === 'pickup'
+                                ? 'Pickup from customer'
+                                : 'Deliver to customer'
+                        }}
+                    </span>
+                    <p
+                        v-if="d.customer_phone"
+                        class="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground"
+                    >
+                        <Phone class="h-3 w-3" />
+                        {{ d.customer_phone }}
+                    </p>
+                    <p
+                        v-if="d.delivery_address"
+                        class="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground"
+                    >
+                        <MapPin class="mt-0.5 h-3 w-3 shrink-0" />
+                        <span class="line-clamp-1">{{
+                            d.delivery_address
+                        }}</span>
+                    </p>
+                </template>
+
+                <!-- Order -->
+                <template #item-order="d">
+                    <span class="font-mono text-xs text-muted-foreground">
+                        {{ d.order?.order_number ?? '—' }}
+                    </span>
+                </template>
+
+                <!-- Rider -->
+                <template #item-rider="d">
+                    <div class="text-xs">
+                        <template v-if="d.courier === 'lalamove'">
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 font-medium text-orange-700"
+                            >
+                                <Truck class="h-3 w-3" />
+                                Lalamove
+                            </span>
+                            <p
+                                v-if="d.courier_driver_name"
+                                class="mt-1 font-medium"
+                            >
+                                {{ d.courier_driver_name }}
+                            </p>
+                            <p
+                                v-if="d.courier_reference"
+                                class="font-mono text-muted-foreground"
+                            >
+                                {{ d.courier_reference }}
+                            </p>
+                            <p
+                                v-if="d.courier_cost"
+                                class="text-muted-foreground"
+                            >
+                                Cost {{ formatCost(d.courier_cost) }}
+                            </p>
+                        </template>
+                        <template v-else>
+                            <span v-if="d.rider" class="font-medium">{{
+                                d.rider.name
+                            }}</span>
+                            <span v-else class="text-muted-foreground italic"
+                                >Unassigned</span
+                            >
+                        </template>
+                        <p
+                            v-if="d.photos?.length"
+                            class="mt-1 flex items-center gap-1 text-muted-foreground"
+                        >
+                            <Camera class="h-3 w-3" />
+                            {{ d.photos.length }}
+                            proof
+                            {{ d.photos.length === 1 ? 'photo' : 'photos' }}
+                        </p>
+                    </div>
+                </template>
+
+                <!-- Status -->
+                <template #item-status="d">
+                    <StatusPill :tone="STATUS_TONE[d.status] ?? 'neutral'">
+                        {{ statusLabel(d) }}
+                    </StatusPill>
+                    <div class="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                        <p v-if="d.picked_up_at">
+                            Picked up {{ fmtTime(d.picked_up_at) }}
+                        </p>
+                        <p v-if="d.delivered_at">
+                            Delivered {{ fmtTime(d.delivered_at) }}
+                        </p>
+                    </div>
+                </template>
+
+                <!-- Date -->
+                <template #item-created_at="d">
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ fmtDate(d.created_at) }}
+                    </span>
+                </template>
+
+                <!-- Actions -->
+                <template #item-actions="d">
+                    <RowActions
+                        :label="`delivery for ${d.customer_name}`"
+                        :actions="[
+                            {
+                                label: 'Edit delivery',
+                                icon: Pencil,
+                                show: can('Logistics', 'update'),
+                                onSelect: () => openStatusModal(d),
+                            },
+                            {
+                                label: 'Remove delivery',
+                                icon: deleting === d.id ? Loader2 : Trash2,
+                                destructive: true,
+                                disabled: deleting === d.id,
+                                show: can('Logistics', 'archive'),
+                                onSelect: () => deleteDelivery(d.id),
+                            },
+                        ]"
+                    >
+                        <!-- Quick advance stays visible as the row's primary step -->
+                        <button
+                            v-if="
+                                NEXT_STATUS[d.status] &&
+                                can('Logistics', 'update')
+                            "
+                            type="button"
+                            class="flex h-9 items-center gap-1 rounded-lg bg-primary px-2.5 text-xs whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/90"
+                            @click="openStatusModal(d, NEXT_STATUS[d.status]!)"
+                        >
+                            <ArrowRight class="h-3 w-3" />
+                            {{ nextLabel(d) }}
+                        </button>
+                    </RowActions>
+                </template>
+            </DataTable>
         </div>
     </ShopLayout>
 
