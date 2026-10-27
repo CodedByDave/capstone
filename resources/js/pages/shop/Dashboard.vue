@@ -276,7 +276,36 @@ const PERIOD_OPTIONS: { value: Period; label: string }[] = [
 ];
 const INSIGHTS_MIN_ORDERS = 20;
 const period = ref<Period>(props.period ?? 'today');
-const dismissed = reactive(new Set<string>());
+// Dismissed cards stay hidden for the rest of the day, per browser.
+const DISMISS_STORAGE_KEY = `shop-dashboard-dismissed:${props.auth.user.id}`;
+const todayKey = () => new Date().toLocaleDateString('en-CA');
+
+function loadDismissed(): string[] {
+    try {
+        const saved = JSON.parse(
+            localStorage.getItem(DISMISS_STORAGE_KEY) ?? 'null',
+        );
+        return saved?.date === todayKey() && Array.isArray(saved.keys)
+            ? saved.keys
+            : [];
+    } catch {
+        return [];
+    }
+}
+
+const dismissed = reactive(new Set<string>(loadDismissed()));
+
+function dismissCard(key: string) {
+    dismissed.add(key);
+    try {
+        localStorage.setItem(
+            DISMISS_STORAGE_KEY,
+            JSON.stringify({ date: todayKey(), keys: [...dismissed] }),
+        );
+    } catch {
+        // Storage unavailable: the card stays hidden until the next reload.
+    }
+}
 const greeting = computed(() => {
     const hour = new Date().getHours();
     return hour < 12
@@ -1396,7 +1425,7 @@ function proceedToPay() {
                                     v-if="card.key !== 'clear'"
                                     type="button"
                                     class="text-xs text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                                    @click="dismissed.add(card.key)"
+                                    @click="dismissCard(card.key)"
                                 >
                                     Dismiss
                                 </button>
