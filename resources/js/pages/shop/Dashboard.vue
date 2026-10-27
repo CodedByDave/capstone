@@ -12,15 +12,17 @@ import {
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import Chart from 'chart.js/auto';
 import {
+    AlertTriangle,
     CheckCircle2,
     Clock,
     CreditCard,
     Lightbulb,
     Loader2,
     Mail,
+    PackageX,
     RefreshCcw,
     RotateCcw,
     ShieldAlert,
@@ -83,10 +85,35 @@ interface OrderStats {
     last_month: number;
     orders_change: number;
 }
-interface DSSInsight {
-    type: 'success' | 'warning' | 'danger' | 'info';
+interface DailySummary {
+    revenue_today: number;
+    revenue_change: number | null;
+    orders_today: number;
+    orders_vs_yesterday: number;
+    open_orders: number;
+    overdue_orders: number;
+    unpaid_balance: number;
+    unpaid_orders: number;
+    daily_revenue: { label: string; revenue: number }[];
+    due_today: {
+        order_number: string;
+        customer: string;
+        service: string | null;
+        due_at: string;
+        overdue: boolean;
+    }[];
+    busiest_day: { day: string; share: number } | null;
+    total_orders: number;
+}
+type Period = 'today' | '7d' | 'month';
+interface AttentionCard {
+    key: string;
+    tone: 'urgent' | 'heads_up' | 'tip' | 'ok';
     title: string;
     message: string;
+    rule?: string;
+    href?: string;
+    action?: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -155,6 +182,8 @@ const { props } = usePage<{
     low_stock_items?: LowStockItem[];
     recent_movements?: RecentMovement[];
     order_stats?: OrderStats;
+    daily?: DailySummary;
+    period?: Period;
     monthly_orders?: MonthlyOrderPoint[];
     service_popularity?: ServicePop[];
     agreement: {
@@ -238,111 +267,192 @@ const PAYMENT_METHODS = [
 ];
 const payForm = reactive({ payment_method: '', submitting: false });
 
-// ─── DSS Insights ─────────────────────────────────────────────────────────────
+// ─── Needs attention + KPIs ───────────────────────────────────────────────────
 
-const dssRecommendations = computed<DSSInsight[]>(() => {
-    const stats = props.stats;
-    const orders = props.order_stats;
-    const openOrders = (orders?.pending ?? 0) + (orders?.in_progress ?? 0);
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+    { value: 'today', label: 'Today' },
+    { value: '7d', label: '7 days' },
+    { value: 'month', label: 'This month' },
+];
+const INSIGHTS_MIN_ORDERS = 20;
+const period = ref<Period>(props.period ?? 'today');
+const dismissed = reactive(new Set<string>());
+const greeting = computed(() => {
+    const hour = new Date().getHours();
+    return hour < 12
+        ? 'Good morning'
+        : hour < 18
+          ? 'Good afternoon'
+          : 'Good evening';
+});
 
-    const orderRecommendation: DSSInsight =
-        !orders || orders.total === 0
-            ? {
-                  type: 'info',
-                  title: 'Build Your Order Pipeline',
-                  message:
-                      'No orders are recorded yet. Confirm that staff can create and update orders so this dashboard can guide daily operations.',
-              }
-            : orders.pending > 5
-              ? {
-                    type: 'warning',
-                    title: 'Reduce the Pending Backlog',
-                    message: `${orders.pending} orders are waiting to be processed. Prioritize older orders and assign enough staff to keep turnaround times under control.`,
-                }
-              : orders.completion_rate < 50
-                ? {
-                      type: 'danger',
-                      title: 'Improve Order Completion',
-                      message: `Only ${orders.completion_rate}% of orders are complete. Review unfinished orders and remove the workflow bottlenecks delaying customers.`,
-                  }
-                : {
-                      type: 'success',
-                      title: 'Keep Orders Moving',
-                      message: `The shop has a ${orders.completion_rate}% completion rate with ${openOrders} active order(s). Maintain the current processing pace.`,
-                  };
+function setPeriod(value: Period) {
+    if (value === period.value) return;
+    period.value = value;
+    router.get(
+        '/shop/dashboard',
+        { period: value },
+        {
+            only: ['daily', 'period'],
+            preserveScroll: true,
+            preserveState: true,
+        },
+    );
+}
 
-    const revenueRecommendation: DSSInsight =
-        !orders || orders.total === 0
-            ? {
-                  type: 'info',
-                  title: 'Establish a Revenue Baseline',
-                  message:
-                      'Revenue guidance will become more useful after the first completed orders. Record every payment consistently from the start.',
-              }
-            : orders.last_month > 0 && orders.orders_change < 0
-              ? {
-                    type: 'warning',
-                    title: 'Recover Monthly Demand',
-                    message: `Order volume is down ${Math.abs(orders.orders_change)}% from last month. Use a focused promotion or customer follow-up to rebuild demand.`,
-                }
-              : orders.orders_change > 0
-                ? {
-                      type: 'success',
-                      title: 'Sustain Revenue Growth',
-                      message: `Orders increased by ${orders.orders_change}% this month. Protect that growth through reliable service and relevant add-ons.`,
-                  }
-                : {
-                      type: 'info',
-                      title: 'Grow Average Order Value',
-                      message: `Average order value is ${formatCurrency(orders.avg_order_value)}. Consider practical bundles or service add-ons instead of broad discounts.`,
-                  };
+const ATTENTION_TONES = {
+    urgent: {
+        label: 'Urgent',
+        icon: AlertTriangle,
+        badge: 'bg-red-100 text-red-700',
+    },
+    heads_up: {
+        label: 'Heads up',
+        icon: PackageX,
+        badge: 'bg-amber-100 text-amber-700',
+    },
+    tip: {
+        label: 'Tip',
+        icon: Lightbulb,
+        badge: 'bg-blue-100 text-blue-700',
+    },
+    ok: {
+        label: 'All clear',
+        icon: CheckCircle2,
+        badge: 'bg-emerald-100 text-emerald-700',
+    },
+} as const;
 
-    const outOfStock = stats?.inventory.out_of_stock ?? 0;
-    const lowStock = stats?.inventory.low_stock ?? 0;
-    const inventoryRecommendation: DSSInsight =
-        outOfStock > 0
-            ? {
-                  type: 'danger',
-                  title: 'Restock Critical Items',
-                  message: `${outOfStock} item(s) are out of stock. Replenish supplies needed by active orders before accepting work that depends on them.`,
-              }
-            : lowStock > 0
-              ? {
-                    type: 'warning',
-                    title: 'Reorder Low-Stock Supplies',
-                    message: `${lowStock} item(s) are below their minimum level. Reorder them before stock shortages interrupt shop operations.`,
-                }
-              : {
-                    type: 'success',
-                    title: 'Maintain Inventory Readiness',
-                    message:
-                        'Inventory is currently above minimum levels. Keep reorder points and routine stock checks up to date.',
-                };
+const attentionCards = computed<AttentionCard[]>(() => {
+    const daily = props.daily;
+    const inventory = props.stats?.inventory;
+    const cards: AttentionCard[] = [];
 
-    const inactiveEmployees = stats?.employees.inactive ?? 0;
-    const activeEmployees = stats?.employees.active ?? 0;
-    const workforceRecommendation: DSSInsight =
-        inactiveEmployees > 0 && openOrders > 0
-            ? {
-                  type: 'warning',
-                  title: 'Align Staff With Workload',
-                  message: `${inactiveEmployees} employee(s) are inactive while ${openOrders} order(s) remain open. Review shift coverage and task assignments.`,
-              }
-            : {
-                    type: 'info',
-                    title: 'Balance Team Capacity',
-                    message: `${activeEmployees} active employee(s) are supporting ${openOrders} open order(s). Adjust assignments as demand changes.`,
-                };
+    if (daily && daily.overdue_orders > 0) {
+        cards.push({
+            key: 'overdue',
+            tone: 'urgent',
+            title: `${daily.overdue_orders} order${daily.overdue_orders === 1 ? ' is' : 's are'} overdue`,
+            message: `${daily.overdue_orders} of ${daily.open_orders} open orders are past their due time.`,
+            rule: 'open order past due time',
+            href: '/shop/operations/orders',
+            action: 'View orders',
+        });
+    }
+
+    if (daily && daily.unpaid_balance > 0) {
+        cards.push({
+            key: 'unpaid',
+            tone: 'heads_up',
+            title: `₱${formatPeso(daily.unpaid_balance)} not yet collected`,
+            message: `${daily.unpaid_orders} order${daily.unpaid_orders === 1 ? ' still has' : 's still have'} a balance.`,
+            rule: 'order with balance due',
+            href: '/shop/operations/orders?payment_status=unpaid',
+            action: 'View unpaid',
+        });
+    }
+
+    const stockIssues =
+        (inventory?.out_of_stock ?? 0) + (inventory?.low_stock ?? 0);
+    if (stockIssues > 0) {
+        cards.push({
+            key: 'stock',
+            tone: 'heads_up',
+            title: `${stockIssues} suppl${stockIssues === 1 ? 'y needs' : 'ies need'} restocking`,
+            message: `${inventory?.out_of_stock ?? 0} out of stock and ${inventory?.low_stock ?? 0} below minimum level.`,
+            rule: 'stock at or below minimum level',
+            href: '/shop/inventory',
+            action: 'Reorder',
+        });
+    }
+
+    if (daily?.busiest_day) {
+        cards.push({
+            key: 'busiest',
+            tone: 'tip',
+            title: `${daily.busiest_day.day} are your busiest`,
+            message: `${daily.busiest_day.share}% of orders in the last 8 weeks came on ${daily.busiest_day.day}. Plan staff around it.`,
+            rule: 'orders grouped by day of week',
+        });
+    }
+
+    if (cards.length === 0) {
+        cards.push({
+            key: 'clear',
+            tone: 'ok',
+            title: 'Nothing needs attention',
+            message:
+                'No overdue orders, unpaid balances, or stock issues right now.',
+        });
+    }
+
+    return cards.slice(0, 4);
+});
+
+const visibleAttentionCards = computed(() =>
+    attentionCards.value.filter((c) => !dismissed.has(c.key)),
+);
+
+const PERIOD_LABELS: Record<Period, string> = {
+    today: 'today',
+    '7d': 'last 7 days',
+    month: 'this month',
+};
+const PREVIOUS_LABELS: Record<Period, string> = {
+    today: 'yesterday',
+    '7d': 'previous 7 days',
+    month: 'previous period',
+};
+
+const kpiCards = computed(() => {
+    const daily = props.daily;
+    const change = daily?.revenue_change ?? null;
+    const diff = daily?.orders_vs_yesterday ?? 0;
 
     return [
-        orderRecommendation,
-        revenueRecommendation,
-        inventoryRecommendation,
-        workforceRecommendation,
+        {
+            label: `Revenue ${PERIOD_LABELS[period.value]}`,
+            value: `₱${formatPeso(daily?.revenue_today ?? 0)}`,
+            hint:
+                change === null
+                    ? 'No earlier payments to compare'
+                    : `${change >= 0 ? '↑' : '↓'} ${Math.abs(change)}% vs ${PREVIOUS_LABELS[period.value]}`,
+            hintClass:
+                change === null
+                    ? undefined
+                    : change >= 0
+                      ? 'text-emerald-600'
+                      : 'text-red-600',
+        },
+        {
+            label: `Orders ${PERIOD_LABELS[period.value]}`,
+            value: String(daily?.orders_today ?? 0),
+            hint:
+                diff === 0
+                    ? `Same as ${PREVIOUS_LABELS[period.value]}`
+                    : `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than ${PREVIOUS_LABELS[period.value]}`,
+        },
+        {
+            label: 'Open orders',
+            value: String(daily?.open_orders ?? 0),
+            hint: `${daily?.overdue_orders ?? 0} overdue`,
+            hintClass:
+                (daily?.overdue_orders ?? 0) > 0 ? 'text-red-600' : undefined,
+        },
+        {
+            label: 'Unpaid balance',
+            value: `₱${formatPeso(daily?.unpaid_balance ?? 0)}`,
+            hint: `${daily?.unpaid_orders ?? 0} order${daily?.unpaid_orders === 1 ? '' : 's'}`,
+        },
     ];
 });
 
-// ─── Chart refs ────────────────────────────────────────────────────────────────
+const dailyRevenue = computed(() => props.daily?.daily_revenue ?? []);
+const maxDailyRevenue = computed(() =>
+    Math.max(...dailyRevenue.value.map((d) => d.revenue), 1),
+);
+
+// ─── Chart refs────────────────────────────────────────────────────────────────
 
 const ordersChartRef = ref<HTMLCanvasElement | null>(null);
 const revenueChartRef = ref<HTMLCanvasElement | null>(null);
@@ -602,7 +712,6 @@ onMounted(() => {
             },
         });
     }
-
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -628,6 +737,7 @@ function refreshDashboard() {
             'order_stats',
             'monthly_orders',
             'service_popularity',
+            'daily',
         ],
         preserveState: false,
         onFinish: () => {
@@ -1149,92 +1259,9 @@ function proceedToPay() {
 
             <!-- ══════════════ APPROVED: Live Dashboard ══════════════ -->
             <template v-else-if="isApproved">
-                <!-- Trial Banner -->
+                <!-- Header -->
                 <div
-                    v-if="props.order?.is_trial"
-                    class="flex flex-col gap-3 rounded-xl border px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-                    :class="
-                        (props.order.trial_days_left ?? 0) <= 1
-                            ? 'border-red-200 bg-red-50'
-                            : (props.order.trial_days_left ?? 0) <= 3
-                              ? 'border-amber-200 bg-amber-50'
-                              : 'border-blue-200 bg-blue-50'
-                    "
-                >
-                    <div class="flex items-center gap-3">
-                        <Clock
-                            class="h-5 w-5 shrink-0"
-                            :class="
-                                (props.order.trial_days_left ?? 0) <= 1
-                                    ? 'text-red-500'
-                                    : (props.order.trial_days_left ?? 0) <= 3
-                                      ? 'text-amber-500'
-                                      : 'text-blue-500'
-                            "
-                        />
-                        <div>
-                            <p
-                                class="text-sm font-semibold"
-                                :class="
-                                    (props.order.trial_days_left ?? 0) <= 1
-                                        ? 'text-red-800'
-                                        : (props.order.trial_days_left ?? 0) <=
-                                            3
-                                          ? 'text-amber-800'
-                                          : 'text-blue-800'
-                                "
-                            >
-                                <span
-                                    v-if="
-                                        (props.order.trial_days_left ?? 0) === 0
-                                    "
-                                    >Your free trial expires today</span
-                                >
-                                <span v-else
-                                    >{{ props.order.trial_days_left }} day{{
-                                        props.order.trial_days_left === 1
-                                            ? ''
-                                            : 's'
-                                    }}
-                                    left in your free trial</span
-                                >
-                            </p>
-                            <p
-                                class="mt-0.5 text-xs"
-                                :class="
-                                    (props.order.trial_days_left ?? 0) <= 1
-                                        ? 'text-red-600'
-                                        : (props.order.trial_days_left ?? 0) <=
-                                            3
-                                          ? 'text-amber-600'
-                                          : 'text-blue-600'
-                                "
-                            >
-                                Subscribe now to keep your shop running after
-                                the trial ends.
-                            </p>
-                        </div>
-                    </div>
-                    <Button
-                        size="sm"
-                        @click="router.visit('/shop/upgrade')"
-                        :class="
-                            (props.order.trial_days_left ?? 0) <= 1
-                                ? 'bg-red-600 text-white hover:bg-red-700'
-                                : (props.order.trial_days_left ?? 0) <= 3
-                                  ? 'bg-amber-500 text-white hover:bg-amber-600'
-                                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                        "
-                        class="shrink-0 border-0"
-                    >
-                        Subscribe Now
-                    </Button>
-                </div>
-
-                <!-- Welcome Banner -->
-
-                <div
-                    class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+                    class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
                 >
                     <div>
                         <h2
@@ -1243,44 +1270,44 @@ function proceedToPay() {
                             {{ props.order?.shop_name ?? 'Shop Dashboard' }}
                         </h2>
                         <p class="mt-1 text-sm text-muted-foreground">
-                            Welcome back, {{ user.name }}. Here is your business
-                            overview.
+                            {{ greeting }}, {{ user.name }}.
                         </p>
                     </div>
-                    <div
-                        class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
-                    >
+                    <div class="flex flex-wrap items-center gap-2">
                         <span
-                            class="rounded-full px-2.5 py-1 font-medium capitalize"
+                            v-if="props.order?.is_trial"
+                            class="rounded-full px-2.5 py-1 text-xs font-semibold"
                             :class="
-                                props.order?.is_trial
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-emerald-100 text-emerald-700'
+                                (props.order.trial_days_left ?? 0) <= 1
+                                    ? 'bg-red-100 text-red-700'
+                                    : (props.order.trial_days_left ?? 0) <= 3
+                                      ? 'bg-amber-100 text-amber-700'
+                                      : 'bg-blue-100 text-blue-700'
                             "
                         >
-                            {{
-                                props.order?.is_trial
-                                    ? 'Free Trial'
-                                    : (props.order?.subscription_plan ??
-                                      'Active')
+                            Free trial ·
+                            {{ props.order.trial_days_left ?? 0 }} day{{
+                                props.order.trial_days_left === 1 ? '' : 's'
                             }}
+                            left
                         </span>
-                        <span v-if="props.order?.expires_at">
-                            Expires
-                            {{
-                                new Date(
-                                    props.order.expires_at,
-                                ).toLocaleDateString('en-PH', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                })
-                            }}
+                        <span
+                            v-else
+                            class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 capitalize"
+                        >
+                            {{ props.order?.subscription_plan ?? 'Active' }}
                         </span>
+                        <Button
+                            v-if="props.order?.is_trial"
+                            size="sm"
+                            @click="router.visit('/shop/upgrade')"
+                        >
+                            Subscribe
+                        </Button>
                         <Button
                             variant="outline"
                             size="sm"
-                            class="ml-1 gap-2"
+                            class="gap-2"
                             :disabled="isRefreshing"
                             @click="refreshDashboard"
                         >
@@ -1293,324 +1320,241 @@ function proceedToPay() {
                     </div>
                 </div>
 
-                <!-- Compact business overview -->
-                <Card>
-                    <CardHeader class="pb-2">
-                        <div class="flex items-center justify-between gap-4">
-                            <div>
-                                <CardTitle class="text-sm font-semibold"
-                                    >Business Overview</CardTitle
-                                >
-                                <p class="mt-1 text-xs text-muted-foreground">
-                                    The numbers that need attention today.
-                                </p>
-                            </div>
-                            <span class="text-xs text-muted-foreground"
-                                >This month</span
-                            >
-                        </div>
-                    </CardHeader>
-                    <CardContent
-                        class="grid gap-5 pt-3 sm:grid-cols-2 lg:grid-cols-4"
+                <!-- Needs attention today -->
+                <section aria-labelledby="attention-heading">
+                    <div
+                        class="mb-3 flex flex-wrap items-center justify-between gap-2"
                     >
-                        <div>
-                            <p
-                                class="text-xs font-medium text-muted-foreground"
-                            >
-                                Total Revenue
-                            </p>
-                            <p
-                                class="mt-1 text-2xl font-bold tracking-tight tabular-nums"
-                            >
-                                ₱{{
-                                    formatPeso(
-                                        props.order_stats?.total_revenue ?? 0,
-                                    )
-                                }}
-                            </p>
-                            <p class="mt-1 text-xs text-muted-foreground">
-                                ₱{{
-                                    formatPeso(
-                                        props.order_stats?.avg_order_value ?? 0,
-                                    )
-                                }}
-                                average order
-                            </p>
-                        </div>
-                        <div
-                            class="border-t pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5"
+                        <p
+                            id="attention-heading"
+                            class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                         >
-                            <p
-                                class="text-xs font-medium text-muted-foreground"
-                            >
-                                Orders
-                            </p>
-                            <div class="mt-1 flex items-baseline gap-2">
-                                <p class="text-2xl font-bold tabular-nums">
-                                    {{ props.order_stats?.this_month ?? 0 }}
-                                </p>
-                                <span
-                                    class="text-xs font-semibold"
-                                    :class="
-                                        (props.order_stats?.orders_change ??
-                                            0) >= 0
-                                            ? 'text-emerald-600'
-                                            : 'text-red-500'
-                                    "
-                                >
-                                    {{
-                                        (props.order_stats?.orders_change ??
-                                            0) >= 0
-                                            ? '+'
-                                            : ''
-                                    }}{{
-                                        props.order_stats?.orders_change ?? 0
-                                    }}%
-                                </span>
-                            </div>
-                            <p class="mt-1 text-xs text-muted-foreground">
-                                {{ props.order_stats?.total ?? 0 }} all-time
-                            </p>
-                        </div>
+                            Needs attention today
+                        </p>
                         <div
-                            class="border-t pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-5"
+                            class="inline-flex rounded-lg border bg-white p-0.5 dark:bg-card"
+                            role="group"
+                            aria-label="Period"
                         >
-                            <p
-                                class="text-xs font-medium text-muted-foreground"
-                            >
-                                Open Orders
-                            </p>
-                            <p class="mt-1 text-2xl font-bold tabular-nums">
-                                {{
-                                    (props.order_stats?.pending ?? 0) +
-                                    (props.order_stats?.in_progress ?? 0)
-                                }}
-                            </p>
-                            <p class="mt-1 text-xs text-muted-foreground">
-                                {{ props.order_stats?.pending ?? 0 }} pending ·
-                                {{ props.order_stats?.in_progress ?? 0 }}
-                                processing
-                            </p>
-                        </div>
-                        <div
-                            class="border-t pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-5"
-                        >
-                            <p
-                                class="text-xs font-medium text-muted-foreground"
-                            >
-                                Completion Rate
-                            </p>
-                            <p class="mt-1 text-2xl font-bold tabular-nums">
-                                {{ props.order_stats?.completion_rate ?? 0 }}%
-                            </p>
-                            <p class="mt-1 text-xs text-muted-foreground">
-                                {{ props.order_stats?.completed ?? 0 }}
-                                completed
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Revenue chart -->
-                <div>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardTitle class="text-sm font-semibold"
-                                >Monthly Revenue</CardTitle
-                            >
-                        </CardHeader>
-                        <CardContent>
-                            <div
-                                v-if="
-                                    props.monthly_orders?.every(
-                                        (item) => item.revenue === 0,
-                                    )
+                            <button
+                                v-for="option in PERIOD_OPTIONS"
+                                :key="option.value"
+                                type="button"
+                                class="rounded-md px-3 py-1 text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                :class="
+                                    period === option.value
+                                        ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                                        : 'text-muted-foreground hover:text-foreground'
                                 "
-                                class="flex h-56 items-center justify-center text-sm text-muted-foreground"
+                                :aria-pressed="period === option.value"
+                                @click="setPeriod(option.value)"
                             >
-                                No revenue data yet.
+                                {{ option.label }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <div
+                            v-for="card in visibleAttentionCards"
+                            :key="card.key"
+                            class="flex flex-col rounded-xl border bg-white p-4 shadow-sm dark:bg-card"
+                        >
+                            <span
+                                class="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                :class="ATTENTION_TONES[card.tone].badge"
+                            >
+                                <component
+                                    :is="ATTENTION_TONES[card.tone].icon"
+                                    class="h-3 w-3"
+                                />
+                                {{ ATTENTION_TONES[card.tone].label }}
+                            </span>
+                            <p class="mt-3 text-sm font-semibold">
+                                {{ card.title }}
+                            </p>
+                            <p
+                                class="mt-1 text-xs leading-relaxed text-muted-foreground"
+                            >
+                                {{ card.message }}
+                            </p>
+                            <p
+                                v-if="card.rule"
+                                class="mt-3 flex-1 text-[11px] text-muted-foreground"
+                            >
+                                Rule: {{ card.rule }}
+                            </p>
+                            <div v-else class="flex-1" />
+                            <div class="mt-4 flex items-center gap-3">
+                                <Link
+                                    v-if="card.href"
+                                    :href="card.href"
+                                    class="inline-flex items-center rounded-md border px-3 py-1.5 text-xs font-medium transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                >
+                                    {{ card.action }}
+                                </Link>
+                                <button
+                                    v-if="card.key !== 'clear'"
+                                    type="button"
+                                    class="text-xs text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                    @click="dismissed.add(card.key)"
+                                >
+                                    Dismiss
+                                </button>
                             </div>
-                            <div v-else class="relative h-56">
-                                <canvas ref="revenueChartRef"></canvas>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Expense insights progress -->
+                <div
+                    v-if="
+                        (props.daily?.total_orders ?? 0) < INSIGHTS_MIN_ORDERS
+                    "
+                    class="flex flex-col gap-3 rounded-xl border bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:bg-card"
+                >
+                    <div>
+                        <p class="text-sm font-semibold">Expense insights</p>
+                        <p class="text-xs text-muted-foreground">
+                            Waiting for more data. Needs
+                            {{ INSIGHTS_MIN_ORDERS }} orders,
+                            {{ props.daily?.total_orders ?? 0 }} so far.
+                        </p>
+                    </div>
+                    <div
+                        class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 sm:w-1/2 dark:bg-muted"
+                        role="progressbar"
+                        :aria-valuenow="props.daily?.total_orders ?? 0"
+                        :aria-valuemax="INSIGHTS_MIN_ORDERS"
+                    >
+                        <div
+                            class="h-full rounded-full bg-blue-500"
+                            :style="{
+                                width: `${Math.min(100, ((props.daily?.total_orders ?? 0) / INSIGHTS_MIN_ORDERS) * 100)}%`,
+                            }"
+                        />
+                    </div>
                 </div>
 
-                <!-- Operational snapshot -->
+                <!-- KPI cards -->
+                <section
+                    class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+                    aria-label="Today's numbers"
+                >
+                    <div
+                        v-for="kpi in kpiCards"
+                        :key="kpi.label"
+                        class="rounded-xl border bg-white p-5 shadow-sm dark:bg-card"
+                    >
+                        <p class="text-xs font-medium text-muted-foreground">
+                            {{ kpi.label }}
+                        </p>
+                        <p
+                            class="mt-2 text-2xl font-bold tracking-tight tabular-nums"
+                        >
+                            {{ kpi.value }}
+                        </p>
+                        <p
+                            class="mt-1 text-xs"
+                            :class="kpi.hintClass ?? 'text-muted-foreground'"
+                        >
+                            {{ kpi.hint }}
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Daily revenue + Due today -->
                 <div class="grid gap-4 lg:grid-cols-3">
                     <Card class="lg:col-span-2">
                         <CardHeader class="pb-2">
-                            <CardTitle class="text-sm font-semibold"
-                                >Operational Snapshot</CardTitle
+                            <CardTitle
+                                class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                                >Daily revenue, last 7 days</CardTitle
                             >
                         </CardHeader>
-                        <CardContent class="grid gap-5 pt-3 sm:grid-cols-2">
-                            <div>
-                                <div
-                                    class="flex items-center justify-between gap-3"
-                                >
-                                    <span class="text-sm text-muted-foreground"
-                                        >Employees</span
-                                    >
-                                    <span class="font-semibold tabular-nums">{{
-                                        props.stats?.employees.total ?? 0
-                                    }}</span>
-                                </div>
-                                <p class="mt-1 text-xs text-muted-foreground">
-                                    {{ props.stats?.employees.active ?? 0 }}
-                                    active
-                                </p>
+                        <CardContent>
+                            <div
+                                v-if="
+                                    dailyRevenue.every((d) => d.revenue === 0)
+                                "
+                                class="flex h-44 items-center justify-center text-sm text-muted-foreground"
+                            >
+                                No payments received this week.
                             </div>
-                            <div class="border-t pt-4">
+                            <div v-else class="flex h-44 items-end gap-3">
                                 <div
-                                    class="flex items-center justify-between gap-3"
+                                    v-for="(day, i) in dailyRevenue"
+                                    :key="i"
+                                    class="flex h-full flex-1 flex-col justify-end gap-2"
+                                    :title="`${day.label}: ₱${formatPeso(day.revenue)}`"
                                 >
-                                    <span class="text-sm text-muted-foreground"
-                                        >Inventory Items</span
-                                    >
-                                    <span class="font-semibold tabular-nums">{{
-                                        props.stats?.inventory.total ?? 0
-                                    }}</span>
-                                </div>
-                                <p class="mt-1 text-xs text-muted-foreground">
-                                    {{ props.stats?.movements.this_month ?? 0 }}
-                                    movements this month
-                                </p>
-                            </div>
-                            <div class="border-t pt-4">
-                                <div
-                                    class="flex items-center justify-between gap-3"
-                                >
-                                    <span class="text-sm text-muted-foreground"
-                                        >Stock Attention</span
-                                    >
-                                    <span
-                                        class="font-semibold tabular-nums"
+                                    <div
+                                        class="w-full rounded-t-md"
                                         :class="
-                                            (props.stats?.inventory.low_stock ??
-                                                0) +
-                                                (props.stats?.inventory
-                                                    .out_of_stock ?? 0) >
-                                            0
-                                                ? 'text-amber-600'
-                                                : 'text-emerald-600'
+                                            i === dailyRevenue.length - 1
+                                                ? 'bg-blue-500'
+                                                : 'bg-gray-200 dark:bg-muted'
                                         "
+                                        :style="{
+                                            height: `${Math.max(4, (day.revenue / maxDailyRevenue) * 100)}%`,
+                                        }"
+                                    />
+                                    <span
+                                        class="text-center text-[11px] text-muted-foreground"
+                                        >{{ day.label }}</span
                                     >
-                                        {{
-                                            (props.stats?.inventory.low_stock ??
-                                                0) +
-                                            (props.stats?.inventory
-                                                .out_of_stock ?? 0)
-                                        }}
-                                    </span>
                                 </div>
-                                <p class="mt-1 text-xs text-muted-foreground">
-                                    {{
-                                        props.stats?.inventory.out_of_stock ?? 0
-                                    }}
-                                    out of stock
-                                </p>
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader class="pb-2">
-                            <CardTitle class="text-sm font-semibold"
-                                >Low Stock</CardTitle
+                            <CardTitle
+                                class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                                >Due today</CardTitle
                             >
                         </CardHeader>
                         <CardContent>
                             <div
                                 v-if="
-                                    (props.low_stock_items?.length ?? 0) === 0
+                                    (props.daily?.due_today.length ?? 0) === 0
                                 "
-                                class="flex h-36 items-center justify-center text-sm text-muted-foreground"
+                                class="flex h-44 items-center justify-center text-sm text-muted-foreground"
                             >
-                                Stock levels are healthy.
+                                Nothing is due today.
                             </div>
-                            <div v-else class="divide-y">
-                                <div
-                                    v-for="item in props.low_stock_items?.slice(
-                                        0,
-                                        4,
-                                    )"
-                                    :key="item.sku"
+                            <ul v-else class="divide-y">
+                                <li
+                                    v-for="order in props.daily?.due_today"
+                                    :key="order.order_number"
                                     class="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
                                 >
                                     <div class="min-w-0">
-                                        <p class="truncate text-sm font-medium">
-                                            {{ item.name }}
+                                        <p
+                                            class="truncate text-sm font-semibold"
+                                        >
+                                            #{{ order.order_number }}
+                                            {{ order.customer }}
                                         </p>
                                         <p
-                                            class="text-xs text-muted-foreground"
+                                            class="truncate text-xs text-muted-foreground"
                                         >
-                                            {{ item.sku }}
+                                            {{ order.service ?? 'Laundry' }}
                                         </p>
                                     </div>
-                                    <div class="text-right">
-                                        <p
-                                            class="text-sm font-semibold tabular-nums"
-                                        >
-                                            {{ item.quantity }}
-                                        </p>
-                                        <p
-                                            class="text-[10px] text-muted-foreground"
-                                        >
-                                            min {{ item.min_stock }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                                    <span
+                                        class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                        :class="
+                                            order.overdue
+                                                ? 'bg-red-100 text-red-700'
+                                                : 'bg-blue-100 text-blue-700'
+                                        "
+                                        >{{ order.due_at }}</span
+                                    >
+                                </li>
+                            </ul>
                         </CardContent>
                     </Card>
-                </div>
-
-                <!-- DSS recommendations -->
-                <div v-if="dssRecommendations.length > 0">
-                    <p
-                        class="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                    >
-                        DSS Recommendations
-                    </p>
-                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <div
-                            v-for="(insight, index) in dssRecommendations"
-                            :key="index"
-                            class="space-y-2 rounded-xl border p-4"
-                            :class="{
-                                'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20':
-                                    insight.type === 'success',
-                                'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20':
-                                    insight.type === 'warning',
-                                'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20':
-                                    insight.type === 'danger',
-                                'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20':
-                                    insight.type === 'info',
-                            }"
-                        >
-                            <div class="flex items-start justify-between gap-3">
-                                <p class="text-sm font-semibold">
-                                    {{ insight.title }}
-                                </p>
-                                <span
-                                    class="shrink-0 rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase dark:bg-black/20"
-                                >
-                                    {{
-                                        insight.type === 'danger'
-                                            ? 'critical'
-                                            : insight.type
-                                    }}
-                                </span>
-                            </div>
-                            <p
-                                class="text-xs leading-relaxed text-muted-foreground"
-                            >
-                                {{ insight.message }}
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </template>
 

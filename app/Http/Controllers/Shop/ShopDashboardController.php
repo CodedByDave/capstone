@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\ShopDashboardRequest;
 use App\Models\Employee;
 use App\Models\Inventory;
 use App\Models\InventoryMovement;
@@ -11,6 +12,7 @@ use App\Models\Module;
 use App\Models\ShopOrder;
 use App\Services\BusinessAgreementService;
 use App\Services\OrderService;
+use App\Services\ShopDashboardService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,9 +23,10 @@ class ShopDashboardController extends Controller
     public function __construct(
         private readonly OrderService $orderService,
         private readonly BusinessAgreementService $businessAgreementService,
+        private readonly ShopDashboardService $dashboardService,
     ) {}
 
-    public function index()
+    public function index(ShopDashboardRequest $request)
     {
         $user = Auth::user();
         Inertia::share('agreement', $this->businessAgreementService->currentAgreementData($user));
@@ -367,6 +370,8 @@ class ShopDashboardController extends Controller
             ],
             'monthly_orders' => $monthlyOrders,
             'service_popularity' => $servicePopularity,
+            'period' => $request->validated('period'),
+            'daily' => $this->dashboardService->dailySummary($shopId, $request->validated('period')),
             'order_status_dist' => [
                 'pending' => $pendingOrders,
                 'in_progress' => $inProgressOrders,
