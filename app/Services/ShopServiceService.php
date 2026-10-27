@@ -7,13 +7,15 @@ use App\Repositories\ShopServiceRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class ShopServiceService
 {
     public function __construct(
-        protected ShopServiceRepository $repo
+        protected ShopServiceRepository $repo,
+        protected InventoryService $inventory,
     ) {}
 
     public function getAll(int $shopId, bool $activeOnly = false, bool $onlyTrashed = false): Collection
@@ -36,18 +38,43 @@ class ShopServiceService
         return $service;
     }
 
+    /**
+     * Items of the shop's inventory a service can be set to use.
+     *
+     * @return list<array{id: int, name: string, unit: string, quantity: int}>
+     */
+    public function supplyOptions(int $shopId): array
+    {
+        return $this->inventory->all($shopId)
+            ->where('status', 'active')
+            ->map(fn ($item) => ['id' => $item->id, 'name' => $item->name, 'unit' => $item->unit, 'quantity' => $item->quantity])
+            ->values()
+            ->all();
+    }
+
+    /** What the edit form needs to show the supplies a service already uses. */
+    public function supplyLines(ShopService $service): array
+    {
+        return $service->supplies()->get()->map(fn ($item) => [
+            'inventory_id' => $item->id,
+            'quantity' => (float) $item->pivot->quantity,
+            'unit' => $item->pivot->unit,
+        ])->all();
+    }
+
     public function create(array $data, ?UploadedFile $photo = null): ShopService
     {
         $this->validatePricingFields($data);
+        [$data, $supplies] = $this->splitSupplies($data);
 
         if ($photo === null) {
-            return $this->repo->create($data);
+            return $this->createWithSupplies($data, $supplies);
         }
 
         $path = $this->storePhoto($photo, (int) $data['shop_id']);
 
         try {
-            return $this->repo->create([...$data, 'photo_path' => $path]);
+            return $this->createWithSupplies([...$data, 'photo_path' => $path], $supplies);
         } catch (\Throwable $exception) {
             Storage::disk('public')->delete($path);
 
@@ -58,6 +85,7 @@ class ShopServiceService
     public function update(ShopService $service, array $data, ?UploadedFile $photo = null, bool $removePhoto = false): ShopService
     {
         $this->validatePricingFields($data);
+        [$data, $supplies] = $this->splitSupplies($data);
 
         $oldPath = $service->photo_path;
         $newPath = null;
@@ -70,7 +98,12 @@ class ShopServiceService
         }
 
         try {
-            $updated = $this->repo->update($service, $data);
+            $updated = DB::transaction(function () use ($service, $data, $supplies) {
+                $updated = $this->repo->update($service, $data);
+                $this->repo->syncSupplies($updated, $supplies);
+
+                return $updated;
+            });
         } catch (\Throwable $exception) {
             if ($newPath !== null) {
                 Storage::disk('public')->delete($newPath);
@@ -109,6 +142,29 @@ class ShopServiceService
     }
 
     // ─── Private ───────────────────────────────────────
+
+    /**
+     * The supply lines to keep (none when "Uses supplies" is off) and the rest of the service data.
+     *
+     * @return array{0: array, 1: array}
+     */
+    private function splitSupplies(array $data): array
+    {
+        $supplies = ! empty($data['uses_supplies']) ? ($data['supplies'] ?? []) : [];
+        unset($data['uses_supplies'], $data['supplies']);
+
+        return [$data, $supplies];
+    }
+
+    private function createWithSupplies(array $data, array $supplies): ShopService
+    {
+        return DB::transaction(function () use ($data, $supplies) {
+            $service = $this->repo->create($data);
+            $this->repo->syncSupplies($service, $supplies);
+
+            return $service;
+        });
+    }
 
     private function storePhoto(UploadedFile $photo, int $shopId): string
     {

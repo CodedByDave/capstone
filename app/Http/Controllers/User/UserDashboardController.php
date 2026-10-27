@@ -161,6 +161,7 @@ class UserDashboardController extends Controller
 
         $services = $shop->services()
             ->where('is_active', true)
+            ->with('supplies:id,name,unit')
             ->get([
                 'id',
                 'shop_id',
@@ -199,7 +200,7 @@ class UserDashboardController extends Controller
                 'rating_avg' => $rating['average'] ?? null,
                 'rating_count' => $rating['count'] ?? 0,
             ],
-            'services' => $services,
+            'services' => $this->catalog->serviceCards($shop->id, $services),
             'customerAgreement' => $this->customerAgreementService->agreementData($shop),
             'userLat' => $lat ?: null,
             'userLng' => $lng ?: null,

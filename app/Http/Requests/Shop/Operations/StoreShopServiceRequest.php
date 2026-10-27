@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Shop\Operations;
 
+use App\Http\Requests\Shop\Operations\Concerns\ValidatesServiceCatalogue;
 use App\Models\ShopService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreShopServiceRequest extends FormRequest
 {
+    use ValidatesServiceCatalogue;
+
     public function authorize(): bool
     {
         return true;
@@ -16,8 +19,8 @@ class StoreShopServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...$this->catalogueRules(),
             'service_name' => ['required', 'string', 'max:255'],
-            'category' => ['required', Rule::in(ShopService::CATEGORIES)],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
@@ -45,6 +48,7 @@ class StoreShopServiceRequest extends FormRequest
     public function messages(): array
     {
         return [
+            ...$this->catalogueMessages(),
             'category.required' => 'Please select a service category.',
             'category.in' => 'Please select a valid service category.',
             'price_per_kg.required_if' => 'Price per kg is required for per-kg pricing.',

@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import ServiceCategoryField from '@/components/shop/ServiceCategoryField.vue';
 import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
+import ServiceSuppliesField, {
+    type SupplyLine,
+    type SupplyOption,
+} from '@/components/shop/ServiceSuppliesField.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    serviceCategories,
-    type ServiceCategory,
-} from '@/constants/serviceCategories';
+import { type ServiceCategory } from '@/constants/serviceCategories';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
@@ -15,7 +17,8 @@ import { computed } from 'vue';
 
 interface ShopService {
     id: number;
-    category: ServiceCategory;
+    category: ServiceCategory | string;
+    supplies: SupplyLine[];
     service_name: string;
     description: string | null;
     is_active: boolean;
@@ -30,6 +33,12 @@ interface ShopService {
 const props = defineProps<{
     service: ShopService;
     pricingModels: string[];
+    customCategories: {
+        value: string;
+        label: string;
+        description: string | null;
+    }[];
+    supplyOptions: SupplyOption[];
 }>();
 
 const page = usePage<AppPageProps>();
@@ -50,12 +59,11 @@ const form = useForm({
     estimated_hours: props.service.estimated_hours ?? '',
     photo: null as File | null,
     remove_photo: false,
+    uses_supplies: props.service.supplies.length > 0,
+    supplies: props.service.supplies.map((line) => ({ ...line })),
 });
 
 const isPerKg = computed(() => form.pricing_model === 'per_kg');
-const selectedCategory = computed(() =>
-    serviceCategories.find((category) => category.value === form.category),
-);
 
 const onModelChange = () => {
     if (form.pricing_model === 'per_kg') {
@@ -102,35 +110,13 @@ const submit = () => {
                         Basic Information
                     </p>
                     <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                        <div class="col-span-12 space-y-1">
-                            <label class="text-sm font-medium">
-                                Service Category
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <select
+                        <div class="col-span-12">
+                            <ServiceCategoryField
                                 v-model="form.category"
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                :class="{
-                                    'border-red-500': form.errors.category,
-                                }"
-                            >
-                                <option
-                                    v-for="category in serviceCategories"
-                                    :key="category.value"
-                                    :value="category.value"
-                                >
-                                    {{ category.label }}
-                                </option>
-                            </select>
-                            <p class="text-xs leading-5 text-muted-foreground">
-                                {{ selectedCategory?.description }}
-                            </p>
-                            <p
-                                v-if="form.errors.category"
-                                class="text-xs text-red-500"
-                            >
-                                {{ form.errors.category }}
-                            </p>
+                                :custom-categories="customCategories"
+                                :base="base"
+                                :error="form.errors.category"
+                            />
                         </div>
 
                         <div class="col-span-12 space-y-1 sm:col-span-5">
@@ -406,6 +392,15 @@ const submit = () => {
                         </template>
                     </div>
                 </div>
+
+                <!-- Supplies -->
+                <ServiceSuppliesField
+                    v-model:uses-supplies="form.uses_supplies"
+                    v-model:supplies="form.supplies"
+                    :options="supplyOptions"
+                    :per-label="isPerKg ? 'kg' : 'bundle'"
+                    :errors="form.errors"
+                />
 
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-3 border-t pt-4">

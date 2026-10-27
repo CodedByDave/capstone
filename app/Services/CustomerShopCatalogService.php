@@ -10,6 +10,31 @@ use Illuminate\Support\Collection;
  */
 class CustomerShopCatalogService
 {
+    public function __construct(private readonly ServiceCategoryService $categories) {}
+
+    /**
+     * Services as the customer sees them: the supplies each one uses (name, quantity, unit only, so
+     * no costs or stock levels leave the shop) and the display name of a shop-made category.
+     *
+     * @param  Collection<int, \App\Models\ShopService>  $services  Active services of one shop, with supplies loaded.
+     * @return list<array<string, mixed>>
+     */
+    public function serviceCards(int $shopId, Collection $services): array
+    {
+        $custom = collect($this->categories->customFor($shopId))->pluck('label', 'value');
+
+        return $services->map(fn ($service) => [
+            ...collect($service->toArray())->except('supplies')->all(),
+            'category_label' => $custom[$service->category] ?? null,
+            'supplies' => $service->supplies->map(fn ($item) => [
+                'name' => $item->name,
+                'quantity' => (float) $item->pivot->quantity,
+                'unit' => $item->pivot->unit,
+                'per' => $service->isPerBundle() ? 'bundle' : 'kg',
+            ])->values()->all(),
+        ])->values()->all();
+    }
+
     /**
      * Headline price for a shop card. Per-kg pricing wins when the shop has it,
      * otherwise the cheapest bundle price is used, so bundle-only shops still show a price.

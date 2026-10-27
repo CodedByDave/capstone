@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Shop\Operations;
 
+use App\Http\Requests\Shop\Operations\Concerns\ValidatesServiceCatalogue;
 use App\Models\ShopService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateShopServiceRequest extends FormRequest
 {
+    use ValidatesServiceCatalogue;
+
     public function authorize(): bool
     {
         return true;
@@ -16,8 +19,8 @@ class UpdateShopServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...$this->catalogueRules(),
             'service_name' => ['required', 'string', 'max:255'],
-            'category' => ['required', Rule::in(ShopService::CATEGORIES)],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
@@ -42,6 +45,7 @@ class UpdateShopServiceRequest extends FormRequest
     public function messages(): array
     {
         return [
+            ...$this->catalogueMessages(),
             'category.required' => 'Please select a service category.',
             'category.in' => 'Please select a valid service category.',
             'price_per_kg.min' => 'Price per kg must be at least ₱1.',

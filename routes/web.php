@@ -35,6 +35,7 @@ use App\Http\Controllers\Shop\Operations\OrderComplaintController;
 use App\Http\Controllers\Shop\Operations\OrderRatingController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
+use App\Http\Controllers\Shop\Operations\ServiceCategoryController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use App\Http\Controllers\Shop\PaymentHistoryController;
 use App\Http\Controllers\Shop\PaymentSettingsController;
@@ -342,6 +343,8 @@ Route::prefix('shop')->middleware([
     Route::get('operations/services', [ShopServiceController::class, 'index'])->name('shop.services.index');
     Route::get('operations/services/create', [ShopServiceController::class, 'create'])->name('shop.services.create');
     Route::post('operations/services', [ShopServiceController::class, 'store'])->name('shop.services.store');
+    Route::post('operations/services/categories', [ServiceCategoryController::class, 'store'])->name('shop.services.categories.store');
+    Route::delete('operations/services/categories/{key}', [ServiceCategoryController::class, 'destroy'])->name('shop.services.categories.destroy');
     Route::get('operations/services/export', [ShopServiceController::class, 'export'])->name('shop.services.export');
     Route::get('operations/services/import-template', [ShopServiceController::class, 'importTemplate'])->name('shop.services.import-template');
     Route::post('operations/services/import', [ShopServiceController::class, 'import'])->name('shop.services.import');
@@ -558,6 +561,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::get('/operations/services/create', [ShopServiceController::class, 'create'])->name('staff.services.create');
         Route::post('/operations/services', [ShopServiceController::class, 'store'])->name('staff.services.store');
         Route::post('/operations/services/import', [ShopServiceController::class, 'import'])->name('staff.services.import');
+        Route::post('/operations/services/categories', [ServiceCategoryController::class, 'store'])->name('staff.services.categories.store');
         Route::get('/operations/promos/create', [PromotionController::class, 'create'])->name('staff.promotions.create');
         Route::post('/operations/promos', [PromotionController::class, 'store'])->name('staff.promotions.store');
     });

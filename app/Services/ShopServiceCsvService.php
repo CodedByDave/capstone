@@ -25,7 +25,10 @@ class ShopServiceCsvService
 
     private const MAX_ROWS = 500;
 
-    public function __construct(private readonly ShopServiceRepository $repository) {}
+    public function __construct(
+        private readonly ShopServiceRepository $repository,
+        private readonly ServiceCategoryService $categories,
+    ) {}
 
     /** @return list<list<string|int|float|null>> Header row followed by one row per active service. */
     public function exportRows(int $shopId): array
@@ -70,12 +73,13 @@ class ShopServiceCsvService
         $existing = $this->repository->allByShop($shopId)
             ->map(fn (ShopService $s) => mb_strtolower($s->service_name))
             ->all();
+        $allowedCategories = $this->categories->allowedKeys($shopId);
         $errors = [];
         $valid = [];
         $seen = [];
 
         foreach ($parsed['rows'] as $line => $row) {
-            $result = $this->validateRow($row);
+            $result = $this->validateRow($row, $allowedCategories);
 
             if ($result['errors'] !== []) {
                 foreach ($result['errors'] as $message) {
@@ -161,7 +165,7 @@ class ShopServiceCsvService
     }
 
     /** @return array{data: array<string, mixed>, errors: list<string>} */
-    private function validateRow(array $row): array
+    private function validateRow(array $row, array $allowedCategories): array
     {
         $row = array_map(fn ($v) => $v === '' ? null : $v, $row);
         $row['pricing_model'] = isset($row['pricing_model']) ? strtolower($row['pricing_model']) : null;
@@ -170,7 +174,7 @@ class ShopServiceCsvService
 
         $validator = Validator::make([...$row, 'status' => $status], [
             'service_name' => ['required', 'string', 'max:255'],
-            'category' => ['required', Rule::in(ShopService::CATEGORIES)],
+            'category' => ['required', Rule::in($allowedCategories)],
             'description' => ['nullable', 'string'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
             'estimated_hours' => ['nullable', 'integer', 'min:1', 'max:720'],

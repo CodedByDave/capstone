@@ -60,7 +60,8 @@ import 'vue3-toastify/dist/index.css';
 interface ShopService {
     id: number;
     service_name: string;
-    category: ServiceCategory;
+    category: ServiceCategory | string;
+    supplies?: { id: number; name: string }[];
     description: string | null;
     is_active: boolean;
     pricing_model: 'per_kg' | 'per_bundle';
@@ -79,6 +80,7 @@ type ServiceTableItem = ShopService & {
 const props = defineProps<{
     services: ShopService[];
     showArchived: boolean;
+    customCategories: { value: string; label: string }[];
 }>();
 
 const page = usePage<AppPageProps>();
@@ -147,7 +149,10 @@ const statCards = computed(() => [
 const serviceRows = computed<ServiceTableItem[]>(() =>
     props.services.map((service) => ({
         ...service,
-        category_label: serviceCategoryLabel(service.category),
+        category_label:
+            props.customCategories.find((c) => c.value === service.category)
+                ?.label ??
+            serviceCategoryLabel(service.category as ServiceCategory),
         price_sort: Number(
             service.pricing_model === 'per_kg'
                 ? service.price_per_kg
@@ -499,6 +504,13 @@ function toggleActive(service: ShopService) {
                             >
                                 {{ category.label }}
                             </option>
+                            <option
+                                v-for="category in customCategories"
+                                :key="category.value"
+                                :value="category.value"
+                            >
+                                {{ category.label }}
+                            </option>
                         </select>
 
                         <select
@@ -539,6 +551,18 @@ function toggleActive(service: ShopService) {
                         class="inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200"
                         >{{ service.category_label }}</span
                     >
+                    <p
+                        v-if="service.supplies?.length"
+                        class="mt-1 flex items-center gap-1 text-xs text-muted-foreground"
+                    >
+                        <Package class="h-3 w-3" />
+                        Uses {{ service.supplies.length }}
+                        {{
+                            service.supplies.length === 1
+                                ? 'supply'
+                                : 'supplies'
+                        }}
+                    </p>
                 </template>
                 <template #item-pricing_model="service">
                     <span

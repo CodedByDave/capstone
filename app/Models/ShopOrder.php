@@ -169,7 +169,19 @@ class ShopOrder extends Model
         return $this->belongsTo(Promotion::class);
     }
 
+    /** Supplies staff added by hand; the customer is charged for these. */
     public function supplies(): BelongsToMany
+    {
+        return $this->suppliesFrom('manual');
+    }
+
+    /** Supplies taken from stock because the order's service uses them; not charged to the customer. */
+    public function serviceSupplies(): BelongsToMany
+    {
+        return $this->suppliesFrom('service');
+    }
+
+    private function suppliesFrom(string $source): BelongsToMany
     {
         return $this->belongsToMany(
             Inventory::class,
@@ -177,7 +189,8 @@ class ShopOrder extends Model
             'order_id',
             'inventory_id'
         )
-            ->withPivot(['quantity_used', 'unit', 'unit_price', 'inventory_movement_id'])
+            ->wherePivot('source', $source)
+            ->withPivot(['quantity_used', 'unit', 'source', 'unit_price', 'unit_cost', 'inventory_movement_id'])
             ->withTimestamps();
     }
 

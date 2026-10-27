@@ -42,7 +42,14 @@ import 'vue3-toastify/dist/index.css';
 
 interface ShopService {
     id: number;
-    category: ServiceCategory;
+    category: ServiceCategory | string;
+    category_label: string | null;
+    supplies: {
+        name: string;
+        quantity: number;
+        unit: string;
+        per: 'kg' | 'bundle';
+    }[];
     service_name: string;
     description: string | null;
     pricing_model: 'per_kg' | 'per_bundle';
@@ -453,7 +460,12 @@ function goBack() {
                             <span
                                 class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"
                             >
-                                {{ serviceCategoryLabel(svc.category) }}
+                                {{
+                                    svc.category_label ??
+                                    serviceCategoryLabel(
+                                        svc.category as ServiceCategory,
+                                    )
+                                }}
                             </span>
                             <h3 class="text-lg font-bold text-gray-900">
                                 {{ svc.service_name }}
@@ -470,6 +482,32 @@ function goBack() {
                             >
                                 {{ formatServicePrice(svc) }}
                             </p>
+
+                            <div
+                                v-if="svc.supplies.length"
+                                class="mt-3 rounded-xl bg-gray-50 p-3"
+                            >
+                                <p
+                                    class="flex items-center gap-1.5 text-xs font-semibold text-gray-700"
+                                >
+                                    <Package class="h-3.5 w-3.5" />
+                                    Supplies used in this service
+                                </p>
+                                <ul class="mt-1.5 space-y-0.5">
+                                    <li
+                                        v-for="supply in svc.supplies"
+                                        :key="supply.name"
+                                        class="text-xs text-gray-600"
+                                    >
+                                        {{ supply.name }}
+                                        <span class="text-gray-400"
+                                            >· {{ supply.quantity }}
+                                            {{ supply.unit }} per
+                                            {{ supply.per }}</span
+                                        >
+                                    </li>
+                                </ul>
+                            </div>
 
                             <div class="mt-3 flex flex-wrap gap-2">
                                 <span

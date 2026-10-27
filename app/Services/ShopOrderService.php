@@ -24,6 +24,7 @@ class ShopOrderService
         private readonly LogisticsService $logistics,
         private readonly OrderPaymentService $orderPayments,
         private readonly InventoryService $inventory,
+        private readonly ServiceSupplyUsageService $serviceSupplies,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -106,7 +107,8 @@ class ShopOrderService
                 $this->inventory->alertIfLowStock($item->refresh());
             }
 
-            $order->load('shop');
+            $order->load(['shop', 'service']);
+            $this->serviceSupplies->sync($order, $actor->id);
             $this->customerAgreementService->record($order, $actor, $agreementVersion, 'staff_attestation', $ipAddress, $userAgent);
 
             return $order;
@@ -164,6 +166,8 @@ class ShopOrderService
             ]);
 
             $order->setRelation('shop', $shop);
+            $order->setRelation('service', $service);
+            $this->serviceSupplies->sync($order, null);
             $this->customerAgreementService->record($order, $customer, $data['customer_agreement_version'], 'online_checkbox', $ipAddress, $userAgent);
             $customer->notify(new OrderNotification($order, 'placed'));
 
@@ -297,6 +301,7 @@ class ShopOrderService
             // status because the total may have changed.
             $this->repository->update($order, $data);
             $this->orderPayments->sync($order);
+            $this->serviceSupplies->sync($order->refresh()->load('service'), auth()->id());
 
             // Re-attach new supplies and deduct inventory
             foreach ($newSupplies as $supply) {
@@ -386,7 +391,13 @@ class ShopOrderService
             $data['overdue_notified_at'] = null;
         }
 
+        $previousStatus = $order->status;
         $updated = $this->repository->update($order, $data);
+
+        // Cancelling puts the service's supplies back; reopening a cancelled order takes them again.
+        if ($status === 'cancelled' || $previousStatus === 'cancelled') {
+            DB::transaction(fn () => $this->serviceSupplies->sync($updated->load('service'), auth()->id()));
+        }
 
         // Notify the customer if this was an online order with a linked user
         if ($updated->user_id && in_array($status, ['in_progress', 'completed'])) {
@@ -416,6 +427,7 @@ class ShopOrderService
 
             // Detach supplies from pivot
             $order->supplies()->detach();
+            $this->serviceSupplies->release($order, auth()->id());
 
             // Soft delete the order
             $order->delete();

@@ -8,6 +8,7 @@ use App\Http\Requests\Shop\Operations\StoreShopServiceRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopServiceRequest;
 use App\Models\Employee;
 use App\Models\ShopService;
+use App\Services\ServiceCategoryService;
 use App\Services\ShopServiceCsvService;
 use App\Services\ShopServiceService;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +23,7 @@ class ShopServiceController extends Controller
     public function __construct(
         protected ShopServiceService $service,
         protected ShopServiceCsvService $csv,
+        protected ServiceCategoryService $categories,
     ) {}
 
     private function getShopId(): int
@@ -48,6 +50,7 @@ class ShopServiceController extends Controller
             'services' => $this->service->getAll($shopId, onlyTrashed: $showTrashed),
             'pricingModels' => ShopService::PRICING_MODELS,
             'showArchived' => $showTrashed,
+            'customCategories' => $this->categories->customFor($shopId),
         ]);
     }
 
@@ -77,8 +80,12 @@ class ShopServiceController extends Controller
 
     public function create(): Response
     {
+        $shopId = $this->getShopId();
+
         return Inertia::render('shop/operations/services/Create', [
             'pricingModels' => ShopService::PRICING_MODELS,
+            'customCategories' => $this->categories->customFor($shopId),
+            'supplyOptions' => $this->service->supplyOptions($shopId),
         ]);
     }
 
@@ -101,8 +108,10 @@ class ShopServiceController extends Controller
         $this->service->assertInShop($service, $this->getShopId());
 
         return Inertia::render('shop/operations/services/Edit', [
-            'service' => $service,
+            'service' => [...$service->toArray(), 'supplies' => $this->service->supplyLines($service)],
             'pricingModels' => ShopService::PRICING_MODELS,
+            'customCategories' => $this->categories->customFor($service->shop_id),
+            'supplyOptions' => $this->service->supplyOptions($service->shop_id),
         ]);
     }
 

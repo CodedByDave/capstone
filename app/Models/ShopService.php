@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -59,6 +60,14 @@ class ShopService extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(ShopOrder::class, 'service_id');
+    }
+
+    /** Inventory items this service uses: `quantity` per kg, or per bundle for bundle services. */
+    public function supplies(): BelongsToMany
+    {
+        return $this->belongsToMany(Inventory::class, 'service_supplies', 'service_id', 'inventory_id')
+            ->withPivot(['quantity', 'unit'])
+            ->withTimestamps();
     }
 
     // ─── Accessors ─────────────────────────────────────
