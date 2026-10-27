@@ -2,16 +2,9 @@
 import DeliveryPricingCard, {
     type DeliveryPricing,
 } from '@/components/business/DeliveryPricingCard.vue';
-import DriverPayCard from '@/components/business/DriverPayCard.vue';
 import OperatingHoursCard from '@/components/business/OperatingHoursCard.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -137,6 +130,28 @@ const clearing = ref(false);
 const hasGeo = computed(
     () => props.shop.latitude !== null && props.shop.longitude !== null,
 );
+const geoDirty = computed(
+    () =>
+        lat.value !== (props.shop.latitude?.toString() ?? '') ||
+        lng.value !== (props.shop.longitude?.toString() ?? ''),
+);
+const addressLine = computed(
+    () =>
+        [
+            props.shop.block_street,
+            props.shop.barangay,
+            props.shop.municipality,
+            props.shop.postal_code,
+        ]
+            .filter(Boolean)
+            .join(', ') || '—',
+);
+const sectionLinks = computed(() => [
+    { href: '#hours', label: 'Operating Hours' },
+    { href: '#delivery', label: 'Delivery Pricing' },
+    { href: '#cover', label: 'Cover Photo' },
+    { href: '#location', label: 'Shop Location' },
+]);
 const mapsUrl = computed(() => {
     if (!hasGeo.value) return null;
     return `https://www.google.com/maps?q=${props.shop.latitude},${props.shop.longitude}`;
@@ -213,151 +228,81 @@ function clearGeo() {
     <Head title="Shop Settings" />
 
     <ShopLayout title="Shop Settings">
-        <div class="mx-auto max-w-2xl space-y-6 px-6">
+        <div class="mx-auto max-w-5xl space-y-6 px-6">
             <!-- ── Header ── -->
             <div>
                 <h2 class="text-lg font-semibold">Shop Settings</h2>
                 <p class="text-sm text-muted-foreground">
-                    Manage your shop profile and location settings.
+                    Manage your shop profile, hours, delivery and location.
                 </p>
             </div>
 
-            <!-- ── Shop Info (read-only) ── -->
-            <Card>
-                <CardHeader class="pb-3">
-                    <div class="flex items-center gap-2">
-                        <Building2 class="h-4 w-4 text-muted-foreground" />
-                        <CardTitle class="text-sm">Shop Information</CardTitle>
+            <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+                <!-- ── Sections ── -->
+                <div class="min-w-0 space-y-8">
+                    <!-- Operating Hours -->
+                    <div id="hours" class="scroll-mt-4">
+                        <OperatingHoursCard :hours="props.operatingHours" />
                     </div>
-                    <CardDescription class="text-xs"
-                        >Your registered shop details.</CardDescription
+
+                    <!-- Delivery Pricing -->
+                    <div id="delivery" class="scroll-mt-4 border-t pt-8">
+                        <DeliveryPricingCard :pricing="props.deliveryPricing" />
+                    </div>
+
+                    <!-- Cover Photo -->
+                    <section
+                        id="cover"
+                        class="scroll-mt-4 space-y-5 border-t pt-8"
                     >
-                </CardHeader>
-                <CardContent class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                            <p class="mb-0.5 text-xs text-muted-foreground">
-                                Shop Name
-                            </p>
-                            <p class="font-medium">
-                                {{ props.shop.shop_name }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="mb-0.5 text-xs text-muted-foreground">
-                                Phone
-                            </p>
-                            <p class="font-medium">
-                                {{ props.shop.phone || '—' }}
+                            <div class="flex items-center gap-2">
+                                <ImagePlus
+                                    class="h-4 w-4 text-muted-foreground"
+                                />
+                                <h3 class="text-base font-semibold">
+                                    Cover Photo
+                                </h3>
+                            </div>
+                            <p class="mt-1 text-sm text-muted-foreground">
+                                This photo appears on your shop card in the user
+                                dashboard and shop listing.
                             </p>
                         </div>
-                        <div class="col-span-2">
-                            <p class="mb-0.5 text-xs text-muted-foreground">
-                                Address
-                            </p>
-                            <p class="font-medium">
-                                {{
-                                    [
-                                        props.shop.block_street,
-                                        props.shop.barangay,
-                                        props.shop.municipality,
-                                        props.shop.postal_code,
-                                    ]
-                                        .filter(Boolean)
-                                        .join(', ') || '—'
-                                }}
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
 
-            <Card>
-                <CardHeader class="pb-3">
-                    <div class="flex items-center gap-2">
-                        <SlidersHorizontal
-                            class="h-4 w-4 text-muted-foreground"
-                        />
-                        <CardTitle class="text-sm">Operations Setup</CardTitle>
-                    </div>
-                    <CardDescription class="text-xs">
-                        Control customer pickup and delivery without deleting
-                        historical records.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="router.visit('/shop/setup')"
-                    >
-                        Review Operations Setup
-                    </Button>
-                </CardContent>
-            </Card>
-
-            <!-- ── Operating Hours ── -->
-            <OperatingHoursCard :hours="props.operatingHours" />
-
-            <!-- ── Delivery Pricing ── -->
-            <DeliveryPricingCard :pricing="props.deliveryPricing" />
-
-            <!-- ── Driver Earnings ── -->
-            <DriverPayCard
-                v-if="props.deliveryPricing.offers_delivery"
-                :mode="props.deliveryPricing.driver_pay_mode"
-                :daily-rate="props.deliveryPricing.driver_daily_rate"
-            />
-
-            <!-- ── Cover Photo ── -->
-            <Card>
-                <CardHeader class="pb-3">
-                    <div class="flex items-center gap-2">
-                        <ImagePlus class="h-4 w-4 text-muted-foreground" />
-                        <CardTitle class="text-sm">Cover Photo</CardTitle>
-                    </div>
-                    <CardDescription class="text-xs">
-                        This photo appears on your shop card in the user
-                        dashboard and shop listing.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-4">
-                    <!-- Preview area -->
-                    <div
-                        class="group relative flex h-48 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-200 bg-gray-50"
-                    >
-                        <img
-                            v-if="coverPreview"
-                            :src="coverPreview"
-                            alt="Cover photo"
-                            class="h-full w-full object-cover"
-                        />
                         <div
-                            v-else
-                            class="flex flex-col items-center gap-2 text-muted-foreground"
+                            class="group relative flex h-48 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted/30"
                         >
-                            <ImagePlus class="h-10 w-10 opacity-30" />
-                            <p class="text-xs">No cover photo uploaded</p>
+                            <img
+                                v-if="coverPreview"
+                                :src="coverPreview"
+                                alt="Cover photo"
+                                class="h-full w-full object-cover"
+                            />
+                            <div
+                                v-else
+                                class="flex flex-col items-center gap-2 text-muted-foreground"
+                            >
+                                <ImagePlus class="h-10 w-10 opacity-30" />
+                                <p class="text-xs">No cover photo uploaded</p>
+                            </div>
+
+                            <button
+                                v-if="coverPreview"
+                                type="button"
+                                aria-label="Remove cover photo"
+                                class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                :disabled="removingCover"
+                                @click="removeCover"
+                            >
+                                <Loader2
+                                    v-if="removingCover"
+                                    class="h-4 w-4 animate-spin"
+                                />
+                                <Trash2 v-else class="h-4 w-4" />
+                            </button>
                         </div>
 
-                        <!-- Remove button overlay -->
-                        <button
-                            v-if="coverPreview"
-                            type="button"
-                            class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition group-hover:opacity-100"
-                            :disabled="removingCover"
-                            @click="removeCover"
-                        >
-                            <Loader2
-                                v-if="removingCover"
-                                class="h-4 w-4 animate-spin"
-                            />
-                            <Trash2 v-else class="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    <!-- File input + actions -->
-                    <div class="flex flex-wrap items-center gap-2">
                         <input
                             ref="coverInput"
                             type="file"
@@ -365,194 +310,314 @@ function clearGeo() {
                             class="hidden"
                             @change="onCoverChange"
                         />
+                        <p class="text-xs text-muted-foreground">
+                            PNG, JPG or WEBP — max 4 MB.
+                        </p>
 
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            @click="coverInput?.click()"
+                        <div
+                            class="flex flex-wrap items-center justify-end gap-3"
                         >
-                            <Upload class="mr-1.5 h-3.5 w-3.5" />
-                            {{
-                                coverPreview ? 'Replace Photo' : 'Upload Photo'
-                            }}
-                        </Button>
+                            <p
+                                class="text-xs text-muted-foreground"
+                                aria-live="polite"
+                            >
+                                {{
+                                    coverFile
+                                        ? 'You have unsaved changes'
+                                        : 'No changes yet'
+                                }}
+                            </p>
+                            <Button
+                                variant="outline"
+                                @click="coverInput?.click()"
+                            >
+                                <Upload class="mr-1.5 h-4 w-4" />
+                                {{
+                                    coverPreview
+                                        ? 'Replace Photo'
+                                        : 'Upload Photo'
+                                }}
+                            </Button>
+                            <Button
+                                :disabled="!coverFile || uploadingCover"
+                                @click="uploadCover"
+                            >
+                                <Loader2
+                                    v-if="uploadingCover"
+                                    class="mr-1.5 h-4 w-4 animate-spin"
+                                />
+                                {{ uploadingCover ? 'Saving…' : 'Save Photo' }}
+                            </Button>
+                        </div>
+                    </section>
 
-                        <Button
-                            v-if="coverFile"
-                            size="sm"
-                            :disabled="uploadingCover"
-                            @click="uploadCover"
-                        >
-                            <Loader2
-                                v-if="uploadingCover"
-                                class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                            />
-                            {{ uploadingCover ? 'Saving…' : 'Save Photo' }}
-                        </Button>
-                    </div>
-
-                    <p class="text-xs text-muted-foreground">
-                        PNG, JPG or WEBP — max 4 MB.
-                    </p>
-                </CardContent>
-            </Card>
-
-            <!-- ── Geolocation ── -->
-            <Card>
-                <CardHeader class="pb-3">
-                    <div class="flex items-center gap-2">
-                        <MapPin class="h-4 w-4 text-muted-foreground" />
-                        <CardTitle class="text-sm"
-                            >Shop Location (GPS)</CardTitle
-                        >
-                    </div>
-                    <CardDescription class="text-xs">
-                        Set your shop's GPS coordinates to enable
-                        geolocation-based attendance. Staff must be within 500 m
-                        to clock in; otherwise they are auto-marked absent.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-4">
-                    <!-- Current location status -->
-                    <div
-                        v-if="hasGeo"
-                        class="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3"
+                    <!-- Geolocation -->
+                    <section
+                        id="location"
+                        class="scroll-mt-4 space-y-5 border-t pt-8"
                     >
-                        <div class="flex items-center gap-2">
-                            <CheckCircle2
-                                class="h-4 w-4 shrink-0 text-emerald-600"
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <MapPin class="h-4 w-4 text-muted-foreground" />
+                                <h3 class="text-base font-semibold">
+                                    Shop Location (GPS)
+                                </h3>
+                            </div>
+                            <p class="mt-1 text-sm text-muted-foreground">
+                                Set your shop's GPS coordinates to enable
+                                geolocation-based attendance. Staff must be
+                                within 500 m to clock in; otherwise they are
+                                auto-marked absent.
+                            </p>
+                        </div>
+
+                        <div
+                            v-if="hasGeo"
+                            class="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-4 py-3"
+                        >
+                            <div class="flex items-center gap-2">
+                                <CheckCircle2
+                                    class="h-4 w-4 shrink-0 text-emerald-600"
+                                />
+                                <div>
+                                    <p
+                                        class="text-xs font-semibold text-emerald-700"
+                                    >
+                                        Location is set
+                                    </p>
+                                    <p
+                                        class="font-mono text-xs text-emerald-700"
+                                    >
+                                        {{ props.shop.latitude?.toFixed(6) }},
+                                        {{ props.shop.longitude?.toFixed(6) }}
+                                    </p>
+                                </div>
+                            </div>
+                            <a
+                                v-if="mapsUrl"
+                                :href="mapsUrl"
+                                target="_blank"
+                                rel="noopener"
+                                class="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
+                            >
+                                View on Maps
+                                <ExternalLink class="h-3 w-3" />
+                            </a>
+                        </div>
+                        <div
+                            v-else
+                            class="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3"
+                        >
+                            <MapPin class="h-4 w-4 shrink-0 text-amber-600" />
+                            <p class="text-xs text-amber-700">
+                                No location set. Staff clock-in will not check
+                                distance.
+                            </p>
+                        </div>
+
+                        <div
+                            v-if="props.shop.status !== 'active'"
+                            class="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3"
+                        >
+                            <AlertTriangle
+                                class="mt-0.5 h-4 w-4 shrink-0 text-amber-600"
                             />
-                            <div>
-                                <p
-                                    class="text-xs font-semibold text-emerald-700"
+                            <p class="text-xs text-amber-700">
+                                Your shop is currently
+                                <span class="font-semibold capitalize">{{
+                                    props.shop.status
+                                }}</span>
+                                and will not appear in user searches until it is
+                                approved and active.
+                            </p>
+                        </div>
+
+                        <div class="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                            <div class="space-y-1.5">
+                                <label
+                                    for="shop-latitude"
+                                    class="text-sm font-medium"
+                                    >Latitude</label
                                 >
-                                    Location is set
-                                </p>
-                                <p class="font-mono text-xs text-emerald-600">
-                                    {{ props.shop.latitude?.toFixed(6) }},
-                                    {{ props.shop.longitude?.toFixed(6) }}
-                                </p>
+                                <Input
+                                    id="shop-latitude"
+                                    v-model="lat"
+                                    placeholder="e.g. 14.5995"
+                                    class="font-mono text-sm"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label
+                                    for="shop-longitude"
+                                    class="text-sm font-medium"
+                                    >Longitude</label
+                                >
+                                <Input
+                                    id="shop-longitude"
+                                    v-model="lng"
+                                    placeholder="e.g. 120.9842"
+                                    class="font-mono text-sm"
+                                />
                             </div>
                         </div>
-                        <a
-                            v-if="mapsUrl"
-                            :href="mapsUrl"
-                            target="_blank"
-                            class="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
-                        >
-                            View on Maps
-                            <ExternalLink class="h-3 w-3" />
-                        </a>
-                    </div>
-                    <div
-                        v-else
-                        class="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
-                    >
-                        <MapPin class="h-4 w-4 shrink-0 text-amber-500" />
-                        <p class="text-xs text-amber-700">
-                            No location set. Staff clock-in will not check
-                            distance.
+
+                        <p class="text-xs text-muted-foreground">
+                            You can get coordinates from
+                            <a
+                                href="https://www.google.com/maps"
+                                target="_blank"
+                                rel="noopener"
+                                class="underline hover:text-foreground"
+                                >Google Maps</a
+                            >
+                            — right-click your shop location and copy the
+                            coordinates. Or use the button below to auto-detect
+                            your current location.
                         </p>
-                    </div>
 
-                    <!-- Visibility warning -->
-                    <div
-                        v-if="props.shop.status !== 'active'"
-                        class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
-                    >
-                        <AlertTriangle
-                            class="mt-0.5 h-4 w-4 shrink-0 text-amber-500"
-                        />
-                        <p class="text-xs text-amber-700">
-                            Your shop is currently
-                            <span class="font-semibold capitalize">{{
-                                props.shop.status
-                            }}</span>
-                            and will not appear in user searches until it is
-                            approved and active.
-                        </p>
-                    </div>
-
-                    <!-- Coordinate inputs -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium">Latitude</label>
-                            <Input
-                                v-model="lat"
-                                placeholder="e.g. 14.5995"
-                                class="h-9 font-mono text-sm"
-                            />
+                        <div
+                            class="flex flex-wrap items-center justify-end gap-3"
+                        >
+                            <p
+                                class="mr-auto text-xs text-muted-foreground sm:mr-0"
+                                aria-live="polite"
+                            >
+                                {{
+                                    geoDirty
+                                        ? 'You have unsaved changes'
+                                        : 'No changes yet'
+                                }}
+                            </p>
+                            <Button
+                                v-if="hasGeo"
+                                variant="outline"
+                                class="border-red-200 text-red-600 hover:bg-red-50"
+                                :disabled="clearing"
+                                @click="clearGeo"
+                            >
+                                <Loader2
+                                    v-if="clearing"
+                                    class="mr-1.5 h-4 w-4 animate-spin"
+                                />
+                                <Trash2 v-else class="mr-1.5 h-4 w-4" />
+                                {{ clearing ? 'Clearing…' : 'Clear Location' }}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                :disabled="locating"
+                                @click="useMyLocation"
+                            >
+                                <Loader2
+                                    v-if="locating"
+                                    class="mr-1.5 h-4 w-4 animate-spin"
+                                />
+                                <Navigation v-else class="mr-1.5 h-4 w-4" />
+                                {{
+                                    locating
+                                        ? 'Detecting…'
+                                        : 'Use My Current Location'
+                                }}
+                            </Button>
+                            <Button
+                                :disabled="saving || !geoDirty"
+                                @click="saveGeo"
+                            >
+                                <Loader2
+                                    v-if="saving"
+                                    class="mr-1.5 h-4 w-4 animate-spin"
+                                />
+                                {{ saving ? 'Saving…' : 'Save Location' }}
+                            </Button>
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium">Longitude</label>
-                            <Input
-                                v-model="lng"
-                                placeholder="e.g. 120.9842"
-                                class="h-9 font-mono text-sm"
-                            />
-                        </div>
-                    </div>
+                    </section>
+                </div>
 
-                    <!-- Help text -->
-                    <p class="text-xs text-muted-foreground">
-                        You can get coordinates from
-                        <a
-                            href="https://www.google.com/maps"
-                            target="_blank"
-                            class="underline hover:text-foreground"
-                            >Google Maps</a
-                        >
-                        — right-click your shop location and copy the
-                        coordinates. Or use the button below to auto-detect your
-                        current location.
-                    </p>
+                <!-- ── Side panel ── -->
+                <aside class="lg:sticky lg:top-4 lg:self-start">
+                    <Card>
+                        <CardContent class="space-y-4 p-4">
+                            <div class="flex items-center gap-2">
+                                <Building2
+                                    class="h-4 w-4 text-muted-foreground"
+                                />
+                                <h3 class="text-sm font-semibold">
+                                    Shop Information
+                                </h3>
+                            </div>
+                            <dl class="space-y-3 text-sm">
+                                <div>
+                                    <dt class="text-xs text-muted-foreground">
+                                        Shop Name
+                                    </dt>
+                                    <dd class="font-medium">
+                                        {{ props.shop.shop_name }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs text-muted-foreground">
+                                        Phone
+                                    </dt>
+                                    <dd class="font-medium">
+                                        {{ props.shop.phone || '—' }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs text-muted-foreground">
+                                        Address
+                                    </dt>
+                                    <dd class="font-medium">
+                                        {{ addressLine }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs text-muted-foreground">
+                                        Status
+                                    </dt>
+                                    <dd class="font-medium capitalize">
+                                        {{ props.shop.status }}
+                                    </dd>
+                                </div>
+                            </dl>
 
-                    <!-- Actions -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :disabled="locating"
-                            @click="useMyLocation"
-                        >
-                            <Loader2
-                                v-if="locating"
-                                class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                            />
-                            <Navigation v-else class="mr-1.5 h-3.5 w-3.5" />
-                            {{
-                                locating
-                                    ? 'Detecting…'
-                                    : 'Use My Current Location'
-                            }}
-                        </Button>
+                            <div class="border-t pt-4">
+                                <p
+                                    class="mb-2 text-xs font-medium text-muted-foreground"
+                                >
+                                    Jump to
+                                </p>
+                                <nav
+                                    aria-label="Settings sections"
+                                    class="flex flex-col"
+                                >
+                                    <a
+                                        v-for="link in sectionLinks"
+                                        :key="link.href"
+                                        :href="link.href"
+                                        class="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                    >
+                                        {{ link.label }}
+                                    </a>
+                                </nav>
+                            </div>
 
-                        <Button size="sm" :disabled="saving" @click="saveGeo">
-                            <Loader2
-                                v-if="saving"
-                                class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                            />
-                            {{ saving ? 'Saving…' : 'Save Location' }}
-                        </Button>
-
-                        <Button
-                            v-if="hasGeo"
-                            variant="outline"
-                            size="sm"
-                            class="border-red-200 text-red-600 hover:bg-red-50"
-                            :disabled="clearing"
-                            @click="clearGeo"
-                        >
-                            <Loader2
-                                v-if="clearing"
-                                class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                            />
-                            <Trash2 v-else class="mr-1.5 h-3.5 w-3.5" />
-                            {{ clearing ? 'Clearing…' : 'Clear Location' }}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                            <div class="border-t pt-4">
+                                <p class="mb-2 text-xs text-muted-foreground">
+                                    Control customer pickup and delivery without
+                                    deleting historical records.
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    class="w-full"
+                                    @click="router.visit('/shop/setup')"
+                                >
+                                    <SlidersHorizontal class="mr-1.5 h-4 w-4" />
+                                    Review Operations Setup
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </aside>
+            </div>
         </div>
     </ShopLayout>
 </template>

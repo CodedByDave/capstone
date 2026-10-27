@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::toggle
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:171
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:175
  * @route '/shop/permission/employee/{employeeId}/toggle-role'
  */
 export const toggle = (args: { employeeId: string | number } | [employeeId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ toggle.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::toggle
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:171
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:175
  * @route '/shop/permission/employee/{employeeId}/toggle-role'
  */
 toggle.url = (args: { employeeId: string | number } | [employeeId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ toggle.url = (args: { employeeId: string | number } | [employeeId: string | numb
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::toggle
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:171
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:175
  * @route '/shop/permission/employee/{employeeId}/toggle-role'
  */
 toggle.post = (args: { employeeId: string | number } | [employeeId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -54,7 +54,7 @@ toggle.post = (args: { employeeId: string | number } | [employeeId: string | num
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::toggle
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:171
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:175
  * @route '/shop/permission/employee/{employeeId}/toggle-role'
  */
     const toggleForm = (args: { employeeId: string | number } | [employeeId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -64,7 +64,7 @@ toggle.post = (args: { employeeId: string | number } | [employeeId: string | num
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PermissionController::toggle
- * @see app/Http/Controllers/Shop/Employee/PermissionController.php:171
+ * @see app/Http/Controllers/Shop/Employee/PermissionController.php:175
  * @route '/shop/permission/employee/{employeeId}/toggle-role'
  */
         toggleForm.post = (args: { employeeId: string | number } | [employeeId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

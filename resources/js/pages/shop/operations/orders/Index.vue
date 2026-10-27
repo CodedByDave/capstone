@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { usePermissions } from '@/composables/usePermissions';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
@@ -98,6 +99,9 @@ watch(
 // ─── Base URL ──────────────────────────────────────
 
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
+const { can } = usePermissions();
+const canCreate = computed(() => can('Operations', 'create'));
+const canManage = computed(() => can('Operations', 'manage'));
 const base = computed(() =>
     isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
 );
@@ -473,7 +477,7 @@ const handleDelete = () => {
                     </p>
                 </div>
                 <Button
-                    v-if="orders.data.length > 0"
+                    v-if="orders.data.length > 0 && canManage"
                     size="sm"
                     variant="outline"
                     class="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100"
@@ -517,6 +521,7 @@ const handleDelete = () => {
                             </h2>
                             <div class="flex gap-2">
                                 <Button
+                                    v-if="canManage"
                                     variant="outline"
                                     size="sm"
                                     class="gap-1.5"
@@ -535,7 +540,7 @@ const handleDelete = () => {
                                     }}
                                 </Button>
                                 <Button
-                                    v-if="!showArchived"
+                                    v-if="!showArchived && canCreate"
                                     size="sm"
                                     @click="router.visit(`${base}/create`)"
                                 >
@@ -649,14 +654,14 @@ const handleDelete = () => {
                             {
                                 label: 'Mark as picked up',
                                 icon: PackageCheck,
-                                show: !showArchived && canPickUp(order),
+                                show: !showArchived && canManage && canPickUp(order),
                                 onSelect: () =>
                                     changeStatus(order, 'picked_up'),
                             },
                             {
                                 label: 'Edit',
                                 icon: Pencil,
-                                show: !showArchived,
+                                show: !showArchived && canManage,
                                 onSelect: () =>
                                     router.visit(
                                         `${base}/${order.payment_public_id}/edit`,
@@ -666,13 +671,13 @@ const handleDelete = () => {
                                 label: 'Archive',
                                 icon: Trash2,
                                 destructive: true,
-                                show: !showArchived,
+                                show: !showArchived && canManage,
                                 onSelect: () => confirmDelete(order),
                             },
                             {
                                 label: 'Restore',
                                 icon: RotateCcw,
-                                show: showArchived,
+                                show: showArchived && canManage,
                                 onSelect: () => restoreOrder(order),
                             },
                         ]"

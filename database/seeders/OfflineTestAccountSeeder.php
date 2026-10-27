@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Enums\AccountType;
 use App\Models\Shop;
-use App\Models\ShopRole;
 use App\Models\User;
+use App\Services\DefaultRoleProvisioner;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -52,12 +52,7 @@ class OfflineTestAccountSeeder extends Seeder
 
         $owner->update(['shop_id' => $shop->id]);
 
-        foreach (['owner', 'manager', 'cashier', 'washer', 'staff'] as $role) {
-            ShopRole::updateOrCreate(
-                ['shop_id' => $shop->id, 'name' => $role],
-                ['is_default' => true],
-            );
-        }
+        app(DefaultRoleProvisioner::class)->provision($shop->id);
 
         User::updateOrCreate(
             ['email' => self::USER_EMAIL],

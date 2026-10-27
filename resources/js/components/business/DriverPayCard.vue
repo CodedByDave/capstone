@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useForm } from '@inertiajs/vue3';
 import { Banknote, EyeOff, Loader2, Receipt, Wallet } from 'lucide-vue-next';
@@ -55,25 +48,31 @@ function save() {
 </script>
 
 <template>
-    <Card>
-        <CardHeader class="pb-3">
+    <section class="space-y-5">
+        <div>
             <div class="flex items-center gap-2">
                 <Wallet class="h-4 w-4 text-muted-foreground" />
-                <CardTitle class="text-sm">Driver Earnings</CardTitle>
+                <h3 class="text-base font-semibold">Driver Earnings</h3>
             </div>
-            <CardDescription class="text-xs">
+            <p class="mt-1 text-sm text-muted-foreground">
                 Choose what drivers see as their earnings in the driver app.
-            </CardDescription>
-        </CardHeader>
+            </p>
+        </div>
 
-        <CardContent class="space-y-4">
-            <div class="grid gap-2 sm:grid-cols-3">
+        <div class="space-y-5">
+            <div
+                class="grid gap-2 sm:grid-cols-3"
+                role="radiogroup"
+                aria-label="Driver earnings mode"
+            >
                 <button
                     v-for="option in modes"
                     :key="option.value"
                     type="button"
+                    role="radio"
+                    :aria-checked="form.driver_pay_mode === option.value"
                     :class="[
-                        'flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-colors',
+                        'flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                         form.driver_pay_mode === option.value
                             ? 'border-primary bg-primary/5'
                             : 'hover:border-primary/40',
@@ -93,8 +92,9 @@ function save() {
                 v-if="form.driver_pay_mode === 'daily_rate'"
                 class="max-w-xs space-y-1.5"
             >
-                <label class="text-xs font-medium" for="driver-daily-rate">
+                <label class="text-sm font-medium" for="driver-daily-rate">
                     Daily rate (₱)
+                    <span class="text-red-500" aria-hidden="true">*</span>
                 </label>
                 <Input
                     id="driver-daily-rate"
@@ -107,8 +107,18 @@ function save() {
                 <InputError :message="form.errors.driver_daily_rate" />
             </div>
 
-            <div class="flex justify-end">
-                <Button :disabled="form.processing" @click="save">
+            <div class="flex flex-wrap items-center justify-end gap-3">
+                <p class="text-xs text-muted-foreground" aria-live="polite">
+                    {{
+                        form.isDirty
+                            ? 'You have unsaved changes'
+                            : 'No changes yet'
+                    }}
+                </p>
+                <Button
+                    :disabled="form.processing || !form.isDirty"
+                    @click="save"
+                >
                     <Loader2
                         v-if="form.processing"
                         class="mr-1.5 h-4 w-4 animate-spin"
@@ -116,6 +126,6 @@ function save() {
                     Save
                 </Button>
             </div>
-        </CardContent>
-    </Card>
+        </div>
+    </section>
 </template>

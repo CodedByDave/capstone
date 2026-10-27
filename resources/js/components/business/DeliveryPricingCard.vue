@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatPeso } from '@/lib/maps';
 import { router, useForm } from '@inertiajs/vue3';
@@ -69,11 +62,11 @@ const modes = [
     },
 ];
 
-// An owner sent here because pricing is required lands on this card.
-const cardEl = ref<{ $el: HTMLElement } | null>(null);
+// An owner sent here because pricing is required lands on this section.
+const cardEl = ref<HTMLElement | null>(null);
 onMounted(() => {
     if (props.pricing.pricing_required) {
-        cardEl.value?.$el.scrollIntoView({
+        cardEl.value?.scrollIntoView({
             behavior: 'smooth',
             block: 'start',
         });
@@ -123,19 +116,19 @@ function save() {
 </script>
 
 <template>
-    <Card ref="cardEl">
-        <CardHeader class="pb-3">
+    <section ref="cardEl" class="space-y-5">
+        <div>
             <div class="flex items-center gap-2">
                 <Truck class="h-4 w-4 text-muted-foreground" />
-                <CardTitle class="text-sm">Delivery Pricing</CardTitle>
+                <h3 class="text-base font-semibold">Delivery Pricing</h3>
             </div>
-            <CardDescription class="text-xs">
+            <p class="mt-1 text-sm text-muted-foreground">
                 Set how much customers pay when they request delivery. The fee
                 is added to the order balance.
-            </CardDescription>
-        </CardHeader>
+            </p>
+        </div>
 
-        <CardContent v-if="!pricing.offers_delivery" class="space-y-3">
+        <div v-if="!pricing.offers_delivery" class="space-y-3">
             <div
                 class="flex items-start gap-2 rounded-xl border border-dashed px-4 py-3 text-xs text-muted-foreground"
             >
@@ -152,12 +145,12 @@ function save() {
             >
                 Review Operations Setup
             </Button>
-        </CardContent>
+        </div>
 
-        <CardContent v-else class="space-y-4">
+        <div v-else class="space-y-5">
             <div
                 v-if="pricing.pricing_required"
-                class="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+                class="flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-300"
                 role="alert"
             >
                 <AlertTriangle class="mt-0.5 h-4 w-4 shrink-0" />
@@ -170,7 +163,7 @@ function save() {
             </div>
             <div
                 v-if="!pricing.has_location"
-                class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
+                class="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
             >
                 <MapPin class="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
@@ -191,7 +184,7 @@ function save() {
                     type="button"
                     role="radio"
                     :aria-checked="form.delivery_fee_mode === mode.value"
-                    class="flex items-start gap-3 rounded-xl border-2 px-3 py-2.5 text-left transition"
+                    class="flex items-start gap-3 rounded-xl border-2 px-3 py-2.5 text-left transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     :class="
                         form.delivery_fee_mode === mode.value
                             ? 'border-primary bg-primary/5'
@@ -218,10 +211,10 @@ function save() {
             <!-- Fields -->
             <div
                 v-if="form.delivery_fee_mode === 'fixed'"
-                class="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                class="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
             >
                 <div class="space-y-1.5">
-                    <label for="delivery_fixed_fee" class="text-xs font-medium"
+                    <label for="delivery_fixed_fee" class="text-sm font-medium"
                         >Delivery fee (₱)</label
                     >
                     <Input
@@ -237,9 +230,9 @@ function save() {
                 </div>
             </div>
 
-            <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div v-else class="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
                 <div class="space-y-1.5">
-                    <label for="delivery_base_fee" class="text-xs font-medium"
+                    <label for="delivery_base_fee" class="text-sm font-medium"
                         >Base fee (₱)</label
                     >
                     <Input
@@ -256,7 +249,7 @@ function save() {
                 <div class="space-y-1.5">
                     <label
                         for="delivery_per_km_rate"
-                        class="text-xs font-medium"
+                        class="text-sm font-medium"
                         >Rate per km (₱)</label
                     >
                     <Input
@@ -271,7 +264,7 @@ function save() {
                     <InputError :message="form.errors.delivery_per_km_rate" />
                 </div>
                 <div class="space-y-1.5">
-                    <label for="delivery_free_km" class="text-xs font-medium"
+                    <label for="delivery_free_km" class="text-sm font-medium"
                         >Free kilometers</label
                     >
                     <Input
@@ -283,13 +276,13 @@ function save() {
                         inputmode="decimal"
                         class="h-9"
                     />
-                    <p class="text-[11px] text-muted-foreground">
+                    <p class="text-xs text-muted-foreground">
                         Covered by the base fee before the per-km rate applies.
                     </p>
                     <InputError :message="form.errors.delivery_free_km" />
                 </div>
                 <div class="space-y-1.5">
-                    <label for="delivery_min_fee" class="text-xs font-medium"
+                    <label for="delivery_min_fee" class="text-sm font-medium"
                         >Minimum fee (₱)</label
                     >
                     <Input
@@ -306,7 +299,7 @@ function save() {
             </div>
 
             <div class="space-y-1.5 sm:w-1/2 sm:pr-1.5">
-                <label for="delivery_max_km" class="text-xs font-medium"
+                <label for="delivery_max_km" class="text-sm font-medium"
                     >Maximum delivery radius (km)</label
                 >
                 <Input
@@ -319,14 +312,14 @@ function save() {
                     placeholder="No limit"
                     class="h-9"
                 />
-                <p class="text-[11px] text-muted-foreground">
+                <p class="text-xs text-muted-foreground">
                     Measured by road distance. Leave empty for no limit.
                 </p>
                 <InputError :message="form.errors.delivery_max_km" />
             </div>
 
             <!-- Preview -->
-            <div class="rounded-xl border bg-muted/30 p-3">
+            <div class="rounded-xl bg-muted/40 p-3">
                 <p class="mb-2 text-xs font-medium text-muted-foreground">
                     Example fees
                 </p>
@@ -336,7 +329,7 @@ function save() {
                         :key="row.km"
                         class="rounded-lg border bg-background px-3 py-2"
                     >
-                        <p class="text-[11px] text-muted-foreground">
+                        <p class="text-xs text-muted-foreground">
                             {{ row.km }} km
                         </p>
                         <p
@@ -357,13 +350,25 @@ function save() {
                 </div>
             </div>
 
-            <Button size="sm" :disabled="form.processing" @click="save">
-                <Loader2
-                    v-if="form.processing"
-                    class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                />
-                {{ form.processing ? 'Saving…' : 'Save Delivery Pricing' }}
-            </Button>
-        </CardContent>
-    </Card>
+            <div class="flex flex-wrap items-center justify-end gap-3">
+                <p class="text-xs text-muted-foreground" aria-live="polite">
+                    {{
+                        form.isDirty
+                            ? 'You have unsaved changes'
+                            : 'No changes yet'
+                    }}
+                </p>
+                <Button
+                    :disabled="form.processing || !form.isDirty"
+                    @click="save"
+                >
+                    <Loader2
+                        v-if="form.processing"
+                        class="mr-1.5 h-4 w-4 animate-spin"
+                    />
+                    {{ form.processing ? 'Saving…' : 'Save Delivery Pricing' }}
+                </Button>
+            </div>
+        </div>
+    </section>
 </template>

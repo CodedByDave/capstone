@@ -26,6 +26,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { useDataTable } from '@/composables/useDataTable';
+import { usePermissions } from '@/composables/usePermissions';
 import {
     serviceCategories,
     serviceCategoryLabel,
@@ -86,6 +87,9 @@ const props = defineProps<{
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
+const { can } = usePermissions();
+const canCreate = computed(() => can('Operations', 'create'));
+const canManage = computed(() => can('Operations', 'manage'));
 const base = computed(() =>
     isOwner.value ? '/shop/operations/services' : '/staff/operations/services',
 );
@@ -405,6 +409,7 @@ function toggleActive(service: ShopService) {
         <div class="space-y-6 px-6">
             <div class="flex flex-wrap items-center justify-end gap-2">
                 <Button
+                    v-if="canManage"
                     size="sm"
                     variant="outline"
                     :class="
@@ -423,10 +428,19 @@ function toggleActive(service: ShopService) {
                             <Download class="mr-1.5 h-4 w-4" /> Export CSV
                         </a>
                     </Button>
-                    <Button size="sm" variant="outline" @click="openImport">
+                    <Button
+                        v-if="canCreate"
+                        size="sm"
+                        variant="outline"
+                        @click="openImport"
+                    >
                         <Upload class="mr-1.5 h-4 w-4" /> Import CSV
                     </Button>
-                    <Button size="sm" @click="router.visit(`${base}/create`)">
+                    <Button
+                        v-if="canCreate"
+                        size="sm"
+                        @click="router.visit(`${base}/create`)"
+                    >
                         <Plus class="mr-1.5 h-4 w-4" /> New Service
                     </Button>
                 </template>
@@ -462,7 +476,7 @@ function toggleActive(service: ShopService) {
                     </p>
                 </div>
                 <Button
-                    v-if="services.length"
+                    v-if="services.length && canManage"
                     size="sm"
                     variant="outline"
                     class="border-amber-300 text-amber-700 hover:bg-amber-100"
@@ -627,13 +641,13 @@ function toggleActive(service: ShopService) {
                                 icon: service.is_active
                                     ? ToggleRight
                                     : ToggleLeft,
-                                show: !showArchived,
+                                show: !showArchived && canManage,
                                 onSelect: () => toggleActive(service),
                             },
                             {
                                 label: 'Edit',
                                 icon: Pencil,
-                                show: !showArchived,
+                                show: !showArchived && canManage,
                                 onSelect: () =>
                                     router.visit(`${base}/${service.id}/edit`),
                             },
@@ -641,13 +655,13 @@ function toggleActive(service: ShopService) {
                                 label: 'Archive',
                                 icon: Trash2,
                                 destructive: true,
-                                show: !showArchived,
+                                show: !showArchived && canManage,
                                 onSelect: () => confirmDelete(service),
                             },
                             {
                                 label: 'Restore',
                                 icon: RotateCcw,
-                                show: showArchived,
+                                show: showArchived && canManage,
                                 onSelect: () => restoreService(service),
                             },
                         ]"

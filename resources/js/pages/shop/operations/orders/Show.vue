@@ -9,6 +9,7 @@ import { type OrderPayment } from '@/components/shop/OrderPaymentsCard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
+import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
@@ -100,6 +101,8 @@ const isAwaitingWeight = computed(
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
+const { can } = usePermissions();
+const canManage = computed(() => can('Operations', 'manage'));
 const base = computed(() =>
     isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
 );
@@ -321,6 +324,7 @@ const statusIcon = (s: string) =>
                         <ArrowLeft class="mr-2 h-4 w-4" /> Back to orders
                     </Button>
                     <Button
+                        v-if="canManage"
                         @click="
                             router.visit(
                                 `${base}/${shopOrder.payment_public_id}/edit`,
@@ -506,6 +510,7 @@ const statusIcon = (s: string) =>
                     </div>
                 </div>
                 <Button
+                    v-if="canManage"
                     class="shrink-0"
                     @click="
                         router.visit(

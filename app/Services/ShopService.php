@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\ShopRole;
 use App\Repositories\ShopRepository;
 use Illuminate\Support\Facades\DB;
 
@@ -10,7 +9,8 @@ class ShopService
 {
     public function __construct(
         protected ShopRepository $shopRepo,
-        protected UserService $userService
+        protected UserService $userService,
+        protected DefaultRoleProvisioner $roleProvisioner
     ) {}
 
     public function countActiveShops(): int
@@ -40,14 +40,7 @@ class ShopService
                 'status' => 'pending',
             ]);
 
-            $defaultRoles = ['owner', 'manager', 'cashier', 'washer', 'staff'];
-            foreach ($defaultRoles as $role) {
-                ShopRole::create([
-                    'shop_id' => $shop->id,
-                    'name' => $role,
-                    'is_default' => true,
-                ]);
-            }
+            $this->roleProvisioner->provision($shop->id);
 
             return compact('owner', 'shop');
         });

@@ -369,7 +369,7 @@ Route::prefix('shop')->middleware([
     Route::patch('operations/orders/{order:payment_public_id}/restore', [ShopOrderController::class, 'restore'])->withTrashed()->name('shop.orders.restore');
 
     // Dedicated status & payment update endpoints
-    Route::patch('orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('status');
+    Route::patch('operations/orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('status');
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {

@@ -74,7 +74,7 @@ class PermissionController extends Controller
             ->get()
             ->map(fn ($r) => [
                 'name' => $r->name,
-                'deletable' => ! $r->is_default,
+                'deletable' => ! in_array($r->name, self::RESERVED_ROLES, true),
             ])
             ->toArray();
 
@@ -148,9 +148,13 @@ class PermissionController extends Controller
     {
         $shop = $this->getShop();
 
+        // Preset roles (manager, cashier, ...) can be removed; only the owner role is protected.
+        if (in_array($roleName, self::RESERVED_ROLES, true)) {
+            return response()->json(['error' => 'This role cannot be deleted.'], 422);
+        }
+
         $role = ShopRole::where('shop_id', $shop->id)
             ->where('name', $roleName)
-            ->where('is_default', false)
             ->firstOrFail();
 
         // Clean up role permissions for this role

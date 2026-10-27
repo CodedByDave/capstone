@@ -9,7 +9,6 @@ use App\Mail\EmployeeCredentialsMail;
 use App\Models\Employee;
 use App\Models\EmployeeRole;
 use App\Models\Shop;
-use App\Models\ShopRole;
 use App\Models\User;
 use App\Repositories\EmployeeRepository;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +36,7 @@ class EmployeeService
         private readonly ActivityLogService $activityLogService,
         private readonly DriverRosterService $driverRoster,
         private readonly ScheduleService $scheduleService,
+        private readonly DefaultRoleProvisioner $roleProvisioner,
     ) {}
 
     /* ─── READ ─────────────────────────── */
@@ -114,10 +114,7 @@ class EmployeeService
                 'updated_by' => auth()->id(),
             ]);
 
-            ShopRole::firstOrCreate(
-                ['shop_id' => $shop->id, 'name' => $role],
-                ['is_default' => true]
-            );
+            $this->roleProvisioner->provisionRole($shop->id, $role);
 
             EmployeeRole::firstOrCreate([
                 'employee_id' => $employee->id,

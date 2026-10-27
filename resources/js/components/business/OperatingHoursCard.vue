@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useForm } from '@inertiajs/vue3';
 import { Clock, Loader2, Sun, Sunrise } from 'lucide-vue-next';
@@ -53,27 +46,33 @@ function save() {
 </script>
 
 <template>
-    <Card>
-        <CardHeader class="pb-3">
+    <section class="space-y-5">
+        <div>
             <div class="flex items-center gap-2">
                 <Clock class="h-4 w-4 text-muted-foreground" />
-                <CardTitle class="text-sm">Operating Hours</CardTitle>
+                <h3 class="text-base font-semibold">Operating Hours</h3>
             </div>
-            <CardDescription class="text-xs">
+            <p class="mt-1 text-sm text-muted-foreground">
                 Choose when your shop is open. Outside these hours, orders wait
                 for a driver until you open again. A driver also needs a work
                 schedule for the day.
-            </CardDescription>
-        </CardHeader>
+            </p>
+        </div>
 
-        <CardContent class="space-y-4">
-            <div class="grid gap-2 sm:grid-cols-2">
+        <div class="space-y-5">
+            <div
+                class="grid gap-2 sm:grid-cols-2"
+                role="radiogroup"
+                aria-label="Operating hours mode"
+            >
                 <button
                     v-for="option in modes"
                     :key="String(option.value)"
                     type="button"
+                    role="radio"
+                    :aria-checked="form.is_open_24_7 === option.value"
                     :class="[
-                        'flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-colors',
+                        'flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                         form.is_open_24_7 === option.value
                             ? 'border-primary bg-primary/5'
                             : 'hover:border-primary/40',
@@ -90,18 +89,20 @@ function save() {
 
             <div
                 v-if="!form.is_open_24_7"
-                class="grid max-w-md gap-3 sm:grid-cols-2"
+                class="grid max-w-md gap-x-4 gap-y-5 sm:grid-cols-2"
             >
                 <div class="space-y-1.5">
-                    <label class="text-xs font-medium" for="opens-at">
+                    <label class="text-sm font-medium" for="opens-at">
                         Opens at
+                        <span class="text-red-500" aria-hidden="true">*</span>
                     </label>
                     <Input id="opens-at" v-model="form.opens_at" type="time" />
                     <InputError :message="form.errors.opens_at" />
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-xs font-medium" for="closes-at">
+                    <label class="text-sm font-medium" for="closes-at">
                         Closes at
+                        <span class="text-red-500" aria-hidden="true">*</span>
                     </label>
                     <Input
                         id="closes-at"
@@ -112,8 +113,18 @@ function save() {
                 </div>
             </div>
 
-            <div class="flex justify-end">
-                <Button :disabled="form.processing" @click="save">
+            <div class="flex flex-wrap items-center justify-end gap-3">
+                <p class="text-xs text-muted-foreground" aria-live="polite">
+                    {{
+                        form.isDirty
+                            ? 'You have unsaved changes'
+                            : 'No changes yet'
+                    }}
+                </p>
+                <Button
+                    :disabled="form.processing || !form.isDirty"
+                    @click="save"
+                >
                     <Loader2
                         v-if="form.processing"
                         class="mr-1.5 h-4 w-4 animate-spin"
@@ -121,6 +132,6 @@ function save() {
                     Save
                 </Button>
             </div>
-        </CardContent>
-    </Card>
+        </div>
+    </section>
 </template>

@@ -27,6 +27,7 @@ import {
     usePaginatorTable,
     type DataTableOptions,
 } from '@/composables/useDataTable';
+import { usePermissions } from '@/composables/usePermissions';
 import {
     Archive,
     BadgeDollarSign,
@@ -88,6 +89,9 @@ const props = defineProps<{
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
+const { can } = usePermissions();
+const canCreate = computed(() => can('Operations', 'create'));
+const canManage = computed(() => can('Operations', 'manage'));
 const base = computed(() =>
     isOwner.value ? '/shop/operations/promos' : '/staff/operations/promos',
 );
@@ -222,6 +226,7 @@ function formatDate(d: string | null) {
                 </div>
                 <div class="flex items-center gap-2">
                     <Button
+                        v-if="canManage"
                         variant="outline"
                         @click="router.visit(`${base}?archived=${!archived}`)"
                     >
@@ -229,7 +234,7 @@ function formatDate(d: string | null) {
                         {{ archived ? 'Back to Active' : 'View Archived' }}
                     </Button>
                     <Button
-                        v-if="!archived"
+                        v-if="!archived && canCreate"
                         @click="router.visit(`${base}/create`)"
                     >
                         <Plus class="mr-2 h-4 w-4" /> New Promotion
@@ -426,14 +431,14 @@ function formatDate(d: string | null) {
                                 icon: promo.is_active
                                     ? ToggleRight
                                     : ToggleLeft,
-                                show: !archived,
+                                show: !archived && canManage,
                                 onSelect: () =>
                                     router.patch(`${base}/${promo.id}/toggle`),
                             },
                             {
                                 label: 'Edit',
                                 icon: Pencil,
-                                show: !archived,
+                                show: !archived && canManage,
                                 onSelect: () =>
                                     router.visit(`${base}/${promo.id}/edit`),
                             },
@@ -441,7 +446,7 @@ function formatDate(d: string | null) {
                                 label: 'Archive',
                                 icon: Trash2,
                                 destructive: true,
-                                show: !archived,
+                                show: !archived && canManage,
                                 onSelect: () => {
                                     toDelete = promo;
                                     isDeleteOpen = true;
@@ -450,7 +455,7 @@ function formatDate(d: string | null) {
                             {
                                 label: 'Restore',
                                 icon: RotateCcw,
-                                show: archived,
+                                show: archived && canManage,
                                 onSelect: () =>
                                     router.patch(`${base}/${promo.id}/restore`),
                             },

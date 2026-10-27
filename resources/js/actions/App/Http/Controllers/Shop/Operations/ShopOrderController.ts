@@ -2176,24 +2176,24 @@ export const restore = {
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
- * @route '/shop/orders/{order}/status'
+ * @route '/shop/operations/orders/{order}/status'
  */
-const updateStatus923621f100b9b8119e887ba70c01a46a = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, options),
+const updateStatus8c419c3d03b0da5c49a088747a7ee2c7 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus8c419c3d03b0da5c49a088747a7ee2c7.url(args, options),
     method: 'patch',
 })
 
-updateStatus923621f100b9b8119e887ba70c01a46a.definition = {
+updateStatus8c419c3d03b0da5c49a088747a7ee2c7.definition = {
     methods: ["patch"],
-    url: '/shop/orders/{order}/status',
+    url: '/shop/operations/orders/{order}/status',
 } satisfies RouteDefinition<["patch"]>
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
- * @route '/shop/orders/{order}/status'
+ * @route '/shop/operations/orders/{order}/status'
  */
-updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
+updateStatus8c419c3d03b0da5c49a088747a7ee2c7.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -2216,7 +2216,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: string | { pa
                 : args.order,
                 }
 
-    return updateStatus923621f100b9b8119e887ba70c01a46a.definition.url
+    return updateStatus8c419c3d03b0da5c49a088747a7ee2c7.definition.url
             .replace('{order}', parsedArgs.order.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
@@ -2224,20 +2224,20 @@ updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: string | { pa
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
- * @route '/shop/orders/{order}/status'
+ * @route '/shop/operations/orders/{order}/status'
  */
-updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, options),
+updateStatus8c419c3d03b0da5c49a088747a7ee2c7.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: updateStatus8c419c3d03b0da5c49a088747a7ee2c7.url(args, options),
     method: 'patch',
 })
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
- * @route '/shop/orders/{order}/status'
+ * @route '/shop/operations/orders/{order}/status'
  */
-    const updateStatus923621f100b9b8119e887ba70c01a46aForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, {
+    const updateStatus8c419c3d03b0da5c49a088747a7ee2c7Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updateStatus8c419c3d03b0da5c49a088747a7ee2c7.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
                         ...(options?.query ?? options?.mergeQuery ?? {}),
@@ -2249,10 +2249,10 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: string | { 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
- * @route '/shop/orders/{order}/status'
+ * @route '/shop/operations/orders/{order}/status'
  */
-        updateStatus923621f100b9b8119e887ba70c01a46aForm.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: updateStatus923621f100b9b8119e887ba70c01a46a.url(args, {
+        updateStatus8c419c3d03b0da5c49a088747a7ee2c7Form.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updateStatus8c419c3d03b0da5c49a088747a7ee2c7.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
                             ...(options?.query ?? options?.mergeQuery ?? {}),
@@ -2261,7 +2261,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: string | { 
             method: 'post',
         })
     
-    updateStatus923621f100b9b8119e887ba70c01a46a.form = updateStatus923621f100b9b8119e887ba70c01a46aForm
+    updateStatus8c419c3d03b0da5c49a088747a7ee2c7.form = updateStatus8c419c3d03b0da5c49a088747a7ee2c7Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
@@ -2353,7 +2353,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: string | { 
     updateStatus1408d9eab3157e71b3908eed25954ec5.form = updateStatus1408d9eab3157e71b3908eed25954ec5Form
 
 export const updateStatus = {
-    '/shop/orders/{order}/status': updateStatus923621f100b9b8119e887ba70c01a46a,
+    '/shop/operations/orders/{order}/status': updateStatus8c419c3d03b0da5c49a088747a7ee2c7,
     '/staff/operations/orders/{order}/status': updateStatus1408d9eab3157e71b3908eed25954ec5,
 }
 
