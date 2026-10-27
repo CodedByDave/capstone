@@ -19,6 +19,7 @@ import {
     Loader,
     Loader2,
     Package,
+    PackageCheck,
     Pencil,
     Truck,
 } from 'lucide-vue-next';
@@ -186,6 +187,7 @@ const statusStyle = (s: string) =>
         pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
         in_progress: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
         completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+        picked_up: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
     })[s] ?? 'bg-gray-50 text-gray-700 ring-1 ring-gray-200';
 
 const paymentStyle = (s: string) =>
@@ -200,6 +202,7 @@ const statusIcon = (s: string) =>
         pending: Clock,
         in_progress: Loader,
         completed: CheckCircle,
+        picked_up: PackageCheck,
     })[s] ?? Package;
 </script>
 

@@ -139,7 +139,7 @@ class OrderRatingService
             return 'You have already rated this order.';
         }
 
-        if ($order->status !== 'completed') {
+        if (! in_array($order->status, ShopOrder::FINISHED_STATUSES, true)) {
             return 'You can rate an order once it is completed.';
         }
 

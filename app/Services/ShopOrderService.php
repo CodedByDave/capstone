@@ -242,6 +242,11 @@ class ShopOrderService
 
             $previousActualWeight = $order->actual_weight_kg;
 
+            if (($data['status'] ?? null) === 'picked_up' && $order->status !== 'picked_up') {
+                $this->assertCanBePickedUp($order);
+                $data['picked_up_at'] = now();
+            }
+
             // The edit form can complete an order too; record when, as the status button does.
             if (($data['status'] ?? null) === 'completed' && $order->status !== 'completed') {
                 $data['completed_at'] = now();
@@ -393,6 +398,40 @@ class ShopOrderService
 
     // ─── Status ───────────────────────────────────────────────────────────────
 
+    /** A pending order that is now fully paid starts on its own. */
+    public function startWhenPaid(ShopOrder $order): void
+    {
+        DB::transaction(function () use ($order): void {
+            $locked = $this->repository->lockForUpdate($order);
+
+            if ($locked->status === 'pending' && $locked->payment_status === 'paid') {
+                $this->updateStatus($locked, 'in_progress');
+            }
+        });
+    }
+
+    /**
+     * An order can be handed over only once it is completed, fully paid, and is not going out by
+     * delivery (a rider hands those over).
+     *
+     * @throws ValidationException
+     */
+    private function assertCanBePickedUp(ShopOrder $order): void
+    {
+        $order->loadMissing('delivery');
+
+        $reason = match (true) {
+            $order->status !== 'completed' && $order->status !== 'picked_up' => 'Only a completed order can be marked as picked up.',
+            $order->deliver_to_customer || $order->delivery !== null => 'This order is being delivered to the customer, so it cannot be marked as picked up.',
+            $order->payment_status !== 'paid' => 'Collect the remaining balance of ₱'.number_format($order->balanceDue(), 2).' before marking this order as picked up.',
+            default => null,
+        };
+
+        if ($reason !== null) {
+            throw ValidationException::withMessages(['status' => $reason]);
+        }
+    }
+
     public function updateStatus(ShopOrder $order, string $status): ShopOrder
     {
         // Nothing changes, so nobody is notified twice and the completion time is not overwritten.
@@ -400,10 +439,18 @@ class ShopOrderService
             return $order;
         }
 
+        if ($status === 'picked_up') {
+            $this->assertCanBePickedUp($order);
+        }
+
         $data = ['status' => $status];
 
         if ($status === 'completed') {
             $data['completed_at'] = now();
+        }
+
+        if ($status === 'picked_up') {
+            $data['picked_up_at'] = now();
         }
 
         if ($status === 'in_progress') {
@@ -420,7 +467,7 @@ class ShopOrderService
         }
 
         // Notify the customer if this was an online order with a linked user
-        if ($updated->user_id && in_array($status, ['in_progress', 'completed'])) {
+        if ($updated->user_id && in_array($status, ['in_progress', 'completed', 'picked_up'])) {
             $updated->load('shop');
             $updated->customer?->notify(new OrderNotification($updated, 'status_changed'));
         }

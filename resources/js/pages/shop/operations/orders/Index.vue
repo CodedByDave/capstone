@@ -34,6 +34,7 @@ import {
     Eye,
     Loader,
     Package,
+    PackageCheck,
     Pencil,
     Plus,
     RotateCcw,
@@ -53,6 +54,7 @@ interface Order {
     customer_name: string;
     customer_phone: string | null;
     status: string;
+    deliver_to_customer?: boolean;
     payment_status: string;
     payment_method: string;
     total_amount: string;
@@ -190,7 +192,7 @@ const resetTable = () => {
 
 const statusOptions = computed(() => [
     { value: '', label: 'All', count: totalOrders.value },
-    ...['pending', 'in_progress', 'completed'].map((value) => ({
+    ...['pending', 'in_progress', 'completed', 'picked_up'].map((value) => ({
         value,
         label: formatLabel(value),
         count: props.statusSummary[value] ?? 0,
@@ -276,7 +278,36 @@ const statusIcon = (s: string) =>
         pending: Clock,
         in_progress: Loader,
         completed: CheckCircle,
+        picked_up: PackageCheck,
     })[s] ?? Package;
+
+// A picked up order is finished and gone, so it gets the quiet grey tone.
+const orderStatusTone = (s: string) =>
+    s === 'picked_up' ? 'neutral' : statusTone(s);
+
+// ─── Status actions ────────────────────────────────
+
+const canComplete = (order: Order) =>
+    ['pending', 'in_progress'].includes(order.status);
+
+// Delivered orders are handed over by a rider, so only collected orders can be picked up.
+const canPickUp = (order: Order) =>
+    order.status === 'completed' && !order.deliver_to_customer;
+
+const changeStatus = (order: Order, next: 'completed' | 'picked_up') => {
+    router.patch(
+        `${base.value}/${order.payment_public_id}/status`,
+        { status: next },
+        {
+            preserveScroll: true,
+            only: ['orders', 'statusSummary', 'flash', 'toast'],
+            onError: (errors) =>
+                toast.error(
+                    errors.status ?? 'The order status could not be changed.',
+                ),
+        },
+    );
+};
 
 // ─── Toggle Archive View ───────────────────────────
 
@@ -579,7 +610,7 @@ const handleDelete = () => {
 
                 <template #item-status="order">
                     <StatusPill
-                        :tone="statusTone(order.status)"
+                        :tone="orderStatusTone(order.status)"
                         :icon="statusIcon(order.status)"
                     >
                         {{ formatLabel(order.status) }}
@@ -616,6 +647,20 @@ const handleDelete = () => {
                                     router.visit(
                                         `${base}/${order.payment_public_id}`,
                                     ),
+                            },
+                            {
+                                label: 'Mark as completed',
+                                icon: CheckCircle,
+                                show: !showArchived && canComplete(order),
+                                onSelect: () =>
+                                    changeStatus(order, 'completed'),
+                            },
+                            {
+                                label: 'Mark as picked up',
+                                icon: PackageCheck,
+                                show: !showArchived && canPickUp(order),
+                                onSelect: () =>
+                                    changeStatus(order, 'picked_up'),
                             },
                             {
                                 label: 'Edit',

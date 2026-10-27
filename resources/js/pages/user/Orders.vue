@@ -20,7 +20,7 @@ interface Order {
     order_number: string;
     shop: { name: string; location: string } | null;
     service_name: string;
-    status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+    status: 'pending' | 'in_progress' | 'completed' | 'picked_up' | 'cancelled';
     payment_status: 'unpaid' | 'partial' | 'paid';
     total_amount: number;
     order_source: string;
@@ -67,6 +67,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
     pending: { label: 'Pending', classes: 'bg-yellow-100 text-yellow-700' },
     in_progress: { label: 'In Progress', classes: 'bg-blue-100 text-blue-700' },
     completed: { label: 'Completed', classes: 'bg-green-100 text-green-700' },
+    picked_up: { label: 'Picked Up', classes: 'bg-slate-100 text-slate-700' },
     cancelled: { label: 'Cancelled', classes: 'bg-red-100 text-red-600' },
 };
 
@@ -131,6 +132,7 @@ function currency(val: number) {
                             'bg-yellow-400': order.status === 'pending',
                             'bg-blue-500': order.status === 'in_progress',
                             'bg-green-500': order.status === 'completed',
+                            'bg-slate-400': order.status === 'picked_up',
                             'bg-red-400': order.status === 'cancelled',
                         }"
                     />

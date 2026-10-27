@@ -295,7 +295,7 @@ class ShopDashboardController extends Controller
                 DB::raw("DATE_FORMAT(created_at, '%b') as month"),
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month_key"),
                 DB::raw('COUNT(*) as total_orders'),
-                DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed"),
+                DB::raw("SUM(CASE WHEN status IN ('completed', 'picked_up') THEN 1 ELSE 0 END) as completed"),
                 DB::raw("COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END), 0) as revenue")
             )
             ->groupBy('month_key', 'month')

@@ -7,6 +7,7 @@ use App\Http\Requests\Shop\Operations\RecordOrderPaymentRequest;
 use App\Http\Requests\Shop\Operations\SendOrderForDeliveryRequest;
 use App\Http\Requests\Shop\Operations\ShopOrderFilterRequest;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
+use App\Http\Requests\Shop\Operations\UpdateOrderStatusRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
 use App\Http\Requests\Shop\Operations\VoidOrderPaymentRequest;
 use App\Http\Resources\ShopOrderPaymentResource;
@@ -178,13 +179,9 @@ class ShopOrderController extends Controller
             ]);
     }
 
-    public function updateStatus(Request $request, ShopOrder $order): RedirectResponse
+    public function updateStatus(UpdateOrderStatusRequest $request, ShopOrder $order): RedirectResponse
     {
-        $request->validate([
-            'status' => ['required', 'in:'.implode(',', ShopOrder::STATUSES)],
-        ]);
-
-        $this->service->updateStatus($order, $request->input('status'));
+        $this->service->updateStatus($order, $request->validated('status'));
 
         return back()->with('toast', [
             'type' => 'success',

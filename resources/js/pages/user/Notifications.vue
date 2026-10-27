@@ -66,7 +66,8 @@ function notifColor(n: Notification): string {
         if (deliveryStatus === 'failed') return 'bg-red-100 text-red-600';
         return 'bg-indigo-100 text-indigo-600';
     }
-    if (status === 'completed') return 'bg-emerald-100 text-emerald-600';
+    if (status === 'completed' || status === 'picked_up')
+        return 'bg-emerald-100 text-emerald-600';
     if (status === 'in_progress') return 'bg-amber-100 text-amber-600';
     return 'bg-gray-100 text-gray-500';
 }

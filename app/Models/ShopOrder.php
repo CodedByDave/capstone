@@ -63,6 +63,7 @@ class ShopOrder extends Model
         'in_progress_at',
         'overdue_notified_at',
         'completed_at',
+        'picked_up_at',
     ];
 
     protected $casts = [
@@ -88,6 +89,7 @@ class ShopOrder extends Model
         'in_progress_at' => 'datetime',
         'overdue_notified_at' => 'datetime',
         'completed_at' => 'datetime',
+        'picked_up_at' => 'datetime',
     ];
 
     // ─── Enums ────────────────────────────────────────────────────────────────
@@ -98,7 +100,10 @@ class ShopOrder extends Model
 
     const PAYMENT_STATUSES = ['unpaid', 'partial', 'paid'];
 
-    const STATUSES = ['pending', 'in_progress', 'completed', 'cancelled'];
+    const STATUSES = ['pending', 'in_progress', 'completed', 'picked_up', 'cancelled'];
+
+    /** The laundry is done: ready at the shop, or already collected by the customer. */
+    const FINISHED_STATUSES = ['completed', 'picked_up'];
 
     /**
      * Shop owners and staff only ever resolve orders of their own shop. An order of another shop
@@ -229,7 +234,7 @@ class ShopOrder extends Model
 
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->whereIn('status', self::FINISHED_STATUSES);
     }
 
     public function scopeUnpaid($query)
@@ -268,7 +273,7 @@ class ShopOrder extends Model
 
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return in_array($this->status, self::FINISHED_STATUSES, true);
     }
 
     public function markAsCompleted(): void

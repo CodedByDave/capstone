@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\OrderPaymentRecorded;
 use App\Events\OrderWeightConfirmed;
 use App\Listeners\ApplyOrderStatusAutomation;
+use App\Listeners\StartOrderWhenPaid;
 use App\Models\Employee;
 use App\Models\Order;
 use App\Models\ShopService;
@@ -37,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         // Registered by hand: the method names are not `handle*`, so discovery will not add them twice.
         Event::listen(OrderWeightConfirmed::class, [ApplyOrderStatusAutomation::class, 'onWeightConfirmed']);
         Event::listen(OrderPaymentRecorded::class, [ApplyOrderStatusAutomation::class, 'onPaymentRecorded']);
+        Event::listen(OrderPaymentRecorded::class, StartOrderWhenPaid::class);
 
         Route::bind('service', function ($value) {
             return ShopService::withTrashed()->findOrFail($value);

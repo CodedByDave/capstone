@@ -223,7 +223,7 @@ class OrderComplaintService
     /** Why a problem cannot be reported on this order right now, or null when it can. */
     private function reasonCannotReport(ShopOrder $order): ?string
     {
-        if ($order->status !== 'completed') {
+        if (! in_array($order->status, ShopOrder::FINISHED_STATUSES, true)) {
             return 'You can report a problem once your order is completed.';
         }
 

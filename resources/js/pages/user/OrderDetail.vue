@@ -23,6 +23,7 @@ import {
     Loader,
     MapPin,
     Navigation,
+    PackageCheck,
     Phone,
     ReceiptText,
     RefreshCw,
@@ -52,7 +53,7 @@ interface Order {
     id: number;
     payment_public_id: string;
     order_number: string;
-    status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+    status: 'pending' | 'in_progress' | 'completed' | 'picked_up' | 'cancelled';
     payment_status: 'unpaid' | 'partial' | 'paid';
     payment_method: string;
     total_amount: number;
@@ -163,7 +164,7 @@ watch(
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const statusSteps = ['pending', 'in_progress', 'completed'];
+const statusSteps = ['pending', 'in_progress', 'completed', 'picked_up'];
 const currentStep = computed(() => statusSteps.indexOf(props.order.status));
 
 const statusConfig = {
@@ -181,6 +182,11 @@ const statusConfig = {
         label: 'Completed',
         icon: CheckCircle2,
         classes: 'text-green-600 bg-green-50',
+    },
+    picked_up: {
+        label: 'Picked Up',
+        icon: PackageCheck,
+        classes: 'text-slate-600 bg-slate-50',
     },
     cancelled: {
         label: 'Cancelled',

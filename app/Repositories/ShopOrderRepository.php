@@ -115,7 +115,7 @@ class ShopOrderRepository
         return $this->model->newQuery()
             ->with(['delivery', 'rating', 'shop:id,shop_name'])
             ->where('user_id', $customerId)
-            ->where('status', 'completed')
+            ->whereIn('status', ShopOrder::FINISHED_STATUSES)
             ->doesntHave('rating')
             ->latest('updated_at')
             ->limit($limit)
@@ -127,7 +127,7 @@ class ShopOrderRepository
     {
         return $this->model->newQuery()
             ->where('shop_id', $shopId)
-            ->where('status', 'completed')
+            ->whereIn('status', ShopOrder::FINISHED_STATUSES)
             ->where('completed_at', '>=', $since)
             ->exists();
     }
