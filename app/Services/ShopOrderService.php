@@ -235,6 +235,9 @@ class ShopOrderService
         $updated = DB::transaction(function () use ($order, $data) {
             $order = $this->repository->lockForUpdate($order);
 
+            // The edit form never changes status; that goes through updateStatus().
+            $data['status'] = $order->status;
+
             if ($order->payment_status === 'paid'
                 && array_key_exists('actual_weight_kg', $data)
                 && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg) {

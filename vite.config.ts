@@ -9,6 +9,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 const isHostingerBuild = process.env.HOSTINGER_BUILD === 'true';
 
 export default defineConfig({
+    // Pre-bundle every page's dependencies at dev start. Otherwise Vite discovers them
+    // when a page is first opened, re-optimizes, and the in-app navigation hangs
+    // until the browser is refreshed.
+    optimizeDeps: {
+        entries: ['resources/js/app.ts', 'resources/js/pages/**/*.vue'],
+    },
     plugins: [
         laravel({
             input: ['resources/js/app.ts'],

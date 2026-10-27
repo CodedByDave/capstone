@@ -375,15 +375,13 @@ const statusSteps = [
     { value: 'pending', label: 'Pending' },
     { value: 'in_progress', label: 'In progress' },
     { value: 'completed', label: 'Completed' },
+    { value: 'picked_up', label: 'Picked up' },
 ];
 const isCancelled = computed(() => props.shopOrder.status === 'cancelled');
 const isPickedUp = computed(() => props.shopOrder.status === 'picked_up');
-// A picked up order has left the shop, so its status is final here.
-const statusLocked = computed(() => isPickedUp.value);
+// The status bar only shows progress; status changes happen from the orders list and details page.
 const currentStep = computed(() =>
-    form.status === 'picked_up'
-        ? statusSteps.length
-        : statusSteps.findIndex((step) => step.value === form.status),
+    statusSteps.findIndex((step) => step.value === form.status),
 );
 const stepCircle = (index: number) =>
     index < currentStep.value
@@ -522,21 +520,11 @@ const balanceDue = computed(() =>
                             class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
                             role="status"
                         >
-                            This order is cancelled. Choose a status below and
-                            save to reopen it.
-                        </div>
-                        <div
-                            v-else-if="isPickedUp"
-                            class="mb-4 rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground"
-                            role="status"
-                        >
-                            This order was picked up, so its status can no
-                            longer be changed.
+                            This order is cancelled.
                         </div>
 
                         <ol
                             class="flex items-center"
-                            role="radiogroup"
                             aria-label="Order status"
                         >
                             <template
@@ -544,15 +532,13 @@ const balanceDue = computed(() =>
                                 :key="step.value"
                             >
                                 <li class="flex items-center">
-                                    <button
-                                        type="button"
-                                        role="radio"
-                                        :aria-checked="
+                                    <div
+                                        class="flex items-center gap-2 rounded-full py-1 pr-2 text-sm"
+                                        :aria-current="
                                             form.status === step.value
+                                                ? 'step'
+                                                : undefined
                                         "
-                                        :disabled="statusLocked"
-                                        class="flex items-center gap-2 rounded-full py-1 pr-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                                        @click="form.status = step.value"
                                     >
                                         <span
                                             class="flex h-5 w-5 items-center justify-center rounded-full border-2 transition"
@@ -577,7 +563,7 @@ const balanceDue = computed(() =>
                                             "
                                             >{{ step.label }}</span
                                         >
-                                    </button>
+                                    </div>
                                 </li>
                                 <li
                                     v-if="index < statusSteps.length - 1"

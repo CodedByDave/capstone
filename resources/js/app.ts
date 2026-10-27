@@ -35,6 +35,13 @@ createInertiaApp({
 
 initializeTheme();
 
+// After a deploy, an open tab can request page chunks whose hashed filenames
+// no longer exist; the Inertia visit then hangs. Reload to pick up the new build.
+window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    window.location.reload();
+});
+
 // Register PWA service worker
 import('virtual:pwa-register').then(({ registerSW }) => {
     registerSW({ immediate: true });
