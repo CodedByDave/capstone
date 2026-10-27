@@ -19,7 +19,9 @@ class StoreUserOrderRequest extends FormRequest
             'service_id' => ['required', 'exists:services_and_pricing,id'],
             'customer_name' => ['required', 'string', 'max:150'],
             'customer_phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
-            'estimated_weight_kg' => ['required', 'numeric', 'min:0.5', 'max:100'],
+            // Which of the two is needed depends on the service's pricing; the order service checks that.
+            'estimated_weight_kg' => ['nullable', 'numeric', 'min:0.5', 'max:100'],
+            'piece_count' => ['nullable', 'integer', 'min:1', 'max:500'],
             'pickup_type' => ['required', 'in:walk_in,pickup'],
             'payment_method' => ['required', 'in:cash,gcash,maya,online'],
             'customer_address' => ['required_if:pickup_type,pickup', 'nullable', 'string', 'max:500'],

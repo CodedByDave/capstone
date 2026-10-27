@@ -181,6 +181,12 @@ class ShopServiceService
             ]);
         }
 
+        if ($model === 'per_piece' && empty($data['price_per_piece'])) {
+            throw ValidationException::withMessages([
+                'price_per_piece' => 'Price per piece is required for per-piece pricing.',
+            ]);
+        }
+
         if ($model === 'per_bundle') {
             if (empty($data['bundle_price'])) {
                 throw ValidationException::withMessages([

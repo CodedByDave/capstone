@@ -44,7 +44,7 @@ class ShopOrderPaymentService
             throw new ShopOrderPaymentException('A cancelled order cannot be paid.');
         }
 
-        if ($order->actual_weight_kg === null) {
+        if (! $order->priceIsConfirmed()) {
             throw new ShopOrderPaymentException(
                 'Payment will be available after the shop records the actual laundry weight and final amount.',
             );
@@ -145,7 +145,7 @@ class ShopOrderPaymentService
     {
         $order = $this->ownedOrder($customer, $paymentPublicId);
 
-        if ($order->actual_weight_kg === null) {
+        if (! $order->priceIsConfirmed()) {
             throw new ShopOrderPaymentException(
                 'Payment cannot be completed until the shop records the actual laundry weight.',
             );

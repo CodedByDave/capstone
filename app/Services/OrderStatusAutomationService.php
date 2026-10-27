@@ -90,7 +90,7 @@ class OrderStatusAutomationService
 
         // Only an order with a confirmed weight is complete enough to hand back automatically.
         if ($setting->auto_complete
-            && $order->actual_weight_kg !== null
+            && $order->priceIsConfirmed()
             && $due->copy()->addMinutes($setting->auto_complete_grace_minutes)->lessThanOrEqualTo(now())) {
             $result['completed'] += $this->completeOrder($order) ? 1 : 0;
 

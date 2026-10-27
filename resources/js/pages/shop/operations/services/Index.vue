@@ -46,6 +46,7 @@ import {
     RefreshCcw,
     RotateCcw,
     Scissors,
+    Shirt,
     ToggleLeft,
     ToggleRight,
     Trash2,
@@ -64,7 +65,8 @@ interface ShopService {
     supplies?: { id: number; name: string }[];
     description: string | null;
     is_active: boolean;
-    pricing_model: 'per_kg' | 'per_bundle';
+    pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
+    price_per_piece: string | null;
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
@@ -139,11 +141,18 @@ const perBundleServices = computed(
             (service) => service.pricing_model === 'per_bundle',
         ).length,
 );
+const perPieceServices = computed(
+    () =>
+        props.services.filter(
+            (service) => service.pricing_model === 'per_piece',
+        ).length,
+);
 const statCards = computed(() => [
     { label: 'Total Services', value: totalServices.value },
     { label: 'Active Services', value: activeServices.value },
     { label: 'Per KG', value: perKgServices.value },
     { label: 'Per Bundle', value: perBundleServices.value },
+    { label: 'Per Piece', value: perPieceServices.value },
 ]);
 
 const serviceRows = computed<ServiceTableItem[]>(() =>
@@ -156,7 +165,9 @@ const serviceRows = computed<ServiceTableItem[]>(() =>
         price_sort: Number(
             service.pricing_model === 'per_kg'
                 ? service.price_per_kg
-                : service.bundle_price,
+                : service.pricing_model === 'per_piece'
+                  ? service.price_per_piece
+                  : service.bundle_price,
         ),
         actions: '',
     })),
@@ -227,9 +238,15 @@ function formatCurrency(value: string | number | null) {
 }
 
 function formatPrice(service: ShopService) {
-    return service.pricing_model === 'per_kg'
-        ? `${formatCurrency(service.price_per_kg)}/kg`
-        : `${formatCurrency(service.bundle_price)} / ${service.bundle_weight_kg}kg bundle`;
+    if (service.pricing_model === 'per_kg') {
+        return `${formatCurrency(service.price_per_kg)}/kg`;
+    }
+
+    if (service.pricing_model === 'per_piece') {
+        return `${formatCurrency(service.price_per_piece)}/piece`;
+    }
+
+    return `${formatCurrency(service.bundle_price)} / ${service.bundle_weight_kg}kg bundle`;
 }
 
 function resetFilters() {
@@ -424,7 +441,7 @@ function toggleActive(service: ShopService) {
 
             <div
                 v-if="!showArchived"
-                class="grid grid-cols-2 gap-3 md:grid-cols-4"
+                class="grid grid-cols-2 gap-3 md:grid-cols-5"
             >
                 <Card v-for="item in statCards" :key="item.label">
                     <CardContent class="p-4">
@@ -521,6 +538,7 @@ function toggleActive(service: ShopService) {
                             <option value="">All pricing</option>
                             <option value="per_kg">Per KG</option>
                             <option value="per_bundle">Per Bundle</option>
+                            <option value="per_piece">Per Piece</option>
                         </select>
 
                         <Button
@@ -570,18 +588,26 @@ function toggleActive(service: ShopService) {
                         :class="
                             service.pricing_model === 'per_kg'
                                 ? 'bg-blue-50 text-blue-700 ring-blue-200'
-                                : 'bg-violet-50 text-violet-700 ring-violet-200'
+                                : service.pricing_model === 'per_piece'
+                                  ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                                  : 'bg-violet-50 text-violet-700 ring-violet-200'
                         "
                     >
                         <Weight
                             v-if="service.pricing_model === 'per_kg'"
                             class="h-3.5 w-3.5"
                         />
+                        <Shirt
+                            v-else-if="service.pricing_model === 'per_piece'"
+                            class="h-3.5 w-3.5"
+                        />
                         <Package v-else class="h-3.5 w-3.5" />
                         {{
                             service.pricing_model === 'per_kg'
                                 ? 'Per KG'
-                                : 'Per Bundle'
+                                : service.pricing_model === 'per_piece'
+                                  ? 'Per Piece'
+                                  : 'Per Bundle'
                         }}
                     </span>
                 </template>
@@ -688,7 +714,7 @@ function toggleActive(service: ShopService) {
                         <code class="block font-mono break-all">
                             service_name, category, description, pricing_model,
                             price_per_kg, bundle_price, bundle_weight_kg,
-                            estimated_hours, status
+                            estimated_hours, status, price_per_piece
                         </code>
                         <p class="mt-2">
                             <span class="font-medium">category</span>:
@@ -703,7 +729,8 @@ function toggleActive(service: ShopService) {
                             <span class="font-medium">pricing_model</span>:
                             <code>per_kg</code> (needs price_per_kg) or
                             <code>per_bundle</code> (needs bundle_price and
-                            bundle_weight_kg) &nbsp;|&nbsp;
+                            bundle_weight_kg), or <code>per_piece</code> (needs
+                            price_per_piece) &nbsp;|&nbsp;
                             <span class="font-medium">status</span>:
                             <code>Active</code> or <code>Inactive</code>
                         </p>

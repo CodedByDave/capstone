@@ -103,7 +103,7 @@ class UserDashboardController extends Controller
         $query = Shop::where('status', 'active')
             ->with([
                 'services' => fn ($q) => $q->where('is_active', true)
-                    ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price', 'bundle_weight_kg'),
+                    ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price', 'bundle_weight_kg', 'price_per_piece'),
             ])
             ->select('id', 'shop_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo');
 
@@ -173,6 +173,7 @@ class UserDashboardController extends Controller
                 'price_per_kg',
                 'bundle_weight_kg',
                 'bundle_price',
+                'price_per_piece',
                 'estimated_hours',
             ]);
 

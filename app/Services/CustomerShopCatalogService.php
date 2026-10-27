@@ -30,7 +30,11 @@ class CustomerShopCatalogService
                 'name' => $item->name,
                 'quantity' => (float) $item->pivot->quantity,
                 'unit' => $item->pivot->unit,
-                'per' => $service->isPerBundle() ? 'bundle' : 'kg',
+                'per' => match ($service->pricing_model) {
+                    'per_bundle' => 'bundle',
+                    'per_piece' => 'piece',
+                    default => 'kg',
+                },
             ])->values()->all(),
         ])->values()->all();
     }
@@ -52,8 +56,14 @@ class CustomerShopCatalogService
 
         $bundle = $services->where('pricing_model', 'per_bundle')->whereNotNull('bundle_price')->min('bundle_price');
 
-        return $bundle !== null
-            ? ['amount' => (float) $bundle, 'unit' => 'bundle']
+        if ($bundle !== null) {
+            return ['amount' => (float) $bundle, 'unit' => 'bundle'];
+        }
+
+        $piece = $services->where('pricing_model', 'per_piece')->whereNotNull('price_per_piece')->min('price_per_piece');
+
+        return $piece !== null
+            ? ['amount' => (float) $piece, 'unit' => 'piece']
             : ['amount' => null, 'unit' => null];
     }
 

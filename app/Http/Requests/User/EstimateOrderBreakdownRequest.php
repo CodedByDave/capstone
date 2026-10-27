@@ -16,7 +16,8 @@ class EstimateOrderBreakdownRequest extends FormRequest
         return [
             'shop_id' => ['required', 'integer'],
             'service_id' => ['required', 'integer'],
-            'estimated_weight_kg' => ['required', 'numeric', 'min:0.5', 'max:100'],
+            'estimated_weight_kg' => ['nullable', 'numeric', 'min:0.5', 'max:100'],
+            'piece_count' => ['nullable', 'integer', 'min:1', 'max:500'],
         ];
     }
 }

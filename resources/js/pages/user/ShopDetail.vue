@@ -48,11 +48,12 @@ interface ShopService {
         name: string;
         quantity: number;
         unit: string;
-        per: 'kg' | 'bundle';
+        per: 'kg' | 'bundle' | 'piece';
     }[];
     service_name: string;
     description: string | null;
-    pricing_model: 'per_kg' | 'per_bundle';
+    pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
+    price_per_piece: string | null;
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
@@ -166,6 +167,7 @@ const form = ref({
     customer_name: user.value.name,
     customer_phone: '',
     estimated_weight_kg: '',
+    piece_count: '',
     pickup_type: 'walk_in' as 'walk_in' | 'pickup',
     payment_method: 'cash' as 'cash' | 'gcash' | 'maya',
     customer_address: '',
@@ -245,6 +247,9 @@ watch(
 function openOrder(service: ShopService) {
     selectedService.value = service;
     form.value.service_id = service.id;
+    // Each service is counted differently, so start the amount fields fresh.
+    form.value.estimated_weight_kg = '';
+    form.value.piece_count = '';
     isOrderOpen.value = true;
     form.value.customer_agreement_accepted = false;
 }
@@ -271,8 +276,12 @@ async function loadEstimate() {
     const query = new URLSearchParams({
         shop_id: String(props.shop.id),
         service_id: String(form.value.service_id),
-        estimated_weight_kg: form.value.estimated_weight_kg,
     });
+    if (isPerPiece.value) {
+        query.set('piece_count', form.value.piece_count);
+    } else {
+        query.set('estimated_weight_kg', form.value.estimated_weight_kg);
+    }
 
     try {
         const response = await fetch(`/user/orders/estimate?${query}`, {
@@ -289,13 +298,28 @@ async function loadEstimate() {
     }
 }
 
+const isPerPiece = computed(
+    () => selectedService.value?.pricing_model === 'per_piece',
+);
+
 watch(
-    () => [form.value.service_id, form.value.estimated_weight_kg],
+    () => [
+        form.value.service_id,
+        form.value.estimated_weight_kg,
+        form.value.piece_count,
+    ],
     () => {
         clearTimeout(estimateTimer);
 
-        const weight = parseFloat(form.value.estimated_weight_kg);
-        if (!form.value.service_id || !(weight >= 0.5 && weight <= 100)) {
+        const amount = parseFloat(
+            isPerPiece.value
+                ? form.value.piece_count
+                : form.value.estimated_weight_kg,
+        );
+        const valid = isPerPiece.value
+            ? amount >= 1 && amount <= 500
+            : amount >= 0.5 && amount <= 100;
+        if (!form.value.service_id || !valid) {
             estimateRequest?.abort();
             estimate.value = null;
             return;
@@ -338,6 +362,8 @@ function formatServicePrice(svc: ShopService) {
         return `₱${parseFloat(svc.price_per_kg).toFixed(0)}/kg`;
     if (svc.pricing_model === 'per_bundle' && svc.bundle_price)
         return `₱${parseFloat(svc.bundle_price).toFixed(0)} / ${svc.bundle_weight_kg}kg bundle`;
+    if (svc.pricing_model === 'per_piece' && svc.price_per_piece)
+        return `₱${parseFloat(svc.price_per_piece).toFixed(0)}/piece`;
     return '—';
 }
 
@@ -603,13 +629,28 @@ function goBack() {
                         </p>
                     </div>
 
-                    <!-- Estimated weight -->
+                    <!-- Estimated weight, or the number of pieces -->
                     <div class="space-y-1.5">
                         <label class="text-sm font-medium"
-                            >Estimated Weight (kg)
+                            >{{
+                                isPerPiece
+                                    ? 'Number of pieces'
+                                    : 'Estimated Weight (kg)'
+                            }}
                             <span class="text-red-500">*</span></label
                         >
                         <Input
+                            v-if="isPerPiece"
+                            v-model="form.piece_count"
+                            type="number"
+                            min="1"
+                            max="500"
+                            step="1"
+                            placeholder="e.g. 2"
+                            :class="errors.piece_count ? 'border-red-400' : ''"
+                        />
+                        <Input
+                            v-else
                             v-model="form.estimated_weight_kg"
                             type="number"
                             min="0.5"
@@ -622,10 +663,14 @@ function goBack() {
                             "
                         />
                         <p
-                            v-if="errors.estimated_weight_kg"
+                            v-if="
+                                errors.piece_count || errors.estimated_weight_kg
+                            "
                             class="text-xs text-red-500"
                         >
-                            {{ errors.estimated_weight_kg }}
+                            {{
+                                errors.piece_count || errors.estimated_weight_kg
+                            }}
                         </p>
                         <BillingBreakdown
                             v-if="estimate"
@@ -824,9 +869,17 @@ function goBack() {
                     <div
                         class="rounded-xl bg-amber-50 p-3 text-xs text-amber-700"
                     >
-                        <strong>Note:</strong> The amount above is only an
-                        estimate. The shop will weigh your laundry and confirm
-                        the final amount. If you selected
+                        <template v-if="isPerPiece">
+                            <strong>Note:</strong> This service is priced per
+                            piece, so the amount above is the final amount. The
+                            shop will count your items when you drop them off.
+                            If you selected
+                        </template>
+                        <template v-else>
+                            <strong>Note:</strong> The amount above is only an
+                            estimate. The shop will weigh your laundry and
+                            confirm the final amount. If you selected
+                        </template>
                         <strong>{{ selectedPayment?.label }}</strong
                         >, online payment will become available afterward.
                     </div>

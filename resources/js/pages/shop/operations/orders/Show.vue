@@ -45,7 +45,9 @@ interface Order {
     status: string;
     payment_status: string;
     payment_method: string;
-    pricing_model: 'per_kg' | 'per_bundle';
+    pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
+    price_per_piece: string | null;
+    piece_count: number | null;
     estimated_weight_kg: string | null;
     actual_weight_kg: string | null;
     price_per_kg: string | null;
@@ -84,8 +86,11 @@ const props = defineProps<{
     } | null;
 }>();
 
+// A per-piece order is priced by count, so there is nothing to weigh.
 const isAwaitingWeight = computed(
-    () => props.shopOrder.actual_weight_kg === null,
+    () =>
+        props.shopOrder.actual_weight_kg === null &&
+        props.shopOrder.pricing_model !== 'per_piece',
 );
 
 const page = usePage<AppPageProps>();
@@ -471,13 +476,19 @@ const statusIcon = (s: string) =>
                                         :class="
                                             shopOrder.pricing_model === 'per_kg'
                                                 ? 'bg-blue-50 text-blue-700'
-                                                : 'bg-violet-50 text-violet-700'
+                                                : shopOrder.pricing_model ===
+                                                    'per_piece'
+                                                  ? 'bg-emerald-50 text-emerald-700'
+                                                  : 'bg-violet-50 text-violet-700'
                                         "
                                     >
                                         {{
                                             shopOrder.pricing_model === 'per_kg'
                                                 ? 'Per KG'
-                                                : 'Per Bundle'
+                                                : shopOrder.pricing_model ===
+                                                    'per_piece'
+                                                  ? 'Per Piece'
+                                                  : 'Per Bundle'
                                         }}
                                     </span>
                                 </div>
@@ -524,6 +535,38 @@ const statusIcon = (s: string) =>
                                             {{
                                                 formatCurrency(
                                                     shopOrder.price_per_kg,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                </template>
+
+                                <!-- Per Piece -->
+                                <template
+                                    v-else-if="
+                                        shopOrder.pricing_model === 'per_piece'
+                                    "
+                                >
+                                    <div>
+                                        <p
+                                            class="mb-1 text-xs tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            No. of Pieces
+                                        </p>
+                                        <p class="font-medium">
+                                            {{ shopOrder.piece_count }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="mb-1 text-xs tracking-wide text-muted-foreground uppercase"
+                                        >
+                                            Price per Piece
+                                        </p>
+                                        <p class="font-medium">
+                                            {{
+                                                formatCurrency(
+                                                    shopOrder.price_per_piece,
                                                 )
                                             }}
                                         </p>
@@ -627,6 +670,19 @@ const statusIcon = (s: string) =>
                                         {{
                                             formatCurrency(
                                                 shopOrder.price_per_kg,
+                                            )
+                                        }}
+                                    </template>
+                                    <template
+                                        v-else-if="
+                                            shopOrder.pricing_model ===
+                                            'per_piece'
+                                        "
+                                    >
+                                        {{ shopOrder.piece_count }} ×
+                                        {{
+                                            formatCurrency(
+                                                shopOrder.price_per_piece,
                                             )
                                         }}
                                     </template>

@@ -131,7 +131,19 @@ class ShopOrderService
                 throw ValidationException::withMessages(['service_id' => 'The selected service is unavailable.']);
             }
 
-            $estimate = $this->billing->estimate($service, (float) $data['estimated_weight_kg']);
+            if ($service->isPerPiece()) {
+                if (blank($data['piece_count'] ?? null)) {
+                    throw ValidationException::withMessages(['piece_count' => 'Enter how many pieces you are bringing.']);
+                }
+            } elseif (blank($data['estimated_weight_kg'] ?? null)) {
+                throw ValidationException::withMessages(['estimated_weight_kg' => 'Enter the estimated weight of your laundry.']);
+            }
+
+            $estimate = $this->billing->estimate(
+                $service,
+                (float) ($data['estimated_weight_kg'] ?? 0),
+                isset($data['piece_count']) ? (int) $data['piece_count'] : null,
+            );
             $estimatedBundles = $service->pricing_model === 'per_bundle'
                 ? (int) $estimate['service']['quantity']
                 : null;
@@ -149,13 +161,15 @@ class ShopOrderService
                 'customer_lat' => $data['pickup_type'] === 'pickup' ? ($data['customer_lat'] ?? null) : null,
                 'customer_lng' => $data['pickup_type'] === 'pickup' ? ($data['customer_lng'] ?? null) : null,
                 'special_instructions' => $data['special_instructions'] ?? null,
-                'estimated_weight_kg' => $data['estimated_weight_kg'],
+                'estimated_weight_kg' => $service->isPerPiece() ? null : $data['estimated_weight_kg'],
                 'pickup_type' => $data['pickup_type'],
                 'pricing_model' => $service->pricing_model,
                 'price_per_kg' => $service->price_per_kg,
                 'bundle_weight_kg' => $service->bundle_weight_kg,
                 'bundle_price' => $service->bundle_price,
                 'bundle_quantity' => $estimatedBundles,
+                'price_per_piece' => $service->price_per_piece,
+                'piece_count' => $service->isPerPiece() ? (int) $data['piece_count'] : null,
                 'additional_charges' => 0,
                 'discount_amount' => 0,
                 'total_amount' => $estimatedTotal,
@@ -248,6 +262,10 @@ class ShopOrderService
             $data['price_per_kg'] = $service->price_per_kg;
             $data['bundle_weight_kg'] = $service->bundle_weight_kg;
             $data['bundle_price'] = $service->bundle_price;
+            $data['price_per_piece'] = $service->price_per_piece;
+            if (! $service->isPerPiece()) {
+                $data['piece_count'] = null;
+            }
 
             if ($service->pricing_model === 'per_bundle' && ! empty($data['actual_weight_kg'])) {
                 $data['bundle_quantity'] = max(1, (int) ceil(
@@ -257,7 +275,9 @@ class ShopOrderService
 
             // Base price comes from the actual weight once weighed, otherwise from the estimate.
             // Additional charges and discounts apply to either, so they are added in one place.
-            if (empty($data['actual_weight_kg'])) {
+            if ($service->isPerPiece()) {
+                $baseAmount = (int) ($data['piece_count'] ?? 0) * (float) $service->price_per_piece;
+            } elseif (empty($data['actual_weight_kg'])) {
                 $baseAmount = $service->pricing_model === 'per_kg'
                     ? (float) ($data['estimated_weight_kg'] ?? 0) * (float) $service->price_per_kg
                     : max(1, (int) ceil(

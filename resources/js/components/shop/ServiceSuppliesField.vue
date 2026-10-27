@@ -21,7 +21,7 @@ const props = defineProps<{
     usesSupplies: boolean;
     supplies: SupplyLine[];
     options: SupplyOption[];
-    perLabel: 'kg' | 'bundle';
+    perLabel: 'kg' | 'bundle' | 'piece';
     errors: Record<string, string>;
 }>();
 

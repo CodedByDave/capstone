@@ -30,7 +30,7 @@ class CustomerOrderPlacementService
             return ['order' => $order, 'checkout_url' => null, 'payment_error' => null];
         }
 
-        if ($order->actual_weight_kg === null) {
+        if (! $order->priceIsConfirmed()) {
             return [
                 'order' => $order,
                 'checkout_url' => null,

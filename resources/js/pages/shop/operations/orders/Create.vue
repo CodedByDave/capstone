@@ -13,7 +13,8 @@ import { computed, watch } from 'vue';
 interface Service {
     id: number;
     service_name: string;
-    pricing_model: 'per_kg' | 'per_bundle';
+    pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
+    price_per_piece: string | null;
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
@@ -84,13 +85,15 @@ const form = useForm({
     deliver_to_customer: false,
     service_id: '' as string | number,
     pickup_type: 'walk_in',
-    pricing_model: 'per_kg' as 'per_kg' | 'per_bundle',
+    pricing_model: 'per_kg' as 'per_kg' | 'per_bundle' | 'per_piece',
     estimated_weight_kg: '' as string | number,
     actual_weight_kg: '' as string | number,
     price_per_kg: 0,
     bundle_weight_kg: '' as string | number,
     bundle_price: 0,
     bundle_quantity: 1,
+    price_per_piece: 0,
+    piece_count: '' as string | number,
     additional_charges: 0,
     discount_amount: 0,
     total_amount: 0,
@@ -111,6 +114,8 @@ const form = useForm({
 const formatServiceLabel = (svc: Service) => {
     if (svc.pricing_model === 'per_kg')
         return `${svc.service_name} — ${formatCurrency(svc.price_per_kg)}/kg`;
+    if (svc.pricing_model === 'per_piece')
+        return `${svc.service_name} — ${formatCurrency(svc.price_per_piece)}/piece`;
     return `${svc.service_name} — ${formatCurrency(svc.bundle_price)} / ${svc.bundle_weight_kg}kg bundle`;
 };
 
@@ -129,6 +134,7 @@ const selectedService = computed(() =>
 );
 
 const isPerKg = computed(() => form.pricing_model === 'per_kg');
+const isPerPiece = computed(() => form.pricing_model === 'per_piece');
 
 const onServiceChange = () => {
     const svc = selectedService.value;
@@ -136,7 +142,20 @@ const onServiceChange = () => {
 
     form.pricing_model = svc.pricing_model;
 
-    if (svc.pricing_model === 'per_kg') {
+    form.piece_count = svc.pricing_model === 'per_piece' ? 1 : '';
+    form.price_per_piece =
+        svc.pricing_model === 'per_piece'
+            ? parseFloat(svc.price_per_piece ?? '0')
+            : 0;
+
+    if (svc.pricing_model === 'per_piece') {
+        form.price_per_kg = 0;
+        form.bundle_price = 0;
+        form.bundle_weight_kg = '';
+        form.bundle_quantity = 1;
+        form.estimated_weight_kg = '';
+        form.actual_weight_kg = '';
+    } else if (svc.pricing_model === 'per_kg') {
         form.price_per_kg = parseFloat(svc.price_per_kg ?? '0');
         form.bundle_price = 0;
         form.bundle_weight_kg = '';
@@ -166,6 +185,13 @@ const weighLater = computed(
 );
 
 const baseTotal = computed(() => {
+    if (isPerPiece.value) {
+        return (
+            (parseInt(String(form.piece_count)) || 0) *
+            (parseFloat(String(form.price_per_piece)) || 0)
+        );
+    }
+
     if (isPerKg.value) {
         const weight = weighLater.value
             ? form.estimated_weight_kg
@@ -477,14 +503,24 @@ watch(weighLater, (later) => {
                                 :class="
                                     isPerKg
                                         ? 'border border-blue-200 bg-blue-50 text-blue-800'
-                                        : 'border border-violet-200 bg-violet-50 text-violet-800'
+                                        : isPerPiece
+                                          ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
+                                          : 'border border-violet-200 bg-violet-50 text-violet-800'
                                 "
                             >
                                 <span class="font-semibold">{{
                                     selectedService.service_name
                                 }}</span>
                                 <span class="text-xs opacity-70">•</span>
-                                <span v-if="isPerKg"
+                                <span v-if="isPerPiece"
+                                    >{{
+                                        formatCurrency(
+                                            selectedService.price_per_piece,
+                                        )
+                                    }}
+                                    per piece</span
+                                >
+                                <span v-else-if="isPerKg"
                                     >{{
                                         formatCurrency(
                                             selectedService.price_per_kg,
@@ -518,10 +554,63 @@ watch(weighLater, (later) => {
                     <p
                         class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
                     >
-                        {{ isPerKg ? 'Weight' : 'Bundle' }}
+                        {{
+                            isPerKg
+                                ? 'Weight'
+                                : isPerPiece
+                                  ? 'Pieces'
+                                  : 'Bundle'
+                        }}
                     </p>
                     <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                        <template v-if="isPerKg">
+                        <template v-if="isPerPiece">
+                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                                <label class="text-sm font-medium"
+                                    >Price per Piece
+                                    <span class="text-xs text-muted-foreground"
+                                        >(auto-filled)</span
+                                    ></label
+                                >
+                                <div
+                                    class="flex h-[42px] items-center rounded-lg border border-gray-200 bg-muted/40 px-3 text-sm text-muted-foreground"
+                                >
+                                    {{
+                                        form.price_per_piece
+                                            ? formatCurrency(
+                                                  form.price_per_piece,
+                                              )
+                                            : '—'
+                                    }}
+                                </div>
+                            </div>
+                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                                <label class="text-sm font-medium"
+                                    >Number of Pieces
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <input
+                                    v-model="form.piece_count"
+                                    type="number"
+                                    min="1"
+                                    max="500"
+                                    step="1"
+                                    required
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    :class="{
+                                        'border-red-500':
+                                            form.errors.piece_count,
+                                    }"
+                                />
+                                <p
+                                    v-if="form.errors.piece_count"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.piece_count }}
+                                </p>
+                            </div>
+                        </template>
+
+                        <template v-else-if="isPerKg">
                             <div class="col-span-12 space-y-1 sm:col-span-4">
                                 <label class="text-sm font-medium"
                                     >Estimated Weight (kg)
@@ -767,7 +856,13 @@ watch(weighLater, (later) => {
                                 class="flex h-[42px] items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-4"
                             >
                                 <span class="text-sm text-blue-700">
-                                    <template v-if="isPerKg"
+                                    <template v-if="isPerPiece"
+                                        >{{ form.piece_count || 0 }} piece(s) ×
+                                        {{
+                                            formatCurrency(form.price_per_piece)
+                                        }}</template
+                                    >
+                                    <template v-else-if="isPerKg"
                                         >{{ form.actual_weight_kg || 0 }} kg ×
                                         {{
                                             formatCurrency(form.price_per_kg)

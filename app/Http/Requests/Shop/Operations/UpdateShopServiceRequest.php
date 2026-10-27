@@ -31,6 +31,11 @@ class UpdateShopServiceRequest extends FormRequest
                 Rule::requiredIf(fn () => $this->pricing_model === 'per_kg'),
                 'nullable', 'numeric', 'min:1', 'max:9999',
             ],
+            'price_per_piece' => [
+                Rule::requiredIf(fn () => $this->pricing_model === 'per_piece'),
+                'nullable', 'numeric', 'min:1', 'max:9999',
+            ],
+
             'bundle_price' => [
                 Rule::requiredIf(fn () => $this->pricing_model === 'per_bundle'),
                 'nullable', 'numeric', 'min:1', 'max:99999',
@@ -50,6 +55,9 @@ class UpdateShopServiceRequest extends FormRequest
             'category.in' => 'Please select a valid service category.',
             'price_per_kg.min' => 'Price per kg must be at least ₱1.',
             'price_per_kg.max' => 'Price per kg cannot exceed ₱9,999.',
+            'price_per_piece.required_if' => 'Price per piece is required for per-piece pricing.',
+            'price_per_piece.min' => 'Price per piece must be at least ₱1.',
+            'price_per_piece.max' => 'Price per piece cannot exceed ₱9,999.',
             'bundle_price.min' => 'Bundle price must be at least ₱1.',
             'bundle_price.max' => 'Bundle price cannot exceed ₱99,999.',
             'bundle_weight_kg.max' => 'Bundle weight cannot exceed 500 kg.',

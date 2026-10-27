@@ -123,9 +123,11 @@ class ServiceSupplyUsageService
     {
         $service = $order->service;
         $weight = (float) ($order->actual_weight_kg ?: $order->estimated_weight_kg);
-        $multiplier = $service->isPerBundle()
-            ? ($order->bundle_quantity ?: max(1, (int) ceil($weight / max((float) $service->bundle_weight_kg, 0.01))))
-            : $weight;
+        $multiplier = match (true) {
+            $service->isPerBundle() => $order->bundle_quantity ?: max(1, (int) ceil($weight / max((float) $service->bundle_weight_kg, 0.01))),
+            $service->isPerPiece() => (int) $order->piece_count,
+            default => $weight,
+        };
 
         $lines = [];
 

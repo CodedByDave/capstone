@@ -12,7 +12,7 @@ import { type ServiceCategory } from '@/constants/serviceCategories';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, Loader2, Package, Weight } from 'lucide-vue-next';
+import { ArrowLeft, Loader2, Package, Shirt, Weight } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface ShopService {
@@ -22,7 +22,8 @@ interface ShopService {
     service_name: string;
     description: string | null;
     is_active: boolean;
-    pricing_model: 'per_kg' | 'per_bundle';
+    pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
+    price_per_piece: string | null;
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
@@ -56,6 +57,7 @@ const form = useForm({
     price_per_kg: props.service.price_per_kg ?? '',
     bundle_weight_kg: props.service.bundle_weight_kg ?? '',
     bundle_price: props.service.bundle_price ?? '',
+    price_per_piece: props.service.price_per_piece ?? '',
     estimated_hours: props.service.estimated_hours ?? '',
     photo: null as File | null,
     remove_photo: false,
@@ -64,14 +66,16 @@ const form = useForm({
 });
 
 const isPerKg = computed(() => form.pricing_model === 'per_kg');
+const isPerPiece = computed(() => form.pricing_model === 'per_piece');
 
 const onModelChange = () => {
-    if (form.pricing_model === 'per_kg') {
+    // Clear the fields of the models that are not selected.
+    if (form.pricing_model !== 'per_kg') form.price_per_kg = '';
+    if (form.pricing_model !== 'per_bundle') {
         form.bundle_weight_kg = '';
         form.bundle_price = '';
-    } else {
-        form.price_per_kg = '';
     }
+    if (form.pricing_model !== 'per_piece') form.price_per_piece = '';
 };
 
 const submit = () => {
@@ -265,7 +269,7 @@ const submit = () => {
                                     "
                                     class="flex flex-1 items-center gap-3 rounded-xl border-2 px-5 py-4 text-left transition sm:flex-none"
                                     :class="
-                                        !isPerKg
+                                        form.pricing_model === 'per_bundle'
                                             ? 'border-violet-500 bg-violet-50 text-violet-700'
                                             : 'border-gray-200 hover:border-gray-300'
                                     "
@@ -282,10 +286,62 @@ const submit = () => {
                                         </p>
                                     </div>
                                 </button>
+
+                                <button
+                                    type="button"
+                                    @click="
+                                        form.pricing_model = 'per_piece';
+                                        onModelChange();
+                                    "
+                                    class="flex flex-1 items-center gap-3 rounded-xl border-2 px-5 py-4 text-left transition sm:flex-none"
+                                    :class="
+                                        isPerPiece
+                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                    "
+                                >
+                                    <Shirt class="h-5 w-5 shrink-0" />
+                                    <div>
+                                        <p class="text-sm font-semibold">
+                                            Per Piece
+                                        </p>
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            Comforters, shoes, bags
+                                        </p>
+                                    </div>
+                                </button>
                             </div>
                         </div>
 
-                        <template v-if="isPerKg">
+                        <template v-if="isPerPiece">
+                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                                <label class="text-sm font-medium"
+                                    >Price per piece (₱)
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <Input
+                                    v-model="form.price_per_piece"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="e.g. 250.00"
+                                    :class="{
+                                        'border-red-500':
+                                            form.errors.price_per_piece,
+                                    }"
+                                />
+                                <p
+                                    v-if="form.errors.price_per_piece"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.price_per_piece }}
+                                </p>
+                            </div>
+                        </template>
+
+                        <template v-else-if="isPerKg">
                             <div class="col-span-12 space-y-1 sm:col-span-4">
                                 <label class="text-sm font-medium"
                                     >Price per KG (₱)
@@ -398,7 +454,9 @@ const submit = () => {
                     v-model:uses-supplies="form.uses_supplies"
                     v-model:supplies="form.supplies"
                     :options="supplyOptions"
-                    :per-label="isPerKg ? 'kg' : 'bundle'"
+                    :per-label="
+                        isPerKg ? 'kg' : isPerPiece ? 'piece' : 'bundle'
+                    "
                     :errors="form.errors"
                 />
 

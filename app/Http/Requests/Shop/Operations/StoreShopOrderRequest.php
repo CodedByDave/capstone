@@ -46,7 +46,7 @@ class StoreShopOrderRequest extends FormRequest
             'pickup_type' => ['required', Rule::in(ShopOrder::PICKUP_TYPES)],
 
             // ─── Pricing model ─────────────────────────────
-            'pricing_model' => ['required', Rule::in(['per_kg', 'per_bundle'])],
+            'pricing_model' => ['required', Rule::in(['per_kg', 'per_bundle', 'per_piece'])],
 
             // ─── Per KG fields ─────────────────────────────
             'estimated_weight_kg' => [
@@ -89,6 +89,21 @@ class StoreShopOrderRequest extends FormRequest
                 'nullable',
                 'integer',
                 'min:1',
+            ],
+
+            // ─── Per Piece fields ───────────────────────────
+            'price_per_piece' => [
+                Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_piece'),
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
+            'piece_count' => [
+                Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_piece'),
+                'nullable',
+                'integer',
+                'min:1',
+                'max:500',
             ],
 
             // ─── Common ────────────────────────────────────

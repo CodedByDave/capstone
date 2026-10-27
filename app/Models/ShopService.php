@@ -27,6 +27,7 @@ class ShopService extends Model
         'price_per_kg',
         'bundle_weight_kg',
         'bundle_price',
+        'price_per_piece',
         'estimated_hours',
     ];
 
@@ -35,11 +36,12 @@ class ShopService extends Model
         'price_per_kg' => 'decimal:2',
         'bundle_weight_kg' => 'decimal:2',
         'bundle_price' => 'decimal:2',
+        'price_per_piece' => 'decimal:2',
     ];
 
     protected $appends = ['photo_url'];
 
-    const PRICING_MODELS = ['per_kg', 'per_bundle'];
+    const PRICING_MODELS = ['per_kg', 'per_bundle', 'per_piece'];
 
     const CATEGORIES = [
         'self_service',
@@ -89,6 +91,11 @@ class ShopService extends Model
         return $this->pricing_model === 'per_kg';
     }
 
+    public function isPerPiece(): bool
+    {
+        return $this->pricing_model === 'per_piece';
+    }
+
     public function isPerBundle(): bool
     {
         return $this->pricing_model === 'per_bundle';
@@ -96,8 +103,10 @@ class ShopService extends Model
 
     public function getFormattedPriceAttribute(): string
     {
-        return $this->pricing_model === 'per_kg'
-            ? "₱{$this->price_per_kg}/kg"
-            : "₱{$this->bundle_price} / {$this->bundle_weight_kg}kg bundle";
+        return match ($this->pricing_model) {
+            'per_kg' => "₱{$this->price_per_kg}/kg",
+            'per_piece' => "₱{$this->price_per_piece}/piece",
+            default => "₱{$this->bundle_price} / {$this->bundle_weight_kg}kg bundle",
+        };
     }
 }

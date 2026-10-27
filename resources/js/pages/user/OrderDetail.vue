@@ -61,8 +61,9 @@ interface Order {
     payments: { id: string; amount: number; method: string; paid_at: string }[];
     pending: { amount: number; method: string; started_at: string } | null;
     billing: BillingBreakdownData;
-    estimated_weight_kg: number;
+    estimated_weight_kg: number | null;
     actual_weight_kg: number | null;
+    piece_count?: number | null;
     pickup_type: string;
     customer_address: string | null;
     special_instructions: string | null;
@@ -483,13 +484,28 @@ const shopLocation = computed(() =>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div class="rounded-xl bg-gray-50 p-3">
+                    <div
+                        v-if="order.pricing_model === 'per_piece'"
+                        class="col-span-2 rounded-xl bg-gray-50 p-3"
+                    >
+                        <p class="mb-0.5 text-gray-400">Pieces</p>
+                        <p class="font-semibold text-gray-700">
+                            {{ order.piece_count }}
+                        </p>
+                    </div>
+                    <div
+                        v-if="order.pricing_model !== 'per_piece'"
+                        class="rounded-xl bg-gray-50 p-3"
+                    >
                         <p class="mb-0.5 text-gray-400">Est. weight</p>
                         <p class="font-semibold text-gray-700">
                             {{ order.estimated_weight_kg }} kg
                         </p>
                     </div>
-                    <div class="rounded-xl bg-gray-50 p-3">
+                    <div
+                        v-if="order.pricing_model !== 'per_piece'"
+                        class="rounded-xl bg-gray-50 p-3"
+                    >
                         <p class="mb-0.5 text-gray-400">Actual weight</p>
                         <p class="font-semibold text-gray-700">
                             {{

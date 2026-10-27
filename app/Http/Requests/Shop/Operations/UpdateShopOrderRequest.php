@@ -36,7 +36,14 @@ class UpdateShopOrderRequest extends FormRequest
             'deliver_to_customer' => ['nullable', 'boolean'],
             'service_id' => ['required', 'integer', Rule::exists('services_and_pricing', 'id')],
             'pickup_type' => ['required', Rule::in(ShopOrder::PICKUP_TYPES)],
-            'pricing_model' => ['required', Rule::in(['per_kg', 'per_bundle'])],
+            'pricing_model' => ['required', Rule::in(['per_kg', 'per_bundle', 'per_piece'])],
+            'piece_count' => [
+                Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_piece'),
+                'nullable',
+                'integer',
+                'min:1',
+                'max:500',
+            ],
             'estimated_weight_kg' => [
                 Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_kg'),
                 'nullable',

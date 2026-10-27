@@ -6,9 +6,9 @@ export interface BillingBreakdown {
     is_estimate: boolean;
     service: {
         name: string;
-        pricing_model: 'per_kg' | 'per_bundle';
+        pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
         quantity: number;
-        unit: 'kg' | 'bundle';
+        unit: 'kg' | 'bundle' | 'piece';
         rate: number;
         bundle_weight_kg: number | null;
         amount: number;
@@ -47,6 +47,10 @@ const serviceDetail = computed(() => {
 
     if (service.unit === 'kg') {
         return `${quantity} kg × ${currency(service.rate)}/kg`;
+    }
+
+    if (service.unit === 'piece') {
+        return `${quantity} ${quantity === 1 ? 'piece' : 'pieces'} × ${currency(service.rate)}`;
     }
 
     const size = service.bundle_weight_kg

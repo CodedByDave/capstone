@@ -44,6 +44,8 @@ class ShopOrder extends Model
         'price_per_kg',
         'bundle_weight_kg',
         'bundle_price',
+        'price_per_piece',
+        'piece_count',
         'bundle_quantity',
         'additional_charges',
         'promotion_id',
@@ -73,6 +75,8 @@ class ShopOrder extends Model
         'price_per_kg' => 'decimal:2',
         'bundle_weight_kg' => 'decimal:2',
         'bundle_price' => 'decimal:2',
+        'price_per_piece' => 'decimal:2',
+        'piece_count' => 'integer',
         'bundle_quantity' => 'integer',
         'additional_charges' => 'decimal:2',
         'discount_amount' => 'decimal:2',
@@ -246,6 +250,15 @@ class ShopOrder extends Model
     public function balanceDue(): float
     {
         return round(max(0, (float) $this->total_amount - (float) $this->amount_paid), 2);
+    }
+
+    /**
+     * Whether the amount to pay is final. A per-kg or bundle order is only final once the laundry is
+     * weighed; a per-piece order is final the moment the items are counted into the order.
+     */
+    public function priceIsConfirmed(): bool
+    {
+        return $this->actual_weight_kg !== null || $this->pricing_model === 'per_piece';
     }
 
     public function isPaid(): bool

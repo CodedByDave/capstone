@@ -103,7 +103,9 @@ class UserOrderController extends Controller
                 'special_instructions' => $order->special_instructions,
                 'pricing_model' => $order->pricing_model,
                 'price_per_kg' => $order->price_per_kg,
-                'payment_ready' => $order->actual_weight_kg !== null,
+                'payment_ready' => $order->priceIsConfirmed(),
+                'piece_count' => $order->piece_count,
+                'price_per_piece' => $order->price_per_piece,
                 'created_at' => $order->created_at->format('M d, Y'),
                 'completed_at' => $order->completed_at?->format('M d, Y'),
                 'shop_has_paymongo' => $order->shop?->hasPaymongo() ?? false,
@@ -138,7 +140,8 @@ class UserOrderController extends Controller
         return response()->json($this->billing->estimateFor(
             (int) $data['shop_id'],
             (int) $data['service_id'],
-            (float) $data['estimated_weight_kg'],
+            (float) ($data['estimated_weight_kg'] ?? 0),
+            isset($data['piece_count']) ? (int) $data['piece_count'] : null,
         ));
     }
 
