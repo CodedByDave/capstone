@@ -26,8 +26,11 @@ class DeliveryProofService
         private readonly LogisticsService $logistics,
     ) {}
 
-    /** @param  list<UploadedFile>  $files */
-    public function add(User $user, Delivery $delivery, array $files): void
+    /**
+     * @param  list<UploadedFile>  $files
+     * @param  string  $kind  DeliveryPhoto::KIND_PROOF for the delivery itself, KIND_CASH for the cash collected
+     */
+    public function add(User $user, Delivery $delivery, array $files, string $kind = DeliveryPhoto::KIND_PROOF): void
     {
         $this->assertDeliveryInShop($user, $delivery);
 
@@ -41,7 +44,7 @@ class DeliveryProofService
 
         foreach ($files as $file) {
             $path = $file->store($directory, self::DISK);
-            $this->photos->createForDelivery($delivery, $user->id, $path);
+            $this->photos->createForDelivery($delivery, $user->id, $path, $kind);
         }
     }
 

@@ -2,7 +2,7 @@
 
 use App\Enums\AccountType;
 use App\Events\OrderPaymentRecorded;
-use App\Listeners\StartOrderWhenPaid;
+use App\Listeners\StartOrderWhenReady;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
@@ -50,16 +50,17 @@ function statusOrder(Shop $shop, array $overrides = []): ShopOrder
     ], $overrides));
 }
 
-it('starts a pending order once it is fully paid, and only then', function () {
+it('starts a pending order once it is fully paid, or its price is final', function () {
     $shop = statusShop();
     $orders = app(ShopOrderService::class);
 
+    // Unpaid and not weighed yet: nothing to start from.
     $partial = statusOrder($shop, ['payment_status' => 'partial', 'amount_paid' => 100]);
     $paid = statusOrder($shop, ['payment_status' => 'paid', 'amount_paid' => 300]);
     $done = statusOrder($shop, ['payment_status' => 'paid', 'amount_paid' => 300, 'status' => 'completed']);
 
     foreach ([$partial, $paid, $done] as $order) {
-        $orders->startWhenPaid($order);
+        $orders->startWhenReady($order);
     }
 
     expect($partial->fresh()->status)->toBe('pending')
@@ -72,7 +73,7 @@ it('reacts to a recorded payment through the listener', function () {
     $shop = statusShop();
     $order = statusOrder($shop, ['payment_status' => 'paid', 'amount_paid' => 300]);
 
-    app(StartOrderWhenPaid::class)->handle(new OrderPaymentRecorded($order));
+    app(StartOrderWhenReady::class)->handle(new OrderPaymentRecorded($order));
 
     expect($order->fresh()->status)->toBe('in_progress');
 });
@@ -116,4 +117,46 @@ it('counts a picked up order as finished for the dashboard and ratings', functio
 
     expect(ShopOrder::forShop($shop->id)->completed()->count())->toBe(2)
         ->and(ShopOrder::FINISHED_STATUSES)->toBe(['completed', 'picked_up']);
+});
+
+it('starts an unpaid order once its price is final, so paying at the end does not hold it up', function () {
+    $shop = statusShop();
+    $orders = app(ShopOrderService::class);
+
+    $weighed = statusOrder($shop, ['actual_weight_kg' => 3]);
+    $notWeighed = statusOrder($shop, ['actual_weight_kg' => null]);
+    $perPiece = statusOrder($shop, ['pricing_model' => 'per_piece', 'piece_count' => 2, 'price_per_piece' => 250]);
+    $done = statusOrder($shop, ['actual_weight_kg' => 3, 'status' => 'completed']);
+
+    foreach ([$weighed, $notWeighed, $perPiece, $done] as $order) {
+        $orders->startWhenReady($order);
+    }
+
+    expect($weighed->fresh()->status)->toBe('in_progress')
+        ->and($weighed->fresh()->payment_status)->toBe('unpaid')
+        ->and($notWeighed->fresh()->status)->toBe('pending')
+        ->and($perPiece->fresh()->status)->toBe('in_progress')
+        ->and($done->fresh()->status)->toBe('completed');
+});
+
+it('starts a weighed walk-in order the moment staff create it, paid or not', function () {
+    $shop = statusShop();
+    $service = App\Models\ShopService::create([
+        'shop_id' => $shop->id, 'service_name' => 'Wash & Fold', 'is_active' => true,
+        'pricing_model' => 'per_kg', 'price_per_kg' => 60,
+    ]);
+    $base = [
+        'shop_id' => $shop->id, 'customer_name' => 'Maria S.', 'service_id' => $service->id,
+        'pickup_type' => 'walk_in', 'pricing_model' => 'per_kg', 'price_per_kg' => 60,
+        'total_amount' => 180, 'amount_paid' => 0,
+        'customer_agreement_version' => app(App\Services\CustomerAgreementService::class)->agreementDataForShopId($shop->id)['version'],
+        'customer_agreement_accepted' => true,
+    ];
+
+    $weighed = app(ShopOrderService::class)->createOrder([...$base, 'actual_weight_kg' => 3], $shop->owner);
+    $unweighed = app(ShopOrderService::class)->createOrder([...$base, 'actual_weight_kg' => null], $shop->owner);
+
+    expect($weighed->status)->toBe('in_progress')
+        ->and($weighed->payment_status)->toBe('unpaid')
+        ->and($unweighed->status)->toBe('pending');
 });

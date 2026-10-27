@@ -174,7 +174,6 @@ class UserDashboardController extends Controller
                 'bundle_weight_kg',
                 'bundle_price',
                 'price_per_piece',
-                'estimated_hours',
             ]);
 
         $distance = ($lat && $lng && $shop->latitude && $shop->longitude)

@@ -325,7 +325,7 @@ export const create = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/shop/operations/orders'
  */
 const store3046662a2b56aac3a381595943a566e4 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +340,7 @@ store3046662a2b56aac3a381595943a566e4.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/shop/operations/orders'
  */
 store3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ store3046662a2b56aac3a381595943a566e4.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/shop/operations/orders'
  */
 store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +359,7 @@ store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/shop/operations/orders'
  */
     const store3046662a2b56aac3a381595943a566e4Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/shop/operations/orders'
  */
         store3046662a2b56aac3a381595943a566e4Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +380,7 @@ store3046662a2b56aac3a381595943a566e4.post = (options?: RouteQueryOptions): Rout
     store3046662a2b56aac3a381595943a566e4.form = store3046662a2b56aac3a381595943a566e4Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/staff/operations/orders'
  */
 const store1ca873fe54e10e608543305c9bad9bf6 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +395,7 @@ store1ca873fe54e10e608543305c9bad9bf6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/staff/operations/orders'
  */
 store1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
@@ -404,7 +404,7 @@ store1ca873fe54e10e608543305c9bad9bf6.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/staff/operations/orders'
  */
 store1ca873fe54e10e608543305c9bad9bf6.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +414,7 @@ store1ca873fe54e10e608543305c9bad9bf6.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/staff/operations/orders'
  */
     const store1ca873fe54e10e608543305c9bad9bf6Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +424,7 @@ store1ca873fe54e10e608543305c9bad9bf6.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::store
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:100
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:101
  * @route '/staff/operations/orders'
  */
         store1ca873fe54e10e608543305c9bad9bf6Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -441,7 +441,7 @@ export const store = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/shop/operations/orders/{order}'
  */
 const show27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -456,7 +456,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/shop/operations/orders/{order}'
  */
 show27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -489,7 +489,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: string | { payment_pu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/shop/operations/orders/{order}'
  */
 show27635f40a22aa7da9bdd32cbbfd0f9c0.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -498,7 +498,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.get = (args: { order: string | { payment_pu
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/shop/operations/orders/{order}'
  */
 show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -508,7 +508,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: string | { payment_p
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/shop/operations/orders/{order}'
  */
     const show27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -518,7 +518,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: string | { payment_p
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/shop/operations/orders/{order}'
  */
         show27635f40a22aa7da9bdd32cbbfd0f9c0Form.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -527,7 +527,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: string | { payment_p
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/shop/operations/orders/{order}'
  */
         show27635f40a22aa7da9bdd32cbbfd0f9c0Form.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -543,7 +543,7 @@ show27635f40a22aa7da9bdd32cbbfd0f9c0.head = (args: { order: string | { payment_p
     show27635f40a22aa7da9bdd32cbbfd0f9c0.form = show27635f40a22aa7da9bdd32cbbfd0f9c0Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
 const show9b2a634ffe9535792984c712b770b227 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -558,7 +558,7 @@ show9b2a634ffe9535792984c712b770b227.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
 show9b2a634ffe9535792984c712b770b227.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -591,7 +591,7 @@ show9b2a634ffe9535792984c712b770b227.url = (args: { order: string | { payment_pu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
 show9b2a634ffe9535792984c712b770b227.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -600,7 +600,7 @@ show9b2a634ffe9535792984c712b770b227.get = (args: { order: string | { payment_pu
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
 show9b2a634ffe9535792984c712b770b227.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -610,7 +610,7 @@ show9b2a634ffe9535792984c712b770b227.head = (args: { order: string | { payment_p
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
     const show9b2a634ffe9535792984c712b770b227Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -620,7 +620,7 @@ show9b2a634ffe9535792984c712b770b227.head = (args: { order: string | { payment_p
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
         show9b2a634ffe9535792984c712b770b227Form.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -629,7 +629,7 @@ show9b2a634ffe9535792984c712b770b227.head = (args: { order: string | { payment_p
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::show
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:119
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
         show9b2a634ffe9535792984c712b770b227Form.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -651,7 +651,7 @@ export const show = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/shop/operations/orders/{order}/edit'
  */
 const edit8553c4209e292d88c8408c54f41397fe = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -666,7 +666,7 @@ edit8553c4209e292d88c8408c54f41397fe.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/shop/operations/orders/{order}/edit'
  */
 edit8553c4209e292d88c8408c54f41397fe.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -699,7 +699,7 @@ edit8553c4209e292d88c8408c54f41397fe.url = (args: { order: string | { payment_pu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/shop/operations/orders/{order}/edit'
  */
 edit8553c4209e292d88c8408c54f41397fe.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -708,7 +708,7 @@ edit8553c4209e292d88c8408c54f41397fe.get = (args: { order: string | { payment_pu
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/shop/operations/orders/{order}/edit'
  */
 edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -718,7 +718,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: string | { payment_p
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/shop/operations/orders/{order}/edit'
  */
     const edit8553c4209e292d88c8408c54f41397feForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -728,7 +728,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: string | { payment_p
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/shop/operations/orders/{order}/edit'
  */
         edit8553c4209e292d88c8408c54f41397feForm.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -737,7 +737,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: string | { payment_p
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/shop/operations/orders/{order}/edit'
  */
         edit8553c4209e292d88c8408c54f41397feForm.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -753,7 +753,7 @@ edit8553c4209e292d88c8408c54f41397fe.head = (args: { order: string | { payment_p
     edit8553c4209e292d88c8408c54f41397fe.form = edit8553c4209e292d88c8408c54f41397feForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
 const edit223e40850db6d7ee7cc15c6cb055c2ad = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -768,7 +768,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
 edit223e40850db6d7ee7cc15c6cb055c2ad.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -801,7 +801,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.url = (args: { order: string | { payment_pu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
 edit223e40850db6d7ee7cc15c6cb055c2ad.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -810,7 +810,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.get = (args: { order: string | { payment_pu
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
 edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -820,7 +820,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: string | { payment_p
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
     const edit223e40850db6d7ee7cc15c6cb055c2adForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -830,7 +830,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: string | { payment_p
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
         edit223e40850db6d7ee7cc15c6cb055c2adForm.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -839,7 +839,7 @@ edit223e40850db6d7ee7cc15c6cb055c2ad.head = (args: { order: string | { payment_p
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::edit
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:143
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
         edit223e40850db6d7ee7cc15c6cb055c2adForm.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -861,7 +861,7 @@ export const edit = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/shop/operations/orders/{order}'
  */
 const update27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -876,7 +876,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/shop/operations/orders/{order}'
  */
 update27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -909,7 +909,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: string | { payment_
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/shop/operations/orders/{order}'
  */
 update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -919,7 +919,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: string | { payment_
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/shop/operations/orders/{order}'
  */
     const update27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -934,7 +934,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: string | { payment_
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/shop/operations/orders/{order}'
  */
         update27635f40a22aa7da9bdd32cbbfd0f9c0Form.put = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -950,7 +950,7 @@ update27635f40a22aa7da9bdd32cbbfd0f9c0.put = (args: { order: string | { payment_
     update27635f40a22aa7da9bdd32cbbfd0f9c0.form = update27635f40a22aa7da9bdd32cbbfd0f9c0Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
 const update9b2a634ffe9535792984c712b770b227 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -965,7 +965,7 @@ update9b2a634ffe9535792984c712b770b227.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
 update9b2a634ffe9535792984c712b770b227.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -998,7 +998,7 @@ update9b2a634ffe9535792984c712b770b227.url = (args: { order: string | { payment_
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
 update9b2a634ffe9535792984c712b770b227.put = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -1008,7 +1008,7 @@ update9b2a634ffe9535792984c712b770b227.put = (args: { order: string | { payment_
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
     const update9b2a634ffe9535792984c712b770b227Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1023,7 +1023,7 @@ update9b2a634ffe9535792984c712b770b227.put = (args: { order: string | { payment_
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::update
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:171
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
         update9b2a634ffe9535792984c712b770b227Form.put = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1045,7 +1045,7 @@ export const update = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/shop/operations/orders/{order}'
  */
 const destroy27635f40a22aa7da9bdd32cbbfd0f9c0 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1060,7 +1060,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/shop/operations/orders/{order}'
  */
 destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1093,7 +1093,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.url = (args: { order: string | { payment
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/shop/operations/orders/{order}'
  */
 destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1103,7 +1103,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: string | { paym
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/shop/operations/orders/{order}'
  */
     const destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1118,7 +1118,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: string | { paym
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/shop/operations/orders/{order}'
  */
         destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form.delete = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1134,7 +1134,7 @@ destroy27635f40a22aa7da9bdd32cbbfd0f9c0.delete = (args: { order: string | { paym
     destroy27635f40a22aa7da9bdd32cbbfd0f9c0.form = destroy27635f40a22aa7da9bdd32cbbfd0f9c0Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
 const destroy9b2a634ffe9535792984c712b770b227 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1149,7 +1149,7 @@ destroy9b2a634ffe9535792984c712b770b227.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
 destroy9b2a634ffe9535792984c712b770b227.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1182,7 +1182,7 @@ destroy9b2a634ffe9535792984c712b770b227.url = (args: { order: string | { payment
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
 destroy9b2a634ffe9535792984c712b770b227.delete = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1192,7 +1192,7 @@ destroy9b2a634ffe9535792984c712b770b227.delete = (args: { order: string | { paym
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
     const destroy9b2a634ffe9535792984c712b770b227Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1207,7 +1207,7 @@ destroy9b2a634ffe9535792984c712b770b227.delete = (args: { order: string | { paym
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::destroy
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:228
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
         destroy9b2a634ffe9535792984c712b770b227Form.delete = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1229,7 +1229,7 @@ export const destroy = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/shop/operations/orders/{order}/payments'
  */
 const recordPaymentf3b50fd002e9152ec0cf94bde684bdbc = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1244,7 +1244,7 @@ recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/shop/operations/orders/{order}/payments'
  */
 recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1277,7 +1277,7 @@ recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.url = (args: { order: string | { p
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/shop/operations/orders/{order}/payments'
  */
 recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1287,7 +1287,7 @@ recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.post = (args: { order: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/shop/operations/orders/{order}/payments'
  */
     const recordPaymentf3b50fd002e9152ec0cf94bde684bdbcForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1297,7 +1297,7 @@ recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.post = (args: { order: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/shop/operations/orders/{order}/payments'
  */
         recordPaymentf3b50fd002e9152ec0cf94bde684bdbcForm.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1308,7 +1308,7 @@ recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.post = (args: { order: string | { 
     recordPaymentf3b50fd002e9152ec0cf94bde684bdbc.form = recordPaymentf3b50fd002e9152ec0cf94bde684bdbcForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/staff/operations/orders/{order}/payments'
  */
 const recordPaymenta507d8de96b348dcc09a8ac7624e92c6 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1323,7 +1323,7 @@ recordPaymenta507d8de96b348dcc09a8ac7624e92c6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/staff/operations/orders/{order}/payments'
  */
 recordPaymenta507d8de96b348dcc09a8ac7624e92c6.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1356,7 +1356,7 @@ recordPaymenta507d8de96b348dcc09a8ac7624e92c6.url = (args: { order: string | { p
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/staff/operations/orders/{order}/payments'
  */
 recordPaymenta507d8de96b348dcc09a8ac7624e92c6.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1366,7 +1366,7 @@ recordPaymenta507d8de96b348dcc09a8ac7624e92c6.post = (args: { order: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/staff/operations/orders/{order}/payments'
  */
     const recordPaymenta507d8de96b348dcc09a8ac7624e92c6Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1376,7 +1376,7 @@ recordPaymenta507d8de96b348dcc09a8ac7624e92c6.post = (args: { order: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::recordPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:192
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:193
  * @route '/staff/operations/orders/{order}/payments'
  */
         recordPaymenta507d8de96b348dcc09a8ac7624e92c6Form.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1393,7 +1393,7 @@ export const recordPayment = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/shop/operations/orders/{order}/payments/check'
  */
 const checkPayments54904557fbb5997b3d93aca95f48b84d = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1408,7 +1408,7 @@ checkPayments54904557fbb5997b3d93aca95f48b84d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/shop/operations/orders/{order}/payments/check'
  */
 checkPayments54904557fbb5997b3d93aca95f48b84d.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1441,7 +1441,7 @@ checkPayments54904557fbb5997b3d93aca95f48b84d.url = (args: { order: string | { p
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/shop/operations/orders/{order}/payments/check'
  */
 checkPayments54904557fbb5997b3d93aca95f48b84d.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1451,7 +1451,7 @@ checkPayments54904557fbb5997b3d93aca95f48b84d.post = (args: { order: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/shop/operations/orders/{order}/payments/check'
  */
     const checkPayments54904557fbb5997b3d93aca95f48b84dForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1461,7 +1461,7 @@ checkPayments54904557fbb5997b3d93aca95f48b84d.post = (args: { order: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/shop/operations/orders/{order}/payments/check'
  */
         checkPayments54904557fbb5997b3d93aca95f48b84dForm.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1472,7 +1472,7 @@ checkPayments54904557fbb5997b3d93aca95f48b84d.post = (args: { order: string | { 
     checkPayments54904557fbb5997b3d93aca95f48b84d.form = checkPayments54904557fbb5997b3d93aca95f48b84dForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/staff/operations/orders/{order}/payments/check'
  */
 const checkPayments70b0be731a2ff95d09c41d406c741384 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1487,7 +1487,7 @@ checkPayments70b0be731a2ff95d09c41d406c741384.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/staff/operations/orders/{order}/payments/check'
  */
 checkPayments70b0be731a2ff95d09c41d406c741384.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1520,7 +1520,7 @@ checkPayments70b0be731a2ff95d09c41d406c741384.url = (args: { order: string | { p
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/staff/operations/orders/{order}/payments/check'
  */
 checkPayments70b0be731a2ff95d09c41d406c741384.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1530,7 +1530,7 @@ checkPayments70b0be731a2ff95d09c41d406c741384.post = (args: { order: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/staff/operations/orders/{order}/payments/check'
  */
     const checkPayments70b0be731a2ff95d09c41d406c741384Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1540,7 +1540,7 @@ checkPayments70b0be731a2ff95d09c41d406c741384.post = (args: { order: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::checkPayments
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:214
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:215
  * @route '/staff/operations/orders/{order}/payments/check'
  */
         checkPayments70b0be731a2ff95d09c41d406c741384Form.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1557,7 +1557,7 @@ export const checkPayments = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/shop/operations/orders/{order}/payments/{payment}/void'
  */
 const voidPaymentfe4c03a56e701e772aa589eb2efefa65 = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1572,7 +1572,7 @@ voidPaymentfe4c03a56e701e772aa589eb2efefa65.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/shop/operations/orders/{order}/payments/{payment}/void'
  */
 voidPaymentfe4c03a56e701e772aa589eb2efefa65.url = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions) => {
@@ -1600,7 +1600,7 @@ voidPaymentfe4c03a56e701e772aa589eb2efefa65.url = (args: { order: string | { pay
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/shop/operations/orders/{order}/payments/{payment}/void'
  */
 voidPaymentfe4c03a56e701e772aa589eb2efefa65.post = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1610,7 +1610,7 @@ voidPaymentfe4c03a56e701e772aa589eb2efefa65.post = (args: { order: string | { pa
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/shop/operations/orders/{order}/payments/{payment}/void'
  */
     const voidPaymentfe4c03a56e701e772aa589eb2efefa65Form = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1620,7 +1620,7 @@ voidPaymentfe4c03a56e701e772aa589eb2efefa65.post = (args: { order: string | { pa
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/shop/operations/orders/{order}/payments/{payment}/void'
  */
         voidPaymentfe4c03a56e701e772aa589eb2efefa65Form.post = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1631,7 +1631,7 @@ voidPaymentfe4c03a56e701e772aa589eb2efefa65.post = (args: { order: string | { pa
     voidPaymentfe4c03a56e701e772aa589eb2efefa65.form = voidPaymentfe4c03a56e701e772aa589eb2efefa65Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/staff/operations/orders/{order}/payments/{payment}/void'
  */
 const voidPayment2914ef91516307a77cce6e42afb4823a = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1646,7 +1646,7 @@ voidPayment2914ef91516307a77cce6e42afb4823a.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/staff/operations/orders/{order}/payments/{payment}/void'
  */
 voidPayment2914ef91516307a77cce6e42afb4823a.url = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions) => {
@@ -1674,7 +1674,7 @@ voidPayment2914ef91516307a77cce6e42afb4823a.url = (args: { order: string | { pay
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/staff/operations/orders/{order}/payments/{payment}/void'
  */
 voidPayment2914ef91516307a77cce6e42afb4823a.post = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1684,7 +1684,7 @@ voidPayment2914ef91516307a77cce6e42afb4823a.post = (args: { order: string | { pa
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/staff/operations/orders/{order}/payments/{payment}/void'
  */
     const voidPayment2914ef91516307a77cce6e42afb4823aForm = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1694,7 +1694,7 @@ voidPayment2914ef91516307a77cce6e42afb4823a.post = (args: { order: string | { pa
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::voidPayment
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:204
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:205
  * @route '/staff/operations/orders/{order}/payments/{payment}/void'
  */
         voidPayment2914ef91516307a77cce6e42afb4823aForm.post = (args: { order: string | { payment_public_id: string }, payment: string | number } | [order: string | { payment_public_id: string }, payment: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1711,7 +1711,7 @@ export const voidPayment = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
 const sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1726,7 +1726,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
 sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1759,7 +1759,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.url = (args: { order: string | {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
 sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1769,7 +1769,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: string | 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
     const sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1779,7 +1779,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: string | 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/shop/operations/orders/{order}/send-for-delivery'
  */
         sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653Form.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1790,7 +1790,7 @@ sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.post = (args: { order: string | 
     sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653.form = sendForDeliveryb2c05d83311c9a8ac191eb6dc84e5653Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
 const sendForDelivery3f3122164782bf150d593c15237c6c62 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1805,7 +1805,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
 sendForDelivery3f3122164782bf150d593c15237c6c62.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -1838,7 +1838,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.url = (args: { order: string | {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
 sendForDelivery3f3122164782bf150d593c15237c6c62.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1848,7 +1848,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.post = (args: { order: string | 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
     const sendForDelivery3f3122164782bf150d593c15237c6c62Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1858,7 +1858,7 @@ sendForDelivery3f3122164782bf150d593c15237c6c62.post = (args: { order: string | 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::sendForDelivery
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:131
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
         sendForDelivery3f3122164782bf150d593c15237c6c62Form.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1875,7 +1875,7 @@ export const sendForDelivery = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/shop/operations/orders/restore-all'
  */
 const restoreAll05359cba787ad6011630036e5678dbd3 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1890,7 +1890,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/shop/operations/orders/restore-all'
  */
 restoreAll05359cba787ad6011630036e5678dbd3.url = (options?: RouteQueryOptions) => {
@@ -1899,7 +1899,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.url = (options?: RouteQueryOptions) =
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/shop/operations/orders/restore-all'
  */
 restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1909,7 +1909,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions):
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/shop/operations/orders/restore-all'
  */
     const restoreAll05359cba787ad6011630036e5678dbd3Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1919,7 +1919,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions):
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/shop/operations/orders/restore-all'
  */
         restoreAll05359cba787ad6011630036e5678dbd3Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1930,7 +1930,7 @@ restoreAll05359cba787ad6011630036e5678dbd3.post = (options?: RouteQueryOptions):
     restoreAll05359cba787ad6011630036e5678dbd3.form = restoreAll05359cba787ad6011630036e5678dbd3Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/staff/operations/orders/restore-all'
  */
 const restoreAllb53e8d9bd0c80a798445ffd326144dac = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1945,7 +1945,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/staff/operations/orders/restore-all'
  */
 restoreAllb53e8d9bd0c80a798445ffd326144dac.url = (options?: RouteQueryOptions) => {
@@ -1954,7 +1954,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.url = (options?: RouteQueryOptions) =
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/staff/operations/orders/restore-all'
  */
 restoreAllb53e8d9bd0c80a798445ffd326144dac.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1964,7 +1964,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.post = (options?: RouteQueryOptions):
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/staff/operations/orders/restore-all'
  */
     const restoreAllb53e8d9bd0c80a798445ffd326144dacForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1974,7 +1974,7 @@ restoreAllb53e8d9bd0c80a798445ffd326144dac.post = (options?: RouteQueryOptions):
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restoreAll
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:251
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:252
  * @route '/staff/operations/orders/restore-all'
  */
         restoreAllb53e8d9bd0c80a798445ffd326144dacForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1991,7 +1991,7 @@ export const restoreAll = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/shop/operations/orders/{order}/restore'
  */
 const restore7e2cbae9ec08c3398f3896c88ccc477c = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2006,7 +2006,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/shop/operations/orders/{order}/restore'
  */
 restore7e2cbae9ec08c3398f3896c88ccc477c.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -2039,7 +2039,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.url = (args: { order: string | { payment
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/shop/operations/orders/{order}/restore'
  */
 restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2049,7 +2049,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: string | { payme
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/shop/operations/orders/{order}/restore'
  */
     const restore7e2cbae9ec08c3398f3896c88ccc477cForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2064,7 +2064,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: string | { payme
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/shop/operations/orders/{order}/restore'
  */
         restore7e2cbae9ec08c3398f3896c88ccc477cForm.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2080,7 +2080,7 @@ restore7e2cbae9ec08c3398f3896c88ccc477c.patch = (args: { order: string | { payme
     restore7e2cbae9ec08c3398f3896c88ccc477c.form = restore7e2cbae9ec08c3398f3896c88ccc477cForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
 const restore7ecbb9f0c73a6910b6185bd2204974f6 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2095,7 +2095,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
 restore7ecbb9f0c73a6910b6185bd2204974f6.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -2128,7 +2128,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.url = (args: { order: string | { payment
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
 restore7ecbb9f0c73a6910b6185bd2204974f6.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2138,7 +2138,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.patch = (args: { order: string | { payme
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
     const restore7ecbb9f0c73a6910b6185bd2204974f6Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2153,7 +2153,7 @@ restore7ecbb9f0c73a6910b6185bd2204974f6.patch = (args: { order: string | { payme
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::restore
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:239
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
         restore7ecbb9f0c73a6910b6185bd2204974f6Form.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2175,7 +2175,7 @@ export const restore = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/orders/{order}/status'
  */
 const updateStatus923621f100b9b8119e887ba70c01a46a = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2190,7 +2190,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/orders/{order}/status'
  */
 updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -2223,7 +2223,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.url = (args: { order: string | { pa
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/orders/{order}/status'
  */
 updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2233,7 +2233,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/orders/{order}/status'
  */
     const updateStatus923621f100b9b8119e887ba70c01a46aForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2248,7 +2248,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/orders/{order}/status'
  */
         updateStatus923621f100b9b8119e887ba70c01a46aForm.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2264,7 +2264,7 @@ updateStatus923621f100b9b8119e887ba70c01a46a.patch = (args: { order: string | { 
     updateStatus923621f100b9b8119e887ba70c01a46a.form = updateStatus923621f100b9b8119e887ba70c01a46aForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
 const updateStatus1408d9eab3157e71b3908eed25954ec5 = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2279,7 +2279,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
 updateStatus1408d9eab3157e71b3908eed25954ec5.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
@@ -2312,7 +2312,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.url = (args: { order: string | { pa
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
 updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -2322,7 +2322,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
     const updateStatus1408d9eab3157e71b3908eed25954ec5Form = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -2337,7 +2337,7 @@ updateStatus1408d9eab3157e71b3908eed25954ec5.patch = (args: { order: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\ShopOrderController::updateStatus
- * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:182
+ * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
         updateStatus1408d9eab3157e71b3908eed25954ec5Form.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

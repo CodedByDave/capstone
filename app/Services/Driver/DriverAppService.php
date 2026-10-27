@@ -5,12 +5,18 @@ namespace App\Services\Driver;
 use App\Exceptions\DriverJobException;
 use App\Exceptions\RiderLocationException;
 use App\Models\Delivery;
+use App\Models\DeliveryPhoto;
 use App\Models\Rider;
+use App\Models\ShopOrderPayment;
+use App\Models\User;
 use App\Notifications\DeliveryNotification;
 use App\Repositories\DeliveryRepository;
 use App\Repositories\RiderRepository;
+use App\Services\DeliveryProofService;
 use App\Services\LogisticsService;
+use App\Services\OrderPaymentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +35,8 @@ class DriverAppService
         private readonly LogisticsService $logistics,
         private readonly DriverEarningsService $earnings,
         private readonly DriverAttendanceService $attendance,
+        private readonly OrderPaymentService $orderPayments,
+        private readonly DeliveryProofService $proofs,
     ) {}
 
     // ── Pages ─────────────────────────────────────────────────────────────────
@@ -125,9 +133,9 @@ class DriverAppService
 
     /**
      * @throws ModelNotFoundException when the run is not this driver's
-     * @throws DriverJobException when the run cannot move to that status
+     * @throws DriverJobException when the run cannot move to that status, or the cash collected is not valid
      */
-    public function updateStatus(Rider $rider, string $publicId, string $status, ?string $notes): Delivery
+    public function updateStatus(Rider $rider, string $publicId, string $status, ?string $notes, ?float $collected = null, ?User $actor = null, ?UploadedFile $cashProof = null): Delivery
     {
         $delivery = $this->findOwnJob($rider, $publicId);
 
@@ -138,6 +146,22 @@ class DriverAppService
             throw new DriverJobException("Cannot change from '{$delivery->status}' to '{$status}'.");
         }
 
+        // Handing the laundry over is when the balance is paid, so the rider says what they collected.
+        $toCollect = $status === 'delivered' ? $this->amountToCollect($delivery) : null;
+
+        if ($toCollect !== null && $collected === null) {
+            throw new DriverJobException('Enter the cash you collected from the customer (0 if nothing).');
+        }
+
+        if ($toCollect !== null && round($collected, 2) > $toCollect) {
+            throw new DriverJobException('You cannot collect more than the balance of ₱'.number_format($toCollect, 2).'.');
+        }
+
+        // Cash that changes hands needs proof the shop can look at later.
+        if ($toCollect !== null && $collected > 0 && $cashProof === null) {
+            throw new DriverJobException('Take a photo of the cash you collected as proof.');
+        }
+
         $changes = ['status' => $status, 'notes' => $notes ?? $delivery->notes];
         if ($status === 'picked_up' && ! $delivery->picked_up_at) {
             $changes['picked_up_at'] = now();
@@ -146,8 +170,19 @@ class DriverAppService
             $changes['delivered_at'] = now();
         }
 
-        DB::transaction(function () use ($delivery, $rider, $changes, $status) {
+        DB::transaction(function () use ($delivery, $rider, $changes, $status, $toCollect, $collected, $actor, $cashProof) {
             $this->deliveries->update($delivery, $changes);
+
+            // Cash collected at the door is recorded as a payment on the order, by the rider.
+            if ($toCollect !== null && $collected > 0 && $actor !== null && $delivery->order !== null) {
+                $this->orderPayments->recordShopPayment($actor, $delivery->order, [
+                    'amount' => round($collected, 2),
+                    'method' => 'cash',
+                    'note' => "Collected on delivery by {$rider->name}.",
+                ]);
+
+                $this->proofs->add($actor, $delivery, [$cashProof], DeliveryPhoto::KIND_CASH);
+            }
 
             // A finished run puts the driver back in line for the next order.
             if (in_array($status, ['delivered', 'failed'], true)) {
@@ -208,6 +243,41 @@ class DriverAppService
      * customer first and then to the shop; a delivery run goes to the shop first and then to
      * the customer.
      */
+    /**
+     * What the rider should collect when handing the laundry over: the balance still owed on the order,
+     * delivery fee included. Null when this run collects nothing (a pickup run, no order, or already paid).
+     */
+    private function amountToCollect(Delivery $run): ?float
+    {
+        if ($run->isPickupRun() || $run->order === null) {
+            return null;
+        }
+
+        $balance = $run->order->balanceDue();
+
+        return $balance > 0 ? $balance : null;
+    }
+
+    /** @return list<array{method: string, amount: float, reference: string|null, source: string, paid_at: string|null}> */
+    private function confirmedPayments(Delivery $run): array
+    {
+        if ($run->order === null) {
+            return [];
+        }
+
+        return $this->orderPayments->history($run->order)
+            ->filter(fn (ShopOrderPayment $payment) => $payment->isConfirmed())
+            ->map(fn (ShopOrderPayment $payment) => [
+                'method' => $payment->method,
+                'amount' => (float) $payment->amount,
+                'reference' => $payment->reference,
+                'source' => $payment->source,
+                'paid_at' => ($payment->paid_at ?? $payment->created_at)?->toIso8601String(),
+            ])
+            ->values()
+            ->all();
+    }
+
     private function jobPayload(Delivery $run): array
     {
         $shop = $run->shop;
@@ -238,8 +308,14 @@ class DriverAppService
             'service' => $run->order?->service?->service_name,
             'customer_name' => $run->customer_name,
             'customer_phone' => $run->customer_phone,
+            'alternate_contact_name' => $run->order?->alternate_contact_name,
+            'alternate_contact_phone' => $run->order?->alternate_contact_phone,
             'address' => $run->delivery_address,
             'notes' => $run->notes,
+            // Shown until the run is finished; what the rider collects in cash at the door.
+            'collect_amount' => $finished ? null : $this->amountToCollect($run),
+            // What the customer already paid (online or at the shop), so the rider can see it is settled.
+            'paid_payments' => $finished || $run->isPickupRun() ? [] : $this->confirmedPayments($run),
             'distance_km' => $run->distance_km !== null ? (float) $run->distance_km : null,
             'assigned_at' => $run->assigned_at?->toIso8601String(),
             'finished_at' => $finished ? $run->updated_at?->toIso8601String() : null,

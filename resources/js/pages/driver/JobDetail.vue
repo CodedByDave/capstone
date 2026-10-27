@@ -88,15 +88,93 @@ const checklistDone = computed(() => ticked.value.every(Boolean));
 
 const busy = ref(false);
 
+// Handing a delivery over is when its balance is paid, so the rider confirms the cash they took first.
+const collectOpen = ref(false);
+const collected = ref('');
+const collectDue = computed(() => props.job.collect_amount ?? 0);
+const collectedNumber = computed(() => Number(collected.value));
+const collectError = computed(() => {
+    if (collected.value === '' || Number.isNaN(collectedNumber.value)) {
+        return 'Enter the amount you collected (0 if nothing).';
+    }
+    if (collectedNumber.value < 0) return 'The amount cannot be negative.';
+    if (collectedNumber.value > collectDue.value) {
+        return `You cannot collect more than ${money(collectDue.value)}.`;
+    }
+
+    return '';
+});
+
+const money = (value: number) =>
+    `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+// Cash that changes hands needs a photo of it as proof.
+const proofPhoto = ref<File | null>(null);
+const proofInput = ref<HTMLInputElement | null>(null);
+const proofError = computed(() =>
+    collectedNumber.value > 0 && !proofPhoto.value
+        ? 'Take a photo of the cash as proof.'
+        : '',
+);
+
+function onProofPicked(event: Event) {
+    proofPhoto.value = (event.target as HTMLInputElement).files?.[0] ?? null;
+}
+
+const methodLabel = (method: string) =>
+    ({ gcash: 'GCash', grabpay: 'GrabPay' })[method] ??
+    method.charAt(0).toUpperCase() + method.slice(1);
+
+function advance(extra: Record<string, unknown> = {}) {
+    if (!props.job.next_status) return;
+
+    busy.value = true;
+    const options = {
+        preserveScroll: true,
+        onFinish: () => {
+            busy.value = false;
+            collectOpen.value = false;
+        },
+    };
+
+    if (extra.proof_photo instanceof File) {
+        // A file cannot ride on a real PATCH, so it is sent as a POST that Laravel treats as PATCH.
+        router.post(
+            `/driver/jobs/${props.job.public_id}/status`,
+            { _method: 'patch', status: props.job.next_status, ...extra },
+            { ...options, forceFormData: true },
+        );
+        return;
+    }
+
+    router.patch(
+        `/driver/jobs/${props.job.public_id}/status`,
+        { status: props.job.next_status, ...extra },
+        options,
+    );
+}
+
 function confirm() {
     if (!props.job.next_status || !checklistDone.value) return;
 
-    busy.value = true;
-    router.patch(
-        `/driver/jobs/${props.job.public_id}/status`,
-        { status: props.job.next_status },
-        { preserveScroll: true, onFinish: () => (busy.value = false) },
-    );
+    if (props.job.next_status === 'delivered' && collectDue.value > 0) {
+        collected.value = collectDue.value.toFixed(2);
+        proofPhoto.value = null;
+        if (proofInput.value) proofInput.value.value = '';
+        collectOpen.value = true;
+        return;
+    }
+
+    advance();
+}
+
+function confirmCollection() {
+    if (collectError.value || proofError.value) return;
+
+    advance({
+        collected_amount: collected.value,
+        ...(collectedNumber.value > 0 ? { proof_photo: proofPhoto.value } : {}),
+    });
 }
 
 const reportOpen = ref(false);
@@ -222,6 +300,95 @@ const finishedLabel = computed(() =>
                             <MessageSquare class="h-5 w-5" />
                         </a>
                     </div>
+                </div>
+
+                <!-- Cash due at the door -->
+                <div
+                    v-if="collectDue > 0"
+                    class="flex items-center justify-between rounded-2xl bg-emerald-50 p-4"
+                >
+                    <div>
+                        <p class="text-xs text-emerald-700">
+                            Collect from the customer
+                        </p>
+                        <p class="text-2xl font-bold text-emerald-900">
+                            {{ money(collectDue) }}
+                        </p>
+                    </div>
+                    <p class="max-w-36 text-right text-xs text-emerald-700">
+                        Balance of the order, delivery fee included. Cash only.
+                    </p>
+                </div>
+
+                <!-- What the customer already paid, so the rider can see it is settled -->
+                <div
+                    v-if="job.paid_payments?.length"
+                    class="rounded-2xl bg-white p-4"
+                >
+                    <p class="text-xs font-semibold text-slate-500">
+                        {{
+                            collectDue > 0
+                                ? 'Already paid'
+                                : 'Already paid in full. Nothing to collect.'
+                        }}
+                    </p>
+                    <ul class="mt-2 space-y-1.5">
+                        <li
+                            v-for="(payment, index) in job.paid_payments"
+                            :key="index"
+                            class="flex items-start justify-between gap-3 text-sm"
+                        >
+                            <span>
+                                <span class="font-semibold">{{
+                                    methodLabel(payment.method)
+                                }}</span>
+                                <span class="text-slate-500">
+                                    {{
+                                        payment.source === 'online'
+                                            ? 'online'
+                                            : 'at the shop'
+                                    }}</span
+                                >
+                                <span
+                                    v-if="payment.reference"
+                                    class="block text-xs text-slate-500"
+                                    >Ref {{ payment.reference }}</span
+                                >
+                            </span>
+                            <span class="font-semibold text-emerald-700">{{
+                                money(payment.amount)
+                            }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Someone else to call, or to hand the laundry to, if the customer is not there -->
+                <div
+                    v-if="
+                        job.alternate_contact_name ||
+                        job.alternate_contact_phone
+                    "
+                    class="flex items-center justify-between rounded-2xl bg-amber-50 p-4"
+                >
+                    <div>
+                        <p class="text-xs text-amber-700">Alternate contact</p>
+                        <p class="text-sm font-bold">
+                            {{ job.alternate_contact_name ?? 'Contact' }}
+                        </p>
+                        <p class="text-sm">
+                            {{
+                                job.alternate_contact_phone ?? 'No phone number'
+                            }}
+                        </p>
+                    </div>
+                    <a
+                        v-if="job.alternate_contact_phone"
+                        :href="`tel:${job.alternate_contact_phone}`"
+                        class="flex h-11 w-11 items-center justify-center rounded-xl border bg-white"
+                        aria-label="Call alternate contact"
+                    >
+                        <Phone class="h-5 w-5" />
+                    </a>
                 </div>
 
                 <!-- Navigation: both stops, the one to head to now is highlighted -->
@@ -373,6 +540,87 @@ const finishedLabel = computed(() =>
                 {{ finishedLabel }}
             </p>
         </div>
+
+        <Dialog v-model:open="collectOpen">
+            <DialogContent class="max-w-sm">
+                <DialogHeader>
+                    <DialogTitle>Cash collected</DialogTitle>
+                    <DialogDescription>
+                        The customer owes {{ money(collectDue) }}. Enter what
+                        you collected at the door. This is recorded as their
+                        payment, and the order is marked paid when it covers the
+                        balance.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="space-y-1.5">
+                    <label class="text-sm font-medium" for="collected-amount"
+                        >Amount collected</label
+                    >
+                    <input
+                        id="collected-amount"
+                        v-model="collected"
+                        type="number"
+                        inputmode="decimal"
+                        step="0.01"
+                        min="0"
+                        :max="collectDue"
+                        class="h-12 w-full rounded-xl border px-3 text-lg font-semibold"
+                        @wheel="($event.target as HTMLInputElement).blur()"
+                    />
+                    <p
+                        v-if="collected !== '' && collectError"
+                        class="text-xs text-red-500"
+                    >
+                        {{ collectError }}
+                    </p>
+                    <p v-else class="text-xs text-muted-foreground">
+                        Enter 0 if the customer paid nothing.
+                    </p>
+                </div>
+                <div v-if="collectedNumber > 0" class="space-y-1.5">
+                    <p class="text-sm font-medium">Proof of the cash</p>
+                    <input
+                        ref="proofInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        class="hidden"
+                        @change="onProofPicked"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="h-12 w-full rounded-xl"
+                        @click="proofInput?.click()"
+                    >
+                        {{
+                            proofPhoto
+                                ? 'Retake photo of the cash'
+                                : 'Take photo of the cash'
+                        }}
+                    </Button>
+                    <p
+                        v-if="proofPhoto"
+                        class="truncate text-xs text-emerald-700"
+                    >
+                        {{ proofPhoto.name }}
+                    </p>
+                    <p v-else class="text-xs text-red-500">{{ proofError }}</p>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="collectOpen = false">
+                        Cancel
+                    </Button>
+                    <Button
+                        class="bg-blue-600 hover:bg-blue-700"
+                        :disabled="busy || !!collectError || !!proofError"
+                        @click="confirmCollection"
+                    >
+                        Confirm delivery
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
         <Dialog v-model:open="reportOpen">
             <DialogContent class="max-w-sm">

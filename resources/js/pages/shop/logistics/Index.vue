@@ -56,6 +56,8 @@ interface Rider {
 interface DeliveryPhoto {
     public_id: string;
     created_at: string;
+    /** "cash" is the rider's photo of the cash collected at the door; anything else is delivery proof. */
+    kind?: string;
 }
 
 interface Delivery {
@@ -903,11 +905,20 @@ function fmtTime(d: string) {
                                     >
                                         <img
                                             :src="`${base}/photos/${photo.public_id}`"
-                                            alt="Delivery proof"
+                                            :alt="
+                                                photo.kind === 'cash'
+                                                    ? 'Cash collected'
+                                                    : 'Delivery proof'
+                                            "
                                             class="h-full w-full object-cover"
                                             loading="lazy"
                                         />
                                     </a>
+                                    <span
+                                        v-if="photo.kind === 'cash'"
+                                        class="absolute bottom-1 left-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+                                        >Cash</span
+                                    >
                                     <button
                                         v-if="can('Logistics', 'archive')"
                                         type="button"

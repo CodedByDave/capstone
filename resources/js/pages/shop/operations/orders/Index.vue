@@ -287,14 +287,12 @@ const orderStatusTone = (s: string) =>
 
 // ─── Status actions ────────────────────────────────
 
-const canComplete = (order: Order) =>
-    ['pending', 'in_progress'].includes(order.status);
-
+// Orders are completed by the shop's auto-complete automation, so only the hand-over is a manual action.
 // Delivered orders are handed over by a rider, so only collected orders can be picked up.
 const canPickUp = (order: Order) =>
     order.status === 'completed' && !order.deliver_to_customer;
 
-const changeStatus = (order: Order, next: 'completed' | 'picked_up') => {
+const changeStatus = (order: Order, next: 'picked_up') => {
     router.patch(
         `${base.value}/${order.payment_public_id}/status`,
         { status: next },
@@ -647,13 +645,6 @@ const handleDelete = () => {
                                     router.visit(
                                         `${base}/${order.payment_public_id}`,
                                     ),
-                            },
-                            {
-                                label: 'Mark as completed',
-                                icon: CheckCircle,
-                                show: !showArchived && canComplete(order),
-                                onSelect: () =>
-                                    changeStatus(order, 'completed'),
                             },
                             {
                                 label: 'Mark as picked up',

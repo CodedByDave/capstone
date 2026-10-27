@@ -17,12 +17,13 @@ class DeliveryPhotoRepository extends Repository
         return DeliveryPhoto::query()->where('delivery_id', $delivery->id)->count();
     }
 
-    public function createForDelivery(Delivery $delivery, int $uploadedBy, string $path): DeliveryPhoto
+    public function createForDelivery(Delivery $delivery, int $uploadedBy, string $path, string $kind = DeliveryPhoto::KIND_PROOF): DeliveryPhoto
     {
         return DeliveryPhoto::query()->create([
             'delivery_id' => $delivery->id,
             'uploaded_by' => $uploadedBy,
             'path' => $path,
+            'kind' => $kind,
         ]);
     }
 }

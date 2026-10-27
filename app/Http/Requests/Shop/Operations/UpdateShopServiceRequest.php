@@ -24,7 +24,6 @@ class UpdateShopServiceRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
-            'estimated_hours' => ['nullable', 'integer', 'min:1', 'max:720'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_photo' => ['boolean'],
             'price_per_kg' => [
@@ -64,7 +63,6 @@ class UpdateShopServiceRequest extends FormRequest
             'photo.image' => 'The service photo must be an image.',
             'photo.mimes' => 'The service photo must be a JPG, PNG, or WebP image.',
             'photo.max' => 'The service photo must be 5 MB or smaller.',
-            'estimated_hours.max' => 'Estimated time cannot exceed 720 hours (30 days).',
         ];
     }
 }

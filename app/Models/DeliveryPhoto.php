@@ -8,7 +8,12 @@ use Illuminate\Support\Str;
 
 class DeliveryPhoto extends Model
 {
-    protected $fillable = ['delivery_id', 'uploaded_by', 'path'];
+    public const KIND_PROOF = 'proof';
+
+    /** The cash a rider collected at the door. */
+    public const KIND_CASH = 'cash';
+
+    protected $fillable = ['delivery_id', 'uploaded_by', 'path', 'kind'];
 
     /** The shop board only needs the public id; the stored path and row ids stay server-side. */
     protected $hidden = ['id', 'delivery_id', 'uploaded_by', 'path', 'updated_at'];

@@ -34,8 +34,8 @@ it('imports valid rows for the shop', function () {
     $shop = csvShop();
 
     $result = app(ShopServiceCsvService::class)->import($shop->id, csvFile(
-        "Wash & Fold,full_service,Wash and fold,per_kg,60,,,24,Active\n".
-        "Comforter,specialty_bulk,,per_bundle,,350,5,48,Inactive\n"
+        "Wash & Fold,full_service,Wash and fold,per_kg,60,,,Active\n".
+        "Comforter,specialty_bulk,,per_bundle,,350,5,Inactive\n"
     ));
 
     expect($result)->toBe(['imported' => 2, 'errors' => []]);
@@ -54,9 +54,9 @@ it('imports nothing when any row is invalid or duplicated', function () {
     ]);
 
     $result = app(ShopServiceCsvService::class)->import($shop->id, csvFile(
-        "Good,full_service,,per_kg,60,,,,Active\n".
-        "Bad,nonsense,,per_kg,60,,,,Active\n".
-        "existing,full_service,,per_kg,60,,,,Active\n"
+        "Good,full_service,,per_kg,60,,,Active\n".
+        "Bad,nonsense,,per_kg,60,,,Active\n".
+        "existing,full_service,,per_kg,60,,,Active\n"
     ));
 
     expect($result['imported'])->toBe(0)

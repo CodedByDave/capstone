@@ -36,6 +36,7 @@ class EmployeeService
         private readonly EmployeeRepository $employeeRepository,
         private readonly ActivityLogService $activityLogService,
         private readonly DriverRosterService $driverRoster,
+        private readonly ScheduleService $scheduleService,
     ) {}
 
     /* ─── READ ─────────────────────────── */
@@ -86,7 +87,10 @@ class EmployeeService
 
     public function createEmployee(Shop $shop, array $data): Employee
     {
-        return DB::transaction(function () use ($shop, $data) {
+        $schedules = $data['schedules'] ?? [];
+        unset($data['schedules']);
+
+        return DB::transaction(function () use ($shop, $data, $schedules) {
 
             // Always create a login account for every employee.
             $defaultPassword = $data['last_name'];
@@ -132,6 +136,10 @@ class EmployeeService
                     'email' => $user->email,
                     'error' => $e->getMessage(),
                 ]);
+            }
+
+            if ($schedules !== []) {
+                $this->scheduleService->syncSchedules($employee, $schedules);
             }
 
             $this->driverRoster->sync($employee);

@@ -34,13 +34,23 @@ class StoreShopOrderRequest extends FormRequest
         });
     }
 
+    /** A rider has to reach the customer: collecting the laundry from them, or bringing it back when it is done. */
+    private function riderInvolved(): bool
+    {
+        return $this->input('pickup_type') === 'pickup' || $this->boolean('deliver_to_customer');
+    }
+
     public function rules(): array
     {
         return [
             'shop_id' => ['required', 'integer', Rule::exists('shops', 'id')],
             'customer_name' => ['required', 'string', 'max:255'],
-            'customer_phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
-            'customer_address' => ['nullable', 'string', 'max:500', 'required_if_accepted:deliver_to_customer'],
+            // A rider needs a number to call and an address to go to on a delivery pickup order.
+            'customer_phone' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:20', new PhilippineMobileNumber],
+            // Someone else the rider can reach or hand the laundry to, required on a delivery pickup order.
+            'alternate_contact_name' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:150', 'required_with:alternate_contact_phone'],
+            'alternate_contact_phone' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:20', 'required_with:alternate_contact_name', new PhilippineMobileNumber],
+            'customer_address' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:500', 'required_if_accepted:deliver_to_customer'],
             'deliver_to_customer' => ['nullable', 'boolean'],
             'service_id' => ['required', 'integer', Rule::exists('services_and_pricing', 'id')],
             'pickup_type' => ['required', Rule::in(ShopOrder::PICKUP_TYPES)],
@@ -49,8 +59,8 @@ class StoreShopOrderRequest extends FormRequest
             'pricing_model' => ['required', Rule::in(['per_kg', 'per_bundle', 'per_piece'])],
 
             // ─── Per KG fields ─────────────────────────────
+            // The estimate is the customer's own figure from the online order form; staff enter the actual weight.
             'estimated_weight_kg' => [
-                Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_kg'),
                 'nullable',
                 'numeric',
                 'min:0.1',
@@ -107,6 +117,7 @@ class StoreShopOrderRequest extends FormRequest
             ],
 
             // ─── Common ────────────────────────────────────
+            'promotion_id' => ['nullable', 'integer', Rule::exists('promotions', 'id')->where('shop_id', app(\App\Services\ShopContext::class)->shopIdFor($this->user()))],
             'additional_charges' => ['nullable', 'numeric', 'min:0'],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'total_amount' => ['required', 'numeric', 'min:0'],
@@ -127,6 +138,12 @@ class StoreShopOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'customer_phone.required' => 'Enter the customer\'s mobile number so the rider can reach them.',
+            'customer_address.required' => 'Enter the address the rider should go to.',
+            'alternate_contact_name.required' => 'Enter the name of the alternate contact.',
+            'alternate_contact_phone.required' => 'Enter the alternate contact\'s mobile number.',
+            'alternate_contact_name.required_with' => 'Enter the name of the alternate contact.',
+            'alternate_contact_phone.required_with' => 'Enter the alternate contact\'s mobile number.',
             'service_id.exists' => 'The selected service does not exist.',
             'shop_id.exists' => 'The selected shop does not exist.',
             'supplies.*.inventory_id.exists' => 'One or more selected supplies do not exist in inventory.',

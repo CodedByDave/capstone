@@ -26,7 +26,6 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Banknote,
-    Clock,
     Info,
     Loader2,
     MapPin,
@@ -57,7 +56,6 @@ interface ShopService {
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
-    estimated_hours: number | null;
     photo_url: string | null;
 }
 
@@ -536,13 +534,6 @@ function goBack() {
                             </div>
 
                             <div class="mt-3 flex flex-wrap gap-2">
-                                <span
-                                    v-if="svc.estimated_hours"
-                                    class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600"
-                                >
-                                    <Clock class="h-3.5 w-3.5" />
-                                    About {{ svc.estimated_hours }} hours
-                                </span>
                                 <span
                                     class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs text-amber-700"
                                 >

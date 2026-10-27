@@ -78,6 +78,7 @@ class ShopOrderController extends Controller
         return Inertia::render('shop/operations/orders/Create', [
             'shopId' => $shopId,
             'pickupAwaitsReceipt' => $this->service->pickupOrdersAwaitReceipt($shopId),
+            'completionMinutes' => $this->service->defaultCompletionMinutes($shopId),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'services' => ShopService::where('shop_id', $shopId)

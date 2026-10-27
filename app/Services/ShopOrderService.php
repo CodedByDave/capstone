@@ -5,8 +5,11 @@ namespace App\Services;
 use App\Events\OrderWeightConfirmed;
 use App\Models\Inventory;
 use App\Models\ShopOrder;
+use App\Models\ShopOrderAutomationSetting;
+use App\Models\ShopOrderPayment;
 use App\Models\User;
 use App\Notifications\OrderNotification;
+use App\Repositories\ShopOrderAutomationSettingRepository;
 use App\Repositories\ShopOrderRepository;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -25,6 +28,7 @@ class ShopOrderService
         private readonly OrderPaymentService $orderPayments,
         private readonly InventoryService $inventory,
         private readonly ServiceSupplyUsageService $serviceSupplies,
+        private readonly ShopOrderAutomationSettingRepository $automationSettings,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -44,6 +48,16 @@ class ShopOrderService
         return $this->repository->countByStatus($shopId);
     }
 
+    /**
+     * Minutes from placing an order to its estimated completion: the wait the shop set in its order
+     * automation settings, or the default when it has set none.
+     */
+    public function defaultCompletionMinutes(int $shopId): int
+    {
+        return $this->automationSettings->findForShop($shopId)?->auto_complete_grace_minutes
+            ?? ShopOrderAutomationSetting::DEFAULT_GRACE_MINUTES;
+    }
+
     // ─── Create ───────────────────────────────────────────────────────────────
 
     public function createOrder(array $data, User $actor, ?string $ipAddress = null, ?string $userAgent = null): ShopOrder
@@ -52,6 +66,7 @@ class ShopOrderService
             $supplies = $data['supplies'] ?? [];
             $agreementVersion = $data['customer_agreement_version'];
             unset($data['supplies']);
+            $data = $this->withoutAlternateContactUnlessRiderInvolved($data);
             unset($data['customer_agreement_version'], $data['customer_agreement_accepted']);
 
             // A pickup order is weighed only once the rider has brought the laundry to the shop.
@@ -64,6 +79,9 @@ class ShopOrderService
             }
 
             $data['order_number'] = $this->generateOrderNumber();
+
+            // The estimated completion is never typed in: it follows from the shop's automation wait.
+            $data['estimated_completion_at'] = now()->addMinutes($this->defaultCompletionMinutes((int) $data['shop_id']));
 
             // Money received now is recorded as a payment; the order's totals follow from it.
             $paidNow = round((float) ($data['amount_paid'] ?? 0), 2);
@@ -111,7 +129,10 @@ class ShopOrderService
             $this->serviceSupplies->sync($order, $actor->id);
             $this->customerAgreementService->record($order, $actor, $agreementVersion, 'staff_attestation', $ipAddress, $userAgent);
 
-            return $order;
+            // Laundry handed in at the counter and already weighed starts right away.
+            $this->startWhenReady($order);
+
+            return $order->refresh();
         });
 
         $this->logistics->dispatchPickupRun($order);
@@ -262,6 +283,7 @@ class ShopOrderService
             }
             $newSupplies = $data['supplies'] ?? [];
             unset($data['supplies']);
+            $data = $this->withoutAlternateContactUnlessRiderInvolved($data);
 
             $data['pricing_model'] = $service->pricing_model;
             $data['price_per_kg'] = $service->price_per_kg;
@@ -307,6 +329,11 @@ class ShopOrderService
             // What has been paid comes only from the recorded payments; the form cannot change it.
             unset($data['amount_paid'], $data['payment_status'], $data['paid_at']);
 
+            // The form's Not paid / Fully paid choice, applied after the order is saved; only a change counts.
+            $requestedPayment = $data['payment_state'] ?? null;
+            unset($data['payment_state']);
+            $wasPaid = $order->payment_status === 'paid';
+
             // Restore old supply quantities back to inventory
             foreach ($order->supplies as $oldSupply) {
                 Inventory::where('id', $oldSupply->pivot->inventory_id)
@@ -326,6 +353,12 @@ class ShopOrderService
             // status because the total may have changed.
             $this->repository->update($order, $data);
             $this->orderPayments->sync($order);
+
+            if (($requestedPayment === 'paid' && ! $wasPaid)
+                || ($requestedPayment === 'unpaid' && ($wasPaid || (float) $order->fresh()->amount_paid > 0))) {
+                $this->setPaymentState($order->fresh(), $requestedPayment, $data['payment_method'] ?? null, auth()->user());
+            }
+
             $this->serviceSupplies->sync($order->refresh()->load('service'), auth()->id());
 
             // Re-attach new supplies and deduct inventory
@@ -385,6 +418,57 @@ class ShopOrderService
         return $updated;
     }
 
+    /** The alternate contact only matters when a rider collects or delivers the laundry, so other orders keep none. */
+    private function withoutAlternateContactUnlessRiderInvolved(array $data): array
+    {
+        $riderInvolved = ($data['pickup_type'] ?? null) === 'pickup' || ! empty($data['deliver_to_customer']);
+
+        if (! $riderInvolved) {
+            $data['alternate_contact_name'] = null;
+            $data['alternate_contact_phone'] = null;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Marks an order fully paid by recording what is still owed, or takes its payments back by voiding
+     * them. Online payments cannot be undone here: they went through the customer's checkout.
+     *
+     * @param  'paid'|'unpaid'  $state
+     *
+     * @throws ValidationException
+     */
+    public function setPaymentState(ShopOrder $order, string $state, ?string $method, User $actor): void
+    {
+        if ($state === 'paid') {
+            $balance = $order->balanceDue();
+
+            if ($balance > 0) {
+                $this->orderPayments->recordShopPayment($actor, $order, [
+                    'amount' => $balance,
+                    'method' => $method ?: 'cash',
+                    'note' => 'Marked as fully paid from the order edit page.',
+                ]);
+            }
+
+            return;
+        }
+
+        $confirmed = $this->orderPayments->history($order)
+            ->filter(fn (ShopOrderPayment $payment) => $payment->isConfirmed());
+
+        if ($confirmed->contains(fn (ShopOrderPayment $payment) => $payment->source === ShopOrderPayment::SOURCE_ONLINE)) {
+            throw ValidationException::withMessages([
+                'payment_state' => 'This order has an online payment, which cannot be undone here.',
+            ]);
+        }
+
+        foreach ($confirmed as $payment) {
+            $this->orderPayments->voidPayment($actor, $order, $payment->public_id, 'Marked as not paid from the order edit page.');
+        }
+    }
+
     private function estimateChanged(?CarbonInterface $current, mixed $new): bool
     {
         $new = blank($new) ? null : Carbon::parse($new);
@@ -398,13 +482,24 @@ class ShopOrderService
 
     // ─── Status ───────────────────────────────────────────────────────────────
 
-    /** A pending order that is now fully paid starts on its own. */
-    public function startWhenPaid(ShopOrder $order): void
+    /**
+     * A pending order starts on its own once it can: it is fully paid, or its price is final (the
+     * laundry is weighed, or the service is per piece) and the laundry is at the shop. A customer who
+     * pays only at the end therefore does not hold the order up.
+     */
+    public function startWhenReady(ShopOrder $order): void
     {
         DB::transaction(function () use ($order): void {
             $locked = $this->repository->lockForUpdate($order);
 
-            if ($locked->status === 'pending' && $locked->payment_status === 'paid') {
+            if ($locked->status !== 'pending') {
+                return;
+            }
+
+            $priceFinalAtShop = $locked->priceIsConfirmed()
+                && $this->logistics->weighingBlockedReason($locked) === null;
+
+            if ($locked->payment_status === 'paid' || $priceFinalAtShop) {
                 $this->updateStatus($locked, 'in_progress');
             }
         });

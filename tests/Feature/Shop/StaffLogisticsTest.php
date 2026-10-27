@@ -646,6 +646,9 @@ function editPayload(ShopOrder $order, array $changes = []): array
     return array_merge([
         'customer_name' => $order->customer_name,
         'customer_phone' => '09181234567',
+        // Required whenever a rider is involved; ignored (and cleared) for a walk-in order.
+        'alternate_contact_name' => 'Aling Nena',
+        'alternate_contact_phone' => '09171234567',
         'customer_address' => $order->customer_address,
         'deliver_to_customer' => (bool) $order->deliver_to_customer,
         'service_id' => $order->service_id,
@@ -878,4 +881,86 @@ test('the order page tracks the delivery back, never the pickup run', function (
         ->getJson(route('user.orders.tracking', $order->payment_public_id))
         ->assertOk()
         ->assertJsonPath('status', 'assigned');
+});
+
+// ── Not paid / Fully paid in the Edit form ───────────────────────────────────
+
+test('choosing Fully paid in the Edit form records what is still owed', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, [
+            'pickup_type' => 'walk_in',
+            'payment_state' => 'paid',
+            'payment_method' => 'gcash',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $payment = App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->sole();
+
+    expect($order->fresh()->payment_status)->toBe('paid')
+        ->and((float) $order->fresh()->amount_paid)->toBe(180.0)
+        ->and($payment->method)->toBe('gcash')
+        ->and($payment->source)->toBe('shop')
+        ->and((float) $payment->amount)->toBe(180.0);
+});
+
+test('choosing Not paid in the Edit form takes the shop payments back', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
+    app(App\Services\OrderPaymentService::class)->recordShopPayment($staff, $order, ['amount' => 180, 'method' => 'cash']);
+    expect($order->fresh()->payment_status)->toBe('paid');
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order->fresh(), [
+            'pickup_type' => 'walk_in',
+            'payment_state' => 'unpaid',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($order->fresh()->payment_status)->toBe('unpaid')
+        ->and((float) $order->fresh()->amount_paid)->toBe(0.0)
+        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->sole()->status)->toBe('voided');
+});
+
+test('an unchanged Fully paid choice does not pay off a total that grew', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
+    app(App\Services\OrderPaymentService::class)->recordShopPayment($staff, $order, ['amount' => 180, 'method' => 'cash']);
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order->fresh(), [
+            'pickup_type' => 'walk_in',
+            'payment_state' => 'paid',
+            'additional_charges' => 20,
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($order->fresh()->payment_status)->toBe('partial')
+        ->and((float) $order->fresh()->amount_paid)->toBe(180.0)
+        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(1);
+});
+
+test('an online payment cannot be taken back from the Edit form', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
+    App\Models\ShopOrderPayment::create([
+        'shop_order_id' => $order->id, 'shop_id' => $shop->id, 'amount' => 180, 'method' => 'gcash',
+        'status' => 'confirmed', 'source' => 'online', 'paid_at' => now(),
+    ]);
+    app(App\Services\OrderPaymentService::class)->sync($order);
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order->fresh(), [
+            'pickup_type' => 'walk_in',
+            'payment_state' => 'unpaid',
+        ]))
+        ->assertSessionHasErrors('payment_state');
+
+    expect($order->fresh()->payment_status)->toBe('paid');
 });

@@ -70,7 +70,6 @@ interface ShopService {
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
-    estimated_hours: number | null;
 }
 
 type ServiceTableItem = ShopService & {
@@ -107,12 +106,6 @@ const headers = computed<DataTableHeader[]>(() => [
         sortable: true,
     },
     { text: 'Price', value: 'price_sort', width: 160, sortable: true },
-    {
-        text: 'Turnaround',
-        value: 'estimated_hours',
-        width: 135,
-        sortable: true,
-    },
     ...(!props.showArchived
         ? [
               {
@@ -616,13 +609,6 @@ function toggleActive(service: ShopService) {
                         formatPrice(service)
                     }}</span>
                 </template>
-                <template #item-estimated_hours="service">
-                    <span class="text-muted-foreground">{{
-                        service.estimated_hours
-                            ? `${service.estimated_hours}h`
-                            : '—'
-                    }}</span>
-                </template>
                 <template #item-is_active="service">
                     <StatusPill
                         :tone="service.is_active ? 'success' : 'neutral'"
@@ -714,7 +700,7 @@ function toggleActive(service: ShopService) {
                         <code class="block font-mono break-all">
                             service_name, category, description, pricing_model,
                             price_per_kg, bundle_price, bundle_weight_kg,
-                            estimated_hours, status, price_per_piece
+                            status, price_per_piece
                         </code>
                         <p class="mt-2">
                             <span class="font-medium">category</span>:

@@ -10,6 +10,8 @@ use App\Models\ShopService;
 use App\Models\User;
 use App\Services\DriverRosterService;
 use App\Services\LogisticsService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 function driverRun(Shop $shop, ?Rider $rider, string $status = 'assigned', array $overrides = []): Delivery
@@ -457,3 +459,235 @@ function ownerGates(): array
         App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted::class,
     ];
 }
+
+// ── Cash collected on delivery ────────────────────────────────────────────────
+
+/** A real 1x1 PNG, so the tests do not depend on the GD extension. */
+function cashPhoto(string $name = 'cash.png'): UploadedFile
+{
+    return UploadedFile::fake()->createWithContent(
+        $name,
+        base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
+    );
+}
+
+function codOrder(Shop $shop, array $overrides = []): ShopOrder
+{
+    $service = ShopService::firstOrCreate(
+        ['shop_id' => $shop->id, 'service_name' => 'Wash & Fold'],
+        ['is_active' => true, 'pricing_model' => 'per_kg', 'price_per_kg' => 60],
+    );
+
+    return ShopOrder::create(array_merge([
+        'shop_id' => $shop->id,
+        'order_source' => 'shop',
+        'service_id' => $service->id,
+        'order_number' => 'ORD-'.strtoupper(uniqid()),
+        'customer_name' => 'Andrea Santos',
+        'pickup_type' => 'walk_in',
+        'deliver_to_customer' => true,
+        'pricing_model' => 'per_kg',
+        'price_per_kg' => 60,
+        'actual_weight_kg' => 5,
+        'total_amount' => 350,
+        'delivery_fee' => 50,
+        'payment_status' => 'unpaid',
+        'amount_paid' => 0,
+        'status' => 'completed',
+    ], $overrides));
+}
+
+test('the driver sees the cash to collect on a delivery with a balance, delivery fee included', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+
+    $this->actingAs($rider->employee->user)
+        ->get("/driver/jobs/{$run->public_id}")
+        ->assertInertia(fn (Assert $page) => $page->where('job.collect_amount', 350));
+});
+
+test('delivering with the cash collected records a cash payment by the driver and marks the order paid', function () {
+    Storage::fake('private');
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+
+    $this->actingAs($rider->employee->user)
+        ->patch("/driver/jobs/{$run->public_id}/status", [
+            'status' => 'delivered',
+            'collected_amount' => '350.00',
+            'proof_photo' => cashPhoto(),
+        ])
+        ->assertSessionHas('toast.type', 'success');
+
+    $payment = App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->sole();
+
+    expect($run->fresh()->status)->toBe('delivered')
+        ->and($order->fresh()->payment_status)->toBe('paid')
+        ->and((float) $order->fresh()->amount_paid)->toBe(350.0)
+        ->and($payment->method)->toBe('cash')
+        ->and($payment->recorded_by)->toBe($rider->employee->user->id)
+        ->and($payment->note)->toContain('Collected on delivery');
+});
+
+test('the cash collected needs a photo of it, which is kept as cash proof on the delivery', function () {
+    Storage::fake('private');
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+    $driver = $rider->employee->user;
+
+    $this->actingAs($driver)
+        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered', 'collected_amount' => '350'])
+        ->assertSessionHas('toast.type', 'error');
+
+    expect($run->fresh()->status)->toBe('picked_up')
+        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(0)
+        ->and(App\Models\DeliveryPhoto::where('delivery_id', $run->id)->count())->toBe(0);
+
+    $this->actingAs($driver)
+        ->patch("/driver/jobs/{$run->public_id}/status", [
+            'status' => 'delivered',
+            'collected_amount' => '350',
+            'proof_photo' => cashPhoto(),
+        ])
+        ->assertSessionHas('toast.type', 'success');
+
+    $photo = App\Models\DeliveryPhoto::where('delivery_id', $run->id)->sole();
+
+    expect($photo->kind)->toBe('cash')
+        ->and($photo->uploaded_by)->toBe($driver->id);
+    Storage::disk('private')->assertExists($photo->path);
+});
+
+test('a photo that is not an image is refused and nothing is recorded', function () {
+    Storage::fake('private');
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+
+    $this->actingAs($rider->employee->user)
+        ->patch("/driver/jobs/{$run->public_id}/status", [
+            'status' => 'delivered',
+            'collected_amount' => '350',
+            'proof_photo' => UploadedFile::fake()->create('cash.pdf', 10, 'application/pdf'),
+        ])
+        ->assertSessionHasErrors('proof_photo');
+
+    expect($run->fresh()->status)->toBe('picked_up')
+        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(0);
+});
+
+test('the driver sees what was already paid online, with its reference, as proof the order is settled', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop, ['payment_status' => 'paid', 'amount_paid' => 350]);
+    App\Models\ShopOrderPayment::create([
+        'shop_order_id' => $order->id, 'shop_id' => $shop->id, 'amount' => 350, 'method' => 'gcash',
+        'reference' => 'GC-12345', 'status' => 'confirmed', 'source' => 'online', 'paid_at' => now(),
+    ]);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+
+    $this->actingAs($rider->employee->user)
+        ->get("/driver/jobs/{$run->public_id}")
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('job.collect_amount', null)
+            ->where('job.paid_payments.0.method', 'gcash')
+            ->where('job.paid_payments.0.reference', 'GC-12345')
+            ->where('job.paid_payments.0.source', 'online')
+            ->where('job.paid_payments.0.amount', 350));
+});
+
+test('collecting less than the balance leaves the order partly paid', function () {
+    Storage::fake('private');
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+
+    $this->actingAs($rider->employee->user)
+        ->patch("/driver/jobs/{$run->public_id}/status", [
+            'status' => 'delivered',
+            'collected_amount' => '200',
+            'proof_photo' => cashPhoto(),
+        ])
+        ->assertSessionHas('toast.type', 'success');
+
+    expect($order->fresh()->payment_status)->toBe('partial')
+        ->and((float) $order->fresh()->amount_paid)->toBe(200.0);
+});
+
+test('collecting nothing is allowed and records no payment', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+
+    $this->actingAs($rider->employee->user)
+        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered', 'collected_amount' => '0'])
+        ->assertSessionHas('toast.type', 'success');
+
+    expect($run->fresh()->status)->toBe('delivered')
+        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(0)
+        ->and($order->fresh()->payment_status)->toBe('unpaid');
+});
+
+test('a delivery with a balance cannot be completed without saying what was collected, or with too much', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+    $driver = $rider->employee->user;
+
+    $this->actingAs($driver)
+        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered'])
+        ->assertSessionHas('toast.type', 'error');
+
+    $this->actingAs($driver)
+        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered', 'collected_amount' => '999'])
+        ->assertSessionHas('toast.type', 'error');
+
+    expect($run->fresh()->status)->toBe('picked_up')
+        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(0);
+});
+
+test('an order that is already paid asks the driver for no cash', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop, ['payment_status' => 'paid', 'amount_paid' => 350]);
+    $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+
+    $this->actingAs($rider->employee->user)
+        ->get("/driver/jobs/{$run->public_id}")
+        ->assertInertia(fn (Assert $page) => $page->where('job.collect_amount', null));
+
+    $this->actingAs($rider->employee->user)
+        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered'])
+        ->assertSessionHas('toast.type', 'success');
+
+    expect($run->fresh()->status)->toBe('delivered');
+});
+
+test('a failed delivery and a pickup run never collect cash', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $order = codOrder($shop);
+    $failed = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
+    $pickup = driverRun($shop, $rider, 'assigned', ['shop_order_id' => $order->id, 'type' => 'pickup']);
+    $driver = $rider->employee->user;
+
+    $this->actingAs($driver)
+        ->patch("/driver/jobs/{$failed->public_id}/status", ['status' => 'failed', 'notes' => 'Nobody home'])
+        ->assertSessionHas('toast.type', 'success');
+
+    $this->actingAs($driver)
+        ->get("/driver/jobs/{$pickup->public_id}")
+        ->assertInertia(fn (Assert $page) => $page->where('job.collect_amount', null));
+
+    expect(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(0);
+});

@@ -31,6 +31,10 @@ class StoreEmployeeRequest extends FormRequest
             'hire_date' => 'required|date|before_or_equal:today',
             'status' => 'required|in:Active,Inactive',
             'create_account' => 'nullable|boolean',
+            'schedules' => ['nullable', 'array'],
+            'schedules.*.day' => ['required', 'string', 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'],
+            'schedules.*.start_time' => ['required', 'date_format:H:i'],
+            'schedules.*.end_time' => ['required', 'date_format:H:i', 'after:schedules.*.start_time'],
         ];
     }
 
@@ -56,6 +60,7 @@ class StoreEmployeeRequest extends FormRequest
             'hire_date.required' => 'Hire date is required.',
             'hire_date.before_or_equal' => 'Hire date cannot be a future date.',
             'status.in' => 'Status must be Active or Inactive.',
+            'schedules.*.end_time.after' => 'End time must be after start time.',
         ];
     }
 }

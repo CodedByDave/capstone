@@ -131,7 +131,7 @@ class DeliveryRepository extends Repository
 
     // ── Driver app: everything is scoped to one rider ─────────────────────────
 
-    private const WITH_FOR_DRIVER = ['order:id,order_number,service_id,payment_public_id', 'order.service:id,service_name', 'shop:id,shop_name,latitude,longitude,block_street,barangay,municipality'];
+    private const WITH_FOR_DRIVER = ['order:id,shop_id,order_number,service_id,payment_public_id,total_amount,amount_paid,alternate_contact_name,alternate_contact_phone', 'order.service:id,service_name', 'shop:id,shop_name,latitude,longitude,block_street,barangay,municipality'];
 
     /** @return Collection<int, Delivery> the rider's runs still on the road, oldest first */
     public function openForRider(int $riderId): Collection

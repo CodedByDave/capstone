@@ -22,8 +22,20 @@ export interface DriverJob {
     service: string | null;
     customer_name: string;
     customer_phone: string | null;
+    alternate_contact_name?: string | null;
+    alternate_contact_phone?: string | null;
     address: string | null;
     notes: string | null;
+    /** Cash to collect at the door on a delivery with a balance; null when nothing is due. */
+    collect_amount?: number | null;
+    /** Payments already received on the order (online or at the shop), shown as proof it is settled. */
+    paid_payments?: {
+        method: string;
+        amount: number;
+        reference: string | null;
+        source: 'shop' | 'online' | string;
+        paid_at: string | null;
+    }[];
     distance_km: number | null;
     assigned_at: string | null;
     finished_at: string | null;

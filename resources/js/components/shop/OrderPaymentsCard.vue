@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
-import { router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import {
     Ban,
     CreditCard,
@@ -48,10 +48,17 @@ const props = defineProps<{
     };
     payments: OrderPayment[];
     base: string;
+    /** Show the history only: recording and voiding payments happen on the edit page. */
+    readonly?: boolean;
 }>();
 
 const { can } = usePermissions();
-const canManage = computed(() => can('Operations', 'manage'));
+const canManage = computed(
+    () => !props.readonly && can('Operations', 'manage'),
+);
+const editHref = computed(
+    () => `${props.base}/${props.order.payment_public_id}/edit`,
+);
 
 const total = computed(() => Number(props.order.total_amount));
 const paid = computed(() => Number(props.order.amount_paid));
@@ -277,9 +284,22 @@ function checkStatus() {
                 </div>
             </div>
 
+            <p
+                v-if="readonly && balance > 0 && !isCancelled"
+                class="text-xs text-muted-foreground"
+            >
+                To record a payment, open
+                <Link
+                    :href="editHref"
+                    class="font-medium text-primary hover:underline"
+                    >Edit order</Link
+                >.
+            </p>
+
             <div v-if="canManage" class="flex flex-wrap gap-2">
                 <Button
                     v-if="balance > 0 && !isCancelled"
+                    type="button"
                     size="sm"
                     @click="openRecord"
                 >
@@ -287,6 +307,7 @@ function checkStatus() {
                 </Button>
                 <Button
                     v-if="hasPending"
+                    type="button"
                     size="sm"
                     variant="outline"
                     :disabled="checking"

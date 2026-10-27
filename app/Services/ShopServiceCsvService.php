@@ -19,7 +19,6 @@ class ShopServiceCsvService
         'price_per_kg',
         'bundle_price',
         'bundle_weight_kg',
-        'estimated_hours',
         'status',
         'price_per_piece',
     ];
@@ -45,7 +44,6 @@ class ShopServiceCsvService
             $service->price_per_kg,
             $service->bundle_price,
             $service->bundle_weight_kg,
-            $service->estimated_hours,
             $service->is_active ? 'Active' : 'Inactive',
             $service->price_per_piece,
         ])->all();
@@ -58,7 +56,7 @@ class ShopServiceCsvService
     {
         return [
             self::COLUMNS,
-            ['Wash & Fold', 'full_service', 'Wash, dry and fold', 'per_kg', 60, '', '', 24, 'Active', ''],
+            ['Wash & Fold', 'full_service', 'Wash, dry and fold', 'per_kg', 60, '', '', 'Active', ''],
         ];
     }
 
@@ -182,7 +180,6 @@ class ShopServiceCsvService
             'category' => ['required', Rule::in($allowedCategories)],
             'description' => ['nullable', 'string'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
-            'estimated_hours' => ['nullable', 'integer', 'min:1', 'max:720'],
             'price_per_kg' => [
                 Rule::requiredIf(fn () => $row['pricing_model'] === 'per_kg'),
                 'nullable', 'numeric', 'min:1', 'max:9999',
@@ -218,7 +215,6 @@ class ShopServiceCsvService
                 'bundle_price' => $model === 'per_bundle' ? $row['bundle_price'] : null,
                 'bundle_weight_kg' => $model === 'per_bundle' ? $row['bundle_weight_kg'] : null,
                 'price_per_piece' => $model === 'per_piece' ? ($row['price_per_piece'] ?? null) : null,
-                'estimated_hours' => $row['estimated_hours'],
                 'is_active' => $status === 'active',
             ],
             'errors' => [],

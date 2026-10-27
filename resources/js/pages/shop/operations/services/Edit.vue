@@ -33,7 +33,6 @@ interface ShopService {
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
-    estimated_hours: number | null;
     photo_url: string | null;
 }
 
@@ -66,7 +65,6 @@ const form = useForm({
     bundle_weight_kg: (props.service.bundle_weight_kg ?? '') as string | number,
     bundle_price: (props.service.bundle_price ?? '') as string | number,
     price_per_piece: (props.service.price_per_piece ?? '') as string | number,
-    estimated_hours: (props.service.estimated_hours ?? '') as string | number,
     photo: null as File | null,
     remove_photo: false,
     uses_supplies: props.service.supplies.length > 0,
@@ -144,6 +142,10 @@ const photoPreview = computed(() =>
           : props.service.photo_url,
 );
 
+// Scrolling the page with a number box focused must not nudge its value (200 becoming 199.99).
+const blurOnWheel = (event: WheelEvent) =>
+    (event.target as HTMLInputElement).blur();
+
 const submit = () => {
     // A file upload cannot ride on a real PUT, so it is sent as a POST that Laravel treats as PUT.
     form.transform((data) => ({ ...data, _method: 'put' })).post(
@@ -151,8 +153,6 @@ const submit = () => {
         { forceFormData: true, onError: scrollToFirstError },
     );
 };
-
-const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
 </script>
 
 <template>
@@ -199,9 +199,9 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                 @submit.prevent="submit"
             >
                 <!-- Left column -->
-                <div class="space-y-6">
+                <div class="space-y-8">
                     <!-- Service type -->
-                    <section :class="cardClass">
+                    <section>
                         <h3 class="text-base font-semibold">Service type</h3>
                         <p class="mt-0.5 text-sm text-muted-foreground">
                             Choose the category this service belongs to.
@@ -218,7 +218,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                     </section>
 
                     <!-- Details -->
-                    <section :class="cardClass">
+                    <section class="border-t pt-8">
                         <h3 class="text-base font-semibold">Details</h3>
                         <p class="mt-0.5 text-sm text-muted-foreground">
                             What customers see when they book.
@@ -249,41 +249,6 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                                         class="text-xs text-red-500"
                                     >
                                         {{ form.errors.service_name }}
-                                    </p>
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <label
-                                        class="text-sm font-medium"
-                                        for="service-hours"
-                                        >Estimated turnaround
-                                        <span
-                                            class="font-normal text-muted-foreground"
-                                            >(optional)</span
-                                        ></label
-                                    >
-                                    <div class="relative">
-                                        <Input
-                                            id="service-hours"
-                                            v-model="form.estimated_hours"
-                                            type="number"
-                                            min="1"
-                                            placeholder="e.g. 24"
-                                            :class="{
-                                                'border-red-500':
-                                                    form.errors.estimated_hours,
-                                            }"
-                                        />
-                                        <span
-                                            class="pointer-events-none absolute top-2.5 right-3 text-xs text-muted-foreground"
-                                            >hours</span
-                                        >
-                                    </div>
-                                    <p
-                                        v-if="form.errors.estimated_hours"
-                                        class="text-xs text-red-500"
-                                    >
-                                        {{ form.errors.estimated_hours }}
                                     </p>
                                 </div>
                             </div>
@@ -325,7 +290,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                     </section>
 
                     <!-- Pricing -->
-                    <section :class="cardClass">
+                    <section class="border-t pt-8">
                         <h3 class="text-base font-semibold">Pricing</h3>
                         <p class="mt-0.5 text-sm text-muted-foreground">
                             Choose how this service is charged.
@@ -462,6 +427,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                                         id="price-per-piece"
                                         v-model="form.price_per_piece"
                                         type="number"
+                                        @wheel="blurOnWheel"
                                         min="0"
                                         step="0.01"
                                         placeholder="250.00"
@@ -496,6 +462,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                                         id="price-per-kg"
                                         v-model="form.price_per_kg"
                                         type="number"
+                                        @wheel="blurOnWheel"
                                         min="0"
                                         step="0.01"
                                         placeholder="55.00"
@@ -529,6 +496,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                                             id="bundle-weight"
                                             v-model="form.bundle_weight_kg"
                                             type="number"
+                                            @wheel="blurOnWheel"
                                             min="0.1"
                                             step="0.1"
                                             placeholder="7"
@@ -569,6 +537,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                                             id="bundle-price"
                                             v-model="form.bundle_price"
                                             type="number"
+                                            @wheel="blurOnWheel"
                                             min="0"
                                             step="0.01"
                                             placeholder="180.00"
@@ -591,7 +560,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                     </section>
 
                     <!-- Supplies -->
-                    <section :class="cardClass">
+                    <section class="border-t pt-8">
                         <ServiceSuppliesField
                             v-model:uses-supplies="form.uses_supplies"
                             v-model:supplies="form.supplies"
@@ -605,8 +574,10 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                 </div>
 
                 <!-- Right column -->
-                <aside class="space-y-6 lg:sticky lg:top-4">
-                    <section class="rounded-xl border bg-card p-4 shadow-sm">
+                <aside
+                    class="rounded-xl border bg-card p-4 shadow-sm lg:sticky lg:top-4"
+                >
+                    <section>
                         <div class="flex items-center justify-between">
                             <p
                                 class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
@@ -679,11 +650,6 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                                 <div
                                     class="flex items-center justify-between border-t pt-2 text-xs"
                                 >
-                                    <span class="text-muted-foreground">{{
-                                        form.estimated_hours
-                                            ? `About ${form.estimated_hours} hours`
-                                            : 'Turnaround not set'
-                                    }}</span>
                                     <span class="font-bold">{{
                                         previewPrice
                                     }}</span>
@@ -692,7 +658,7 @@ const cardClass = 'rounded-xl border bg-card p-6 shadow-sm';
                         </div>
                     </section>
 
-                    <section class="rounded-xl border bg-card p-4 shadow-sm">
+                    <section class="mt-4 border-t pt-4">
                         <p
                             class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                         >

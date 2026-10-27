@@ -31,6 +31,8 @@ class ShopOrder extends Model
         'order_number',
         'customer_name',
         'customer_phone',
+        'alternate_contact_name',
+        'alternate_contact_phone',
         'customer_address',
         'customer_lat',
         'customer_lng',
@@ -68,6 +70,7 @@ class ShopOrder extends Model
 
     protected $casts = [
         'customer_phone' => PhilippinePhoneCast::class,
+        'alternate_contact_phone' => PhilippinePhoneCast::class,
         'deliver_to_customer' => 'boolean',
         'customer_lat' => 'float',
         'customer_lng' => 'float',

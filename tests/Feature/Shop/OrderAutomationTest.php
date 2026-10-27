@@ -271,7 +271,8 @@ test('the weight does nothing when the rule is off', function () {
     flowRules($shop);
     $order = flowOrder($shop);
 
-    flowWeigh($order);
+    // The optional rule alone: weighing now also starts an order through the built-in start.
+    app(OrderStatusAutomationService::class)->onWeightConfirmed($order);
 
     expect($order->refresh()->status)->toBe('pending');
 });
@@ -280,7 +281,8 @@ test('the weight does nothing for a shop that has no saved rules', function () {
     $shop = flowShop();
     $order = flowOrder($shop);
 
-    flowWeigh($order);
+    // The optional rule alone: weighing now also starts an order through the built-in start.
+    app(OrderStatusAutomationService::class)->onWeightConfirmed($order);
 
     expect($order->refresh()->status)->toBe('pending');
 });
@@ -290,7 +292,8 @@ test('the weight rule is ignored once the plan is not paid', function (string $s
     flowRules($shop, ['start_on_weigh_in' => true]);
     $order = flowOrder($shop);
 
-    flowWeigh($order);
+    // The optional rule alone: weighing now also starts an order through the built-in start.
+    app(OrderStatusAutomationService::class)->onWeightConfirmed($order);
 
     expect($order->refresh()->status)->toBe('pending');
 })->with(['trial', 'expired']);

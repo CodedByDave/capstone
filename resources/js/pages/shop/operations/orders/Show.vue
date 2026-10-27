@@ -42,6 +42,8 @@ interface Order {
     order_number: string;
     customer_name: string;
     customer_phone: string | null;
+    alternate_contact_name?: string | null;
+    alternate_contact_phone?: string | null;
     customer_address: string | null;
     status: string;
     payment_status: string;
@@ -424,6 +426,35 @@ const statusIcon = (s: string) =>
                                         {{ shopOrder.customer_phone ?? '—' }}
                                     </p>
                                 </div>
+                                <div
+                                    v-if="
+                                        shopOrder.alternate_contact_name ||
+                                        shopOrder.alternate_contact_phone
+                                    "
+                                    class="col-span-2"
+                                >
+                                    <p
+                                        class="mb-1 text-xs tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Alternate contact
+                                    </p>
+                                    <p class="font-medium">
+                                        {{
+                                            shopOrder.alternate_contact_name ??
+                                            '—'
+                                        }}
+                                        <span
+                                            v-if="
+                                                shopOrder.alternate_contact_phone
+                                            "
+                                            class="text-muted-foreground"
+                                            >·
+                                            {{
+                                                shopOrder.alternate_contact_phone
+                                            }}</span
+                                        >
+                                    </p>
+                                </div>
                                 <div class="col-span-2">
                                     <p
                                         class="mb-1 text-xs tracking-wide text-muted-foreground uppercase"
@@ -764,6 +795,7 @@ const statusIcon = (s: string) =>
                         :order="shopOrder"
                         :payments="payments"
                         :base="base"
+                        readonly
                     />
 
                     <CustomerServiceAgreement
