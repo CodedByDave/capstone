@@ -237,6 +237,8 @@ class ShopOrderService
 
             // The edit form never changes status; that goes through updateStatus().
             $data['status'] = $order->status;
+            // The estimate is fixed once the order exists.
+            unset($data['estimated_completion_at']);
 
             if ($order->payment_status === 'paid'
                 && array_key_exists('actual_weight_kg', $data)

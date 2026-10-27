@@ -1152,7 +1152,8 @@ const balanceDue = computed(() =>
                                 <input
                                     v-model="form.estimated_completion_at"
                                     type="datetime-local"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    disabled
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
