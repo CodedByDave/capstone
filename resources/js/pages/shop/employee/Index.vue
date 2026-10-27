@@ -722,8 +722,6 @@ async function submitImport() {
                         <p class="mt-1">
                             <span class="font-medium">employment_type</span>:
                             <code>full_time</code>, <code>part_time</code>,
-                            <code>contractual</code>, <code>probationary</code>,
-                            or <code>seasonal</code>
                         </p>
                         <a
                             href="/shop/employee/import-template"

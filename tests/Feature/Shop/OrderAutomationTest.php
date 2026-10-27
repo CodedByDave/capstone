@@ -340,7 +340,7 @@ test('a payment does nothing when the rule is off or the order has moved on', fu
 
 // ── Auto-complete ────────────────────────────────────────────────────────────
 
-test('an overdue order is completed once the grace period has passed', function () {
+test('an overdue order is completed once its estimated completion has passed', function () {
     $shop = flowShop();
     flowRules($shop, ['auto_complete' => true, 'auto_complete_grace_minutes' => 120]);
     $customer = flowCustomer();
@@ -356,20 +356,19 @@ test('an overdue order is completed once the grace period has passed', function 
         ->toBe(['from' => 'in_progress', 'to' => 'completed']);
 });
 
-test('an order is left alone before the due time or inside the grace period', function (int $hoursAgo, int $grace) {
+test('an order is left alone before its estimated completion', function (int $hoursAgo) {
     $shop = flowShop();
-    flowRules($shop, ['auto_complete' => true, 'auto_complete_grace_minutes' => $grace]);
+    flowRules($shop, ['auto_complete' => true]);
     $order = flowOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 5, 'estimated_completion_at' => now()->subHours($hoursAgo)]);
 
     flowRun();
 
     expect($order->refresh()->status)->toBe('in_progress');
 })->with([
-    'not due yet' => [-2, 0],
-    'inside the grace period' => [1, 120],
+    'not due yet' => [-2],
 ]);
 
-test('with zero grace an order completes as soon as it is due', function () {
+test('an order completes as soon as it is due', function () {
     $shop = flowShop();
     flowRules($shop, ['auto_complete' => true, 'auto_complete_grace_minutes' => 0]);
     $order = flowOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 5, 'estimated_completion_at' => now()->subMinute()]);
@@ -470,7 +469,7 @@ test('no reminder is sent before the due time or when the rule is off', function
     $shop = flowShop();
     $other = flowShop('paid', 'Other');
     flowRules($shop, ['remind_overdue' => true]);
-    flowRules($other, ['remind_overdue' => false, 'auto_complete' => true, 'auto_complete_grace_minutes' => 1440]);
+    flowRules($other, ['remind_overdue' => false, 'auto_complete' => false]);
     flowOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 5, 'estimated_completion_at' => now()->addHour()]);
     flowOrder($other, ['status' => 'in_progress', 'actual_weight_kg' => 5, 'estimated_completion_at' => now()->subHour()]);
 
