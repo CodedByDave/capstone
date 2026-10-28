@@ -29,6 +29,7 @@ function demoPaymentOrder(): array
         'paymongo_secret_key' => 'sk_test_demoLaundryHubPanel2026',
         'paymongo_public_key' => 'pk_test_demoLaundryHubPanel2026',
     ]);
+    $customer->update(['referred_shop_id' => $shop->id]);
     $service = ShopService::create([
         'shop_id' => $shop->id,
         'service_name' => 'Wash and Fold',

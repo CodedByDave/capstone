@@ -35,6 +35,7 @@ import {
     List,
     Package,
     PieChart,
+    QrCode,
     Receipt,
     Scissors,
     Settings,
@@ -771,6 +772,20 @@ const hasOwnerAdministration = computed(() =>
                         >
                             <CreditCard class="h-4 w-4" />
                             <span>Payment Settings</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem v-if="ownerCan('shop.settings')">
+                    <SidebarMenuButton
+                        as-child
+                        :is-active="currentUrl.startsWith('/shop/customer-qr')"
+                    >
+                        <Link
+                            href="/shop/customer-qr"
+                            class="flex w-full items-center gap-2"
+                        >
+                            <QrCode class="h-4 w-4" />
+                            <span>Customer QR</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

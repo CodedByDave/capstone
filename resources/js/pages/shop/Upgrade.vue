@@ -43,26 +43,34 @@ const MODULE_ICONS: Record<string, any> = {
     'Reports & Analytics': BarChart3,
 };
 
+const modLabel = (mod: string, plan: string) =>
+    mod === 'Reports & Analytics'
+        ? plan === 'Premium'
+            ? 'Advanced Reports & Analytics'
+            : 'Basic Reports'
+        : mod;
+
 const ALL_PLANS: Plan[] = [
     {
         name: 'Basic',
-        price: 3800,
-        moduleNames: ['HRM', 'Operations'],
+        price: 999,
+        moduleNames: ['HRM', 'Operations', 'Reports & Analytics'],
     },
     {
         name: 'Standard',
-        price: 6300,
+        price: 1499,
         badge: 'Most popular',
         moduleNames: [
             'HRM',
             'Operations',
             'Inventory Management',
             'Finance Management',
+            'Reports & Analytics',
         ],
     },
     {
         name: 'Premium',
-        price: 8000,
+        price: 1999,
         moduleNames: [
             'HRM',
             'Operations',
@@ -300,7 +308,7 @@ function formatDate(d: string | null) {
                                 :is="MODULE_ICONS[mod]"
                                 class="h-3.5 w-3.5 shrink-0 text-indigo-500"
                             />
-                            {{ mod }}
+                            {{ modLabel(mod, plan.name) }}
                         </li>
                     </ul>
                 </button>

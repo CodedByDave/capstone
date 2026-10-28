@@ -25,12 +25,14 @@ class OrderService
         'Basic' => [
             'HRM',
             'Operations',
+            'Reports & Analytics',
         ],
         'Standard' => [
             'HRM',
             'Operations',
             'Inventory Management',
             'Finance Management',
+            'Reports & Analytics',
         ],
         'Premium' => [
             'HRM',
@@ -154,7 +156,7 @@ class OrderService
 
     private function calculateGrandTotal(string $planName, int $billingMonths): float
     {
-        $planPrices = ['Basic' => 3800, 'Standard' => 6300, 'Premium' => 8000];
+        $planPrices = ['Basic' => 999, 'Standard' => 1499, 'Premium' => 1999];
         $discounts = [1 => 0, 12 => 10, 24 => 20, 48 => 30];
         $discountPct = $discounts[$billingMonths] ?? 0;
         $subtotal = $planPrices[$planName] * (1 - $discountPct / 100) * $billingMonths;

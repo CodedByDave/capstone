@@ -50,6 +50,7 @@ return [
         'shop/setup*' => 'shop.settings',
         'shop/notifications*' => 'shop.settings',
         'shop/agreement*' => 'shop.settings',
+        'shop/customer-qr*' => 'shop.settings',
         'shop/upgrade*' => 'shop.settings',
         'shop/checkout*' => 'shop.settings',
         'shop/platform-rating*' => 'shop.dashboard',

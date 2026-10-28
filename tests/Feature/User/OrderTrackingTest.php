@@ -31,9 +31,12 @@ function trackShop(array $overrides = []): Shop
     ], $overrides));
 }
 
-function trackCustomer(): User
+function trackCustomer(?Shop $shop = null): User
 {
-    return User::factory()->create(['role' => AccountType::Customer->value]);
+    return User::factory()->create([
+        'role' => AccountType::Customer->value,
+        'referred_shop_id' => $shop?->id,
+    ]);
 }
 
 function trackOrder(Shop $shop, User $customer, array $overrides = []): ShopOrder
@@ -95,7 +98,7 @@ function trackRider(Shop $shop, ?string $vehicle = 'Honda Click'): Rider
 
 test('the customer opens the live tracking page for their order', function () {
     $shop = trackShop();
-    $customer = trackCustomer();
+    $customer = trackCustomer($shop);
     $order = trackOrder($shop, $customer);
     trackLeg($order, 'pickup', 'assigned', ['rider_id' => trackRider($shop)->id]);
 
@@ -292,7 +295,7 @@ function placeOrderPayload(Shop $shop, array $overrides = []): array
 
 test('a customer places a pickup order with a pinned location and it reaches the pickup run', function () {
     $shop = trackShop();
-    $customer = trackCustomer();
+    $customer = trackCustomer($shop);
 
     $this->actingAs($customer)
         ->post('/user/orders', placeOrderPayload($shop))
@@ -306,7 +309,7 @@ test('a customer places a pickup order with a pinned location and it reaches the
 
 test('the pin is optional, and a walk-in order never stores one', function () {
     $shop = trackShop();
-    $customer = trackCustomer();
+    $customer = trackCustomer($shop);
 
     $this->actingAs($customer)
         ->post('/user/orders', placeOrderPayload($shop, ['customer_lat' => null, 'customer_lng' => null]))

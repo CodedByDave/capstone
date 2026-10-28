@@ -21,6 +21,7 @@ class TrialService
         'Operations',
         'Inventory Management',
         'Finance Management',
+        'Reports & Analytics',
     ];
 
     public function __construct(

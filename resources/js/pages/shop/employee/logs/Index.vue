@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {
     DataTable,
+    DataTableToolbar,
+    IdentityCell,
     StatusPill,
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -15,13 +16,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import type { DataTableOptions } from '@/composables/useDataTable';
+import type {
+    DataTableOptions,
+    StatusOption,
+} from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
-    ChevronLeft,
+    ArrowLeft,
     CircleDot,
     Clock,
     DollarSign,
@@ -32,7 +36,7 @@ import {
     UserPlus,
     X,
 } from 'lucide-vue-next';
-import { computed, ref, watch, type Component } from 'vue';
+import { computed, onBeforeUnmount, ref, watch, type Component } from 'vue';
 
 /* ───────── TYPES ───────── */
 
@@ -80,8 +84,14 @@ const page = usePage();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 
-const { logs, performers, modules, filters } = defineProps<{
+const { logs, performers, modules, filters, actionCounts } = defineProps<{
     logs: PaginatedLogs;
+    actionCounts: {
+        all: number;
+        created: number;
+        updated: number;
+        archived: number;
+    };
     performers: Performer[];
     modules: string[];
     filters: {
@@ -117,6 +127,23 @@ const options = ref<DataTableOptions>({
     page: logs.current_page,
     rowsPerPage: logs.per_page,
 });
+
+const statusOptions = computed<StatusOption[]>(() => [
+    { value: '__all__', label: 'All', count: actionCounts.all },
+    { value: 'created', label: 'Created', count: actionCounts.created },
+    { value: 'updated', label: 'Updated', count: actionCounts.updated },
+    { value: 'archived', label: 'Archived', count: actionCounts.archived },
+]);
+
+let filterTimer: ReturnType<typeof setTimeout> | undefined;
+
+// Filters apply as they change; typing in the search box waits for a short pause.
+watch([search, action, performedBy, moduleFilter, dateFrom, dateTo], () => {
+    clearTimeout(filterTimer);
+    filterTimer = setTimeout(() => applyFilters(), 300);
+});
+
+onBeforeUnmount(() => clearTimeout(filterTimer));
 
 const hasFilters = computed(
     () =>
@@ -255,12 +282,16 @@ function formatFieldName(field: string) {
     return field.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-const formatDate = (val: string) =>
+const formatDay = (val: string) =>
     new Date(val).toLocaleDateString('en-PH', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-        hour: '2-digit',
+    });
+
+const formatTime = (val: string) =>
+    new Date(val).toLocaleTimeString('en-PH', {
+        hour: 'numeric',
         minute: '2-digit',
     });
 
@@ -281,174 +312,136 @@ function toggleRow(id: number) {
     <Head title="Activity Logs" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Activity Logs">
-        <div class="space-y-6 px-6">
+        <div class="mx-auto max-w-7xl space-y-6 px-6 pb-10">
             <!-- HEADER -->
-            <div class="flex items-center justify-between">
+            <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h2 class="text-lg font-semibold">Activity Logs</h2>
-                    <p class="text-sm text-muted-foreground">
-                        Track all changes across every system module.
+                    <nav
+                        aria-label="Breadcrumb"
+                        class="mb-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"
+                    >
+                        <span>Human Resource</span>
+                        <span aria-hidden="true">/</span>
+                        <span class="font-medium text-foreground"
+                            >Activity logs</span
+                        >
+                    </nav>
+                    <h2 class="text-2xl font-bold tracking-tight">
+                        Activity logs
+                    </h2>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Track every change across all system modules.
                     </p>
                 </div>
-                <Button
-                    variant="outline"
-                    @click="router.visit(`${baseRoute}/employee`)"
-                >
-                    <ChevronLeft class="mr-1.5 h-4 w-4" /> Back to Employees
+                <Button variant="outline" class="shrink-0" as-child>
+                    <Link :href="`${baseRoute}/employee`">
+                        <ArrowLeft class="mr-2 h-4 w-4" /> Back to employees
+                    </Link>
                 </Button>
             </div>
 
             <!-- FILTERS -->
-            <Card>
-                <CardContent class="pt-4">
-                    <div
-                        class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6"
+            <div
+                class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))]"
+            >
+                <div class="space-y-1.5">
+                    <label
+                        for="log-search"
+                        class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                        >Search</label
                     >
-                        <!-- Search -->
-                        <div class="space-y-1">
-                            <label
-                                class="text-xs font-medium text-muted-foreground"
-                                >Search</label
-                            >
-                            <div class="relative">
-                                <Search
-                                    class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                                />
-                                <Input
-                                    v-model="search"
-                                    placeholder="Subject name..."
-                                    class="pl-8"
-                                    @keyup.enter="applyFilters()"
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Action -->
-                        <div class="space-y-1">
-                            <label
-                                class="text-xs font-medium text-muted-foreground"
-                                >Action</label
-                            >
-                            <Select
-                                :model-value="action"
-                                @update:model-value="action = $event"
-                            >
-                                <SelectTrigger
-                                    ><SelectValue placeholder="All actions"
-                                /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__all__"
-                                        >All actions</SelectItem
-                                    >
-                                    <SelectItem value="created"
-                                        >Created</SelectItem
-                                    >
-                                    <SelectItem value="updated"
-                                        >Updated</SelectItem
-                                    >
-                                    <SelectItem value="status_changed"
-                                        >Status Changed</SelectItem
-                                    >
-                                    <SelectItem value="salary_changed"
-                                        >Pay Rate Changed</SelectItem
-                                    >
-                                    <SelectItem value="archived"
-                                        >Archived</SelectItem
-                                    >
-                                    <SelectItem value="restored"
-                                        >Restored</SelectItem
-                                    >
-                                    <SelectItem value="imported"
-                                        >Imported</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <!-- Module -->
-                        <div class="space-y-1">
-                            <label
-                                class="text-xs font-medium text-muted-foreground"
-                                >Module</label
-                            >
-                            <Select
-                                :model-value="moduleFilter"
-                                @update:model-value="moduleFilter = $event"
-                            >
-                                <SelectTrigger
-                                    ><SelectValue placeholder="All modules"
-                                /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__all__"
-                                        >All modules</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="m in modules"
-                                        :key="m"
-                                        :value="m"
-                                        >{{ m }}</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <!-- Performed By -->
-                        <div class="space-y-1">
-                            <label
-                                class="text-xs font-medium text-muted-foreground"
-                                >Performed By</label
-                            >
-                            <Select
-                                :model-value="performedBy"
-                                @update:model-value="performedBy = $event"
-                            >
-                                <SelectTrigger
-                                    ><SelectValue placeholder="All performers"
-                                /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__all__"
-                                        >All performers</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="p in performers"
-                                        :key="p.id"
-                                        :value="String(p.id)"
-                                    >
-                                        {{ p.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <!-- Date From -->
-                        <div class="space-y-1">
-                            <label
-                                class="text-xs font-medium text-muted-foreground"
-                                >Date From</label
-                            >
-                            <Input v-model="dateFrom" type="date" />
-                        </div>
-
-                        <!-- Date To -->
-                        <div class="space-y-1">
-                            <label
-                                class="text-xs font-medium text-muted-foreground"
-                                >Date To</label
-                            >
-                            <Input v-model="dateTo" type="date" />
-                        </div>
+                    <div class="relative">
+                        <Search
+                            class="pointer-events-none absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                        <Input
+                            id="log-search"
+                            v-model="search"
+                            placeholder="Subject name..."
+                            class="pl-8"
+                        />
                     </div>
+                </div>
 
-                    <div class="mt-3 flex items-center gap-2">
-                        <Button @click="applyFilters()">
-                            <Search class="mr-1.5 h-4 w-4" /> Apply Filters
-                        </Button>
-                        <Button variant="outline" @click="clearFilters">
-                            <X class="mr-1.5 h-4 w-4" /> Clear All
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                <div class="space-y-1.5">
+                    <label
+                        class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                        >Module</label
+                    >
+                    <Select
+                        :model-value="moduleFilter"
+                        @update:model-value="moduleFilter = $event as string"
+                    >
+                        <SelectTrigger class="w-full"
+                            ><SelectValue placeholder="All modules"
+                        /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__all__">All modules</SelectItem>
+                            <SelectItem
+                                v-for="m in modules"
+                                :key="m"
+                                :value="m"
+                                >{{ m }}</SelectItem
+                            >
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label
+                        class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                        >Performed by</label
+                    >
+                    <Select
+                        :model-value="performedBy"
+                        @update:model-value="performedBy = $event as string"
+                    >
+                        <SelectTrigger class="w-full"
+                            ><SelectValue placeholder="All performers"
+                        /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__all__"
+                                >All performers</SelectItem
+                            >
+                            <SelectItem
+                                v-for="p in performers"
+                                :key="p.id"
+                                :value="String(p.id)"
+                            >
+                                {{ p.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label
+                        for="log-from"
+                        class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                        >From</label
+                    >
+                    <Input id="log-from" v-model="dateFrom" type="date" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label
+                        for="log-to"
+                        class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                        >To</label
+                    >
+                    <Input id="log-to" v-model="dateTo" type="date" />
+                </div>
+            </div>
+
+            <!-- ACTION CHIPS -->
+            <DataTableToolbar
+                :status="action"
+                :statuses="statusOptions"
+                status-label="Filter by action"
+                hide-search
+                @update:status="action = $event"
+            />
 
             <!-- TABLE -->
             <DataTable
@@ -467,22 +460,25 @@ function toggleRow(id: number) {
             >
                 <template #toolbar>
                     <h2 class="text-base font-semibold">
-                        All Activity
+                        All activity
                         <span
                             class="ml-1 text-sm font-normal text-muted-foreground"
                         >
-                            ({{ logs.total }} records)
+                            {{ logs.total }} records
                         </span>
                     </h2>
                 </template>
 
                 <!-- Date -->
                 <template #item-created_at="log">
-                    <span
-                        class="text-xs whitespace-nowrap text-muted-foreground"
-                    >
-                        {{ formatDate(log.created_at) }}
-                    </span>
+                    <div class="whitespace-nowrap">
+                        <p class="text-sm font-medium">
+                            {{ formatDay(log.created_at) }}
+                        </p>
+                        <p class="text-xs text-muted-foreground">
+                            {{ formatTime(log.created_at) }}
+                        </p>
+                    </div>
                 </template>
 
                 <!-- Module badge -->
@@ -500,12 +496,12 @@ function toggleRow(id: number) {
                         <button
                             v-if="subjectUrl(log)"
                             type="button"
-                            class="text-left text-sm font-medium hover:underline"
+                            class="text-left text-sm font-semibold hover:underline"
                             @click="router.visit(subjectUrl(log)!)"
                         >
                             {{ subjectLabel(log) }}
                         </button>
-                        <span v-else class="text-sm font-medium">
+                        <span v-else class="text-sm font-semibold">
                             {{ subjectLabel(log) }}
                         </span>
                         <p
@@ -516,7 +512,7 @@ function toggleRow(id: number) {
                         </p>
                     </template>
                     <span v-else class="text-xs text-muted-foreground italic">
-                        Deleted Record
+                        Deleted record
                     </span>
                 </template>
 
@@ -532,9 +528,11 @@ function toggleRow(id: number) {
 
                 <!-- Performer -->
                 <template #item-performer="log">
-                    <span class="text-sm">{{
-                        log.performer?.name ?? '—'
-                    }}</span>
+                    <IdentityCell
+                        v-if="log.performer"
+                        :name="log.performer.name"
+                    />
+                    <span v-else class="text-xs text-muted-foreground">—</span>
                 </template>
 
                 <!-- Changes toggle + details -->

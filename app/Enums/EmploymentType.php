@@ -7,8 +7,6 @@ enum EmploymentType: string
     case FullTime = 'full_time';
     case PartTime = 'part_time';
     case Contractual = 'contractual';
-    case Probationary = 'probationary';
-    case Seasonal = 'seasonal';
 
     public function label(): string
     {
@@ -16,8 +14,6 @@ enum EmploymentType: string
             self::FullTime => 'Full-time',
             self::PartTime => 'Part-time',
             self::Contractual => 'Contractual',
-            self::Probationary => 'Probationary',
-            self::Seasonal => 'Seasonal',
         };
     }
 

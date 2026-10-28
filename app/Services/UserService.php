@@ -31,6 +31,7 @@ class UserService
             'password' => Hash::make($data['password'] ?? \Illuminate\Support\Str::random(32)),
             'role' => AccountType::Customer->value,
             'google_id' => $data['google_id'] ?? null,
+            'referred_shop_id' => $data['referred_shop_id'] ?? null,
         ]);
     }
 }

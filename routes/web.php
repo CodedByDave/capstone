@@ -16,6 +16,7 @@ use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\CustomerQrController;
 use App\Http\Controllers\Shop\DeliveryProofController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
 use App\Http\Controllers\Shop\Employee\AttendanceController;
@@ -34,8 +35,8 @@ use App\Http\Controllers\Shop\Operations\OrderAutomationController;
 use App\Http\Controllers\Shop\Operations\OrderComplaintController;
 use App\Http\Controllers\Shop\Operations\OrderRatingController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
-use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\ServiceCategoryController;
+use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use App\Http\Controllers\Shop\PaymentHistoryController;
 use App\Http\Controllers\Shop\PaymentSettingsController;
@@ -225,6 +226,8 @@ Route::prefix('shop')->middleware([
     Route::get('/payment/cancel', [CheckoutController::class, 'cancel'])->name('payment.cancel');
 
     Route::get('/logs', [ActivityLogsController::class, 'index'])->name('logs.index');
+
+    Route::get('/customer-qr', [CustomerQrController::class, 'index'])->name('shop.customer-qr');
 
     // ── Employee ──────────────────────────────────────────────────────────────
     Route::get('/employee/create', [EmployeeController::class, 'create'])->name('employee.create');

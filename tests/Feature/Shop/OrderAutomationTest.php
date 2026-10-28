@@ -50,7 +50,7 @@ function flowShop(string $subscription = 'paid', string $name = 'Auto Laundry'):
             'plan_name' => $subscription === 'trial' ? 'Standard' : 'Basic',
             'billing_months' => 1,
             'is_trial' => $subscription === 'trial',
-            'total_price' => $subscription === 'trial' ? 0 : 3800,
+            'total_price' => $subscription === 'trial' ? 0 : 1119,
             'status' => $subscription === 'trial' ? 'approved' : 'paid',
             'expires_at' => $subscription === 'expired' ? now()->subDay() : now()->addMonth(),
         ]);

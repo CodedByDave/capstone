@@ -68,9 +68,12 @@ function billingOrder(User $customer, ShopService $service, array $overrides = [
     ], $overrides));
 }
 
-function billingCustomer(): User
+function billingCustomer(?Shop $shop = null): User
 {
-    return User::factory()->create(['role' => AccountType::Customer->value]);
+    return User::factory()->create([
+        'role' => AccountType::Customer->value,
+        'referred_shop_id' => $shop?->id,
+    ]);
 }
 
 test('a customer sees an estimated breakdown on an order that is not weighed yet', function () {
@@ -166,7 +169,7 @@ test('the estimate endpoint prices a per-kg service', function () {
     $shop = billingShop();
     $service = billingService($shop);
 
-    $this->actingAs(billingCustomer())
+    $this->actingAs(billingCustomer($shop))
         ->getJson(route('user.orders.estimate', [
             'shop_id' => $shop->id,
             'service_id' => $service->id,
@@ -186,7 +189,7 @@ test('the estimate endpoint rounds per-bundle services up to whole bundles', fun
     $shop = billingShop();
     $service = billingBundleService($shop);
 
-    $this->actingAs(billingCustomer())
+    $this->actingAs(billingCustomer($shop))
         ->getJson(route('user.orders.estimate', [
             'shop_id' => $shop->id,
             'service_id' => $service->id,
@@ -202,7 +205,7 @@ test('the estimate endpoint rounds per-bundle services up to whole bundles', fun
 test('the estimate endpoint hides inactive services, inactive shops and other shops services', function () {
     $shop = billingShop();
     $otherShop = billingShop('Other Laundry');
-    $customer = billingCustomer();
+    $customer = billingCustomer($shop);
 
     $inactive = billingService($shop, ['is_active' => false]);
     $foreign = billingService($otherShop);
@@ -212,7 +215,6 @@ test('the estimate endpoint hides inactive services, inactive shops and other sh
     foreach ([
         [$shop->id, $inactive->id],
         [$shop->id, $foreign->id],
-        [$pendingShop->id, $pendingService->id],
         [$shop->id, 999999],
     ] as [$shopId, $serviceId]) {
         $this->actingAs($customer)
@@ -223,12 +225,21 @@ test('the estimate endpoint hides inactive services, inactive shops and other sh
             ]))
             ->assertNotFound();
     }
+
+    // Another shop, even a valid one, is not the customer's shop.
+    $this->actingAs($customer)
+        ->getJson(route('user.orders.estimate', [
+            'shop_id' => $pendingShop->id,
+            'service_id' => $pendingService->id,
+            'estimated_weight_kg' => 2,
+        ]))
+        ->assertJsonValidationErrors('shop_id');
 });
 
 test('the estimate endpoint validates the weight', function () {
     $shop = billingShop();
     $service = billingService($shop);
-    $customer = billingCustomer();
+    $customer = billingCustomer($shop);
 
     foreach ([0.1, 101, 'abc', null] as $weight) {
         $this->actingAs($customer)

@@ -51,7 +51,7 @@ const PLANS: Plan[] = [
     {
         name: 'Basic',
         price: 999,
-        moduleNames: ['HRM', 'Operations'],
+        moduleNames: ['HRM', 'Operations', 'Reports & Analytics'],
     },
     {
         name: 'Standard',
@@ -62,6 +62,7 @@ const PLANS: Plan[] = [
             'Operations',
             'Inventory Management',
             'Finance Management',
+            'Reports & Analytics',
         ],
     },
     {
@@ -76,6 +77,13 @@ const PLANS: Plan[] = [
         ],
     },
 ];
+
+const modLabel = (mod: string, plan: string) =>
+    mod === 'Reports & Analytics'
+        ? plan === 'Premium'
+            ? 'Advanced Reports & Analytics'
+            : 'Basic Reports'
+        : mod;
 
 const plan = PLANS.find((p) => p.name === props.planName) ?? PLANS[1];
 
@@ -326,7 +334,7 @@ function goBack() {
                                     />
                                 </span>
                                 <span class="text-sm text-foreground">{{
-                                    mod
+                                    modLabel(mod, plan.name)
                                 }}</span>
                                 <span
                                     class="ml-auto flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/10"

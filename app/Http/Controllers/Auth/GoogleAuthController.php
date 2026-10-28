@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\CustomerReferralService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
@@ -114,6 +115,16 @@ class GoogleAuthController extends Controller
 
         // Customer registration — skip the form entirely, create account directly
         if ($registerAs === 'user') {
+            $referralShop = app(CustomerReferralService::class)
+                ->findJoinableShopById(session('referral_shop_id'));
+
+            if (! $referralShop) {
+                return redirect()->route('login')->with('toast', [
+                    'type' => 'error',
+                    'message' => "Scan a laundry shop's QR code to create your account.",
+                ]);
+            }
+
             session([
                 'pending_registration' => [
                     'name' => $googleUser->getName(),
@@ -122,6 +133,7 @@ class GoogleAuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'otp_verified' => true,
                     'registration_type' => 'user',
+                    'referred_shop_id' => $referralShop->id,
                 ],
             ]);
 

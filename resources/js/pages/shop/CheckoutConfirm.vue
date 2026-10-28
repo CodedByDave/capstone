@@ -82,22 +82,30 @@ watch(
     { immediate: true },
 );
 
+const modLabel = (mod: string, plan: string) =>
+    mod === 'Reports & Analytics'
+        ? plan === 'Premium'
+            ? 'Advanced Reports & Analytics'
+            : 'Basic Reports'
+        : mod;
+
 // ── Plans ──────────────────────────────────────────────────────────────────
 const planList: Plan[] = [
-    { name: 'Basic', price: 3800, moduleNames: ['HRM', 'Operations'] },
+    { name: 'Basic', price: 999, moduleNames: ['HRM', 'Operations', 'Reports & Analytics'] },
     {
         name: 'Standard',
-        price: 6300,
+        price: 1499,
         moduleNames: [
             'HRM',
             'Operations',
             'Inventory Management',
             'Finance Management',
+            'Reports & Analytics',
         ],
     },
     {
         name: 'Premium',
-        price: 8000,
+        price: 1999,
         moduleNames: [
             'HRM',
             'Operations',
@@ -538,7 +546,7 @@ function proceedToPayment() {
                                     >
                                         <CheckCircle2
                                             class="h-3 w-3 shrink-0 text-emerald-500"
-                                        />{{ mod }}
+                                        />{{ modLabel(mod, p.name) }}
                                     </li>
                                 </ul>
                             </button>

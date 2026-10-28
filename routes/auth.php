@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthViewController;
+use App\Http\Controllers\Auth\CustomerJoinController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\OtpVerificationController;
@@ -44,6 +45,12 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+// A shop's customer QR code lands here (guests register, signed-in customers get linked to the shop).
+Route::get('/join/{publicId}', [CustomerJoinController::class, 'show'])
+    ->whereUlid('publicId')
+    ->middleware('throttle:60,1')
+    ->name('customer.join');
 
 // Guest Routes
 Route::middleware(['guest'])->group(function () {

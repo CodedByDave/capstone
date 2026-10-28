@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\Auth\MobileAuthController;
 use App\Http\Controllers\Api\DriverController;
 use App\Http\Controllers\Shop\CheckoutController;
 use Illuminate\Support\Facades\Route;
@@ -12,15 +11,4 @@ Route::post('/paymongo/checkout', [CheckoutController::class, 'create']);
 Route::prefix('driver')->group(function () {
     Route::get('/deliveries/{token}', [DriverController::class, 'show']);
     Route::patch('/deliveries/{token}/status', [DriverController::class, 'updateStatus']);
-});
-
-// Mobile auth routes
-Route::prefix('mobile')->group(function () {
-    Route::post('/register', [MobileAuthController::class, 'register']);
-    Route::post('/login', [MobileAuthController::class, 'login']);
-
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/profile', [MobileAuthController::class, 'profile']);
-        Route::post('/logout', [MobileAuthController::class, 'logout']);
-    });
 });

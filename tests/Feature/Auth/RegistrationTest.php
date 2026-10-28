@@ -10,8 +10,10 @@ test('registration screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('new users can register', function () {
+test('new users can register through a shop QR code', function () {
     Mail::fake();
+    $shop = referralShop();
+    $this->withSession(['referral_shop_id' => $shop->id]);
 
     $response = $this->post(route('register.user.store'), [
         'name' => 'Test User',
@@ -27,6 +29,7 @@ test('new users can register', function () {
 });
 
 test('rate limited users receive a registration notification', function () {
+    $this->withSession(['referral_shop_id' => referralShop()->id]);
     RateLimiter::increment(sha1('|127.0.0.1'), amount: 5);
 
     $response = $this->from(route('register.user'))->post(route('register.user.store'), [

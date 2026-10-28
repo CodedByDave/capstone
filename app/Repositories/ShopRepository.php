@@ -25,6 +25,16 @@ class ShopRepository extends Repository
         return Shop::query()->where('status', 'active')->count();
     }
 
+    public function findActiveByPublicId(string $publicId): ?Shop
+    {
+        return Shop::query()->where('public_id', $publicId)->where('status', 'active')->first();
+    }
+
+    public function findActiveById(int $id): ?Shop
+    {
+        return Shop::query()->where('id', $id)->where('status', 'active')->first();
+    }
+
     public function findByOwnerId(int $ownerId): ?Shop
     {
         return Shop::query()->where('owner_id', $ownerId)->first();

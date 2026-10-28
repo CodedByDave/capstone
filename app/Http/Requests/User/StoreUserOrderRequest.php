@@ -4,6 +4,8 @@ namespace App\Http\Requests\User;
 
 use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\In;
 
 class StoreUserOrderRequest extends FormRequest
 {
@@ -15,7 +17,7 @@ class StoreUserOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'shop_id' => ['required', 'exists:shops,id'],
+            'shop_id' => ['required', 'exists:shops,id', $this->ownShopRule()],
             'service_id' => ['required', 'exists:services_and_pricing,id'],
             'customer_name' => ['required', 'string', 'max:150'],
             'customer_phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
@@ -32,6 +34,12 @@ class StoreUserOrderRequest extends FormRequest
             'customer_agreement_version' => ['required', 'string', 'max:30'],
             'customer_agreement_accepted' => ['required', 'accepted'],
         ];
+    }
+
+    /** Customers belong to the shop whose QR they joined through and can only order from it. */
+    private function ownShopRule(): In
+    {
+        return Rule::in(array_filter([$this->user()?->referred_shop_id]));
     }
 
     public function messages(): array

@@ -169,7 +169,7 @@ it('lets a customer order a per-piece service by item count, with the price fina
         'uses_supplies' => true,
         'supplies' => [['inventory_id' => $item->id, 'quantity' => 1, 'unit' => 'cap']],
     ]);
-    $customer = User::factory()->create(['role' => AccountType::Customer->value]);
+    $customer = User::factory()->create(['role' => AccountType::Customer->value, 'referred_shop_id' => $shop->id]);
 
     $this->actingAs($customer)
         ->post('/user/orders', pieceOrderPayload($shop, $service, ['piece_count' => 3]))
@@ -188,7 +188,7 @@ it('lets a customer order a per-piece service by item count, with the price fina
 it('asks a customer for the piece count of a per-piece service', function () {
     $shop = pieceShop();
     $service = pieceService($shop);
-    $customer = User::factory()->create(['role' => AccountType::Customer->value]);
+    $customer = User::factory()->create(['role' => AccountType::Customer->value, 'referred_shop_id' => $shop->id]);
 
     $this->actingAs($customer)
         ->post('/user/orders', pieceOrderPayload($shop, $service, ['estimated_weight_kg' => 4]))
@@ -200,7 +200,7 @@ it('asks a customer for the piece count of a per-piece service', function () {
 it('estimates a per-piece service for the customer from the piece count', function () {
     $shop = pieceShop();
     $service = pieceService($shop);
-    $customer = User::factory()->create(['role' => AccountType::Customer->value]);
+    $customer = User::factory()->create(['role' => AccountType::Customer->value, 'referred_shop_id' => $shop->id]);
 
     $this->actingAs($customer)
         ->getJson('/user/orders/estimate?'.http_build_query([

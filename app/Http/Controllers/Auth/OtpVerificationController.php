@@ -164,6 +164,7 @@ class OtpVerificationController extends Controller
                     'email' => $pendingData['email'],
                     'password' => $pendingData['password'],
                     'google_id' => $pendingData['google_id'] ?? null,
+                    'referred_shop_id' => $pendingData['referred_shop_id'] ?? null,
                 ]);
             } else {
                 $result = $this->shopService->registerShop([

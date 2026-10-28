@@ -194,8 +194,6 @@ const employmentTypeLabels: Record<string, string> = {
     full_time: 'Full-time',
     part_time: 'Part-time',
     contractual: 'Contractual',
-    probationary: 'Probationary',
-    seasonal: 'Seasonal',
 };
 
 const payBasisLabels: Record<string, string> = {

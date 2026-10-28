@@ -6,8 +6,6 @@ use App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 function setupOwnerWithPlan(string $plan = 'Basic', bool $trial = false): array
 {
@@ -33,7 +31,7 @@ function setupOwnerWithPlan(string $plan = 'Basic', bool $trial = false): array
         'plan_name' => $plan,
         'billing_months' => 1,
         'is_trial' => $trial,
-        'total_price' => $trial ? 0 : 3800,
+        'total_price' => $trial ? 0 : 1119,
         'status' => $trial ? 'approved' : 'paid',
         'expires_at' => now()->addMonth(),
     ]);

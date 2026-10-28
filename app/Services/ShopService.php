@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Shop;
+use App\Models\User;
 use App\Repositories\ShopRepository;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +18,11 @@ class ShopService
     public function countActiveShops(): int
     {
         return $this->shopRepo->countActive();
+    }
+
+    public function shopForOwner(User $owner): Shop
+    {
+        return $this->shopRepo->findByOwnerId($owner->id) ?? abort(404);
     }
 
     public function registerShop(array $data)

@@ -19,6 +19,11 @@ class UserRepository extends Repository
         return User::create($data);
     }
 
+    public function setReferredShop(User $user, int $shopId): void
+    {
+        $user->update(['referred_shop_id' => $shopId]);
+    }
+
     public function updatePassword(User $user, string $password): void
     {
         $user->update(['password' => $password]);

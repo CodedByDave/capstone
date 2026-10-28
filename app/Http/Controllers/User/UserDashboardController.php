@@ -8,6 +8,7 @@ use App\Models\ShopOrder;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerShopCatalogService;
 use App\Services\OrderRatingService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,9 +26,6 @@ class UserDashboardController extends Controller
     public function index(Request $request): Response
     {
         $user = auth()->user();
-        $lat = $request->float('lat') ?: null;
-        $lng = $request->float('lng') ?: null;
-
         $recentOrders = ShopOrder::where('user_id', $user->id)
             ->with(['shop:id,shop_name,municipality,barangay', 'service:id,service_name'])
             ->latest()
@@ -45,17 +43,16 @@ class UserDashboardController extends Controller
                 'created_at' => $o->created_at->toDateString(),
             ]);
 
-        // Nearby shops (only when coordinates are provided)
+        // A customer only sees the shop whose QR they joined through.
         $nearbyShops = [];
-        if ($lat && $lng) {
+        if ($user->referred_shop_id) {
             $nearbyShops = Shop::where('status', 'active')
-                ->whereNotNull('latitude')
-                ->whereNotNull('longitude')
+                ->where('id', $user->referred_shop_id)
                 ->with(['services' => fn ($q) => $q->where('is_active', true)
                     ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price')])
                 ->select('id', 'shop_name', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo')
                 ->get()
-                ->map(function ($shop) use ($lat, $lng) {
+                ->map(function ($shop) {
                     $startingPrice = $this->catalog->startingPrice($shop->services);
 
                     return [
@@ -64,14 +61,12 @@ class UserDashboardController extends Controller
                         'municipality' => $shop->municipality,
                         'barangay' => $shop->barangay,
                         'cover_photo' => $this->coverUrl($shop->cover_photo),
-                        'distance_km' => $this->haversine($lat, $lng, $shop->latitude, $shop->longitude),
+                        'distance_km' => null,
                         'starting_price' => $startingPrice['amount'],
                         'starting_price_unit' => $startingPrice['unit'],
                         'services_count' => $shop->services->count(),
                     ];
                 })
-                ->sortBy('distance_km')
-                ->take(5)
                 ->values()
                 ->toArray();
 
@@ -87,67 +82,21 @@ class UserDashboardController extends Controller
             'totalOrders' => ShopOrder::where('user_id', $user->id)->count(),
             'ratingPrompt' => $this->ratings->promptFor($user),
             'nearbyShops' => $nearbyShops,
-            'userLat' => $lat,
-            'userLng' => $lng,
         ]);
     }
 
     // ─── Shops list ───────────────────────────────────────────────────────────
 
-    public function shops(Request $request): Response
+    public function shops(Request $request): RedirectResponse
     {
-        $lat = $request->float('lat');
-        $lng = $request->float('lng');
-        $search = $request->string('search')->trim()->toString();
+        // Customers have a single shop, so the shop list is replaced by that shop's page.
+        $referredShopId = $request->user()->referred_shop_id;
 
-        $query = Shop::where('status', 'active')
-            ->with([
-                'services' => fn ($q) => $q->where('is_active', true)
-                    ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price', 'bundle_weight_kg', 'price_per_piece'),
-            ])
-            ->select('id', 'shop_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo');
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('shop_name', 'like', "%{$search}%")
-                    ->orWhere('municipality', 'like', "%{$search}%")
-                    ->orWhere('barangay', 'like', "%{$search}%");
-            });
+        if (! $referredShopId) {
+            return redirect()->route('user.dashboard');
         }
 
-        $found = $query->get();
-        $summaries = $this->ratings->summariesFor($found->pluck('id')->all());
-
-        $shops = $found->map(function ($shop) use ($lat, $lng, $summaries) {
-            $data = $shop->toArray();
-            $data['cover_photo'] = $this->coverUrl($shop->cover_photo);
-            $data['distance_km'] = ($lat && $lng && $shop->latitude && $shop->longitude)
-                ? $this->haversine($lat, $lng, $shop->latitude, $shop->longitude)
-                : null;
-
-            $startingPrice = $this->catalog->startingPrice($shop->services);
-            $data['starting_price'] = $startingPrice['amount'];
-            $data['starting_price_unit'] = $startingPrice['unit'];
-            $data['services_count'] = $shop->services->count();
-            $data['rating_avg'] = $summaries[$shop->id]['average'] ?? null;
-            $data['rating_count'] = $summaries[$shop->id]['count'] ?? 0;
-
-            return $data;
-        });
-
-        // Sort by distance when available, else by name
-        if ($lat && $lng) {
-            $shops = $shops->sortBy(fn ($s) => $s['distance_km'] ?? 9999)->values();
-        } else {
-            $shops = $shops->sortBy('shop_name')->values();
-        }
-
-        return Inertia::render('user/Shops', [
-            'shops' => $shops,
-            'userLat' => $lat ?: null,
-            'userLng' => $lng ?: null,
-            'search' => $search,
-        ]);
+        return redirect()->route('user.shops.show', $referredShopId);
     }
 
     // ─── Shop detail ──────────────────────────────────────────────────────────
@@ -155,6 +104,7 @@ class UserDashboardController extends Controller
     public function showShop(Request $request, Shop $shop): Response
     {
         abort_if($shop->status !== 'active', 404);
+        abort_if($request->user()->referred_shop_id !== $shop->id, 404);
 
         $lat = $request->float('lat');
         $lng = $request->float('lng');

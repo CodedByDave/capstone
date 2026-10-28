@@ -5,7 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { CheckCircle2, Eye, EyeOff, XCircle } from 'lucide-vue-next';
+import {
+    CheckCircle2,
+    Eye,
+    EyeOff,
+    QrCode,
+    Store,
+    XCircle,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface GoogleUser {
@@ -15,7 +22,16 @@ interface GoogleUser {
     avatar: string | null;
 }
 
-const props = defineProps<{ googleUser?: GoogleUser | null }>();
+interface ReferralShop {
+    name: string;
+    municipality: string | null;
+    barangay: string | null;
+}
+
+const props = defineProps<{
+    googleUser?: GoogleUser | null;
+    referralShop?: ReferralShop | null;
+}>();
 
 const form = useForm({
     name: props.googleUser?.name ?? '',
@@ -78,9 +94,62 @@ function goToGoogle() {
     >
         <Head title="Create Account" />
 
+        <!-- Shop the customer is joining through its QR code -->
+        <div
+            v-if="referralShop"
+            class="mb-5 flex items-center gap-3 rounded-lg bg-blue-50 px-4 py-3"
+        >
+            <Store class="h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" />
+            <div class="min-w-0">
+                <p class="text-xs text-blue-600">You are joining</p>
+                <p class="truncate text-sm font-semibold text-blue-900">
+                    {{ referralShop.name }}
+                </p>
+                <p
+                    v-if="referralShop.barangay || referralShop.municipality"
+                    class="truncate text-xs text-blue-700"
+                >
+                    {{
+                        [referralShop.barangay, referralShop.municipality]
+                            .filter(Boolean)
+                            .join(', ')
+                    }}
+                </p>
+            </div>
+        </div>
+
+        <!-- No shop QR scanned: customers can only sign up through a shop -->
+        <div
+            v-else
+            class="space-y-4 rounded-lg bg-muted/50 px-4 py-6 text-center"
+        >
+            <QrCode
+                class="mx-auto h-10 w-10 text-muted-foreground"
+                aria-hidden="true"
+            />
+            <div>
+                <p class="text-sm font-semibold">
+                    Scan a shop's QR code to sign up
+                </p>
+                <p class="mt-1 text-xs text-muted-foreground">
+                    Customer accounts are created through your laundry shop. Ask
+                    the shop for its QR code and scan it with your phone's
+                    camera.
+                </p>
+            </div>
+            <p class="text-sm text-gray-500">
+                Already have an account?
+                <a
+                    class="cursor-pointer font-medium text-gray-900 hover:underline"
+                    @click.prevent="router.visit('/login')"
+                    >Log in</a
+                >
+            </p>
+        </div>
+
         <!-- Google pre-fill banner -->
         <div
-            v-if="isGoogleUser"
+            v-if="referralShop && isGoogleUser"
             class="mb-5 flex items-center gap-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3"
         >
             <img
@@ -99,7 +168,7 @@ function goToGoogle() {
         </div>
 
         <!-- Form -->
-        <form @submit.prevent="submit" class="space-y-5">
+        <form v-if="referralShop" @submit.prevent="submit" class="space-y-5">
             <!-- Name -->
             <div class="space-y-1.5">
                 <Label for="name">Name</Label>

@@ -233,7 +233,7 @@ class TestLocationSeeder extends Seeder
             'postal_code' => $shop->postal_code,
             'plan_name' => 'Premium',
             'billing_months' => 12,
-            'total_price' => 80000,
+            'total_price' => 24180,
             'payment_method' => 'cash',
             'status' => 'approved',
             'expires_at' => now()->addYear(),

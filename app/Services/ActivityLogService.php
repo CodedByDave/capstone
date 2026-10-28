@@ -5,12 +5,17 @@ namespace App\Services;
 use App\Models\ActivityLog;
 use App\Models\Shop;
 use App\Models\User;
+use App\Repositories\ActivityLogRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class ActivityLogService
 {
+    public function __construct(
+        private readonly ActivityLogRepository $activityLogs,
+    ) {}
+
     public function log(
         Model $subject,
         string $action,
@@ -65,6 +70,22 @@ class ActivityLogService
             ->latest()
             ->paginate($request->per_page ?? 10)
             ->withQueryString();
+    }
+
+    /**
+     * @param  array<int>|null  $performerIds
+     * @return array{all: int, created: int, updated: int, archived: int}
+     */
+    public function getActionCounts(Shop $shop, ?array $performerIds = null): array
+    {
+        $counts = $this->activityLogs->countsByAction($shop->id, $performerIds);
+
+        return [
+            'all' => (int) $counts->sum(),
+            'created' => (int) ($counts['created'] ?? 0),
+            'updated' => (int) ($counts['updated'] ?? 0),
+            'archived' => (int) ($counts['archived'] ?? 0),
+        ];
     }
 
     public function getPerformers(Shop $shop, ?array $performerIds = null): Collection

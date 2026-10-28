@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
 use App\Mail\OtpVerificationMail;
+use App\Services\CustomerReferralService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class UserRegisterController extends Controller
 {
+    public function __construct(
+        private readonly CustomerReferralService $referrals,
+    ) {}
+
     /**
      * Show customer registration page
      */
@@ -18,8 +23,11 @@ class UserRegisterController extends Controller
     {
         $googleUser = session('google_user');
 
+        $shop = $this->referrals->findJoinableShopById(session('referral_shop_id'));
+
         return Inertia::render('auth/RegisterUser', [
             'googleUser' => $googleUser,
+            'referralShop' => $shop ? $this->referrals->summary($shop) : null,
         ]);
     }
 
@@ -28,6 +36,15 @@ class UserRegisterController extends Controller
      */
     public function store(RegisterUserRequest $request)
     {
+        // Customers can only sign up through a shop's QR code.
+        $shop = $this->referrals->findJoinableShopById(session('referral_shop_id'));
+
+        if (! $shop) {
+            return back()->withInput()->withErrors([
+                'email' => "Scan a laundry shop's QR code to create your account.",
+            ]);
+        }
+
         try {
             Log::info('User registration started', ['email' => $request->email]);
 
@@ -41,6 +58,7 @@ class UserRegisterController extends Controller
                         'google_id' => $request->google_id,
                         'otp_verified' => true,
                         'registration_type' => 'user',
+                        'referred_shop_id' => $shop->id,
                     ],
                 ]);
 
@@ -65,6 +83,7 @@ class UserRegisterController extends Controller
                     'otp_code' => $otp,
                     'otp_expires_at' => now()->addMinutes(10)->toDateTimeString(),
                     'registration_type' => 'user',
+                    'referred_shop_id' => $shop->id,
                 ],
             ]);
 

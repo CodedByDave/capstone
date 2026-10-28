@@ -47,7 +47,7 @@ function listedShop(string $name): Shop
         'plan_name' => 'Premium',
         'billing_months' => 1,
         'is_trial' => false,
-        'total_price' => 3800,
+        'total_price' => 2239,
         'status' => 'paid',
         'expires_at' => now()->addMonth(),
     ]);

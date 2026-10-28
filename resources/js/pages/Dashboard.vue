@@ -7,14 +7,12 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     ChevronRight,
     ClipboardList,
-    Loader2,
     MapPin,
-    Navigation,
     Package,
+    QrCode,
     ShoppingBag,
     Star,
     WashingMachine,
-    X,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -40,7 +38,7 @@ interface NearbyShop {
     municipality: string;
     barangay: string;
     cover_photo: string | null;
-    distance_km: number;
+    distance_km: number | null;
     starting_price: string | null;
     starting_price_unit: 'kg' | 'bundle' | null;
     services_count: number;
@@ -61,8 +59,6 @@ const props = defineProps<{
     totalOrders: number;
     nearbyShops: NearbyShop[];
     ratingPrompt: RatingPrompt | null;
-    userLat: number | null;
-    userLng: number | null;
 }>();
 
 // The "rate your recent order" popup; the card opens it.
@@ -108,99 +104,7 @@ onMounted(() => {
                 toast(flashToast.message);
         }
     }
-
-    initLocation();
 });
-
-// ─── Location ─────────────────────────────────────────────────────────────────
-
-const LOCATION_KEY = 'lh_user_location';
-const DENIED_KEY = 'lh_location_denied';
-const CACHE_MS = 30 * 60 * 1000; // 30 minutes
-
-const locating = ref(false);
-const locationDenied = ref(false);
-const showLocationBanner = ref(false);
-
-function initLocation() {
-    // Already loaded with coords — nothing to do
-    if (props.userLat && props.userLng) return;
-
-    // Previously denied — show the "how-to-enable" hint instead of banner
-    if (localStorage.getItem(DENIED_KEY)) {
-        locationDenied.value = true;
-        return;
-    }
-
-    // Try using a cached position
-    const raw = localStorage.getItem(LOCATION_KEY);
-    if (raw) {
-        try {
-            const { lat, lng, ts } = JSON.parse(raw);
-            if (Date.now() - ts < CACHE_MS) {
-                router.get(
-                    '/user/dashboard',
-                    { lat, lng },
-                    { replace: true, preserveScroll: true },
-                );
-                return;
-            }
-        } catch {
-            /* ignore */
-        }
-    }
-
-    // No cached position — show the permission banner
-    showLocationBanner.value = true;
-}
-
-function requestLocation() {
-    if (!navigator.geolocation) {
-        locationDenied.value = true;
-        showLocationBanner.value = false;
-        return;
-    }
-    locating.value = true;
-    navigator.geolocation.getCurrentPosition(
-        (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            localStorage.setItem(
-                LOCATION_KEY,
-                JSON.stringify({ lat, lng, ts: Date.now() }),
-            );
-            localStorage.removeItem(DENIED_KEY);
-            locating.value = false;
-            showLocationBanner.value = false;
-            router.get('/user/dashboard', { lat, lng }, { replace: true });
-        },
-        () => {
-            locating.value = false;
-            localStorage.setItem(DENIED_KEY, '1');
-            locationDenied.value = true;
-            showLocationBanner.value = false;
-        },
-        { timeout: 10000, maximumAge: 0 },
-    );
-}
-
-function dismissBanner() {
-    showLocationBanner.value = false;
-}
-
-function retryLocation() {
-    localStorage.removeItem(DENIED_KEY);
-    locationDenied.value = false;
-    showLocationBanner.value = true;
-}
-
-function refreshLocation() {
-    localStorage.removeItem(LOCATION_KEY);
-    localStorage.removeItem(DENIED_KEY);
-    locationDenied.value = false;
-    showLocationBanner.value = false;
-    requestLocation();
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -221,9 +125,7 @@ function currency(val: number) {
 }
 
 function goToShop(shop: NearbyShop) {
-    router.visit(
-        `/user/shops/${shop.id}${props.userLat ? `?lat=${props.userLat}&lng=${props.userLng}` : ''}`,
-    );
+    router.visit(`/user/shops/${shop.id}`);
 }
 
 const gradients = [
@@ -251,7 +153,7 @@ function shopGradient(id: number) {
                     {{ user.name.split(' ')[0] }}! 👋
                 </h2>
                 <p class="mt-1 text-sm opacity-80">
-                    Find laundry shops near you
+                    Order from your laundry shop
                 </p>
 
                 <div class="mt-4 flex items-center gap-3">
@@ -266,20 +168,6 @@ function shopGradient(id: number) {
                             placed</span
                         >
                     </div>
-                    <!-- Refresh location -->
-                    <button
-                        v-if="userLat && userLng"
-                        class="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-2.5 transition hover:bg-white/20 active:scale-95"
-                        :disabled="locating"
-                        title="Refresh location"
-                        @click="refreshLocation"
-                    >
-                        <Loader2 v-if="locating" class="h-4 w-4 animate-spin" />
-                        <Navigation v-else class="h-4 w-4" />
-                        <span class="text-xs font-medium">{{
-                            locating ? 'Locating…' : 'Near me'
-                        }}</span>
-                    </button>
                 </div>
             </div>
 
@@ -317,78 +205,6 @@ function shopGradient(id: number) {
                 :shop-name="ratingPrompt.shop_name"
             />
 
-            <!-- ── Location Permission Banner ────────────────── -->
-            <div
-                v-if="showLocationBanner"
-                class="relative rounded-2xl border border-blue-200 bg-blue-50 p-4"
-            >
-                <button
-                    class="absolute top-3 right-3 text-blue-400 hover:text-blue-600"
-                    @click="dismissBanner"
-                >
-                    <X class="h-4 w-4" />
-                </button>
-                <div class="flex items-start gap-3">
-                    <div
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100"
-                    >
-                        <MapPin class="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-semibold text-blue-900">
-                            See shops near you
-                        </p>
-                        <p class="mt-0.5 text-xs text-blue-700">
-                            Allow location access to get recommendations for
-                            nearby laundry shops.
-                        </p>
-                        <button
-                            class="mt-3 flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95 disabled:opacity-60"
-                            :disabled="locating"
-                            @click="requestLocation"
-                        >
-                            <Loader2
-                                v-if="locating"
-                                class="h-3.5 w-3.5 animate-spin"
-                            />
-                            <Navigation v-else class="h-3.5 w-3.5" />
-                            {{
-                                locating
-                                    ? 'Getting location…'
-                                    : 'Allow Location'
-                            }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Location Denied Banner ─────────────────────── -->
-            <div
-                v-else-if="locationDenied"
-                class="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4"
-            >
-                <div
-                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100"
-                >
-                    <MapPin class="h-5 w-5 text-amber-600" />
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm font-semibold text-amber-900">
-                        Location access blocked
-                    </p>
-                    <p class="mt-0.5 text-xs text-amber-700">
-                        To see nearby shops, enable location in your browser
-                        settings, then tap retry.
-                    </p>
-                    <button
-                        class="mt-2 text-xs font-semibold text-amber-700 underline underline-offset-2"
-                        @click="retryLocation"
-                    >
-                        Retry
-                    </button>
-                </div>
-            </div>
-
             <!-- ── Nearby Shops ───────────────────────────────── -->
             <div v-if="nearbyShops.length > 0">
                 <div class="mb-3 flex items-center justify-between">
@@ -396,18 +212,8 @@ function shopGradient(id: number) {
                         class="flex items-center gap-1.5 text-sm font-semibold text-gray-700"
                     >
                         <MapPin class="h-4 w-4 text-blue-500" />
-                        Nearby Shops
+                        Your Shop
                     </h3>
-                    <button
-                        class="text-xs font-medium text-blue-600 hover:underline"
-                        @click="
-                            router.visit(
-                                `/user/shops?lat=${userLat}&lng=${userLng}`,
-                            )
-                        "
-                    >
-                        See all
-                    </button>
                 </div>
 
                 <!-- Horizontal scroll on mobile -->
@@ -437,13 +243,6 @@ function shopGradient(id: number) {
                             <div
                                 class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent"
                             />
-                            <!-- Distance pill -->
-                            <div
-                                class="absolute top-2 right-2 flex items-center gap-0.5 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm"
-                            >
-                                <MapPin class="h-2.5 w-2.5" />
-                                {{ shop.distance_km }} km
-                            </div>
                             <!-- Name overlay -->
                             <div class="absolute right-3 bottom-2 left-3">
                                 <p
@@ -496,23 +295,29 @@ function shopGradient(id: number) {
                 </div>
             </div>
 
-            <!-- ── Browse Shops (fallback when no nearby) ─────── -->
-            <div v-if="!userLat || nearbyShops.length === 0">
-                <h3 class="mb-3 text-sm font-semibold text-gray-700">
-                    Find a Shop
-                </h3>
-                <button
-                    class="w-full py-3 text-sm font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
-                    @click="router.visit('/user/shops')"
-                >
-                    Browse all shops →
-                </button>
+            <!-- ── No shop yet ────────────────────────────────── -->
+            <div
+                v-if="nearbyShops.length === 0"
+                class="rounded-2xl bg-muted/50 px-4 py-8 text-center"
+            >
+                <QrCode
+                    class="mx-auto mb-2 h-10 w-10 text-gray-400"
+                    aria-hidden="true"
+                />
+                <p class="text-sm font-semibold text-gray-700">
+                    Scan your laundry shop's QR code
+                </p>
+                <p class="mt-1 text-xs text-gray-500">
+                    Ask the shop for its QR code and scan it to connect your
+                    account and start ordering.
+                </p>
             </div>
 
             <!-- ── Quick Actions ──────────────────────────────── -->
             <div class="grid grid-cols-2 gap-3">
                 <button
                     class="flex flex-col items-center gap-2 rounded-xl border border-gray-100 bg-white py-4 shadow-sm transition-shadow hover:shadow-md active:scale-95"
+                    :disabled="nearbyShops.length === 0"
                     @click="router.visit('/user/shops')"
                 >
                     <div
@@ -521,7 +326,7 @@ function shopGradient(id: number) {
                         <MapPin class="h-5 w-5 text-blue-600" />
                     </div>
                     <span class="text-xs font-medium text-gray-700"
-                        >Browse Shops</span
+                        >Order Laundry</span
                     >
                 </button>
                 <button

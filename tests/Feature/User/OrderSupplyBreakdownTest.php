@@ -44,7 +44,7 @@ function supplyShop(): Shop
         'plan_name' => 'Basic',
         'billing_months' => 1,
         'is_trial' => false,
-        'total_price' => 3800,
+        'total_price' => 1119,
         'status' => 'paid',
         'expires_at' => now()->addMonth(),
     ]);

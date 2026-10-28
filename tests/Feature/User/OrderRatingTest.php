@@ -270,10 +270,10 @@ test('the dashboard offers the latest unrated order and stops once it is rated',
     expect($pending->fresh()->rating)->toBeNull();
 });
 
-test('customers see a shops average and count but never the comments', function () {
+test('customers see their shops average and count but never the comments', function () {
     $shop = ratingShop();
-    $other = ratingShop();
     $customer = ratingCustomer();
+    $customer->update(['referred_shop_id' => $shop->id]);
 
     foreach ([5, 4, 3] as $stars) {
         $buyer = ratingCustomer();
@@ -282,14 +282,7 @@ test('customers see a shops average and count but never the comments', function 
         rate($order, ['rating' => $stars, 'comment' => 'zxqsecretcomment']);
     }
 
-    $this->actingAs($customer)
-        ->get('/user/shops')
-        ->assertDontSee('zxqsecretcomment')
-        ->assertInertia(fn ($page) => $page
-            ->where('shops', fn ($shops) => collect($shops)->firstWhere('id', $shop->id)['rating_avg'] == 4
-                && collect($shops)->firstWhere('id', $shop->id)['rating_count'] === 3
-                && collect($shops)->firstWhere('id', $other->id)['rating_avg'] === null
-                && collect($shops)->firstWhere('id', $other->id)['rating_count'] === 0));
+    $this->actingAs($customer);
 
     $this->get("/user/shops/{$shop->id}")
         ->assertDontSee('zxqsecretcomment')

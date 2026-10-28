@@ -35,6 +35,7 @@ class ActivityLogsController extends Controller
 
         return Inertia::render('shop/employee/logs/Index', [
             'logs' => $this->activityLogService->getPaginatedLogs($shop, $request, $performerIds),
+            'actionCounts' => $this->activityLogService->getActionCounts($shop, $performerIds),
             'performers' => $this->activityLogService->getPerformers($shop, $performerIds),
             'modules' => $this->activityLogService->getModules($shop, $performerIds),
             'filters' => $request->filters(),

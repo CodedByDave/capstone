@@ -31,6 +31,8 @@ function customerAgreementScenario(): array
         'price_per_kg' => 60,
     ]);
 
+    $customer->update(['referred_shop_id' => $shop->id]);
+
     return compact('customer', 'shop', 'service');
 }
 

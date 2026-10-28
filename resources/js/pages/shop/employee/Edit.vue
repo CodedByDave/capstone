@@ -17,7 +17,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import axios from 'axios';
-import { Loader2, X } from 'lucide-vue-next';
+import { ArrowLeft, Loader2, X } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -209,6 +209,40 @@ const form = ref({
 
 const isSubmitting = ref(false);
 
+// ─── Change tracking (drives the Save button and status text) ────────────────
+
+const snapshot = () =>
+    JSON.stringify({
+        form: { ...form.value, address: '' },
+        createAccount: createAccount.value,
+        street: streetInput.value,
+        province: selectedProvince.value,
+        city: selectedCity.value,
+        barangay: selectedBarangay.value,
+    });
+
+const baseline = ref<string | null>(null);
+const justSaved = ref(false);
+
+onMounted(() => {
+    baseline.value = snapshot();
+});
+
+const isDirty = computed(
+    () => baseline.value !== null && snapshot() !== baseline.value,
+);
+
+const saveStatus = computed(() => {
+    if (isDirty.value) return 'You have unsaved changes';
+    return justSaved.value ? 'Changes saved' : 'No changes yet';
+});
+
+const initials = computed(
+    () =>
+        `${form.value.first_name.charAt(0)}${form.value.last_name.charAt(0)}`.toUpperCase() ||
+        '?',
+);
+
 function submit() {
     form.value.address = fullAddress.value;
     isSubmitting.value = true;
@@ -220,6 +254,10 @@ function submit() {
         },
         {
             preserveScroll: true,
+            onSuccess: () => {
+                baseline.value = snapshot();
+                justSaved.value = true;
+            },
             onFinish: () => {
                 isSubmitting.value = false;
             },
@@ -298,608 +336,797 @@ async function saveSchedule() {
     <Head :title="`Edit — ${employee.first_name} ${employee.last_name}`" />
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Edit Employee">
-        <div class="space-y-8 px-6">
-            <!-- Page title -->
-            <div>
-                <h2 class="text-lg font-semibold">Edit Employee</h2>
-                <p class="text-sm text-muted-foreground">
-                    Update the details for
-                    <span class="font-medium text-foreground"
-                        >{{ employee.first_name }}
-                        {{ employee.last_name }}</span
-                    >.
-                </p>
-            </div>
-
-            <!-- ── Identity ──────────────────────────────────────────────────── -->
-            <div>
-                <p
-                    class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                >
-                    Identity
-                </p>
-                <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">Employee ID</label>
-                        <Input
-                            v-model="form.employee_id"
-                            class="font-mono"
-                            disabled
-                        />
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >First Name
-                            <span class="text-red-500">*</span></label
-                        >
-                        <Input
-                            v-model="form.first_name"
-                            :class="{ 'border-red-500': errors.first_name }"
-                        />
-                        <p
-                            v-if="errors.first_name"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.first_name }}
-                        </p>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >Last Name
-                            <span class="text-red-500">*</span></label
-                        >
-                        <Input
-                            v-model="form.last_name"
-                            :class="{ 'border-red-500': errors.last_name }"
-                        />
-                        <p v-if="errors.last_name" class="text-xs text-red-500">
-                            {{ errors.last_name }}
-                        </p>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">Phone</label>
-                        <PhilippinePhoneInput
-                            v-model="form.phone"
-                            :class="{ 'border-red-500': errors.phone }"
-                        />
-                        <p v-if="errors.phone" class="text-xs text-red-500">
-                            {{ errors.phone }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Employment ────────────────────────────────────────────────── -->
-            <div>
-                <p
-                    class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                >
-                    Employment
-                </p>
-                <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >Position <span class="text-red-500">*</span></label
-                        >
-                        <Select v-model="form.position">
-                            <SelectTrigger
-                                class="w-full"
-                                :class="{ 'border-red-500': errors.position }"
-                            >
-                                <SelectValue placeholder="Select position" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="role in roles"
-                                    :key="role"
-                                    :value="role"
-                                    class="capitalize"
-                                >
-                                    {{ role }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p v-if="errors.position" class="text-xs text-red-500">
-                            {{ errors.position }}
-                        </p>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >Employment Type
-                            <span class="text-red-500">*</span></label
-                        >
-                        <Select v-model="form.employment_type">
-                            <SelectTrigger
-                                class="w-full"
-                                :class="{
-                                    'border-red-500': errors.employment_type,
-                                }"
-                            >
-                                <SelectValue
-                                    placeholder="Select employment type"
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="type in employment_types"
-                                    :key="type.value"
-                                    :value="type.value"
-                                >
-                                    {{ type.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p
-                            v-if="errors.employment_type"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.employment_type }}
-                        </p>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">
-                            Hire Date <span class="text-red-500">*</span>
-                            <span
-                                v-if="isStaff"
-                                class="ml-1 text-xs text-amber-500"
-                                >(view only)</span
-                            >
-                        </label>
-                        <div
-                            v-if="isStaff"
-                            class="flex h-9 w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground select-none"
-                        >
-                            {{ form.hire_date }}
-                        </div>
-                        <Input
-                            v-else
-                            v-model="form.hire_date"
-                            type="date"
-                            :class="{ 'border-red-500': errors.hire_date }"
-                        />
-                        <p v-if="errors.hire_date" class="text-xs text-red-500">
-                            {{ errors.hire_date }}
-                        </p>
-                    </div>
-
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">
-                            Pay Rate (₱)
-                            <span
-                                v-if="isStaff"
-                                class="ml-1 text-xs text-amber-500"
-                                >(view only)</span
-                            >
-                        </label>
-                        <div
-                            v-if="isStaff"
-                            class="flex h-9 w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground select-none"
-                        >
-                            {{
-                                form.pay_rate
-                                    ? `₱${Number(form.pay_rate).toLocaleString(
-                                          'en-PH',
-                                          {
-                                              minimumFractionDigits: 2,
-                                          },
-                                      )}`
-                                    : '—'
-                            }}
-                        </div>
-                        <Input
-                            v-else
-                            v-model="form.pay_rate"
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            :class="{ 'border-red-500': errors.pay_rate }"
-                        />
-                        <p v-if="errors.pay_rate" class="text-xs text-red-500">
-                            {{ errors.pay_rate }}
-                        </p>
-                    </div>
-
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">
-                            Pay Basis <span class="text-red-500">*</span>
-                            <span
-                                v-if="isStaff"
-                                class="ml-1 text-xs text-amber-500"
-                                >(view only)</span
-                            >
-                        </label>
-                        <div
-                            v-if="isStaff"
-                            class="flex h-9 w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground select-none"
-                        >
-                            {{
-                                pay_bases.find(
-                                    (basis) => basis.value === form.pay_basis,
-                                )?.label ?? form.pay_basis
-                            }}
-                        </div>
-                        <Select v-else v-model="form.pay_basis">
-                            <SelectTrigger
-                                :class="{
-                                    'border-red-500': errors.pay_basis,
-                                }"
-                            >
-                                <SelectValue placeholder="Select pay basis" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="basis in pay_bases"
-                                    :key="basis.value"
-                                    :value="basis.value"
-                                >
-                                    {{ basis.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p v-if="errors.pay_basis" class="text-xs text-red-500">
-                            {{ errors.pay_basis }}
-                        </p>
-                    </div>
-
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">
-                            Status <span class="text-red-500">*</span>
-                            <span
-                                v-if="isStaff"
-                                class="ml-1 text-xs text-amber-500"
-                                >(view only)</span
-                            >
-                        </label>
-                        <div
-                            v-if="isStaff"
-                            class="flex h-9 w-full cursor-not-allowed items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm select-none"
-                        >
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-                                :class="
-                                    form.status === 'Active'
-                                        ? 'bg-green-500'
-                                        : 'bg-red-500'
-                                "
-                            >
-                                {{ form.status }}
-                            </span>
-                        </div>
-                        <Select v-else v-model="form.status">
-                            <SelectTrigger
-                                :class="{ 'border-red-500': errors.status }"
-                            >
-                                <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Active">Active</SelectItem>
-                                <SelectItem value="Inactive"
-                                    >Inactive</SelectItem
-                                >
-                            </SelectContent>
-                        </Select>
-                        <p v-if="errors.status" class="text-xs text-red-500">
-                            {{ errors.status }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Address ───────────────────────────────────────────────────── -->
-            <div>
-                <p
-                    class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                >
-                    Address
-                </p>
-                <div
-                    v-if="employee.address"
-                    class="mb-4 rounded-lg border bg-muted/40 px-4 py-3 text-sm"
-                >
-                    <p class="mb-1 text-xs text-muted-foreground">
-                        Current address
-                    </p>
-                    <p class="font-medium">{{ employee.address }}</p>
-                    <p class="mt-1 text-xs text-muted-foreground">
-                        Select a new province below to update, or just edit the
-                        street field.
+        <div class="mx-auto max-w-6xl space-y-6 px-6 pb-10">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">
+                        Edit employee
+                    </h2>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Update the details for
+                        <span class="font-medium text-foreground"
+                            >{{ employee.first_name }}
+                            {{ employee.last_name }}</span
+                        >.
                     </p>
                 </div>
-                <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">Province</label>
-                        <Select
-                            v-model="selectedProvince"
-                            :disabled="loadingProvinces"
-                        >
-                            <SelectTrigger>
-                                <SelectValue>
-                                    <span
-                                        v-if="loadingProvinces"
-                                        class="flex items-center gap-1.5 text-muted-foreground"
-                                    >
-                                        <Loader2 class="h-3 w-3 animate-spin" />
-                                        Loading...
-                                    </span>
-                                    <span
-                                        v-else-if="!selectedProvince"
-                                        class="text-muted-foreground"
-                                        >Select province</span
-                                    >
-                                    <span v-else>{{
-                                        provinces.find(
-                                            (p) => p.code === selectedProvince,
-                                        )?.name
-                                    }}</span>
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent class="max-h-60">
-                                <SelectItem
-                                    v-for="p in provinces"
-                                    :key="p.code"
-                                    :value="p.code"
-                                    >{{ p.name }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >City / Municipality</label
-                        >
-                        <Select
-                            v-model="selectedCity"
-                            :disabled="!selectedProvince || loadingCities"
-                        >
-                            <SelectTrigger>
-                                <SelectValue>
-                                    <span
-                                        v-if="loadingCities"
-                                        class="flex items-center gap-1.5 text-muted-foreground"
-                                    >
-                                        <Loader2 class="h-3 w-3 animate-spin" />
-                                        Loading...
-                                    </span>
-                                    <span
-                                        v-else-if="!selectedCity"
-                                        class="text-muted-foreground"
-                                        >Select city/municipality</span
-                                    >
-                                    <span v-else>{{
-                                        cities.find(
-                                            (c) => c.code === selectedCity,
-                                        )?.name
-                                    }}</span>
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent class="max-h-60">
-                                <SelectItem
-                                    v-for="c in cities"
-                                    :key="c.code"
-                                    :value="c.code"
-                                    >{{ c.name }}</SelectItem
-                                >
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium">Barangay</label>
-                        <Select
-                            v-model="selectedBarangay"
-                            :disabled="!selectedCity || loadingBarangays"
-                        >
-                            <SelectTrigger>
-                                <SelectValue>
-                                    <span
-                                        v-if="loadingBarangays"
-                                        class="flex items-center gap-1.5 text-muted-foreground"
-                                    >
-                                        <Loader2 class="h-3 w-3 animate-spin" />
-                                        Loading...
-                                    </span>
-                                    <span
-                                        v-else-if="!selectedBarangay"
-                                        class="text-muted-foreground"
-                                        >Select barangay</span
-                                    >
-                                    <span v-else>{{
-                                        barangays.find(
-                                            (b) => b.code === selectedBarangay,
-                                        )?.name
-                                    }}</span>
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent class="max-h-60">
-                                <SelectItem
-                                    v-for="b in barangays"
-                                    :key="b.code"
-                                    :value="b.code"
-                                    >{{ b.name }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >Street / Block No.</label
-                        >
-                        <Input
-                            v-model="streetInput"
-                            placeholder="e.g. 123 Rizal St."
-                        />
-                    </div>
-                </div>
-                <p
-                    v-if="fullAddress"
-                    class="mt-3 text-xs text-muted-foreground"
-                >
-                    <span class="font-medium">Full address:</span>
-                    {{ fullAddress }}
-                </p>
-                <p v-if="errors.address" class="mt-1 text-xs text-red-500">
-                    {{ errors.address }}
-                </p>
-            </div>
-
-            <!-- ── System Access ─────────────────────────────────────────────── -->
-            <div class="space-y-4">
-                <p
-                    class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                >
-                    System Access
-                </p>
-
-                <div
-                    v-if="hasAccount"
-                    class="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/20"
-                >
-                    <div
-                        class="h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
-                    />
-                    <p class="text-sm text-green-800 dark:text-green-200">
-                        This employee already has a system account.
-                    </p>
-                </div>
-
-                <template v-else>
-                    <div class="flex items-start gap-3">
-                        <input
-                            type="checkbox"
-                            id="create_account"
-                            :checked="createAccount"
-                            @change="
-                                (e) => {
-                                    createAccount = e.target.checked;
-                                }
-                            "
-                            class="mt-1 h-4 w-4 cursor-pointer rounded border-gray-300"
-                        />
-                        <div class="space-y-1">
-                            <label
-                                for="create_account"
-                                class="cursor-pointer text-sm font-medium"
-                            >
-                                Create a system account for this employee
-                            </label>
-                            <p class="text-xs text-muted-foreground">
-                                A login account will be created using the
-                                employee's email. The default password will be
-                                their last name. Only enable this for employees
-                                who need system access.
-                            </p>
-                        </div>
-                    </div>
-                    <p
-                        v-if="errors.create_account"
-                        class="text-xs text-red-500"
-                    >
-                        {{ errors.create_account }}
-                    </p>
-                </template>
-            </div>
-
-            <!-- ── Schedule (owner only) ──────────────────────────────────────── -->
-            <div v-if="isOwner">
-                <div class="mb-4 flex items-center justify-between">
-                    <div>
-                        <p
-                            class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                        >
-                            Weekly Schedule
-                        </p>
-                        <p class="mt-0.5 text-xs text-muted-foreground">
-                            Toggle workdays and set shift times.
-                        </p>
-                    </div>
-                    <Button
-                        size="sm"
-                        :disabled="savingSchedule"
-                        @click="saveSchedule"
-                    >
-                        <Loader2
-                            v-if="savingSchedule"
-                            class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                        />
-                        {{ savingSchedule ? 'Saving...' : 'Save Schedule' }}
-                    </Button>
-                </div>
-
-                <div
-                    v-if="scheduleError"
-                    class="mb-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700"
-                >
-                    <span>{{ scheduleError }}</span>
-                    <button @click="scheduleError = null">
-                        <X
-                            class="ml-3 h-3.5 w-3.5 text-red-400 hover:text-red-600"
-                        />
-                    </button>
-                </div>
-
-                <div class="divide-y rounded-xl border">
-                    <div
-                        v-for="d in scheduleMap"
-                        :key="d.day"
-                        class="flex items-center gap-4 px-4 py-3 transition-colors"
-                        :class="d.enabled ? 'bg-background' : 'bg-muted/30'"
-                    >
-                        <label
-                            class="flex w-32 cursor-pointer items-center gap-3 select-none"
-                        >
-                            <input
-                                type="checkbox"
-                                v-model="d.enabled"
-                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <span
-                                class="text-sm font-medium"
-                                :class="{ 'text-muted-foreground': !d.enabled }"
-                            >
-                                {{ d.day }}
-                            </span>
-                        </label>
-                        <template v-if="d.enabled">
-                            <div class="flex items-center gap-2">
-                                <Input
-                                    v-model="d.start_time"
-                                    type="time"
-                                    class="h-8 w-32 text-sm"
-                                />
-                                <span class="text-xs text-muted-foreground"
-                                    >to</span
-                                >
-                                <Input
-                                    v-model="d.end_time"
-                                    type="time"
-                                    class="h-8 w-32 text-sm"
-                                />
-                            </div>
-                        </template>
-                        <span v-else class="text-sm text-muted-foreground"
-                            >Day off</span
-                        >
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Actions ─────────────────────────────────────────────────────── -->
-            <div class="flex items-center justify-end gap-3 border-t pt-4">
                 <Button
                     type="button"
                     variant="outline"
-                    :disabled="isSubmitting"
+                    class="shrink-0"
                     @click="router.visit(`${baseRoute}/employee`)"
                 >
-                    Cancel
-                </Button>
-                <Button type="button" :disabled="isSubmitting" @click="submit">
-                    <Loader2
-                        v-if="isSubmitting"
-                        class="mr-2 h-4 w-4 animate-spin"
-                    />
-                    {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+                    <ArrowLeft class="mr-2 h-4 w-4" /> Back to employees
                 </Button>
             </div>
+
+            <form
+                class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]"
+                @submit.prevent="submit"
+            >
+                <!-- Left column -->
+                <div class="space-y-8">
+                    <!-- Identity -->
+                    <section>
+                        <h3 class="text-base font-semibold">Identity</h3>
+                        <p class="mt-0.5 text-sm text-muted-foreground">
+                            Who this employee is and how to reach them.
+                        </p>
+                        <div
+                            class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2"
+                        >
+                            <div class="space-y-1.5">
+                                <label
+                                    class="text-sm font-medium"
+                                    for="employee-id"
+                                    >Employee ID</label
+                                >
+                                <Input
+                                    id="employee-id"
+                                    v-model="form.employee_id"
+                                    class="font-mono"
+                                    disabled
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label
+                                    class="text-sm font-medium"
+                                    for="first-name"
+                                    >First Name
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <Input
+                                    id="first-name"
+                                    v-model="form.first_name"
+                                    :class="{
+                                        'border-red-500': errors.first_name,
+                                    }"
+                                />
+                                <p
+                                    v-if="errors.first_name"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.first_name }}
+                                </p>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label
+                                    class="text-sm font-medium"
+                                    for="last-name"
+                                    >Last Name
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <Input
+                                    id="last-name"
+                                    v-model="form.last_name"
+                                    :class="{
+                                        'border-red-500': errors.last_name,
+                                    }"
+                                />
+                                <p
+                                    v-if="errors.last_name"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.last_name }}
+                                </p>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium">Phone</label>
+                                <PhilippinePhoneInput
+                                    v-model="form.phone"
+                                    :class="{ 'border-red-500': errors.phone }"
+                                />
+                                <p
+                                    v-if="errors.phone"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.phone }}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Employment -->
+                    <section class="border-t pt-8">
+                        <h3 class="text-base font-semibold">Employment</h3>
+                        <p class="mt-0.5 text-sm text-muted-foreground">
+                            Role, pay and employment status.
+                        </p>
+                        <div
+                            class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2"
+                        >
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium"
+                                    >Position
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <Select v-model="form.position">
+                                    <SelectTrigger
+                                        class="w-full"
+                                        :class="{
+                                            'border-red-500': errors.position,
+                                        }"
+                                    >
+                                        <SelectValue
+                                            placeholder="Select position"
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            v-for="role in roles"
+                                            :key="role"
+                                            :value="role"
+                                            class="capitalize"
+                                        >
+                                            {{ role }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p
+                                    v-if="errors.position"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.position }}
+                                </p>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium"
+                                    >Employment Type
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <Select v-model="form.employment_type">
+                                    <SelectTrigger
+                                        class="w-full"
+                                        :class="{
+                                            'border-red-500':
+                                                errors.employment_type,
+                                        }"
+                                    >
+                                        <SelectValue
+                                            placeholder="Select employment type"
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            v-for="type in employment_types"
+                                            :key="type.value"
+                                            :value="type.value"
+                                        >
+                                            {{ type.label }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p
+                                    v-if="errors.employment_type"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.employment_type }}
+                                </p>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium">
+                                    Hire Date
+                                    <span class="text-red-500">*</span>
+                                    <span
+                                        v-if="isStaff"
+                                        class="ml-1 text-xs text-amber-500"
+                                        >(view only)</span
+                                    >
+                                </label>
+                                <div
+                                    v-if="isStaff"
+                                    class="flex h-9 w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground select-none"
+                                >
+                                    {{ form.hire_date }}
+                                </div>
+                                <Input
+                                    v-else
+                                    v-model="form.hire_date"
+                                    type="date"
+                                    :class="{
+                                        'border-red-500': errors.hire_date,
+                                    }"
+                                />
+                                <p
+                                    v-if="errors.hire_date"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.hire_date }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium">
+                                    Pay Rate (₱)
+                                    <span
+                                        v-if="isStaff"
+                                        class="ml-1 text-xs text-amber-500"
+                                        >(view only)</span
+                                    >
+                                </label>
+                                <div
+                                    v-if="isStaff"
+                                    class="flex h-9 w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground select-none"
+                                >
+                                    {{
+                                        form.pay_rate
+                                            ? `₱${Number(
+                                                  form.pay_rate,
+                                              ).toLocaleString('en-PH', {
+                                                  minimumFractionDigits: 2,
+                                              })}`
+                                            : '—'
+                                    }}
+                                </div>
+                                <Input
+                                    v-else
+                                    v-model="form.pay_rate"
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    :class="{
+                                        'border-red-500': errors.pay_rate,
+                                    }"
+                                />
+                                <p
+                                    v-if="errors.pay_rate"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.pay_rate }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium">
+                                    Pay Basis
+                                    <span class="text-red-500">*</span>
+                                    <span
+                                        v-if="isStaff"
+                                        class="ml-1 text-xs text-amber-500"
+                                        >(view only)</span
+                                    >
+                                </label>
+                                <div
+                                    v-if="isStaff"
+                                    class="flex h-9 w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground select-none"
+                                >
+                                    {{
+                                        pay_bases.find(
+                                            (basis) =>
+                                                basis.value === form.pay_basis,
+                                        )?.label ?? form.pay_basis
+                                    }}
+                                </div>
+                                <Select v-else v-model="form.pay_basis">
+                                    <SelectTrigger
+                                        :class="{
+                                            'border-red-500': errors.pay_basis,
+                                        }"
+                                    >
+                                        <SelectValue
+                                            placeholder="Select pay basis"
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            v-for="basis in pay_bases"
+                                            :key="basis.value"
+                                            :value="basis.value"
+                                        >
+                                            {{ basis.label }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p
+                                    v-if="errors.pay_basis"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.pay_basis }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium">
+                                    Status <span class="text-red-500">*</span>
+                                    <span
+                                        v-if="isStaff"
+                                        class="ml-1 text-xs text-amber-500"
+                                        >(view only)</span
+                                    >
+                                </label>
+                                <div
+                                    v-if="isStaff"
+                                    class="flex h-9 w-full cursor-not-allowed items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm select-none"
+                                >
+                                    <span
+                                        class="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+                                        :class="
+                                            form.status === 'Active'
+                                                ? 'bg-green-500'
+                                                : 'bg-red-500'
+                                        "
+                                    >
+                                        {{ form.status }}
+                                    </span>
+                                </div>
+                                <Select v-else v-model="form.status">
+                                    <SelectTrigger
+                                        :class="{
+                                            'border-red-500': errors.status,
+                                        }"
+                                    >
+                                        <SelectValue
+                                            placeholder="Select status"
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Active"
+                                            >Active</SelectItem
+                                        >
+                                        <SelectItem value="Inactive"
+                                            >Inactive</SelectItem
+                                        >
+                                    </SelectContent>
+                                </Select>
+                                <p
+                                    v-if="errors.status"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ errors.status }}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Address -->
+                    <section class="border-t pt-8">
+                        <h3 class="text-base font-semibold">Address</h3>
+                        <p class="mt-0.5 text-sm text-muted-foreground">
+                            Where the employee lives.
+                        </p>
+                        <div
+                            v-if="employee.address"
+                            class="mt-5 rounded-lg bg-muted/40 px-4 py-3 text-sm"
+                        >
+                            <p class="mb-1 text-xs text-muted-foreground">
+                                Current address
+                            </p>
+                            <p class="font-medium">{{ employee.address }}</p>
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                Select a new province below to update, or just
+                                edit the street field.
+                            </p>
+                        </div>
+                        <div
+                            class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2"
+                        >
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium"
+                                    >Province</label
+                                >
+                                <Select
+                                    v-model="selectedProvince"
+                                    :disabled="loadingProvinces"
+                                >
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue>
+                                            <span
+                                                v-if="loadingProvinces"
+                                                class="flex items-center gap-1.5 text-muted-foreground"
+                                            >
+                                                <Loader2
+                                                    class="h-3 w-3 animate-spin"
+                                                />
+                                                Loading...
+                                            </span>
+                                            <span
+                                                v-else-if="!selectedProvince"
+                                                class="text-muted-foreground"
+                                                >Select province</span
+                                            >
+                                            <span v-else>{{
+                                                provinces.find(
+                                                    (p) =>
+                                                        p.code ===
+                                                        selectedProvince,
+                                                )?.name
+                                            }}</span>
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-60">
+                                        <SelectItem
+                                            v-for="p in provinces"
+                                            :key="p.code"
+                                            :value="p.code"
+                                            >{{ p.name }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium"
+                                    >City / Municipality</label
+                                >
+                                <Select
+                                    v-model="selectedCity"
+                                    :disabled="
+                                        !selectedProvince || loadingCities
+                                    "
+                                >
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue>
+                                            <span
+                                                v-if="loadingCities"
+                                                class="flex items-center gap-1.5 text-muted-foreground"
+                                            >
+                                                <Loader2
+                                                    class="h-3 w-3 animate-spin"
+                                                />
+                                                Loading...
+                                            </span>
+                                            <span
+                                                v-else-if="!selectedCity"
+                                                class="text-muted-foreground"
+                                                >Select city/municipality</span
+                                            >
+                                            <span v-else>{{
+                                                cities.find(
+                                                    (c) =>
+                                                        c.code === selectedCity,
+                                                )?.name
+                                            }}</span>
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-60">
+                                        <SelectItem
+                                            v-for="c in cities"
+                                            :key="c.code"
+                                            :value="c.code"
+                                            >{{ c.name }}</SelectItem
+                                        >
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium"
+                                    >Barangay</label
+                                >
+                                <Select
+                                    v-model="selectedBarangay"
+                                    :disabled="
+                                        !selectedCity || loadingBarangays
+                                    "
+                                >
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue>
+                                            <span
+                                                v-if="loadingBarangays"
+                                                class="flex items-center gap-1.5 text-muted-foreground"
+                                            >
+                                                <Loader2
+                                                    class="h-3 w-3 animate-spin"
+                                                />
+                                                Loading...
+                                            </span>
+                                            <span
+                                                v-else-if="!selectedBarangay"
+                                                class="text-muted-foreground"
+                                                >Select barangay</span
+                                            >
+                                            <span v-else>{{
+                                                barangays.find(
+                                                    (b) =>
+                                                        b.code ===
+                                                        selectedBarangay,
+                                                )?.name
+                                            }}</span>
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-60">
+                                        <SelectItem
+                                            v-for="b in barangays"
+                                            :key="b.code"
+                                            :value="b.code"
+                                            >{{ b.name }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-medium" for="street"
+                                    >Street / Block No.</label
+                                >
+                                <Input
+                                    id="street"
+                                    v-model="streetInput"
+                                    placeholder="e.g. 123 Rizal St."
+                                />
+                            </div>
+                        </div>
+                        <p
+                            v-if="fullAddress"
+                            class="mt-3 text-xs text-muted-foreground"
+                        >
+                            <span class="font-medium">Full address:</span>
+                            {{ fullAddress }}
+                        </p>
+                        <p
+                            v-if="errors.address"
+                            class="mt-1 text-xs text-red-500"
+                        >
+                            {{ errors.address }}
+                        </p>
+                    </section>
+
+                    <!-- System access -->
+                    <section class="space-y-4 border-t pt-8">
+                        <div>
+                            <h3 class="text-base font-semibold">
+                                System access
+                            </h3>
+                            <p class="mt-0.5 text-sm text-muted-foreground">
+                                Whether this employee can sign in.
+                            </p>
+                        </div>
+
+                        <div
+                            v-if="hasAccount"
+                            class="flex items-center gap-3 rounded-lg bg-green-50 px-4 py-3 dark:bg-green-900/20"
+                        >
+                            <div
+                                class="h-2 w-2 flex-shrink-0 rounded-full bg-green-500"
+                            />
+                            <p
+                                class="text-sm text-green-800 dark:text-green-200"
+                            >
+                                This employee already has a system account.
+                            </p>
+                        </div>
+
+                        <template v-else>
+                            <div class="flex items-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="create_account"
+                                    :checked="createAccount"
+                                    @change="
+                                        (e) => {
+                                            createAccount = e.target.checked;
+                                        }
+                                    "
+                                    class="mt-1 h-4 w-4 cursor-pointer rounded border-gray-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                />
+                                <div class="space-y-1">
+                                    <label
+                                        for="create_account"
+                                        class="cursor-pointer text-sm font-medium"
+                                    >
+                                        Create a system account for this
+                                        employee
+                                    </label>
+                                    <p class="text-xs text-muted-foreground">
+                                        A login account will be created using
+                                        the employee's email. The default
+                                        password will be their last name. Only
+                                        enable this for employees who need
+                                        system access.
+                                    </p>
+                                </div>
+                            </div>
+                            <p
+                                v-if="errors.create_account"
+                                class="text-xs text-red-500"
+                            >
+                                {{ errors.create_account }}
+                            </p>
+                        </template>
+                    </section>
+
+                    <!-- Schedule (owner only) -->
+                    <section v-if="isOwner" class="border-t pt-8">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-semibold">
+                                    Weekly schedule
+                                </h3>
+                                <p class="mt-0.5 text-sm text-muted-foreground">
+                                    Toggle workdays and set shift times. The
+                                    schedule is saved separately.
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                class="shrink-0"
+                                :disabled="savingSchedule"
+                                @click="saveSchedule"
+                            >
+                                <Loader2
+                                    v-if="savingSchedule"
+                                    class="mr-1.5 h-3.5 w-3.5 animate-spin"
+                                />
+                                {{
+                                    savingSchedule
+                                        ? 'Saving...'
+                                        : 'Save Schedule'
+                                }}
+                            </Button>
+                        </div>
+
+                        <div
+                            v-if="scheduleError"
+                            class="mt-4 flex items-center justify-between rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700"
+                        >
+                            <span>{{ scheduleError }}</span>
+                            <button
+                                type="button"
+                                aria-label="Dismiss schedule error"
+                                @click="scheduleError = null"
+                            >
+                                <X
+                                    class="ml-3 h-3.5 w-3.5 text-red-400 hover:text-red-600"
+                                />
+                            </button>
+                        </div>
+
+                        <div class="mt-5 divide-y border-y">
+                            <div
+                                v-for="d in scheduleMap"
+                                :key="d.day"
+                                class="flex flex-wrap items-center gap-x-4 gap-y-2 px-2 py-3 transition-colors"
+                                :class="d.enabled ? 'bg-primary/[0.08]' : ''"
+                            >
+                                <label
+                                    class="flex w-32 cursor-pointer items-center gap-3 select-none"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        v-model="d.enabled"
+                                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <span
+                                        class="text-sm font-medium"
+                                        :class="{
+                                            'text-muted-foreground': !d.enabled,
+                                        }"
+                                    >
+                                        {{ d.day }}
+                                    </span>
+                                </label>
+                                <template v-if="d.enabled">
+                                    <div class="flex items-center gap-2">
+                                        <Input
+                                            v-model="d.start_time"
+                                            type="time"
+                                            :aria-label="`${d.day} start time`"
+                                            class="h-8 w-32 text-sm"
+                                        />
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >to</span
+                                        >
+                                        <Input
+                                            v-model="d.end_time"
+                                            type="time"
+                                            :aria-label="`${d.day} end time`"
+                                            class="h-8 w-32 text-sm"
+                                        />
+                                    </div>
+                                </template>
+                                <span
+                                    v-else
+                                    class="text-sm text-muted-foreground"
+                                    >Day off</span
+                                >
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right column -->
+                <aside
+                    class="rounded-xl border bg-card p-4 shadow-sm lg:sticky lg:top-4"
+                >
+                    <p
+                        class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                    >
+                        Employee summary
+                    </p>
+                    <div class="mt-3 flex items-center gap-3">
+                        <div
+                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+                            aria-hidden="true"
+                        >
+                            {{ initials }}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-bold">
+                                {{ form.first_name }} {{ form.last_name }}
+                            </p>
+                            <p
+                                class="truncate font-mono text-xs text-muted-foreground"
+                            >
+                                {{ form.employee_id }}
+                            </p>
+                        </div>
+                    </div>
+                    <dl class="mt-3 space-y-1.5 text-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <dt class="text-muted-foreground">Position</dt>
+                            <dd class="font-medium capitalize">
+                                {{ form.position || '—' }}
+                            </dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <dt class="text-muted-foreground">Status</dt>
+                            <dd>
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+                                    :class="
+                                        form.status === 'Active'
+                                            ? 'bg-green-500'
+                                            : 'bg-red-500'
+                                    "
+                                    >{{ form.status }}</span
+                                >
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-4 border-t pt-4">
+                        <p
+                            class="text-xs text-muted-foreground"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            {{ saveStatus }}
+                        </p>
+
+                        <Button
+                            type="submit"
+                            class="mt-3 w-full"
+                            :disabled="!isDirty || isSubmitting"
+                        >
+                            <Loader2
+                                v-if="isSubmitting"
+                                class="mr-2 h-4 w-4 animate-spin"
+                            />
+                            {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            class="mt-2 w-full"
+                            :disabled="isSubmitting"
+                            @click="router.visit(`${baseRoute}/employee`)"
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </aside>
+            </form>
         </div>
     </ShopLayout>
 </template>

@@ -54,17 +54,18 @@ watch(
 // ─── Plan data ────────────────────────────────────────────────────────────────
 
 const PLAN_PRICES: Record<string, number> = {
-    Basic: 3800,
-    Standard: 6300,
-    Premium: 8000,
+    Basic: 999,
+    Standard: 1499,
+    Premium: 1999,
 };
 const PLAN_MODULES: Record<string, string[]> = {
-    Basic: ['HRM', 'Operations'],
+    Basic: ['HRM', 'Operations', 'Reports & Analytics'],
     Standard: [
         'HRM',
         'Operations',
         'Inventory Management',
         'Finance Management',
+        'Reports & Analytics',
     ],
     Premium: [
         'HRM',
@@ -74,6 +75,13 @@ const PLAN_MODULES: Record<string, string[]> = {
         'Reports & Analytics',
     ],
 };
+const modLabel = (mod: string, plan: string) =>
+    mod === 'Reports & Analytics'
+        ? plan === 'Premium'
+            ? 'Advanced Reports & Analytics'
+            : 'Basic Reports'
+        : mod;
+
 const MODULE_ICONS: Record<string, any> = {
     HRM: Users,
     Operations: ClipboardList,
@@ -372,7 +380,7 @@ function submit() {
                             :is="MODULE_ICONS[mod]"
                             class="h-3 w-3 shrink-0"
                         />
-                        {{ mod }}
+                        {{ modLabel(mod, planName) }}
                     </li>
                 </ul>
 

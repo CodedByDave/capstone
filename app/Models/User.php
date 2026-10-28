@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AccountType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -29,6 +30,7 @@ class User extends Authenticatable
         'password',
         'role',
         'shop_id',
+        'referred_shop_id',
         'otp_code',
         'otp_expires_at',
         'google_id',
@@ -57,6 +59,12 @@ class User extends Authenticatable
     public function shop()
     {
         return $this->hasOne(Shop::class, 'owner_id');
+    }
+
+    /** The shop whose QR this customer joined through; customers only see and order from it. */
+    public function referredShop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'referred_shop_id');
     }
 
     public function orders()
