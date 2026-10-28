@@ -215,7 +215,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-export const edit = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -230,7 +230,7 @@ edit.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-edit.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edit.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -263,7 +263,7 @@ edit.url = (args: { promotion: string | number | { id: string | number } } | [pr
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-edit.get = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -272,7 +272,7 @@ edit.get = (args: { promotion: string | number | { id: string | number } } | [pr
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-edit.head = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -282,7 +282,7 @@ edit.head = (args: { promotion: string | number | { id: string | number } } | [p
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-    const editForm = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -292,7 +292,7 @@ edit.head = (args: { promotion: string | number | { id: string | number } } | [p
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-        editForm.get = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
@@ -301,7 +301,7 @@ edit.head = (args: { promotion: string | number | { id: string | number } } | [p
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-        editForm.head = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -317,7 +317,7 @@ edit.head = (args: { promotion: string | number | { id: string | number } } | [p
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-export const update = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -332,7 +332,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-update.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -365,7 +365,7 @@ update.url = (args: { promotion: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-update.put = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -375,7 +375,7 @@ update.put = (args: { promotion: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-    const updateForm = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -390,7 +390,7 @@ update.put = (args: { promotion: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-        updateForm.put = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -406,7 +406,7 @@ update.put = (args: { promotion: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-export const toggle = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const toggle = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggle.url(args, options),
     method: 'patch',
 })
@@ -421,7 +421,7 @@ toggle.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-toggle.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+toggle.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -454,7 +454,7 @@ toggle.url = (args: { promotion: string | number | { id: string | number } } | [
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-toggle.patch = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+toggle.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggle.url(args, options),
     method: 'patch',
 })
@@ -464,7 +464,7 @@ toggle.patch = (args: { promotion: string | number | { id: string | number } } |
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-    const toggleForm = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const toggleForm = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: toggle.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -479,7 +479,7 @@ toggle.patch = (args: { promotion: string | number | { id: string | number } } |
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-        toggleForm.patch = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        toggleForm.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: toggle.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -579,7 +579,7 @@ restore.patch = (args: { promotion: string | number } | [promotion: string | num
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-export const destroy = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -594,7 +594,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-destroy.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -627,7 +627,7 @@ destroy.url = (args: { promotion: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-destroy.delete = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -637,7 +637,7 @@ destroy.delete = (args: { promotion: string | number | { id: string | number } }
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-    const destroyForm = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -652,7 +652,7 @@ destroy.delete = (args: { promotion: string | number | { id: string | number } }
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-        destroyForm.delete = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

@@ -282,7 +282,7 @@ export const store = {
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/shop/attendance/{attendance}'
  */
-const update1fa2a162924161645e27c9409c12cbbc = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update1fa2a162924161645e27c9409c12cbbc = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update1fa2a162924161645e27c9409c12cbbc.url(args, options),
     method: 'put',
 })
@@ -297,7 +297,7 @@ update1fa2a162924161645e27c9409c12cbbc.definition = {
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/shop/attendance/{attendance}'
  */
-update1fa2a162924161645e27c9409c12cbbc.url = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update1fa2a162924161645e27c9409c12cbbc.url = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { attendance: args }
     }
@@ -330,7 +330,7 @@ update1fa2a162924161645e27c9409c12cbbc.url = (args: { attendance: string | numbe
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/shop/attendance/{attendance}'
  */
-update1fa2a162924161645e27c9409c12cbbc.put = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update1fa2a162924161645e27c9409c12cbbc.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update1fa2a162924161645e27c9409c12cbbc.url(args, options),
     method: 'put',
 })
@@ -340,7 +340,7 @@ update1fa2a162924161645e27c9409c12cbbc.put = (args: { attendance: string | numbe
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/shop/attendance/{attendance}'
  */
-    const update1fa2a162924161645e27c9409c12cbbcForm = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update1fa2a162924161645e27c9409c12cbbcForm = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update1fa2a162924161645e27c9409c12cbbc.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -355,7 +355,7 @@ update1fa2a162924161645e27c9409c12cbbc.put = (args: { attendance: string | numbe
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/shop/attendance/{attendance}'
  */
-        update1fa2a162924161645e27c9409c12cbbcForm.put = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update1fa2a162924161645e27c9409c12cbbcForm.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update1fa2a162924161645e27c9409c12cbbc.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -371,7 +371,7 @@ update1fa2a162924161645e27c9409c12cbbc.put = (args: { attendance: string | numbe
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-const update1a75db1137789a1fa4b91c4a0368eaef = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update1a75db1137789a1fa4b91c4a0368eaef = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update1a75db1137789a1fa4b91c4a0368eaef.url(args, options),
     method: 'put',
 })
@@ -386,7 +386,7 @@ update1a75db1137789a1fa4b91c4a0368eaef.definition = {
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-update1a75db1137789a1fa4b91c4a0368eaef.url = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update1a75db1137789a1fa4b91c4a0368eaef.url = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { attendance: args }
     }
@@ -419,7 +419,7 @@ update1a75db1137789a1fa4b91c4a0368eaef.url = (args: { attendance: string | numbe
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-update1a75db1137789a1fa4b91c4a0368eaef.put = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update1a75db1137789a1fa4b91c4a0368eaef.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update1a75db1137789a1fa4b91c4a0368eaef.url(args, options),
     method: 'put',
 })
@@ -429,7 +429,7 @@ update1a75db1137789a1fa4b91c4a0368eaef.put = (args: { attendance: string | numbe
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-    const update1a75db1137789a1fa4b91c4a0368eaefForm = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update1a75db1137789a1fa4b91c4a0368eaefForm = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update1a75db1137789a1fa4b91c4a0368eaef.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -444,7 +444,7 @@ update1a75db1137789a1fa4b91c4a0368eaef.put = (args: { attendance: string | numbe
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-        update1a75db1137789a1fa4b91c4a0368eaefForm.put = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update1a75db1137789a1fa4b91c4a0368eaefForm.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update1a75db1137789a1fa4b91c4a0368eaef.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',

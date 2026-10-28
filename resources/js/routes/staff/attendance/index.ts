@@ -247,7 +247,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-export const update = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -262,7 +262,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-update.url = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { attendance: args }
     }
@@ -295,7 +295,7 @@ update.url = (args: { attendance: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-update.put = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -305,7 +305,7 @@ update.put = (args: { attendance: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-    const updateForm = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -320,7 +320,7 @@ update.put = (args: { attendance: string | number | { id: string | number } } | 
  * @see app/Http/Controllers/Shop/Employee/AttendanceController.php:75
  * @route '/staff/attendance/{attendance}'
  */
-        updateForm.put = (args: { attendance: string | number | { id: string | number } } | [attendance: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { attendance: number | { id: number } } | [attendance: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',

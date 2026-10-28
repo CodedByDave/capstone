@@ -1000,7 +1000,7 @@ export const restoreAll = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/shop/operations/services/{service}/edit'
  */
-const editff96fda3a296604b1e57cdb10db1fd42 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const editff96fda3a296604b1e57cdb10db1fd42 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: editff96fda3a296604b1e57cdb10db1fd42.url(args, options),
     method: 'get',
 })
@@ -1015,7 +1015,7 @@ editff96fda3a296604b1e57cdb10db1fd42.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/shop/operations/services/{service}/edit'
  */
-editff96fda3a296604b1e57cdb10db1fd42.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+editff96fda3a296604b1e57cdb10db1fd42.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1048,7 +1048,7 @@ editff96fda3a296604b1e57cdb10db1fd42.url = (args: { service: string | number | {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/shop/operations/services/{service}/edit'
  */
-editff96fda3a296604b1e57cdb10db1fd42.get = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+editff96fda3a296604b1e57cdb10db1fd42.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: editff96fda3a296604b1e57cdb10db1fd42.url(args, options),
     method: 'get',
 })
@@ -1057,7 +1057,7 @@ editff96fda3a296604b1e57cdb10db1fd42.get = (args: { service: string | number | {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/shop/operations/services/{service}/edit'
  */
-editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: editff96fda3a296604b1e57cdb10db1fd42.url(args, options),
     method: 'head',
 })
@@ -1067,7 +1067,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: string | number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/shop/operations/services/{service}/edit'
  */
-    const editff96fda3a296604b1e57cdb10db1fd42Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editff96fda3a296604b1e57cdb10db1fd42Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: editff96fda3a296604b1e57cdb10db1fd42.url(args, options),
         method: 'get',
     })
@@ -1077,7 +1077,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: string | number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/shop/operations/services/{service}/edit'
  */
-        editff96fda3a296604b1e57cdb10db1fd42Form.get = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editff96fda3a296604b1e57cdb10db1fd42Form.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: editff96fda3a296604b1e57cdb10db1fd42.url(args, options),
             method: 'get',
         })
@@ -1086,7 +1086,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: string | number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/shop/operations/services/{service}/edit'
  */
-        editff96fda3a296604b1e57cdb10db1fd42Form.head = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editff96fda3a296604b1e57cdb10db1fd42Form.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: editff96fda3a296604b1e57cdb10db1fd42.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -1102,7 +1102,7 @@ editff96fda3a296604b1e57cdb10db1fd42.head = (args: { service: string | number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-const editae2dfaae269ba2620585b7ae9512af71 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const editae2dfaae269ba2620585b7ae9512af71 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: editae2dfaae269ba2620585b7ae9512af71.url(args, options),
     method: 'get',
 })
@@ -1117,7 +1117,7 @@ editae2dfaae269ba2620585b7ae9512af71.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-editae2dfaae269ba2620585b7ae9512af71.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+editae2dfaae269ba2620585b7ae9512af71.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1150,7 +1150,7 @@ editae2dfaae269ba2620585b7ae9512af71.url = (args: { service: string | number | {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-editae2dfaae269ba2620585b7ae9512af71.get = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+editae2dfaae269ba2620585b7ae9512af71.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: editae2dfaae269ba2620585b7ae9512af71.url(args, options),
     method: 'get',
 })
@@ -1159,7 +1159,7 @@ editae2dfaae269ba2620585b7ae9512af71.get = (args: { service: string | number | {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: editae2dfaae269ba2620585b7ae9512af71.url(args, options),
     method: 'head',
 })
@@ -1169,7 +1169,7 @@ editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: string | number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-    const editae2dfaae269ba2620585b7ae9512af71Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editae2dfaae269ba2620585b7ae9512af71Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: editae2dfaae269ba2620585b7ae9512af71.url(args, options),
         method: 'get',
     })
@@ -1179,7 +1179,7 @@ editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: string | number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-        editae2dfaae269ba2620585b7ae9512af71Form.get = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editae2dfaae269ba2620585b7ae9512af71Form.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: editae2dfaae269ba2620585b7ae9512af71.url(args, options),
             method: 'get',
         })
@@ -1188,7 +1188,7 @@ editae2dfaae269ba2620585b7ae9512af71.head = (args: { service: string | number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-        editae2dfaae269ba2620585b7ae9512af71Form.head = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editae2dfaae269ba2620585b7ae9512af71Form.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: editae2dfaae269ba2620585b7ae9512af71.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -1210,7 +1210,7 @@ export const edit = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/shop/operations/services/{service}'
  */
-const updatee9ab3d744718a35303c175ccfb883b75 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updatee9ab3d744718a35303c175ccfb883b75 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatee9ab3d744718a35303c175ccfb883b75.url(args, options),
     method: 'put',
 })
@@ -1225,7 +1225,7 @@ updatee9ab3d744718a35303c175ccfb883b75.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/shop/operations/services/{service}'
  */
-updatee9ab3d744718a35303c175ccfb883b75.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+updatee9ab3d744718a35303c175ccfb883b75.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1258,7 +1258,7 @@ updatee9ab3d744718a35303c175ccfb883b75.url = (args: { service: string | number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/shop/operations/services/{service}'
  */
-updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatee9ab3d744718a35303c175ccfb883b75.url(args, options),
     method: 'put',
 })
@@ -1268,7 +1268,7 @@ updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: string | number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/shop/operations/services/{service}'
  */
-    const updatee9ab3d744718a35303c175ccfb883b75Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updatee9ab3d744718a35303c175ccfb883b75Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updatee9ab3d744718a35303c175ccfb883b75.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -1283,7 +1283,7 @@ updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: string | number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/shop/operations/services/{service}'
  */
-        updatee9ab3d744718a35303c175ccfb883b75Form.put = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updatee9ab3d744718a35303c175ccfb883b75Form.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updatee9ab3d744718a35303c175ccfb883b75.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -1299,7 +1299,7 @@ updatee9ab3d744718a35303c175ccfb883b75.put = (args: { service: string | number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-const updatebb9db02789b70ee0b379bb45f3d6ad78 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updatebb9db02789b70ee0b379bb45f3d6ad78 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatebb9db02789b70ee0b379bb45f3d6ad78.url(args, options),
     method: 'put',
 })
@@ -1314,7 +1314,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-updatebb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+updatebb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1347,7 +1347,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: string | number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-updatebb9db02789b70ee0b379bb45f3d6ad78.put = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updatebb9db02789b70ee0b379bb45f3d6ad78.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatebb9db02789b70ee0b379bb45f3d6ad78.url(args, options),
     method: 'put',
 })
@@ -1357,7 +1357,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.put = (args: { service: string | number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-    const updatebb9db02789b70ee0b379bb45f3d6ad78Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updatebb9db02789b70ee0b379bb45f3d6ad78Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updatebb9db02789b70ee0b379bb45f3d6ad78.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -1372,7 +1372,7 @@ updatebb9db02789b70ee0b379bb45f3d6ad78.put = (args: { service: string | number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-        updatebb9db02789b70ee0b379bb45f3d6ad78Form.put = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updatebb9db02789b70ee0b379bb45f3d6ad78Form.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updatebb9db02789b70ee0b379bb45f3d6ad78.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -1394,7 +1394,7 @@ export const update = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/shop/operations/services/{service}'
  */
-const destroye9ab3d744718a35303c175ccfb883b75 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroye9ab3d744718a35303c175ccfb883b75 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroye9ab3d744718a35303c175ccfb883b75.url(args, options),
     method: 'delete',
 })
@@ -1409,7 +1409,7 @@ destroye9ab3d744718a35303c175ccfb883b75.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/shop/operations/services/{service}'
  */
-destroye9ab3d744718a35303c175ccfb883b75.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroye9ab3d744718a35303c175ccfb883b75.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1442,7 +1442,7 @@ destroye9ab3d744718a35303c175ccfb883b75.url = (args: { service: string | number 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/shop/operations/services/{service}'
  */
-destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroye9ab3d744718a35303c175ccfb883b75.url(args, options),
     method: 'delete',
 })
@@ -1452,7 +1452,7 @@ destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/shop/operations/services/{service}'
  */
-    const destroye9ab3d744718a35303c175ccfb883b75Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroye9ab3d744718a35303c175ccfb883b75Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroye9ab3d744718a35303c175ccfb883b75.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1467,7 +1467,7 @@ destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/shop/operations/services/{service}'
  */
-        destroye9ab3d744718a35303c175ccfb883b75Form.delete = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroye9ab3d744718a35303c175ccfb883b75Form.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroye9ab3d744718a35303c175ccfb883b75.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1483,7 +1483,7 @@ destroye9ab3d744718a35303c175ccfb883b75.delete = (args: { service: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-const destroybb9db02789b70ee0b379bb45f3d6ad78 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroybb9db02789b70ee0b379bb45f3d6ad78 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroybb9db02789b70ee0b379bb45f3d6ad78.url(args, options),
     method: 'delete',
 })
@@ -1498,7 +1498,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-destroybb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroybb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1531,7 +1531,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.url = (args: { service: string | number 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-destroybb9db02789b70ee0b379bb45f3d6ad78.delete = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroybb9db02789b70ee0b379bb45f3d6ad78.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroybb9db02789b70ee0b379bb45f3d6ad78.url(args, options),
     method: 'delete',
 })
@@ -1541,7 +1541,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.delete = (args: { service: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-    const destroybb9db02789b70ee0b379bb45f3d6ad78Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroybb9db02789b70ee0b379bb45f3d6ad78Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroybb9db02789b70ee0b379bb45f3d6ad78.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1556,7 +1556,7 @@ destroybb9db02789b70ee0b379bb45f3d6ad78.delete = (args: { service: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-        destroybb9db02789b70ee0b379bb45f3d6ad78Form.delete = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroybb9db02789b70ee0b379bb45f3d6ad78Form.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroybb9db02789b70ee0b379bb45f3d6ad78.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1578,7 +1578,7 @@ export const destroy = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/shop/operations/services/{service}/toggle'
  */
-const toggleActivea265d049ab0a5a58628af29b925615ee = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const toggleActivea265d049ab0a5a58628af29b925615ee = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActivea265d049ab0a5a58628af29b925615ee.url(args, options),
     method: 'patch',
 })
@@ -1593,7 +1593,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/shop/operations/services/{service}/toggle'
  */
-toggleActivea265d049ab0a5a58628af29b925615ee.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+toggleActivea265d049ab0a5a58628af29b925615ee.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1626,7 +1626,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.url = (args: { service: string | nu
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/shop/operations/services/{service}/toggle'
  */
-toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActivea265d049ab0a5a58628af29b925615ee.url(args, options),
     method: 'patch',
 })
@@ -1636,7 +1636,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: string | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/shop/operations/services/{service}/toggle'
  */
-    const toggleActivea265d049ab0a5a58628af29b925615eeForm = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const toggleActivea265d049ab0a5a58628af29b925615eeForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: toggleActivea265d049ab0a5a58628af29b925615ee.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -1651,7 +1651,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: string | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/shop/operations/services/{service}/toggle'
  */
-        toggleActivea265d049ab0a5a58628af29b925615eeForm.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        toggleActivea265d049ab0a5a58628af29b925615eeForm.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: toggleActivea265d049ab0a5a58628af29b925615ee.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -1667,7 +1667,7 @@ toggleActivea265d049ab0a5a58628af29b925615ee.patch = (args: { service: string | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-const toggleActive3ce389933df36d1be9f98e9cc88d9278 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const toggleActive3ce389933df36d1be9f98e9cc88d9278 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActive3ce389933df36d1be9f98e9cc88d9278.url(args, options),
     method: 'patch',
 })
@@ -1682,7 +1682,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-toggleActive3ce389933df36d1be9f98e9cc88d9278.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+toggleActive3ce389933df36d1be9f98e9cc88d9278.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1715,7 +1715,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.url = (args: { service: string | nu
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-toggleActive3ce389933df36d1be9f98e9cc88d9278.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+toggleActive3ce389933df36d1be9f98e9cc88d9278.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActive3ce389933df36d1be9f98e9cc88d9278.url(args, options),
     method: 'patch',
 })
@@ -1725,7 +1725,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.patch = (args: { service: string | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-    const toggleActive3ce389933df36d1be9f98e9cc88d9278Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const toggleActive3ce389933df36d1be9f98e9cc88d9278Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: toggleActive3ce389933df36d1be9f98e9cc88d9278.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -1740,7 +1740,7 @@ toggleActive3ce389933df36d1be9f98e9cc88d9278.patch = (args: { service: string | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-        toggleActive3ce389933df36d1be9f98e9cc88d9278Form.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        toggleActive3ce389933df36d1be9f98e9cc88d9278Form.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: toggleActive3ce389933df36d1be9f98e9cc88d9278.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -1762,7 +1762,7 @@ export const toggleActive = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/shop/operations/services/{service}/restore'
  */
-const restore702ff9ce9291e339ce7ead51131a5a13 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const restore702ff9ce9291e339ce7ead51131a5a13 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore702ff9ce9291e339ce7ead51131a5a13.url(args, options),
     method: 'patch',
 })
@@ -1777,7 +1777,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/shop/operations/services/{service}/restore'
  */
-restore702ff9ce9291e339ce7ead51131a5a13.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+restore702ff9ce9291e339ce7ead51131a5a13.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1810,7 +1810,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.url = (args: { service: string | number 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/shop/operations/services/{service}/restore'
  */
-restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore702ff9ce9291e339ce7ead51131a5a13.url(args, options),
     method: 'patch',
 })
@@ -1820,7 +1820,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/shop/operations/services/{service}/restore'
  */
-    const restore702ff9ce9291e339ce7ead51131a5a13Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const restore702ff9ce9291e339ce7ead51131a5a13Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: restore702ff9ce9291e339ce7ead51131a5a13.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -1835,7 +1835,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/shop/operations/services/{service}/restore'
  */
-        restore702ff9ce9291e339ce7ead51131a5a13Form.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        restore702ff9ce9291e339ce7ead51131a5a13Form.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: restore702ff9ce9291e339ce7ead51131a5a13.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -1851,7 +1851,7 @@ restore702ff9ce9291e339ce7ead51131a5a13.patch = (args: { service: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-const restore223fb1e6f3bda34708848fd57a7eea19 = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const restore223fb1e6f3bda34708848fd57a7eea19 = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore223fb1e6f3bda34708848fd57a7eea19.url(args, options),
     method: 'patch',
 })
@@ -1866,7 +1866,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-restore223fb1e6f3bda34708848fd57a7eea19.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+restore223fb1e6f3bda34708848fd57a7eea19.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -1899,7 +1899,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.url = (args: { service: string | number 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-restore223fb1e6f3bda34708848fd57a7eea19.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+restore223fb1e6f3bda34708848fd57a7eea19.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore223fb1e6f3bda34708848fd57a7eea19.url(args, options),
     method: 'patch',
 })
@@ -1909,7 +1909,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.patch = (args: { service: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-    const restore223fb1e6f3bda34708848fd57a7eea19Form = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const restore223fb1e6f3bda34708848fd57a7eea19Form = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: restore223fb1e6f3bda34708848fd57a7eea19.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -1924,7 +1924,7 @@ restore223fb1e6f3bda34708848fd57a7eea19.patch = (args: { service: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-        restore223fb1e6f3bda34708848fd57a7eea19Form.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        restore223fb1e6f3bda34708848fd57a7eea19Form.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: restore223fb1e6f3bda34708848fd57a7eea19.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',

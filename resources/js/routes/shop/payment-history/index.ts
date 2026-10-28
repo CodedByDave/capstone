@@ -82,7 +82,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/Shop/PaymentHistoryController.php:27
  * @route '/shop/payment-history/{order}'
  */
-export const show = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const show = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -97,7 +97,7 @@ show.definition = {
  * @see app/Http/Controllers/Shop/PaymentHistoryController.php:27
  * @route '/shop/payment-history/{order}'
  */
-show.url = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+show.url = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -130,7 +130,7 @@ show.url = (args: { order: string | number | { public_id: string | number } } | 
  * @see app/Http/Controllers/Shop/PaymentHistoryController.php:27
  * @route '/shop/payment-history/{order}'
  */
-show.get = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show.get = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -139,7 +139,7 @@ show.get = (args: { order: string | number | { public_id: string | number } } | 
  * @see app/Http/Controllers/Shop/PaymentHistoryController.php:27
  * @route '/shop/payment-history/{order}'
  */
-show.head = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show.head = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show.url(args, options),
     method: 'head',
 })
@@ -149,7 +149,7 @@ show.head = (args: { order: string | number | { public_id: string | number } } |
  * @see app/Http/Controllers/Shop/PaymentHistoryController.php:27
  * @route '/shop/payment-history/{order}'
  */
-    const showForm = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showForm = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show.url(args, options),
         method: 'get',
     })
@@ -159,7 +159,7 @@ show.head = (args: { order: string | number | { public_id: string | number } } |
  * @see app/Http/Controllers/Shop/PaymentHistoryController.php:27
  * @route '/shop/payment-history/{order}'
  */
-        showForm.get = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.get = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, options),
             method: 'get',
         })
@@ -168,7 +168,7 @@ show.head = (args: { order: string | number | { public_id: string | number } } |
  * @see app/Http/Controllers/Shop/PaymentHistoryController.php:27
  * @route '/shop/payment-history/{order}'
  */
-        showForm.head = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.head = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

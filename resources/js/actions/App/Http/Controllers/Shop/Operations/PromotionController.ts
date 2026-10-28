@@ -444,7 +444,7 @@ export const store = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/shop/operations/promos/{promotion}/edit'
  */
-const edit95f895296bb40647272d019b543a0368 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit95f895296bb40647272d019b543a0368 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit95f895296bb40647272d019b543a0368.url(args, options),
     method: 'get',
 })
@@ -459,7 +459,7 @@ edit95f895296bb40647272d019b543a0368.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/shop/operations/promos/{promotion}/edit'
  */
-edit95f895296bb40647272d019b543a0368.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edit95f895296bb40647272d019b543a0368.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -492,7 +492,7 @@ edit95f895296bb40647272d019b543a0368.url = (args: { promotion: string | number |
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/shop/operations/promos/{promotion}/edit'
  */
-edit95f895296bb40647272d019b543a0368.get = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit95f895296bb40647272d019b543a0368.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit95f895296bb40647272d019b543a0368.url(args, options),
     method: 'get',
 })
@@ -501,7 +501,7 @@ edit95f895296bb40647272d019b543a0368.get = (args: { promotion: string | number |
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/shop/operations/promos/{promotion}/edit'
  */
-edit95f895296bb40647272d019b543a0368.head = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit95f895296bb40647272d019b543a0368.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit95f895296bb40647272d019b543a0368.url(args, options),
     method: 'head',
 })
@@ -511,7 +511,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: string | number 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/shop/operations/promos/{promotion}/edit'
  */
-    const edit95f895296bb40647272d019b543a0368Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit95f895296bb40647272d019b543a0368Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit95f895296bb40647272d019b543a0368.url(args, options),
         method: 'get',
     })
@@ -521,7 +521,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: string | number 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/shop/operations/promos/{promotion}/edit'
  */
-        edit95f895296bb40647272d019b543a0368Form.get = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit95f895296bb40647272d019b543a0368Form.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit95f895296bb40647272d019b543a0368.url(args, options),
             method: 'get',
         })
@@ -530,7 +530,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: string | number 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/shop/operations/promos/{promotion}/edit'
  */
-        edit95f895296bb40647272d019b543a0368Form.head = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit95f895296bb40647272d019b543a0368Form.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit95f895296bb40647272d019b543a0368.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -546,7 +546,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: string | number 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-const edit13aa6292ef14e6d94015ee222b5b9671 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit13aa6292ef14e6d94015ee222b5b9671 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit13aa6292ef14e6d94015ee222b5b9671.url(args, options),
     method: 'get',
 })
@@ -561,7 +561,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-edit13aa6292ef14e6d94015ee222b5b9671.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edit13aa6292ef14e6d94015ee222b5b9671.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -594,7 +594,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.url = (args: { promotion: string | number |
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-edit13aa6292ef14e6d94015ee222b5b9671.get = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit13aa6292ef14e6d94015ee222b5b9671.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit13aa6292ef14e6d94015ee222b5b9671.url(args, options),
     method: 'get',
 })
@@ -603,7 +603,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.get = (args: { promotion: string | number |
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit13aa6292ef14e6d94015ee222b5b9671.url(args, options),
     method: 'head',
 })
@@ -613,7 +613,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: string | number 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-    const edit13aa6292ef14e6d94015ee222b5b9671Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit13aa6292ef14e6d94015ee222b5b9671Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit13aa6292ef14e6d94015ee222b5b9671.url(args, options),
         method: 'get',
     })
@@ -623,7 +623,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: string | number 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-        edit13aa6292ef14e6d94015ee222b5b9671Form.get = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit13aa6292ef14e6d94015ee222b5b9671Form.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit13aa6292ef14e6d94015ee222b5b9671.url(args, options),
             method: 'get',
         })
@@ -632,7 +632,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: string | number 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
  * @route '/staff/operations/promos/{promotion}/edit'
  */
-        edit13aa6292ef14e6d94015ee222b5b9671Form.head = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit13aa6292ef14e6d94015ee222b5b9671Form.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit13aa6292ef14e6d94015ee222b5b9671.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -654,7 +654,7 @@ export const edit = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/shop/operations/promos/{promotion}'
  */
-const update24cb406459369ee1dbf9e397062e5e73 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update24cb406459369ee1dbf9e397062e5e73 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update24cb406459369ee1dbf9e397062e5e73.url(args, options),
     method: 'put',
 })
@@ -669,7 +669,7 @@ update24cb406459369ee1dbf9e397062e5e73.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/shop/operations/promos/{promotion}'
  */
-update24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -702,7 +702,7 @@ update24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: string | number
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/shop/operations/promos/{promotion}'
  */
-update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update24cb406459369ee1dbf9e397062e5e73.url(args, options),
     method: 'put',
 })
@@ -712,7 +712,7 @@ update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: string | number
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/shop/operations/promos/{promotion}'
  */
-    const update24cb406459369ee1dbf9e397062e5e73Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update24cb406459369ee1dbf9e397062e5e73Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update24cb406459369ee1dbf9e397062e5e73.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -727,7 +727,7 @@ update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: string | number
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/shop/operations/promos/{promotion}'
  */
-        update24cb406459369ee1dbf9e397062e5e73Form.put = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update24cb406459369ee1dbf9e397062e5e73Form.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update24cb406459369ee1dbf9e397062e5e73.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -743,7 +743,7 @@ update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: string | number
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-const update0fb4570b2c298095301e289765df7319 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update0fb4570b2c298095301e289765df7319 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update0fb4570b2c298095301e289765df7319.url(args, options),
     method: 'put',
 })
@@ -758,7 +758,7 @@ update0fb4570b2c298095301e289765df7319.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-update0fb4570b2c298095301e289765df7319.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update0fb4570b2c298095301e289765df7319.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -791,7 +791,7 @@ update0fb4570b2c298095301e289765df7319.url = (args: { promotion: string | number
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-update0fb4570b2c298095301e289765df7319.put = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update0fb4570b2c298095301e289765df7319.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update0fb4570b2c298095301e289765df7319.url(args, options),
     method: 'put',
 })
@@ -801,7 +801,7 @@ update0fb4570b2c298095301e289765df7319.put = (args: { promotion: string | number
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-    const update0fb4570b2c298095301e289765df7319Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update0fb4570b2c298095301e289765df7319Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update0fb4570b2c298095301e289765df7319.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -816,7 +816,7 @@ update0fb4570b2c298095301e289765df7319.put = (args: { promotion: string | number
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
  * @route '/staff/operations/promos/{promotion}'
  */
-        update0fb4570b2c298095301e289765df7319Form.put = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update0fb4570b2c298095301e289765df7319Form.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update0fb4570b2c298095301e289765df7319.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -838,7 +838,7 @@ export const update = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
-const toggleActive5730ad0ee9897bc69e40d4361ed01bc9 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const toggleActive5730ad0ee9897bc69e40d4361ed01bc9 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url(args, options),
     method: 'patch',
 })
@@ -853,7 +853,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
-toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -886,7 +886,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url = (args: { promotion: string | 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
-toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url(args, options),
     method: 'patch',
 })
@@ -896,7 +896,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: string 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
-    const toggleActive5730ad0ee9897bc69e40d4361ed01bc9Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const toggleActive5730ad0ee9897bc69e40d4361ed01bc9Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -911,7 +911,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: string 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
-        toggleActive5730ad0ee9897bc69e40d4361ed01bc9Form.patch = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        toggleActive5730ad0ee9897bc69e40d4361ed01bc9Form.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -927,7 +927,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: string 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-const toggleActive8ed1eac8b7193796f68ee24a241e76e0 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const toggleActive8ed1eac8b7193796f68ee24a241e76e0 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActive8ed1eac8b7193796f68ee24a241e76e0.url(args, options),
     method: 'patch',
 })
@@ -942,7 +942,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-toggleActive8ed1eac8b7193796f68ee24a241e76e0.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+toggleActive8ed1eac8b7193796f68ee24a241e76e0.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -975,7 +975,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.url = (args: { promotion: string | 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-toggleActive8ed1eac8b7193796f68ee24a241e76e0.patch = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+toggleActive8ed1eac8b7193796f68ee24a241e76e0.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggleActive8ed1eac8b7193796f68ee24a241e76e0.url(args, options),
     method: 'patch',
 })
@@ -985,7 +985,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.patch = (args: { promotion: string 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-    const toggleActive8ed1eac8b7193796f68ee24a241e76e0Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const toggleActive8ed1eac8b7193796f68ee24a241e76e0Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: toggleActive8ed1eac8b7193796f68ee24a241e76e0.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -1000,7 +1000,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.patch = (args: { promotion: string 
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
-        toggleActive8ed1eac8b7193796f68ee24a241e76e0Form.patch = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        toggleActive8ed1eac8b7193796f68ee24a241e76e0Form.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: toggleActive8ed1eac8b7193796f68ee24a241e76e0.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -1022,7 +1022,7 @@ export const toggleActive = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/shop/operations/promos/{promotion}'
  */
-const destroy24cb406459369ee1dbf9e397062e5e73 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy24cb406459369ee1dbf9e397062e5e73 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy24cb406459369ee1dbf9e397062e5e73.url(args, options),
     method: 'delete',
 })
@@ -1037,7 +1037,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/shop/operations/promos/{promotion}'
  */
-destroy24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -1070,7 +1070,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: string | numbe
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/shop/operations/promos/{promotion}'
  */
-destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy24cb406459369ee1dbf9e397062e5e73.url(args, options),
     method: 'delete',
 })
@@ -1080,7 +1080,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: string | nu
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/shop/operations/promos/{promotion}'
  */
-    const destroy24cb406459369ee1dbf9e397062e5e73Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy24cb406459369ee1dbf9e397062e5e73Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy24cb406459369ee1dbf9e397062e5e73.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1095,7 +1095,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: string | nu
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/shop/operations/promos/{promotion}'
  */
-        destroy24cb406459369ee1dbf9e397062e5e73Form.delete = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy24cb406459369ee1dbf9e397062e5e73Form.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy24cb406459369ee1dbf9e397062e5e73.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1111,7 +1111,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: string | nu
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-const destroy0fb4570b2c298095301e289765df7319 = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy0fb4570b2c298095301e289765df7319 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy0fb4570b2c298095301e289765df7319.url(args, options),
     method: 'delete',
 })
@@ -1126,7 +1126,7 @@ destroy0fb4570b2c298095301e289765df7319.definition = {
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-destroy0fb4570b2c298095301e289765df7319.url = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy0fb4570b2c298095301e289765df7319.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { promotion: args }
     }
@@ -1159,7 +1159,7 @@ destroy0fb4570b2c298095301e289765df7319.url = (args: { promotion: string | numbe
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-destroy0fb4570b2c298095301e289765df7319.delete = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy0fb4570b2c298095301e289765df7319.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy0fb4570b2c298095301e289765df7319.url(args, options),
     method: 'delete',
 })
@@ -1169,7 +1169,7 @@ destroy0fb4570b2c298095301e289765df7319.delete = (args: { promotion: string | nu
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-    const destroy0fb4570b2c298095301e289765df7319Form = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy0fb4570b2c298095301e289765df7319Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy0fb4570b2c298095301e289765df7319.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1184,7 +1184,7 @@ destroy0fb4570b2c298095301e289765df7319.delete = (args: { promotion: string | nu
  * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
  * @route '/staff/operations/promos/{promotion}'
  */
-        destroy0fb4570b2c298095301e289765df7319Form.delete = (args: { promotion: string | number | { id: string | number } } | [promotion: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy0fb4570b2c298095301e289765df7319Form.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy0fb4570b2c298095301e289765df7319.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

@@ -216,7 +216,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
-export const show = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const show = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -231,7 +231,7 @@ show.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
-show.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+show.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -264,7 +264,7 @@ show.url = (args: { order: string | number | { payment_public_id: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
-show.get = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -273,7 +273,7 @@ show.get = (args: { order: string | number | { payment_public_id: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
-show.head = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show.url(args, options),
     method: 'head',
 })
@@ -283,7 +283,7 @@ show.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
-    const showForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show.url(args, options),
         method: 'get',
     })
@@ -293,7 +293,7 @@ show.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
-        showForm.get = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, options),
             method: 'get',
         })
@@ -302,7 +302,7 @@ show.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:120
  * @route '/staff/operations/orders/{order}'
  */
-        showForm.head = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -318,7 +318,7 @@ show.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
-export const edit = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -333,7 +333,7 @@ edit.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
-edit.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+edit.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -366,7 +366,7 @@ edit.url = (args: { order: string | number | { payment_public_id: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
-edit.get = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -375,7 +375,7 @@ edit.get = (args: { order: string | number | { payment_public_id: string | numbe
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
-edit.head = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -385,7 +385,7 @@ edit.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
-    const editForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -395,7 +395,7 @@ edit.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
-        editForm.get = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
@@ -404,7 +404,7 @@ edit.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:144
  * @route '/staff/operations/orders/{order}/edit'
  */
-        editForm.head = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -420,7 +420,7 @@ edit.head = (args: { order: string | number | { payment_public_id: string | numb
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
-export const update = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -435,7 +435,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
-update.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -468,7 +468,7 @@ update.url = (args: { order: string | number | { payment_public_id: string | num
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
-update.put = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -478,7 +478,7 @@ update.put = (args: { order: string | number | { payment_public_id: string | num
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
-    const updateForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -493,7 +493,7 @@ update.put = (args: { order: string | number | { payment_public_id: string | num
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:172
  * @route '/staff/operations/orders/{order}'
  */
-        updateForm.put = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -509,7 +509,7 @@ update.put = (args: { order: string | number | { payment_public_id: string | num
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
-export const restore = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const restore = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore.url(args, options),
     method: 'patch',
 })
@@ -524,7 +524,7 @@ restore.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
-restore.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+restore.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -557,7 +557,7 @@ restore.url = (args: { order: string | number | { payment_public_id: string | nu
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
-restore.patch = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+restore.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore.url(args, options),
     method: 'patch',
 })
@@ -567,7 +567,7 @@ restore.patch = (args: { order: string | number | { payment_public_id: string | 
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
-    const restoreForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const restoreForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: restore.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -582,7 +582,7 @@ restore.patch = (args: { order: string | number | { payment_public_id: string | 
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:240
  * @route '/staff/operations/orders/{order}/restore'
  */
-        restoreForm.patch = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        restoreForm.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: restore.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -653,7 +653,7 @@ restoreAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
-export const destroy = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -668,7 +668,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
-destroy.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -701,7 +701,7 @@ destroy.url = (args: { order: string | number | { payment_public_id: string | nu
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
-destroy.delete = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -711,7 +711,7 @@ destroy.delete = (args: { order: string | number | { payment_public_id: string |
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
-    const destroyForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -726,7 +726,7 @@ destroy.delete = (args: { order: string | number | { payment_public_id: string |
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:229
  * @route '/staff/operations/orders/{order}'
  */
-        destroyForm.delete = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -742,7 +742,7 @@ destroy.delete = (args: { order: string | number | { payment_public_id: string |
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
-export const status = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const status = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -757,7 +757,7 @@ status.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
-status.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+status.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -790,7 +790,7 @@ status.url = (args: { order: string | number | { payment_public_id: string | num
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
-status.patch = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+status.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -800,7 +800,7 @@ status.patch = (args: { order: string | number | { payment_public_id: string | n
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
-    const statusForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const statusForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: status.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -815,7 +815,7 @@ status.patch = (args: { order: string | number | { payment_public_id: string | n
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/staff/operations/orders/{order}/status'
  */
-        statusForm.patch = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        statusForm.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: status.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -831,7 +831,7 @@ status.patch = (args: { order: string | number | { payment_public_id: string | n
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
-export const sendForDelivery = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const sendForDelivery = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: sendForDelivery.url(args, options),
     method: 'post',
 })
@@ -846,7 +846,7 @@ sendForDelivery.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
-sendForDelivery.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+sendForDelivery.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -879,7 +879,7 @@ sendForDelivery.url = (args: { order: string | number | { payment_public_id: str
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
-sendForDelivery.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+sendForDelivery.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: sendForDelivery.url(args, options),
     method: 'post',
 })
@@ -889,7 +889,7 @@ sendForDelivery.post = (args: { order: string | number | { payment_public_id: st
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
-    const sendForDeliveryForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const sendForDeliveryForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: sendForDelivery.url(args, options),
         method: 'post',
     })
@@ -899,7 +899,7 @@ sendForDelivery.post = (args: { order: string | number | { payment_public_id: st
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:132
  * @route '/staff/operations/orders/{order}/send-for-delivery'
  */
-        sendForDeliveryForm.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        sendForDeliveryForm.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: sendForDelivery.url(args, options),
             method: 'post',
         })

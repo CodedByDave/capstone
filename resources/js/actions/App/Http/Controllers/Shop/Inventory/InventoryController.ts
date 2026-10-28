@@ -444,7 +444,7 @@ export const store = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/shop/inventory/{inventory}'
  */
-const showf2c809eeead4ee69ef3d01bc911dbc25 = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const showf2c809eeead4ee69ef3d01bc911dbc25 = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showf2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
     method: 'get',
 })
@@ -459,7 +459,7 @@ showf2c809eeead4ee69ef3d01bc911dbc25.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/shop/inventory/{inventory}'
  */
-showf2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+showf2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -492,7 +492,7 @@ showf2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/shop/inventory/{inventory}'
  */
-showf2c809eeead4ee69ef3d01bc911dbc25.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+showf2c809eeead4ee69ef3d01bc911dbc25.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showf2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
     method: 'get',
 })
@@ -501,7 +501,7 @@ showf2c809eeead4ee69ef3d01bc911dbc25.get = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/shop/inventory/{inventory}'
  */
-showf2c809eeead4ee69ef3d01bc911dbc25.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+showf2c809eeead4ee69ef3d01bc911dbc25.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: showf2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
     method: 'head',
 })
@@ -511,7 +511,7 @@ showf2c809eeead4ee69ef3d01bc911dbc25.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/shop/inventory/{inventory}'
  */
-    const showf2c809eeead4ee69ef3d01bc911dbc25Form = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showf2c809eeead4ee69ef3d01bc911dbc25Form = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: showf2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
         method: 'get',
     })
@@ -521,7 +521,7 @@ showf2c809eeead4ee69ef3d01bc911dbc25.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/shop/inventory/{inventory}'
  */
-        showf2c809eeead4ee69ef3d01bc911dbc25Form.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showf2c809eeead4ee69ef3d01bc911dbc25Form.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showf2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
             method: 'get',
         })
@@ -530,7 +530,7 @@ showf2c809eeead4ee69ef3d01bc911dbc25.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/shop/inventory/{inventory}'
  */
-        showf2c809eeead4ee69ef3d01bc911dbc25Form.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showf2c809eeead4ee69ef3d01bc911dbc25Form.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showf2c809eeead4ee69ef3d01bc911dbc25.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -546,7 +546,7 @@ showf2c809eeead4ee69ef3d01bc911dbc25.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/staff/inventory/{inventory}'
  */
-const show00ba00c906a7b939969d26b30b67e452 = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const show00ba00c906a7b939969d26b30b67e452 = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show00ba00c906a7b939969d26b30b67e452.url(args, options),
     method: 'get',
 })
@@ -561,7 +561,7 @@ show00ba00c906a7b939969d26b30b67e452.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/staff/inventory/{inventory}'
  */
-show00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+show00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -594,7 +594,7 @@ show00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/staff/inventory/{inventory}'
  */
-show00ba00c906a7b939969d26b30b67e452.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show00ba00c906a7b939969d26b30b67e452.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show00ba00c906a7b939969d26b30b67e452.url(args, options),
     method: 'get',
 })
@@ -603,7 +603,7 @@ show00ba00c906a7b939969d26b30b67e452.get = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/staff/inventory/{inventory}'
  */
-show00ba00c906a7b939969d26b30b67e452.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show00ba00c906a7b939969d26b30b67e452.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show00ba00c906a7b939969d26b30b67e452.url(args, options),
     method: 'head',
 })
@@ -613,7 +613,7 @@ show00ba00c906a7b939969d26b30b67e452.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/staff/inventory/{inventory}'
  */
-    const show00ba00c906a7b939969d26b30b67e452Form = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const show00ba00c906a7b939969d26b30b67e452Form = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show00ba00c906a7b939969d26b30b67e452.url(args, options),
         method: 'get',
     })
@@ -623,7 +623,7 @@ show00ba00c906a7b939969d26b30b67e452.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/staff/inventory/{inventory}'
  */
-        show00ba00c906a7b939969d26b30b67e452Form.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        show00ba00c906a7b939969d26b30b67e452Form.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show00ba00c906a7b939969d26b30b67e452.url(args, options),
             method: 'get',
         })
@@ -632,7 +632,7 @@ show00ba00c906a7b939969d26b30b67e452.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:75
  * @route '/staff/inventory/{inventory}'
  */
-        show00ba00c906a7b939969d26b30b67e452Form.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        show00ba00c906a7b939969d26b30b67e452Form.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show00ba00c906a7b939969d26b30b67e452.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -654,7 +654,7 @@ export const show = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/shop/inventory/{inventory}/edit'
  */
-const edit160756faa79f3c76fa68fe5ce9e3d882 = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit160756faa79f3c76fa68fe5ce9e3d882 = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit160756faa79f3c76fa68fe5ce9e3d882.url(args, options),
     method: 'get',
 })
@@ -669,7 +669,7 @@ edit160756faa79f3c76fa68fe5ce9e3d882.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/shop/inventory/{inventory}/edit'
  */
-edit160756faa79f3c76fa68fe5ce9e3d882.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edit160756faa79f3c76fa68fe5ce9e3d882.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -702,7 +702,7 @@ edit160756faa79f3c76fa68fe5ce9e3d882.url = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/shop/inventory/{inventory}/edit'
  */
-edit160756faa79f3c76fa68fe5ce9e3d882.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit160756faa79f3c76fa68fe5ce9e3d882.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit160756faa79f3c76fa68fe5ce9e3d882.url(args, options),
     method: 'get',
 })
@@ -711,7 +711,7 @@ edit160756faa79f3c76fa68fe5ce9e3d882.get = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/shop/inventory/{inventory}/edit'
  */
-edit160756faa79f3c76fa68fe5ce9e3d882.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit160756faa79f3c76fa68fe5ce9e3d882.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit160756faa79f3c76fa68fe5ce9e3d882.url(args, options),
     method: 'head',
 })
@@ -721,7 +721,7 @@ edit160756faa79f3c76fa68fe5ce9e3d882.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/shop/inventory/{inventory}/edit'
  */
-    const edit160756faa79f3c76fa68fe5ce9e3d882Form = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit160756faa79f3c76fa68fe5ce9e3d882Form = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit160756faa79f3c76fa68fe5ce9e3d882.url(args, options),
         method: 'get',
     })
@@ -731,7 +731,7 @@ edit160756faa79f3c76fa68fe5ce9e3d882.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/shop/inventory/{inventory}/edit'
  */
-        edit160756faa79f3c76fa68fe5ce9e3d882Form.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit160756faa79f3c76fa68fe5ce9e3d882Form.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit160756faa79f3c76fa68fe5ce9e3d882.url(args, options),
             method: 'get',
         })
@@ -740,7 +740,7 @@ edit160756faa79f3c76fa68fe5ce9e3d882.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/shop/inventory/{inventory}/edit'
  */
-        edit160756faa79f3c76fa68fe5ce9e3d882Form.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit160756faa79f3c76fa68fe5ce9e3d882Form.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit160756faa79f3c76fa68fe5ce9e3d882.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -756,7 +756,7 @@ edit160756faa79f3c76fa68fe5ce9e3d882.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/staff/inventory/{inventory}/edit'
  */
-const edit4c0701b1cba9da17faafda5226afbfdf = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit4c0701b1cba9da17faafda5226afbfdf = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit4c0701b1cba9da17faafda5226afbfdf.url(args, options),
     method: 'get',
 })
@@ -771,7 +771,7 @@ edit4c0701b1cba9da17faafda5226afbfdf.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/staff/inventory/{inventory}/edit'
  */
-edit4c0701b1cba9da17faafda5226afbfdf.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edit4c0701b1cba9da17faafda5226afbfdf.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -804,7 +804,7 @@ edit4c0701b1cba9da17faafda5226afbfdf.url = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/staff/inventory/{inventory}/edit'
  */
-edit4c0701b1cba9da17faafda5226afbfdf.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit4c0701b1cba9da17faafda5226afbfdf.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit4c0701b1cba9da17faafda5226afbfdf.url(args, options),
     method: 'get',
 })
@@ -813,7 +813,7 @@ edit4c0701b1cba9da17faafda5226afbfdf.get = (args: { inventory: string | number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/staff/inventory/{inventory}/edit'
  */
-edit4c0701b1cba9da17faafda5226afbfdf.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit4c0701b1cba9da17faafda5226afbfdf.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit4c0701b1cba9da17faafda5226afbfdf.url(args, options),
     method: 'head',
 })
@@ -823,7 +823,7 @@ edit4c0701b1cba9da17faafda5226afbfdf.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/staff/inventory/{inventory}/edit'
  */
-    const edit4c0701b1cba9da17faafda5226afbfdfForm = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit4c0701b1cba9da17faafda5226afbfdfForm = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit4c0701b1cba9da17faafda5226afbfdf.url(args, options),
         method: 'get',
     })
@@ -833,7 +833,7 @@ edit4c0701b1cba9da17faafda5226afbfdf.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/staff/inventory/{inventory}/edit'
  */
-        edit4c0701b1cba9da17faafda5226afbfdfForm.get = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit4c0701b1cba9da17faafda5226afbfdfForm.get = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit4c0701b1cba9da17faafda5226afbfdf.url(args, options),
             method: 'get',
         })
@@ -842,7 +842,7 @@ edit4c0701b1cba9da17faafda5226afbfdf.head = (args: { inventory: string | number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:88
  * @route '/staff/inventory/{inventory}/edit'
  */
-        edit4c0701b1cba9da17faafda5226afbfdfForm.head = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit4c0701b1cba9da17faafda5226afbfdfForm.head = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit4c0701b1cba9da17faafda5226afbfdf.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -864,7 +864,7 @@ export const edit = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/shop/inventory/{inventory}'
  */
-const updatef2c809eeead4ee69ef3d01bc911dbc25 = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updatef2c809eeead4ee69ef3d01bc911dbc25 = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatef2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
     method: 'put',
 })
@@ -879,7 +879,7 @@ updatef2c809eeead4ee69ef3d01bc911dbc25.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/shop/inventory/{inventory}'
  */
-updatef2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+updatef2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -912,7 +912,7 @@ updatef2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: string | number
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/shop/inventory/{inventory}'
  */
-updatef2c809eeead4ee69ef3d01bc911dbc25.put = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updatef2c809eeead4ee69ef3d01bc911dbc25.put = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatef2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
     method: 'put',
 })
@@ -922,7 +922,7 @@ updatef2c809eeead4ee69ef3d01bc911dbc25.put = (args: { inventory: string | number
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/shop/inventory/{inventory}'
  */
-    const updatef2c809eeead4ee69ef3d01bc911dbc25Form = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updatef2c809eeead4ee69ef3d01bc911dbc25Form = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updatef2c809eeead4ee69ef3d01bc911dbc25.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -937,7 +937,7 @@ updatef2c809eeead4ee69ef3d01bc911dbc25.put = (args: { inventory: string | number
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/shop/inventory/{inventory}'
  */
-        updatef2c809eeead4ee69ef3d01bc911dbc25Form.put = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updatef2c809eeead4ee69ef3d01bc911dbc25Form.put = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updatef2c809eeead4ee69ef3d01bc911dbc25.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -953,7 +953,7 @@ updatef2c809eeead4ee69ef3d01bc911dbc25.put = (args: { inventory: string | number
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/staff/inventory/{inventory}'
  */
-const update00ba00c906a7b939969d26b30b67e452 = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update00ba00c906a7b939969d26b30b67e452 = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update00ba00c906a7b939969d26b30b67e452.url(args, options),
     method: 'put',
 })
@@ -968,7 +968,7 @@ update00ba00c906a7b939969d26b30b67e452.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/staff/inventory/{inventory}'
  */
-update00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -1001,7 +1001,7 @@ update00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: string | number
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/staff/inventory/{inventory}'
  */
-update00ba00c906a7b939969d26b30b67e452.put = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update00ba00c906a7b939969d26b30b67e452.put = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update00ba00c906a7b939969d26b30b67e452.url(args, options),
     method: 'put',
 })
@@ -1011,7 +1011,7 @@ update00ba00c906a7b939969d26b30b67e452.put = (args: { inventory: string | number
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/staff/inventory/{inventory}'
  */
-    const update00ba00c906a7b939969d26b30b67e452Form = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update00ba00c906a7b939969d26b30b67e452Form = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update00ba00c906a7b939969d26b30b67e452.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -1026,7 +1026,7 @@ update00ba00c906a7b939969d26b30b67e452.put = (args: { inventory: string | number
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:103
  * @route '/staff/inventory/{inventory}'
  */
-        update00ba00c906a7b939969d26b30b67e452Form.put = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update00ba00c906a7b939969d26b30b67e452Form.put = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update00ba00c906a7b939969d26b30b67e452.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -1048,7 +1048,7 @@ export const update = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/shop/inventory/{inventory}'
  */
-const destroyf2c809eeead4ee69ef3d01bc911dbc25 = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyf2c809eeead4ee69ef3d01bc911dbc25 = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyf2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
     method: 'delete',
 })
@@ -1063,7 +1063,7 @@ destroyf2c809eeead4ee69ef3d01bc911dbc25.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/shop/inventory/{inventory}'
  */
-destroyf2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroyf2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -1096,7 +1096,7 @@ destroyf2c809eeead4ee69ef3d01bc911dbc25.url = (args: { inventory: string | numbe
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/shop/inventory/{inventory}'
  */
-destroyf2c809eeead4ee69ef3d01bc911dbc25.delete = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyf2c809eeead4ee69ef3d01bc911dbc25.delete = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyf2c809eeead4ee69ef3d01bc911dbc25.url(args, options),
     method: 'delete',
 })
@@ -1106,7 +1106,7 @@ destroyf2c809eeead4ee69ef3d01bc911dbc25.delete = (args: { inventory: string | nu
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/shop/inventory/{inventory}'
  */
-    const destroyf2c809eeead4ee69ef3d01bc911dbc25Form = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyf2c809eeead4ee69ef3d01bc911dbc25Form = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyf2c809eeead4ee69ef3d01bc911dbc25.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1121,7 +1121,7 @@ destroyf2c809eeead4ee69ef3d01bc911dbc25.delete = (args: { inventory: string | nu
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/shop/inventory/{inventory}'
  */
-        destroyf2c809eeead4ee69ef3d01bc911dbc25Form.delete = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyf2c809eeead4ee69ef3d01bc911dbc25Form.delete = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyf2c809eeead4ee69ef3d01bc911dbc25.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1137,7 +1137,7 @@ destroyf2c809eeead4ee69ef3d01bc911dbc25.delete = (args: { inventory: string | nu
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/staff/inventory/{inventory}'
  */
-const destroy00ba00c906a7b939969d26b30b67e452 = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy00ba00c906a7b939969d26b30b67e452 = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy00ba00c906a7b939969d26b30b67e452.url(args, options),
     method: 'delete',
 })
@@ -1152,7 +1152,7 @@ destroy00ba00c906a7b939969d26b30b67e452.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/staff/inventory/{inventory}'
  */
-destroy00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -1185,7 +1185,7 @@ destroy00ba00c906a7b939969d26b30b67e452.url = (args: { inventory: string | numbe
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/staff/inventory/{inventory}'
  */
-destroy00ba00c906a7b939969d26b30b67e452.delete = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy00ba00c906a7b939969d26b30b67e452.delete = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy00ba00c906a7b939969d26b30b67e452.url(args, options),
     method: 'delete',
 })
@@ -1195,7 +1195,7 @@ destroy00ba00c906a7b939969d26b30b67e452.delete = (args: { inventory: string | nu
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/staff/inventory/{inventory}'
  */
-    const destroy00ba00c906a7b939969d26b30b67e452Form = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy00ba00c906a7b939969d26b30b67e452Form = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy00ba00c906a7b939969d26b30b67e452.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1210,7 +1210,7 @@ destroy00ba00c906a7b939969d26b30b67e452.delete = (args: { inventory: string | nu
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:116
  * @route '/staff/inventory/{inventory}'
  */
-        destroy00ba00c906a7b939969d26b30b67e452Form.delete = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy00ba00c906a7b939969d26b30b67e452Form.delete = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy00ba00c906a7b939969d26b30b67e452.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1232,7 +1232,7 @@ export const destroy = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/shop/inventory/{inventory}/adjust'
  */
-const adjustStockc60b8c20c52e43c06843b77546d35f2d = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+const adjustStockc60b8c20c52e43c06843b77546d35f2d = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: adjustStockc60b8c20c52e43c06843b77546d35f2d.url(args, options),
     method: 'post',
 })
@@ -1247,7 +1247,7 @@ adjustStockc60b8c20c52e43c06843b77546d35f2d.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/shop/inventory/{inventory}/adjust'
  */
-adjustStockc60b8c20c52e43c06843b77546d35f2d.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+adjustStockc60b8c20c52e43c06843b77546d35f2d.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -1280,7 +1280,7 @@ adjustStockc60b8c20c52e43c06843b77546d35f2d.url = (args: { inventory: string | n
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/shop/inventory/{inventory}/adjust'
  */
-adjustStockc60b8c20c52e43c06843b77546d35f2d.post = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+adjustStockc60b8c20c52e43c06843b77546d35f2d.post = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: adjustStockc60b8c20c52e43c06843b77546d35f2d.url(args, options),
     method: 'post',
 })
@@ -1290,7 +1290,7 @@ adjustStockc60b8c20c52e43c06843b77546d35f2d.post = (args: { inventory: string | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/shop/inventory/{inventory}/adjust'
  */
-    const adjustStockc60b8c20c52e43c06843b77546d35f2dForm = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const adjustStockc60b8c20c52e43c06843b77546d35f2dForm = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: adjustStockc60b8c20c52e43c06843b77546d35f2d.url(args, options),
         method: 'post',
     })
@@ -1300,7 +1300,7 @@ adjustStockc60b8c20c52e43c06843b77546d35f2d.post = (args: { inventory: string | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/shop/inventory/{inventory}/adjust'
  */
-        adjustStockc60b8c20c52e43c06843b77546d35f2dForm.post = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        adjustStockc60b8c20c52e43c06843b77546d35f2dForm.post = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: adjustStockc60b8c20c52e43c06843b77546d35f2d.url(args, options),
             method: 'post',
         })
@@ -1311,7 +1311,7 @@ adjustStockc60b8c20c52e43c06843b77546d35f2d.post = (args: { inventory: string | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/staff/inventory/{inventory}/adjust'
  */
-const adjustStock13801b4a3a62177632d77759acbabcdf = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+const adjustStock13801b4a3a62177632d77759acbabcdf = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: adjustStock13801b4a3a62177632d77759acbabcdf.url(args, options),
     method: 'post',
 })
@@ -1326,7 +1326,7 @@ adjustStock13801b4a3a62177632d77759acbabcdf.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/staff/inventory/{inventory}/adjust'
  */
-adjustStock13801b4a3a62177632d77759acbabcdf.url = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+adjustStock13801b4a3a62177632d77759acbabcdf.url = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventory: args }
     }
@@ -1359,7 +1359,7 @@ adjustStock13801b4a3a62177632d77759acbabcdf.url = (args: { inventory: string | n
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/staff/inventory/{inventory}/adjust'
  */
-adjustStock13801b4a3a62177632d77759acbabcdf.post = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+adjustStock13801b4a3a62177632d77759acbabcdf.post = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: adjustStock13801b4a3a62177632d77759acbabcdf.url(args, options),
     method: 'post',
 })
@@ -1369,7 +1369,7 @@ adjustStock13801b4a3a62177632d77759acbabcdf.post = (args: { inventory: string | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/staff/inventory/{inventory}/adjust'
  */
-    const adjustStock13801b4a3a62177632d77759acbabcdfForm = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const adjustStock13801b4a3a62177632d77759acbabcdfForm = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: adjustStock13801b4a3a62177632d77759acbabcdf.url(args, options),
         method: 'post',
     })
@@ -1379,7 +1379,7 @@ adjustStock13801b4a3a62177632d77759acbabcdf.post = (args: { inventory: string | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryController.php:129
  * @route '/staff/inventory/{inventory}/adjust'
  */
-        adjustStock13801b4a3a62177632d77759acbabcdfForm.post = (args: { inventory: string | number | { id: string | number } } | [inventory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        adjustStock13801b4a3a62177632d77759acbabcdfForm.post = (args: { inventory: number | { id: number } } | [inventory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: adjustStock13801b4a3a62177632d77759acbabcdf.url(args, options),
             method: 'post',
         })

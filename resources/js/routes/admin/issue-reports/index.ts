@@ -215,7 +215,7 @@ importMethod.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Admin/IssueReportController.php:55
  * @route '/admin/issue-reports/{issueReport}'
  */
-export const update = (args: { issueReport: string | number | { public_id: string | number } } | [issueReport: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const update = (args: { issueReport: string | { public_id: string } } | [issueReport: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update.url(args, options),
     method: 'patch',
 })
@@ -230,7 +230,7 @@ update.definition = {
  * @see app/Http/Controllers/Admin/IssueReportController.php:55
  * @route '/admin/issue-reports/{issueReport}'
  */
-update.url = (args: { issueReport: string | number | { public_id: string | number } } | [issueReport: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { issueReport: string | { public_id: string } } | [issueReport: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { issueReport: args }
     }
@@ -263,7 +263,7 @@ update.url = (args: { issueReport: string | number | { public_id: string | numbe
  * @see app/Http/Controllers/Admin/IssueReportController.php:55
  * @route '/admin/issue-reports/{issueReport}'
  */
-update.patch = (args: { issueReport: string | number | { public_id: string | number } } | [issueReport: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+update.patch = (args: { issueReport: string | { public_id: string } } | [issueReport: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update.url(args, options),
     method: 'patch',
 })
@@ -273,7 +273,7 @@ update.patch = (args: { issueReport: string | number | { public_id: string | num
  * @see app/Http/Controllers/Admin/IssueReportController.php:55
  * @route '/admin/issue-reports/{issueReport}'
  */
-    const updateForm = (args: { issueReport: string | number | { public_id: string | number } } | [issueReport: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { issueReport: string | { public_id: string } } | [issueReport: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -288,7 +288,7 @@ update.patch = (args: { issueReport: string | number | { public_id: string | num
  * @see app/Http/Controllers/Admin/IssueReportController.php:55
  * @route '/admin/issue-reports/{issueReport}'
  */
-        updateForm.patch = (args: { issueReport: string | number | { public_id: string | number } } | [issueReport: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.patch = (args: { issueReport: string | { public_id: string } } | [issueReport: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',

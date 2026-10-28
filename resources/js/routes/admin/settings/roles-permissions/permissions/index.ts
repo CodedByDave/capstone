@@ -4,7 +4,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:37
  * @route '/admin/settings/roles-permissions/roles/{platformRole}/permissions'
  */
-export const toggle = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const toggle = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggle.url(args, options),
     method: 'patch',
 })
@@ -19,7 +19,7 @@ toggle.definition = {
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:37
  * @route '/admin/settings/roles-permissions/roles/{platformRole}/permissions'
  */
-toggle.url = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+toggle.url = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { platformRole: args }
     }
@@ -52,7 +52,7 @@ toggle.url = (args: { platformRole: string | number | { public_id: string | numb
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:37
  * @route '/admin/settings/roles-permissions/roles/{platformRole}/permissions'
  */
-toggle.patch = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+toggle.patch = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggle.url(args, options),
     method: 'patch',
 })
@@ -62,7 +62,7 @@ toggle.patch = (args: { platformRole: string | number | { public_id: string | nu
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:37
  * @route '/admin/settings/roles-permissions/roles/{platformRole}/permissions'
  */
-    const toggleForm = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const toggleForm = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: toggle.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -77,7 +77,7 @@ toggle.patch = (args: { platformRole: string | number | { public_id: string | nu
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:37
  * @route '/admin/settings/roles-permissions/roles/{platformRole}/permissions'
  */
-        toggleForm.patch = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        toggleForm.patch = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: toggle.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',

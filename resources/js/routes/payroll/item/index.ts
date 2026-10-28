@@ -4,7 +4,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-export const update = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -19,7 +19,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-update.url = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payrollItem: args }
     }
@@ -52,7 +52,7 @@ update.url = (args: { payrollItem: string | number | { public_id: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-update.put = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -62,7 +62,7 @@ update.put = (args: { payrollItem: string | number | { public_id: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-    const updateForm = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -77,7 +77,7 @@ update.put = (args: { payrollItem: string | number | { public_id: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-        updateForm.put = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',

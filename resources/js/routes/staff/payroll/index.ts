@@ -83,7 +83,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-export const show = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const show = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -98,7 +98,7 @@ show.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-show.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+show.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -131,7 +131,7 @@ show.url = (args: { payroll: string | number | { public_id: string | number } } 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-show.get = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -140,7 +140,7 @@ show.get = (args: { payroll: string | number | { public_id: string | number } } 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-show.head = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show.url(args, options),
     method: 'head',
 })
@@ -150,7 +150,7 @@ show.head = (args: { payroll: string | number | { public_id: string | number } }
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-    const showForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show.url(args, options),
         method: 'get',
     })
@@ -160,7 +160,7 @@ show.head = (args: { payroll: string | number | { public_id: string | number } }
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-        showForm.get = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, options),
             method: 'get',
         })
@@ -169,7 +169,7 @@ show.head = (args: { payroll: string | number | { public_id: string | number } }
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-        showForm.head = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -305,7 +305,7 @@ settings.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-export const recalculate = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const recalculate = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: recalculate.url(args, options),
     method: 'post',
 })
@@ -320,7 +320,7 @@ recalculate.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-recalculate.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+recalculate.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -353,7 +353,7 @@ recalculate.url = (args: { payroll: string | number | { public_id: string | numb
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-recalculate.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+recalculate.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: recalculate.url(args, options),
     method: 'post',
 })
@@ -363,7 +363,7 @@ recalculate.post = (args: { payroll: string | number | { public_id: string | num
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-    const recalculateForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const recalculateForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: recalculate.url(args, options),
         method: 'post',
     })
@@ -373,7 +373,7 @@ recalculate.post = (args: { payroll: string | number | { public_id: string | num
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-        recalculateForm.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        recalculateForm.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: recalculate.url(args, options),
             method: 'post',
         })
@@ -384,7 +384,7 @@ recalculate.post = (args: { payroll: string | number | { public_id: string | num
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-export const finalize = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const finalize = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: finalize.url(args, options),
     method: 'post',
 })
@@ -399,7 +399,7 @@ finalize.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-finalize.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+finalize.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -432,7 +432,7 @@ finalize.url = (args: { payroll: string | number | { public_id: string | number 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-finalize.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+finalize.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: finalize.url(args, options),
     method: 'post',
 })
@@ -442,7 +442,7 @@ finalize.post = (args: { payroll: string | number | { public_id: string | number
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-    const finalizeForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const finalizeForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: finalize.url(args, options),
         method: 'post',
     })
@@ -452,7 +452,7 @@ finalize.post = (args: { payroll: string | number | { public_id: string | number
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-        finalizeForm.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        finalizeForm.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: finalize.url(args, options),
             method: 'post',
         })
@@ -463,7 +463,7 @@ finalize.post = (args: { payroll: string | number | { public_id: string | number
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-export const destroy = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -478,7 +478,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-destroy.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -511,7 +511,7 @@ destroy.url = (args: { payroll: string | number | { public_id: string | number }
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-destroy.delete = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -521,7 +521,7 @@ destroy.delete = (args: { payroll: string | number | { public_id: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-    const destroyForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -536,7 +536,7 @@ destroy.delete = (args: { payroll: string | number | { public_id: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-        destroyForm.delete = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

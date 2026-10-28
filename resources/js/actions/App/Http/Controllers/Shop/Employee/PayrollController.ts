@@ -418,7 +418,7 @@ export const updateSettings = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/shop/payroll/{payroll}'
  */
-const show8461ea432174a5551c07a77ffc6e2b3d = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const show8461ea432174a5551c07a77ffc6e2b3d = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show8461ea432174a5551c07a77ffc6e2b3d.url(args, options),
     method: 'get',
 })
@@ -433,7 +433,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/shop/payroll/{payroll}'
  */
-show8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+show8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -466,7 +466,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | number | {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/shop/payroll/{payroll}'
  */
-show8461ea432174a5551c07a77ffc6e2b3d.get = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show8461ea432174a5551c07a77ffc6e2b3d.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show8461ea432174a5551c07a77ffc6e2b3d.url(args, options),
     method: 'get',
 })
@@ -475,7 +475,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.get = (args: { payroll: string | number | {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/shop/payroll/{payroll}'
  */
-show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show8461ea432174a5551c07a77ffc6e2b3d.url(args, options),
     method: 'head',
 })
@@ -485,7 +485,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | number | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/shop/payroll/{payroll}'
  */
-    const show8461ea432174a5551c07a77ffc6e2b3dForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const show8461ea432174a5551c07a77ffc6e2b3dForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show8461ea432174a5551c07a77ffc6e2b3d.url(args, options),
         method: 'get',
     })
@@ -495,7 +495,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | number | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/shop/payroll/{payroll}'
  */
-        show8461ea432174a5551c07a77ffc6e2b3dForm.get = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        show8461ea432174a5551c07a77ffc6e2b3dForm.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show8461ea432174a5551c07a77ffc6e2b3d.url(args, options),
             method: 'get',
         })
@@ -504,7 +504,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | number | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/shop/payroll/{payroll}'
  */
-        show8461ea432174a5551c07a77ffc6e2b3dForm.head = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        show8461ea432174a5551c07a77ffc6e2b3dForm.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show8461ea432174a5551c07a77ffc6e2b3d.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -520,7 +520,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | number | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-const showaebd371d6c35e9295977e81fc40c7e2e = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const showaebd371d6c35e9295977e81fc40c7e2e = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showaebd371d6c35e9295977e81fc40c7e2e.url(args, options),
     method: 'get',
 })
@@ -535,7 +535,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-showaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+showaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -568,7 +568,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | number | {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-showaebd371d6c35e9295977e81fc40c7e2e.get = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+showaebd371d6c35e9295977e81fc40c7e2e.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showaebd371d6c35e9295977e81fc40c7e2e.url(args, options),
     method: 'get',
 })
@@ -577,7 +577,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.get = (args: { payroll: string | number | {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: showaebd371d6c35e9295977e81fc40c7e2e.url(args, options),
     method: 'head',
 })
@@ -587,7 +587,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | number | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-    const showaebd371d6c35e9295977e81fc40c7e2eForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showaebd371d6c35e9295977e81fc40c7e2eForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: showaebd371d6c35e9295977e81fc40c7e2e.url(args, options),
         method: 'get',
     })
@@ -597,7 +597,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | number | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-        showaebd371d6c35e9295977e81fc40c7e2eForm.get = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showaebd371d6c35e9295977e81fc40c7e2eForm.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showaebd371d6c35e9295977e81fc40c7e2e.url(args, options),
             method: 'get',
         })
@@ -606,7 +606,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | number | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:82
  * @route '/staff/payroll/{payroll}'
  */
-        showaebd371d6c35e9295977e81fc40c7e2eForm.head = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showaebd371d6c35e9295977e81fc40c7e2eForm.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showaebd371d6c35e9295977e81fc40c7e2e.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -628,7 +628,7 @@ export const show = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-const updateItem587bebdd237de786e34e68acd2c3887f = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updateItem587bebdd237de786e34e68acd2c3887f = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateItem587bebdd237de786e34e68acd2c3887f.url(args, options),
     method: 'put',
 })
@@ -643,7 +643,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-updateItem587bebdd237de786e34e68acd2c3887f.url = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+updateItem587bebdd237de786e34e68acd2c3887f.url = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payrollItem: args }
     }
@@ -676,7 +676,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.url = (args: { payrollItem: string | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateItem587bebdd237de786e34e68acd2c3887f.url(args, options),
     method: 'put',
 })
@@ -686,7 +686,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-    const updateItem587bebdd237de786e34e68acd2c3887fForm = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateItem587bebdd237de786e34e68acd2c3887fForm = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updateItem587bebdd237de786e34e68acd2c3887f.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -701,7 +701,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/shop/payroll/{payrollItem}/item'
  */
-        updateItem587bebdd237de786e34e68acd2c3887fForm.put = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateItem587bebdd237de786e34e68acd2c3887fForm.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updateItem587bebdd237de786e34e68acd2c3887f.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -717,7 +717,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
-const updateItemcfd10266ea987ef8465ead699f9fc1da = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updateItemcfd10266ea987ef8465ead699f9fc1da = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateItemcfd10266ea987ef8465ead699f9fc1da.url(args, options),
     method: 'put',
 })
@@ -732,7 +732,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
-updateItemcfd10266ea987ef8465ead699f9fc1da.url = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+updateItemcfd10266ea987ef8465ead699f9fc1da.url = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payrollItem: args }
     }
@@ -765,7 +765,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.url = (args: { payrollItem: string | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
-updateItemcfd10266ea987ef8465ead699f9fc1da.put = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updateItemcfd10266ea987ef8465ead699f9fc1da.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateItemcfd10266ea987ef8465ead699f9fc1da.url(args, options),
     method: 'put',
 })
@@ -775,7 +775,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.put = (args: { payrollItem: string | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
-    const updateItemcfd10266ea987ef8465ead699f9fc1daForm = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateItemcfd10266ea987ef8465ead699f9fc1daForm = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updateItemcfd10266ea987ef8465ead699f9fc1da.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -790,7 +790,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.put = (args: { payrollItem: string | 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:124
  * @route '/staff/payroll/{payrollItem}/item'
  */
-        updateItemcfd10266ea987ef8465ead699f9fc1daForm.put = (args: { payrollItem: string | number | { public_id: string | number } } | [payrollItem: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateItemcfd10266ea987ef8465ead699f9fc1daForm.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updateItemcfd10266ea987ef8465ead699f9fc1da.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -812,7 +812,7 @@ export const updateItem = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/shop/payroll/{payroll}/recalculate'
  */
-const recalculate747e84e8b22598afdc6f2429086ba963 = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+const recalculate747e84e8b22598afdc6f2429086ba963 = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: recalculate747e84e8b22598afdc6f2429086ba963.url(args, options),
     method: 'post',
 })
@@ -827,7 +827,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/shop/payroll/{payroll}/recalculate'
  */
-recalculate747e84e8b22598afdc6f2429086ba963.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+recalculate747e84e8b22598afdc6f2429086ba963.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -860,7 +860,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.url = (args: { payroll: string | num
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/shop/payroll/{payroll}/recalculate'
  */
-recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: recalculate747e84e8b22598afdc6f2429086ba963.url(args, options),
     method: 'post',
 })
@@ -870,7 +870,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | nu
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/shop/payroll/{payroll}/recalculate'
  */
-    const recalculate747e84e8b22598afdc6f2429086ba963Form = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const recalculate747e84e8b22598afdc6f2429086ba963Form = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: recalculate747e84e8b22598afdc6f2429086ba963.url(args, options),
         method: 'post',
     })
@@ -880,7 +880,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | nu
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/shop/payroll/{payroll}/recalculate'
  */
-        recalculate747e84e8b22598afdc6f2429086ba963Form.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        recalculate747e84e8b22598afdc6f2429086ba963Form.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: recalculate747e84e8b22598afdc6f2429086ba963.url(args, options),
             method: 'post',
         })
@@ -891,7 +891,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | nu
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-const recalculatefd51c045274b219f4218e7f9cb8e4c2a = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+const recalculatefd51c045274b219f4218e7f9cb8e4c2a = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: recalculatefd51c045274b219f4218e7f9cb8e4c2a.url(args, options),
     method: 'post',
 })
@@ -906,7 +906,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-recalculatefd51c045274b219f4218e7f9cb8e4c2a.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+recalculatefd51c045274b219f4218e7f9cb8e4c2a.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -939,7 +939,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.url = (args: { payroll: string | num
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-recalculatefd51c045274b219f4218e7f9cb8e4c2a.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+recalculatefd51c045274b219f4218e7f9cb8e4c2a.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: recalculatefd51c045274b219f4218e7f9cb8e4c2a.url(args, options),
     method: 'post',
 })
@@ -949,7 +949,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.post = (args: { payroll: string | nu
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-    const recalculatefd51c045274b219f4218e7f9cb8e4c2aForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const recalculatefd51c045274b219f4218e7f9cb8e4c2aForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: recalculatefd51c045274b219f4218e7f9cb8e4c2a.url(args, options),
         method: 'post',
     })
@@ -959,7 +959,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.post = (args: { payroll: string | nu
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:135
  * @route '/staff/payroll/{payroll}/recalculate'
  */
-        recalculatefd51c045274b219f4218e7f9cb8e4c2aForm.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        recalculatefd51c045274b219f4218e7f9cb8e4c2aForm.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: recalculatefd51c045274b219f4218e7f9cb8e4c2a.url(args, options),
             method: 'post',
         })
@@ -976,7 +976,7 @@ export const recalculate = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/shop/payroll/{payroll}/finalize'
  */
-const finalize3dae19da9221437178f207cd20ebbe34 = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+const finalize3dae19da9221437178f207cd20ebbe34 = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: finalize3dae19da9221437178f207cd20ebbe34.url(args, options),
     method: 'post',
 })
@@ -991,7 +991,7 @@ finalize3dae19da9221437178f207cd20ebbe34.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/shop/payroll/{payroll}/finalize'
  */
-finalize3dae19da9221437178f207cd20ebbe34.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+finalize3dae19da9221437178f207cd20ebbe34.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -1024,7 +1024,7 @@ finalize3dae19da9221437178f207cd20ebbe34.url = (args: { payroll: string | number
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/shop/payroll/{payroll}/finalize'
  */
-finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: finalize3dae19da9221437178f207cd20ebbe34.url(args, options),
     method: 'post',
 })
@@ -1034,7 +1034,7 @@ finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/shop/payroll/{payroll}/finalize'
  */
-    const finalize3dae19da9221437178f207cd20ebbe34Form = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const finalize3dae19da9221437178f207cd20ebbe34Form = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: finalize3dae19da9221437178f207cd20ebbe34.url(args, options),
         method: 'post',
     })
@@ -1044,7 +1044,7 @@ finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/shop/payroll/{payroll}/finalize'
  */
-        finalize3dae19da9221437178f207cd20ebbe34Form.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        finalize3dae19da9221437178f207cd20ebbe34Form.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: finalize3dae19da9221437178f207cd20ebbe34.url(args, options),
             method: 'post',
         })
@@ -1055,7 +1055,7 @@ finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-const finalize5fc387858a315086365f60c5e6cb18b3 = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+const finalize5fc387858a315086365f60c5e6cb18b3 = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: finalize5fc387858a315086365f60c5e6cb18b3.url(args, options),
     method: 'post',
 })
@@ -1070,7 +1070,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-finalize5fc387858a315086365f60c5e6cb18b3.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+finalize5fc387858a315086365f60c5e6cb18b3.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -1103,7 +1103,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.url = (args: { payroll: string | number
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-finalize5fc387858a315086365f60c5e6cb18b3.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+finalize5fc387858a315086365f60c5e6cb18b3.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: finalize5fc387858a315086365f60c5e6cb18b3.url(args, options),
     method: 'post',
 })
@@ -1113,7 +1113,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.post = (args: { payroll: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-    const finalize5fc387858a315086365f60c5e6cb18b3Form = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const finalize5fc387858a315086365f60c5e6cb18b3Form = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: finalize5fc387858a315086365f60c5e6cb18b3.url(args, options),
         method: 'post',
     })
@@ -1123,7 +1123,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.post = (args: { payroll: string | numbe
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:146
  * @route '/staff/payroll/{payroll}/finalize'
  */
-        finalize5fc387858a315086365f60c5e6cb18b3Form.post = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        finalize5fc387858a315086365f60c5e6cb18b3Form.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: finalize5fc387858a315086365f60c5e6cb18b3.url(args, options),
             method: 'post',
         })
@@ -1140,7 +1140,7 @@ export const finalize = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/shop/payroll/{payroll}'
  */
-const destroy8461ea432174a5551c07a77ffc6e2b3d = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy8461ea432174a5551c07a77ffc6e2b3d = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy8461ea432174a5551c07a77ffc6e2b3d.url(args, options),
     method: 'delete',
 })
@@ -1155,7 +1155,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/shop/payroll/{payroll}'
  */
-destroy8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+destroy8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -1188,7 +1188,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | number 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/shop/payroll/{payroll}'
  */
-destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy8461ea432174a5551c07a77ffc6e2b3d.url(args, options),
     method: 'delete',
 })
@@ -1198,7 +1198,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | numb
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/shop/payroll/{payroll}'
  */
-    const destroy8461ea432174a5551c07a77ffc6e2b3dForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy8461ea432174a5551c07a77ffc6e2b3dForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy8461ea432174a5551c07a77ffc6e2b3d.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1213,7 +1213,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | numb
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/shop/payroll/{payroll}'
  */
-        destroy8461ea432174a5551c07a77ffc6e2b3dForm.delete = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy8461ea432174a5551c07a77ffc6e2b3dForm.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy8461ea432174a5551c07a77ffc6e2b3d.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1229,7 +1229,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | numb
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-const destroyaebd371d6c35e9295977e81fc40c7e2e = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyaebd371d6c35e9295977e81fc40c7e2e = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyaebd371d6c35e9295977e81fc40c7e2e.url(args, options),
     method: 'delete',
 })
@@ -1244,7 +1244,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.definition = {
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-destroyaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+destroyaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { payroll: args }
     }
@@ -1277,7 +1277,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | number 
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-destroyaebd371d6c35e9295977e81fc40c7e2e.delete = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyaebd371d6c35e9295977e81fc40c7e2e.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyaebd371d6c35e9295977e81fc40c7e2e.url(args, options),
     method: 'delete',
 })
@@ -1287,7 +1287,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.delete = (args: { payroll: string | numb
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-    const destroyaebd371d6c35e9295977e81fc40c7e2eForm = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyaebd371d6c35e9295977e81fc40c7e2eForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyaebd371d6c35e9295977e81fc40c7e2e.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1302,7 +1302,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.delete = (args: { payroll: string | numb
  * @see app/Http/Controllers/Shop/Employee/PayrollController.php:157
  * @route '/staff/payroll/{payroll}'
  */
-        destroyaebd371d6c35e9295977e81fc40c7e2eForm.delete = (args: { payroll: string | number | { public_id: string | number } } | [payroll: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyaebd371d6c35e9295977e81fc40c7e2eForm.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyaebd371d6c35e9295977e81fc40c7e2e.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

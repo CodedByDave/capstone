@@ -483,7 +483,7 @@ pay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/CheckoutController.php:169
  * @route '/shop/payment/success/{order}'
  */
-export const success = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const success = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: success.url(args, options),
     method: 'get',
 })
@@ -498,7 +498,7 @@ success.definition = {
  * @see app/Http/Controllers/Shop/CheckoutController.php:169
  * @route '/shop/payment/success/{order}'
  */
-success.url = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
+success.url = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -531,7 +531,7 @@ success.url = (args: { order: string | number | { public_id: string | number } }
  * @see app/Http/Controllers/Shop/CheckoutController.php:169
  * @route '/shop/payment/success/{order}'
  */
-success.get = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+success.get = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: success.url(args, options),
     method: 'get',
 })
@@ -540,7 +540,7 @@ success.get = (args: { order: string | number | { public_id: string | number } }
  * @see app/Http/Controllers/Shop/CheckoutController.php:169
  * @route '/shop/payment/success/{order}'
  */
-success.head = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+success.head = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: success.url(args, options),
     method: 'head',
 })
@@ -550,7 +550,7 @@ success.head = (args: { order: string | number | { public_id: string | number } 
  * @see app/Http/Controllers/Shop/CheckoutController.php:169
  * @route '/shop/payment/success/{order}'
  */
-    const successForm = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const successForm = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: success.url(args, options),
         method: 'get',
     })
@@ -560,7 +560,7 @@ success.head = (args: { order: string | number | { public_id: string | number } 
  * @see app/Http/Controllers/Shop/CheckoutController.php:169
  * @route '/shop/payment/success/{order}'
  */
-        successForm.get = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        successForm.get = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: success.url(args, options),
             method: 'get',
         })
@@ -569,7 +569,7 @@ success.head = (args: { order: string | number | { public_id: string | number } 
  * @see app/Http/Controllers/Shop/CheckoutController.php:169
  * @route '/shop/payment/success/{order}'
  */
-        successForm.head = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        successForm.head = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: success.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

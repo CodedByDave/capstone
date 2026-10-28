@@ -444,7 +444,7 @@ export const store = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/shop/supplier/{supplier}/edit'
  */
-const edit0c6ab6d54107232d4e45828eeb7251a7 = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit0c6ab6d54107232d4e45828eeb7251a7 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
     method: 'get',
 })
@@ -459,7 +459,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.definition = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/shop/supplier/{supplier}/edit'
  */
-edit0c6ab6d54107232d4e45828eeb7251a7.url = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edit0c6ab6d54107232d4e45828eeb7251a7.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { supplier: args }
     }
@@ -492,7 +492,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.url = (args: { supplier: string | number | 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/shop/supplier/{supplier}/edit'
  */
-edit0c6ab6d54107232d4e45828eeb7251a7.get = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit0c6ab6d54107232d4e45828eeb7251a7.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
     method: 'get',
 })
@@ -501,7 +501,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.get = (args: { supplier: string | number | 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/shop/supplier/{supplier}/edit'
  */
-edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
     method: 'head',
 })
@@ -511,7 +511,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: string | number |
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/shop/supplier/{supplier}/edit'
  */
-    const edit0c6ab6d54107232d4e45828eeb7251a7Form = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit0c6ab6d54107232d4e45828eeb7251a7Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
         method: 'get',
     })
@@ -521,7 +521,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: string | number |
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/shop/supplier/{supplier}/edit'
  */
-        edit0c6ab6d54107232d4e45828eeb7251a7Form.get = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit0c6ab6d54107232d4e45828eeb7251a7Form.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
             method: 'get',
         })
@@ -530,7 +530,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: string | number |
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/shop/supplier/{supplier}/edit'
  */
-        edit0c6ab6d54107232d4e45828eeb7251a7Form.head = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit0c6ab6d54107232d4e45828eeb7251a7Form.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -546,7 +546,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: string | number |
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/staff/supplier/{supplier}/edit'
  */
-const edita494b0a8c6a3075af8912048b200805f = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edita494b0a8c6a3075af8912048b200805f = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
     method: 'get',
 })
@@ -561,7 +561,7 @@ edita494b0a8c6a3075af8912048b200805f.definition = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/staff/supplier/{supplier}/edit'
  */
-edita494b0a8c6a3075af8912048b200805f.url = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edita494b0a8c6a3075af8912048b200805f.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { supplier: args }
     }
@@ -594,7 +594,7 @@ edita494b0a8c6a3075af8912048b200805f.url = (args: { supplier: string | number | 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/staff/supplier/{supplier}/edit'
  */
-edita494b0a8c6a3075af8912048b200805f.get = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edita494b0a8c6a3075af8912048b200805f.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
     method: 'get',
 })
@@ -603,7 +603,7 @@ edita494b0a8c6a3075af8912048b200805f.get = (args: { supplier: string | number | 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/staff/supplier/{supplier}/edit'
  */
-edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
     method: 'head',
 })
@@ -613,7 +613,7 @@ edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: string | number |
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/staff/supplier/{supplier}/edit'
  */
-    const edita494b0a8c6a3075af8912048b200805fForm = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edita494b0a8c6a3075af8912048b200805fForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edita494b0a8c6a3075af8912048b200805f.url(args, options),
         method: 'get',
     })
@@ -623,7 +623,7 @@ edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: string | number |
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/staff/supplier/{supplier}/edit'
  */
-        edita494b0a8c6a3075af8912048b200805fForm.get = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edita494b0a8c6a3075af8912048b200805fForm.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edita494b0a8c6a3075af8912048b200805f.url(args, options),
             method: 'get',
         })
@@ -632,7 +632,7 @@ edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: string | number |
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
  * @route '/staff/supplier/{supplier}/edit'
  */
-        edita494b0a8c6a3075af8912048b200805fForm.head = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edita494b0a8c6a3075af8912048b200805fForm.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edita494b0a8c6a3075af8912048b200805f.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -654,7 +654,7 @@ export const edit = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/shop/supplier/{supplier}'
  */
-const updateee3c239cbef8c85b0573326c696b1053 = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updateee3c239cbef8c85b0573326c696b1053 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateee3c239cbef8c85b0573326c696b1053.url(args, options),
     method: 'put',
 })
@@ -669,7 +669,7 @@ updateee3c239cbef8c85b0573326c696b1053.definition = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/shop/supplier/{supplier}'
  */
-updateee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+updateee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { supplier: args }
     }
@@ -702,7 +702,7 @@ updateee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: string | number 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/shop/supplier/{supplier}'
  */
-updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateee3c239cbef8c85b0573326c696b1053.url(args, options),
     method: 'put',
 })
@@ -712,7 +712,7 @@ updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: string | number 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/shop/supplier/{supplier}'
  */
-    const updateee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updateee3c239cbef8c85b0573326c696b1053.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -727,7 +727,7 @@ updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: string | number 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/shop/supplier/{supplier}'
  */
-        updateee3c239cbef8c85b0573326c696b1053Form.put = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateee3c239cbef8c85b0573326c696b1053Form.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updateee3c239cbef8c85b0573326c696b1053.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -743,7 +743,7 @@ updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: string | number 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/staff/supplier/{supplier}'
  */
-const update543927b6848bff5be51ec716751c4ddf = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update543927b6848bff5be51ec716751c4ddf = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update543927b6848bff5be51ec716751c4ddf.url(args, options),
     method: 'put',
 })
@@ -758,7 +758,7 @@ update543927b6848bff5be51ec716751c4ddf.definition = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/staff/supplier/{supplier}'
  */
-update543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { supplier: args }
     }
@@ -791,7 +791,7 @@ update543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: string | number 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/staff/supplier/{supplier}'
  */
-update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update543927b6848bff5be51ec716751c4ddf.url(args, options),
     method: 'put',
 })
@@ -801,7 +801,7 @@ update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: string | number 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/staff/supplier/{supplier}'
  */
-    const update543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update543927b6848bff5be51ec716751c4ddf.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -816,7 +816,7 @@ update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: string | number 
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
  * @route '/staff/supplier/{supplier}'
  */
-        update543927b6848bff5be51ec716751c4ddfForm.put = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update543927b6848bff5be51ec716751c4ddfForm.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update543927b6848bff5be51ec716751c4ddf.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -838,7 +838,7 @@ export const update = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/shop/supplier/{supplier}'
  */
-const destroyee3c239cbef8c85b0573326c696b1053 = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyee3c239cbef8c85b0573326c696b1053 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyee3c239cbef8c85b0573326c696b1053.url(args, options),
     method: 'delete',
 })
@@ -853,7 +853,7 @@ destroyee3c239cbef8c85b0573326c696b1053.definition = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/shop/supplier/{supplier}'
  */
-destroyee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroyee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { supplier: args }
     }
@@ -886,7 +886,7 @@ destroyee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: string | number
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/shop/supplier/{supplier}'
  */
-destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyee3c239cbef8c85b0573326c696b1053.url(args, options),
     method: 'delete',
 })
@@ -896,7 +896,7 @@ destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: string | num
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/shop/supplier/{supplier}'
  */
-    const destroyee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyee3c239cbef8c85b0573326c696b1053.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -911,7 +911,7 @@ destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: string | num
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/shop/supplier/{supplier}'
  */
-        destroyee3c239cbef8c85b0573326c696b1053Form.delete = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyee3c239cbef8c85b0573326c696b1053Form.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyee3c239cbef8c85b0573326c696b1053.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -927,7 +927,7 @@ destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: string | num
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/staff/supplier/{supplier}'
  */
-const destroy543927b6848bff5be51ec716751c4ddf = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy543927b6848bff5be51ec716751c4ddf = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy543927b6848bff5be51ec716751c4ddf.url(args, options),
     method: 'delete',
 })
@@ -942,7 +942,7 @@ destroy543927b6848bff5be51ec716751c4ddf.definition = {
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/staff/supplier/{supplier}'
  */
-destroy543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { supplier: args }
     }
@@ -975,7 +975,7 @@ destroy543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: string | number
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/staff/supplier/{supplier}'
  */
-destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy543927b6848bff5be51ec716751c4ddf.url(args, options),
     method: 'delete',
 })
@@ -985,7 +985,7 @@ destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: string | num
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/staff/supplier/{supplier}'
  */
-    const destroy543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy543927b6848bff5be51ec716751c4ddf.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1000,7 +1000,7 @@ destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: string | num
  * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
  * @route '/staff/supplier/{supplier}'
  */
-        destroy543927b6848bff5be51ec716751c4ddfForm.delete = (args: { supplier: string | number | { id: string | number } } | [supplier: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy543927b6848bff5be51ec716751c4ddfForm.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy543927b6848bff5be51ec716751c4ddf.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

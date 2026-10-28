@@ -265,7 +265,7 @@ checkout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/operations/orders/{order}/status'
  */
-export const status = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const status = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -280,7 +280,7 @@ status.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/operations/orders/{order}/status'
  */
-status.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
+status.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -313,7 +313,7 @@ status.url = (args: { order: string | number | { payment_public_id: string | num
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/operations/orders/{order}/status'
  */
-status.patch = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+status.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -323,7 +323,7 @@ status.patch = (args: { order: string | number | { payment_public_id: string | n
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/operations/orders/{order}/status'
  */
-    const statusForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const statusForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: status.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -338,7 +338,7 @@ status.patch = (args: { order: string | number | { payment_public_id: string | n
  * @see app/Http/Controllers/Shop/Operations/ShopOrderController.php:183
  * @route '/shop/operations/orders/{order}/status'
  */
-        statusForm.patch = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        statusForm.patch = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: status.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
