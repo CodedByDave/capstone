@@ -388,7 +388,7 @@ forceDelete.delete = (args: { publicId: string | number } | [publicId: string | 
  * @see app/Http/Controllers/Admin/ShopController.php:123
  * @route '/admin/shop/{shop}'
  */
-export const show = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const show = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -403,7 +403,7 @@ show.definition = {
  * @see app/Http/Controllers/Admin/ShopController.php:123
  * @route '/admin/shop/{shop}'
  */
-show.url = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+show.url = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { shop: args }
     }
@@ -436,7 +436,7 @@ show.url = (args: { shop: string | { public_id: string } } | [shop: string | { p
  * @see app/Http/Controllers/Admin/ShopController.php:123
  * @route '/admin/shop/{shop}'
  */
-show.get = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show.get = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -445,7 +445,7 @@ show.get = (args: { shop: string | { public_id: string } } | [shop: string | { p
  * @see app/Http/Controllers/Admin/ShopController.php:123
  * @route '/admin/shop/{shop}'
  */
-show.head = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show.head = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show.url(args, options),
     method: 'head',
 })
@@ -455,7 +455,7 @@ show.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:123
  * @route '/admin/shop/{shop}'
  */
-    const showForm = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showForm = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show.url(args, options),
         method: 'get',
     })
@@ -465,7 +465,7 @@ show.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:123
  * @route '/admin/shop/{shop}'
  */
-        showForm.get = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.get = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, options),
             method: 'get',
         })
@@ -474,7 +474,7 @@ show.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:123
  * @route '/admin/shop/{shop}'
  */
-        showForm.head = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.head = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -490,7 +490,7 @@ show.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:194
  * @route '/admin/shop/{shop}/edit'
  */
-export const edit = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -505,7 +505,7 @@ edit.definition = {
  * @see app/Http/Controllers/Admin/ShopController.php:194
  * @route '/admin/shop/{shop}/edit'
  */
-edit.url = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+edit.url = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { shop: args }
     }
@@ -538,7 +538,7 @@ edit.url = (args: { shop: string | { public_id: string } } | [shop: string | { p
  * @see app/Http/Controllers/Admin/ShopController.php:194
  * @route '/admin/shop/{shop}/edit'
  */
-edit.get = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -547,7 +547,7 @@ edit.get = (args: { shop: string | { public_id: string } } | [shop: string | { p
  * @see app/Http/Controllers/Admin/ShopController.php:194
  * @route '/admin/shop/{shop}/edit'
  */
-edit.head = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -557,7 +557,7 @@ edit.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:194
  * @route '/admin/shop/{shop}/edit'
  */
-    const editForm = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -567,7 +567,7 @@ edit.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:194
  * @route '/admin/shop/{shop}/edit'
  */
-        editForm.get = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
@@ -576,7 +576,7 @@ edit.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:194
  * @route '/admin/shop/{shop}/edit'
  */
-        editForm.head = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -592,7 +592,7 @@ edit.head = (args: { shop: string | { public_id: string } } | [shop: string | { 
  * @see app/Http/Controllers/Admin/ShopController.php:201
  * @route '/admin/shop/{shop}'
  */
-export const update = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -607,7 +607,7 @@ update.definition = {
  * @see app/Http/Controllers/Admin/ShopController.php:201
  * @route '/admin/shop/{shop}'
  */
-update.url = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+update.url = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { shop: args }
     }
@@ -640,7 +640,7 @@ update.url = (args: { shop: string | { public_id: string } } | [shop: string | {
  * @see app/Http/Controllers/Admin/ShopController.php:201
  * @route '/admin/shop/{shop}'
  */
-update.put = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -650,7 +650,7 @@ update.put = (args: { shop: string | { public_id: string } } | [shop: string | {
  * @see app/Http/Controllers/Admin/ShopController.php:201
  * @route '/admin/shop/{shop}'
  */
-    const updateForm = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -665,7 +665,7 @@ update.put = (args: { shop: string | { public_id: string } } | [shop: string | {
  * @see app/Http/Controllers/Admin/ShopController.php:201
  * @route '/admin/shop/{shop}'
  */
-        updateForm.put = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -681,7 +681,7 @@ update.put = (args: { shop: string | { public_id: string } } | [shop: string | {
  * @see app/Http/Controllers/Admin/ShopController.php:216
  * @route '/admin/shop/{shop}'
  */
-export const destroy = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -696,7 +696,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Admin/ShopController.php:216
  * @route '/admin/shop/{shop}'
  */
-destroy.url = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroy.url = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { shop: args }
     }
@@ -729,7 +729,7 @@ destroy.url = (args: { shop: string | { public_id: string } } | [shop: string | 
  * @see app/Http/Controllers/Admin/ShopController.php:216
  * @route '/admin/shop/{shop}'
  */
-destroy.delete = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -739,7 +739,7 @@ destroy.delete = (args: { shop: string | { public_id: string } } | [shop: string
  * @see app/Http/Controllers/Admin/ShopController.php:216
  * @route '/admin/shop/{shop}'
  */
-    const destroyForm = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -754,7 +754,7 @@ destroy.delete = (args: { shop: string | { public_id: string } } | [shop: string
  * @see app/Http/Controllers/Admin/ShopController.php:216
  * @route '/admin/shop/{shop}'
  */
-        destroyForm.delete = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -770,7 +770,7 @@ destroy.delete = (args: { shop: string | { public_id: string } } | [shop: string
  * @see app/Http/Controllers/Admin/ShopController.php:277
  * @route '/admin/shop/{shop}/disable'
  */
-export const disable = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const disable = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: disable.url(args, options),
     method: 'post',
 })
@@ -785,7 +785,7 @@ disable.definition = {
  * @see app/Http/Controllers/Admin/ShopController.php:277
  * @route '/admin/shop/{shop}/disable'
  */
-disable.url = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+disable.url = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { shop: args }
     }
@@ -818,7 +818,7 @@ disable.url = (args: { shop: string | { public_id: string } } | [shop: string | 
  * @see app/Http/Controllers/Admin/ShopController.php:277
  * @route '/admin/shop/{shop}/disable'
  */
-disable.post = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+disable.post = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: disable.url(args, options),
     method: 'post',
 })
@@ -828,7 +828,7 @@ disable.post = (args: { shop: string | { public_id: string } } | [shop: string |
  * @see app/Http/Controllers/Admin/ShopController.php:277
  * @route '/admin/shop/{shop}/disable'
  */
-    const disableForm = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const disableForm = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: disable.url(args, options),
         method: 'post',
     })
@@ -838,7 +838,7 @@ disable.post = (args: { shop: string | { public_id: string } } | [shop: string |
  * @see app/Http/Controllers/Admin/ShopController.php:277
  * @route '/admin/shop/{shop}/disable'
  */
-        disableForm.post = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        disableForm.post = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: disable.url(args, options),
             method: 'post',
         })
@@ -849,7 +849,7 @@ disable.post = (args: { shop: string | { public_id: string } } | [shop: string |
  * @see app/Http/Controllers/Admin/ShopController.php:286
  * @route '/admin/shop/{shop}/enable'
  */
-export const enable = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const enable = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: enable.url(args, options),
     method: 'post',
 })
@@ -864,7 +864,7 @@ enable.definition = {
  * @see app/Http/Controllers/Admin/ShopController.php:286
  * @route '/admin/shop/{shop}/enable'
  */
-enable.url = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+enable.url = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { shop: args }
     }
@@ -897,7 +897,7 @@ enable.url = (args: { shop: string | { public_id: string } } | [shop: string | {
  * @see app/Http/Controllers/Admin/ShopController.php:286
  * @route '/admin/shop/{shop}/enable'
  */
-enable.post = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+enable.post = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: enable.url(args, options),
     method: 'post',
 })
@@ -907,7 +907,7 @@ enable.post = (args: { shop: string | { public_id: string } } | [shop: string | 
  * @see app/Http/Controllers/Admin/ShopController.php:286
  * @route '/admin/shop/{shop}/enable'
  */
-    const enableForm = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const enableForm = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: enable.url(args, options),
         method: 'post',
     })
@@ -917,7 +917,7 @@ enable.post = (args: { shop: string | { public_id: string } } | [shop: string | 
  * @see app/Http/Controllers/Admin/ShopController.php:286
  * @route '/admin/shop/{shop}/enable'
  */
-        enableForm.post = (args: { shop: string | { public_id: string } } | [shop: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        enableForm.post = (args: { shop: string | number | { public_id: string | number } } | [shop: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: enable.url(args, options),
             method: 'post',
         })

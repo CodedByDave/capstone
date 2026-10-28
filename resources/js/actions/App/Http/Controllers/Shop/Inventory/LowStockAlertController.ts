@@ -282,7 +282,7 @@ export const markAllRead = {
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-const update8383615adc5345cf4f02c818bc9424dd = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const update8383615adc5345cf4f02c818bc9424dd = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update8383615adc5345cf4f02c818bc9424dd.url(args, options),
     method: 'patch',
 })
@@ -297,7 +297,7 @@ update8383615adc5345cf4f02c818bc9424dd.definition = {
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-update8383615adc5345cf4f02c818bc9424dd.url = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+update8383615adc5345cf4f02c818bc9424dd.url = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { lowStockAlert: args }
     }
@@ -330,7 +330,7 @@ update8383615adc5345cf4f02c818bc9424dd.url = (args: { lowStockAlert: number | { 
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-update8383615adc5345cf4f02c818bc9424dd.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+update8383615adc5345cf4f02c818bc9424dd.patch = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update8383615adc5345cf4f02c818bc9424dd.url(args, options),
     method: 'patch',
 })
@@ -340,7 +340,7 @@ update8383615adc5345cf4f02c818bc9424dd.patch = (args: { lowStockAlert: number | 
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-    const update8383615adc5345cf4f02c818bc9424ddForm = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update8383615adc5345cf4f02c818bc9424ddForm = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update8383615adc5345cf4f02c818bc9424dd.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -355,7 +355,7 @@ update8383615adc5345cf4f02c818bc9424dd.patch = (args: { lowStockAlert: number | 
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-        update8383615adc5345cf4f02c818bc9424ddForm.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update8383615adc5345cf4f02c818bc9424ddForm.patch = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update8383615adc5345cf4f02c818bc9424dd.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -371,7 +371,7 @@ update8383615adc5345cf4f02c818bc9424dd.patch = (args: { lowStockAlert: number | 
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/staff/inventory/alerts/{lowStockAlert}'
  */
-const updateaf31f9169cfc9bffa67aadfcb21678d1 = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+const updateaf31f9169cfc9bffa67aadfcb21678d1 = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: updateaf31f9169cfc9bffa67aadfcb21678d1.url(args, options),
     method: 'patch',
 })
@@ -386,7 +386,7 @@ updateaf31f9169cfc9bffa67aadfcb21678d1.definition = {
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/staff/inventory/alerts/{lowStockAlert}'
  */
-updateaf31f9169cfc9bffa67aadfcb21678d1.url = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+updateaf31f9169cfc9bffa67aadfcb21678d1.url = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { lowStockAlert: args }
     }
@@ -419,7 +419,7 @@ updateaf31f9169cfc9bffa67aadfcb21678d1.url = (args: { lowStockAlert: number | { 
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/staff/inventory/alerts/{lowStockAlert}'
  */
-updateaf31f9169cfc9bffa67aadfcb21678d1.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+updateaf31f9169cfc9bffa67aadfcb21678d1.patch = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: updateaf31f9169cfc9bffa67aadfcb21678d1.url(args, options),
     method: 'patch',
 })
@@ -429,7 +429,7 @@ updateaf31f9169cfc9bffa67aadfcb21678d1.patch = (args: { lowStockAlert: number | 
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/staff/inventory/alerts/{lowStockAlert}'
  */
-    const updateaf31f9169cfc9bffa67aadfcb21678d1Form = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateaf31f9169cfc9bffa67aadfcb21678d1Form = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updateaf31f9169cfc9bffa67aadfcb21678d1.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -444,7 +444,7 @@ updateaf31f9169cfc9bffa67aadfcb21678d1.patch = (args: { lowStockAlert: number | 
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/staff/inventory/alerts/{lowStockAlert}'
  */
-        updateaf31f9169cfc9bffa67aadfcb21678d1Form.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateaf31f9169cfc9bffa67aadfcb21678d1Form.patch = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updateaf31f9169cfc9bffa67aadfcb21678d1.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',

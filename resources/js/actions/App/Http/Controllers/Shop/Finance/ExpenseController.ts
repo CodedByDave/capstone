@@ -444,7 +444,7 @@ export const store = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/shop/finance/expenses/{expense}'
  */
-const updatef4fa2f469553ee471c6e52cd19bbbe79 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updatef4fa2f469553ee471c6e52cd19bbbe79 = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatef4fa2f469553ee471c6e52cd19bbbe79.url(args, options),
     method: 'put',
 })
@@ -459,7 +459,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/shop/finance/expenses/{expense}'
  */
-updatef4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+updatef4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { expense: args }
     }
@@ -492,7 +492,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { public
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/shop/finance/expenses/{expense}'
  */
-updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updatef4fa2f469553ee471c6e52cd19bbbe79.url(args, options),
     method: 'put',
 })
@@ -502,7 +502,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/shop/finance/expenses/{expense}'
  */
-    const updatef4fa2f469553ee471c6e52cd19bbbe79Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updatef4fa2f469553ee471c6e52cd19bbbe79Form = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updatef4fa2f469553ee471c6e52cd19bbbe79.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -517,7 +517,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/shop/finance/expenses/{expense}'
  */
-        updatef4fa2f469553ee471c6e52cd19bbbe79Form.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updatef4fa2f469553ee471c6e52cd19bbbe79Form.put = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updatef4fa2f469553ee471c6e52cd19bbbe79.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -533,7 +533,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-const update8dbe08ed7ad71707d6675635051b7b87 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update8dbe08ed7ad71707d6675635051b7b87 = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update8dbe08ed7ad71707d6675635051b7b87.url(args, options),
     method: 'put',
 })
@@ -548,7 +548,7 @@ update8dbe08ed7ad71707d6675635051b7b87.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-update8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+update8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { expense: args }
     }
@@ -581,7 +581,7 @@ update8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { public
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-update8dbe08ed7ad71707d6675635051b7b87.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update8dbe08ed7ad71707d6675635051b7b87.put = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update8dbe08ed7ad71707d6675635051b7b87.url(args, options),
     method: 'put',
 })
@@ -591,7 +591,7 @@ update8dbe08ed7ad71707d6675635051b7b87.put = (args: { expense: string | { public
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-    const update8dbe08ed7ad71707d6675635051b7b87Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update8dbe08ed7ad71707d6675635051b7b87Form = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update8dbe08ed7ad71707d6675635051b7b87.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -606,7 +606,7 @@ update8dbe08ed7ad71707d6675635051b7b87.put = (args: { expense: string | { public
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
  * @route '/staff/finance/expenses/{expense}'
  */
-        update8dbe08ed7ad71707d6675635051b7b87Form.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update8dbe08ed7ad71707d6675635051b7b87Form.put = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update8dbe08ed7ad71707d6675635051b7b87.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -628,7 +628,7 @@ export const update = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/shop/finance/expenses/{expense}'
  */
-const destroyf4fa2f469553ee471c6e52cd19bbbe79 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyf4fa2f469553ee471c6e52cd19bbbe79 = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyf4fa2f469553ee471c6e52cd19bbbe79.url(args, options),
     method: 'delete',
 })
@@ -643,7 +643,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/shop/finance/expenses/{expense}'
  */
-destroyf4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroyf4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { expense: args }
     }
@@ -676,7 +676,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { publi
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/shop/finance/expenses/{expense}'
  */
-destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyf4fa2f469553ee471c6e52cd19bbbe79.url(args, options),
     method: 'delete',
 })
@@ -686,7 +686,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { pu
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/shop/finance/expenses/{expense}'
  */
-    const destroyf4fa2f469553ee471c6e52cd19bbbe79Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyf4fa2f469553ee471c6e52cd19bbbe79Form = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyf4fa2f469553ee471c6e52cd19bbbe79.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -701,7 +701,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { pu
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/shop/finance/expenses/{expense}'
  */
-        destroyf4fa2f469553ee471c6e52cd19bbbe79Form.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyf4fa2f469553ee471c6e52cd19bbbe79Form.delete = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyf4fa2f469553ee471c6e52cd19bbbe79.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -717,7 +717,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { pu
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-const destroy8dbe08ed7ad71707d6675635051b7b87 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy8dbe08ed7ad71707d6675635051b7b87 = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy8dbe08ed7ad71707d6675635051b7b87.url(args, options),
     method: 'delete',
 })
@@ -732,7 +732,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-destroy8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroy8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { expense: args }
     }
@@ -765,7 +765,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { publi
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-destroy8dbe08ed7ad71707d6675635051b7b87.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy8dbe08ed7ad71707d6675635051b7b87.delete = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy8dbe08ed7ad71707d6675635051b7b87.url(args, options),
     method: 'delete',
 })
@@ -775,7 +775,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.delete = (args: { expense: string | { pu
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-    const destroy8dbe08ed7ad71707d6675635051b7b87Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy8dbe08ed7ad71707d6675635051b7b87Form = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy8dbe08ed7ad71707d6675635051b7b87.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -790,7 +790,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.delete = (args: { expense: string | { pu
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
  * @route '/staff/finance/expenses/{expense}'
  */
-        destroy8dbe08ed7ad71707d6675635051b7b87Form.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy8dbe08ed7ad71707d6675635051b7b87Form.delete = (args: { expense: string | number | { public_id: string | number } } | [expense: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy8dbe08ed7ad71707d6675635051b7b87.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1082,7 +1082,7 @@ export const storeCategory = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-const destroyCategory31181b5d6883b6ed6de5f524a009a977 = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyCategory31181b5d6883b6ed6de5f524a009a977 = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyCategory31181b5d6883b6ed6de5f524a009a977.url(args, options),
     method: 'delete',
 })
@@ -1097,7 +1097,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-destroyCategory31181b5d6883b6ed6de5f524a009a977.url = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroyCategory31181b5d6883b6ed6de5f524a009a977.url = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { category: args }
     }
@@ -1130,7 +1130,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.url = (args: { category: string 
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyCategory31181b5d6883b6ed6de5f524a009a977.url(args, options),
     method: 'delete',
 })
@@ -1140,7 +1140,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: stri
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-    const destroyCategory31181b5d6883b6ed6de5f524a009a977Form = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyCategory31181b5d6883b6ed6de5f524a009a977Form = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyCategory31181b5d6883b6ed6de5f524a009a977.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1155,7 +1155,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: stri
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/shop/finance/categories/{category}'
  */
-        destroyCategory31181b5d6883b6ed6de5f524a009a977Form.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyCategory31181b5d6883b6ed6de5f524a009a977Form.delete = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyCategory31181b5d6883b6ed6de5f524a009a977.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1171,7 +1171,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: stri
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/staff/finance/categories/{category}'
  */
-const destroyCategory38f448f8ee856b5b8e6a38e8e75d786f = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyCategory38f448f8ee856b5b8e6a38e8e75d786f = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url(args, options),
     method: 'delete',
 })
@@ -1186,7 +1186,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.definition = {
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/staff/finance/categories/{category}'
  */
-destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { category: args }
     }
@@ -1219,7 +1219,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url = (args: { category: string 
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/staff/finance/categories/{category}'
  */
-destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.delete = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url(args, options),
     method: 'delete',
 })
@@ -1229,7 +1229,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.delete = (args: { category: stri
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/staff/finance/categories/{category}'
  */
-    const destroyCategory38f448f8ee856b5b8e6a38e8e75d786fForm = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyCategory38f448f8ee856b5b8e6a38e8e75d786fForm = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1244,7 +1244,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.delete = (args: { category: stri
  * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
  * @route '/staff/finance/categories/{category}'
  */
-        destroyCategory38f448f8ee856b5b8e6a38e8e75d786fForm.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyCategory38f448f8ee856b5b8e6a38e8e75d786fForm.delete = (args: { category: string | number | { public_id: string | number } } | [category: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

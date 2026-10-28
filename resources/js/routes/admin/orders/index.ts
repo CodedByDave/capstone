@@ -215,7 +215,7 @@ importMethod.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Admin/OrderController.php:95
  * @route '/admin/orders/{order}'
  */
-export const show = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const show = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -230,7 +230,7 @@ show.definition = {
  * @see app/Http/Controllers/Admin/OrderController.php:95
  * @route '/admin/orders/{order}'
  */
-show.url = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+show.url = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -263,7 +263,7 @@ show.url = (args: { order: string | { public_id: string } } | [order: string | {
  * @see app/Http/Controllers/Admin/OrderController.php:95
  * @route '/admin/orders/{order}'
  */
-show.get = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show.get = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -272,7 +272,7 @@ show.get = (args: { order: string | { public_id: string } } | [order: string | {
  * @see app/Http/Controllers/Admin/OrderController.php:95
  * @route '/admin/orders/{order}'
  */
-show.head = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show.head = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show.url(args, options),
     method: 'head',
 })
@@ -282,7 +282,7 @@ show.head = (args: { order: string | { public_id: string } } | [order: string | 
  * @see app/Http/Controllers/Admin/OrderController.php:95
  * @route '/admin/orders/{order}'
  */
-    const showForm = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showForm = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show.url(args, options),
         method: 'get',
     })
@@ -292,7 +292,7 @@ show.head = (args: { order: string | { public_id: string } } | [order: string | 
  * @see app/Http/Controllers/Admin/OrderController.php:95
  * @route '/admin/orders/{order}'
  */
-        showForm.get = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.get = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, options),
             method: 'get',
         })
@@ -301,7 +301,7 @@ show.head = (args: { order: string | { public_id: string } } | [order: string | 
  * @see app/Http/Controllers/Admin/OrderController.php:95
  * @route '/admin/orders/{order}'
  */
-        showForm.head = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.head = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -317,7 +317,7 @@ show.head = (args: { order: string | { public_id: string } } | [order: string | 
  * @see app/Http/Controllers/Admin/OrderController.php:107
  * @route '/admin/orders/{order}/approve'
  */
-export const approve = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const approve = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: approve.url(args, options),
     method: 'post',
 })
@@ -332,7 +332,7 @@ approve.definition = {
  * @see app/Http/Controllers/Admin/OrderController.php:107
  * @route '/admin/orders/{order}/approve'
  */
-approve.url = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+approve.url = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -365,7 +365,7 @@ approve.url = (args: { order: string | { public_id: string } } | [order: string 
  * @see app/Http/Controllers/Admin/OrderController.php:107
  * @route '/admin/orders/{order}/approve'
  */
-approve.post = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+approve.post = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: approve.url(args, options),
     method: 'post',
 })
@@ -375,7 +375,7 @@ approve.post = (args: { order: string | { public_id: string } } | [order: string
  * @see app/Http/Controllers/Admin/OrderController.php:107
  * @route '/admin/orders/{order}/approve'
  */
-    const approveForm = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const approveForm = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: approve.url(args, options),
         method: 'post',
     })
@@ -385,7 +385,7 @@ approve.post = (args: { order: string | { public_id: string } } | [order: string
  * @see app/Http/Controllers/Admin/OrderController.php:107
  * @route '/admin/orders/{order}/approve'
  */
-        approveForm.post = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        approveForm.post = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: approve.url(args, options),
             method: 'post',
         })
@@ -396,7 +396,7 @@ approve.post = (args: { order: string | { public_id: string } } | [order: string
  * @see app/Http/Controllers/Admin/OrderController.php:124
  * @route '/admin/orders/{order}/reject'
  */
-export const reject = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const reject = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: reject.url(args, options),
     method: 'post',
 })
@@ -411,7 +411,7 @@ reject.definition = {
  * @see app/Http/Controllers/Admin/OrderController.php:124
  * @route '/admin/orders/{order}/reject'
  */
-reject.url = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+reject.url = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -444,7 +444,7 @@ reject.url = (args: { order: string | { public_id: string } } | [order: string |
  * @see app/Http/Controllers/Admin/OrderController.php:124
  * @route '/admin/orders/{order}/reject'
  */
-reject.post = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+reject.post = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: reject.url(args, options),
     method: 'post',
 })
@@ -454,7 +454,7 @@ reject.post = (args: { order: string | { public_id: string } } | [order: string 
  * @see app/Http/Controllers/Admin/OrderController.php:124
  * @route '/admin/orders/{order}/reject'
  */
-    const rejectForm = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const rejectForm = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: reject.url(args, options),
         method: 'post',
     })
@@ -464,7 +464,7 @@ reject.post = (args: { order: string | { public_id: string } } | [order: string 
  * @see app/Http/Controllers/Admin/OrderController.php:124
  * @route '/admin/orders/{order}/reject'
  */
-        rejectForm.post = (args: { order: string | { public_id: string } } | [order: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        rejectForm.post = (args: { order: string | number | { public_id: string | number } } | [order: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: reject.url(args, options),
             method: 'post',
         })

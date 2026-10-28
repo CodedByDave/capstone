@@ -137,7 +137,7 @@ markAllRead.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-export const update = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const update = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update.url(args, options),
     method: 'patch',
 })
@@ -152,7 +152,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-update.url = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+update.url = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { lowStockAlert: args }
     }
@@ -185,7 +185,7 @@ update.url = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert:
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-update.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+update.patch = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update.url(args, options),
     method: 'patch',
 })
@@ -195,7 +195,7 @@ update.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAler
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-    const updateForm = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -210,7 +210,7 @@ update.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAler
  * @see app/Http/Controllers/Shop/Inventory/LowStockAlertController.php:42
  * @route '/shop/inventory/alerts/{lowStockAlert}'
  */
-        updateForm.patch = (args: { lowStockAlert: number | { id: number } } | [lowStockAlert: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.patch = (args: { lowStockAlert: string | number | { id: string | number } } | [lowStockAlert: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',

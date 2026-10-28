@@ -138,7 +138,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:49
  * @route '/admin/settings/roles-permissions/roles/{platformRole}'
  */
-export const destroy = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -153,7 +153,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:49
  * @route '/admin/settings/roles-permissions/roles/{platformRole}'
  */
-destroy.url = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroy.url = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { platformRole: args }
     }
@@ -186,7 +186,7 @@ destroy.url = (args: { platformRole: string | { public_id: string } } | [platfor
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:49
  * @route '/admin/settings/roles-permissions/roles/{platformRole}'
  */
-destroy.delete = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -196,7 +196,7 @@ destroy.delete = (args: { platformRole: string | { public_id: string } } | [plat
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:49
  * @route '/admin/settings/roles-permissions/roles/{platformRole}'
  */
-    const destroyForm = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -211,7 +211,7 @@ destroy.delete = (args: { platformRole: string | { public_id: string } } | [plat
  * @see app/Http/Controllers/Admin/PlatformRoleController.php:49
  * @route '/admin/settings/roles-permissions/roles/{platformRole}'
  */
-        destroyForm.delete = (args: { platformRole: string | { public_id: string } } | [platformRole: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { platformRole: string | number | { public_id: string | number } } | [platformRole: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

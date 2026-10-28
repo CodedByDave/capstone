@@ -160,7 +160,7 @@ shops.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/User/UserDashboardController.php:155
  * @route '/user/shops/{shop}'
  */
-export const showShop = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const showShop = (args: { shop: string | number | { id: string | number } } | [shop: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showShop.url(args, options),
     method: 'get',
 })
@@ -175,7 +175,7 @@ showShop.definition = {
  * @see app/Http/Controllers/User/UserDashboardController.php:155
  * @route '/user/shops/{shop}'
  */
-showShop.url = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+showShop.url = (args: { shop: string | number | { id: string | number } } | [shop: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { shop: args }
     }
@@ -208,7 +208,7 @@ showShop.url = (args: { shop: number | { id: number } } | [shop: number | { id: 
  * @see app/Http/Controllers/User/UserDashboardController.php:155
  * @route '/user/shops/{shop}'
  */
-showShop.get = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+showShop.get = (args: { shop: string | number | { id: string | number } } | [shop: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showShop.url(args, options),
     method: 'get',
 })
@@ -217,7 +217,7 @@ showShop.get = (args: { shop: number | { id: number } } | [shop: number | { id: 
  * @see app/Http/Controllers/User/UserDashboardController.php:155
  * @route '/user/shops/{shop}'
  */
-showShop.head = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+showShop.head = (args: { shop: string | number | { id: string | number } } | [shop: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: showShop.url(args, options),
     method: 'head',
 })
@@ -227,7 +227,7 @@ showShop.head = (args: { shop: number | { id: number } } | [shop: number | { id:
  * @see app/Http/Controllers/User/UserDashboardController.php:155
  * @route '/user/shops/{shop}'
  */
-    const showShopForm = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showShopForm = (args: { shop: string | number | { id: string | number } } | [shop: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: showShop.url(args, options),
         method: 'get',
     })
@@ -237,7 +237,7 @@ showShop.head = (args: { shop: number | { id: number } } | [shop: number | { id:
  * @see app/Http/Controllers/User/UserDashboardController.php:155
  * @route '/user/shops/{shop}'
  */
-        showShopForm.get = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showShopForm.get = (args: { shop: string | number | { id: string | number } } | [shop: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showShop.url(args, options),
             method: 'get',
         })
@@ -246,7 +246,7 @@ showShop.head = (args: { shop: number | { id: number } } | [shop: number | { id:
  * @see app/Http/Controllers/User/UserDashboardController.php:155
  * @route '/user/shops/{shop}'
  */
-        showShopForm.head = (args: { shop: number | { id: number } } | [shop: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showShopForm.head = (args: { shop: string | number | { id: string | number } } | [shop: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showShop.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

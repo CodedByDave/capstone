@@ -427,7 +427,7 @@ importTemplate.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-export const edit = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -442,7 +442,7 @@ edit.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-edit.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+edit.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -475,7 +475,7 @@ edit.url = (args: { service: number | { id: number } } | [service: number | { id
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-edit.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -484,7 +484,7 @@ edit.get = (args: { service: number | { id: number } } | [service: number | { id
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-edit.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -494,7 +494,7 @@ edit.head = (args: { service: number | { id: number } } | [service: number | { i
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-    const editForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -504,7 +504,7 @@ edit.head = (args: { service: number | { id: number } } | [service: number | { i
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-        editForm.get = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
@@ -513,7 +513,7 @@ edit.head = (args: { service: number | { id: number } } | [service: number | { i
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:106
  * @route '/staff/operations/services/{service}/edit'
  */
-        editForm.head = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -529,7 +529,7 @@ edit.head = (args: { service: number | { id: number } } | [service: number | { i
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-export const update = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -544,7 +544,7 @@ update.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-update.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+update.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -577,7 +577,7 @@ update.url = (args: { service: number | { id: number } } | [service: number | { 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-update.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -587,7 +587,7 @@ update.put = (args: { service: number | { id: number } } | [service: number | { 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-    const updateForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -602,7 +602,7 @@ update.put = (args: { service: number | { id: number } } | [service: number | { 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:118
  * @route '/staff/operations/services/{service}'
  */
-        updateForm.put = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -618,7 +618,7 @@ update.put = (args: { service: number | { id: number } } | [service: number | { 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-export const toggle = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const toggle = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggle.url(args, options),
     method: 'patch',
 })
@@ -633,7 +633,7 @@ toggle.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-toggle.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+toggle.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -666,7 +666,7 @@ toggle.url = (args: { service: number | { id: number } } | [service: number | { 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-toggle.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+toggle.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: toggle.url(args, options),
     method: 'patch',
 })
@@ -676,7 +676,7 @@ toggle.patch = (args: { service: number | { id: number } } | [service: number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-    const toggleForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const toggleForm = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: toggle.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -691,7 +691,7 @@ toggle.patch = (args: { service: number | { id: number } } | [service: number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:147
  * @route '/staff/operations/services/{service}/toggle'
  */
-        toggleForm.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        toggleForm.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: toggle.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -707,7 +707,7 @@ toggle.patch = (args: { service: number | { id: number } } | [service: number | 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-export const restore = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const restore = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore.url(args, options),
     method: 'patch',
 })
@@ -722,7 +722,7 @@ restore.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-restore.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+restore.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -755,7 +755,7 @@ restore.url = (args: { service: number | { id: number } } | [service: number | {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-restore.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+restore.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: restore.url(args, options),
     method: 'patch',
 })
@@ -765,7 +765,7 @@ restore.patch = (args: { service: number | { id: number } } | [service: number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-    const restoreForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const restoreForm = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: restore.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -780,7 +780,7 @@ restore.patch = (args: { service: number | { id: number } } | [service: number |
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:158
  * @route '/staff/operations/services/{service}/restore'
  */
-        restoreForm.patch = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        restoreForm.patch = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: restore.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -851,7 +851,7 @@ restoreAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-export const destroy = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -866,7 +866,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-destroy.url = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { service: args }
     }
@@ -899,7 +899,7 @@ destroy.url = (args: { service: number | { id: number } } | [service: number | {
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-destroy.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -909,7 +909,7 @@ destroy.delete = (args: { service: number | { id: number } } | [service: number 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-    const destroyForm = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -924,7 +924,7 @@ destroy.delete = (args: { service: number | { id: number } } | [service: number 
  * @see app/Http/Controllers/Shop/Operations/ShopServiceController.php:136
  * @route '/staff/operations/services/{service}'
  */
-        destroyForm.delete = (args: { service: number | { id: number } } | [service: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { service: string | number | { id: string | number } } | [service: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

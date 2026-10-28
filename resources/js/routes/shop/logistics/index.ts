@@ -5,7 +5,7 @@ import photos from './photos'
  * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
-export const status = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+export const status = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -20,7 +20,7 @@ status.definition = {
  * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
-status.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+status.url = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { delivery: args }
     }
@@ -53,7 +53,7 @@ status.url = (args: { delivery: string | { public_id: string } } | [delivery: st
  * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
-status.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+status.patch = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: status.url(args, options),
     method: 'patch',
 })
@@ -63,7 +63,7 @@ status.patch = (args: { delivery: string | { public_id: string } } | [delivery: 
  * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
-    const statusForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const statusForm = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: status.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PATCH',
@@ -78,7 +78,7 @@ status.patch = (args: { delivery: string | { public_id: string } } | [delivery: 
  * @see app/Http/Controllers/Shop/LogisticsController.php:32
  * @route '/shop/logistics/{delivery}/status'
  */
-        statusForm.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        statusForm.patch = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: status.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PATCH',
@@ -94,7 +94,7 @@ status.patch = (args: { delivery: string | { public_id: string } } | [delivery: 
  * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
-export const destroy = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -109,7 +109,7 @@ destroy.definition = {
  * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
-destroy.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroy.url = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { delivery: args }
     }
@@ -142,7 +142,7 @@ destroy.url = (args: { delivery: string | { public_id: string } } | [delivery: s
  * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
-destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -152,7 +152,7 @@ destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery
  * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
-    const destroyForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -167,7 +167,7 @@ destroy.delete = (args: { delivery: string | { public_id: string } } | [delivery
  * @see app/Http/Controllers/Shop/LogisticsController.php:39
  * @route '/shop/logistics/{delivery}'
  */
-        destroyForm.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { delivery: string | number | { public_id: string | number } } | [delivery: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

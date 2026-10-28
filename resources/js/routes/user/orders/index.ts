@@ -165,7 +165,7 @@ estimate.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
  * @see app/Http/Controllers/User/UserOrderController.php:77
  * @route '/user/orders/{order}'
  */
-export const show = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const show = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -180,7 +180,7 @@ show.definition = {
  * @see app/Http/Controllers/User/UserOrderController.php:77
  * @route '/user/orders/{order}'
  */
-show.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
+show.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -213,7 +213,7 @@ show.url = (args: { order: string | { payment_public_id: string } } | [order: st
  * @see app/Http/Controllers/User/UserOrderController.php:77
  * @route '/user/orders/{order}'
  */
-show.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show.get = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
     method: 'get',
 })
@@ -222,7 +222,7 @@ show.get = (args: { order: string | { payment_public_id: string } } | [order: st
  * @see app/Http/Controllers/User/UserOrderController.php:77
  * @route '/user/orders/{order}'
  */
-show.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show.head = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show.url(args, options),
     method: 'head',
 })
@@ -232,7 +232,7 @@ show.head = (args: { order: string | { payment_public_id: string } } | [order: s
  * @see app/Http/Controllers/User/UserOrderController.php:77
  * @route '/user/orders/{order}'
  */
-    const showForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show.url(args, options),
         method: 'get',
     })
@@ -242,7 +242,7 @@ show.head = (args: { order: string | { payment_public_id: string } } | [order: s
  * @see app/Http/Controllers/User/UserOrderController.php:77
  * @route '/user/orders/{order}'
  */
-        showForm.get = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.get = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, options),
             method: 'get',
         })
@@ -251,7 +251,7 @@ show.head = (args: { order: string | { payment_public_id: string } } | [order: s
  * @see app/Http/Controllers/User/UserOrderController.php:77
  * @route '/user/orders/{order}'
  */
-        showForm.head = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showForm.head = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -322,7 +322,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
  * @see app/Http/Controllers/User/UserOrderController.php:178
  * @route '/user/orders/{order}/request-delivery'
  */
-export const requestDelivery = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const requestDelivery = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: requestDelivery.url(args, options),
     method: 'post',
 })
@@ -337,7 +337,7 @@ requestDelivery.definition = {
  * @see app/Http/Controllers/User/UserOrderController.php:178
  * @route '/user/orders/{order}/request-delivery'
  */
-requestDelivery.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
+requestDelivery.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -370,7 +370,7 @@ requestDelivery.url = (args: { order: string | { payment_public_id: string } } |
  * @see app/Http/Controllers/User/UserOrderController.php:178
  * @route '/user/orders/{order}/request-delivery'
  */
-requestDelivery.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+requestDelivery.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: requestDelivery.url(args, options),
     method: 'post',
 })
@@ -380,7 +380,7 @@ requestDelivery.post = (args: { order: string | { payment_public_id: string } } 
  * @see app/Http/Controllers/User/UserOrderController.php:178
  * @route '/user/orders/{order}/request-delivery'
  */
-    const requestDeliveryForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const requestDeliveryForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: requestDelivery.url(args, options),
         method: 'post',
     })
@@ -390,7 +390,7 @@ requestDelivery.post = (args: { order: string | { payment_public_id: string } } 
  * @see app/Http/Controllers/User/UserOrderController.php:178
  * @route '/user/orders/{order}/request-delivery'
  */
-        requestDeliveryForm.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        requestDeliveryForm.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: requestDelivery.url(args, options),
             method: 'post',
         })
@@ -401,7 +401,7 @@ requestDelivery.post = (args: { order: string | { payment_public_id: string } } 
  * @see app/Http/Controllers/User/UserOrderController.php:192
  * @route '/user/orders/{order}/delivery-quote'
  */
-export const deliveryQuote = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const deliveryQuote = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: deliveryQuote.url(args, options),
     method: 'post',
 })
@@ -416,7 +416,7 @@ deliveryQuote.definition = {
  * @see app/Http/Controllers/User/UserOrderController.php:192
  * @route '/user/orders/{order}/delivery-quote'
  */
-deliveryQuote.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
+deliveryQuote.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -449,7 +449,7 @@ deliveryQuote.url = (args: { order: string | { payment_public_id: string } } | [
  * @see app/Http/Controllers/User/UserOrderController.php:192
  * @route '/user/orders/{order}/delivery-quote'
  */
-deliveryQuote.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+deliveryQuote.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: deliveryQuote.url(args, options),
     method: 'post',
 })
@@ -459,7 +459,7 @@ deliveryQuote.post = (args: { order: string | { payment_public_id: string } } | 
  * @see app/Http/Controllers/User/UserOrderController.php:192
  * @route '/user/orders/{order}/delivery-quote'
  */
-    const deliveryQuoteForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const deliveryQuoteForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: deliveryQuote.url(args, options),
         method: 'post',
     })
@@ -469,7 +469,7 @@ deliveryQuote.post = (args: { order: string | { payment_public_id: string } } | 
  * @see app/Http/Controllers/User/UserOrderController.php:192
  * @route '/user/orders/{order}/delivery-quote'
  */
-        deliveryQuoteForm.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        deliveryQuoteForm.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: deliveryQuote.url(args, options),
             method: 'post',
         })
@@ -674,7 +674,7 @@ track.head = (args: { paymentPublicId: string | number } | [paymentPublicId: str
  * @see app/Http/Controllers/User/UserOrderController.php:211
  * @route '/user/orders/{order}/cancel'
  */
-export const cancel = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const cancel = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: cancel.url(args, options),
     method: 'post',
 })
@@ -689,7 +689,7 @@ cancel.definition = {
  * @see app/Http/Controllers/User/UserOrderController.php:211
  * @route '/user/orders/{order}/cancel'
  */
-cancel.url = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions) => {
+cancel.url = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { order: args }
     }
@@ -722,7 +722,7 @@ cancel.url = (args: { order: string | { payment_public_id: string } } | [order: 
  * @see app/Http/Controllers/User/UserOrderController.php:211
  * @route '/user/orders/{order}/cancel'
  */
-cancel.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+cancel.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: cancel.url(args, options),
     method: 'post',
 })
@@ -732,7 +732,7 @@ cancel.post = (args: { order: string | { payment_public_id: string } } | [order:
  * @see app/Http/Controllers/User/UserOrderController.php:211
  * @route '/user/orders/{order}/cancel'
  */
-    const cancelForm = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const cancelForm = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: cancel.url(args, options),
         method: 'post',
     })
@@ -742,7 +742,7 @@ cancel.post = (args: { order: string | { payment_public_id: string } } | [order:
  * @see app/Http/Controllers/User/UserOrderController.php:211
  * @route '/user/orders/{order}/cancel'
  */
-        cancelForm.post = (args: { order: string | { payment_public_id: string } } | [order: string | { payment_public_id: string } ] | string | { payment_public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        cancelForm.post = (args: { order: string | number | { payment_public_id: string | number } } | [order: string | number | { payment_public_id: string | number } ] | string | number | { payment_public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: cancel.url(args, options),
             method: 'post',
         })

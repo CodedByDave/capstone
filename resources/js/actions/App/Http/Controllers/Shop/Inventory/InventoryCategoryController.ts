@@ -282,7 +282,7 @@ export const store = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/shop/inventory/category/{inventoryCategory}/edit'
  */
-const edit324d80c462e18f63cf9cdb079563791e = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit324d80c462e18f63cf9cdb079563791e = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
     method: 'get',
 })
@@ -297,7 +297,7 @@ edit324d80c462e18f63cf9cdb079563791e.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/shop/inventory/category/{inventoryCategory}/edit'
  */
-edit324d80c462e18f63cf9cdb079563791e.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+edit324d80c462e18f63cf9cdb079563791e.url = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventoryCategory: args }
     }
@@ -330,7 +330,7 @@ edit324d80c462e18f63cf9cdb079563791e.url = (args: { inventoryCategory: number | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/shop/inventory/category/{inventoryCategory}/edit'
  */
-edit324d80c462e18f63cf9cdb079563791e.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit324d80c462e18f63cf9cdb079563791e.get = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
     method: 'get',
 })
@@ -339,7 +339,7 @@ edit324d80c462e18f63cf9cdb079563791e.get = (args: { inventoryCategory: number | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/shop/inventory/category/{inventoryCategory}/edit'
  */
-edit324d80c462e18f63cf9cdb079563791e.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit324d80c462e18f63cf9cdb079563791e.head = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
     method: 'head',
 })
@@ -349,7 +349,7 @@ edit324d80c462e18f63cf9cdb079563791e.head = (args: { inventoryCategory: number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/shop/inventory/category/{inventoryCategory}/edit'
  */
-    const edit324d80c462e18f63cf9cdb079563791eForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit324d80c462e18f63cf9cdb079563791eForm = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
         method: 'get',
     })
@@ -359,7 +359,7 @@ edit324d80c462e18f63cf9cdb079563791e.head = (args: { inventoryCategory: number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/shop/inventory/category/{inventoryCategory}/edit'
  */
-        edit324d80c462e18f63cf9cdb079563791eForm.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit324d80c462e18f63cf9cdb079563791eForm.get = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
             method: 'get',
         })
@@ -368,7 +368,7 @@ edit324d80c462e18f63cf9cdb079563791e.head = (args: { inventoryCategory: number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/shop/inventory/category/{inventoryCategory}/edit'
  */
-        edit324d80c462e18f63cf9cdb079563791eForm.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit324d80c462e18f63cf9cdb079563791eForm.head = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit324d80c462e18f63cf9cdb079563791e.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -384,7 +384,7 @@ edit324d80c462e18f63cf9cdb079563791e.head = (args: { inventoryCategory: number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/staff/inventory/category/{inventoryCategory}/edit'
  */
-const edit7a4b600ef9faa62f3579c2eb4dbbae6c = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit7a4b600ef9faa62f3579c2eb4dbbae6c = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
     method: 'get',
 })
@@ -399,7 +399,7 @@ edit7a4b600ef9faa62f3579c2eb4dbbae6c.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/staff/inventory/category/{inventoryCategory}/edit'
  */
-edit7a4b600ef9faa62f3579c2eb4dbbae6c.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+edit7a4b600ef9faa62f3579c2eb4dbbae6c.url = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventoryCategory: args }
     }
@@ -432,7 +432,7 @@ edit7a4b600ef9faa62f3579c2eb4dbbae6c.url = (args: { inventoryCategory: number | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/staff/inventory/category/{inventoryCategory}/edit'
  */
-edit7a4b600ef9faa62f3579c2eb4dbbae6c.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit7a4b600ef9faa62f3579c2eb4dbbae6c.get = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
     method: 'get',
 })
@@ -441,7 +441,7 @@ edit7a4b600ef9faa62f3579c2eb4dbbae6c.get = (args: { inventoryCategory: number | 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/staff/inventory/category/{inventoryCategory}/edit'
  */
-edit7a4b600ef9faa62f3579c2eb4dbbae6c.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit7a4b600ef9faa62f3579c2eb4dbbae6c.head = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
     method: 'head',
 })
@@ -451,7 +451,7 @@ edit7a4b600ef9faa62f3579c2eb4dbbae6c.head = (args: { inventoryCategory: number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/staff/inventory/category/{inventoryCategory}/edit'
  */
-    const edit7a4b600ef9faa62f3579c2eb4dbbae6cForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit7a4b600ef9faa62f3579c2eb4dbbae6cForm = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
         method: 'get',
     })
@@ -461,7 +461,7 @@ edit7a4b600ef9faa62f3579c2eb4dbbae6c.head = (args: { inventoryCategory: number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/staff/inventory/category/{inventoryCategory}/edit'
  */
-        edit7a4b600ef9faa62f3579c2eb4dbbae6cForm.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit7a4b600ef9faa62f3579c2eb4dbbae6cForm.get = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
             method: 'get',
         })
@@ -470,7 +470,7 @@ edit7a4b600ef9faa62f3579c2eb4dbbae6c.head = (args: { inventoryCategory: number |
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
  * @route '/staff/inventory/category/{inventoryCategory}/edit'
  */
-        edit7a4b600ef9faa62f3579c2eb4dbbae6cForm.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit7a4b600ef9faa62f3579c2eb4dbbae6cForm.head = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -492,7 +492,7 @@ export const edit = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-const update6b3cc540c8f21bba5e29d8ccf7b47446 = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update6b3cc540c8f21bba5e29d8ccf7b47446 = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update6b3cc540c8f21bba5e29d8ccf7b47446.url(args, options),
     method: 'put',
 })
@@ -507,7 +507,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-update6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+update6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventoryCategory: args }
     }
@@ -540,7 +540,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update6b3cc540c8f21bba5e29d8ccf7b47446.url(args, options),
     method: 'put',
 })
@@ -550,7 +550,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-    const update6b3cc540c8f21bba5e29d8ccf7b47446Form = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update6b3cc540c8f21bba5e29d8ccf7b47446Form = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update6b3cc540c8f21bba5e29d8ccf7b47446.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -565,7 +565,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-        update6b3cc540c8f21bba5e29d8ccf7b47446Form.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update6b3cc540c8f21bba5e29d8ccf7b47446Form.put = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update6b3cc540c8f21bba5e29d8ccf7b47446.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -581,7 +581,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-const update14331b5d6fffa767cb2d8427688bd8aa = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update14331b5d6fffa767cb2d8427688bd8aa = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update14331b5d6fffa767cb2d8427688bd8aa.url(args, options),
     method: 'put',
 })
@@ -596,7 +596,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-update14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+update14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventoryCategory: args }
     }
@@ -629,7 +629,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-update14331b5d6fffa767cb2d8427688bd8aa.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update14331b5d6fffa767cb2d8427688bd8aa.put = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update14331b5d6fffa767cb2d8427688bd8aa.url(args, options),
     method: 'put',
 })
@@ -639,7 +639,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.put = (args: { inventoryCategory: number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-    const update14331b5d6fffa767cb2d8427688bd8aaForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update14331b5d6fffa767cb2d8427688bd8aaForm = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update14331b5d6fffa767cb2d8427688bd8aa.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -654,7 +654,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.put = (args: { inventoryCategory: number 
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-        update14331b5d6fffa767cb2d8427688bd8aaForm.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update14331b5d6fffa767cb2d8427688bd8aaForm.put = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update14331b5d6fffa767cb2d8427688bd8aa.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -676,7 +676,7 @@ export const update = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-const destroy6b3cc540c8f21bba5e29d8ccf7b47446 = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy6b3cc540c8f21bba5e29d8ccf7b47446 = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy6b3cc540c8f21bba5e29d8ccf7b47446.url(args, options),
     method: 'delete',
 })
@@ -691,7 +691,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-destroy6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventoryCategory: args }
     }
@@ -724,7 +724,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy6b3cc540c8f21bba5e29d8ccf7b47446.url(args, options),
     method: 'delete',
 })
@@ -734,7 +734,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: num
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-    const destroy6b3cc540c8f21bba5e29d8ccf7b47446Form = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy6b3cc540c8f21bba5e29d8ccf7b47446Form = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy6b3cc540c8f21bba5e29d8ccf7b47446.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -749,7 +749,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: num
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
-        destroy6b3cc540c8f21bba5e29d8ccf7b47446Form.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy6b3cc540c8f21bba5e29d8ccf7b47446Form.delete = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy6b3cc540c8f21bba5e29d8ccf7b47446.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -765,7 +765,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: num
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-const destroy14331b5d6fffa767cb2d8427688bd8aa = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy14331b5d6fffa767cb2d8427688bd8aa = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy14331b5d6fffa767cb2d8427688bd8aa.url(args, options),
     method: 'delete',
 })
@@ -780,7 +780,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.definition = {
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-destroy14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { inventoryCategory: args }
     }
@@ -813,7 +813,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-destroy14331b5d6fffa767cb2d8427688bd8aa.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy14331b5d6fffa767cb2d8427688bd8aa.delete = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy14331b5d6fffa767cb2d8427688bd8aa.url(args, options),
     method: 'delete',
 })
@@ -823,7 +823,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.delete = (args: { inventoryCategory: num
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-    const destroy14331b5d6fffa767cb2d8427688bd8aaForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy14331b5d6fffa767cb2d8427688bd8aaForm = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy14331b5d6fffa767cb2d8427688bd8aa.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -838,7 +838,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.delete = (args: { inventoryCategory: num
  * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
-        destroy14331b5d6fffa767cb2d8427688bd8aaForm.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy14331b5d6fffa767cb2d8427688bd8aaForm.delete = (args: { inventoryCategory: string | number | { id: string | number } } | [inventoryCategory: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy14331b5d6fffa767cb2d8427688bd8aa.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

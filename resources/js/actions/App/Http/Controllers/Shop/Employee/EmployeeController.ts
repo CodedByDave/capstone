@@ -1000,7 +1000,7 @@ export const store = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/shop/employee/{employee}'
  */
-const showaf0654a02e6b99aceadb01636aa9a387 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const showaf0654a02e6b99aceadb01636aa9a387 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showaf0654a02e6b99aceadb01636aa9a387.url(args, options),
     method: 'get',
 })
@@ -1015,7 +1015,7 @@ showaf0654a02e6b99aceadb01636aa9a387.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/shop/employee/{employee}'
  */
-showaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+showaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1048,7 +1048,7 @@ showaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/shop/employee/{employee}'
  */
-showaf0654a02e6b99aceadb01636aa9a387.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+showaf0654a02e6b99aceadb01636aa9a387.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: showaf0654a02e6b99aceadb01636aa9a387.url(args, options),
     method: 'get',
 })
@@ -1057,7 +1057,7 @@ showaf0654a02e6b99aceadb01636aa9a387.get = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/shop/employee/{employee}'
  */
-showaf0654a02e6b99aceadb01636aa9a387.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+showaf0654a02e6b99aceadb01636aa9a387.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: showaf0654a02e6b99aceadb01636aa9a387.url(args, options),
     method: 'head',
 })
@@ -1067,7 +1067,7 @@ showaf0654a02e6b99aceadb01636aa9a387.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/shop/employee/{employee}'
  */
-    const showaf0654a02e6b99aceadb01636aa9a387Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const showaf0654a02e6b99aceadb01636aa9a387Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: showaf0654a02e6b99aceadb01636aa9a387.url(args, options),
         method: 'get',
     })
@@ -1077,7 +1077,7 @@ showaf0654a02e6b99aceadb01636aa9a387.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/shop/employee/{employee}'
  */
-        showaf0654a02e6b99aceadb01636aa9a387Form.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showaf0654a02e6b99aceadb01636aa9a387Form.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showaf0654a02e6b99aceadb01636aa9a387.url(args, options),
             method: 'get',
         })
@@ -1086,7 +1086,7 @@ showaf0654a02e6b99aceadb01636aa9a387.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/shop/employee/{employee}'
  */
-        showaf0654a02e6b99aceadb01636aa9a387Form.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        showaf0654a02e6b99aceadb01636aa9a387Form.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: showaf0654a02e6b99aceadb01636aa9a387.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -1102,7 +1102,7 @@ showaf0654a02e6b99aceadb01636aa9a387.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/staff/employee/{employee}'
  */
-const show7cc057e5bd0079afffb9554b21b70361 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const show7cc057e5bd0079afffb9554b21b70361 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show7cc057e5bd0079afffb9554b21b70361.url(args, options),
     method: 'get',
 })
@@ -1117,7 +1117,7 @@ show7cc057e5bd0079afffb9554b21b70361.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/staff/employee/{employee}'
  */
-show7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+show7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1150,7 +1150,7 @@ show7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/staff/employee/{employee}'
  */
-show7cc057e5bd0079afffb9554b21b70361.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+show7cc057e5bd0079afffb9554b21b70361.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show7cc057e5bd0079afffb9554b21b70361.url(args, options),
     method: 'get',
 })
@@ -1159,7 +1159,7 @@ show7cc057e5bd0079afffb9554b21b70361.get = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/staff/employee/{employee}'
  */
-show7cc057e5bd0079afffb9554b21b70361.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+show7cc057e5bd0079afffb9554b21b70361.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show7cc057e5bd0079afffb9554b21b70361.url(args, options),
     method: 'head',
 })
@@ -1169,7 +1169,7 @@ show7cc057e5bd0079afffb9554b21b70361.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/staff/employee/{employee}'
  */
-    const show7cc057e5bd0079afffb9554b21b70361Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const show7cc057e5bd0079afffb9554b21b70361Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: show7cc057e5bd0079afffb9554b21b70361.url(args, options),
         method: 'get',
     })
@@ -1179,7 +1179,7 @@ show7cc057e5bd0079afffb9554b21b70361.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/staff/employee/{employee}'
  */
-        show7cc057e5bd0079afffb9554b21b70361Form.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        show7cc057e5bd0079afffb9554b21b70361Form.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show7cc057e5bd0079afffb9554b21b70361.url(args, options),
             method: 'get',
         })
@@ -1188,7 +1188,7 @@ show7cc057e5bd0079afffb9554b21b70361.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:75
  * @route '/staff/employee/{employee}'
  */
-        show7cc057e5bd0079afffb9554b21b70361Form.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        show7cc057e5bd0079afffb9554b21b70361Form.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: show7cc057e5bd0079afffb9554b21b70361.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -1210,7 +1210,7 @@ export const show = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/shop/employee/{employee}/edit'
  */
-const edit6915eafac3d0b433ba1c3f609d564ea5 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edit6915eafac3d0b433ba1c3f609d564ea5 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit6915eafac3d0b433ba1c3f609d564ea5.url(args, options),
     method: 'get',
 })
@@ -1225,7 +1225,7 @@ edit6915eafac3d0b433ba1c3f609d564ea5.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/shop/employee/{employee}/edit'
  */
-edit6915eafac3d0b433ba1c3f609d564ea5.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+edit6915eafac3d0b433ba1c3f609d564ea5.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1258,7 +1258,7 @@ edit6915eafac3d0b433ba1c3f609d564ea5.url = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/shop/employee/{employee}/edit'
  */
-edit6915eafac3d0b433ba1c3f609d564ea5.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit6915eafac3d0b433ba1c3f609d564ea5.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit6915eafac3d0b433ba1c3f609d564ea5.url(args, options),
     method: 'get',
 })
@@ -1267,7 +1267,7 @@ edit6915eafac3d0b433ba1c3f609d564ea5.get = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/shop/employee/{employee}/edit'
  */
-edit6915eafac3d0b433ba1c3f609d564ea5.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit6915eafac3d0b433ba1c3f609d564ea5.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit6915eafac3d0b433ba1c3f609d564ea5.url(args, options),
     method: 'head',
 })
@@ -1277,7 +1277,7 @@ edit6915eafac3d0b433ba1c3f609d564ea5.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/shop/employee/{employee}/edit'
  */
-    const edit6915eafac3d0b433ba1c3f609d564ea5Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edit6915eafac3d0b433ba1c3f609d564ea5Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit6915eafac3d0b433ba1c3f609d564ea5.url(args, options),
         method: 'get',
     })
@@ -1287,7 +1287,7 @@ edit6915eafac3d0b433ba1c3f609d564ea5.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/shop/employee/{employee}/edit'
  */
-        edit6915eafac3d0b433ba1c3f609d564ea5Form.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit6915eafac3d0b433ba1c3f609d564ea5Form.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit6915eafac3d0b433ba1c3f609d564ea5.url(args, options),
             method: 'get',
         })
@@ -1296,7 +1296,7 @@ edit6915eafac3d0b433ba1c3f609d564ea5.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/shop/employee/{employee}/edit'
  */
-        edit6915eafac3d0b433ba1c3f609d564ea5Form.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edit6915eafac3d0b433ba1c3f609d564ea5Form.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit6915eafac3d0b433ba1c3f609d564ea5.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -1312,7 +1312,7 @@ edit6915eafac3d0b433ba1c3f609d564ea5.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
-const edita65d42c2e97a5efa4894af8e63dcff48 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+const edita65d42c2e97a5efa4894af8e63dcff48 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edita65d42c2e97a5efa4894af8e63dcff48.url(args, options),
     method: 'get',
 })
@@ -1327,7 +1327,7 @@ edita65d42c2e97a5efa4894af8e63dcff48.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
-edita65d42c2e97a5efa4894af8e63dcff48.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+edita65d42c2e97a5efa4894af8e63dcff48.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1360,7 +1360,7 @@ edita65d42c2e97a5efa4894af8e63dcff48.url = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
-edita65d42c2e97a5efa4894af8e63dcff48.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edita65d42c2e97a5efa4894af8e63dcff48.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edita65d42c2e97a5efa4894af8e63dcff48.url(args, options),
     method: 'get',
 })
@@ -1369,7 +1369,7 @@ edita65d42c2e97a5efa4894af8e63dcff48.get = (args: { employee: string | { public_
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
-edita65d42c2e97a5efa4894af8e63dcff48.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edita65d42c2e97a5efa4894af8e63dcff48.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edita65d42c2e97a5efa4894af8e63dcff48.url(args, options),
     method: 'head',
 })
@@ -1379,7 +1379,7 @@ edita65d42c2e97a5efa4894af8e63dcff48.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
-    const edita65d42c2e97a5efa4894af8e63dcff48Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const edita65d42c2e97a5efa4894af8e63dcff48Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edita65d42c2e97a5efa4894af8e63dcff48.url(args, options),
         method: 'get',
     })
@@ -1389,7 +1389,7 @@ edita65d42c2e97a5efa4894af8e63dcff48.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
-        edita65d42c2e97a5efa4894af8e63dcff48Form.get = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edita65d42c2e97a5efa4894af8e63dcff48Form.get = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edita65d42c2e97a5efa4894af8e63dcff48.url(args, options),
             method: 'get',
         })
@@ -1398,7 +1398,7 @@ edita65d42c2e97a5efa4894af8e63dcff48.head = (args: { employee: string | { public
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:100
  * @route '/staff/employee/{employee}/edit'
  */
-        edita65d42c2e97a5efa4894af8e63dcff48Form.head = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        edita65d42c2e97a5efa4894af8e63dcff48Form.head = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edita65d42c2e97a5efa4894af8e63dcff48.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -1420,7 +1420,7 @@ export const edit = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/shop/employee/{employee}'
  */
-const updateaf0654a02e6b99aceadb01636aa9a387 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const updateaf0654a02e6b99aceadb01636aa9a387 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateaf0654a02e6b99aceadb01636aa9a387.url(args, options),
     method: 'put',
 })
@@ -1435,7 +1435,7 @@ updateaf0654a02e6b99aceadb01636aa9a387.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/shop/employee/{employee}'
  */
-updateaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+updateaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1468,7 +1468,7 @@ updateaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | { publi
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/shop/employee/{employee}'
  */
-updateaf0654a02e6b99aceadb01636aa9a387.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+updateaf0654a02e6b99aceadb01636aa9a387.put = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: updateaf0654a02e6b99aceadb01636aa9a387.url(args, options),
     method: 'put',
 })
@@ -1478,7 +1478,7 @@ updateaf0654a02e6b99aceadb01636aa9a387.put = (args: { employee: string | { publi
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/shop/employee/{employee}'
  */
-    const updateaf0654a02e6b99aceadb01636aa9a387Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateaf0654a02e6b99aceadb01636aa9a387Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: updateaf0654a02e6b99aceadb01636aa9a387.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -1493,7 +1493,7 @@ updateaf0654a02e6b99aceadb01636aa9a387.put = (args: { employee: string | { publi
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/shop/employee/{employee}'
  */
-        updateaf0654a02e6b99aceadb01636aa9a387Form.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateaf0654a02e6b99aceadb01636aa9a387Form.put = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: updateaf0654a02e6b99aceadb01636aa9a387.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -1509,7 +1509,7 @@ updateaf0654a02e6b99aceadb01636aa9a387.put = (args: { employee: string | { publi
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
-const update7cc057e5bd0079afffb9554b21b70361 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+const update7cc057e5bd0079afffb9554b21b70361 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update7cc057e5bd0079afffb9554b21b70361.url(args, options),
     method: 'put',
 })
@@ -1524,7 +1524,7 @@ update7cc057e5bd0079afffb9554b21b70361.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
-update7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+update7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1557,7 +1557,7 @@ update7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | { publi
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
-update7cc057e5bd0079afffb9554b21b70361.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update7cc057e5bd0079afffb9554b21b70361.put = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update7cc057e5bd0079afffb9554b21b70361.url(args, options),
     method: 'put',
 })
@@ -1567,7 +1567,7 @@ update7cc057e5bd0079afffb9554b21b70361.put = (args: { employee: string | { publi
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
-    const update7cc057e5bd0079afffb9554b21b70361Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const update7cc057e5bd0079afffb9554b21b70361Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update7cc057e5bd0079afffb9554b21b70361.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -1582,7 +1582,7 @@ update7cc057e5bd0079afffb9554b21b70361.put = (args: { employee: string | { publi
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:162
  * @route '/staff/employee/{employee}'
  */
-        update7cc057e5bd0079afffb9554b21b70361Form.put = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        update7cc057e5bd0079afffb9554b21b70361Form.put = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update7cc057e5bd0079afffb9554b21b70361.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -1604,7 +1604,7 @@ export const update = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/shop/employee/{employee}'
  */
-const destroyaf0654a02e6b99aceadb01636aa9a387 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroyaf0654a02e6b99aceadb01636aa9a387 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyaf0654a02e6b99aceadb01636aa9a387.url(args, options),
     method: 'delete',
 })
@@ -1619,7 +1619,7 @@ destroyaf0654a02e6b99aceadb01636aa9a387.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/shop/employee/{employee}'
  */
-destroyaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroyaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1652,7 +1652,7 @@ destroyaf0654a02e6b99aceadb01636aa9a387.url = (args: { employee: string | { publ
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/shop/employee/{employee}'
  */
-destroyaf0654a02e6b99aceadb01636aa9a387.delete = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroyaf0654a02e6b99aceadb01636aa9a387.delete = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroyaf0654a02e6b99aceadb01636aa9a387.url(args, options),
     method: 'delete',
 })
@@ -1662,7 +1662,7 @@ destroyaf0654a02e6b99aceadb01636aa9a387.delete = (args: { employee: string | { p
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/shop/employee/{employee}'
  */
-    const destroyaf0654a02e6b99aceadb01636aa9a387Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyaf0654a02e6b99aceadb01636aa9a387Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroyaf0654a02e6b99aceadb01636aa9a387.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1677,7 +1677,7 @@ destroyaf0654a02e6b99aceadb01636aa9a387.delete = (args: { employee: string | { p
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/shop/employee/{employee}'
  */
-        destroyaf0654a02e6b99aceadb01636aa9a387Form.delete = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyaf0654a02e6b99aceadb01636aa9a387Form.delete = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroyaf0654a02e6b99aceadb01636aa9a387.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
@@ -1693,7 +1693,7 @@ destroyaf0654a02e6b99aceadb01636aa9a387.delete = (args: { employee: string | { p
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
-const destroy7cc057e5bd0079afffb9554b21b70361 = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+const destroy7cc057e5bd0079afffb9554b21b70361 = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy7cc057e5bd0079afffb9554b21b70361.url(args, options),
     method: 'delete',
 })
@@ -1708,7 +1708,7 @@ destroy7cc057e5bd0079afffb9554b21b70361.definition = {
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
-destroy7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
+destroy7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { employee: args }
     }
@@ -1741,7 +1741,7 @@ destroy7cc057e5bd0079afffb9554b21b70361.url = (args: { employee: string | { publ
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
-destroy7cc057e5bd0079afffb9554b21b70361.delete = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy7cc057e5bd0079afffb9554b21b70361.delete = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy7cc057e5bd0079afffb9554b21b70361.url(args, options),
     method: 'delete',
 })
@@ -1751,7 +1751,7 @@ destroy7cc057e5bd0079afffb9554b21b70361.delete = (args: { employee: string | { p
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
-    const destroy7cc057e5bd0079afffb9554b21b70361Form = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroy7cc057e5bd0079afffb9554b21b70361Form = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy7cc057e5bd0079afffb9554b21b70361.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -1766,7 +1766,7 @@ destroy7cc057e5bd0079afffb9554b21b70361.delete = (args: { employee: string | { p
  * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:174
  * @route '/staff/employee/{employee}'
  */
-        destroy7cc057e5bd0079afffb9554b21b70361Form.delete = (args: { employee: string | { public_id: string } } | [employee: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroy7cc057e5bd0079afffb9554b21b70361Form.delete = (args: { employee: string | number | { public_id: string | number } } | [employee: string | number | { public_id: string | number } ] | string | number | { public_id: string | number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy7cc057e5bd0079afffb9554b21b70361.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',
