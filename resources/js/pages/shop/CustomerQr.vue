@@ -132,6 +132,7 @@ function downloadQr() {
                 </div>
 
                 <aside
+                    id="qr-print"
                     class="rounded-xl border bg-card p-4 shadow-sm lg:sticky lg:top-4"
                 >
                     <p
@@ -176,3 +177,30 @@ function downloadQr() {
         </div>
     </ShopLayout>
 </template>
+
+<style>
+/* Print only the QR card, centered, not the sidebar and the rest of the page. */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #qr-print,
+    #qr-print * {
+        visibility: visible;
+    }
+
+    #qr-print {
+        position: fixed;
+        top: 8mm;
+        left: 50%;
+        width: 120mm;
+        transform: translateX(-50%);
+        box-shadow: none;
+    }
+
+    #qr-print button {
+        display: none;
+    }
+}
+</style>

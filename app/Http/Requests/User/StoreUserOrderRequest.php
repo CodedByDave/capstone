@@ -25,7 +25,6 @@ class StoreUserOrderRequest extends FormRequest
             'estimated_weight_kg' => ['nullable', 'numeric', 'min:0.5', 'max:100'],
             'piece_count' => ['nullable', 'integer', 'min:1', 'max:500'],
             'pickup_type' => ['required', 'in:walk_in,pickup'],
-            'payment_method' => ['required', 'in:cash,gcash,maya,online'],
             'customer_address' => ['required_if:pickup_type,pickup', 'nullable', 'string', 'max:500'],
             // The pinned pickup spot, so the rider can be followed on a map. Both or neither.
             'customer_lat' => ['nullable', 'required_with:customer_lng', 'numeric', 'between:-90,90'],

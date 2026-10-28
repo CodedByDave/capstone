@@ -1,19 +1,9 @@
 <script setup lang="ts">
 import OrderRatingDialog from '@/components/customer/OrderRatingDialog.vue';
-import RatingSummary from '@/components/customer/RatingSummary.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import {
-    ChevronRight,
-    ClipboardList,
-    MapPin,
-    Package,
-    QrCode,
-    ShoppingBag,
-    Star,
-    WashingMachine,
-} from 'lucide-vue-next';
+import { ChevronRight, Package, QrCode, Star } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -46,6 +36,15 @@ interface NearbyShop {
     rating_count: number;
 }
 
+interface Promotion {
+    id: number;
+    name: string;
+    headline: string;
+    description: string | null;
+    min_order_amount: number | null;
+    ends_at: string | null;
+}
+
 interface RatingPrompt {
     payment_public_id: string;
     order_number: string;
@@ -54,11 +53,12 @@ interface RatingPrompt {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const props = defineProps<{
+defineProps<{
     recentOrders: RecentOrder[];
     totalOrders: number;
     nearbyShops: NearbyShop[];
     ratingPrompt: RatingPrompt | null;
+    promotions: Promotion[];
 }>();
 
 // The "rate your recent order" popup; the card opens it.
@@ -109,9 +109,9 @@ onMounted(() => {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const statusColors: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    in_progress: 'bg-blue-100 text-blue-700',
-    completed: 'bg-green-100 text-green-700',
+    pending: 'bg-amber-50 text-amber-700',
+    in_progress: 'bg-blue-50 text-blue-700',
+    completed: 'bg-emerald-50 text-emerald-700',
 };
 
 const statusLabel: Record<string, string> = {
@@ -128,70 +128,60 @@ function goToShop(shop: NearbyShop) {
     router.visit(`/user/shops/${shop.id}`);
 }
 
-const gradients = [
-    'from-blue-500 to-indigo-600',
-    'from-teal-500 to-cyan-600',
-    'from-violet-500 to-purple-600',
-    'from-rose-500 to-pink-600',
-    'from-amber-500 to-orange-500',
-];
-function shopGradient(id: number) {
-    return gradients[id % gradients.length];
+// Promotions carousel: the dots follow the card closest to the left edge.
+const promoTrack = ref<HTMLElement | null>(null);
+const promoIndex = ref(0);
+
+function onPromoScroll() {
+    const track = promoTrack.value;
+    if (!track || track.children.length === 0) return;
+    const card = track.children[0] as HTMLElement;
+    promoIndex.value = Math.round(track.scrollLeft / (card.offsetWidth + 12));
+}
+
+function promoDetail(promo: Promotion) {
+    if (promo.description) return promo.description;
+    if (promo.min_order_amount)
+        return `Minimum order of ${currency(promo.min_order_amount)}.`;
+    return 'Applied automatically on your next order.';
 }
 </script>
 
 <template>
     <Head title="Home" />
     <UserLayout>
-        <div class="space-y-6 px-4 pt-4 pb-6">
+        <div class="px-5 pt-6 pb-8">
             <!-- ── Greeting ───────────────────────────────────── -->
-            <div
-                class="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-white shadow-md"
+            <h1
+                class="font-display text-[28px] leading-9 font-bold text-slate-900"
             >
-                <p class="text-sm opacity-80">{{ greeting }},</p>
-                <h2 class="mt-0.5 text-xl font-bold">
-                    {{ user.name.split(' ')[0] }}! 👋
-                </h2>
-                <p class="mt-1 text-sm opacity-80">
-                    Order from your laundry shop
-                </p>
-
-                <div class="mt-4 flex items-center gap-3">
-                    <div
-                        class="flex flex-1 items-center gap-2 rounded-xl bg-white/10 px-3 py-2.5"
-                    >
-                        <ShoppingBag class="h-4 w-4 opacity-80" />
-                        <span class="text-sm font-medium"
-                            >{{ totalOrders }} order{{
-                                totalOrders !== 1 ? 's' : ''
-                            }}
-                            placed</span
-                        >
-                    </div>
-                </div>
-            </div>
+                {{ greeting }},
+                <span class="block text-blue-600"
+                    >{{ user.name.split(' ')[0] }}.</span
+                >
+            </h1>
 
             <!-- ── Rate your recent order ─────────────────────── -->
             <div
                 v-if="ratingPrompt"
-                class="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm"
+                class="mt-6 flex items-center gap-3 border-y border-amber-200 bg-amber-50 px-4 py-3"
             >
                 <Star
-                    class="h-8 w-8 shrink-0 fill-amber-400 text-amber-400"
+                    class="h-6 w-6 shrink-0 fill-amber-400 text-amber-400"
                     aria-hidden="true"
                 />
                 <div class="min-w-0 flex-1">
-                    <p class="text-sm font-semibold text-gray-800">
+                    <p class="text-sm font-semibold text-slate-800">
                         How was your laundry?
                     </p>
-                    <p class="truncate text-xs text-gray-600">
+                    <p class="truncate text-xs text-slate-600">
                         Rate order #{{ ratingPrompt.order_number }} at
                         {{ ratingPrompt.shop_name }}
                     </p>
                 </div>
                 <button
                     type="button"
-                    class="shrink-0 rounded-xl bg-amber-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-600"
+                    class="min-h-11 shrink-0 rounded-lg bg-amber-500 px-3 text-xs font-semibold text-white transition hover:bg-amber-600"
                     @click="ratingOpen = true"
                 >
                     Rate now
@@ -205,152 +195,132 @@ function shopGradient(id: number) {
                 :shop-name="ratingPrompt.shop_name"
             />
 
-            <!-- ── Nearby Shops ───────────────────────────────── -->
-            <div v-if="nearbyShops.length > 0">
-                <div class="mb-3 flex items-center justify-between">
-                    <h3
-                        class="flex items-center gap-1.5 text-sm font-semibold text-gray-700"
-                    >
-                        <MapPin class="h-4 w-4 text-blue-500" />
-                        Your Shop
-                    </h3>
-                </div>
-
-                <!-- Horizontal scroll on mobile -->
-                <div
-                    class="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1"
+            <!-- ── Available promotions ───────────────────────── -->
+            <section v-if="promotions.length > 0" class="mt-7">
+                <h2
+                    class="mb-3 text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
                 >
-                    <button
-                        v-for="shop in nearbyShops"
-                        :key="shop.id"
-                        class="w-52 shrink-0 snap-start overflow-hidden rounded-2xl border border-gray-100 bg-white text-left shadow-sm transition-shadow hover:shadow-lg active:scale-[0.98]"
-                        @click="goToShop(shop)"
+                    Available promotions
+                </h2>
+                <div
+                    ref="promoTrack"
+                    class="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    @scroll.passive="onPromoScroll"
+                >
+                    <article
+                        v-for="promo in promotions"
+                        :key="promo.id"
+                        class="relative w-[82%] shrink-0 snap-start overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 p-5 text-white"
                     >
-                        <!-- Cover photo -->
-                        <div class="relative h-28 overflow-hidden">
-                            <img
-                                v-if="shop.cover_photo"
-                                :src="shop.cover_photo"
-                                :alt="shop.shop_name"
-                                class="h-full w-full object-cover"
-                            />
-                            <div
-                                v-else
-                                :class="`h-full w-full bg-gradient-to-br ${shopGradient(shop.id)} flex items-center justify-center`"
-                            >
-                                <WashingMachine class="h-9 w-9 text-white/50" />
-                            </div>
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent"
-                            />
-                            <!-- Name overlay -->
-                            <div class="absolute right-3 bottom-2 left-3">
-                                <p
-                                    class="line-clamp-1 text-xs leading-tight font-bold text-white drop-shadow"
-                                >
-                                    {{ shop.shop_name }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Card body -->
-                        <div class="px-3 py-2.5">
-                            <p
-                                class="flex items-center gap-1 text-[11px] text-gray-500"
-                            >
-                                <MapPin
-                                    class="h-3 w-3 shrink-0 text-gray-400"
-                                />
-                                <span class="line-clamp-1"
-                                    >{{ shop.barangay }},
-                                    {{ shop.municipality }}</span
-                                >
-                            </p>
-                            <div class="mt-2 flex items-center justify-between">
-                                <span
-                                    v-if="shop.starting_price"
-                                    class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700"
-                                >
-                                    From ₱{{
-                                        Number(shop.starting_price).toFixed(0)
-                                    }}{{
-                                        shop.starting_price_unit === 'bundle'
-                                            ? ' / bundle'
-                                            : '/kg'
-                                    }}
-                                </span>
-                                <span v-else class="text-[10px] text-gray-400"
-                                    >{{ shop.services_count }} services</span
-                                >
-                                <RatingSummary
-                                    :average="shop.rating_avg"
-                                    :count="shop.rating_count"
-                                />
-                                <ChevronRight
-                                    class="h-3.5 w-3.5 shrink-0 text-gray-300"
-                                />
-                            </div>
-                        </div>
-                    </button>
+                        <span
+                            class="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full border border-white/20"
+                            aria-hidden="true"
+                        />
+                        <span
+                            class="pointer-events-none absolute -top-4 -right-4 h-24 w-24 rounded-full border border-white/20"
+                            aria-hidden="true"
+                        />
+                        <p
+                            class="relative text-[10px] font-medium tracking-[0.14em] uppercase opacity-90"
+                        >
+                            {{ promo.name }}
+                        </p>
+                        <p
+                            class="relative mt-6 font-display text-[32px] leading-10 font-bold"
+                        >
+                            {{ promo.headline }}
+                        </p>
+                        <p class="relative mt-1 text-xs leading-5 opacity-90">
+                            {{ promoDetail(promo) }}
+                        </p>
+                    </article>
                 </div>
+                <div
+                    v-if="promotions.length > 1"
+                    class="mt-3 flex justify-center gap-1.5"
+                    aria-hidden="true"
+                >
+                    <span
+                        v-for="(promo, i) in promotions"
+                        :key="promo.id"
+                        class="h-1 rounded-full transition-all"
+                        :class="
+                            i === promoIndex
+                                ? 'w-5 bg-blue-600'
+                                : 'w-1.5 bg-slate-300'
+                        "
+                    />
+                </div>
+            </section>
+
+            <!-- ── Your shop ──────────────────────────────────── -->
+            <div
+                v-for="shop in nearbyShops"
+                :key="shop.id"
+                class="mt-4 flex items-center justify-between gap-3 text-xs"
+            >
+                <p class="min-w-0 truncate text-slate-600">
+                    {{ shop.shop_name }} · {{ shop.barangay }},
+                    {{ shop.municipality }}
+                </p>
+                <button
+                    type="button"
+                    class="shrink-0 font-medium text-blue-600 hover:underline"
+                    @click="goToShop(shop)"
+                >
+                    View shop
+                </button>
             </div>
 
             <!-- ── No shop yet ────────────────────────────────── -->
             <div
                 v-if="nearbyShops.length === 0"
-                class="rounded-2xl bg-muted/50 px-4 py-8 text-center"
+                class="mt-7 flex flex-col items-center border-y border-slate-100 px-4 py-8 text-center"
             >
                 <QrCode
-                    class="mx-auto mb-2 h-10 w-10 text-gray-400"
+                    class="mb-2 h-8 w-8 text-slate-400"
                     aria-hidden="true"
                 />
-                <p class="text-sm font-semibold text-gray-700">
+                <p class="text-sm font-semibold text-slate-800">
                     Scan your laundry shop's QR code
                 </p>
-                <p class="mt-1 text-xs text-gray-500">
+                <p class="mt-1 text-xs text-slate-500">
                     Ask the shop for its QR code and scan it to connect your
                     account and start ordering.
                 </p>
             </div>
 
-            <!-- ── Quick Actions ──────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-3">
+            <!-- ── Actions ────────────────────────────────────── -->
+            <div class="mt-5 space-y-3">
                 <button
-                    class="flex flex-col items-center gap-2 rounded-xl border border-gray-100 bg-white py-4 shadow-sm transition-shadow hover:shadow-md active:scale-95"
+                    type="button"
+                    class="flex min-h-12 w-full items-center justify-center rounded-xl bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                     :disabled="nearbyShops.length === 0"
                     @click="router.visit('/user/shops')"
                 >
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100"
-                    >
-                        <MapPin class="h-5 w-5 text-blue-600" />
-                    </div>
-                    <span class="text-xs font-medium text-gray-700"
-                        >Order Laundry</span
-                    >
+                    Place an order
                 </button>
                 <button
-                    class="flex flex-col items-center gap-2 rounded-xl border border-gray-100 bg-white py-4 shadow-sm transition-shadow hover:shadow-md active:scale-95"
+                    type="button"
+                    class="flex min-h-12 w-full items-center justify-center rounded-xl border border-blue-600 bg-white text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
                     @click="router.visit('/user/orders')"
                 >
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100"
-                    >
-                        <ClipboardList class="h-5 w-5 text-green-600" />
-                    </div>
-                    <span class="text-xs font-medium text-gray-700"
-                        >My Orders</span
-                    >
+                    Track my orders
                 </button>
             </div>
 
-            <!-- ── Recent Orders ──────────────────────────────── -->
-            <div>
-                <div class="mb-3 flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-gray-700">
-                        Recent Orders
-                    </h3>
+            <!-- ── Recent orders ──────────────────────────────── -->
+            <section class="mt-8">
+                <div
+                    class="flex items-center justify-between border-b border-slate-100 pb-3"
+                >
+                    <h2
+                        class="text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
+                    >
+                        Recent orders
+                    </h2>
                     <button
+                        type="button"
                         class="text-xs font-medium text-blue-600 hover:underline"
                         @click="router.visit('/user/orders')"
                     >
@@ -360,58 +330,69 @@ function shopGradient(id: number) {
 
                 <div
                     v-if="recentOrders.length === 0"
-                    class="flex flex-col items-center py-10 text-gray-400"
+                    class="flex flex-col items-center py-10 text-center"
                 >
-                    <Package class="mb-2 h-10 w-10 opacity-40" />
-                    <p class="text-sm">No orders yet</p>
-                    <p class="mt-1 text-xs">Place your first laundry order!</p>
+                    <Package
+                        class="mb-3 h-7 w-7 text-slate-400"
+                        aria-hidden="true"
+                    />
+                    <p
+                        class="font-display text-sm font-semibold text-slate-900"
+                    >
+                        Nothing here yet
+                    </p>
+                    <p class="mt-1 max-w-52 text-xs leading-5 text-slate-500">
+                        Your first order will appear here once you place it.
+                    </p>
                 </div>
 
-                <div v-else class="space-y-2">
-                    <button
-                        v-for="order in recentOrders"
-                        :key="order.id"
-                        class="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3.5 text-left shadow-sm transition hover:shadow-md active:scale-[0.98]"
-                        @click="
-                            router.visit(
-                                `/user/orders/${order.payment_public_id}`,
-                            )
-                        "
-                    >
-                        <div
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100"
+                <ul v-else class="divide-y divide-slate-100">
+                    <li v-for="order in recentOrders" :key="order.id">
+                        <button
+                            type="button"
+                            class="flex min-h-16 w-full items-center gap-3 py-3 text-left transition hover:bg-slate-50"
+                            @click="
+                                router.visit(
+                                    `/user/orders/${order.payment_public_id}`,
+                                )
+                            "
                         >
-                            <ClipboardList class="h-5 w-5 text-gray-500" />
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p
-                                class="truncate text-sm font-semibold text-gray-800"
-                            >
-                                {{ order.shop_name }}
-                            </p>
-                            <p class="truncate text-xs text-gray-500">
-                                {{ order.service_name }} ·
-                                {{ order.order_number }}
-                            </p>
-                        </div>
-                        <div class="flex shrink-0 flex-col items-end gap-1">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                                :class="
-                                    statusColors[order.status] ??
-                                    'bg-gray-100 text-gray-600'
-                                "
-                            >
-                                {{ statusLabel[order.status] ?? order.status }}
-                            </span>
-                            <span class="text-xs font-bold text-gray-700">{{
-                                currency(order.total_amount)
-                            }}</span>
-                        </div>
-                        <ChevronRight class="h-4 w-4 shrink-0 text-gray-300" />
-                    </button>
-                </div>
-            </div>
+                            <div class="min-w-0 flex-1">
+                                <p
+                                    class="truncate text-sm font-semibold text-slate-900"
+                                >
+                                    {{ order.shop_name }}
+                                </p>
+                                <p class="truncate text-xs text-slate-500">
+                                    {{ order.service_name }} ·
+                                    {{ order.order_number }}
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 flex-col items-end gap-1">
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                                    :class="
+                                        statusColors[order.status] ??
+                                        'bg-slate-100 text-slate-600'
+                                    "
+                                >
+                                    {{
+                                        statusLabel[order.status] ??
+                                        order.status
+                                    }}
+                                </span>
+                                <span
+                                    class="text-xs font-semibold text-slate-800"
+                                    >{{ currency(order.total_amount) }}</span
+                                >
+                            </div>
+                            <ChevronRight
+                                class="h-4 w-4 shrink-0 text-slate-300"
+                            />
+                        </button>
+                    </li>
+                </ul>
+            </section>
         </div>
     </UserLayout>
 </template>

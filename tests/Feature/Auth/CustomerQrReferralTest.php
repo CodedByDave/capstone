@@ -6,6 +6,7 @@ use App\Mail\OtpVerificationMail;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
+use App\Services\CustomerReferralService;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -175,4 +176,29 @@ test('the shop owner sees a QR link for their own shop', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('shop/CustomerQr')
             ->where('joinUrl', route('customer.join', $shop->public_id)));
+});
+
+test('in production the QR link uses the public app address', function () {
+    $shop = referralShop();
+    config(['app.url' => 'https://laundryhub.example']);
+    app()->detectEnvironment(fn () => 'production');
+
+    expect(app(CustomerReferralService::class)->joinUrlFor($shop))
+        ->toBe('https://laundryhub.example/join/'.$shop->public_id);
+});
+
+test('the shop reference is dropped from the session once the account exists', function () {
+    Mail::fake();
+    $shop = referralShop();
+
+    $this->get(route('customer.join', $shop->public_id));
+    $this->post(route('register.user.store'), [
+        'name' => 'Test User',
+        'email' => 'cleanup@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+    $this->post(route('otp.verify'), ['otp' => (string) session('pending_registration.otp_code')]);
+
+    expect(session()->has('referral_shop_id'))->toBeFalse();
 });

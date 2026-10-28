@@ -25,6 +25,27 @@ class PromotionRepository
             ->get();
     }
 
+    /**
+     * Counts for the promotions page. A promotion is only "active" while it is switched on and
+     * inside its date range, so expired and not-yet-started ones count as inactive.
+     *
+     * @return array{total: int, active: int, inactive: int, percentage: int, fixed: int}
+     */
+    public function stats(int $shopId): array
+    {
+        $all = Promotion::where('shop_id', $shopId);
+        $total = (clone $all)->count();
+        $active = (clone $all)->active()->valid()->count();
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'inactive' => $total - $active,
+            'percentage' => (clone $all)->where('type', 'percentage')->count(),
+            'fixed' => (clone $all)->where('type', 'fixed')->count(),
+        ];
+    }
+
     public function archived(int $shopId): Collection
     {
         return Promotion::onlyTrashed()

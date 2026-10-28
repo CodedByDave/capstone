@@ -118,6 +118,23 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Promotions', href: '/shop/operations/promos' },
 ];
 
+// ─── Status ───────────────────────────────────────────────────────────────────
+
+// A promotion is only live while it is switched on and inside its date range.
+function promoStatus(promo: Promotion): {
+    label: string;
+    tone: 'success' | 'danger' | 'neutral' | 'info';
+} {
+    if (!promo.is_active) return { label: 'Inactive', tone: 'danger' };
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (promo.ends_at && promo.ends_at < today)
+        return { label: 'Expired', tone: 'neutral' };
+    if (promo.starts_at && promo.starts_at > today)
+        return { label: 'Scheduled', tone: 'info' };
+    return { label: 'Active', tone: 'success' };
+}
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const rows = computed<Promotion[]>(() =>
@@ -412,11 +429,8 @@ function formatDate(d: string | null) {
                     <StatusPill v-if="archived" tone="neutral"
                         >Archived</StatusPill
                     >
-                    <StatusPill
-                        v-else
-                        :tone="promo.is_active ? 'success' : 'danger'"
-                    >
-                        {{ promo.is_active ? 'Active' : 'Inactive' }}
+                    <StatusPill v-else :tone="promoStatus(promo).tone">
+                        {{ promoStatus(promo).label }}
                     </StatusPill>
                 </template>
 

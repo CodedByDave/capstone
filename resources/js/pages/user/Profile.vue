@@ -9,20 +9,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import type { AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import {
-    CheckCircle2,
-    ChevronRight,
-    Loader2,
-    Lock,
-    LogOut,
-    Mail,
-    User,
-} from 'lucide-vue-next';
+import { Loader2, LogOut } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -56,6 +46,14 @@ const form = ref({
     email: user.value.email,
 });
 
+const profileDirty = computed(
+    () =>
+        form.value.name.trim() !== '' &&
+        form.value.email.trim() !== '' &&
+        (form.value.name !== user.value.name ||
+            form.value.email !== user.value.email),
+);
+
 function saveProfile() {
     saving.value = true;
     router.patch('/settings/profile', form.value, {
@@ -75,6 +73,13 @@ const passwordForm = ref({
     password_confirmation: '',
 });
 const savingPwd = ref(false);
+
+const passwordReady = computed(
+    () =>
+        passwordForm.value.current_password !== '' &&
+        passwordForm.value.password.length >= 8 &&
+        passwordForm.value.password_confirmation !== '',
+);
 const logoutDialogOpen = ref(false);
 
 function savePassword() {
@@ -105,152 +110,208 @@ function logout() {
 <template>
     <Head title="Profile" />
     <UserLayout>
-        <div class="space-y-4 px-4 pt-4 pb-8">
+        <div class="px-5 pt-6 pb-10">
             <!-- ── Avatar & name ─────────────────────────────── -->
-            <div
-                class="flex flex-col items-center rounded-2xl border border-gray-100 bg-white py-6 shadow-sm"
-            >
+            <div class="flex flex-col items-center text-center">
                 <div
-                    class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600"
+                    class="mb-3 flex h-20 w-20 items-center justify-center rounded-full border border-slate-200 font-display text-3xl font-bold text-blue-600"
+                    aria-hidden="true"
                 >
-                    <span class="text-2xl font-bold text-white">{{
-                        user.name.charAt(0).toUpperCase()
-                    }}</span>
+                    {{ user.name.charAt(0).toUpperCase() }}
                 </div>
-                <p class="text-base font-bold text-gray-900">{{ user.name }}</p>
-                <p class="text-sm text-gray-400">{{ user.email }}</p>
+                <h1
+                    class="font-display text-[22px] leading-7 font-bold text-slate-900"
+                >
+                    {{ user.name }}
+                </h1>
+                <p class="mt-0.5 text-sm text-slate-500">{{ user.email }}</p>
             </div>
 
-            <!-- ── Edit profile ───────────────────────────────── -->
-            <div
-                class="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
-            >
-                <p
-                    class="text-xs font-semibold tracking-wide text-gray-400 uppercase"
+            <!-- ── Your details ───────────────────────────────── -->
+            <section class="mt-8">
+                <h2
+                    class="mb-4 text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
                 >
-                    Edit Profile
-                </p>
+                    Your details
+                </h2>
 
-                <div class="space-y-1.5">
-                    <label
-                        class="flex items-center gap-1.5 text-sm font-medium text-gray-700"
-                    >
-                        <User class="h-3.5 w-3.5 text-gray-400" /> Name
-                    </label>
-                    <Input
-                        v-model="form.name"
-                        placeholder="Your full name"
-                        :class="errors.name ? 'border-red-400' : ''"
-                    />
-                    <p v-if="errors.name" class="text-xs text-red-500">
-                        {{ errors.name }}
-                    </p>
+                <div class="space-y-5">
+                    <div>
+                        <label
+                            for="profile-name"
+                            class="text-xs font-medium text-slate-500"
+                            >Name</label
+                        >
+                        <input
+                            id="profile-name"
+                            v-model="form.name"
+                            type="text"
+                            autocomplete="name"
+                            placeholder="Your full name"
+                            class="mt-1 block min-h-11 w-full border-0 border-b bg-transparent px-0 text-[15px] text-slate-900 placeholder:text-slate-400 focus:ring-0 focus:outline-none"
+                            :class="
+                                errors.name
+                                    ? 'border-red-400'
+                                    : 'border-slate-200 focus:border-blue-600'
+                            "
+                        />
+                        <p v-if="errors.name" class="mt-1 text-xs text-red-600">
+                            {{ errors.name }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label
+                            for="profile-email"
+                            class="text-xs font-medium text-slate-500"
+                            >Email</label
+                        >
+                        <input
+                            id="profile-email"
+                            v-model="form.email"
+                            type="email"
+                            autocomplete="email"
+                            placeholder="Email address"
+                            class="mt-1 block min-h-11 w-full border-0 border-b bg-transparent px-0 text-[15px] text-slate-900 placeholder:text-slate-400 focus:ring-0 focus:outline-none"
+                            :class="
+                                errors.email
+                                    ? 'border-red-400'
+                                    : 'border-slate-200 focus:border-blue-600'
+                            "
+                        />
+                        <p
+                            v-if="errors.email"
+                            class="mt-1 text-xs text-red-600"
+                        >
+                            {{ errors.email }}
+                        </p>
+                    </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label
-                        class="flex items-center gap-1.5 text-sm font-medium text-gray-700"
-                    >
-                        <Mail class="h-3.5 w-3.5 text-gray-400" /> Email
-                    </label>
-                    <Input
-                        v-model="form.email"
-                        type="email"
-                        placeholder="Email address"
-                        :class="errors.email ? 'border-red-400' : ''"
-                    />
-                    <p v-if="errors.email" class="text-xs text-red-500">
-                        {{ errors.email }}
-                    </p>
-                </div>
-
-                <Button class="w-full" :disabled="saving" @click="saveProfile">
-                    <Loader2 v-if="saving" class="mr-2 h-4 w-4 animate-spin" />
-                    <CheckCircle2 v-else class="mr-2 h-4 w-4" />
-                    Save Changes
-                </Button>
-            </div>
-
-            <!-- ── Change password ────────────────────────────── -->
-            <div
-                class="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
-            >
-                <p
-                    class="text-xs font-semibold tracking-wide text-gray-400 uppercase"
+                <button
+                    type="button"
+                    class="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition"
+                    :class="
+                        profileDirty
+                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'cursor-not-allowed bg-slate-100 text-slate-400'
+                    "
+                    :disabled="!profileDirty || saving"
+                    @click="saveProfile"
                 >
-                    Change Password
-                </p>
+                    <Loader2 v-if="saving" class="h-4 w-4 animate-spin" />
+                    Save changes
+                </button>
+            </section>
 
-                <div class="space-y-1.5">
-                    <label class="text-sm font-medium text-gray-700"
-                        >Current Password</label
-                    >
-                    <Input
-                        v-model="passwordForm.current_password"
-                        type="password"
-                        placeholder="••••••••"
-                        :class="errors.current_password ? 'border-red-400' : ''"
-                    />
-                    <p
-                        v-if="errors.current_password"
-                        class="text-xs text-red-500"
-                    >
-                        {{ errors.current_password }}
-                    </p>
+            <!-- ── Password ───────────────────────────────────── -->
+            <section class="mt-10">
+                <h2
+                    class="mb-4 text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
+                >
+                    Password
+                </h2>
+
+                <div class="space-y-5">
+                    <div>
+                        <label
+                            for="current-password"
+                            class="text-xs font-medium text-slate-500"
+                            >Current password</label
+                        >
+                        <input
+                            id="current-password"
+                            v-model="passwordForm.current_password"
+                            type="password"
+                            autocomplete="current-password"
+                            class="mt-1 block min-h-11 w-full border-0 border-b bg-transparent px-0 text-[15px] text-slate-900 focus:ring-0 focus:outline-none"
+                            :class="
+                                errors.current_password
+                                    ? 'border-red-400'
+                                    : 'border-slate-200 focus:border-blue-600'
+                            "
+                        />
+                        <p
+                            v-if="errors.current_password"
+                            class="mt-1 text-xs text-red-600"
+                        >
+                            {{ errors.current_password }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label
+                            for="new-password"
+                            class="text-xs font-medium text-slate-500"
+                            >New password</label
+                        >
+                        <input
+                            id="new-password"
+                            v-model="passwordForm.password"
+                            type="password"
+                            autocomplete="new-password"
+                            class="mt-1 block min-h-11 w-full border-0 border-b bg-transparent px-0 text-[15px] text-slate-900 focus:ring-0 focus:outline-none"
+                            :class="
+                                errors.password
+                                    ? 'border-red-400'
+                                    : 'border-slate-200 focus:border-blue-600'
+                            "
+                        />
+                        <p
+                            class="mt-1 text-xs"
+                            :class="
+                                errors.password
+                                    ? 'text-red-600'
+                                    : 'text-slate-500'
+                            "
+                        >
+                            {{ errors.password || 'At least 8 characters.' }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label
+                            for="confirm-password"
+                            class="text-xs font-medium text-slate-500"
+                            >Confirm new password</label
+                        >
+                        <input
+                            id="confirm-password"
+                            v-model="passwordForm.password_confirmation"
+                            type="password"
+                            autocomplete="new-password"
+                            class="mt-1 block min-h-11 w-full border-0 border-b border-slate-200 bg-transparent px-0 text-[15px] text-slate-900 focus:border-blue-600 focus:ring-0 focus:outline-none"
+                        />
+                    </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label class="text-sm font-medium text-gray-700"
-                        >New Password</label
-                    >
-                    <Input
-                        v-model="passwordForm.password"
-                        type="password"
-                        placeholder="••••••••"
-                        :class="errors.password ? 'border-red-400' : ''"
-                    />
-                    <p v-if="errors.password" class="text-xs text-red-500">
-                        {{ errors.password }}
-                    </p>
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-sm font-medium text-gray-700"
-                        >Confirm New Password</label
-                    >
-                    <Input
-                        v-model="passwordForm.password_confirmation"
-                        type="password"
-                        placeholder="••••••••"
-                    />
-                </div>
-
-                <Button
-                    variant="outline"
-                    class="w-full"
-                    :disabled="savingPwd"
+                <button
+                    type="button"
+                    class="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition"
+                    :class="
+                        passwordReady
+                            ? 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                            : 'cursor-not-allowed border-slate-200 text-slate-400'
+                    "
+                    :disabled="!passwordReady || savingPwd"
                     @click="savePassword"
                 >
-                    <Loader2
-                        v-if="savingPwd"
-                        class="mr-2 h-4 w-4 animate-spin"
-                    />
-                    <Lock v-else class="mr-2 h-4 w-4" />
-                    Update Password
-                </Button>
-            </div>
+                    <Loader2 v-if="savingPwd" class="h-4 w-4 animate-spin" />
+                    Update password
+                </button>
+            </section>
 
-            <!-- ── Logout ─────────────────────────────────────── -->
-            <button
-                class="flex w-full items-center justify-between rounded-2xl border border-red-100 bg-white p-4 text-red-600 transition hover:bg-red-50 active:scale-[0.99]"
-                @click="logoutDialogOpen = true"
-            >
-                <div class="flex items-center gap-2 text-sm font-semibold">
+            <!-- ── Sign out ───────────────────────────────────── -->
+            <div class="mt-10 border-t border-slate-100">
+                <button
+                    type="button"
+                    class="flex min-h-14 w-full items-center gap-2 text-sm font-semibold text-red-600 transition hover:text-red-700"
+                    @click="logoutDialogOpen = true"
+                >
                     <LogOut class="h-4 w-4" />
                     Sign out
-                </div>
-                <ChevronRight class="h-4 w-4 opacity-50" />
-            </button>
+                </button>
+            </div>
 
             <AlertDialog v-model:open="logoutDialogOpen">
                 <AlertDialogContent>

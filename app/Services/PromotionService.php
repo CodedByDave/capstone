@@ -25,6 +25,28 @@ class PromotionService
         return $this->repo->allActive($shop->id);
     }
 
+    /**
+     * Promotions a customer can currently use at a shop, shaped for display.
+     *
+     * @return list<array{id: int, name: string, headline: string, description: ?string, min_order_amount: ?float, ends_at: ?string}>
+     */
+    public function forCustomer(int $shopId): array
+    {
+        return $this->repo->allActive($shopId)
+            ->map(fn (Promotion $promotion) => [
+                'id' => $promotion->id,
+                'name' => $promotion->name,
+                'headline' => $promotion->type === 'percentage'
+                    ? rtrim(rtrim(number_format((float) $promotion->value, 2, '.', ''), '0'), '.').'% off'
+                    : '₱'.number_format((float) $promotion->value, 0).' off',
+                'description' => $promotion->description,
+                'min_order_amount' => $promotion->min_order_amount !== null ? (float) $promotion->min_order_amount : null,
+                'ends_at' => $promotion->ends_at?->toDateString(),
+            ])
+            ->values()
+            ->all();
+    }
+
     public function archived(Shop $shop): Collection
     {
         return $this->repo->archived($shop->id);
@@ -110,14 +132,6 @@ class PromotionService
 
     public function getStats(Shop $shop): array
     {
-        $all = Promotion::where('shop_id', $shop->id);
-
-        return [
-            'total' => (clone $all)->count(),
-            'active' => (clone $all)->where('is_active', true)->count(),
-            'inactive' => (clone $all)->where('is_active', false)->count(),
-            'percentage' => (clone $all)->where('type', 'percentage')->count(),
-            'fixed' => (clone $all)->where('type', 'fixed')->count(),
-        ];
+        return $this->repo->stats($shop->id);
     }
 }

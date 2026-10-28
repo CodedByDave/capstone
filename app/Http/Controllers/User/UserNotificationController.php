@@ -3,33 +3,23 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserNotificationController extends Controller
 {
-    public function index(): Response
+    public function __construct(
+        private readonly NotificationService $notifications,
+    ) {}
+
+    public function index(Request $request): Response
     {
-        $user = auth()->user();
-
-        $notifications = $user->notifications()
-            ->latest()
-            ->take(50)
-            ->get()
-            ->map(fn ($n) => [
-                'id' => $n->id,
-                'data' => $n->data,
-                'read_at' => $n->read_at?->toISOString(),
-                'created_at' => $n->created_at->diffForHumans(),
-            ]);
-
-        // Mark all as read when the page is opened
-        $user->unreadNotifications()->update(['read_at' => now()]);
-
         return Inertia::render('user/Notifications', [
-            'notifications' => $notifications,
+            'notifications' => $this->notifications->listFor($request->user()),
         ]);
     }
 
@@ -53,19 +43,16 @@ class UserNotificationController extends Controller
         ]);
     }
 
-    public function markRead(string $id): JsonResponse
+    public function markRead(Request $request, string $id): RedirectResponse
     {
-        auth()->user()
-            ->notifications()
-            ->where('id', $id)
-            ->update(['read_at' => now()]);
+        $this->notifications->markRead($request->user(), $id);
 
-        return response()->json(['ok' => true]);
+        return back();
     }
 
-    public function markAllRead(): RedirectResponse
+    public function markAllRead(Request $request): RedirectResponse
     {
-        auth()->user()->unreadNotifications()->update(['read_at' => now()]);
+        $this->notifications->markAllRead($request->user());
 
         return back();
     }

@@ -170,3 +170,12 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Customer PWA type: Poppins for headings and prices, Inter for body text. */
+@utility font-display {
+    font-family: 'Poppins', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+@utility font-customer {
+    font-family: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+}

@@ -4,16 +4,13 @@ import BillingBreakdown, {
     type BillingBreakdown as BillingBreakdownData,
 } from '@/components/customer/BillingBreakdown.vue';
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
-import RatingSummary from '@/components/customer/RatingSummary.vue';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
 import {
     serviceCategoryLabel,
@@ -22,16 +19,14 @@ import {
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { searchPlaces } from '@/lib/maps';
 import type { AppPageProps } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
-    Banknote,
-    Info,
+    Bell,
     Loader2,
     MapPin,
     Package,
     Phone,
-    WashingMachine,
 } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -115,50 +110,6 @@ const isOrderOpen = ref(false);
 const placing = ref(false);
 const selectedService = ref<ShopService | null>(null);
 
-const paymentOptions = [
-    {
-        value: 'cash',
-        label: 'Pay at Shop',
-        icon: Banknote,
-        image: null,
-    },
-    {
-        value: 'gcash',
-        label: 'GCash',
-        icon: null,
-        image: 'https://upload.wikimedia.org/wikipedia/commons/5/52/GCash_logo.svg',
-    },
-    {
-        value: 'maya',
-        label: 'Maya',
-        icon: null,
-        image: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Maya_logo.svg',
-    },
-];
-
-// How this shop takes each payment method, as decided by the server.
-function paymentNote(method: string): { text: string; warn: boolean } {
-    if (method === 'cash') {
-        return { text: 'Pay cash when you drop off or pick up.', warn: false };
-    }
-
-    const key = method as 'gcash' | 'maya';
-    const label = key === 'gcash' ? 'GCash' : 'Maya';
-    const mode = props.shop.payment_options[key];
-
-    if (mode === 'online') {
-        return {
-            text: 'Pay online after the shop confirms the actual weight and final amount.',
-            warn: false,
-        };
-    }
-
-    return {
-        text: `This shop has not set up ${label} yet. Ask the shop first, or pay at the shop.`,
-        warn: true,
-    };
-}
-
 const form = ref({
     shop_id: props.shop.id,
     service_id: 0,
@@ -167,7 +118,6 @@ const form = ref({
     estimated_weight_kg: '',
     piece_count: '',
     pickup_type: 'walk_in' as 'walk_in' | 'pickup',
-    payment_method: 'cash' as 'cash' | 'gcash' | 'maya',
     customer_address: '',
     customer_lat: null as number | null,
     customer_lng: null as number | null,
@@ -252,14 +202,64 @@ function openOrder(service: ShopService) {
     form.value.customer_agreement_accepted = false;
 }
 
+// Underline-style fields, as in the order sheet design.
+const fieldClass =
+    'h-auto rounded-none border-0 border-b border-border bg-transparent px-0 py-2 text-lg shadow-none focus-visible:border-primary focus-visible:ring-0';
+
+// What the sheet needs before Place order turns on, and what to tell the customer while it is off.
+const PH_MOBILE = /^\+63-9\d{2}-\d{4}-\d{3}$/;
+
+const weightHelp = computed(() => {
+    const svc = selectedService.value;
+    if (!svc) return '';
+    if (svc.pricing_model === 'per_piece') {
+        return 'Priced per piece. The shop counts your items at drop-off.';
+    }
+    if (svc.pricing_model === 'per_bundle') {
+        return `Priced per ${parseFloat(svc.bundle_weight_kg ?? '') || ''} kg bundle. The shop confirms the real weight.`;
+    }
+
+    return 'Priced per kg. The shop confirms the real weight.';
+});
+
+const orderHint = computed(() => {
+    const f = form.value;
+    if (f.customer_name.trim() === '') return 'Enter your full name.';
+    if (!PH_MOBILE.test(f.customer_phone)) return 'Enter a valid phone number.';
+
+    const amount = parseFloat(
+        isPerPiece.value ? f.piece_count : f.estimated_weight_kg,
+    );
+    const validAmount = isPerPiece.value
+        ? amount >= 1 && amount <= 500
+        : amount >= 0.5 && amount <= 100;
+    if (!validAmount) {
+        return isPerPiece.value
+            ? 'Enter the number of pieces.'
+            : 'Enter your estimated weight.';
+    }
+    if (f.pickup_type === 'pickup' && f.customer_address.trim() === '') {
+        return 'Enter your pickup address.';
+    }
+    if (!f.customer_agreement_accepted) {
+        return 'Accept the service agreement to continue.';
+    }
+
+    return '';
+});
+
+const canPlaceOrder = computed(() => orderHint.value === '' && !placing.value);
+
+const estimatedTotal = computed(() =>
+    estimate.value
+        ? `₱${estimate.value.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
+        : '—',
+);
+
 function closeOrder() {
     isOrderOpen.value = false;
     selectedService.value = null;
 }
-
-const selectedPayment = computed(() =>
-    paymentOptions.find((o) => o.value === form.value.payment_method),
-);
 
 // The server prices the estimate so it always matches what the order stores.
 const estimate = ref<BillingBreakdownData | null>(null);
@@ -355,29 +355,55 @@ function formatAddress(shop: ShopInfo) {
         .join(', ');
 }
 
-function formatServicePrice(svc: ShopService) {
+function money(value: string | number) {
+    return `₱${parseFloat(String(value)).toFixed(0)}`;
+}
+
+function servicePrice(svc: ShopService): {
+    amount: string;
+    unit: string;
+    perKg: string | null;
+} {
     if (svc.pricing_model === 'per_kg' && svc.price_per_kg)
-        return `₱${parseFloat(svc.price_per_kg).toFixed(0)}/kg`;
-    if (svc.pricing_model === 'per_bundle' && svc.bundle_price)
-        return `₱${parseFloat(svc.bundle_price).toFixed(0)} / ${svc.bundle_weight_kg}kg bundle`;
+        return { amount: money(svc.price_per_kg), unit: '/ kg', perKg: null };
+    if (svc.pricing_model === 'per_bundle' && svc.bundle_price) {
+        const weight = parseFloat(svc.bundle_weight_kg ?? '');
+        return {
+            amount: money(svc.bundle_price),
+            unit: `/ ${svc.bundle_weight_kg} kg bundle`,
+            perKg:
+                weight > 0
+                    ? `${money(parseFloat(svc.bundle_price) / weight)} per kg`
+                    : null,
+        };
+    }
     if (svc.pricing_model === 'per_piece' && svc.price_per_piece)
-        return `₱${parseFloat(svc.price_per_piece).toFixed(0)}/piece`;
-    return '—';
+        return {
+            amount: money(svc.price_per_piece),
+            unit: '/ piece',
+            perKg: null,
+        };
+    return { amount: '—', unit: '', perKg: null };
+}
+
+function directionsUrl(shop: ShopInfo) {
+    const destination =
+        shop.latitude !== null && shop.longitude !== null
+            ? `${shop.latitude},${shop.longitude}`
+            : formatAddress(shop);
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
 }
 
 function goBack() {
-    const params = props.userLat
-        ? `?lat=${props.userLat}&lng=${props.userLng}`
-        : '';
-    router.visit(`/user/shops${params}`);
+    router.visit('/user/dashboard');
 }
 </script>
 
 <template>
     <Head :title="shop.shop_name" />
-    <UserLayout>
-        <!-- ── Hero photo ─────────────────────────────────────── -->
-        <div class="relative h-52 overflow-hidden">
+    <UserLayout hide-header>
+        <!-- ── Hero ───────────────────────────────────────────── -->
+        <div class="relative h-60 overflow-hidden">
             <img
                 v-if="shop.cover_photo"
                 :src="shop.cover_photo"
@@ -386,513 +412,534 @@ function goBack() {
             />
             <div
                 v-else
-                class="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600"
-            >
-                <WashingMachine class="h-16 w-16 text-white/40" />
-            </div>
-
-            <!-- Gradient overlay -->
+                class="h-full w-full bg-gradient-to-b from-blue-500 to-blue-900"
+            />
             <div
-                class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30"
+                class="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-blue-900/20 to-transparent"
             />
 
-            <!-- Floating back button -->
             <button
-                class="absolute top-4 left-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+                type="button"
+                class="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-800 transition hover:bg-white active:scale-95"
+                aria-label="Back to home"
                 @click="goBack"
             >
-                <ArrowLeft class="h-4 w-4" />
+                <ArrowLeft class="h-5 w-5" />
             </button>
-
-            <!-- Distance pill -->
-            <div
-                v-if="shop.distance_km !== null"
-                class="absolute top-4 right-4 flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm"
+            <Link
+                href="/user/notifications"
+                class="absolute top-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-800 transition hover:bg-white active:scale-95"
+                aria-label="Notifications"
             >
-                <MapPin class="h-3 w-3" />
-                {{ shop.distance_km }} km away
-            </div>
+                <Bell class="h-5 w-5" />
+            </Link>
 
-            <!-- Shop name overlay at bottom of photo -->
-            <div class="absolute right-0 bottom-0 left-0 px-4 pb-4">
+            <div class="absolute right-0 bottom-0 left-0 px-5 pb-5">
                 <h1
-                    class="text-xl leading-tight font-extrabold text-white drop-shadow-md"
+                    class="font-display text-[28px] leading-9 font-bold text-white"
                 >
                     {{ shop.shop_name }}
                 </h1>
-                <div
-                    class="mt-1.5 inline-flex rounded-full bg-white/90 px-2.5 py-1"
-                >
-                    <RatingSummary
-                        :average="shop.rating_avg"
-                        :count="shop.rating_count"
-                    />
-                </div>
+                <p class="mt-0.5 text-xs text-white/90">
+                    <template v-if="shop.rating_count > 0">
+                        ★ {{ shop.rating_avg?.toFixed(1) }} ·
+                        {{ shop.rating_count }} rating{{
+                            shop.rating_count === 1 ? '' : 's'
+                        }}
+                    </template>
+                    <template v-else>No ratings yet</template>
+                </p>
             </div>
         </div>
 
-        <div class="space-y-5 px-4 pt-4 pb-8">
-            <!-- ── Shop info card ─────────────────────────────── -->
+        <!-- ── Contact rows ───────────────────────────────────── -->
+        <div class="px-5">
             <div
-                class="space-y-2.5 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+                class="flex min-h-14 items-center gap-3 border-b border-slate-100 py-3"
             >
-                <div class="flex items-start gap-2 text-sm text-gray-600">
-                    <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-                    <span>{{ formatAddress(shop) }}</span>
-                </div>
-                <div
-                    v-if="shop.phone"
-                    class="flex items-center gap-2 text-sm text-gray-600"
+                <MapPin class="h-[18px] w-[18px] shrink-0 text-slate-500" />
+                <span class="min-w-0 flex-1 text-sm leading-5 text-slate-800">{{
+                    formatAddress(shop)
+                }}</span>
+                <a
+                    :href="directionsUrl(shop)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="shrink-0 text-xs font-medium text-blue-600 hover:underline"
+                    >Directions</a
                 >
-                    <Phone class="h-4 w-4 shrink-0 text-blue-500" />
-                    <a
-                        :href="`tel:${shop.phone}`"
-                        class="transition hover:text-blue-600"
-                        >{{ shop.phone }}</a
-                    >
-                </div>
+            </div>
+            <div
+                v-if="shop.phone"
+                class="flex min-h-14 items-center gap-3 border-b border-slate-100 py-3"
+            >
+                <Phone class="h-[18px] w-[18px] shrink-0 text-slate-500" />
+                <span class="min-w-0 flex-1 text-sm text-slate-800">{{
+                    shop.phone
+                }}</span>
+                <a
+                    :href="`tel:${shop.phone}`"
+                    class="shrink-0 text-xs font-medium text-blue-600 hover:underline"
+                    >Call</a
+                >
             </div>
 
             <!-- ── Services ───────────────────────────────────── -->
-            <div>
-                <h2 class="mb-3 text-base font-bold text-gray-800">
-                    Available Services
-                </h2>
+            <section class="mt-6">
+                <div class="flex items-center justify-between">
+                    <h2
+                        class="text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
+                    >
+                        Services
+                    </h2>
+                    <span class="text-xs text-slate-500"
+                        >{{ services.length }} available</span
+                    >
+                </div>
 
                 <div
                     v-if="services.length === 0"
-                    class="flex flex-col items-center py-12 text-gray-400"
+                    class="flex flex-col items-center py-12 text-center"
                 >
-                    <Package class="mb-2 h-10 w-10 opacity-40" />
-                    <p class="text-sm">No services available at this time.</p>
+                    <Package
+                        class="mb-2 h-8 w-8 text-slate-300"
+                        aria-hidden="true"
+                    />
+                    <p class="text-sm text-slate-500">
+                        No services available at this time.
+                    </p>
                 </div>
 
-                <div v-else class="grid gap-4 sm:grid-cols-2">
-                    <article
-                        v-for="svc in services"
-                        :key="svc.id"
-                        class="flex min-h-80 flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-                    >
-                        <div>
-                            <img
-                                v-if="svc.photo_url"
-                                :src="svc.photo_url"
-                                :alt="svc.service_name"
-                                loading="lazy"
-                                class="mb-3 h-36 w-full rounded-xl object-cover"
-                            />
+                <ul v-else class="divide-y divide-slate-100">
+                    <li v-for="svc in services" :key="svc.id" class="py-6">
+                        <img
+                            v-if="svc.photo_url"
+                            :src="svc.photo_url"
+                            :alt="svc.service_name"
+                            loading="lazy"
+                            class="mb-3 h-36 w-full rounded-xl object-cover"
+                        />
+                        <p class="text-xs font-medium text-blue-600">
+                            {{
+                                svc.category_label ??
+                                serviceCategoryLabel(
+                                    svc.category as ServiceCategory,
+                                )
+                            }}
+                        </p>
+                        <h3
+                            class="mt-1 font-display text-[22px] leading-7 font-bold text-slate-900"
+                        >
+                            {{ svc.service_name }}
+                        </h3>
+                        <p class="mt-1.5 text-sm leading-6 text-slate-500">
+                            {{
+                                svc.description ||
+                                'Professional laundry service handled with care.'
+                            }}
+                        </p>
+
+                        <p class="mt-4 flex flex-wrap items-baseline gap-x-2">
                             <span
-                                class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"
+                                class="font-display text-[32px] leading-10 font-bold text-slate-900"
+                                >{{ servicePrice(svc).amount }}</span
                             >
-                                {{
-                                    svc.category_label ??
-                                    serviceCategoryLabel(
-                                        svc.category as ServiceCategory,
+                            <span class="text-sm text-slate-500">{{
+                                servicePrice(svc).unit
+                            }}</span>
+                            <span
+                                v-if="servicePrice(svc).perKg"
+                                class="ml-auto text-sm text-slate-500"
+                                >≈ {{ servicePrice(svc).perKg }}</span
+                            >
+                        </p>
+
+                        <p
+                            v-if="svc.supplies.length"
+                            class="mt-2 text-xs leading-5 text-slate-500"
+                        >
+                            Includes
+                            {{
+                                svc.supplies
+                                    .map(
+                                        (supply) =>
+                                            `${supply.name} · ${supply.quantity} ${supply.unit} per ${supply.per}`,
                                     )
-                                }}
-                            </span>
-                            <h3 class="text-lg font-bold text-gray-900">
-                                {{ svc.service_name }}
-                            </h3>
-                            <p class="mt-1.5 text-sm leading-6 text-gray-500">
-                                {{
-                                    svc.description ||
-                                    'Professional laundry service handled with care.'
-                                }}
-                            </p>
-
-                            <p
-                                class="mt-4 text-xl font-extrabold text-blue-600"
-                            >
-                                {{ formatServicePrice(svc) }}
-                            </p>
-
-                            <div
-                                v-if="svc.supplies.length"
-                                class="mt-3 rounded-xl bg-gray-50 p-3"
-                            >
-                                <p
-                                    class="flex items-center gap-1.5 text-xs font-semibold text-gray-700"
-                                >
-                                    <Package class="h-3.5 w-3.5" />
-                                    Supplies used in this service
-                                </p>
-                                <ul class="mt-1.5 space-y-0.5">
-                                    <li
-                                        v-for="supply in svc.supplies"
-                                        :key="supply.name"
-                                        class="text-xs text-gray-600"
-                                    >
-                                        {{ supply.name }}
-                                        <span class="text-gray-400"
-                                            >· {{ supply.quantity }}
-                                            {{ supply.unit }} per
-                                            {{ supply.per }}</span
-                                        >
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="mt-3 flex flex-wrap gap-2">
-                                <span
-                                    class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs text-amber-700"
-                                >
-                                    <Info class="h-3.5 w-3.5" />
-                                    Final price after weighing
-                                </span>
-                            </div>
-                        </div>
+                                    .join(', ')
+                            }}
+                        </p>
+                        <p
+                            class="mt-2 flex items-center gap-2 text-xs text-slate-500"
+                        >
+                            <span
+                                class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"
+                                aria-hidden="true"
+                            />
+                            Final price is set after your laundry is weighed.
+                        </p>
 
                         <button
                             type="button"
-                            class="mt-auto w-full rounded-xl border-2 border-blue-600 px-4 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-600 hover:text-white active:bg-blue-700"
+                            class="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-blue-600 bg-white text-sm font-semibold text-blue-600 transition hover:bg-blue-50 active:bg-blue-100"
                             @click="openOrder(svc)"
                         >
                             Place an order
                         </button>
-                    </article>
-                </div>
-            </div>
+                    </li>
+                </ul>
+            </section>
         </div>
 
-        <!-- ── Order Dialog ────────────────────────────────────── -->
-        <Dialog v-model:open="isOrderOpen">
-            <DialogContent
-                class="mx-4 max-h-[90vh] max-w-sm overflow-y-auto rounded-2xl"
+        <!-- ── Order sheet ─────────────────────────────────────── -->
+        <Sheet v-model:open="isOrderOpen">
+            <SheetContent
+                side="bottom"
+                class="mx-auto max-h-[92dvh] max-w-lg gap-0 overflow-hidden rounded-t-[28px] border-t-0 p-0 [&>button:last-of-type]:top-6 [&>button:last-of-type]:right-5 [&>button:last-of-type]:flex [&>button:last-of-type]:size-10 [&>button:last-of-type]:items-center [&>button:last-of-type]:justify-center [&>button:last-of-type]:rounded-full [&>button:last-of-type]:bg-muted [&>button:last-of-type]:opacity-100 [&>button:last-of-type_svg]:size-5"
             >
-                <DialogHeader>
-                    <DialogTitle class="text-base">
-                        Place Order — {{ selectedService?.service_name }}
-                    </DialogTitle>
-                </DialogHeader>
-
-                <div class="space-y-4 py-2">
-                    <!-- Shop reminder -->
+                <!-- Grabber + title -->
+                <div class="px-6 pt-3 pb-4">
                     <div
-                        class="flex items-start gap-2 rounded-xl bg-blue-50 p-3 text-xs text-blue-700"
-                    >
-                        <Info class="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <div>
-                            <strong>{{ shop.shop_name }}</strong
-                            ><br />
-                            {{ formatAddress(shop) }}
-                        </div>
-                    </div>
-
-                    <!-- Customer name -->
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium"
-                            >Your Name
-                            <span class="text-red-500">*</span></label
-                        >
-                        <Input
-                            v-model="form.customer_name"
-                            placeholder="Full name"
-                            :class="
-                                errors.customer_name ? 'border-red-400' : ''
-                            "
-                        />
-                        <p
-                            v-if="errors.customer_name"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.customer_name }}
-                        </p>
-                    </div>
-
-                    <!-- Phone -->
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium"
-                            >Phone Number
-                            <span class="text-red-500">*</span></label
-                        >
-                        <PhilippinePhoneInput
-                            v-model="form.customer_phone"
-                            :class="
-                                errors.customer_phone ? 'border-red-400' : ''
-                            "
-                        />
-                        <p
-                            v-if="errors.customer_phone"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.customer_phone }}
-                        </p>
-                    </div>
-
-                    <!-- Estimated weight, or the number of pieces -->
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium"
-                            >{{
-                                isPerPiece
-                                    ? 'Number of pieces'
-                                    : 'Estimated Weight (kg)'
-                            }}
-                            <span class="text-red-500">*</span></label
-                        >
-                        <Input
-                            v-if="isPerPiece"
-                            v-model="form.piece_count"
-                            type="number"
-                            min="1"
-                            max="500"
-                            step="1"
-                            placeholder="e.g. 2"
-                            :class="errors.piece_count ? 'border-red-400' : ''"
-                        />
-                        <Input
-                            v-else
-                            v-model="form.estimated_weight_kg"
-                            type="number"
-                            min="0.5"
-                            step="0.5"
-                            placeholder="e.g. 3"
-                            :class="
-                                errors.estimated_weight_kg
-                                    ? 'border-red-400'
-                                    : ''
-                            "
-                        />
-                        <p
-                            v-if="
-                                errors.piece_count || errors.estimated_weight_kg
-                            "
-                            class="text-xs text-red-500"
-                        >
-                            {{
-                                errors.piece_count || errors.estimated_weight_kg
-                            }}
-                        </p>
-                        <BillingBreakdown
-                            v-if="estimate"
-                            :breakdown="estimate"
-                            :show-payment="false"
-                        />
-                    </div>
-
-                    <!-- Pickup type -->
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium"
-                            >How will you drop-off?
-                            <span class="text-red-500">*</span></label
-                        >
-                        <div
-                            class="grid gap-2"
-                            :class="
-                                shop.offers_pickup
-                                    ? 'grid-cols-2'
-                                    : 'grid-cols-1'
-                            "
-                        >
-                            <button
-                                v-if="shop.offers_pickup"
-                                type="button"
-                                class="rounded-xl border-2 py-2.5 text-sm font-medium transition"
-                                :class="
-                                    form.pickup_type === 'walk_in'
-                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                                "
-                                @click="form.pickup_type = 'walk_in'"
-                            >
-                                Walk-in
-                            </button>
-                            <button
-                                type="button"
-                                class="rounded-xl border-2 py-2.5 text-sm font-medium transition"
-                                :class="
-                                    form.pickup_type === 'pickup'
-                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                                "
-                                @click="form.pickup_type = 'pickup'"
-                            >
-                                Pickup
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Address (pickup only) -->
-                    <div
-                        v-if="form.pickup_type === 'pickup'"
-                        class="space-y-1.5"
-                    >
-                        <label class="text-sm font-medium"
-                            >Pickup Address
-                            <span class="text-red-500">*</span></label
-                        >
-                        <Input
-                            v-model="form.customer_address"
-                            placeholder="Your complete address"
-                            :class="
-                                errors.customer_address ? 'border-red-400' : ''
-                            "
-                        />
-                        <div class="flex items-center gap-2 text-xs">
-                            <button
-                                type="button"
-                                class="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline disabled:opacity-60"
-                                :disabled="locating"
-                                @click="autofillAddress(true)"
-                            >
-                                <Loader2
-                                    v-if="locating"
-                                    class="h-3 w-3 animate-spin"
-                                />
-                                <MapPin v-else class="h-3 w-3" />
-                                {{
-                                    locating
-                                        ? 'Finding your address…'
-                                        : 'Use my current location'
-                                }}
-                            </button>
-                            <span v-if="failed" class="text-muted-foreground"
-                                >Could not detect it. Please type your
-                                address.</span
-                            >
-                        </div>
-                        <p
-                            v-if="errors.customer_address"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.customer_address }}
-                        </p>
-                    </div>
-
-                    <!-- Payment method -->
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium"
-                            >Payment Method
-                            <span class="text-red-500">*</span></label
-                        >
-                        <div class="space-y-2">
-                            <button
-                                v-for="opt in paymentOptions"
-                                :key="opt.value"
-                                type="button"
-                                class="flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition"
-                                :class="
-                                    form.payment_method === opt.value
-                                        ? 'border-blue-600 bg-blue-50'
-                                        : 'border-gray-200 hover:border-gray-300'
-                                "
-                                @click="
-                                    form.payment_method = opt.value as
-                                        | 'cash'
-                                        | 'gcash'
-                                        | 'maya'
-                                "
-                            >
-                                <img
-                                    v-if="opt.image"
-                                    :src="opt.image"
-                                    :alt="`${opt.label} logo`"
-                                    class="h-7 w-12 shrink-0 object-contain"
-                                />
-                                <component
-                                    :is="opt.icon"
-                                    v-else
-                                    class="h-5 w-5 shrink-0"
-                                    :class="
-                                        form.payment_method === opt.value
-                                            ? 'text-blue-600'
-                                            : 'text-gray-400'
-                                    "
-                                />
-                                <div class="min-w-0 flex-1">
-                                    <p
-                                        class="text-sm font-medium"
-                                        :class="
-                                            form.payment_method === opt.value
-                                                ? 'text-blue-700'
-                                                : 'text-gray-700'
-                                        "
-                                    >
-                                        {{ opt.label }}
-                                    </p>
-                                    <p
-                                        class="text-xs"
-                                        :class="
-                                            paymentNote(opt.value).warn
-                                                ? 'text-amber-600'
-                                                : 'text-gray-400'
-                                        "
-                                    >
-                                        {{ paymentNote(opt.value).text }}
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
-                        <p
-                            v-if="errors.payment_method"
-                            class="text-xs text-red-500"
-                        >
-                            {{ errors.payment_method }}
-                        </p>
-                    </div>
-
-                    <!-- Special instructions -->
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium"
-                            >Special Instructions
-                            <span class="text-xs text-gray-400"
-                                >(optional)</span
-                            ></label
-                        >
-                        <Input
-                            v-model="form.special_instructions"
-                            placeholder="e.g. Separate whites, use fabric conditioner..."
-                        />
-                    </div>
-
-                    <CustomerServiceAgreement
-                        v-model="form.customer_agreement_accepted"
-                        :agreement="customerAgreement"
+                        class="mx-auto mb-5 h-1 w-10 rounded-full bg-muted-foreground/30"
+                        aria-hidden="true"
                     />
-                    <p
-                        v-if="errors.customer_agreement_accepted"
-                        class="text-xs text-red-500"
+                    <SheetTitle
+                        class="pr-12 text-2xl font-bold tracking-tight text-foreground"
                     >
-                        {{ errors.customer_agreement_accepted }}
-                    </p>
-
-                    <!-- Disclaimer -->
-                    <div
-                        class="rounded-xl bg-amber-50 p-3 text-xs text-amber-700"
-                    >
-                        <template v-if="isPerPiece">
-                            <strong>Note:</strong> This service is priced per
-                            piece, so the amount above is the final amount. The
-                            shop will count your items when you drop them off.
-                            If you selected
-                        </template>
-                        <template v-else>
-                            <strong>Note:</strong> The amount above is only an
-                            estimate. The shop will weigh your laundry and
-                            confirm the final amount. If you selected
-                        </template>
-                        <strong>{{ selectedPayment?.label }}</strong
-                        >, online payment will become available afterward.
-                    </div>
+                        Place an order
+                    </SheetTitle>
+                    <SheetDescription class="mt-1 pr-12 text-sm">
+                        {{ selectedService?.service_name }} ·
+                        {{ shop.shop_name }}, {{ shop.barangay }}
+                    </SheetDescription>
                 </div>
 
-                <DialogFooter class="gap-2">
-                    <Button variant="outline" class="flex-1" @click="closeOrder"
-                        >Cancel</Button
-                    >
-                    <Button
-                        class="flex-1"
-                        :disabled="placing"
+                <!-- Scrolling form -->
+                <div class="min-h-0 flex-1 space-y-7 overflow-y-auto px-6 pb-6">
+                    <!-- Your details -->
+                    <section class="space-y-5">
+                        <p
+                            class="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+                        >
+                            Your details
+                        </p>
+
+                        <div>
+                            <label
+                                for="order-name"
+                                class="text-sm font-medium text-muted-foreground"
+                                >Full name</label
+                            >
+                            <Input
+                                id="order-name"
+                                v-model="form.customer_name"
+                                autocomplete="name"
+                                :class="[
+                                    fieldClass,
+                                    errors.customer_name && 'border-red-400',
+                                ]"
+                            />
+                            <p
+                                v-if="errors.customer_name"
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                {{ errors.customer_name }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <label
+                                for="order-phone"
+                                class="text-sm font-medium text-muted-foreground"
+                                >Phone number</label
+                            >
+                            <PhilippinePhoneInput
+                                id="order-phone"
+                                v-model="form.customer_phone"
+                                :class="[
+                                    fieldClass,
+                                    errors.customer_phone && 'border-red-400',
+                                ]"
+                            />
+                            <p
+                                v-if="errors.customer_phone"
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                {{ errors.customer_phone }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <!-- Laundry -->
+                    <section class="space-y-5">
+                        <p
+                            class="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+                        >
+                            Laundry
+                        </p>
+
+                        <div>
+                            <label
+                                for="order-amount"
+                                class="text-sm font-semibold text-muted-foreground"
+                                >{{
+                                    isPerPiece
+                                        ? 'Number of pieces'
+                                        : 'Estimated weight (kg)'
+                                }}</label
+                            >
+                            <Input
+                                v-if="isPerPiece"
+                                id="order-amount"
+                                v-model="form.piece_count"
+                                type="number"
+                                inputmode="numeric"
+                                min="1"
+                                max="500"
+                                step="1"
+                                placeholder="e.g. 2"
+                                :class="[
+                                    fieldClass,
+                                    errors.piece_count && 'border-red-400',
+                                ]"
+                            />
+                            <Input
+                                v-else
+                                id="order-amount"
+                                v-model="form.estimated_weight_kg"
+                                type="number"
+                                inputmode="decimal"
+                                min="0.5"
+                                step="0.5"
+                                placeholder="e.g. 3"
+                                :class="[
+                                    fieldClass,
+                                    errors.estimated_weight_kg &&
+                                        'border-red-400',
+                                ]"
+                            />
+                            <p class="mt-2 text-sm text-muted-foreground">
+                                {{ weightHelp }}
+                            </p>
+                            <p
+                                v-if="
+                                    errors.piece_count ||
+                                    errors.estimated_weight_kg
+                                "
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                {{
+                                    errors.piece_count ||
+                                    errors.estimated_weight_kg
+                                }}
+                            </p>
+                            <BillingBreakdown
+                                v-if="estimate"
+                                class="mt-3"
+                                :breakdown="estimate"
+                                :show-payment="false"
+                            />
+                        </div>
+
+                        <!-- Drop-off -->
+                        <div>
+                            <p
+                                class="text-sm font-semibold text-muted-foreground"
+                            >
+                                How will you drop off?
+                            </p>
+                            <div
+                                class="mt-2 grid gap-1 rounded-2xl bg-primary/10 p-1"
+                                :class="
+                                    shop.offers_pickup
+                                        ? 'grid-cols-2'
+                                        : 'grid-cols-1'
+                                "
+                                role="radiogroup"
+                                aria-label="How will you drop off?"
+                            >
+                                <button
+                                    v-if="shop.offers_pickup"
+                                    type="button"
+                                    role="radio"
+                                    :aria-checked="
+                                        form.pickup_type === 'walk_in'
+                                    "
+                                    class="h-12 rounded-xl text-base font-semibold transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                    :class="
+                                        form.pickup_type === 'walk_in'
+                                            ? 'bg-background text-primary shadow-sm'
+                                            : 'text-muted-foreground'
+                                    "
+                                    @click="form.pickup_type = 'walk_in'"
+                                >
+                                    Walk-in
+                                </button>
+                                <button
+                                    type="button"
+                                    role="radio"
+                                    :aria-checked="
+                                        form.pickup_type === 'pickup'
+                                    "
+                                    class="h-12 rounded-xl text-base font-semibold transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                    :class="
+                                        form.pickup_type === 'pickup'
+                                            ? 'bg-background text-primary shadow-sm'
+                                            : 'text-muted-foreground'
+                                    "
+                                    @click="form.pickup_type = 'pickup'"
+                                >
+                                    Pickup
+                                </button>
+                            </div>
+                            <p class="mt-2 text-sm text-muted-foreground">
+                                {{
+                                    form.pickup_type === 'pickup'
+                                        ? 'We collect your laundry from your address.'
+                                        : 'Bring your laundry to the shop.'
+                                }}
+                            </p>
+                        </div>
+
+                        <!-- Address (pickup only) -->
+                        <div v-if="form.pickup_type === 'pickup'">
+                            <label
+                                for="order-address"
+                                class="text-sm font-semibold text-muted-foreground"
+                                >Pickup address</label
+                            >
+                            <Input
+                                id="order-address"
+                                v-model="form.customer_address"
+                                autocomplete="street-address"
+                                placeholder="Your complete address"
+                                :class="[
+                                    fieldClass,
+                                    errors.customer_address && 'border-red-400',
+                                ]"
+                            />
+                            <div class="mt-2 flex items-center gap-2 text-sm">
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1.5 font-semibold text-primary disabled:opacity-60"
+                                    :disabled="locating"
+                                    @click="autofillAddress(true)"
+                                >
+                                    <Loader2
+                                        v-if="locating"
+                                        class="h-4 w-4 animate-spin"
+                                    />
+                                    <MapPin v-else class="h-4 w-4" />
+                                    {{
+                                        locating
+                                            ? 'Finding your address…'
+                                            : 'Use my current location'
+                                    }}
+                                </button>
+                                <span
+                                    v-if="failed"
+                                    class="text-muted-foreground"
+                                    >Could not detect it. Please type your
+                                    address.</span
+                                >
+                            </div>
+                            <p
+                                v-if="errors.customer_address"
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                {{ errors.customer_address }}
+                            </p>
+                        </div>
+
+                        <!-- Special instructions -->
+                        <div>
+                            <label
+                                for="order-notes"
+                                class="text-sm font-semibold text-muted-foreground"
+                                >Special instructions
+                                <span class="font-normal"
+                                    >(optional)</span
+                                ></label
+                            >
+                            <Input
+                                id="order-notes"
+                                v-model="form.special_instructions"
+                                placeholder="e.g. Separate whites, use fabric conditioner"
+                                :class="fieldClass"
+                            />
+                        </div>
+                    </section>
+
+                    <!-- Agreement and note -->
+                    <section class="space-y-4">
+                        <CustomerServiceAgreement
+                            v-model="form.customer_agreement_accepted"
+                            :agreement="customerAgreement"
+                        />
+                        <p
+                            v-if="errors.customer_agreement_accepted"
+                            class="text-xs text-red-500"
+                        >
+                            {{ errors.customer_agreement_accepted }}
+                        </p>
+
+                        <p
+                            class="text-sm leading-relaxed text-muted-foreground"
+                        >
+                            <template v-if="isPerPiece">
+                                This service is priced per piece, so the amount
+                                above is the final amount. The shop counts your
+                                items when you drop them off.
+                            </template>
+                            <template v-else>
+                                The amount above is only an estimate. The shop
+                                weighs your laundry and confirms the final
+                                amount.
+                            </template>
+                            You can pay at the shop or online once the final
+                            amount is confirmed.
+                        </p>
+                    </section>
+                </div>
+
+                <!-- Sticky footer: total and the one action -->
+                <div
+                    class="border-t border-border bg-background px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+                >
+                    <div class="flex items-baseline justify-between gap-4">
+                        <span class="text-base text-muted-foreground">{{
+                            estimate
+                                ? 'Estimated total'
+                                : isPerPiece
+                                  ? 'Estimated total (add pieces)'
+                                  : 'Estimated total (add weight)'
+                        }}</span>
+                        <span
+                            class="text-xl font-bold text-foreground tabular-nums"
+                            >{{ estimatedTotal }}</span
+                        >
+                    </div>
+                    <button
+                        type="button"
+                        class="mt-3 flex h-14 w-full items-center justify-center gap-2 rounded-2xl text-lg font-semibold transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                        :class="
+                            canPlaceOrder
+                                ? 'bg-primary text-primary-foreground shadow-md active:scale-[0.99]'
+                                : 'cursor-not-allowed bg-muted text-muted-foreground'
+                        "
+                        :disabled="!canPlaceOrder"
                         @click="submitOrder"
                     >
-                        <Loader2
-                            v-if="placing"
-                            class="mr-2 h-4 w-4 animate-spin"
-                        />
-                        {{ placing ? 'Placing...' : 'Place Order' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                        <Loader2 v-if="placing" class="h-5 w-5 animate-spin" />
+                        {{ placing ? 'Placing…' : 'Place order' }}
+                    </button>
+                    <p
+                        class="mt-2 min-h-5 text-center text-sm text-muted-foreground"
+                        role="status"
+                    >
+                        {{ orderHint }}
+                    </p>
+                </div>
+            </SheetContent>
+        </Sheet>
     </UserLayout>
 </template>

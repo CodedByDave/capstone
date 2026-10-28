@@ -189,7 +189,7 @@ class OtpVerificationController extends Controller
 
             DB::commit();
 
-            session()->forget('pending_registration');
+            session()->forget(['pending_registration', 'referral_shop_id']);
 
             Log::info('Account created successfully', [
                 'email' => $user->email,

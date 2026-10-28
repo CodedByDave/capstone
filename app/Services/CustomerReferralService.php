@@ -31,7 +31,12 @@ class CustomerReferralService
     /** The shop link a shop owner prints or shows as a QR code. */
     public function joinUrlFor(Shop $shop): string
     {
-        return route('customer.join', ['publicId' => $shop->public_id]);
+        $path = route('customer.join', ['publicId' => $shop->public_id], false);
+
+        // A printed QR must keep pointing at the public address, even behind a proxy that hides the real host or scheme.
+        return app()->isProduction()
+            ? rtrim((string) config('app.url'), '/').$path
+            : url($path);
     }
 
     /**

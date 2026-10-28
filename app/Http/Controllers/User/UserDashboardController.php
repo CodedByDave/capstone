@@ -8,6 +8,7 @@ use App\Models\ShopOrder;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerShopCatalogService;
 use App\Services\OrderRatingService;
+use App\Services\PromotionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,6 +20,7 @@ class UserDashboardController extends Controller
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly CustomerShopCatalogService $catalog,
         private readonly OrderRatingService $ratings,
+        private readonly PromotionService $promotions,
     ) {}
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
@@ -82,6 +84,9 @@ class UserDashboardController extends Controller
             'totalOrders' => ShopOrder::where('user_id', $user->id)->count(),
             'ratingPrompt' => $this->ratings->promptFor($user),
             'nearbyShops' => $nearbyShops,
+            'promotions' => $user->referred_shop_id
+                ? $this->promotions->forCustomer((int) $user->referred_shop_id)
+                : [],
         ]);
     }
 

@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import type { AppPageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Bell, ClipboardList, Home, Store, User } from 'lucide-vue-next';
+import {
+    Bell,
+    ClipboardList,
+    Home,
+    User,
+    WashingMachine,
+} from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import 'vue3-toastify/dist/index.css';
+
+// Pages with their own hero (the shop page) hide the top bar.
+defineProps<{ hideHeader?: boolean }>();
 
 const page = usePage<AppPageProps>();
 const url = computed(() => page.url);
@@ -38,17 +47,30 @@ async function pollNotifications() {
     }
 }
 
+// The customer app is light-only; without this, popups and toasts (rendered outside the page)
+// would pick up the browser's dark mode and clash with the light pages.
+let restoreDark = false;
+
 onMounted(() => {
     pollTimer = setInterval(pollNotifications, 20_000);
+
+    const root = document.documentElement;
+    restoreDark = root.classList.contains('dark');
+    root.classList.remove('dark');
+    root.style.colorScheme = 'light';
 });
 
 onUnmounted(() => {
     if (pollTimer) clearInterval(pollTimer);
+
+    const root = document.documentElement;
+    root.style.colorScheme = '';
+    if (restoreDark) root.classList.add('dark');
 });
 
 const navItems = [
     { href: '/user/dashboard', label: 'Home', icon: Home },
-    { href: '/user/shops', label: 'Shops', icon: Store },
+    { href: '/user/shops', label: 'Services', icon: WashingMachine },
     { href: '/user/orders', label: 'Orders', icon: ClipboardList },
     { href: '/user/profile', label: 'Profile', icon: User },
 ];
@@ -60,25 +82,23 @@ function isActive(href: string) {
 </script>
 
 <template>
-    <div class="flex min-h-screen flex-col bg-gray-50">
+    <div class="flex min-h-screen flex-col bg-white font-customer">
         <!-- ── Top Bar ────────────────────────────────────────────── -->
         <header
-            class="sticky top-0 z-40 border-b border-gray-100 bg-white shadow-sm"
+            v-if="!hideHeader"
+            class="sticky top-0 z-40 border-b border-slate-100 bg-white"
         >
             <div
-                class="mx-auto flex max-w-lg items-center justify-between px-4 py-3"
+                class="mx-auto flex max-w-lg items-center justify-between px-5 py-3.5"
             >
                 <div class="flex items-center gap-2">
-                    <div
-                        class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg"
-                    >
-                        <img
-                            src="/laundryhub.png"
-                            alt="LaundryHub"
-                            class="h-8 w-8 object-contain"
-                        />
-                    </div>
-                    <span class="text-sm font-bold text-gray-900"
+                    <img
+                        src="/laundryhub.png"
+                        alt=""
+                        class="h-6 w-6 object-contain"
+                    />
+                    <span
+                        class="font-display text-sm font-semibold text-slate-900"
                         >LaundryHub</span
                     >
                 </div>
@@ -89,54 +109,53 @@ function isActive(href: string) {
                     <!-- Notification bell -->
                     <Link
                         href="/user/notifications"
-                        class="relative flex h-9 w-9 items-center justify-center rounded-xl transition hover:bg-gray-100"
+                        class="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
+                        :aria-label="
+                            unread > 0
+                                ? `Notifications, ${unread} unread`
+                                : 'Notifications'
+                        "
                     >
-                        <Bell class="h-5 w-5 text-gray-600" />
+                        <Bell class="h-5 w-5 text-slate-800" />
                         <span
                             v-if="unread > 0"
-                            class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] leading-none font-bold text-white"
-                        >
-                            {{ unread > 9 ? '9+' : unread }}
-                        </span>
+                            class="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white"
+                        />
                     </Link>
                 </div>
             </div>
         </header>
 
         <!-- ── Main Content ───────────────────────────────────────── -->
-        <main class="mx-auto w-full max-w-lg flex-1 overflow-y-auto pb-20">
+        <main class="mx-auto w-full max-w-lg flex-1 overflow-y-auto pb-24">
             <slot />
         </main>
 
         <!-- ── Bottom Navigation ──────────────────────────────────── -->
         <nav
-            class="fixed right-0 bottom-0 left-0 z-40 border-t border-gray-100 bg-white shadow-lg"
+            class="fixed right-0 bottom-0 left-0 z-40 border-t border-slate-100 bg-white"
+            aria-label="Main"
         >
-            <div
-                class="mx-auto flex max-w-lg items-center justify-around px-2 py-1"
-            >
+            <div class="mx-auto flex max-w-lg items-stretch justify-around">
                 <Link
                     v-for="item in navItems"
                     :key="item.href"
                     :href="item.href"
-                    class="flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-3 py-2 transition-colors"
+                    class="relative flex min-h-14 min-w-16 flex-1 flex-col items-center justify-center gap-1 py-2 transition-colors"
                     :class="
                         isActive(item.href)
                             ? 'text-blue-600'
-                            : 'text-gray-400 hover:text-gray-600'
+                            : 'text-slate-500 hover:text-slate-700'
                     "
+                    :aria-current="isActive(item.href) ? 'page' : undefined"
                 >
-                    <component
-                        :is="item.icon"
-                        class="h-5 w-5 shrink-0 transition-transform"
-                        :class="isActive(item.href) ? 'scale-110' : ''"
-                    />
-                    <span class="text-[10px] leading-none font-medium">{{
+                    <component :is="item.icon" class="h-5 w-5 shrink-0" />
+                    <span class="text-[11px] leading-none font-medium">{{
                         item.label
                     }}</span>
                     <span
                         v-if="isActive(item.href)"
-                        class="mt-0.5 h-1 w-1 rounded-full bg-blue-600"
+                        class="absolute bottom-0 h-0.5 w-6 rounded-full bg-blue-600"
                     />
                 </Link>
             </div>

@@ -734,6 +734,7 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/notifications', [UserNotificationController::class, 'index'])->name('notifications');
     Route::get('/notifications/poll', [UserNotificationController::class, 'poll'])->name('notifications.poll');
     Route::post('/notifications/read-all', [UserNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{id}/read', [UserNotificationController::class, 'markRead'])->whereUuid('id')->name('notifications.read');
 
     Route::get('/profile', fn () => inertia('user/Profile'))->name('profile');
 });

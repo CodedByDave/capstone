@@ -194,7 +194,8 @@ class ShopOrderService
                 'additional_charges' => 0,
                 'discount_amount' => 0,
                 'total_amount' => $estimatedTotal,
-                'payment_method' => $data['payment_method'],
+                // Customers choose how to pay once the actual weight is confirmed; until then it stays cash.
+                'payment_method' => $data['payment_method'] ?? 'cash',
                 'payment_status' => 'unpaid',
                 'amount_paid' => 0,
                 'status' => 'pending',
