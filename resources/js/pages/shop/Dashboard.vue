@@ -12,7 +12,7 @@ import {
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import Chart from 'chart.js/auto';
 import {
     AlertTriangle,
@@ -123,7 +123,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { props } = usePage<{
+// Component props stay reactive across Inertia visits; destructuring usePage()
+// would freeze them at the first page load.
+const props = defineProps<{
     auth: { user: any };
     modules: any[];
     order?: {
