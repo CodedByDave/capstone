@@ -340,9 +340,9 @@ const submit = () => {
 // Walk-in is the default. An online order a rider collects from the customer keeps its own
 // option, so editing it never turns it into a different kind of order by accident.
 const dropoffOptions = computed(() => [
-    { value: 'walk_in', label: 'Walk-in' },
+    { value: 'walk_in', label: 'Customer brings it' },
     ...(props.shopOrder.pickup_type === 'pickup'
-        ? [{ value: 'pickup', label: 'Rider pickup' }]
+        ? [{ value: 'pickup', label: 'Rider collects it' }]
         : []),
 ]);
 const dropoff = computed({
@@ -357,9 +357,9 @@ const dropoff = computed({
 // Independent of the drop-off: "Walk-in" means the customer collects it at the shop, "Delivery"
 // means the shop sends it to them.
 const handoffOptions = computed(() => [
-    { value: 'walk_in', label: 'Walk-in' },
+    { value: 'walk_in', label: 'Customer picks up' },
     ...(page.props.shopCapabilities?.offers_delivery || form.deliver_to_customer
-        ? [{ value: 'delivery', label: 'Delivery' }]
+        ? [{ value: 'delivery', label: 'Rider delivers' }]
         : []),
 ]);
 const handoff = computed({
@@ -469,16 +469,12 @@ const balanceDue = computed(() =>
                         <span>Operations</span>
                         <span aria-hidden="true">/</span>
                         <Link :href="base" class="hover:text-foreground"
-                            >Orders</Link
+                            >All Orders</Link
                         >
                         <span aria-hidden="true">/</span>
-                        <Link
-                            :href="`${base}/${shopOrder.payment_public_id}`"
-                            class="hover:text-foreground"
-                            >{{ shopOrder.order_number }}</Link
+                        <span class="font-medium text-foreground"
+                            >Edit order</span
                         >
-                        <span aria-hidden="true">/</span>
-                        <span class="font-medium text-foreground">Edit</span>
                     </nav>
                     <div class="flex flex-wrap items-center gap-3">
                         <h2 class="text-2xl font-bold tracking-tight">
@@ -495,13 +491,8 @@ const balanceDue = computed(() =>
                         {{ shopOrder.customer_name }}
                     </p>
                 </div>
-                <Button
-                    variant="outline"
-                    @click="
-                        router.visit(`${base}/${shopOrder.payment_public_id}`)
-                    "
-                >
-                    <ArrowLeft class="mr-2 h-4 w-4" /> Back
+                <Button variant="outline" @click="router.visit(base)">
+                    <ArrowLeft class="mr-2 h-4 w-4" /> Back to orders
                 </Button>
             </div>
 
@@ -510,14 +501,12 @@ const balanceDue = computed(() =>
                 @submit.prevent="submit"
             >
                 <!-- Form -->
-                <div class="space-y-8">
+                <div class="min-w-0 space-y-8">
                     <!-- Order status: progression -->
                     <div>
-                        <p
-                            class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                        >
+                        <h3 class="mb-4 text-base font-semibold">
                             Order status
-                        </p>
+                        </h3>
 
                         <div
                             v-if="isCancelled"
@@ -528,16 +517,16 @@ const balanceDue = computed(() =>
                         </div>
 
                         <ol
-                            class="flex items-center"
+                            class="flex items-center overflow-x-auto pb-1"
                             aria-label="Order status"
                         >
                             <template
                                 v-for="(step, index) in statusSteps"
                                 :key="step.value"
                             >
-                                <li class="flex items-center">
+                                <li class="flex shrink-0 items-center">
                                     <div
-                                        class="flex items-center gap-2 rounded-full py-1 pr-2 text-sm"
+                                        class="flex items-center gap-2 rounded-full py-1 pr-2 text-sm whitespace-nowrap"
                                         :aria-current="
                                             form.status === step.value
                                                 ? 'step'
@@ -572,7 +561,7 @@ const balanceDue = computed(() =>
                                 <li
                                     v-if="index < statusSteps.length - 1"
                                     aria-hidden="true"
-                                    class="mx-3 h-px flex-1 transition"
+                                    class="mx-3 h-px min-w-4 flex-1 transition"
                                     :class="
                                         index < currentStep
                                             ? 'bg-blue-500'
@@ -628,15 +617,11 @@ const balanceDue = computed(() =>
 
                     <!-- Customer -->
                     <div class="border-t pt-8">
-                        <p
-                            class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                        >
-                            Customer Information
-                        </p>
+                        <h3 class="mb-4 text-base font-semibold">Customer</h3>
                         <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                            <div class="col-span-12 space-y-1 sm:col-span-6">
                                 <label class="text-sm font-medium"
-                                    >Customer Name
+                                    >Customer name
                                     <span class="text-red-500">*</span></label
                                 >
                                 <input
@@ -656,7 +641,7 @@ const balanceDue = computed(() =>
                                     {{ form.errors.customer_name }}
                                 </p>
                             </div>
-                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                            <div class="col-span-12 space-y-1 sm:col-span-6">
                                 <label class="text-sm font-medium"
                                     >Phone
                                     <span
@@ -675,96 +660,6 @@ const balanceDue = computed(() =>
                                     class="text-xs text-red-500"
                                 >
                                     {{ form.errors.customer_phone }}
-                                </p>
-                            </div>
-                            <div class="col-span-12 space-y-1 sm:col-span-4">
-                                <p
-                                    id="dropoff-type-label"
-                                    class="text-sm font-medium"
-                                >
-                                    Drop-off Type
-                                    <span class="text-red-500">*</span>
-                                </p>
-                                <div
-                                    class="flex gap-2"
-                                    role="radiogroup"
-                                    aria-labelledby="dropoff-type-label"
-                                >
-                                    <label
-                                        v-for="option in dropoffOptions"
-                                        :key="option.value"
-                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                                        :class="
-                                            dropoff === option.value
-                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                : 'border-gray-300 hover:border-gray-400'
-                                        "
-                                    >
-                                        <input
-                                            v-model="dropoff"
-                                            type="radio"
-                                            name="dropoff"
-                                            :value="option.value"
-                                            class="h-4 w-4 accent-blue-600"
-                                        />
-                                        {{ option.label }}
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-span-12 space-y-1 sm:col-span-4">
-                                <p
-                                    id="pickup-type-label"
-                                    class="text-sm font-medium"
-                                >
-                                    Pickup Type
-                                    <span class="text-red-500">*</span>
-                                </p>
-                                <div
-                                    class="flex gap-2"
-                                    role="radiogroup"
-                                    aria-labelledby="pickup-type-label"
-                                >
-                                    <label
-                                        v-for="option in handoffOptions"
-                                        :key="option.value"
-                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                                        :class="
-                                            handoff === option.value
-                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                : 'border-gray-300 hover:border-gray-400'
-                                        "
-                                    >
-                                        <input
-                                            v-model="handoff"
-                                            type="radio"
-                                            name="handoff"
-                                            :value="option.value"
-                                            class="h-4 w-4 accent-blue-600"
-                                        />
-                                        {{ option.label }}
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-span-12 space-y-1">
-                                <label class="text-sm font-medium"
-                                    >Address
-                                    <span
-                                        v-if="riderInvolved"
-                                        class="text-red-500"
-                                        >*</span
-                                    ></label
-                                >
-                                <textarea
-                                    v-model="form.customer_address"
-                                    :required="riderInvolved"
-                                    rows="2"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                />
-                                <p
-                                    v-if="form.errors.customer_address"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.customer_address }}
                                 </p>
                             </div>
                             <template v-if="riderInvolved">
@@ -838,198 +733,316 @@ const balanceDue = computed(() =>
                         </div>
                     </div>
 
+                    <!-- Fulfillment -->
+                    <div class="border-t pt-8">
+                        <h3 class="mb-4 text-base font-semibold">
+                            Fulfillment
+                        </h3>
+                        <div class="grid grid-cols-12 gap-x-6 gap-y-5">
+                            <div class="col-span-12 space-y-1 sm:col-span-6">
+                                <p
+                                    id="dropoff-type-label"
+                                    class="text-sm font-medium"
+                                >
+                                    Laundry to the shop
+                                </p>
+                                <div
+                                    class="flex gap-2"
+                                    role="radiogroup"
+                                    aria-labelledby="dropoff-type-label"
+                                >
+                                    <label
+                                        v-for="option in dropoffOptions"
+                                        :key="option.value"
+                                        class="flex flex-1 cursor-pointer items-center justify-center rounded-lg border px-2 py-2.5 text-center text-sm leading-tight transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                                        :class="
+                                            dropoff === option.value
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : 'border-gray-300 hover:border-gray-400'
+                                        "
+                                    >
+                                        <input
+                                            v-model="dropoff"
+                                            type="radio"
+                                            name="dropoff"
+                                            :value="option.value"
+                                            class="sr-only"
+                                        />
+                                        {{ option.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-span-12 space-y-1 sm:col-span-6">
+                                <p
+                                    id="pickup-type-label"
+                                    class="text-sm font-medium"
+                                >
+                                    Laundry back to the customer
+                                </p>
+                                <div
+                                    class="flex gap-2"
+                                    role="radiogroup"
+                                    aria-labelledby="pickup-type-label"
+                                >
+                                    <label
+                                        v-for="option in handoffOptions"
+                                        :key="option.value"
+                                        class="flex flex-1 cursor-pointer items-center justify-center rounded-lg border px-2 py-2.5 text-center text-sm leading-tight transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                                        :class="
+                                            handoff === option.value
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : 'border-gray-300 hover:border-gray-400'
+                                        "
+                                    >
+                                        <input
+                                            v-model="handoff"
+                                            type="radio"
+                                            name="handoff"
+                                            :value="option.value"
+                                            class="sr-only"
+                                        />
+                                        {{ option.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-span-12 space-y-1">
+                                <label class="text-sm font-medium"
+                                    >Address
+                                    <span
+                                        v-if="riderInvolved"
+                                        class="text-red-500"
+                                        >*</span
+                                    ></label
+                                >
+                                <textarea
+                                    v-model="form.customer_address"
+                                    :required="riderInvolved"
+                                    rows="2"
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                />
+                                <p
+                                    v-if="form.errors.customer_address"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.customer_address }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Service and weight -->
                     <div class="border-t pt-8">
-                        <div class="grid gap-x-8 gap-y-8 lg:grid-cols-2">
-                            <div>
-                                <p
-                                    class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+                        <h3 class="mb-4 text-base font-semibold">
+                            Service and weight
+                        </h3>
+                        <div class="grid grid-cols-12 gap-x-6 gap-y-5">
+                            <div class="col-span-12 space-y-1">
+                                <label
+                                    class="text-sm font-medium"
+                                    for="service-select"
+                                    >Service
+                                    <span class="text-red-500">*</span></label
                                 >
-                                    Services
+                                <select
+                                    id="service-select"
+                                    v-model="form.service_id"
+                                    required
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    :class="{
+                                        'border-red-500':
+                                            form.errors.service_id,
+                                    }"
+                                    @change="onServiceChange"
+                                >
+                                    <option
+                                        v-for="svc in services"
+                                        :key="svc.id"
+                                        :value="svc.id"
+                                    >
+                                        {{ formatServiceLabel(svc) }}
+                                    </option>
+                                </select>
+                                <p
+                                    v-if="form.errors.service_id"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.service_id }}
                                 </p>
-                                <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                                    <div class="col-span-12 space-y-1">
-                                        <label
-                                            class="text-sm font-medium"
-                                            for="service-select"
-                                            >Service
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        >
-                                        <select
-                                            id="service-select"
-                                            v-model="form.service_id"
-                                            required
-                                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            :class="{
-                                                'border-red-500':
-                                                    form.errors.service_id,
-                                            }"
-                                            @change="onServiceChange"
-                                        >
-                                            <option
-                                                v-for="svc in services"
-                                                :key="svc.id"
-                                                :value="svc.id"
-                                            >
-                                                {{ formatServiceLabel(svc) }}
-                                            </option>
-                                        </select>
-                                        <p
-                                            v-if="form.errors.service_id"
-                                            class="text-xs text-red-500"
-                                        >
-                                            {{ form.errors.service_id }}
-                                        </p>
+                            </div>
+
+                            <template v-if="isPerPiece">
+                                <div
+                                    class="col-span-12 space-y-1 sm:col-span-6"
+                                >
+                                    <label class="text-sm font-medium"
+                                        >Price per piece
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >(from service)</span
+                                        ></label
+                                    >
+                                    <div
+                                        class="flex h-[42px] items-center rounded-lg border border-gray-200 bg-muted/40 px-3 text-sm text-muted-foreground"
+                                    >
+                                        {{
+                                            form.price_per_piece
+                                                ? formatCurrency(
+                                                      form.price_per_piece,
+                                                  )
+                                                : '—'
+                                        }}
                                     </div>
                                 </div>
-                            </div>
-                            <div
-                                class="border-t pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8"
-                            >
-                                <p
-                                    class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+                                <div
+                                    class="col-span-12 space-y-1 sm:col-span-6"
                                 >
-                                    {{ isPerPiece ? 'Pieces' : 'Weight' }}
-                                </p>
-                                <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                                    <template v-if="isPerPiece">
-                                        <div class="col-span-12 space-y-1">
-                                            <label class="text-sm font-medium"
-                                                >Price per Piece
-                                                <span
-                                                    class="text-xs text-muted-foreground"
-                                                    >(from service)</span
-                                                ></label
-                                            >
-                                            <div
-                                                class="flex h-[42px] items-center rounded-lg border border-gray-200 bg-muted/40 px-3 text-sm text-muted-foreground"
-                                            >
-                                                {{
-                                                    form.price_per_piece
-                                                        ? formatCurrency(
-                                                              form.price_per_piece,
-                                                          )
-                                                        : '—'
-                                                }}
-                                            </div>
-                                        </div>
-                                        <div class="col-span-12 space-y-1">
-                                            <label
-                                                class="text-sm font-medium"
-                                                for="piece-count"
-                                                >Number of Pieces
-                                                <span class="text-red-500"
-                                                    >*</span
-                                                ></label
-                                            >
-                                            <input
-                                                id="piece-count"
-                                                v-model="form.piece_count"
-                                                type="number"
-                                                @wheel="blurOnWheel"
-                                                min="1"
-                                                max="500"
-                                                step="1"
-                                                required
-                                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                                :class="{
-                                                    'border-red-500':
-                                                        form.errors.piece_count,
-                                                }"
-                                            />
-                                            <p
-                                                v-if="form.errors.piece_count"
-                                                class="text-xs text-red-500"
-                                            >
-                                                {{ form.errors.piece_count }}
-                                            </p>
-                                        </div>
-                                    </template>
-                                    <template v-else>
-                                        <div
-                                            v-if="form.estimated_weight_kg"
-                                            class="col-span-12 space-y-1"
-                                        >
-                                            <label class="text-sm font-medium"
-                                                >Customer's estimate</label
-                                            >
-                                            <div
-                                                class="flex h-[42px] items-center rounded-lg border border-gray-200 bg-muted/40 px-3 text-sm text-muted-foreground"
-                                            >
-                                                {{ form.estimated_weight_kg }}
-                                                kg
-                                            </div>
-                                        </div>
-                                        <div class="col-span-12 space-y-1">
-                                            <label
-                                                class="text-sm font-medium"
-                                                for="actual-weight"
-                                                >Actual Weight (kg)</label
-                                            >
-                                            <input
-                                                id="actual-weight"
-                                                v-model="form.actual_weight_kg"
-                                                :disabled="
-                                                    !!weighingBlockedReason
-                                                "
-                                                type="number"
-                                                @wheel="blurOnWheel"
-                                                step="0.01"
-                                                min="0.1"
-                                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                                :class="{
-                                                    'border-red-500':
-                                                        form.errors
-                                                            .actual_weight_kg,
-                                                }"
-                                            />
-                                            <p
-                                                class="text-xs text-muted-foreground"
-                                            >
-                                                Enter the scale reading to
-                                                finalize the amount and unlock
-                                                customer payment.
-                                            </p>
-                                            <p
-                                                v-if="weighingBlockedReason"
-                                                class="flex items-start gap-1.5 text-xs text-amber-700"
-                                                role="status"
-                                            >
-                                                <Truck
-                                                    class="mt-0.5 h-3.5 w-3.5 shrink-0"
-                                                />
-                                                {{ weighingBlockedReason }}
-                                            </p>
-                                            <p
-                                                v-if="
-                                                    form.errors.actual_weight_kg
-                                                "
-                                                class="text-xs text-red-500"
-                                            >
-                                                {{
-                                                    form.errors.actual_weight_kg
-                                                }}
-                                            </p>
-                                        </div>
-                                    </template>
+                                    <label
+                                        class="text-sm font-medium"
+                                        for="piece-count"
+                                        >Number of pieces
+                                        <span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <input
+                                        id="piece-count"
+                                        v-model="form.piece_count"
+                                        type="number"
+                                        @wheel="blurOnWheel"
+                                        min="1"
+                                        max="500"
+                                        step="1"
+                                        required
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        :class="{
+                                            'border-red-500':
+                                                form.errors.piece_count,
+                                        }"
+                                    />
+                                    <p
+                                        v-if="form.errors.piece_count"
+                                        class="text-xs text-red-500"
+                                    >
+                                        {{ form.errors.piece_count }}
+                                    </p>
                                 </div>
-                            </div>
+                            </template>
+                            <template v-else>
+                                <div
+                                    v-if="form.estimated_weight_kg"
+                                    class="col-span-12 space-y-1 sm:col-span-4"
+                                >
+                                    <label class="text-sm font-medium"
+                                        >Estimated weight</label
+                                    >
+                                    <div
+                                        class="flex h-[42px] items-center rounded-lg border border-gray-200 bg-muted/40 px-3 text-sm text-muted-foreground"
+                                    >
+                                        {{ form.estimated_weight_kg }}
+                                        kg
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">
+                                        Customer's estimate
+                                    </p>
+                                </div>
+                                <div
+                                    class="col-span-12 space-y-1 sm:col-span-4"
+                                >
+                                    <label
+                                        class="text-sm font-medium"
+                                        for="actual-weight"
+                                        >Actual weight (kg)</label
+                                    >
+                                    <input
+                                        id="actual-weight"
+                                        v-model="form.actual_weight_kg"
+                                        :disabled="!!weighingBlockedReason"
+                                        type="number"
+                                        @wheel="blurOnWheel"
+                                        step="0.01"
+                                        min="0.1"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        :class="{
+                                            'border-red-500':
+                                                form.errors.actual_weight_kg,
+                                        }"
+                                    />
+                                    <p class="text-xs text-muted-foreground">
+                                        {{
+                                            form.pricing_model === 'per_bundle'
+                                                ? 'Updates the number of bundles'
+                                                : 'Enter the scale reading to finalize the amount and unlock customer payment.'
+                                        }}
+                                    </p>
+                                    <p
+                                        v-if="weighingBlockedReason"
+                                        class="flex items-start gap-1.5 text-xs text-amber-700"
+                                        role="status"
+                                    >
+                                        <Truck
+                                            class="mt-0.5 h-3.5 w-3.5 shrink-0"
+                                        />
+                                        {{ weighingBlockedReason }}
+                                    </p>
+                                    <p
+                                        v-if="form.errors.actual_weight_kg"
+                                        class="text-xs text-red-500"
+                                    >
+                                        {{ form.errors.actual_weight_kg }}
+                                    </p>
+                                </div>
+                                <div
+                                    v-if="form.pricing_model === 'per_bundle'"
+                                    class="col-span-12 space-y-1 sm:col-span-4"
+                                >
+                                    <label
+                                        class="text-sm font-medium"
+                                        for="bundle-quantity"
+                                        >Number of bundles</label
+                                    >
+                                    <input
+                                        id="bundle-quantity"
+                                        v-model="form.bundle_quantity"
+                                        type="number"
+                                        @wheel="blurOnWheel"
+                                        min="1"
+                                        step="1"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        :class="{
+                                            'border-red-500':
+                                                form.errors.bundle_quantity,
+                                        }"
+                                    />
+                                    <p class="text-xs text-muted-foreground">
+                                        {{
+                                            Number(
+                                                form.bundle_weight_kg,
+                                            ).toFixed(2)
+                                        }}
+                                        kg per bundle ·
+                                        {{ formatCurrency(form.bundle_price) }}
+                                        each
+                                    </p>
+                                    <p
+                                        v-if="form.errors.bundle_quantity"
+                                        class="text-xs text-red-500"
+                                    >
+                                        {{ form.errors.bundle_quantity }}
+                                    </p>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
                     <!-- Pricing -->
                     <div class="border-t pt-8">
-                        <p
-                            class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                        >
-                            Pricing
-                        </p>
+                        <h3 class="mb-4 text-base font-semibold">
+                            Pricing adjustments
+                        </h3>
                         <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                            <div class="col-span-12 space-y-1 sm:col-span-6">
                                 <label class="text-sm font-medium"
-                                    >Apply Promotion</label
+                                    >Apply promotion</label
                                 >
                                 <select
                                     v-model="form.promotion_id"
@@ -1073,24 +1086,35 @@ const balanceDue = computed(() =>
                                     Order total does not meet the minimum
                                     requirement.
                                 </p>
+                                <p v-else class="text-xs text-muted-foreground">
+                                    Choosing a promotion fills in the discount.
+                                    You can still adjust it.
+                                </p>
                             </div>
                             <div class="col-span-12 space-y-1 sm:col-span-3">
                                 <label class="text-sm font-medium"
-                                    >Additional Charges</label
+                                    >Additional charges</label
                                 >
-                                <input
-                                    v-model="form.additional_charges"
-                                    type="number"
-                                    @wheel="blurOnWheel"
-                                    step="0.01"
-                                    min="0"
-                                    :class="[
-                                        'w-full rounded-lg border px-3 py-2.5 text-sm focus:ring-1',
-                                        supplyCost > 0
-                                            ? 'border-amber-400 bg-amber-50 focus:border-amber-500 focus:ring-amber-400'
-                                            : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
-                                    ]"
-                                />
+                                <div class="relative">
+                                    <span
+                                        class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground"
+                                        aria-hidden="true"
+                                        >₱</span
+                                    >
+                                    <input
+                                        v-model="form.additional_charges"
+                                        type="number"
+                                        @wheel="blurOnWheel"
+                                        step="0.01"
+                                        min="0"
+                                        :class="[
+                                            'w-full rounded-lg border py-2.5 pr-3 pl-7 text-sm focus:ring-1',
+                                            supplyCost > 0
+                                                ? 'border-amber-400 bg-amber-50 focus:border-amber-500 focus:ring-amber-400'
+                                                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+                                        ]"
+                                    />
+                                </div>
                                 <p
                                     v-if="supplyCost > 0"
                                     class="text-xs text-amber-600"
@@ -1100,33 +1124,38 @@ const balanceDue = computed(() =>
                                     }})
                                 </p>
                             </div>
-                            <div class="col-span-12 space-y-1 sm:col-span-2">
+                            <div class="col-span-12 space-y-1 sm:col-span-3">
                                 <label class="text-sm font-medium"
                                     >Discount</label
                                 >
-                                <input
-                                    v-model="form.discount_amount"
-                                    type="number"
-                                    @wheel="blurOnWheel"
-                                    step="0.01"
-                                    min="0"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                />
+                                <div class="relative">
+                                    <span
+                                        class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground"
+                                        aria-hidden="true"
+                                        >₱</span
+                                    >
+                                    <input
+                                        v-model="form.discount_amount"
+                                        type="number"
+                                        @wheel="blurOnWheel"
+                                        step="0.01"
+                                        min="0"
+                                        class="w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-7 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Payment -->
                     <div class="border-t pt-8">
-                        <p
-                            class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                        >
+                        <h3 class="mb-4 text-base font-semibold">
                             Payment and schedule
-                        </p>
+                        </h3>
                         <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-1 sm:col-span-3">
+                            <div class="col-span-12 space-y-1 sm:col-span-6">
                                 <label class="text-sm font-medium"
-                                    >Payment Method</label
+                                    >Payment method</label
                                 >
                                 <select
                                     v-model="form.payment_method"
@@ -1141,22 +1170,33 @@ const balanceDue = computed(() =>
                                     </option>
                                 </select>
                             </div>
-                            <div class="col-span-12 space-y-2 sm:col-span-6">
+                            <div class="col-span-12 space-y-1 sm:col-span-6">
+                                <label class="text-sm font-medium"
+                                    >Estimated completion</label
+                                >
+                                <input
+                                    v-model="form.estimated_completion_at"
+                                    type="datetime-local"
+                                    disabled
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div class="col-span-12 space-y-2">
                                 <p
                                     id="payment-state-label"
                                     class="text-sm font-medium"
                                 >
-                                    Payment
+                                    Payment status
                                 </p>
                                 <div
-                                    class="flex gap-2"
+                                    class="flex gap-2 sm:max-w-sm"
                                     role="radiogroup"
                                     aria-labelledby="payment-state-label"
                                 >
                                     <label
                                         v-for="option in paymentOptions"
                                         :key="option.value"
-                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                                        class="flex flex-1 cursor-pointer items-center justify-center rounded-lg border px-2 py-2.5 text-center text-sm leading-tight transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
                                         :class="
                                             form.payment_state === option.value
                                                 ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -1168,7 +1208,7 @@ const balanceDue = computed(() =>
                                             type="radio"
                                             name="payment_state"
                                             :value="option.value"
-                                            class="h-4 w-4 accent-blue-600"
+                                            class="sr-only"
                                         />
                                         {{ option.label }}
                                     </label>
@@ -1183,34 +1223,21 @@ const balanceDue = computed(() =>
                                     {{ form.errors.payment_state }}
                                 </p>
                             </div>
-                            <div class="col-span-12 space-y-1 sm:col-span-3">
-                                <label class="text-sm font-medium"
-                                    >Estimated Completion</label
-                                >
-                                <input
-                                    v-model="form.estimated_completion_at"
-                                    type="datetime-local"
-                                    disabled
-                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                />
-                            </div>
                         </div>
                     </div>
 
                     <!-- Supplies -->
                     <div class="border-t pt-8">
                         <div class="mb-4 flex items-center justify-between">
-                            <p
-                                class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-                            >
-                                Supplies Used
-                            </p>
+                            <h3 class="text-base font-semibold">
+                                Supplies used
+                            </h3>
                             <button
                                 type="button"
                                 @click="addSupply"
                                 class="text-sm font-medium text-blue-600 transition hover:text-blue-800"
                             >
-                                + Add Supply
+                                + Add supply
                             </button>
                         </div>
                         <p
