@@ -105,8 +105,8 @@ const formatServiceLabel = (svc: Service) => {
     return `${svc.service_name} — ${formatCurrency(svc.bundle_price)} / ${svc.bundle_weight_kg}kg bundle`;
 };
 
-// The laundry is dropped off at the shop either way. "Delivery" means the shop sends the finished
-// laundry to the customer; "Walk-in" means the customer collects it.
+// Drop-off is how the laundry gets to the shop (walk-in here). Pickup is how the customer gets it
+// back: "Delivery" means the shop sends the finished laundry to them; "Walk-in" means they collect it.
 const offersDelivery = computed(
     () => !!page.props.shopCapabilities?.offers_delivery,
 );
@@ -117,7 +117,6 @@ const handoffOptions = computed(() => [
 const handoff = computed({
     get: () => (form.deliver_to_customer ? 'delivery' : 'walk_in'),
     set: (value: string) => {
-        form.pickup_type = 'walk_in';
         form.deliver_to_customer = value === 'delivery';
     },
 });
@@ -449,6 +448,32 @@ watch(
                             </div>
                             <div class="col-span-12 space-y-1 sm:col-span-4">
                                 <p
+                                    id="dropoff-type-label"
+                                    class="text-sm font-medium"
+                                >
+                                    Drop-off Type
+                                </p>
+                                <div
+                                    class="flex gap-2"
+                                    role="radiogroup"
+                                    aria-labelledby="dropoff-type-label"
+                                >
+                                    <label
+                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-blue-500 bg-blue-50 px-3 py-2.5 text-sm text-blue-700"
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="dropoff"
+                                            value="walk_in"
+                                            checked
+                                            class="h-4 w-4 accent-blue-600"
+                                        />
+                                        Walk-in
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                                <p
                                     id="pickup-type-label"
                                     class="text-sm font-medium"
                                 >
@@ -478,32 +503,6 @@ watch(
                                             class="h-4 w-4 accent-blue-600"
                                         />
                                         {{ option.label }}
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-span-12 space-y-1 sm:col-span-4">
-                                <p
-                                    id="dropoff-type-label"
-                                    class="text-sm font-medium"
-                                >
-                                    Drop-off Type
-                                </p>
-                                <div
-                                    class="flex gap-2"
-                                    role="radiogroup"
-                                    aria-labelledby="dropoff-type-label"
-                                >
-                                    <label
-                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-blue-500 bg-blue-50 px-3 py-2.5 text-sm text-blue-700"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="dropoff"
-                                            value="walk_in"
-                                            checked
-                                            class="h-4 w-4 accent-blue-600"
-                                        />
-                                        Walk-in
                                     </label>
                                 </div>
                             </div>

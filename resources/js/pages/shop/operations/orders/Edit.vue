@@ -335,32 +335,36 @@ const submit = () => {
     form.put(`${base.value}/${props.shopOrder.payment_public_id}`);
 };
 
-// ─── Hand-off: how the customer gets the finished laundry ──────────────────
+// ─── Drop-off: how the laundry gets to the shop ────────────────────────────
 
-// Same choice as the New Order page. An online order a rider collects keeps its own option, so
-// editing it never turns it into a different kind of order by accident.
+// Walk-in is the default. An online order a rider collects from the customer keeps its own
+// option, so editing it never turns it into a different kind of order by accident.
+const dropoffOptions = computed(() => [
+    { value: 'walk_in', label: 'Walk-in' },
+    ...(props.shopOrder.pickup_type === 'pickup'
+        ? [{ value: 'pickup', label: 'Rider pickup' }]
+        : []),
+]);
+const dropoff = computed({
+    get: () => (form.pickup_type === 'pickup' ? 'pickup' : 'walk_in'),
+    set: (value: string) => {
+        form.pickup_type = value === 'pickup' ? 'pickup' : 'walk_in';
+    },
+});
+
+// ─── Pickup: how the customer gets the finished laundry back ───────────────
+
+// Independent of the drop-off: "Walk-in" means the customer collects it at the shop, "Delivery"
+// means the shop sends it to them.
 const handoffOptions = computed(() => [
     { value: 'walk_in', label: 'Walk-in' },
     ...(page.props.shopCapabilities?.offers_delivery || form.deliver_to_customer
         ? [{ value: 'delivery', label: 'Delivery' }]
         : []),
-    ...(props.shopOrder.pickup_type === 'pickup'
-        ? [{ value: 'pickup', label: 'Rider pickup' }]
-        : []),
 ]);
 const handoff = computed({
-    get: () =>
-        form.pickup_type === 'pickup'
-            ? 'pickup'
-            : form.deliver_to_customer
-              ? 'delivery'
-              : 'walk_in',
+    get: () => (form.deliver_to_customer ? 'delivery' : 'walk_in'),
     set: (value: string) => {
-        if (value === 'pickup') {
-            form.pickup_type = 'pickup';
-            return;
-        }
-        form.pickup_type = 'walk_in';
         form.deliver_to_customer = value === 'delivery';
     },
 });
@@ -675,6 +679,40 @@ const balanceDue = computed(() =>
                             </div>
                             <div class="col-span-12 space-y-1 sm:col-span-4">
                                 <p
+                                    id="dropoff-type-label"
+                                    class="text-sm font-medium"
+                                >
+                                    Drop-off Type
+                                    <span class="text-red-500">*</span>
+                                </p>
+                                <div
+                                    class="flex gap-2"
+                                    role="radiogroup"
+                                    aria-labelledby="dropoff-type-label"
+                                >
+                                    <label
+                                        v-for="option in dropoffOptions"
+                                        :key="option.value"
+                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                                        :class="
+                                            dropoff === option.value
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : 'border-gray-300 hover:border-gray-400'
+                                        "
+                                    >
+                                        <input
+                                            v-model="dropoff"
+                                            type="radio"
+                                            name="dropoff"
+                                            :value="option.value"
+                                            class="h-4 w-4 accent-blue-600"
+                                        />
+                                        {{ option.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                                <p
                                     id="pickup-type-label"
                                     class="text-sm font-medium"
                                 >
@@ -704,35 +742,6 @@ const balanceDue = computed(() =>
                                             class="h-4 w-4 accent-blue-600"
                                         />
                                         {{ option.label }}
-                                    </label>
-                                </div>
-                            </div>
-                            <div
-                                v-if="props.shopOrder.pickup_type !== 'pickup'"
-                                class="col-span-12 space-y-1 sm:col-span-4"
-                            >
-                                <p
-                                    id="dropoff-type-label"
-                                    class="text-sm font-medium"
-                                >
-                                    Drop-off Type
-                                </p>
-                                <div
-                                    class="flex gap-2"
-                                    role="radiogroup"
-                                    aria-labelledby="dropoff-type-label"
-                                >
-                                    <label
-                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-blue-500 bg-blue-50 px-3 py-2.5 text-sm text-blue-700"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="dropoff"
-                                            value="walk_in"
-                                            checked
-                                            class="h-4 w-4 accent-blue-600"
-                                        />
-                                        Walk-in
                                     </label>
                                 </div>
                             </div>

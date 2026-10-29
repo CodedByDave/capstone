@@ -557,10 +557,28 @@ const statusIcon = (s: string) =>
                                 <dt
                                     class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                 >
+                                    Drop-off type
+                                </dt>
+                                <dd class="mt-1 text-sm">
+                                    {{
+                                        shopOrder.pickup_type === 'pickup'
+                                            ? 'Rider pickup'
+                                            : 'Walk-in'
+                                    }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt
+                                    class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                >
                                     Pickup type
                                 </dt>
                                 <dd class="mt-1 text-sm">
-                                    {{ formatLabel(shopOrder.pickup_type) }}
+                                    {{
+                                        shopOrder.deliver_to_customer
+                                            ? 'Delivery'
+                                            : 'Walk-in'
+                                    }}
                                 </dd>
                             </div>
                             <div
