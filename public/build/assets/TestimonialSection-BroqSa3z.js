@@ -1,1 +1,0 @@
-import{_ as o}from"./TestimonialSection.vue_vue_type_script_setup_true_lang-sYt1RAbB.js";import"./star-DwDXWxgR.js";import"./createLucideIcon-BacmXjx3.js";import"./app-CilLhehG.js";export{o as default};

@@ -137,6 +137,7 @@ const props = defineProps<{
         total_price: number;
         is_trial: boolean;
         trial_days_left: number | null;
+        trial_hours_left: number | null;
     };
     pending_order?: {
         plan_name: string;
@@ -1326,6 +1327,9 @@ function proceedToPay() {
                             Free trial ·
                             {{ props.order.trial_days_left ?? 0 }} day{{
                                 props.order.trial_days_left === 1 ? '' : 's'
+                            }}
+                            {{ props.order.trial_hours_left ?? 0 }} hr{{
+                                props.order.trial_hours_left === 1 ? '' : 's'
                             }}
                             left
                         </span>

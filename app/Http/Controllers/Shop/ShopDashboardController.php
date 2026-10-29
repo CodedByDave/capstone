@@ -72,8 +72,11 @@ class ShopDashboardController extends Controller
         }
 
         $trialDaysLeft = null;
+        $trialHoursLeft = null;
         if ($order && $order->is_trial && $order->expires_at) {
-            $trialDaysLeft = max(0, (int) now()->diffInDays($order->expires_at, false));
+            $totalHours = max(0, (int) now()->diffInHours($order->expires_at, false));
+            $trialDaysLeft = intdiv($totalHours, 24);
+            $trialHoursLeft = $totalHours % 24;
         }
 
         // If not paid/approved, check if expired or rejected.
@@ -344,6 +347,7 @@ class ShopDashboardController extends Controller
                 'is_trial' => (bool) $order->is_trial,
                 'expires_at' => $order->expires_at,
                 'trial_days_left' => $trialDaysLeft,
+                'trial_hours_left' => $trialHoursLeft,
             ],
             'stats' => [
                 'employees' => ['total' => $totalEmployees,    'active' => $employeesActive,   'inactive' => $employeesInactive],
