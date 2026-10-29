@@ -86,6 +86,7 @@ interface OrderStats {
     orders_change: number;
 }
 interface DailySummary {
+    period?: Period;
     revenue_today: number;
     revenue_change: number | null;
     orders_today: number;
@@ -275,7 +276,10 @@ const PERIOD_OPTIONS: { value: Period; label: string }[] = [
     { value: 'month', label: 'This month' },
 ];
 const INSIGHTS_MIN_ORDERS = 20;
-const period = ref<Period>(props.period ?? 'today');
+// The selected period always mirrors what the server computed the figures for.
+const period = computed<Period>(
+    () => props.daily?.period ?? props.period ?? 'today',
+);
 // Dismissed cards stay hidden for the rest of the day, per browser.
 const DISMISS_STORAGE_KEY = `shop-dashboard-dismissed:${props.auth.user.id}`;
 const todayKey = () => new Date().toLocaleDateString('en-CA');
@@ -317,14 +321,13 @@ const greeting = computed(() => {
 
 function setPeriod(value: Period) {
     if (value === period.value) return;
-    period.value = value;
     router.get(
         '/shop/dashboard',
         { period: value },
         {
-            only: ['daily', 'period'],
             preserveScroll: true,
             preserveState: true,
+            replace: true,
         },
     );
 }
@@ -437,15 +440,17 @@ const kpiCards = computed(() => {
     const daily = props.daily;
     const change = daily?.revenue_change ?? null;
     const diff = daily?.orders_vs_yesterday ?? 0;
+    // Label the figures with the period the server computed them for.
+    const shown = period.value;
 
     return [
         {
-            label: `Revenue ${PERIOD_LABELS[period.value]}`,
+            label: `Revenue ${PERIOD_LABELS[shown]}`,
             value: `₱${formatPeso(daily?.revenue_today ?? 0)}`,
             hint:
                 change === null
                     ? 'No earlier payments to compare'
-                    : `${change >= 0 ? '↑' : '↓'} ${Math.abs(change)}% vs ${PREVIOUS_LABELS[period.value]}`,
+                    : `${change >= 0 ? '↑' : '↓'} ${Math.abs(change)}% vs ${PREVIOUS_LABELS[shown]}`,
             hintClass:
                 change === null
                     ? undefined
@@ -454,12 +459,12 @@ const kpiCards = computed(() => {
                       : 'text-red-600',
         },
         {
-            label: `Orders ${PERIOD_LABELS[period.value]}`,
+            label: `Orders ${PERIOD_LABELS[shown]}`,
             value: String(daily?.orders_today ?? 0),
             hint:
                 diff === 0
-                    ? `Same as ${PREVIOUS_LABELS[period.value]}`
-                    : `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than ${PREVIOUS_LABELS[period.value]}`,
+                    ? `Same as ${PREVIOUS_LABELS[shown]}`
+                    : `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than ${PREVIOUS_LABELS[shown]}`,
         },
         {
             label: 'Open orders',
@@ -757,7 +762,9 @@ function refreshDashboard() {
 
     isRefreshing.value = true;
     router.reload({
+        data: { period: period.value },
         only: [
+            'period',
             'stats',
             'movement_chart',
             'category_breakdown',

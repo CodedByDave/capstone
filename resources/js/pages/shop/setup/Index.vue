@@ -1,23 +1,19 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import {
-    Building2,
     Check,
     ChevronLeft,
     ChevronRight,
     MapPin,
     PackageCheck,
+    Phone,
     Store,
     Truck,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 type OwnershipType = 'independent' | 'company_owned' | 'franchisee';
 
@@ -39,9 +35,13 @@ const props = defineProps<{
     };
 }>();
 
+const steps = [
+    { title: 'Confirm shop', caption: 'Registered location' },
+    { title: 'Fulfillment', caption: 'Pickup and delivery' },
+    { title: 'Review', caption: 'Save your setup' },
+];
 const step = ref(1);
-const totalSteps = 4;
-const localErrors = ref<Record<string, string>>({});
+const totalSteps = 3;
 const form = useForm({
     ownership_type: props.shop.ownership_type,
     franchise_brand_name: props.shop.franchise_brand_name,
@@ -50,51 +50,16 @@ const form = useForm({
     offers_delivery: props.shop.offers_delivery,
 });
 
-const ownershipLabel = computed(
-    () =>
-        ({
-            independent: 'Independent business',
-            company_owned: 'Company-owned business',
-            franchisee: 'Franchise operator',
-        })[form.ownership_type],
-);
-
-function chooseOwnership(type: OwnershipType) {
-    form.ownership_type = type;
-    if (type !== 'franchisee') {
-        form.franchise_brand_name = '';
-        form.franchisor_name = '';
-    }
-}
-
-function validateCurrentStep(): boolean {
-    const errors: Record<string, string> = {};
-
-    if (step.value === 2 && form.ownership_type === 'franchisee') {
-        if (!form.franchise_brand_name.trim())
-            errors.franchise_brand_name = 'Enter the franchise brand name.';
-        if (!form.franchisor_name.trim())
-            errors.franchisor_name =
-                'Enter the franchisor or franchise company.';
-    }
-
-    localErrors.value = errors;
-    return Object.keys(errors).length === 0;
-}
-
 function next() {
-    if (validateCurrentStep() && step.value < totalSteps) step.value++;
+    if (step.value < totalSteps) step.value++;
 }
 
 function back() {
-    localErrors.value = {};
     if (step.value > 1) step.value--;
 }
 
 function errorFor(key: string): string | undefined {
-    return (
-        localErrors.value[key] || (form.errors as Record<string, string>)[key]
-    );
+    return (form.errors as Record<string, string>)[key];
 }
 
 function submit() {
@@ -111,361 +76,277 @@ function submit() {
     <Head title="Operations Setup" />
 
     <ShopLayout title="Operations Setup">
-        <main class="min-h-full bg-muted/30 px-4 py-8 sm:py-12">
-            <div class="mx-auto max-w-4xl">
-                <div class="mb-8 text-center">
+        <main class="min-h-full px-4 py-8 sm:px-8 sm:py-14">
+            <div
+                class="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20"
+            >
+                <aside>
                     <div
-                        class="mb-3 inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium"
+                        class="mb-6 inline-flex items-center gap-2 rounded-full border bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
                     >
-                        <PackageCheck class="h-3.5 w-3.5 text-primary" />
+                        <PackageCheck class="h-3.5 w-3.5" />
                         {{ plan.name }} plan
                     </div>
                     <h1
-                        class="text-2xl font-semibold tracking-tight sm:text-3xl"
+                        class="text-3xl font-semibold tracking-tight sm:text-4xl"
                     >
-                        Set up your shop
+                        Set up<br />your shop
                     </h1>
-                    <p class="mt-2 text-sm text-muted-foreground">
-                        Configure ownership, pickup, and delivery.
+                    <p class="mt-4 max-w-sm text-sm text-muted-foreground">
+                        Three quick steps to configure pickup and delivery. You
+                        can change them later in Shop Settings.
                     </p>
-                </div>
 
-                <div
-                    class="mb-6 grid grid-cols-4 gap-2"
-                    aria-label="Setup progress"
-                >
-                    <div
-                        v-for="item in totalSteps"
-                        :key="item"
-                        class="space-y-2"
-                    >
-                        <div
-                            class="h-1.5 rounded-full transition-colors"
-                            :class="item <= step ? 'bg-primary' : 'bg-border'"
-                        />
-                        <p
-                            class="text-center text-[11px] text-muted-foreground"
+                    <ol class="mt-8" aria-label="Setup progress">
+                        <li
+                            v-for="(item, index) in steps"
+                            :key="item.title"
+                            class="relative flex gap-4 pb-6 last:pb-0"
+                            :aria-current="
+                                step === index + 1 ? 'step' : undefined
+                            "
                         >
-                            Step {{ item }}
-                        </p>
-                    </div>
-                </div>
-
-                <Card>
-                    <CardContent class="p-6 sm:p-8">
-                        <section v-if="step === 1" class="space-y-6">
-                            <div>
-                                <h2 class="text-xl font-semibold">
-                                    Confirm your registered shop
-                                </h2>
-                                <p class="mt-1 text-sm text-muted-foreground">
-                                    This is the main location registered to this
-                                    owner account.
-                                </p>
-                            </div>
-                            <div class="rounded-xl border bg-muted/30 p-5">
-                                <div class="flex items-start gap-3">
-                                    <Store
-                                        class="mt-0.5 h-5 w-5 text-primary"
-                                    />
-                                    <div class="min-w-0 space-y-2">
-                                        <p class="font-semibold">
-                                            {{ shop.shop_name }}
-                                        </p>
-                                        <p
-                                            class="text-sm text-muted-foreground"
-                                        >
-                                            {{ shop.phone }}
-                                        </p>
-                                        <p
-                                            class="flex items-start gap-2 text-sm text-muted-foreground"
-                                        >
-                                            <MapPin
-                                                class="mt-0.5 h-4 w-4 shrink-0"
-                                            />
-                                            {{
-                                                shop.address ||
-                                                'No address recorded'
-                                            }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section v-else-if="step === 2" class="space-y-6">
-                            <div>
-                                <h2 class="text-xl font-semibold">
-                                    How is this shop owned?
-                                </h2>
-                                <p class="mt-1 text-sm text-muted-foreground">
-                                    A shared shop name or branding does not mean
-                                    the shops have the same owner.
-                                </p>
-                            </div>
-                            <div class="grid gap-3 sm:grid-cols-3">
-                                <button
-                                    v-for="option in [
-                                        {
-                                            value: 'independent',
-                                            label: 'Independent',
-                                            text: 'A standalone business operated by this owner.',
-                                        },
-                                        {
-                                            value: 'company_owned',
-                                            label: 'Company-owned',
-                                            text: 'The same company owns and operates this shop.',
-                                        },
-                                        {
-                                            value: 'franchisee',
-                                            label: 'Franchise operator',
-                                            text: 'This owner operates the shop under a franchise brand.',
-                                        },
-                                    ]"
-                                    :key="option.value"
-                                    type="button"
-                                    class="rounded-xl border p-5 text-left transition"
+                            <span
+                                v-if="index < steps.length - 1"
+                                class="absolute top-8 bottom-0 left-4 -ml-px w-px bg-border"
+                                aria-hidden="true"
+                            />
+                            <span
+                                class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-medium"
+                                :class="
+                                    step === index + 1
+                                        ? 'border-primary bg-primary/10 text-primary ring-4 ring-primary/20'
+                                        : step > index + 1
+                                          ? 'border-primary bg-primary text-primary-foreground'
+                                          : 'bg-background text-muted-foreground'
+                                "
+                            >
+                                <Check
+                                    v-if="step > index + 1"
+                                    class="h-4 w-4"
+                                />
+                                <template v-else>{{ index + 1 }}</template>
+                            </span>
+                            <span>
+                                <span
+                                    class="block text-sm font-medium"
                                     :class="
-                                        form.ownership_type === option.value
-                                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                            : 'hover:border-primary/40'
+                                        step === index + 1
+                                            ? 'text-foreground'
+                                            : 'text-muted-foreground'
                                     "
-                                    @click="
-                                        chooseOwnership(
-                                            option.value as OwnershipType,
-                                        )
-                                    "
+                                    >{{ item.title }}</span
                                 >
-                                    <Building2
-                                        class="mb-3 h-6 w-6 text-primary"
-                                    />
-                                    <p class="font-semibold">
-                                        {{ option.label }}
-                                    </p>
-                                    <p
-                                        class="mt-1 text-xs text-muted-foreground"
-                                    >
-                                        {{ option.text }}
-                                    </p>
-                                </button>
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >{{ item.caption }}</span
+                                >
+                            </span>
+                        </li>
+                    </ol>
+                </aside>
+
+                <section>
+                    <p
+                        class="text-[11px] font-medium tracking-widest text-muted-foreground uppercase"
+                    >
+                        Step {{ step }} of {{ totalSteps }}
+                    </p>
+
+                    <div v-if="step === 1">
+                        <h2 class="mt-2 text-2xl font-semibold tracking-tight">
+                            Confirm your registered shop
+                        </h2>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            This is the main location registered to your owner
+                            account.
+                        </p>
+                        <dl class="mt-8 divide-y border-y">
+                            <div
+                                class="flex items-center justify-between gap-6 py-4"
+                            >
+                                <dt
+                                    class="flex items-center gap-2 text-sm text-muted-foreground"
+                                >
+                                    <Store class="h-4 w-4" />Shop name
+                                </dt>
+                                <dd class="text-right text-sm font-semibold">
+                                    {{ shop.shop_name }}
+                                </dd>
                             </div>
                             <div
-                                v-if="form.ownership_type === 'franchisee'"
-                                class="space-y-4 rounded-xl border bg-muted/20 p-5"
+                                class="flex items-center justify-between gap-6 py-4"
                             >
-                                <div>
-                                    <Label class="mb-2"
-                                        >Franchise Brand Name</Label
-                                    >
-                                    <Input
-                                        v-model="form.franchise_brand_name"
-                                        placeholder="Brand shown to customers"
-                                    />
-                                    <InputError
-                                        :message="
-                                            errorFor('franchise_brand_name')
-                                        "
-                                    />
-                                </div>
-                                <div>
-                                    <Label class="mb-2"
-                                        >Franchisor / Franchise Company</Label
-                                    >
-                                    <Input
-                                        v-model="form.franchisor_name"
-                                        placeholder="Legal franchisor name"
-                                    />
-                                    <InputError
-                                        :message="errorFor('franchisor_name')"
-                                    />
-                                </div>
+                                <dt
+                                    class="flex items-center gap-2 text-sm text-muted-foreground"
+                                >
+                                    <Phone class="h-4 w-4" />Phone
+                                </dt>
+                                <dd class="text-right text-sm font-semibold">
+                                    {{ shop.phone }}
+                                </dd>
                             </div>
-                        </section>
-
-                        <section v-else-if="step === 3" class="space-y-6">
-                            <div>
-                                <h2 class="text-xl font-semibold">
-                                    Choose customer fulfillment options
-                                </h2>
-                                <p class="mt-1 text-sm text-muted-foreground">
-                                    Walk-in service remains available. Enable
-                                    only the extra services your shop provides.
-                                </p>
-                            </div>
-                            <div class="space-y-3">
-                                <div
-                                    class="flex items-center gap-4 rounded-xl border bg-muted/20 p-4"
-                                >
-                                    <Store class="h-5 w-5 text-primary" />
-                                    <div class="flex-1">
-                                        <p class="text-sm font-semibold">
-                                            Customers visit the shop
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            Available by default.
-                                        </p>
-                                    </div>
-                                    <Check class="h-5 w-5 text-emerald-600" />
-                                </div>
-                                <label
-                                    class="flex cursor-pointer items-center gap-4 rounded-xl border p-4 hover:border-primary/40"
-                                >
-                                    <PackageCheck
-                                        class="h-5 w-5 text-primary"
-                                    />
-                                    <span class="flex-1"
-                                        ><span
-                                            class="block text-sm font-semibold"
-                                            >Pickup from customer</span
-                                        ><span
-                                            class="block text-xs text-muted-foreground"
-                                            >Customers may ask the shop to
-                                            collect their laundry.</span
-                                        ></span
-                                    >
-                                    <input
-                                        v-model="form.offers_pickup"
-                                        type="checkbox"
-                                        class="h-5 w-5 rounded border-border accent-primary"
-                                    />
-                                </label>
-                                <label
-                                    class="flex cursor-pointer items-center gap-4 rounded-xl border p-4 hover:border-primary/40"
-                                >
-                                    <Truck class="h-5 w-5 text-primary" />
-                                    <span class="flex-1"
-                                        ><span
-                                            class="block text-sm font-semibold"
-                                            >Delivery to customer</span
-                                        ><span
-                                            class="block text-xs text-muted-foreground"
-                                            >Enable riders, logistics, and
-                                            delivery requests.</span
-                                        ></span
-                                    >
-                                    <input
-                                        v-model="form.offers_delivery"
-                                        type="checkbox"
-                                        class="h-5 w-5 rounded border-border accent-primary"
-                                    />
-                                </label>
-                            </div>
-                        </section>
-
-                        <section v-else class="space-y-6">
-                            <div>
-                                <h2 class="text-xl font-semibold">
-                                    Review your setup
-                                </h2>
-                                <p class="mt-1 text-sm text-muted-foreground">
-                                    Check your answers before saving.
-                                </p>
-                            </div>
-                            <InputError :message="errorFor('setup')" />
-                            <dl class="divide-y rounded-xl border">
-                                <div
-                                    class="flex items-center justify-between gap-4 p-4"
-                                >
-                                    <dt class="text-sm text-muted-foreground">
-                                        Subscription
-                                    </dt>
-                                    <dd class="text-sm font-semibold">
-                                        {{ plan.name }}
-                                    </dd>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between gap-4 p-4"
-                                >
-                                    <dt class="text-sm text-muted-foreground">
-                                        Ownership
-                                    </dt>
-                                    <dd class="text-sm font-semibold">
-                                        {{ ownershipLabel }}
-                                    </dd>
-                                </div>
-                                <div
-                                    v-if="form.ownership_type === 'franchisee'"
-                                    class="flex items-center justify-between gap-4 p-4"
-                                >
-                                    <dt class="text-sm text-muted-foreground">
-                                        Franchise
-                                    </dt>
-                                    <dd
-                                        class="text-right text-sm font-semibold"
-                                    >
-                                        {{ form.franchise_brand_name
-                                        }}<span
-                                            class="block text-xs font-normal text-muted-foreground"
-                                            >{{ form.franchisor_name }}</span
-                                        >
-                                    </dd>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between gap-4 p-4"
-                                >
-                                    <dt class="text-sm text-muted-foreground">
-                                        Customer pickup
-                                    </dt>
-                                    <dd class="text-sm font-semibold">
-                                        {{
-                                            form.offers_pickup
-                                                ? 'Enabled'
-                                                : 'Disabled'
-                                        }}
-                                    </dd>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between gap-4 p-4"
-                                >
-                                    <dt class="text-sm text-muted-foreground">
-                                        Customer delivery
-                                    </dt>
-                                    <dd class="text-sm font-semibold">
-                                        {{
-                                            form.offers_delivery
-                                                ? 'Enabled'
-                                                : 'Disabled'
-                                        }}
-                                    </dd>
-                                </div>
-                            </dl>
-                        </section>
-
-                        <div
-                            class="mt-8 flex items-center justify-between border-t pt-5"
-                        >
-                            <Button
-                                v-if="step > 1"
-                                type="button"
-                                variant="outline"
-                                @click="back"
-                                ><ChevronLeft class="mr-2 h-4 w-4" />
-                                Back</Button
-                            ><span v-else />
-                            <Button
-                                v-if="step < totalSteps"
-                                type="button"
-                                @click="next"
-                                >Continue <ChevronRight class="ml-2 h-4 w-4"
-                            /></Button>
-                            <Button
-                                v-else
-                                type="button"
-                                :disabled="form.processing"
-                                @click="submit"
-                                ><Check class="mr-2 h-4 w-4" />{{
-                                    form.processing
-                                        ? 'Saving...'
-                                        : shop.setup_completed
-                                          ? 'Save Changes'
-                                          : 'Finish Setup'
-                                }}</Button
+                            <div
+                                class="flex items-center justify-between gap-6 py-4"
                             >
+                                <dt
+                                    class="flex items-center gap-2 text-sm text-muted-foreground"
+                                >
+                                    <MapPin class="h-4 w-4" />Address
+                                </dt>
+                                <dd class="text-right text-sm font-semibold">
+                                    {{
+                                        shop.address || 'No address recorded'
+                                    }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div v-else-if="step === 2">
+                        <h2 class="mt-2 text-2xl font-semibold tracking-tight">
+                            Choose customer fulfillment options
+                        </h2>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            Walk-in service remains available. Enable only the
+                            extra services your shop provides.
+                        </p>
+                        <div class="mt-8 divide-y border-y">
+                            <div class="flex items-center gap-4 py-4">
+                                <Store class="h-5 w-5 text-primary" />
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold">
+                                        Customers visit the shop
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        Available by default.
+                                    </p>
+                                </div>
+                                <Check class="h-5 w-5 text-emerald-600" />
+                            </div>
+                            <label
+                                class="flex cursor-pointer items-center gap-4 py-4"
+                            >
+                                <PackageCheck class="h-5 w-5 text-primary" />
+                                <span class="flex-1">
+                                    <span class="block text-sm font-semibold"
+                                        >Pickup from customer</span
+                                    >
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >Customers may ask the shop to collect
+                                        their laundry.</span
+                                    >
+                                </span>
+                                <input
+                                    v-model="form.offers_pickup"
+                                    type="checkbox"
+                                    class="h-5 w-5 rounded border-border accent-primary"
+                                />
+                            </label>
+                            <label
+                                class="flex cursor-pointer items-center gap-4 py-4"
+                            >
+                                <Truck class="h-5 w-5 text-primary" />
+                                <span class="flex-1">
+                                    <span class="block text-sm font-semibold"
+                                        >Delivery to customer</span
+                                    >
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >Enable riders, logistics, and delivery
+                                        requests.</span
+                                    >
+                                </span>
+                                <input
+                                    v-model="form.offers_delivery"
+                                    type="checkbox"
+                                    class="h-5 w-5 rounded border-border accent-primary"
+                                />
+                            </label>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+
+                    <div v-else>
+                        <h2 class="mt-2 text-2xl font-semibold tracking-tight">
+                            Review your setup
+                        </h2>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            Check your answers before saving.
+                        </p>
+                        <InputError class="mt-4" :message="errorFor('setup')" />
+                        <dl class="mt-8 divide-y border-y">
+                            <div
+                                class="flex items-center justify-between gap-6 py-4"
+                            >
+                                <dt class="text-sm text-muted-foreground">
+                                    Subscription
+                                </dt>
+                                <dd class="text-sm font-semibold">
+                                    {{ plan.name }}
+                                </dd>
+                            </div>
+                            <div
+                                class="flex items-center justify-between gap-6 py-4"
+                            >
+                                <dt class="text-sm text-muted-foreground">
+                                    Customer pickup
+                                </dt>
+                                <dd class="text-sm font-semibold">
+                                    {{
+                                        form.offers_pickup
+                                            ? 'Enabled'
+                                            : 'Disabled'
+                                    }}
+                                </dd>
+                            </div>
+                            <div
+                                class="flex items-center justify-between gap-6 py-4"
+                            >
+                                <dt class="text-sm text-muted-foreground">
+                                    Customer delivery
+                                </dt>
+                                <dd class="text-sm font-semibold">
+                                    {{
+                                        form.offers_delivery
+                                            ? 'Enabled'
+                                            : 'Disabled'
+                                    }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-end gap-3">
+                        <Button
+                            v-if="step > 1"
+                            type="button"
+                            variant="outline"
+                            @click="back"
+                            ><ChevronLeft class="mr-2 h-4 w-4" />
+                            Back</Button
+                        >
+                        <Button
+                            v-if="step < totalSteps"
+                            type="button"
+                            @click="next"
+                            >Continue <ChevronRight class="ml-2 h-4 w-4"
+                        /></Button>
+                        <Button
+                            v-else
+                            type="button"
+                            :disabled="form.processing"
+                            @click="submit"
+                            ><Check class="mr-2 h-4 w-4" />{{
+                                form.processing
+                                    ? 'Saving...'
+                                    : shop.setup_completed
+                                      ? 'Save Changes'
+                                      : 'Finish Setup'
+                            }}</Button
+                        >
+                    </div>
+                </section>
             </div>
         </main>
     </ShopLayout>

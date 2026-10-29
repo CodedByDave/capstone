@@ -481,6 +481,32 @@ watch(
                                     </label>
                                 </div>
                             </div>
+                            <div class="col-span-12 space-y-1 sm:col-span-4">
+                                <p
+                                    id="dropoff-type-label"
+                                    class="text-sm font-medium"
+                                >
+                                    Drop-off Type
+                                </p>
+                                <div
+                                    class="flex gap-2"
+                                    role="radiogroup"
+                                    aria-labelledby="dropoff-type-label"
+                                >
+                                    <label
+                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-blue-500 bg-blue-50 px-3 py-2.5 text-sm text-blue-700"
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="dropoff"
+                                            value="walk_in"
+                                            checked
+                                            class="h-4 w-4 accent-blue-600"
+                                        />
+                                        Walk-in
+                                    </label>
+                                </div>
+                            </div>
                             <div class="col-span-12 space-y-1">
                                 <label class="text-sm font-medium"
                                     >Address
