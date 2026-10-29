@@ -179,6 +179,8 @@ class ShopOrderService
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
                 'customer_address' => $data['customer_address'] ?? null,
+                'alternate_contact_name' => $data['pickup_type'] === 'pickup' ? ($data['alternate_contact_name'] ?? null) : null,
+                'alternate_contact_phone' => $data['pickup_type'] === 'pickup' ? ($data['alternate_contact_phone'] ?? null) : null,
                 'customer_lat' => $data['pickup_type'] === 'pickup' ? ($data['customer_lat'] ?? null) : null,
                 'customer_lng' => $data['pickup_type'] === 'pickup' ? ($data['customer_lng'] ?? null) : null,
                 'special_instructions' => $data['special_instructions'] ?? null,

@@ -119,6 +119,8 @@ const form = ref({
     piece_count: '',
     pickup_type: 'walk_in' as 'walk_in' | 'pickup',
     customer_address: '',
+    alternate_contact_name: '',
+    alternate_contact_phone: '',
     customer_lat: null as number | null,
     customer_lng: null as number | null,
     special_instructions: '',
@@ -240,6 +242,14 @@ const orderHint = computed(() => {
     }
     if (f.pickup_type === 'pickup' && f.customer_address.trim() === '') {
         return 'Enter your pickup address.';
+    }
+    if (f.pickup_type === 'pickup') {
+        if (f.alternate_contact_name.trim() === '') {
+            return 'Enter an alternate contact name.';
+        }
+        if (!PH_MOBILE.test(f.alternate_contact_phone)) {
+            return 'Enter a valid alternate contact number.';
+        }
     }
     if (!f.customer_agreement_accepted) {
         return 'Accept the service agreement to continue.';
@@ -849,6 +859,60 @@ function goBack() {
                                 {{ errors.customer_address }}
                             </p>
                         </div>
+
+                        <!-- Alternate contact (pickup only) -->
+                        <template v-if="form.pickup_type === 'pickup'">
+                            <div>
+                                <label
+                                    for="order-alt-name"
+                                    class="text-sm font-semibold text-muted-foreground"
+                                    >Alternate contact name</label
+                                >
+                                <Input
+                                    id="order-alt-name"
+                                    v-model="form.alternate_contact_name"
+                                    maxlength="150"
+                                    placeholder="e.g. a family member or neighbour"
+                                    :class="[
+                                        fieldClass,
+                                        errors.alternate_contact_name &&
+                                            'border-red-400',
+                                    ]"
+                                />
+                                <p
+                                    v-if="errors.alternate_contact_name"
+                                    class="mt-1 text-xs text-red-500"
+                                >
+                                    {{ errors.alternate_contact_name }}
+                                </p>
+                            </div>
+                            <div>
+                                <label
+                                    for="order-alt-phone"
+                                    class="text-sm font-semibold text-muted-foreground"
+                                    >Alternate contact number</label
+                                >
+                                <PhilippinePhoneInput
+                                    id="order-alt-phone"
+                                    v-model="form.alternate_contact_phone"
+                                    :class="[
+                                        fieldClass,
+                                        errors.alternate_contact_phone &&
+                                            'border-red-400',
+                                    ]"
+                                />
+                                <p
+                                    v-if="errors.alternate_contact_phone"
+                                    class="mt-1 text-xs text-red-500"
+                                >
+                                    {{ errors.alternate_contact_phone }}
+                                </p>
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    Someone the rider can call, or hand the
+                                    laundry to, if you are not home.
+                                </p>
+                            </div>
+                        </template>
 
                         <!-- Special instructions -->
                         <div>

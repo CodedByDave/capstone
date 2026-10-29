@@ -286,6 +286,8 @@ function placeOrderPayload(Shop $shop, array $overrides = []): array
         'pickup_type' => 'pickup',
         'payment_method' => 'cash',
         'customer_address' => '12 Rizal St, Imus',
+        'alternate_contact_name' => 'Ana Cruz',
+        'alternate_contact_phone' => '09189876543',
         'customer_lat' => 14.4301,
         'customer_lng' => 120.9401,
         'customer_agreement_version' => app(CustomerAgreementService::class)->agreementDataForShopId($shop->id)['version'],
@@ -305,6 +307,33 @@ test('a customer places a pickup order with a pinned location and it reaches the
     expect($order->customer_lat)->toBe(14.4301)
         ->and($order->customer_lng)->toBe(120.9401)
         ->and(Delivery::where('shop_order_id', $order->id)->sole()->destination_lat)->toBe(14.4301);
+});
+
+test('a pickup order needs an alternate contact, and a walk-in order does not', function () {
+    $shop = trackShop();
+    $customer = trackCustomer($shop);
+
+    $this->actingAs($customer)
+        ->post('/user/orders', placeOrderPayload($shop, ['alternate_contact_name' => null, 'alternate_contact_phone' => null]))
+        ->assertSessionHasErrors(['alternate_contact_name', 'alternate_contact_phone']);
+    expect(ShopOrder::count())->toBe(0);
+
+    $this->actingAs($customer)
+        ->post('/user/orders', placeOrderPayload($shop, ['pickup_type' => 'walk_in', 'alternate_contact_name' => null, 'alternate_contact_phone' => null]))
+        ->assertSessionHasNoErrors();
+    expect(ShopOrder::sole()->alternate_contact_name)->toBeNull();
+});
+
+test('the alternate contact a customer gives reaches the pickup order', function () {
+    $shop = trackShop();
+
+    $this->actingAs(trackCustomer($shop))
+        ->post('/user/orders', placeOrderPayload($shop))
+        ->assertSessionHasNoErrors();
+
+    expect(ShopOrder::sole())
+        ->alternate_contact_name->toBe('Ana Cruz')
+        ->alternate_contact_phone->not->toBeNull();
 });
 
 test('the pin is optional, and a walk-in order never stores one', function () {
