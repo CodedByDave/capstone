@@ -29,7 +29,6 @@ class ShopDashboardService
         $unpaid = $this->repository->unpaidBalance($shopId);
 
         return [
-            'period' => $period,
             'revenue_today' => $revenue,
             'revenue_change' => $previousRevenue > 0
                 ? round((($revenue - $previousRevenue) / $previousRevenue) * 100)
