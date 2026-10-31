@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -18,3 +19,15 @@ Schedule::command('payments:reconcile')
 Schedule::command('orders:automate')
     ->everyMinute()
     ->withoutOverlapping(5);
+
+// Backups of the database and uploaded files. A weekly set every Sunday and a monthly set on the 1st;
+// see config/backup.php for the destination disk and how many sets are kept.
+Schedule::command('backup:run --type=weekly')
+    ->weeklyOn(0, '02:00')
+    ->withoutOverlapping(60)
+    ->onFailure(fn () => Log::critical('Weekly backup failed'));
+
+Schedule::command('backup:run --type=monthly')
+    ->monthlyOn(1, '03:00')
+    ->withoutOverlapping(60)
+    ->onFailure(fn () => Log::critical('Monthly backup failed'));

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -453,13 +454,16 @@ function saveModal() {
                         </template>
                     </p>
                 </div>
-                <span
-                    v-if="!props.can_edit"
-                    class="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700"
-                >
-                    <AlertCircle class="h-3.5 w-3.5" />
-                    View only — editing is restricted to the owner
-                </span>
+                <div class="flex flex-wrap items-center gap-2">
+                    <ExportCsvButton dataset="attendance" />
+                    <span
+                        v-if="!props.can_edit"
+                        class="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700"
+                    >
+                        <AlertCircle class="h-3.5 w-3.5" />
+                        View only — editing is restricted to the owner
+                    </span>
+                </div>
             </div>
 
             <!-- ── Stats Cards ─────────────────────────────────────── -->

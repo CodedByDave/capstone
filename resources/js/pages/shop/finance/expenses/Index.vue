@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -381,6 +382,7 @@ function formatDate(val: string): string {
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
+                    <ExportCsvButton dataset="expenses" />
                     <Button variant="outline" size="sm" @click="openCategories">
                         <Tag class="mr-2 h-4 w-4" /> Categories
                     </Button>

@@ -16,6 +16,7 @@ class InventoryService
         private readonly InventoryRepository $inventoryRepository,
         private readonly InventoryMovementRepository $movementRepository,
         private readonly LowStockAlertRepository $alertRepository,
+        private readonly ExpenseService $expenseService,
     ) {}
 
     public function paginate(int $shopId, int $perPage = 15, array $filters = []): LengthAwarePaginator
@@ -107,6 +108,11 @@ class InventoryService
             // Update the stock
             $this->inventoryRepository->update($inventory, ['quantity' => $newQuantity]);
             $inventory->refresh();
+
+            // A restock is money spent, so it belongs in Finance expenses.
+            if ($type === 'restock') {
+                $this->expenseService->recordInventoryRestock($inventory, $quantity, $referenceNumber);
+            }
 
             $this->alertIfLowStock($inventory);
 

@@ -25,6 +25,7 @@ class OrderPaymentService
         private readonly OrderPaymentRepository $payments,
         private readonly ShopOrderRepository $orders,
         private readonly ShopContext $shopContext,
+        private readonly ExpenseService $expenses,
     ) {}
 
     public function history(ShopOrder $order): Collection
@@ -217,11 +218,16 @@ class OrderPaymentService
             default => 'paid',
         };
 
-        return $this->orders->update($order, [
+        $order = $this->orders->update($order, [
             'amount_paid' => $paid,
             'payment_status' => $status,
             'paid_at' => $status === 'paid' ? $this->payments->lastConfirmedAt($order->id) : null,
         ]);
+
+        // A cancelled order's payments are owed back, so Finance follows any change to them.
+        $this->expenses->syncOrderRefund($order);
+
+        return $order;
     }
 
     /** Add a confirmed payment to a locked order after checking it against what is still owed. */

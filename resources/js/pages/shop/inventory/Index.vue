@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -71,6 +72,13 @@ interface InventoryItem {
     supplier: Supplier | null;
 }
 
+interface ReorderSuggestion {
+    days_left: number;
+    lead_time_days: number;
+    suggested_quantity: number;
+    needs_reorder: boolean;
+}
+
 interface Paginator {
     data: InventoryItem[];
     current_page: number;
@@ -87,6 +95,7 @@ const props = defineProps<{
     categories: Category[];
     suppliers: Supplier[];
     lowStock: InventoryItem[];
+    reorderSuggestions: Record<number, ReorderSuggestion>;
     filters: Record<string, string>;
 }>();
 
@@ -436,6 +445,11 @@ function formatPrice(price: string | null) {
                                 Inventory List
                             </h2>
                             <div class="flex flex-wrap gap-2">
+                                <ExportCsvButton dataset="inventory" />
+                                <ExportCsvButton
+                                    dataset="stock-movements"
+                                    label="Export stock movements"
+                                />
                                 <Button
                                     size="sm"
                                     variant="outline"
@@ -577,6 +591,20 @@ function formatPrice(price: string | null) {
                     </div>
                     <p class="mt-0.5 text-xs text-muted-foreground">
                         Min: {{ item.min_stock }}
+                    </p>
+                    <p
+                        v-if="reorderSuggestions[item.id]"
+                        class="mt-0.5 text-xs font-medium text-amber-700"
+                    >
+                        {{
+                            reorderSuggestions[item.id].suggested_quantity > 0
+                                ? `Order ~${reorderSuggestions[item.id].suggested_quantity} ${item.unit}`
+                                : 'Reorder soon'
+                        }}
+                        · ~{{
+                            Math.ceil(reorderSuggestions[item.id].days_left)
+                        }}d left,
+                        {{ reorderSuggestions[item.id].lead_time_days }}d lead
                     </p>
                 </template>
 

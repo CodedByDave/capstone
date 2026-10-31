@@ -12,6 +12,7 @@ import Inventory from './Inventory'
 import Operations from './Operations'
 import PlatformRatingController from './PlatformRatingController'
 import ReportsController from './ReportsController'
+import ShopDataExportController from './ShopDataExportController'
 import Finance from './Finance'
 import PaymentSettingsController from './PaymentSettingsController'
 import UpgradeController from './UpgradeController'
@@ -33,6 +34,7 @@ Inventory: Object.assign(Inventory, Inventory),
 Operations: Object.assign(Operations, Operations),
 PlatformRatingController: Object.assign(PlatformRatingController, PlatformRatingController),
 ReportsController: Object.assign(ReportsController, ReportsController),
+ShopDataExportController: Object.assign(ShopDataExportController, ShopDataExportController),
 Finance: Object.assign(Finance, Finance),
 PaymentSettingsController: Object.assign(PaymentSettingsController, PaymentSettingsController),
 UpgradeController: Object.assign(UpgradeController, UpgradeController),

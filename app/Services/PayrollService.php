@@ -19,6 +19,7 @@ class PayrollService
     public function __construct(
         private readonly PayrollRepository $payrollRepository,
         private readonly ActivityLogService $activityLogService,
+        private readonly ExpenseService $expenseService,
     ) {}
 
     public function paginate(Shop $shop, int $perPage = 10): LengthAwarePaginator
@@ -111,7 +112,10 @@ class PayrollService
 
     public function finalize(Payroll $payroll): Payroll
     {
-        $payroll->update(['status' => 'finalized']);
+        DB::transaction(function () use ($payroll) {
+            $payroll->update(['status' => 'finalized']);
+            $this->expenseService->recordPayroll($payroll->load(['items', 'shop']));
+        });
 
         $this->activityLogService->log(
             subject: $payroll,
@@ -132,7 +136,10 @@ class PayrollService
             module: 'Payroll',
         );
 
-        $this->payrollRepository->delete($payroll);
+        DB::transaction(function () use ($payroll) {
+            $this->expenseService->removePayrollExpense($payroll);
+            $this->payrollRepository->delete($payroll);
+        });
     }
 
     public function getStats(Shop $shop): array

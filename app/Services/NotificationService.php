@@ -25,6 +25,24 @@ class NotificationService
             ->all();
     }
 
+    /** Notification types that should pop up on screen while a shop user is working. */
+    public const POPUP_TYPES = ['new_online_order'];
+
+    /** @return list<array{id: string, type: ?string, title: string, body: string, url: ?string}> */
+    public function popupsFor(User $user): array
+    {
+        return $this->notifications->unreadOfTypes($user, self::POPUP_TYPES)
+            ->map(fn ($notification) => [
+                'id' => $notification->id,
+                'type' => $notification->data['type'] ?? null,
+                'title' => $notification->data['title'] ?? '',
+                'body' => $notification->data['body'] ?? '',
+                'url' => $notification->data['url'] ?? null,
+            ])
+            ->values()
+            ->all();
+    }
+
     public function unreadCount(User $user): int
     {
         return $this->notifications->unreadCount($user);

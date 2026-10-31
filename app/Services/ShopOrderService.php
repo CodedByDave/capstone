@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -28,6 +29,7 @@ class ShopOrderService
         private readonly OrderPaymentService $orderPayments,
         private readonly InventoryService $inventory,
         private readonly ServiceSupplyUsageService $serviceSupplies,
+        private readonly ExpenseService $expenses,
         private readonly ShopOrderAutomationSettingRepository $automationSettings,
     ) {}
 
@@ -213,8 +215,20 @@ class ShopOrderService
         });
 
         $this->logistics->dispatchPickupRun($order);
+        $this->notifyShopOfOnlineOrder($order);
 
         return $order;
+    }
+
+    /** Tells the owner and the staff who can view Operations that a customer placed an order online. */
+    private function notifyShopOfOnlineOrder(ShopOrder $order): void
+    {
+        $shop = $order->shop ?? $order->load('shop')->shop;
+
+        Notification::send(
+            $this->repository->onlineOrderRecipients($shop),
+            new OrderNotification($order, 'new_online_order'),
+        );
     }
 
     /** Why this order cannot be weighed yet (a pickup order still on its way), or null. */
@@ -566,7 +580,10 @@ class ShopOrderService
 
         // Cancelling puts the service's supplies back; reopening a cancelled order takes them again.
         if ($status === 'cancelled' || $previousStatus === 'cancelled') {
-            DB::transaction(fn () => $this->serviceSupplies->sync($updated->load('service'), auth()->id()));
+            DB::transaction(function () use ($updated) {
+                $this->serviceSupplies->sync($updated->load('service'), auth()->id());
+                $this->expenses->syncOrderRefund($updated);
+            });
         }
 
         // Notify the customer if this was an online order with a linked user

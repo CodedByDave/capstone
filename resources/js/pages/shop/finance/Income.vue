@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -169,12 +170,15 @@ function methodLabel(val: string | null): string {
                         Revenue collected from customer orders.
                     </p>
                 </div>
-                <Button
-                    variant="outline"
-                    @click="router.visit(`${base}/finance/transactions`)"
-                >
-                    View Transactions
-                </Button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <ExportCsvButton dataset="income" />
+                    <Button
+                        variant="outline"
+                        @click="router.visit(`${base}/finance/transactions`)"
+                    >
+                        View Transactions
+                    </Button>
+                </div>
             </div>
 
             <!-- ── Stats ───────────────────────────────────────── -->

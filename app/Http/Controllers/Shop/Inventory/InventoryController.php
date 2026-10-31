@@ -11,6 +11,7 @@ use App\Models\Inventory;
 use App\Models\Shop;
 use App\Services\InventoryCategoryService;
 use App\Services\InventoryService;
+use App\Services\StockReorderService;
 use App\Services\SupplierService;
 use Inertia\Inertia;
 
@@ -20,6 +21,7 @@ class InventoryController extends Controller
         private readonly InventoryService $inventoryService,
         private readonly InventoryCategoryService $categoryService,
         private readonly SupplierService $supplierService,
+        private readonly StockReorderService $reorderService,
     ) {}
 
     private function getShop(): Shop
@@ -47,6 +49,7 @@ class InventoryController extends Controller
             'suppliers' => $this->supplierService->allActive($shop->id),
             'filters' => $filters,
             'lowStock' => $this->inventoryService->lowStock($shop->id),
+            'reorderSuggestions' => $this->reorderService->dueForShop($shop->id),
         ]);
     }
 

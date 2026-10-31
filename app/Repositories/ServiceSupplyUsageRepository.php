@@ -60,7 +60,8 @@ class ServiceSupplyUsageRepository
     /** Creates, updates or removes the single expense that records the order's supply cost. */
     public function syncExpense(ShopOrder $order, float $amount, string $description, ?int $userId): void
     {
-        $expense = Expense::query()->where('shop_id', $order->shop_id)->where('shop_order_id', $order->id)->first();
+        $expense = Expense::query()->where('shop_id', $order->shop_id)->where('shop_order_id', $order->id)
+            ->where('source', Expense::SOURCE_ORDER_SUPPLIES)->first();
 
         if ($amount <= 0) {
             $expense?->delete();
@@ -87,6 +88,7 @@ class ServiceSupplyUsageRepository
             ...$attributes,
             'shop_id' => $order->shop_id,
             'shop_order_id' => $order->id,
+            'source' => Expense::SOURCE_ORDER_SUPPLIES,
             'expense_date' => now()->toDateString(),
             'created_by' => $userId,
         ]);

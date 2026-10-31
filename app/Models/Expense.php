@@ -11,10 +11,18 @@ class Expense extends Model
 {
     use HasPublicId, SoftDeletes;
 
+    public const SOURCE_ORDER_SUPPLIES = 'order_supplies';
+
+    public const SOURCE_ORDER_REFUND = 'order_refund';
+
+    public const SOURCE_PAYROLL = 'payroll';
+
     protected $fillable = [
         'shop_id',
         'category_id',
         'shop_order_id',
+        'payroll_id',
+        'source',
         'title',
         'amount',
         'expense_date',

@@ -47,6 +47,7 @@ return [
         'shop/reports*' => 'shop.analytics',
         'shop/logs*' => 'shop.analytics',
         'shop/settings*' => 'shop.settings',
+        'shop/export*' => 'shop.settings',
         'shop/setup*' => 'shop.settings',
         'shop/notifications*' => 'shop.settings',
         'shop/agreement*' => 'shop.settings',

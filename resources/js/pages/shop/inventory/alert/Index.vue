@@ -38,6 +38,13 @@ interface AlertItem {
     } | null;
 }
 
+interface ReorderSuggestion {
+    days_left: number;
+    lead_time_days: number;
+    suggested_quantity: number;
+    needs_reorder: boolean;
+}
+
 interface Paginator {
     data: AlertItem[];
     current_page: number;
@@ -50,6 +57,7 @@ interface Paginator {
 const props = defineProps<{
     alerts: Paginator;
     unreadCount: number;
+    reorderSuggestions: Record<number, ReorderSuggestion>;
 }>();
 
 const page = usePage<AppPageProps>();
@@ -229,6 +237,20 @@ const statusTones: Record<string, StatusTone> = {
                         {{ alert.inventory.unit }}
                     </span>
                     <span v-else class="text-muted-foreground">—</span>
+                    <p
+                        v-if="
+                            alert.inventory &&
+                            reorderSuggestions[alert.inventory.id]
+                        "
+                        class="mt-0.5 text-xs font-medium text-amber-700"
+                    >
+                        {{
+                            reorderSuggestions[alert.inventory.id]
+                                .suggested_quantity > 0
+                                ? `Order ~${reorderSuggestions[alert.inventory.id].suggested_quantity} ${alert.inventory.unit}`
+                                : 'Reorder soon'
+                        }}
+                    </p>
                 </template>
 
                 <template #item-status="alert">

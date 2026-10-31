@@ -20,6 +20,7 @@ class UpdateSupplierRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
             'address' => ['nullable', 'string', 'max:1000'],
+            'lead_time_days' => ['required', 'integer', 'min:0', 'max:365'],
             'status' => ['required', 'in:active,inactive'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];

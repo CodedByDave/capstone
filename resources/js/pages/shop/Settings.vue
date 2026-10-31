@@ -12,6 +12,8 @@ import {
     AlertTriangle,
     Building2,
     CheckCircle2,
+    Database,
+    Download,
     ExternalLink,
     ImagePlus,
     Loader2,
@@ -151,7 +153,9 @@ const sectionLinks = computed(() => [
     { href: '#delivery', label: 'Delivery Pricing' },
     { href: '#cover', label: 'Cover Photo' },
     { href: '#location', label: 'Shop Location' },
+    { href: '#data', label: 'Your Data' },
 ]);
+
 const mapsUrl = computed(() => {
     if (!hasGeo.value) return null;
     return `https://www.google.com/maps?q=${props.shop.latitude},${props.shop.longitude}`;
@@ -529,6 +533,33 @@ function clearGeo() {
                                 {{ saving ? 'Saving…' : 'Save Location' }}
                             </Button>
                         </div>
+                    </section>
+
+                    <section
+                        id="data"
+                        class="scroll-mt-4 space-y-4 border-t pt-8"
+                    >
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <Database
+                                    class="h-4 w-4 text-muted-foreground"
+                                />
+                                <h3 class="text-base font-semibold">
+                                    Your Data
+                                </h3>
+                            </div>
+                            <p class="mt-1 text-sm text-muted-foreground">
+                                Keep your own copy of this shop's records. Files
+                                are CSV, which opens in Excel or Google Sheets.
+                            </p>
+                        </div>
+
+                        <Button as-child class="gap-1.5">
+                            <a href="/shop/export" download>
+                                <Download class="h-4 w-4" aria-hidden="true" />
+                                Download all my data (.zip)
+                            </a>
+                        </Button>
                     </section>
                 </div>
 

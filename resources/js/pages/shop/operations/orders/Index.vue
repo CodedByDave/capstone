@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -520,6 +521,10 @@ const handleDelete = () => {
                                 }}
                             </h2>
                             <div class="flex gap-2">
+                                <ExportCsvButton
+                                    v-if="!showArchived"
+                                    dataset="orders"
+                                />
                                 <Button
                                     v-if="canManage"
                                     variant="outline"

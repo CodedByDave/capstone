@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             OfflineTestAccountSeeder::class,
             TestLocationSeeder::class,
             IssueReportSeeder::class,
+            DssDemoSeeder::class,
         ]);
     }
 }

@@ -9,7 +9,7 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string $event, // placed | weight_confirmed | status_changed | payment_updated | cancelled | overdue
+        public readonly string $event, // placed | new_online_order | weight_confirmed | status_changed | payment_updated | cancelled | overdue
         // The payment just received, so the message can say how much and what is left.
         public readonly ?float $amount = null,
     ) {}
@@ -31,6 +31,15 @@ class OrderNotification extends Notification
                 'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'placed',
+            ],
+            'new_online_order' => [
+                'title' => 'New online order',
+                'body' => "{$order->customer_name} placed order #{$order->order_number} online at {$order->shop->shop_name}.",
+                'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
+                'order_number' => $order->order_number,
+                'type' => 'new_online_order',
+                'url' => ($notifiable->role === 'owner' ? '/shop' : '/staff').'/operations/orders/'.$order->payment_public_id,
             ],
             'status_changed' => [
                 'title' => $this->statusTitle($order->status),

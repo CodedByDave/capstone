@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {
+    DataTable,
+    StatusPill,
+    type DataTableHeader,
+    type StatusTone,
+} from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -9,6 +15,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useDataTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -104,12 +111,23 @@ interface DailySummary {
         overdue: boolean;
     }[];
     busiest_day: { day: string; share: number } | null;
+    insights: AttentionCard[];
+    staffing_forecast: StaffingDay[];
     total_orders: number;
 }
 type Period = 'today' | '7d' | 'month';
+interface StaffingDay {
+    date: string;
+    day: string;
+    expected_orders: number;
+    required_staff: number;
+    scheduled_staff: number;
+    status: 'understaffed' | 'overstaffed' | 'balanced';
+}
 interface AttentionCard {
     key: string;
     tone: 'urgent' | 'heads_up' | 'tip' | 'ok';
+    module: 'operations' | 'inventory' | 'finance' | 'hrm';
     title: string;
     message: string;
     rule?: string;
@@ -358,71 +376,54 @@ const ATTENTION_TONES = {
     },
 } as const;
 
-const attentionCards = computed<AttentionCard[]>(() => {
-    const daily = props.daily;
-    const inventory = props.stats?.inventory;
-    const cards: AttentionCard[] = [];
+// Rule-based Decision Support insights are ranked and produced by the backend.
+const STAFFING_HEADERS: DataTableHeader[] = [
+    { text: 'Day', value: 'day', sortable: true },
+    { text: 'Expected orders', value: 'expected_orders', sortable: true },
+    { text: 'Staff needed', value: 'required_staff', sortable: true },
+    { text: 'Scheduled', value: 'scheduled_staff', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
+];
 
-    if (daily && daily.overdue_orders > 0) {
-        cards.push({
-            key: 'overdue',
-            tone: 'urgent',
-            title: `${daily.overdue_orders} order${daily.overdue_orders === 1 ? ' is' : 's are'} overdue`,
-            message: `${daily.overdue_orders} of ${daily.open_orders} open orders are past their due time.`,
-            rule: 'open order past due time',
-            href: '/shop/operations/orders',
-            action: 'View orders',
-        });
-    }
-
-    if (daily && daily.unpaid_balance > 0) {
-        cards.push({
-            key: 'unpaid',
-            tone: 'heads_up',
-            title: `₱${formatPeso(daily.unpaid_balance)} not yet collected`,
-            message: `${daily.unpaid_orders} order${daily.unpaid_orders === 1 ? ' still has' : 's still have'} a balance.`,
-            rule: 'order with balance due',
-            href: '/shop/operations/orders?payment_status=unpaid',
-            action: 'View unpaid',
-        });
-    }
-
-    const stockIssues =
-        (inventory?.out_of_stock ?? 0) + (inventory?.low_stock ?? 0);
-    if (stockIssues > 0) {
-        cards.push({
-            key: 'stock',
-            tone: 'heads_up',
-            title: `${stockIssues} suppl${stockIssues === 1 ? 'y needs' : 'ies need'} restocking`,
-            message: `${inventory?.out_of_stock ?? 0} out of stock and ${inventory?.low_stock ?? 0} below minimum level.`,
-            rule: 'stock at or below minimum level',
-            href: '/shop/inventory',
-            action: 'Reorder',
-        });
-    }
-
-    if (daily?.busiest_day) {
-        cards.push({
-            key: 'busiest',
-            tone: 'tip',
-            title: `${daily.busiest_day.day} are your busiest`,
-            message: `${daily.busiest_day.share}% of orders in the last 8 weeks came on ${daily.busiest_day.day}. Plan staff around it.`,
-            rule: 'orders grouped by day of week',
-        });
-    }
-
-    if (cards.length === 0) {
-        cards.push({
-            key: 'clear',
-            tone: 'ok',
-            title: 'Nothing needs attention',
-            message:
-                'No overdue orders, unpaid balances, or stock issues right now.',
-        });
-    }
-
-    return cards.slice(0, 4);
+const {
+    options: staffingOptions,
+    pageItems: staffingPage,
+    total: staffingTotal,
+} = useDataTable(() => props.daily?.staffing_forecast ?? [], {
+    sortBy: 'date',
+    sortType: 'asc',
+    rowsPerPage: 10,
+    sortValue: (item, column) =>
+        column === 'day'
+            ? (item as StaffingDay).date
+            : (item as unknown as Record<string, unknown>)[column],
 });
+
+function formatForecastDate(date: string): string {
+    return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+    });
+}
+const STAFFING_STATUS: Record<
+    StaffingDay['status'],
+    { label: string; tone: StatusTone }
+> = {
+    understaffed: { label: 'Understaffed', tone: 'danger' },
+    overstaffed: { label: 'Overstaffed', tone: 'info' },
+    balanced: { label: 'Balanced', tone: 'success' },
+};
+
+const MODULE_LABELS = {
+    operations: 'Operations',
+    inventory: 'Inventory',
+    finance: 'Finance',
+    hrm: 'HR',
+} as const;
+
+const attentionCards = computed<AttentionCard[]>(
+    () => props.daily?.insights.slice(0, 8) ?? [],
+);
 
 const visibleAttentionCards = computed(() =>
     attentionCards.value.filter((c) => !dismissed.has(c.key)),
@@ -1371,7 +1372,7 @@ function proceedToPay() {
                             id="attention-heading"
                             class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                         >
-                            Needs attention today
+                            Decision Support · Needs attention today
                         </p>
                         <div
                             class="inline-flex rounded-lg border bg-white p-0.5 dark:bg-card"
@@ -1411,6 +1412,12 @@ function proceedToPay() {
                                 />
                                 {{ ATTENTION_TONES[card.tone].label }}
                             </span>
+                            <p
+                                v-if="card.key !== 'clear'"
+                                class="mt-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase"
+                            >
+                                {{ MODULE_LABELS[card.module] }}
+                            </p>
                             <p class="mt-3 text-sm font-semibold">
                                 {{ card.title }}
                             </p>
@@ -1598,6 +1605,59 @@ function proceedToPay() {
                         </CardContent>
                     </Card>
                 </div>
+
+                <!-- Staffing forecast -->
+                <section
+                    v-if="daily && daily.staffing_forecast.length"
+                    aria-labelledby="staffing-heading"
+                >
+                    <DataTable
+                        v-model:options="staffingOptions"
+                        :headers="STAFFING_HEADERS"
+                        :items="staffingPage"
+                        :total="staffingTotal"
+                        item-key="date"
+                        noun="days"
+                        :resettable="false"
+                        hide-rows-per-page
+                    >
+                        <template #toolbar>
+                            <p
+                                id="staffing-heading"
+                                class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
+                            >
+                                Decision Support · Staffing forecast, next 7
+                                days
+                            </p>
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                Expected orders are the average for that weekday
+                                over the last 6 weeks; one employee is assumed
+                                to handle about 12 orders a day.
+                            </p>
+                        </template>
+                        <template #item-day="row">
+                            <p class="font-medium">{{ row.day }}</p>
+                            <p class="text-xs text-muted-foreground">
+                                {{ formatForecastDate(row.date) }}
+                            </p>
+                        </template>
+                        <template #item-status="row">
+                            <StatusPill
+                                :tone="
+                                    STAFFING_STATUS[
+                                        row.status as StaffingDay['status']
+                                    ].tone
+                                "
+                            >
+                                {{
+                                    STAFFING_STATUS[
+                                        row.status as StaffingDay['status']
+                                    ].label
+                                }}
+                            </StatusPill>
+                        </template>
+                    </DataTable>
+                </section>
             </template>
 
             <!-- paid not approved: Waiting -->

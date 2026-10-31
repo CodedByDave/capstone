@@ -1123,7 +1123,7 @@ const goToGoogle = () => {
                 Already have an account?
                 <button
                     type="button"
-                    @click="router.visit('/login')"
+                    @click="router.visit('/login?intent=shop')"
                     class="text-primary underline hover:text-primary/80"
                 >
                     Login

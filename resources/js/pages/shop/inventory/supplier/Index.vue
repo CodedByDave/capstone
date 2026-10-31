@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     RowActions,
@@ -124,6 +125,7 @@ async function deleteSupplier(id: number) {
                             Supplier List
                         </h2>
                         <div class="flex flex-wrap gap-2">
+                            <ExportCsvButton dataset="suppliers" />
                             <Button
                                 v-if="
                                     isOwner ||

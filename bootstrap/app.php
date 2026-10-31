@@ -39,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'export.dataset' => \App\Http\Middleware\AuthorizeDatasetExport::class,
             'owner.platform-permissions' => \App\Http\Middleware\EnforceOwnerPlatformPermissions::class,
             'shop.activity' => \App\Http\Middleware\TrackShopActivity::class,
             'business.agreement' => EnsureCurrentBusinessAgreementAccepted::class,

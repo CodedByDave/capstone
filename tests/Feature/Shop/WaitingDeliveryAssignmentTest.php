@@ -110,3 +110,27 @@ test('offline drivers and riders without an employee record are never given a de
     expect(app(LogisticsService::class)->assignWaitingDeliveries($shop->id))->toBe(0)
         ->and($delivery->fresh()->status)->toBe('pending');
 });
+
+test('a delivery cannot be manually assigned to an offline rider or one with no shift today', function () {
+    $shop = waitingShop();
+    $offline = onlineRider($shop, 'Off', online: false);
+    $noShift = onlineRider($shop, 'Rest', scheduled: false);
+    $delivery = makeDelivery($shop, 'pending');
+
+    foreach ([$offline, $noShift] as $rider) {
+        expect(fn () => app(LogisticsService::class)->updateStatus($shop->owner, $delivery, ['status' => 'assigned', 'rider_id' => $rider->id]))
+            ->toThrow(Illuminate\Validation\ValidationException::class);
+    }
+
+    expect($delivery->fresh()->rider_id)->toBeNull();
+});
+
+test('a delivery can be manually assigned to an online rider on duty', function () {
+    $shop = waitingShop();
+    $rider = onlineRider($shop, 'Rico');
+    $delivery = makeDelivery($shop, 'pending');
+
+    app(LogisticsService::class)->updateStatus($shop->owner, $delivery, ['status' => 'assigned', 'rider_id' => $rider->id]);
+
+    expect($delivery->fresh()->rider_id)->toBe($rider->id);
+});

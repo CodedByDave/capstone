@@ -62,6 +62,11 @@ class LogisticsService
         ];
     }
 
+    private function usesOwnRider(array $data, Delivery $delivery): bool
+    {
+        return ($data['courier'] ?? $delivery->courier ?? Delivery::COURIER_OWN_RIDER) !== Delivery::COURIER_LALAMOVE;
+    }
+
     /**
      * The courier columns for a delivery. A Lalamove run has no shop rider; an own-rider
      * delivery carries no courier details.
@@ -324,6 +329,16 @@ class LogisticsService
 
         $riderId = $data['rider_id'] ?? $delivery->rider_id;
         $riderChanged = $riderId !== $delivery->rider_id;
+
+        if ($riderChanged && $riderId !== null && $this->usesOwnRider($data, $delivery)) {
+            $rider = $this->riders->find($riderId);
+
+            if (! $rider || ! $this->riders->isOnDuty($rider)) {
+                throw ValidationException::withMessages([
+                    'rider_id' => 'This rider is offline or has no shift today, so they cannot be assigned.',
+                ]);
+            }
+        }
 
         DB::transaction(fn () => $this->deliveries->update($delivery, array_merge([
             'status' => $data['status'],

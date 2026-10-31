@@ -23,6 +23,7 @@ interface Supplier {
     email: string | null;
     phone: string | null;
     address: string | null;
+    lead_time_days: number;
     status: string;
     notes: string | null;
 }
@@ -45,6 +46,7 @@ const form = useForm({
     email: supplier.email ?? '',
     phone: supplier.phone ?? '',
     address: supplier.address ?? '',
+    lead_time_days: supplier.lead_time_days ?? 3,
     status: supplier.status,
     notes: supplier.notes ?? '',
 });
@@ -141,6 +143,28 @@ function submit() {
                     <div class="col-span-12 space-y-1">
                         <label class="text-sm font-medium">Address</label>
                         <Input v-model="form.address" />
+                    </div>
+
+                    <div class="col-span-12 space-y-1 sm:col-span-4">
+                        <label class="text-sm font-medium"
+                            >Lead time (days)</label
+                        >
+                        <Input
+                            v-model.number="form.lead_time_days"
+                            type="number"
+                            min="0"
+                            max="365"
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            Days from ordering to receiving stock. Used to
+                            suggest reorder quantities.
+                        </p>
+                        <p
+                            v-if="form.errors.lead_time_days"
+                            class="text-xs text-red-500"
+                        >
+                            {{ form.errors.lead_time_days }}
+                        </p>
                     </div>
 
                     <div class="col-span-12 space-y-1">

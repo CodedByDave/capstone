@@ -246,6 +246,30 @@ const allReportsSubActions = [
         show: () => isOwner.value || can('Reports & Analytics', 'view'),
     },
     {
+        title: 'Operations Report',
+        icon: ShoppingCart,
+        href: isOwner.value
+            ? '/shop/reports/operations'
+            : '/staff/reports/operations',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
+        title: 'Finance Report',
+        icon: Wallet,
+        href: isOwner.value
+            ? '/shop/reports/finance'
+            : '/staff/reports/finance',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
+        title: 'Pricing Report',
+        icon: Tag,
+        href: isOwner.value
+            ? '/shop/reports/pricing'
+            : '/staff/reports/pricing',
+        show: () => isOwner.value || can('Reports & Analytics', 'view'),
+    },
+    {
         title: 'Employee Report',
         icon: Users,
         href: isOwner.value

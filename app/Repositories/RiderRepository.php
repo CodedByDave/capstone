@@ -16,6 +16,7 @@ class RiderRepository extends Repository
     public function activeForShop(int $shopId): Collection
     {
         $busy = $this->busyIdsForShop($shopId);
+        $onDuty = $this->onDutyIdsForShop($shopId);
 
         return Rider::query()
             ->where('shop_id', $shopId)
@@ -23,7 +24,25 @@ class RiderRepository extends Repository
             ->whereNotNull('employee_id')
             ->orderBy('name')
             ->get(['id', 'name', 'vehicle_type', 'is_online'])
-            ->each(fn (Rider $rider) => $rider->setAttribute('available', ! in_array($rider->id, $busy, true)));
+            ->each(fn (Rider $rider) => $rider->setAttribute('available', $rider->is_online
+                && in_array($rider->id, $onDuty, true)
+                && ! in_array($rider->id, $busy, true)));
+    }
+
+    /** @return list<int> ids of the shop's riders whose employee has a shift scheduled today */
+    public function onDutyIdsForShop(int $shopId): array
+    {
+        return Rider::query()
+            ->where('shop_id', $shopId)
+            ->whereHas('employee.schedules', fn ($query) => $query->where('day', now()->format('l')))
+            ->pluck('id')
+            ->all();
+    }
+
+    /** Whether the rider is online and scheduled to work today, so they may be given a run. */
+    public function isOnDuty(Rider $rider): bool
+    {
+        return $rider->is_online && in_array($rider->id, $this->onDutyIdsForShop($rider->shop_id), true);
     }
 
     /** Delivery statuses during which a rider is out on a run and cannot take another. */

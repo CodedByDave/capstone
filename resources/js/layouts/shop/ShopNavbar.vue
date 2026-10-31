@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { usePermissions } from '@/composables/usePermissions';
+import { useShopOrderPopups } from '@/composables/useShopOrderPopups';
 import { type BreadcrumbItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Bell } from 'lucide-vue-next';
 
 const page = usePage();
+const { isOwner } = usePermissions();
+
+useShopOrderPopups(() =>
+    isOwner.value ? '/shop/notifications/poll' : '/staff/notifications/poll',
+);
 
 defineProps<{
     title: string;
@@ -26,7 +33,7 @@ defineProps<{
         <!-- Right side -->
         <div class="ml-auto flex items-center gap-2">
             <Link
-                href="/shop/notifications"
+                :href="isOwner ? '/shop/notifications' : '/staff/notifications'"
                 class="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                 aria-label="Shop notifications"
             >

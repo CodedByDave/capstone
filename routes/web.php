@@ -44,6 +44,7 @@ use App\Http\Controllers\Shop\PlatformRatingController as ShopPlatformRatingCont
 use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\ShopDashboardController;
 use App\Http\Controllers\Shop\ShopDataController;
+use App\Http\Controllers\Shop\ShopDataExportController;
 use App\Http\Controllers\Shop\ShopNotificationController;
 use App\Http\Controllers\Shop\ShopSettingsController;
 use App\Http\Controllers\Shop\ShopSetupController;
@@ -58,6 +59,7 @@ use App\Http\Controllers\User\UserOrderComplaintController;
 use App\Http\Controllers\User\UserOrderController;
 use App\Http\Controllers\User\UserOrderRatingController;
 use App\Http\Controllers\User\UserPaymentController;
+use App\Services\ShopDataExportService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -203,6 +205,7 @@ Route::prefix('shop')->middleware([
     Route::get('/agreement', [BusinessAgreementController::class, 'show'])->name('shop.agreement.show');
     Route::post('/agreement', [BusinessAgreementController::class, 'accept'])->name('shop.agreement.accept');
     Route::get('/notifications', [ShopNotificationController::class, 'index'])->name('shop.notifications.index');
+    Route::get('/notifications/poll', [ShopNotificationController::class, 'poll'])->name('shop.notifications.poll');
     Route::post('/notifications/read-all', [ShopNotificationController::class, 'markAllRead'])->name('shop.notifications.read-all');
     Route::middleware('owner.platform-permissions')->group(function () {
         Route::get('/payment-history', [PaymentHistoryController::class, 'index'])->name('shop.payment-history.index');
@@ -379,7 +382,19 @@ Route::prefix('shop')->middleware([
         Route::get('/', [ReportsController::class, 'overview'])->name('overview');
         Route::get('/inventory', [ReportsController::class, 'inventory'])->name('inventory');
         Route::get('/employee', [ReportsController::class, 'employee'])->name('employee');
+        Route::get('/finance', [ReportsController::class, 'finance'])->name('finance');
+        Route::get('/pricing', [ReportsController::class, 'pricing'])->name('pricing');
+        Route::get('/operations', [ReportsController::class, 'operations'])->name('operations');
     });
+
+    // ── Data export (CSV copies of the shop's own data) ───────────────────────
+    Route::get('/export', [ShopDataExportController::class, 'archive'])
+        ->middleware('throttle:3,1')
+        ->name('shop.data-export.archive');
+    Route::get('/export/{dataset}', [ShopDataExportController::class, 'show'])
+        ->whereIn('dataset', ShopDataExportService::datasets())
+        ->middleware('throttle:20,1')
+        ->name('shop.data-export.show');
 
     // ── Finance ───────────────────────────────────────────────────────────────
     Route::get('/finance', [FinanceDashboardController::class, 'index'])->name('finance.dashboard');
@@ -435,6 +450,10 @@ Route::prefix('shop')->middleware([
 Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.activity'])->group(function () {
 
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->middleware('driver.redirect')->name('staff.dashboard');
+
+    Route::get('/notifications', [ShopNotificationController::class, 'index'])->name('staff.notifications.index');
+    Route::get('/notifications/poll', [ShopNotificationController::class, 'poll'])->name('staff.notifications.poll');
+    Route::post('/notifications/read-all', [ShopNotificationController::class, 'markAllRead'])->name('staff.notifications.read-all');
 
     // ── Self attendance (clock-in / clock-out) ──
     Route::post('/attendance/clock-in', [SelfAttendanceController::class, 'clockIn'])->name('staff.attendance.clock-in');
@@ -654,8 +673,17 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
             Route::get('/', [ReportsController::class, 'overview'])->name('overview');
             Route::get('/inventory', [ReportsController::class, 'inventory'])->name('inventory');
             Route::get('/employee', [ReportsController::class, 'employee'])->name('employee');
+            Route::get('/finance', [ReportsController::class, 'finance'])->name('finance');
+            Route::get('/pricing', [ReportsController::class, 'pricing'])->name('pricing');
+            Route::get('/operations', [ReportsController::class, 'operations'])->name('operations');
         });
     });
+
+    // ── Data export: each dataset needs view access to its module ───────────
+    Route::get('/export/{dataset}', [ShopDataExportController::class, 'show'])
+        ->middleware(['export.dataset', 'throttle:20,1'])
+        ->whereIn('dataset', ShopDataExportService::datasets())
+        ->name('staff.data-export.show');
 
     // ── Finance ───────────────────────────────────────────────────────────────
     Route::middleware('permission:Finance Management,view')->group(function () {

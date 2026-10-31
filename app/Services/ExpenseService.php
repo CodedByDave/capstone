@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\Inventory;
+use App\Models\Payroll;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Repositories\ExpenseRepository;
@@ -51,6 +53,123 @@ class ExpenseService
         );
 
         return $expense;
+    }
+
+    /** Books what a stock purchase cost as an expense so Finance reflects it. */
+    public function recordInventoryRestock(Inventory $inventory, int $quantity, ?string $referenceNumber = null): ?Expense
+    {
+        $amount = round($quantity * (float) $inventory->unit_price, 2);
+
+        if ($amount <= 0) {
+            return null;
+        }
+
+        $category = $this->expenseRepository->firstOrCreateCategory(
+            $inventory->shop,
+            'Inventory Restock',
+            'Stock purchased to replenish inventory.',
+        );
+
+        return $this->create($inventory->shop, [
+            'category_id' => $category->id,
+            'title' => "Restock: {$inventory->name}",
+            'amount' => $amount,
+            'expense_date' => now()->toDateString(),
+            'description' => "{$quantity} {$inventory->unit} at ₱".number_format((float) $inventory->unit_price, 2),
+            'reference_number' => $referenceNumber,
+        ]);
+    }
+
+    /**
+     * Keeps one expense in step with what a cancelled order owes its customer: the money already
+     * paid, to be handed back. A reopened or unpaid order has none.
+     */
+    public function syncOrderRefund(ShopOrder $order): void
+    {
+        $amount = $order->status === 'cancelled'
+            ? $this->orderPayments->confirmedTotal($order->id)
+            : 0.0;
+
+        $expense = $this->expenseRepository->findLinked(
+            $order->shop_id, Expense::SOURCE_ORDER_REFUND, 'shop_order_id', $order->id,
+        );
+
+        if ($amount <= 0) {
+            if ($expense) {
+                $this->delete($expense);
+            }
+
+            return;
+        }
+
+        if ($expense) {
+            if ((float) $expense->amount !== $amount) {
+                $this->expenseRepository->update($expense, ['amount' => $amount, 'updated_by' => auth()->id()]);
+            }
+
+            return;
+        }
+
+        $shop = $order->shop;
+        $category = $this->expenseRepository->firstOrCreateCategory(
+            $shop,
+            'Customer Refunds',
+            'Money returned to customers for cancelled orders.',
+        );
+
+        $this->create($shop, [
+            'category_id' => $category->id,
+            'shop_order_id' => $order->id,
+            'source' => Expense::SOURCE_ORDER_REFUND,
+            'title' => "Refund for order {$order->order_number}",
+            'amount' => $amount,
+            'expense_date' => now()->toDateString(),
+            'description' => 'Payments received for a cancelled order, to be returned to the customer.',
+            'reference_number' => $order->order_number,
+        ]);
+    }
+
+    /** Books what a finalized payroll costs the shop: pay to employees plus contributions withheld. */
+    public function recordPayroll(Payroll $payroll): ?Expense
+    {
+        $amount = round((float) $payroll->items->sum(fn ($item) => (float) $item->net_pay
+            + (float) $item->sss_contribution
+            + (float) $item->philhealth_contribution
+            + (float) $item->pagibig_contribution
+            + (float) $item->withholding_tax), 2);
+
+        if ($amount <= 0) {
+            return null;
+        }
+
+        $shop = $payroll->shop;
+        $category = $this->expenseRepository->firstOrCreateCategory(
+            $shop,
+            'Payroll',
+            'Employee pay and government contributions.',
+        );
+
+        return $this->create($shop, [
+            'category_id' => $category->id,
+            'payroll_id' => $payroll->id,
+            'source' => Expense::SOURCE_PAYROLL,
+            'title' => "Payroll: {$payroll->period_label}",
+            'amount' => $amount,
+            'expense_date' => now()->toDateString(),
+            'description' => 'Net pay and withheld SSS, PhilHealth, Pag-IBIG and tax for '.$payroll->items->count().' employee(s).',
+            'reference_number' => null,
+        ]);
+    }
+
+    public function removePayrollExpense(Payroll $payroll): void
+    {
+        $expense = $this->expenseRepository->findLinked(
+            $payroll->shop_id, Expense::SOURCE_PAYROLL, 'payroll_id', $payroll->id,
+        );
+
+        if ($expense) {
+            $this->delete($expense);
+        }
     }
 
     public function update(Expense $expense, array $data): Expense

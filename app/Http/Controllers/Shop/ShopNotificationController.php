@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Services\NotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,6 +23,14 @@ class ShopNotificationController extends Controller
 
         return Inertia::render('shop/Notifications', [
             'notifications' => $items,
+        ]);
+    }
+
+    public function poll(Request $request): JsonResponse
+    {
+        return response()->json([
+            'popups' => $this->notifications->popupsFor($request->user()),
+            'unread' => $this->notifications->unreadCount($request->user()),
         ]);
     }
 

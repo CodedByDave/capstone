@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\ReportPeriodRequest;
 use App\Models\Employee;
 use App\Models\EmployeeSchedule;
 use App\Models\Inventory;
@@ -10,12 +11,15 @@ use App\Models\InventoryCategory;
 use App\Models\InventoryMovement;
 use App\Models\LowStockAlert;
 use App\Models\Shop;
+use App\Services\ShopReportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ReportsController extends Controller
 {
+    public function __construct(private readonly ShopReportService $reports) {}
+
     private function getShop(): Shop
     {
         $user = auth()->user();
@@ -246,5 +250,20 @@ class ReportsController extends Controller
             'recentEmployees' => $recentEmployees,
             'employeesByRole' => $employeesByRole,
         ]);
+    }
+
+    public function finance(ReportPeriodRequest $request)
+    {
+        return Inertia::render('shop/reports/Finance', $this->reports->finance($this->getShop()->id, $request->period()));
+    }
+
+    public function pricing(ReportPeriodRequest $request)
+    {
+        return Inertia::render('shop/reports/Pricing', $this->reports->pricing($this->getShop()->id, $request->period()));
+    }
+
+    public function operations(ReportPeriodRequest $request)
+    {
+        return Inertia::render('shop/reports/Operations', $this->reports->operations($this->getShop()->id, $request->period()));
     }
 }

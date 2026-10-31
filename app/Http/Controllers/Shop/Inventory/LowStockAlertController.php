@@ -8,12 +8,14 @@ use App\Models\Employee;
 use App\Models\LowStockAlert;
 use App\Models\Shop;
 use App\Services\LowStockAlertService;
+use App\Services\StockReorderService;
 use Inertia\Inertia;
 
 class LowStockAlertController extends Controller
 {
     public function __construct(
         private readonly LowStockAlertService $alertService,
+        private readonly StockReorderService $reorderService,
     ) {}
 
     private function getShop(): Shop
@@ -36,6 +38,7 @@ class LowStockAlertController extends Controller
         return Inertia::render('shop/inventory/alert/Index', [
             'alerts' => $this->alertService->paginate($shop->id),
             'unreadCount' => $this->alertService->unreadCount($shop->id),
+            'reorderSuggestions' => $this->reorderService->forShop($shop->id),
         ]);
     }
 

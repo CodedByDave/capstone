@@ -2,11 +2,15 @@
 
 namespace App\Repositories;
 
+use App\Models\Employee;
+use App\Models\RolePermission;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 
 class ShopOrderRepository
 {
@@ -238,5 +242,29 @@ class ShopOrderRepository
             ->groupBy('status')
             ->pluck('total', 'status')
             ->all();
+    }
+
+    /**
+     * Who is told about a new online order: the shop owner and every active staff member whose
+     * role may view Operations.
+     *
+     * @return SupportCollection<int, User>
+     */
+    public function onlineOrderRecipients(Shop $shop): SupportCollection
+    {
+        $staffIds = Employee::query()
+            ->where('shop_id', $shop->id)
+            ->where('status', 'Active')
+            ->whereNotNull('user_id')
+            ->whereHas('roles', fn ($roles) => $roles->whereIn('role', RolePermission::query()
+                ->where('shop_id', $shop->id)
+                ->where('module', 'Operations')
+                ->where('action', 'view')
+                ->select('role')))
+            ->pluck('user_id');
+
+        return User::query()
+            ->where(fn ($query) => $query->whereIn('id', $staffIds)->orWhere('id', $shop->owner_id))
+            ->get();
     }
 }

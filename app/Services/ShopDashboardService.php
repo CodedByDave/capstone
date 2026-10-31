@@ -13,7 +13,11 @@ class ShopDashboardService
 
     private const WEEKDAYS = [1 => 'Sundays', 2 => 'Mondays', 3 => 'Tuesdays', 4 => 'Wednesdays', 5 => 'Thursdays', 6 => 'Fridays', 7 => 'Saturdays'];
 
-    public function __construct(private readonly ShopDashboardRepository $repository) {}
+    public function __construct(
+        private readonly ShopDashboardRepository $repository,
+        private readonly ShopInsightService $insights,
+        private readonly StaffingForecastService $staffing,
+    ) {}
 
     /** Figures for the shop dashboard; revenue and orders cover the chosen period, the rest is current. */
     public function dailySummary(int $shopId, string $period = self::PERIOD_TODAY): array
@@ -44,6 +48,8 @@ class ShopDashboardService
             'daily_revenue' => $this->lastSevenDays($shopId, $today),
             'due_today' => $this->dueToday($shopId, $now),
             'busiest_day' => $this->busiestDay($shopId, $now),
+            'insights' => $this->insights->forShop($shopId, $now),
+            'staffing_forecast' => $this->staffing->forShop($shopId, $now),
         ];
     }
 

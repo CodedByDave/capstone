@@ -71,6 +71,23 @@ class ExpenseRepository
             ->get(['id', 'name', 'description']);
     }
 
+    /** The automatic expense a record produced, if it has one. */
+    public function findLinked(int $shopId, string $source, string $column, int $id): ?Expense
+    {
+        return Expense::where('shop_id', $shopId)
+            ->where('source', $source)
+            ->where($column, $id)
+            ->first();
+    }
+
+    public function firstOrCreateCategory(Shop $shop, string $name, ?string $description = null): ExpenseCategory
+    {
+        return ExpenseCategory::firstOrCreate(
+            ['shop_id' => $shop->id, 'name' => $name],
+            ['description' => $description],
+        );
+    }
+
     public function createCategory(array $data): ExpenseCategory
     {
         return ExpenseCategory::create($data);

@@ -22,7 +22,6 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -33,9 +32,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { useDataTable } from '@/composables/useDataTable';
 import {
+    AlertCircle,
     ArrowLeft,
     Banknote,
     CheckCircle2,
+    ChevronDown,
     Download,
     Loader2,
     Lock,
@@ -161,6 +162,50 @@ const totalBonuses = computed(() =>
     props.payroll.items.reduce((sum, i) => sum + parseFloat(i.bonuses), 0),
 );
 
+const totalGross = computed(() =>
+    Math.max(
+        0,
+        totalNetPay.value +
+            totalDeductions.value +
+            totalGovContributions.value -
+            totalBonuses.value,
+    ),
+);
+
+const noAttendanceCount = computed(
+    () =>
+        props.payroll.items.filter(
+            (i) => i.days_worked === 0 && i.days_half_day === 0,
+        ).length,
+);
+
+function itemDeductions(item: PayrollItem): number {
+    return (
+        parseFloat(item.deductions) +
+        parseFloat(item.sss_contribution) +
+        parseFloat(item.philhealth_contribution) +
+        parseFloat(item.pagibig_contribution) +
+        parseFloat(item.withholding_tax)
+    );
+}
+
+function breakdownLines(item: PayrollItem) {
+    return [
+        { label: 'Attendance', value: item.deductions },
+        { label: 'SSS', value: item.sss_contribution },
+        { label: 'PhilHealth', value: item.philhealth_contribution },
+        { label: 'Pag-IBIG', value: item.pagibig_contribution },
+        { label: 'Withholding tax', value: item.withholding_tax },
+    ].filter((l) => parseFloat(l.value) > 0);
+}
+
+const expanded = ref<Set<number>>(new Set());
+function toggleBreakdown(id: number) {
+    const next = new Set(expanded.value);
+    if (!next.delete(id)) next.add(id);
+    expanded.value = next;
+}
+
 // ─── Items table ──────────────────────────────────────────────────────────────
 
 const numericColumns = new Set([
@@ -186,6 +231,7 @@ const { search, options, pageItems, total, isFiltered, reset } = useDataTable(
             if (column === 'employee_name') {
                 return `${item.employee.first_name} ${item.employee.last_name}`;
             }
+            if (column === 'deductions') return itemDeductions(item);
             const value = item[column as keyof PayrollItem];
 
             return numericColumns.has(column)
@@ -199,29 +245,11 @@ const { search, options, pageItems, total, isFiltered, reset } = useDataTable(
 
 const headers = computed<DataTableHeader[]>(() => [
     { text: 'Employee', value: 'employee_name', sortable: true, width: 220 },
-    {
-        text: 'Pay rate / basis',
-        value: 'pay_rate',
-        sortable: true,
-        align: 'right',
-    },
-    { text: 'Worked', value: 'days_worked', sortable: true, align: 'center' },
-    { text: 'Absent', value: 'days_absent', sortable: true, align: 'center' },
-    { text: 'Late', value: 'days_late', sortable: true, align: 'center' },
-    { text: '½ day', value: 'days_half_day', sortable: true, align: 'center' },
-    {
-        text: 'Att. deduct.',
-        value: 'deductions',
-        sortable: true,
-        align: 'right',
-    },
-    { text: 'SSS', value: 'sss_contribution', align: 'right' },
-    { text: 'PhilHealth', value: 'philhealth_contribution', align: 'right' },
-    { text: 'Pag-IBIG', value: 'pagibig_contribution', align: 'right' },
-    { text: 'W. tax', value: 'withholding_tax', align: 'right' },
+    { text: 'Pay rate', value: 'pay_rate', sortable: true },
+    { text: 'Attendance (days)', value: 'attendance' },
     { text: 'Bonuses', value: 'bonuses', sortable: true, align: 'right' },
+    { text: 'Deductions', value: 'deductions', sortable: true, align: 'right' },
     { text: 'Net pay', value: 'net_pay', sortable: true, align: 'right' },
-    { text: 'Remarks', value: 'remarks' },
     ...(isDraft.value
         ? [
               {
@@ -312,9 +340,8 @@ function formatCurrency(val: string | number | null): string {
     return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 }
 
-function formatDate(val: string): string {
-    return new Date(val).toLocaleDateString('en-PH', {
-        year: 'numeric',
+function formatCutoff(val: string): string {
+    return new Date(val + 'T00:00:00').toLocaleDateString('en-PH', {
         month: 'long',
         day: 'numeric',
     });
@@ -397,23 +424,24 @@ function exportCSV() {
     <ShopLayout :breadcrumbs="breadcrumbs" :title="payroll.period_label">
         <div class="space-y-6 px-6">
             <!-- ── Header ──────────────────────────────────────── -->
-            <div
-                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-            >
-                <div class="flex items-center gap-3">
-                    <Button
-                        variant="outline"
-                        @click="router.visit(`${baseRoute}/payroll`)"
-                    >
-                        <ArrowLeft class="mr-2 h-4 w-4" /> Back
-                    </Button>
-                    <div>
+            <div class="space-y-3">
+                <button
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    @click="router.visit(`${baseRoute}/payroll`)"
+                >
+                    <ArrowLeft class="h-4 w-4" /> Payroll
+                </button>
+                <div
+                    class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+                >
+                    <div class="space-y-1.5">
                         <h2
-                            class="flex items-center gap-2 text-lg font-semibold"
+                            class="flex flex-wrap items-center gap-3 text-3xl font-bold tracking-tight"
                         >
                             {{ payroll.period_label }}
                             <span
-                                class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                                class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold"
                                 :class="
                                     payroll.status === 'finalized'
                                         ? 'bg-green-100 text-green-700'
@@ -428,318 +456,294 @@ function exportCSV() {
                             </span>
                         </h2>
                         <p class="text-sm text-muted-foreground">
-                            {{ formatDate(payroll.period_start) }} –
-                            {{ formatDate(payroll.period_end) }} · Created by
-                            {{ payroll.creator?.name ?? '—' }}
+                            Created by {{ payroll.creator?.name ?? '—' }} ·
+                            {{ payroll.items.length }}
+                            {{
+                                payroll.items.length === 1
+                                    ? 'employee'
+                                    : 'employees'
+                            }}
+                            · Cutoff {{ formatCutoff(payroll.period_end) }}
                         </p>
                     </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <Button variant="outline" @click="exportCSV">
-                        <Download class="mr-2 h-4 w-4" /> Export CSV
-                    </Button>
-                    <Button
-                        v-if="isDraft"
-                        variant="outline"
-                        @click="recalculate"
-                    >
-                        <RefreshCw class="mr-2 h-4 w-4" /> Recalculate
-                    </Button>
-                    <Button v-if="isDraft" @click="isFinalizeOpen = true">
-                        <Lock class="mr-2 h-4 w-4" /> Finalize
-                    </Button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button variant="outline" @click="exportCSV">
+                            <Download class="mr-2 h-4 w-4" /> Export CSV
+                        </Button>
+                        <Button
+                            v-if="isDraft"
+                            variant="outline"
+                            @click="recalculate"
+                        >
+                            <RefreshCw class="mr-2 h-4 w-4" /> Recalculate
+                        </Button>
+                        <Button v-if="isDraft" @click="isFinalizeOpen = true">
+                            <Lock class="mr-2 h-4 w-4" /> Finalize
+                        </Button>
+                    </div>
                 </div>
             </div>
 
-            <!-- ── Summary Cards ───────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100"
-                        >
-                            <Users class="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ payroll.items.length }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Employees
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100"
-                        >
-                            <Banknote class="h-5 w-5 text-red-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ formatCurrency(totalDeductions) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Att. Deductions
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100"
-                        >
-                            <ShieldCheck class="h-5 w-5 text-orange-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ formatCurrency(totalGovContributions) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Gov. Contributions
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100"
-                        >
-                            <Banknote class="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ formatCurrency(totalBonuses) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">Bonuses</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card class="sm:col-span-4">
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100"
-                        >
-                            <CheckCircle2 class="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ formatCurrency(totalNetPay) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Total Net Pay
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- ── Payroll Items Table ──────────────────────────── -->
-            <DataTable
-                v-model:options="options"
-                :headers="headers"
-                :items="pageItems"
-                :total="total"
-                noun="payroll items"
-                :empty-icon="Users"
-                :empty-message="
-                    isFiltered
-                        ? 'No payroll items match your search.'
-                        : 'No payroll items found.'
-                "
-                :resettable="isFiltered"
-                :min-width="1500"
-                @reset="reset"
+            <!-- ── Summary strip ───────────────────────────────── -->
+            <dl
+                class="grid grid-cols-2 divide-x divide-y border-y sm:grid-cols-5 sm:divide-y-0"
             >
-                <template #toolbar>
-                    <DataTableToolbar
-                        v-model:search="search"
-                        search-placeholder="Search employee, ID, position..."
-                        search-label="Search payroll items"
-                    />
-                </template>
-
-                <template #item-employee_name="item">
-                    <IdentityCell
-                        :name="`${item.employee.first_name} ${item.employee.last_name}`"
-                        :secondary="item.employee.position"
-                    />
-                </template>
-
-                <template #item-pay_rate="item">
-                    <p class="font-mono text-xs">
-                        {{ formatCurrency(item.pay_rate) }}
-                    </p>
-                    <p class="text-xs text-muted-foreground">
-                        {{ payBasisLabels[item.pay_basis] ?? item.pay_basis }}
-                    </p>
-                </template>
-
-                <template #item-days_worked="item">
-                    <span
-                        class="inline-flex h-6 w-8 items-center justify-center rounded bg-green-100 text-xs font-semibold text-green-700"
+                <div class="col-span-2 space-y-2 p-5 sm:col-span-1">
+                    <dt
+                        class="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase"
                     >
-                        {{ item.days_worked }}
-                    </span>
-                </template>
-
-                <template #item-days_absent="item">
-                    <span
-                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
-                        :class="
-                            item.days_absent > 0
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-muted text-muted-foreground'
-                        "
+                        <CheckCircle2 class="h-3.5 w-3.5" /> Total net pay
+                    </dt>
+                    <dd class="font-mono text-3xl font-bold text-primary">
+                        {{ formatCurrency(totalNetPay) }}
+                    </dd>
+                </div>
+                <div class="space-y-2 p-5">
+                    <dt
+                        class="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase"
                     >
-                        {{ item.days_absent }}
-                    </span>
-                </template>
-
-                <template #item-days_late="item">
-                    <span
-                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
-                        :class="
-                            item.days_late > 0
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-muted text-muted-foreground'
-                        "
+                        <Users class="h-3.5 w-3.5" /> Employees
+                    </dt>
+                    <dd class="font-mono text-xl font-bold">
+                        {{ payroll.items.length }}
+                    </dd>
+                </div>
+                <div class="space-y-2 p-5">
+                    <dt
+                        class="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase"
                     >
-                        {{ item.days_late }}
-                    </span>
-                </template>
-
-                <template #item-days_half_day="item">
-                    <span
-                        class="inline-flex h-6 w-8 items-center justify-center rounded text-xs font-semibold"
-                        :class="
-                            item.days_half_day > 0
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-muted text-muted-foreground'
-                        "
+                        <Banknote class="h-3.5 w-3.5" /> Att. deductions
+                    </dt>
+                    <dd class="font-mono text-xl font-bold">
+                        {{ formatCurrency(totalDeductions) }}
+                    </dd>
+                </div>
+                <div class="space-y-2 p-5">
+                    <dt
+                        class="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase"
                     >
-                        {{ item.days_half_day }}
-                    </span>
-                </template>
-
-                <template #item-deductions="item">
-                    <span
-                        class="font-mono text-xs whitespace-nowrap text-red-600"
+                        <ShieldCheck class="h-3.5 w-3.5" /> Gov. contributions
+                    </dt>
+                    <dd class="font-mono text-xl font-bold">
+                        {{ formatCurrency(totalGovContributions) }}
+                    </dd>
+                </div>
+                <div class="space-y-2 p-5">
+                    <dt
+                        class="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase"
                     >
-                        {{
-                            parseFloat(item.deductions) > 0
-                                ? `-${formatCurrency(item.deductions)}`
-                                : '—'
-                        }}
-                    </span>
-                </template>
+                        <Banknote class="h-3.5 w-3.5" /> Bonuses
+                    </dt>
+                    <dd class="font-mono text-xl font-bold">
+                        {{ formatCurrency(totalBonuses) }}
+                    </dd>
+                </div>
+            </dl>
 
-                <template #item-sss_contribution="item">
-                    <span
-                        class="font-mono text-xs whitespace-nowrap text-orange-600"
-                    >
-                        -{{ formatCurrency(item.sss_contribution) }}
-                    </span>
-                </template>
+            <!-- ── No-attendance notice ────────────────────────── -->
+            <div
+                v-if="isDraft && noAttendanceCount > 0"
+                class="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                role="status"
+            >
+                <AlertCircle class="h-4 w-4 shrink-0 text-amber-600" />
+                <p>
+                    {{ noAttendanceCount }}
+                    {{
+                        noAttendanceCount === 1
+                            ? 'employee has'
+                            : 'employees have'
+                    }}
+                    no worked days recorded, so net pay is
+                    {{ formatCurrency(0) }} for now. Figures update until you
+                    finalize.
+                </p>
+            </div>
 
-                <template #item-philhealth_contribution="item">
-                    <span
-                        class="font-mono text-xs whitespace-nowrap text-orange-600"
-                    >
-                        -{{ formatCurrency(item.philhealth_contribution) }}
-                    </span>
-                </template>
+            <!-- ── Employees table ─────────────────────────────── -->
+            <section class="space-y-3">
+                <h3 class="text-lg font-semibold">Employees</h3>
+                <DataTable
+                    v-model:options="options"
+                    :headers="headers"
+                    :items="pageItems"
+                    :total="total"
+                    noun="payroll items"
+                    :empty-icon="Users"
+                    :empty-message="
+                        isFiltered
+                            ? 'No payroll items match your search.'
+                            : 'No payroll items found.'
+                    "
+                    :resettable="isFiltered"
+                    :min-width="900"
+                    @reset="reset"
+                >
+                    <template #toolbar>
+                        <DataTableToolbar
+                            v-model:search="search"
+                            search-placeholder="Search name or position"
+                            search-label="Search payroll items"
+                        />
+                    </template>
 
-                <template #item-pagibig_contribution="item">
-                    <span
-                        class="font-mono text-xs whitespace-nowrap text-orange-600"
-                    >
-                        -{{ formatCurrency(item.pagibig_contribution) }}
-                    </span>
-                </template>
+                    <template #item-employee_name="item">
+                        <IdentityCell
+                            :name="`${item.employee.first_name} ${item.employee.last_name}`"
+                            :secondary="item.employee.position"
+                        />
+                    </template>
 
-                <template #item-withholding_tax="item">
-                    <span
-                        class="font-mono text-xs whitespace-nowrap text-orange-600"
-                    >
-                        {{
-                            parseFloat(item.withholding_tax) > 0
-                                ? `-${formatCurrency(item.withholding_tax)}`
-                                : '—'
-                        }}
-                    </span>
-                </template>
+                    <template #item-pay_rate="item">
+                        <p class="font-mono text-sm font-semibold">
+                            {{ formatCurrency(item.pay_rate) }}
+                        </p>
+                        <p class="text-xs text-muted-foreground">
+                            {{
+                                payBasisLabels[item.pay_basis] ?? item.pay_basis
+                            }}
+                        </p>
+                    </template>
 
-                <template #item-bonuses="item">
-                    <span
-                        class="font-mono text-xs whitespace-nowrap text-green-600"
-                    >
-                        {{
-                            parseFloat(item.bonuses) > 0
-                                ? `+${formatCurrency(item.bonuses)}`
-                                : '—'
-                        }}
-                    </span>
-                </template>
+                    <template #item-attendance="item">
+                        <div
+                            class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs whitespace-nowrap text-muted-foreground"
+                        >
+                            <span
+                                >Worked
+                                <b class="text-foreground">{{
+                                    item.days_worked
+                                }}</b></span
+                            >
+                            <span
+                                >Absent
+                                <b
+                                    :class="
+                                        item.days_absent > 0
+                                            ? 'text-amber-600'
+                                            : 'text-foreground'
+                                    "
+                                    >{{ item.days_absent }}</b
+                                ></span
+                            >
+                            <span
+                                >Late
+                                <b
+                                    :class="
+                                        item.days_late > 0
+                                            ? 'text-amber-600'
+                                            : 'text-foreground'
+                                    "
+                                    >{{ item.days_late }}</b
+                                ></span
+                            >
+                            <span
+                                >½ day
+                                <b class="text-foreground">{{
+                                    item.days_half_day
+                                }}</b></span
+                            >
+                        </div>
+                    </template>
 
-                <template #item-net_pay="item">
-                    <span class="font-semibold whitespace-nowrap">
-                        {{ formatCurrency(item.net_pay) }}
-                    </span>
-                </template>
+                    <template #item-bonuses="item">
+                        <span
+                            class="font-mono text-sm whitespace-nowrap"
+                            :class="
+                                parseFloat(item.bonuses) > 0
+                                    ? 'text-green-600'
+                                    : 'text-muted-foreground'
+                            "
+                        >
+                            {{
+                                parseFloat(item.bonuses) > 0
+                                    ? `+${formatCurrency(item.bonuses)}`
+                                    : '—'
+                            }}
+                        </span>
+                        <p
+                            v-if="item.remarks"
+                            class="max-w-[140px] truncate text-xs text-muted-foreground"
+                        >
+                            {{ item.remarks }}
+                        </p>
+                    </template>
 
-                <template #item-remarks="item">
-                    <span
-                        class="block max-w-[120px] truncate text-xs text-muted-foreground"
-                    >
-                        {{ item.remarks ?? '—' }}
-                    </span>
-                </template>
+                    <template #item-deductions="item">
+                        <div class="text-right">
+                            <button
+                                type="button"
+                                class="inline-flex items-center gap-1 rounded font-mono text-sm whitespace-nowrap text-red-500 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                :aria-expanded="expanded.has(item.id)"
+                                :aria-label="`Deduction breakdown for ${item.employee.first_name} ${item.employee.last_name}`"
+                                @click="toggleBreakdown(item.id)"
+                            >
+                                {{
+                                    itemDeductions(item) > 0
+                                        ? `-${formatCurrency(itemDeductions(item))}`
+                                        : '—'
+                                }}
+                                <ChevronDown
+                                    class="h-3.5 w-3.5 text-muted-foreground transition-transform"
+                                    :class="{
+                                        'rotate-180': expanded.has(item.id),
+                                    }"
+                                />
+                            </button>
+                            <dl
+                                v-if="expanded.has(item.id)"
+                                class="mt-2 space-y-1 text-xs"
+                            >
+                                <div
+                                    v-for="line in breakdownLines(item)"
+                                    :key="line.label"
+                                    class="flex justify-between gap-4"
+                                >
+                                    <dt class="text-muted-foreground">
+                                        {{ line.label }}
+                                    </dt>
+                                    <dd class="font-mono">
+                                        -{{ formatCurrency(line.value) }}
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </template>
 
-                <template #item-actions="item">
-                    <RowActions
-                        :label="`${item.employee.first_name} ${item.employee.last_name}`"
-                        :actions="[
-                            {
-                                label: 'Edit bonuses and remarks',
-                                icon: Pencil,
-                                onSelect: () => openEdit(item),
-                            },
-                        ]"
-                    />
-                </template>
+                    <template #item-net_pay="item">
+                        <span
+                            class="font-mono text-sm font-bold whitespace-nowrap"
+                        >
+                            {{ formatCurrency(item.net_pay) }}
+                        </span>
+                    </template>
 
-                <template #footer>
-                    <span class="font-semibold text-foreground">
-                        Total net pay {{ formatCurrency(totalNetPay) }}
-                    </span>
-                    <span class="font-mono text-red-600">
-                        Att. deductions
-                        {{
-                            totalDeductions > 0
-                                ? `-${formatCurrency(totalDeductions)}`
-                                : '—'
-                        }}
-                    </span>
-                    <span class="font-mono text-orange-600">
-                        Gov. contributions -{{
-                            formatCurrency(totalGovContributions)
-                        }}
-                    </span>
-                    <span class="font-mono text-green-600">
-                        Bonuses
-                        {{
-                            totalBonuses > 0
-                                ? `+${formatCurrency(totalBonuses)}`
-                                : '—'
-                        }}
-                    </span>
-                </template>
-            </DataTable>
+                    <template #item-actions="item">
+                        <RowActions
+                            :label="`${item.employee.first_name} ${item.employee.last_name}`"
+                            :actions="[
+                                {
+                                    label: 'Edit bonuses and remarks',
+                                    icon: Pencil,
+                                    onSelect: () => openEdit(item),
+                                },
+                            ]"
+                        />
+                    </template>
+
+                    <template #footer>
+                        <span class="font-mono">
+                            Gross {{ formatCurrency(totalGross) }} · Deductions
+                            {{
+                                formatCurrency(
+                                    totalDeductions + totalGovContributions,
+                                )
+                            }}
+                            · Net {{ formatCurrency(totalNetPay) }}
+                        </span>
+                    </template>
+                </DataTable>
+            </section>
         </div>
 
         <!-- ── Edit Item Dialog ────────────────────────────────── -->
