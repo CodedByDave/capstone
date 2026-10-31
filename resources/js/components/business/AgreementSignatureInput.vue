@@ -11,6 +11,7 @@ const props = withDefaults(
         label?: string;
         description?: string;
         fileName?: string;
+        uploadOnly?: boolean;
     }>(),
     {
         label: 'Owner signature',
@@ -26,7 +27,9 @@ const emit = defineEmits<{
 }>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
-const mode = ref<'drawn' | 'uploaded'>('drawn');
+const mode = ref<'drawn' | 'uploaded'>(
+    props.uploadOnly ? 'uploaded' : 'drawn',
+);
 const drawing = ref(false);
 const hasDrawing = ref(false);
 const uploadedPreview = ref<string | null>(null);
@@ -120,7 +123,7 @@ onBeforeUnmount(() => {
                     {{ description }}
                 </p>
             </div>
-            <div class="flex gap-2">
+            <div v-if="!uploadOnly" class="flex gap-2">
                 <Button
                     type="button"
                     size="sm"

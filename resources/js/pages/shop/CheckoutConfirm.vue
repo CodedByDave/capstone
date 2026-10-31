@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AgreementSignatureInput from '@/components/business/AgreementSignatureInput.vue';
-import BusinessAgreementDocument from '@/components/business/BusinessAgreementDocument.vue';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,13 +9,14 @@ import {
     AlertCircle,
     CheckCircle2,
     Clock,
+    ExternalLink,
     FileText,
     Loader2,
     ShieldCheck,
     Upload,
     X,
 } from 'lucide-vue-next';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 interface Plan {
     name: string;
@@ -368,6 +368,69 @@ function removeFile(key: string) {
         URL.revokeObjectURL(kycDocs.value[key]!.preview!);
     kycDocs.value[key] = null;
 }
+
+// ── Agreement PDF preview ──────────────────────────────────────────────────
+// The agreement is shown as a PDF. Uploading the signature image re-renders
+// the PDF with the signature placed on the owner's signature line.
+const agreementPdfUrl = ref<string | null>(null);
+const agreementPdfLoading = ref(false);
+const agreementPdfError = ref('');
+let previewRequest = 0;
+let previewTimer: ReturnType<typeof setTimeout> | undefined;
+
+async function loadAgreementPdf() {
+    const requestId = ++previewRequest;
+    agreementPdfLoading.value = true;
+    agreementPdfError.value = '';
+
+    const body = new FormData();
+    body.append('business_name', shopForm.value.shop_name);
+    body.append('signer_name', signerName.value);
+    body.append('signer_role', signerRole.value);
+    if (signatureImage.value)
+        body.append('signature_image', signatureImage.value);
+
+    try {
+        const response = await fetch('/business-agreement/preview', {
+            method: 'POST',
+            body,
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRF-TOKEN':
+                    document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute('content') ?? '',
+                Accept: 'application/pdf',
+            },
+        });
+        if (!response.ok) throw new Error('Preview failed');
+        const blob = await response.blob();
+        if (requestId !== previewRequest) return;
+        if (agreementPdfUrl.value) URL.revokeObjectURL(agreementPdfUrl.value);
+        agreementPdfUrl.value = URL.createObjectURL(blob);
+    } catch {
+        if (requestId === previewRequest)
+            agreementPdfError.value =
+                'The agreement PDF could not be loaded. Please try again.';
+    } finally {
+        if (requestId === previewRequest) agreementPdfLoading.value = false;
+    }
+}
+
+function scheduleAgreementPdf(delay = 600) {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(loadAgreementPdf, delay);
+}
+
+watch(signatureImage, () => scheduleAgreementPdf(0));
+watch([() => shopForm.value.shop_name, signerName, signerRole], () =>
+    scheduleAgreementPdf(),
+);
+onMounted(loadAgreementPdf);
+onBeforeUnmount(() => {
+    clearTimeout(previewTimer);
+    if (agreementPdfUrl.value) URL.revokeObjectURL(agreementPdfUrl.value);
+});
 
 // ── Validation ─────────────────────────────────────────────────────────────
 const canProceed = computed(
@@ -997,12 +1060,69 @@ function proceedToPayment() {
                         </div>
                     </div>
 
-                    <!-- Platform–Business Agreement document and execution -->
-                    <BusinessAgreementDocument
-                        :agreement="agreement"
-                        :business-name="shopForm.shop_name"
-                        :acceptance="agreement.acceptance"
-                    />
+                    <!-- Platform–Business Agreement (PDF) -->
+                    <section
+                        class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
+                    >
+                        <div
+                            class="mb-3 flex items-start justify-between gap-3"
+                        >
+                            <div>
+                                <p
+                                    class="text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
+                                >
+                                    Platform–Business Agreement
+                                </p>
+                                <p class="mt-1 text-xs text-stone-500">
+                                    {{ agreement.title }} · Version
+                                    {{ agreement.version }}. Review the PDF,
+                                    then upload your signature — it is added to
+                                    the document automatically.
+                                </p>
+                            </div>
+                            <a
+                                v-if="agreementPdfUrl"
+                                :href="agreementPdfUrl"
+                                target="_blank"
+                                rel="noopener"
+                                class="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700"
+                            >
+                                <ExternalLink class="h-3.5 w-3.5" /> Open PDF
+                            </a>
+                        </div>
+                        <div
+                            class="relative h-[70vh] min-h-96 overflow-hidden rounded-lg border border-stone-200 bg-stone-100"
+                        >
+                            <iframe
+                                v-if="agreementPdfUrl"
+                                :src="agreementPdfUrl"
+                                title="Platform–Business Services Agreement"
+                                class="h-full w-full"
+                            />
+                            <div
+                                v-if="agreementPdfLoading"
+                                class="absolute inset-0 flex items-center justify-center bg-white/70"
+                            >
+                                <Loader2
+                                    class="h-6 w-6 animate-spin text-blue-500"
+                                />
+                            </div>
+                            <div
+                                v-else-if="agreementPdfError"
+                                class="flex h-full flex-col items-center justify-center gap-2 text-sm text-red-600"
+                            >
+                                {{ agreementPdfError }}
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    @click="loadAgreementPdf"
+                                >
+                                    Retry
+                                </Button>
+                            </div>
+                        </div>
+                    </section>
 
                     <div
                         v-if="agreement.accepted"
@@ -1070,6 +1190,7 @@ function proceedToPayment() {
 
                         <AgreementSignatureInput
                             v-model="signatureImage"
+                            upload-only
                             :error="signatureImageError"
                             @update:method="signatureMethod = $event"
                         />
@@ -1197,7 +1318,7 @@ function proceedToPayment() {
                                 v-else-if="
                                     !agreement.accepted && !signatureImage
                                 "
-                                >Draw or upload the owner signature.</span
+                                >Upload the owner signature image.</span
                             >
                             <span v-else
                                 >Please fill in all required fields.</span

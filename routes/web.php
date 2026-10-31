@@ -16,6 +16,7 @@ use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\BusinessAgreementPdfController;
 use App\Http\Controllers\Shop\CustomerQrController;
 use App\Http\Controllers\Shop\DeliveryProofController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
@@ -95,6 +96,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('business-agreement.signature');
     Route::get('/business-agreement-platform-signatures/{signaturePublicId}', [BusinessAgreementSignatureController::class, 'platformShow'])
         ->name('business-agreement.platform-signature');
+    Route::post('/business-agreement/preview', [BusinessAgreementPdfController::class, 'preview'])
+        ->name('business-agreement.preview');
+    Route::get('/business-agreement-acceptances/{acceptancePublicId}/pdf', [BusinessAgreementPdfController::class, 'show'])
+        ->name('business-agreement.pdf');
     Route::get('/checkout/confirm', [CheckoutController::class, 'confirm'])->name('checkout.confirm');
     Route::post('/checkout/process', [CheckoutController::class, 'checkout'])->name('checkout.process');
     Route::post('/shop/payment/pay', [CheckoutController::class, 'pay'])->name('shop.payment.pay');

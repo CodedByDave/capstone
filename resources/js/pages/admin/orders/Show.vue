@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
-import { downloadBusinessAgreementPdf } from '@/lib/businessAgreementPdf';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import {
@@ -105,7 +104,11 @@ async function downloadAgreement() {
     downloadingAgreement.value = true;
 
     try {
-        await downloadBusinessAgreementPdf(agreementAcceptance);
+        window.open(
+            `/business-agreement-acceptances/${agreementAcceptance.public_id}/pdf`,
+            '_blank',
+            'noopener',
+        );
     } finally {
         downloadingAgreement.value = false;
     }

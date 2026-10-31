@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
-import { downloadBusinessAgreementPdf } from '@/lib/businessAgreementPdf';
 import { Head, useForm } from '@inertiajs/vue3';
 import {
     CheckCircle2,
@@ -94,7 +93,11 @@ async function downloadAgreement(acceptance: Acceptance) {
     downloadingId.value = acceptance.public_id;
 
     try {
-        await downloadBusinessAgreementPdf(acceptance);
+        window.open(
+            `/business-agreement-acceptances/${acceptance.public_id}/pdf`,
+            '_blank',
+            'noopener',
+        );
     } finally {
         downloadingId.value = null;
     }

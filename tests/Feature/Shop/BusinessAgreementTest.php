@@ -331,3 +331,51 @@ test('a trial shop can upgrade to a paid plan and the admin can approve it', fun
 
     expect($upgrade->fresh()->status)->toBe('approved');
 });
+
+test('the agreement preview renders a PDF with the uploaded signature', function () {
+    [$owner] = agreementOwner();
+    $payload = agreementSignature();
+
+    $response = $this->actingAs($owner)->post(route('business-agreement.preview'), [
+        'business_name' => 'Maria Clean Laundry',
+        'signer_name' => 'Maria Santos',
+        'signer_role' => 'Owner',
+        'signature_image' => $payload['signature_image'],
+    ]);
+
+    $response->assertOk()->assertHeader('Content-Type', 'application/pdf');
+    expect(substr($response->getContent(), 0, 5))->toBe('%PDF-');
+    $this->assertDatabaseCount('business_agreement_acceptances', 0);
+});
+
+test('the agreement preview rejects non-image signatures and non-owners', function () {
+    [$owner] = agreementOwner();
+
+    $this->actingAs($owner)->post(route('business-agreement.preview'), [
+        'signature_image' => UploadedFile::fake()->create('signature.pdf', 10, 'application/pdf'),
+    ])->assertSessionHasErrors('signature_image');
+
+    $customer = User::factory()->create(['role' => AccountType::Customer->value]);
+    $this->actingAs($customer)->post(route('business-agreement.preview'))->assertForbidden();
+});
+
+test('a stored agreement PDF is visible to the owner and admin but not to unrelated users', function () {
+    Storage::fake('private');
+    [$owner] = agreementOwner();
+
+    $this->actingAs($owner)
+        ->post(route('shop.agreement.accept'), agreementSignature())
+        ->assertRedirect(route('shop.dashboard'));
+
+    $acceptance = $owner->shop->agreementAcceptances()->firstOrFail();
+    $pdfRoute = route('business-agreement.pdf', $acceptance->public_id);
+
+    $response = $this->actingAs($owner)->get($pdfRoute)->assertOk()->assertHeader('Content-Type', 'application/pdf');
+    expect(substr($response->getContent(), 0, 5))->toBe('%PDF-');
+
+    $administrator = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $this->actingAs($administrator)->get($pdfRoute)->assertOk();
+
+    $unrelatedOwner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
+    $this->actingAs($unrelatedOwner)->get($pdfRoute)->assertForbidden();
+});
