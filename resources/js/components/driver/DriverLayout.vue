@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ClipboardList, Home, Map, User, Wallet } from 'lucide-vue-next';
+import { ClipboardList, Home, Map, User } from 'lucide-vue-next';
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
@@ -35,12 +35,6 @@ const tabs = [
         match: /^\/driver\/jobs/,
     },
     { label: 'Map', href: '/driver/map', icon: Map, match: /^\/driver\/map/ },
-    {
-        label: 'Earnings',
-        href: '/driver/earnings',
-        icon: Wallet,
-        match: /^\/driver\/earnings/,
-    },
     {
         label: 'Profile',
         href: '/driver/profile',
