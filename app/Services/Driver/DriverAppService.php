@@ -221,8 +221,21 @@ class DriverAppService
             ?? throw (new ModelNotFoundException)->setModel(Delivery::class);
     }
 
+    /**
+     * A driver with no shift today cannot be online, so a stale online flag (set on an earlier
+     * working day) is switched off whenever the app loads.
+     */
+    private function offlineWhenNotScheduled(Rider $rider): void
+    {
+        if ($rider->is_online && $this->attendance->state($rider)['blocked_reason'] !== null) {
+            $this->riders->setOnline($rider, false);
+        }
+    }
+
     private function driverPayload(Rider $rider): array
     {
+        $this->offlineWhenNotScheduled($rider);
+
         return [
             'name' => $rider->name,
             'phone' => $rider->phone,

@@ -691,3 +691,15 @@ test('a failed delivery and a pickup run never collect cash', function () {
 
     expect(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(0);
 });
+
+test('a driver with no shift today is shown offline even if left online earlier', function () {
+    $rider = onlineRider(driverShop(), online: true, scheduled: false);
+
+    $this->actingAs($rider->employee->user)
+        ->get('/driver')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('driver.is_online', false));
+
+    expect($rider->fresh()->is_online)->toBeFalse()
+        ->and($rider->fresh()->available_since)->toBeNull();
+});
