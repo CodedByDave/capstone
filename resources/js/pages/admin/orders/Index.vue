@@ -426,6 +426,16 @@ function submitAction() {
             : {};
 
     router.post(url, payload, {
+        onError: (errors) => {
+            // The application was already handled elsewhere: tell the admin and refresh the list.
+            if (errors.order) {
+                toast.error(errors.order);
+                closeConfirm();
+                router.reload();
+            } else if (errors.rejection_reason) {
+                confirmModal.value.reasonError = errors.rejection_reason;
+            }
+        },
         onSuccess: () => {
             closeConfirm();
             const flash = page.props.toast as

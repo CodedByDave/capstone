@@ -33,6 +33,11 @@ class OrderRepository extends Repository
         $order->update(['status' => 'approved']);
     }
 
+    public function markRejected(Order $order, string $reason): void
+    {
+        $order->update(['status' => 'rejected', 'rejection_reason' => $reason]);
+    }
+
     public function refresh(Order $order): Order
     {
         return $order->refresh()->load('user');

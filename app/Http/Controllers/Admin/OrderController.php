@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApproveOrderRequest;
 use App\Http\Requests\Admin\OrderFilterRequest;
+use App\Http\Requests\Admin\RejectOrderRequest;
 use App\Models\Order;
-use App\Notifications\PlanRejectedNotification;
 use App\Services\BusinessAgreementService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
@@ -121,27 +121,9 @@ class OrderController extends Controller
             ]);
     }
 
-    public function reject(Request $request, Order $order)
+    public function reject(RejectOrderRequest $request, Order $order)
     {
-        abort_unless($order->status === 'pending', 409, 'Only pending orders can be rejected.');
-
-        $request->validate([
-            'rejection_reason' => ['required', 'string', 'max:1000'],
-        ]);
-
-        $order->load('user');
-
-        $order->update([
-            'status' => 'rejected',
-            'rejection_reason' => $request->rejection_reason,
-        ]);
-
-        // Notify the shop owner via email and in-app notification.
-        if ($order->user) {
-            $order->user->notify(
-                new PlanRejectedNotification($order, $request->rejection_reason, false)
-            );
-        }
+        $this->orderService->reject($order, $request->validated('rejection_reason'));
 
         return redirect()->back()
             ->with('toast', ['type' => 'error', 'message' => "{$order->shop_name} rejected. No payment was collected."]);

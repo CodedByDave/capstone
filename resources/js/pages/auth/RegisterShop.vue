@@ -247,46 +247,48 @@ async function reverseGeocode(lat: number, lng: number) {
         const data = await res.json();
         const addr = data.address ?? {};
 
-        const rawCity = (
-            addr.city ??
-            addr.town ??
-            addr.municipality ??
-            addr.county ??
-            ''
-        ).toLowerCase();
-
-        const matchedMunicipality = municipalities.find(
-            (m) =>
-                rawCity.includes(
-                    m.toLowerCase().replace('city of ', '').split(' ')[0],
-                ) || m.toLowerCase().includes(rawCity.split(' ')[0]),
+        // Nominatim's `county` is the province (Cavite), so it must not be used as the town.
+        const rawCity = normalizePlace(
+            addr.city ?? addr.town ?? addr.municipality ?? '',
         );
+
+        const matchedMunicipality = rawCity
+            ? municipalities.find((m) => normalizePlace(m) === rawCity)
+            : undefined;
 
         if (matchedMunicipality) {
             form.municipality = matchedMunicipality;
 
-            const rawBarangay = (
+            const rawBarangayName = String(
                 addr.suburb ??
-                addr.neighbourhood ??
-                addr.quarter ??
-                addr.village ??
-                ''
-            ).toLowerCase();
+                    addr.neighbourhood ??
+                    addr.quarter ??
+                    addr.village ??
+                    addr.hamlet ??
+                    '',
+            ).trim();
+            const rawBarangay = rawBarangayName.toLowerCase();
 
             if (rawBarangay) {
                 await nextTick();
                 const barangays =
                     barangaysByMunicipality[matchedMunicipality] ?? [];
-                const matchedBarangay = barangays.find(
-                    (b) =>
-                        b.name.toLowerCase().includes(rawBarangay) ||
-                        rawBarangay.includes(b.name.toLowerCase()),
-                );
-                if (matchedBarangay) form.barangay = matchedBarangay.name;
+
+                if (barangays.length === 0) {
+                    // No curated list for this town: use the name from the map.
+                    form.barangay = rawBarangayName;
+                } else {
+                    const matchedBarangay = barangays.find(
+                        (b) =>
+                            b.name.toLowerCase().includes(rawBarangay) ||
+                            rawBarangay.includes(b.name.toLowerCase()),
+                    );
+                    if (matchedBarangay) form.barangay = matchedBarangay.name;
+                }
             }
         } else {
             pinError.value =
-                'Pinned location is outside the supported area. Please pin within Cavite.';
+                'We could not match this pin to a Cavite town. Pin inside Cavite or pick the municipality manually.';
         }
 
         const road = addr.road ?? addr.pedestrian ?? '';
@@ -392,7 +394,49 @@ const barangaysByMunicipality: Record<
     ],
 };
 
-const municipalities = Object.keys(barangaysByMunicipality);
+/**
+ * Other Cavite cities and municipalities. They have no curated barangay list yet, so the barangay
+ * is typed in (or filled from the pin) and the postal code comes from the municipality.
+ */
+const postalByMunicipality: Record<string, string> = {
+    Alfonso: '4123',
+    Amadeo: '4119',
+    Carmona: '4116',
+    'General Mariano Alvarez': '4117',
+    Indang: '4122',
+    Kawit: '4104',
+    Magallanes: '4113',
+    Maragondon: '4112',
+    Mendez: '4121',
+    Naic: '4110',
+    Noveleta: '4105',
+    Rosario: '4106',
+    Silang: '4118',
+    'City of Tagaytay': '4120',
+    Tanza: '4108',
+    Ternate: '4111',
+};
+
+/** Lower-case, accent-free town name without a "City of" prefix, for matching map results. */
+function normalizePlace(name: string): string {
+    return name
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/^city of\s+/, '')
+        .replace(/\s+city$/, '')
+        .replace(/^cavite city$/, 'cavite')
+        .trim();
+}
+
+const municipalities = [
+    ...Object.keys(barangaysByMunicipality),
+    ...Object.keys(postalByMunicipality),
+].sort((a, b) => normalizePlace(a).localeCompare(normalizePlace(b)));
+
+const hasBarangayList = computed(
+    () => (barangaysByMunicipality[form.municipality] ?? []).length > 0,
+);
 
 const selectedBarangays = computed(
     () => barangaysByMunicipality[form.municipality] ?? [],
@@ -400,7 +444,9 @@ const selectedBarangays = computed(
 
 const autoPostalCode = computed(() => {
     const found = selectedBarangays.value.find((b) => b.name === form.barangay);
-    return found ? found.postal : '';
+    if (found) return found.postal;
+
+    return form.barangay ? (postalByMunicipality[form.municipality] ?? '') : '';
 });
 
 watch(autoPostalCode, (val) => {
@@ -862,7 +908,15 @@ const goToGoogle = () => {
 
                 <div>
                     <Label class="mb-2">Barangay</Label>
+                    <Input
+                        v-if="form.municipality && !hasBarangayList"
+                        v-model="form.barangay"
+                        placeholder="Enter barangay"
+                        :class="errors.barangay ? 'border-red-500' : ''"
+                        :data-error="errors.barangay ? '' : undefined"
+                    />
                     <select
+                        v-else
                         v-model="form.barangay"
                         class="w-full rounded border p-2 text-sm"
                         :class="errors.barangay ? 'border-red-500' : ''"

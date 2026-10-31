@@ -255,6 +255,11 @@ function submitReject() {
         `/admin/orders/${order.public_id}/reject`,
         { rejection_reason: rejectionReason.value },
         {
+            onError: () => {
+                // Already handled elsewhere: close the dialog and reload the current status.
+                showRejectDialog.value = false;
+                router.reload();
+            },
             onSuccess: () => {
                 showRejectDialog.value = false;
             },

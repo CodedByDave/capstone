@@ -472,7 +472,7 @@ reject.post = (args: { order: string | { public_id: string } } | [order: string 
     reject.form = rejectForm
 /**
 * @see \App\Http\Controllers\Admin\OrderController::serveKyc
- * @see app/Http/Controllers/Admin/OrderController.php:150
+ * @see app/Http/Controllers/Admin/OrderController.php:132
  * @route '/admin/kyc-file'
  */
 export const serveKyc = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -487,7 +487,7 @@ serveKyc.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\OrderController::serveKyc
- * @see app/Http/Controllers/Admin/OrderController.php:150
+ * @see app/Http/Controllers/Admin/OrderController.php:132
  * @route '/admin/kyc-file'
  */
 serveKyc.url = (options?: RouteQueryOptions) => {
@@ -496,7 +496,7 @@ serveKyc.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\OrderController::serveKyc
- * @see app/Http/Controllers/Admin/OrderController.php:150
+ * @see app/Http/Controllers/Admin/OrderController.php:132
  * @route '/admin/kyc-file'
  */
 serveKyc.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -505,7 +505,7 @@ serveKyc.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Admin\OrderController::serveKyc
- * @see app/Http/Controllers/Admin/OrderController.php:150
+ * @see app/Http/Controllers/Admin/OrderController.php:132
  * @route '/admin/kyc-file'
  */
 serveKyc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -515,7 +515,7 @@ serveKyc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\OrderController::serveKyc
- * @see app/Http/Controllers/Admin/OrderController.php:150
+ * @see app/Http/Controllers/Admin/OrderController.php:132
  * @route '/admin/kyc-file'
  */
     const serveKycForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -525,7 +525,7 @@ serveKyc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\OrderController::serveKyc
- * @see app/Http/Controllers/Admin/OrderController.php:150
+ * @see app/Http/Controllers/Admin/OrderController.php:132
  * @route '/admin/kyc-file'
  */
         serveKycForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -534,7 +534,7 @@ serveKyc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Admin\OrderController::serveKyc
- * @see app/Http/Controllers/Admin/OrderController.php:150
+ * @see app/Http/Controllers/Admin/OrderController.php:132
  * @route '/admin/kyc-file'
  */
         serveKycForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

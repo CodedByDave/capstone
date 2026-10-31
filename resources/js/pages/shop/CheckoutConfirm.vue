@@ -6,17 +6,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
-    AlertCircle,
-    CheckCircle2,
+    Check,
     Clock,
     ExternalLink,
     FileText,
     Loader2,
+    Lock,
+    MapPin,
     ShieldCheck,
     Upload,
-    X,
 } from 'lucide-vue-next';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import {
+    computed,
+    onBeforeUnmount,
+    onMounted,
+    reactive,
+    ref,
+    watch,
+} from 'vue';
 
 interface Plan {
     name: string;
@@ -91,7 +98,11 @@ const modLabel = (mod: string, plan: string) =>
 
 // ── Plans ──────────────────────────────────────────────────────────────────
 const planList: Plan[] = [
-    { name: 'Basic', price: 999, moduleNames: ['HRM', 'Operations', 'Reports & Analytics'] },
+    {
+        name: 'Basic',
+        price: 999,
+        moduleNames: ['HRM', 'Operations', 'Reports & Analytics'],
+    },
     {
         name: 'Standard',
         price: 1499,
@@ -302,35 +313,40 @@ const kycDocs = ref<Record<string, UploadedFile | null>>({
     mayors: null,
     sanitary: null,
 });
-const birExpiryDate = ref('');
-const mayorsExpiryDate = ref('');
-const dtiExpiryDate = ref('');
-const sanitaryExpiryDate = ref('');
+const expiry = reactive<Record<string, string>>({
+    bir: '',
+    dti: '',
+    mayors: '',
+    sanitary: '',
+});
 const kycMeta: Record<
     string,
     { label: string; description: string; required: boolean }
 > = {
     bir: {
-        label: 'BIR Certificate of Registration',
+        label: 'BIR permit',
         description: 'Form 2303 — Bureau of Internal Revenue',
         required: true,
     },
     dti: {
-        label: 'DTI Business Name Registration',
+        label: 'DTI permit',
         description: 'Business name certificate from DTI',
         required: true,
     },
     mayors: {
-        label: "Mayor's Business Permit",
+        label: "Mayor's permit",
         description: 'Valid business permit from your LGU',
         required: true,
     },
     sanitary: {
-        label: 'Sanitary Permit',
-        description: 'Health / sanitary certificate',
+        label: 'Sanitary permit',
+        description:
+            'Optional · health / sanitary certificate · PDF, JPG or PNG',
         required: false,
     },
 };
+const requiredKeys = Object.keys(kycMeta).filter((k) => kycMeta[k].required);
+const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 const requiredKycComplete = computed(() =>
     Object.entries(kycMeta)
         .filter(([, v]) => v.required)
@@ -344,7 +360,8 @@ const signerRole = ref(props.agreement.acceptance?.signer_role ?? 'Owner');
 const signerAuthorityConfirmed = ref(props.agreement.accepted);
 const agreementAccepted = ref(props.agreement.accepted);
 const signatureImage = ref<File | null>(null);
-const signatureMethod = ref<'drawn' | 'uploaded'>('drawn');
+const signatureMethod = ref<'drawn' | 'uploaded'>('uploaded');
+const showAgreementPdf = ref(false);
 function formatBytes(b: number) {
     if (b < 1024) return b + ' B';
     if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
@@ -367,6 +384,7 @@ function removeFile(key: string) {
     if (kycDocs.value[key]?.preview)
         URL.revokeObjectURL(kycDocs.value[key]!.preview!);
     kycDocs.value[key] = null;
+    expiry[key] = '';
 }
 
 // ── Agreement PDF preview ──────────────────────────────────────────────────
@@ -433,22 +451,45 @@ onBeforeUnmount(() => {
 });
 
 // ── Validation ─────────────────────────────────────────────────────────────
-const canProceed = computed(
+const uploadedRequiredCount = computed(
+    () => requiredKeys.filter((k) => kycDocs.value[k] !== null).length,
+);
+const shopInfoComplete = computed(
     () =>
-        requiredKycComplete.value &&
-        !!birExpiryDate.value &&
-        !!mayorsExpiryDate.value &&
-        !!dtiExpiryDate.value &&
         !!shopForm.value.shop_name &&
         !!shopForm.value.phone &&
         !!shopForm.value.municipality &&
         !!shopForm.value.barangay &&
-        !!shopForm.value.postal_code &&
+        !!shopForm.value.postal_code,
+);
+const kycComplete = computed(
+    () => requiredKycComplete.value && requiredKeys.every((k) => !!expiry[k]),
+);
+const agreementComplete = computed(
+    () =>
         signerName.value.trim().length >= 2 &&
         signerAuthorityConfirmed.value &&
         agreementAccepted.value &&
         (props.agreement.accepted || signatureImage.value !== null),
 );
+const canProceed = computed(
+    () =>
+        shopInfoComplete.value && kycComplete.value && agreementComplete.value,
+);
+
+const checklist = computed(() => [
+    { label: 'Shop information', done: shopInfoComplete.value },
+    { label: 'Business verification', done: kycComplete.value },
+    { label: 'Agreement signed', done: agreementComplete.value },
+]);
+const proceedHint = computed(() => {
+    if (!shopInfoComplete.value) return 'Complete your shop information.';
+    if (!kycComplete.value)
+        return 'Upload your permits and enter their expiry dates.';
+    if (!agreementComplete.value)
+        return 'Upload your signature and accept the agreement.';
+    return '';
+});
 
 // ── Submit ─────────────────────────────────────────────────────────────────
 const isSubmitting = ref(false);
@@ -468,11 +509,11 @@ function proceedToPayment() {
     Object.entries(kycDocs.value).forEach(([key, fileObj]) => {
         if (fileObj?.file) formData.append(`kyc_${key}`, fileObj.file);
     });
-    formData.append('bir_expiry_date', birExpiryDate.value);
-    formData.append('mayors_expiry_date', mayorsExpiryDate.value);
-    formData.append('dti_expiry_date', dtiExpiryDate.value);
-    if (sanitaryExpiryDate.value)
-        formData.append('sanitary_expiry_date', sanitaryExpiryDate.value);
+    formData.append('bir_expiry_date', expiry.bir);
+    formData.append('mayors_expiry_date', expiry.mayors);
+    formData.append('dti_expiry_date', expiry.dti);
+    if (expiry.sanitary)
+        formData.append('sanitary_expiry_date', expiry.sanitary);
     formData.append('agreement_public_id', props.agreement.public_id);
     formData.append('signer_name', signerName.value);
     formData.append('signer_role', signerRole.value);
@@ -500,598 +541,542 @@ function proceedToPayment() {
 <template>
     <Head :title="`Confirm Order — ${plan.name} Plan`" />
 
-    <div class="min-h-screen">
-        <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-            <!-- Header -->
+    <div class="min-h-screen bg-background text-foreground">
+        <!-- Top bar -->
+        <header class="border-b border-border">
             <div
-                class="mb-8 flex items-center justify-between border-b border-stone-200 pb-5"
+                class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6"
             >
-                <span
-                    class="text-base font-semibold tracking-tight text-stone-800"
-                >
-                    Laundry<span class="text-blue-600">Hub</span>
+                <span class="text-base font-semibold tracking-tight">
+                    Laundry<span class="text-primary">Hub</span>
                 </span>
-                <div class="flex items-center gap-2 text-xs">
-                    <div
-                        class="flex h-6 w-6 items-center justify-center rounded-full bg-stone-200 font-medium text-stone-500"
-                    >
-                        1
-                    </div>
-                    <div class="h-px w-6 bg-stone-200" />
-                    <div
-                        class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 font-medium text-white"
-                    >
-                        2
-                    </div>
-                    <div class="h-px w-6 bg-stone-200" />
-                    <div
-                        class="flex h-6 w-6 items-center justify-center rounded-full bg-stone-200 font-medium text-stone-500"
-                    >
-                        3
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-8">
-                <h1
-                    class="text-2xl font-semibold tracking-tight text-stone-900"
-                >
-                    Confirm your order
-                </h1>
-                <p class="mt-1 text-sm text-stone-500">
-                    Logged in as
-                    <span class="font-medium text-stone-700">{{
-                        props.user.email
-                    }}</span>
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-                <div class="space-y-5">
-                    <!-- Plan + Period selector -->
-                    <div
-                        class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
-                    >
-                        <p
-                            class="mb-3 text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
+                <ol class="flex items-center gap-3 text-xs">
+                    <li class="flex items-center gap-2">
+                        <span
+                            class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"
                         >
-                            Select Plan
-                        </p>
+                            <Check class="h-3 w-3" />
+                        </span>
+                        <span class="hidden text-muted-foreground sm:inline"
+                            >Account</span
+                        >
+                    </li>
+                    <li class="h-px w-6 bg-border" aria-hidden="true" />
+                    <li class="flex items-center gap-2" aria-current="step">
+                        <span
+                            class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground"
+                            >2</span
+                        >
+                        <span class="hidden font-medium sm:inline"
+                            >Confirm order</span
+                        >
+                    </li>
+                    <li class="h-px w-6 bg-border" aria-hidden="true" />
+                    <li class="flex items-center gap-2">
+                        <span
+                            class="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground"
+                            >3</span
+                        >
+                        <span class="hidden text-muted-foreground sm:inline"
+                            >Activate</span
+                        >
+                    </li>
+                </ol>
+            </div>
+        </header>
 
-                        <div class="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+            <h1 class="text-3xl font-bold tracking-tight">
+                Confirm your order
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Logged in as {{ props.user.email }}
+            </p>
+
+            <div
+                class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_340px]"
+            >
+                <!-- Left column: numbered, divider-separated sections -->
+                <div class="min-w-0">
+                    <!-- 1 · Choose your plan -->
+                    <section>
+                        <h2
+                            class="flex items-center gap-3 text-lg font-semibold"
+                        >
+                            <span
+                                class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+                                >1</span
+                            >
+                            Choose your plan
+                        </h2>
+
+                        <div
+                            class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3"
+                            role="radiogroup"
+                            aria-label="Plan"
+                        >
                             <button
                                 v-for="p in planList"
                                 :key="p.name"
                                 type="button"
-                                @click="selectPlan(p)"
-                                class="relative flex flex-col rounded-xl border p-4 text-left transition-all"
+                                role="radio"
+                                :aria-checked="selectedPlanName === p.name"
+                                class="flex min-h-11 flex-col rounded-xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                                 :class="
                                     selectedPlanName === p.name
-                                        ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
-                                        : 'border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-white'
+                                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                        : 'border-border bg-card hover:border-primary/40'
                                 "
+                                @click="selectPlan(p)"
                             >
-                                <div
-                                    class="mb-3 flex items-center justify-between"
-                                >
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-semibold">{{
+                                        p.name
+                                    }}</span>
                                     <span
-                                        class="text-sm font-semibold text-stone-800"
-                                        >{{ p.name }}</span
-                                    >
-                                    <div
-                                        class="flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors"
+                                        class="flex h-4 w-4 items-center justify-center rounded-full border-2"
                                         :class="
                                             selectedPlanName === p.name
-                                                ? 'border-blue-500 bg-blue-500'
-                                                : 'border-stone-300'
+                                                ? 'border-primary'
+                                                : 'border-muted-foreground/40'
                                         "
                                     >
-                                        <div
+                                        <span
                                             v-if="selectedPlanName === p.name"
-                                            class="h-1.5 w-1.5 rounded-full bg-white"
+                                            class="h-2 w-2 rounded-full bg-primary"
                                         />
-                                    </div>
+                                    </span>
                                 </div>
-                                <p
-                                    class="mb-3 text-lg font-bold text-stone-900"
-                                >
+                                <p class="mt-3 text-2xl font-bold">
                                     {{ fmt(p.price)
                                     }}<span
-                                        class="text-xs font-normal text-stone-400"
+                                        class="ml-1 text-xs font-normal text-muted-foreground"
                                         >/mo</span
                                     >
                                 </p>
-                                <ul class="space-y-1">
+                                <ul class="mt-3 space-y-1.5">
                                     <li
                                         v-for="mod in p.moduleNames"
                                         :key="mod"
-                                        class="flex items-center gap-1.5 text-xs text-stone-600"
+                                        class="flex items-start gap-1.5 text-xs text-muted-foreground"
                                     >
-                                        <CheckCircle2
-                                            class="h-3 w-3 shrink-0 text-emerald-500"
-                                        />{{ modLabel(mod, p.name) }}
+                                        <Check
+                                            class="mt-0.5 h-3 w-3 shrink-0 text-emerald-500"
+                                        />
+                                        {{ modLabel(mod, p.name) }}
                                     </li>
                                 </ul>
                             </button>
                         </div>
+                        <p class="mt-3 text-xs text-muted-foreground">
+                            Modules in your plan switch on automatically once
+                            your order is confirmed.
+                        </p>
 
                         <p
-                            class="mb-3 text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
+                            class="mt-6 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                         >
-                            Billing Period
+                            Billing period
                         </p>
-                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div
+                            class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4"
+                            role="radiogroup"
+                            aria-label="Billing period"
+                        >
                             <button
                                 v-for="period in PERIODS"
                                 :key="period.months"
                                 type="button"
-                                class="relative flex flex-col items-center rounded-xl border px-2 py-4 text-center transition-all"
+                                role="radio"
+                                :aria-checked="
+                                    selectedPeriod.months === period.months
+                                "
+                                class="relative flex min-h-11 flex-col items-center rounded-xl border px-2 py-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                                 :class="
                                     selectedPeriod.months === period.months
-                                        ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
-                                        : 'border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-white'
+                                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                        : 'border-border bg-card hover:border-primary/40'
                                 "
                                 @click="selectedPeriod = period"
                             >
                                 <span
                                     v-if="period.discountPct > 0"
-                                    class="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-white"
+                                    class="absolute -top-2.5 right-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-white"
                                 >
                                     Save {{ period.discountPct }}%
                                 </span>
+                                <span class="text-sm font-semibold">{{
+                                    period.shortLabel
+                                }}</span>
                                 <span
-                                    class="text-sm font-semibold"
-                                    :class="
-                                        selectedPeriod.months === period.months
-                                            ? 'text-blue-600'
-                                            : 'text-stone-800'
-                                    "
+                                    class="mt-0.5 text-xs text-muted-foreground"
                                 >
-                                    {{ period.shortLabel }}
-                                </span>
-                                <span class="mt-1 text-xs text-stone-400">
                                     {{
                                         fmt(
-                                            Math.round(
-                                                plan.price *
-                                                    (1 -
-                                                        period.discountPct /
-                                                            100),
-                                            ),
+                                            plan.price *
+                                                (1 - period.discountPct / 100),
                                         )
                                     }}/mo
                                 </span>
                             </button>
                         </div>
-                    </div>
+                    </section>
 
-                    <!-- Shop Information -->
-                    <div
-                        class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
-                    >
-                        <p
-                            class="mb-4 text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
+                    <!-- 2 · Shop information -->
+                    <section class="mt-10 border-t border-border pt-8">
+                        <h2
+                            class="flex items-center gap-3 text-lg font-semibold"
                         >
-                            Shop Information
-                        </p>
+                            <span
+                                class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+                                >2</span
+                            >
+                            Shop information
+                        </h2>
 
                         <div
-                            class="mb-4 flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2"
+                            class="mt-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm"
                         >
-                            <span class="text-xs text-blue-700"
-                                >Service area:
-                                <span class="font-semibold"
-                                    >Cavite Province</span
-                                >
-                                only</span
+                            <MapPin class="h-4 w-4 text-primary" />
+                            <span class="text-muted-foreground"
+                                >Service area:</span
+                            >
+                            <span class="font-semibold"
+                                >Cavite Province only</span
                             >
                         </div>
 
-                        <div class="grid gap-4">
-                            <!-- Business Name -->
+                        <div class="mt-5 grid gap-4">
                             <div>
-                                <Label
-                                    class="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-stone-600"
+                                <Label for="shop-name" class="mb-1.5"
+                                    >Business name
+                                    <span class="text-red-500">*</span></Label
                                 >
-                                    Business Name
-                                    <span class="text-red-400">*</span>
-                                </Label>
                                 <Input
+                                    id="shop-name"
                                     v-model="shopForm.shop_name"
                                     placeholder="Laundry Express"
-                                    class="border-stone-200 bg-stone-50 focus:bg-white"
                                 />
                             </div>
 
-                            <!-- Email (read-only) -->
                             <div>
-                                <Label
-                                    class="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-stone-600"
-                                >
-                                    Email Address
-                                </Label>
+                                <Label class="mb-1.5">Email address</Label>
                                 <div
-                                    class="flex h-9 w-full cursor-not-allowed rounded-md border border-stone-200 bg-stone-100 px-3 py-2 text-sm text-stone-500"
+                                    class="flex h-9 w-full cursor-not-allowed items-center rounded-md border border-border bg-muted px-3 text-sm text-muted-foreground"
                                 >
                                     {{ props.user.email }}
                                 </div>
-                                <p class="mt-1 text-[11px] text-stone-400">
-                                    Auto-filled from your account
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    Filled in from your account.
                                 </p>
                             </div>
 
-                            <!-- Phone + Block/Street -->
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
-                                    <Label
-                                        class="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-stone-600"
+                                    <Label class="mb-1.5"
+                                        >Phone number
+                                        <span class="text-red-500"
+                                            >*</span
+                                        ></Label
                                     >
-                                        Phone Number
-                                        <span class="text-red-400">*</span>
-                                    </Label>
                                     <PhilippinePhoneInput
                                         v-model="shopForm.phone"
-                                        class="border-stone-200 bg-stone-50 focus:bg-white"
                                     />
                                 </div>
                                 <div>
-                                    <Label
-                                        class="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-stone-600"
+                                    <Label for="block-street" class="mb-1.5"
+                                        >Block / street
+                                        <span class="text-red-500"
+                                            >*</span
+                                        ></Label
                                     >
-                                        Block/Street
-                                        <span class="text-red-400">*</span>
-                                    </Label>
-                                    <!-- ✅ FIXED: removed stray {{ props.user.block_street }} text node -->
                                     <Input
+                                        id="block-street"
                                         v-model="shopForm.block_street"
                                         placeholder="e.g. Block 5, St. 12"
-                                        class="border-stone-200 bg-stone-50 focus:bg-white"
                                     />
                                 </div>
                             </div>
 
-                            <!-- Municipality + Barangay -->
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
-                                    <Label
-                                        class="mb-1.5 text-xs font-medium text-stone-600"
+                                    <Label for="municipality" class="mb-1.5"
+                                        >City / municipality
+                                        <span class="text-red-500"
+                                            >*</span
+                                        ></Label
                                     >
-                                        City / Municipality
-                                        <span class="text-red-400">*</span>
-                                    </Label>
-                                    <div class="relative">
-                                        <select
-                                            v-model="shopForm.municipality"
-                                            class="w-full appearance-none rounded-md border border-stone-200 bg-stone-50 px-3 py-2 pr-8 text-sm text-stone-800 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    <select
+                                        id="municipality"
+                                        v-model="shopForm.municipality"
+                                        class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                    >
+                                        <option value="">
+                                            Select city / municipality
+                                        </option>
+                                        <option
+                                            v-for="mun in municipalities"
+                                            :key="mun"
+                                            :value="mun"
                                         >
-                                            <option value="">
-                                                — Select City / Municipality —
-                                            </option>
-                                            <option
-                                                v-for="mun in municipalities"
-                                                :key="mun"
-                                                :value="mun"
-                                            >
-                                                {{ mun }}
-                                            </option>
-                                        </select>
-                                        <svg
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            class="pointer-events-none absolute top-2.5 right-2.5 h-4 w-4 text-stone-400"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M19 9l-7 7-7-7"
-                                            />
-                                        </svg>
-                                    </div>
+                                            {{ mun }}
+                                        </option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <Label
-                                        class="mb-1.5 text-xs font-medium text-stone-600"
+                                    <Label for="barangay" class="mb-1.5"
+                                        >Barangay
+                                        <span class="text-red-500"
+                                            >*</span
+                                        ></Label
                                     >
-                                        Barangay
-                                        <span class="text-red-400">*</span>
-                                    </Label>
-                                    <div class="relative">
-                                        <select
-                                            v-model="shopForm.barangay"
-                                            class="w-full appearance-none rounded-md border border-stone-200 bg-stone-50 px-3 py-2 pr-8 text-sm text-stone-800 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                            :disabled="!shopForm.municipality"
+                                    <select
+                                        id="barangay"
+                                        v-model="shopForm.barangay"
+                                        :disabled="!shopForm.municipality"
+                                        class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <option value="">
+                                            {{
+                                                shopForm.municipality
+                                                    ? 'Select barangay'
+                                                    : 'Select a city / municipality first'
+                                            }}
+                                        </option>
+                                        <option
+                                            v-for="b in selectedBarangays"
+                                            :key="b.name"
+                                            :value="b.name"
                                         >
-                                            <option value="">
-                                                {{
-                                                    !shopForm.municipality
-                                                        ? 'Select a city/municipality first'
-                                                        : '— Select Barangay —'
-                                                }}
-                                            </option>
-                                            <option
-                                                v-for="b in selectedBarangays"
-                                                :key="b.name"
-                                                :value="b.name"
-                                            >
-                                                {{ b.name }}
-                                            </option>
-                                        </select>
-                                        <svg
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            class="pointer-events-none absolute top-2.5 right-2.5 h-4 w-4 text-stone-400"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M19 9l-7 7-7-7"
-                                            />
-                                        </svg>
-                                    </div>
+                                            {{ b.name }}
+                                        </option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <!-- Postal Code -->
-                            <div class="w-1/3">
-                                <Label
-                                    class="mb-1.5 text-xs font-medium text-stone-600"
+                            <div class="sm:w-1/3">
+                                <Label for="postal-code" class="mb-1.5"
+                                    >Postal code
+                                    <span class="text-red-500">*</span></Label
                                 >
-                                    Postal Code
-                                    <span class="text-red-400">*</span>
-                                </Label>
                                 <Input
+                                    id="postal-code"
                                     v-model="shopForm.postal_code"
                                     placeholder="4102"
-                                    class="border-stone-200 bg-stone-50 focus:bg-white"
                                 />
-                                <p class="mt-1 text-[11px] text-stone-400">
-                                    Auto-filled · editable if needed
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    Auto-filled, editable if needed.
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <!-- KYC Documents -->
-                    <div
-                        class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
-                    >
-                        <div class="mb-4 flex items-start justify-between">
-                            <div>
-                                <p
-                                    class="text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
+                    <!-- 3 · Business verification -->
+                    <section class="mt-10 border-t border-border pt-8">
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-2"
+                        >
+                            <h2
+                                class="flex items-center gap-3 text-lg font-semibold"
+                            >
+                                <span
+                                    class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+                                    >3</span
                                 >
-                                    Business Verification (KYC)
-                                </p>
-                                <p class="mt-1 text-xs text-stone-500">
-                                    Upload your business documents. Required
-                                    fields are marked
-                                    <span class="font-medium text-red-400"
-                                        >*</span
-                                    >
-                                </p>
-                            </div>
+                                Business verification
+                            </h2>
                             <span
-                                class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                                class="rounded-full px-2.5 py-1 text-xs font-medium"
                                 :class="
                                     requiredKycComplete
-                                        ? 'bg-emerald-50 text-emerald-700'
-                                        : 'bg-amber-50 text-amber-700'
+                                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                                 "
                             >
-                                <CheckCircle2
-                                    v-if="requiredKycComplete"
-                                    class="h-3.5 w-3.5"
-                                />
-                                <AlertCircle v-else class="h-3.5 w-3.5" />
-                                {{
-                                    requiredKycComplete
-                                        ? 'Complete'
-                                        : 'Incomplete'
-                                }}
+                                {{ uploadedRequiredCount }} of
+                                {{ requiredKeys.length }} uploaded
                             </span>
                         </div>
-                        <div class="space-y-3">
-                            <div
+                        <p class="mt-2 text-sm text-muted-foreground">
+                            Upload each permit and enter the expiry date printed
+                            on it. Fields marked
+                            <span class="text-red-500">*</span> are required.
+                        </p>
+
+                        <ul
+                            class="mt-4 divide-y divide-border border-y border-border"
+                        >
+                            <li
                                 v-for="(meta, key) in kycMeta"
                                 :key="key"
-                                class="rounded-xl border transition-colors"
-                                :class="
-                                    kycDocs[key]
-                                        ? 'border-emerald-200 bg-emerald-50/40'
-                                        : 'border-stone-200 bg-stone-50'
-                                "
+                                class="flex flex-wrap items-center gap-x-4 gap-y-3 py-4"
                             >
-                                <div
-                                    v-if="kycDocs[key]"
-                                    class="flex items-center gap-3 p-3.5"
+                                <span
+                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border"
+                                    :class="
+                                        kycDocs[key]
+                                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500'
+                                            : 'border-border bg-muted text-muted-foreground'
+                                    "
                                 >
-                                    <div
-                                        class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-emerald-200 bg-white"
-                                    >
-                                        <img
-                                            v-if="kycDocs[key]?.preview"
-                                            :src="kycDocs[key]?.preview"
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <FileText
-                                            v-else
-                                            class="h-5 w-5 text-emerald-600"
-                                        />
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <p
-                                            class="truncate text-sm font-medium text-stone-800"
-                                        >
-                                            {{ kycDocs[key]?.name }}
-                                        </p>
-                                        <p class="text-xs text-stone-400">
-                                            {{ kycDocs[key]?.size }}
-                                        </p>
-                                    </div>
-                                    <CheckCircle2
-                                        class="h-4 w-4 shrink-0 text-emerald-500"
+                                    <FileText
+                                        v-if="kycDocs[key] || meta.required"
+                                        class="h-5 w-5"
                                     />
-                                    <button
-                                        type="button"
-                                        class="flex h-6 w-6 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-stone-200 hover:text-stone-600"
-                                        @click="removeFile(key)"
+                                    <ShieldCheck v-else class="h-5 w-5" />
+                                </span>
+
+                                <div class="min-w-0 flex-1 basis-48">
+                                    <p class="text-sm font-semibold">
+                                        {{ meta.label
+                                        }}<span
+                                            v-if="meta.required"
+                                            class="ml-0.5 text-red-500"
+                                            >*</span
+                                        >
+                                    </p>
+                                    <p
+                                        class="truncate text-xs text-muted-foreground"
                                     >
-                                        <X class="h-3.5 w-3.5" />
-                                    </button>
+                                        {{
+                                            kycDocs[key]
+                                                ? `${kycDocs[key]?.name} · ${kycDocs[key]?.size}`
+                                                : meta.required
+                                                  ? 'PDF, JPG or PNG'
+                                                  : meta.description
+                                        }}
+                                    </p>
                                 </div>
+
+                                <template v-if="kycDocs[key]">
+                                    <div>
+                                        <label
+                                            :for="`expiry-${key}`"
+                                            class="mb-1 block text-xs text-muted-foreground"
+                                            >Expiry date{{
+                                                meta.required
+                                                    ? ''
+                                                    : ' (optional)'
+                                            }}</label
+                                        >
+                                        <input
+                                            :id="`expiry-${key}`"
+                                            v-model="expiry[key]"
+                                            type="date"
+                                            :min="tomorrow"
+                                            class="h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                        />
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-3 self-end"
+                                    >
+                                        <label
+                                            :for="`kyc-${key}`"
+                                            class="inline-flex h-9 cursor-pointer items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent"
+                                            >Replace</label
+                                        >
+                                        <button
+                                            type="button"
+                                            class="text-sm font-medium text-red-500 hover:text-red-400 focus-visible:underline focus-visible:outline-none"
+                                            :aria-label="`Remove ${meta.label}`"
+                                            @click="removeFile(key)"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </template>
                                 <label
                                     v-else
                                     :for="`kyc-${key}`"
-                                    class="flex cursor-pointer items-center gap-3 p-3.5"
+                                    class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent"
                                 >
-                                    <div
-                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-stone-300 bg-white"
-                                    >
-                                        <Upload
-                                            class="h-4 w-4 text-stone-400"
-                                        />
-                                    </div>
-                                    <div class="flex-1">
-                                        <p
-                                            class="text-sm font-medium text-stone-700"
-                                        >
-                                            {{ meta.label
-                                            }}<span
-                                                v-if="meta.required"
-                                                class="ml-0.5 text-red-400"
-                                                >*</span
-                                            >
-                                        </p>
-                                        <p class="text-xs text-stone-400">
-                                            {{ meta.description }}
-                                        </p>
-                                        <p class="mt-0.5 text-xs text-blue-500">
-                                            Click to upload · PDF, JPG, PNG
-                                        </p>
-                                    </div>
-                                    <input
-                                        :id="`kyc-${key}`"
-                                        type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        class="sr-only"
-                                        @change="handleFileUpload($event, key)"
-                                    />
+                                    <Upload class="h-4 w-4" /> Upload
                                 </label>
-                            </div>
-                        </div>
 
-                        <!-- Permit Expiry Date -->
-                        <div
-                            class="mt-3 space-y-1.5 rounded-xl border border-stone-200 bg-stone-50 p-3.5"
+                                <input
+                                    :id="`kyc-${key}`"
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    class="sr-only"
+                                    @change="handleFileUpload($event, key)"
+                                />
+                            </li>
+                        </ul>
+
+                        <p
+                            class="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
                         >
-                            <!--BIR Permit Expiry Date-->
-                            <label class="text-sm font-medium text-stone-700">
-                                BIR Permit Expiry Date
-                                <span class="text-red-400">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                v-model="birExpiryDate"
-                                :min="
-                                    new Date(Date.now() + 86400000)
-                                        .toISOString()
-                                        .split('T')[0]
-                                "
-                                class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                            />
-                            <p class="text-xs text-stone-400">
-                                Enter the expiry date printed on your BIR
-                                Business Permit.
-                            </p>
+                            <Lock class="h-3.5 w-3.5 shrink-0" />
+                            Documents are encrypted and used only for business
+                            verification. They are never shared with third
+                            parties.
+                        </p>
+                    </section>
 
-                            <!--DTI Permit Expiry Date-->
-                            <label class="text-sm font-medium text-stone-700">
-                                DTI Permit Expiry Date
-                                <span class="text-red-400">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                v-model="dtiExpiryDate"
-                                :min="
-                                    new Date(Date.now() + 86400000)
-                                        .toISOString()
-                                        .split('T')[0]
-                                "
-                                class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                            />
-                            <p class="text-xs text-stone-400">
-                                Enter the expiry date printed on your DTI
-                                Business Permit.
-                            </p>
-
-                            <!-- Mayor's Permit Expiry Date -->
-                            <label class="text-sm font-medium text-stone-700">
-                                Mayor's Permit Expiry Date
-                                <span class="text-red-400">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                v-model="mayorsExpiryDate"
-                                :min="
-                                    new Date(Date.now() + 86400000)
-                                        .toISOString()
-                                        .split('T')[0]
-                                "
-                                class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                            />
-                            <p class="text-xs text-stone-400">
-                                Enter the expiry date printed on your Mayor's
-                                Business Permit.
-                            </p>
-                        </div>
-
-                        <div
-                            class="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 p-3"
+                    <!-- 4 · Sign the agreement -->
+                    <section class="mt-10 border-t border-border pt-8">
+                        <h2
+                            class="flex items-center gap-3 text-lg font-semibold"
                         >
-                            <p class="text-xs text-blue-700">
-                                Documents are encrypted and stored securely.
-                                Used only for business verification and never
-                                shared with third parties.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Platform–Business Agreement (PDF) -->
-                    <section
-                        class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
-                    >
-                        <div
-                            class="mb-3 flex items-start justify-between gap-3"
-                        >
-                            <div>
-                                <p
-                                    class="text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
-                                >
-                                    Platform–Business Agreement
-                                </p>
-                                <p class="mt-1 text-xs text-stone-500">
-                                    {{ agreement.title }} · Version
-                                    {{ agreement.version }}. Review the PDF,
-                                    then upload your signature — it is added to
-                                    the document automatically.
-                                </p>
-                            </div>
-                            <a
-                                v-if="agreementPdfUrl"
-                                :href="agreementPdfUrl"
-                                target="_blank"
-                                rel="noopener"
-                                class="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700"
+                            <span
+                                class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+                                >4</span
                             >
-                                <ExternalLink class="h-3.5 w-3.5" /> Open PDF
-                            </a>
-                        </div>
+                            Sign the agreement
+                        </h2>
+
                         <div
-                            class="relative h-[70vh] min-h-96 overflow-hidden rounded-lg border border-stone-200 bg-stone-100"
+                            class="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4"
+                        >
+                            <span
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+                            >
+                                <FileText class="h-5 w-5" />
+                            </span>
+                            <div class="min-w-0 flex-1 basis-56">
+                                <p class="text-sm font-semibold">
+                                    {{ agreement.title }}
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    Version {{ agreement.version }} · PDF
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    :aria-expanded="showAgreementPdf"
+                                    @click="
+                                        showAgreementPdf = !showAgreementPdf
+                                    "
+                                >
+                                    {{
+                                        showAgreementPdf ? 'Hide' : 'Read here'
+                                    }}
+                                </Button>
+                                <Button
+                                    as="a"
+                                    variant="outline"
+                                    size="sm"
+                                    :href="agreementPdfUrl ?? undefined"
+                                    target="_blank"
+                                    rel="noopener"
+                                    :class="
+                                        agreementPdfUrl
+                                            ? ''
+                                            : 'pointer-events-none opacity-50'
+                                    "
+                                >
+                                    Open PDF
+                                    <ExternalLink class="ml-1.5 h-3.5 w-3.5" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="showAgreementPdf"
+                            class="relative mt-3 h-[70vh] min-h-96 overflow-hidden rounded-lg border border-border bg-muted"
                         >
                             <iframe
                                 v-if="agreementPdfUrl"
@@ -1101,15 +1086,15 @@ function proceedToPayment() {
                             />
                             <div
                                 v-if="agreementPdfLoading"
-                                class="absolute inset-0 flex items-center justify-center bg-white/70"
+                                class="absolute inset-0 flex items-center justify-center bg-background/70"
                             >
                                 <Loader2
-                                    class="h-6 w-6 animate-spin text-blue-500"
+                                    class="h-6 w-6 animate-spin text-primary"
                                 />
                             </div>
                             <div
                                 v-else-if="agreementPdfError"
-                                class="flex h-full flex-col items-center justify-center gap-2 text-sm text-red-600"
+                                class="flex h-full flex-col items-center justify-center gap-2 text-sm text-red-500"
                             >
                                 {{ agreementPdfError }}
                                 <Button
@@ -1122,210 +1107,213 @@ function proceedToPayment() {
                                 </Button>
                             </div>
                         </div>
-                    </section>
 
-                    <div
-                        v-if="agreement.accepted"
-                        class="border-y border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-                    >
-                        <div class="flex items-center gap-2">
-                            <CheckCircle2 class="h-4 w-4 shrink-0" />
+                        <div
+                            v-if="agreement.accepted"
+                            class="mt-5 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400"
+                        >
+                            <Check class="h-4 w-4 shrink-0" />
                             This agreement version has already been signed for
                             your business.
                         </div>
-                    </div>
 
-                    <section
-                        v-else
-                        class="border-y border-stone-300 bg-white px-5 py-6"
-                    >
-                        <div
-                            class="mb-4 flex items-start justify-between gap-3"
-                        >
-                            <div>
-                                <p
-                                    class="text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
-                                >
-                                    Execute this agreement
-                                </p>
-                                <h2
-                                    class="mt-1 text-base font-semibold text-stone-900"
-                                >
-                                    The printed name and owner signature will be
-                                    attached to the agreement record.
-                                </h2>
-                            </div>
-                            <span
-                                class="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                        <div v-else class="mt-6">
+                            <p
+                                class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                             >
-                                Version {{ agreement.version }}
-                            </span>
-                        </div>
+                                Execute this agreement
+                            </p>
+                            <p class="mt-1 text-sm">
+                                Your printed name and signature are attached to
+                                the agreement record (Version
+                                {{ agreement.version }}).
+                            </p>
 
-                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <Label
-                                    class="mb-1.5 text-xs font-medium text-stone-600"
-                                    >Printed full name</Label
-                                >
-                                <Input
-                                    v-model="signerName"
-                                    placeholder="Full legal name"
+                            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <Label for="signer-name" class="mb-1.5"
+                                        >Printed full name
+                                        <span class="text-red-500"
+                                            >*</span
+                                        ></Label
+                                    >
+                                    <Input
+                                        id="signer-name"
+                                        v-model="signerName"
+                                        placeholder="Full legal name"
+                                    />
+                                </div>
+                                <div>
+                                    <Label for="signer-role" class="mb-1.5"
+                                        >Signing capacity</Label
+                                    >
+                                    <select
+                                        id="signer-role"
+                                        v-model="signerRole"
+                                        class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                    >
+                                        <option>Owner</option>
+                                        <option>
+                                            Authorized Representative
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <AgreementSignatureInput
+                                    v-model="signatureImage"
+                                    upload-only
+                                    label="Owner signature *"
+                                    description=""
+                                    :error="signatureImageError"
+                                    @update:method="signatureMethod = $event"
                                 />
                             </div>
-                            <div>
-                                <Label
-                                    class="mb-1.5 text-xs font-medium text-stone-600"
-                                    >Signing capacity</Label
+
+                            <div class="mt-5 space-y-3">
+                                <label
+                                    class="flex cursor-pointer items-start gap-2.5 text-sm"
                                 >
-                                <select
-                                    v-model="signerRole"
-                                    class="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm"
+                                    <input
+                                        v-model="signerAuthorityConfirmed"
+                                        type="checkbox"
+                                        class="mt-0.5 h-4 w-4 accent-primary"
+                                    />
+                                    I confirm that I am authorized to bind this
+                                    business to this agreement.
+                                </label>
+                                <label
+                                    class="flex cursor-pointer items-start gap-2.5 text-sm"
                                 >
-                                    <option>Owner</option>
-                                    <option>Authorized Representative</option>
-                                </select>
+                                    <input
+                                        v-model="agreementAccepted"
+                                        type="checkbox"
+                                        class="mt-0.5 h-4 w-4 accent-primary"
+                                    />
+                                    I have read, signed, and accept the
+                                    Platform–Business Services Agreement.
+                                </label>
                             </div>
-                        </div>
-
-                        <AgreementSignatureInput
-                            v-model="signatureImage"
-                            upload-only
-                            :error="signatureImageError"
-                            @update:method="signatureMethod = $event"
-                        />
-
-                        <div class="mt-4 space-y-3">
-                            <label
-                                class="flex cursor-pointer items-start gap-2 text-sm text-stone-700"
+                            <p
+                                v-if="page.props.errors?.agreement_accepted"
+                                class="mt-2 text-xs text-red-500"
                             >
-                                <input
-                                    v-model="signerAuthorityConfirmed"
-                                    type="checkbox"
-                                    class="mt-1 accent-blue-600"
-                                />
-                                <span
-                                    >I confirm that I am authorized to bind this
-                                    business to this agreement.</span
-                                >
-                            </label>
-                            <label
-                                class="flex cursor-pointer items-start gap-2 text-sm text-stone-700"
-                            >
-                                <input
-                                    v-model="agreementAccepted"
-                                    type="checkbox"
-                                    class="mt-1 accent-blue-600"
-                                />
-                                <span
-                                    >I have read, signed, and accept the
-                                    Platform–Business Services Agreement.</span
-                                >
-                            </label>
+                                {{ page.props.errors.agreement_accepted }}
+                            </p>
                         </div>
-                        <p
-                            v-if="page.props.errors?.agreement_accepted"
-                            class="mt-2 text-xs text-red-500"
-                        >
-                            {{ page.props.errors.agreement_accepted }}
-                        </p>
                     </section>
                 </div>
 
-                <!-- Right: Order Summary -->
-                <div>
+                <!-- Right column: order summary -->
+                <aside>
                     <div
-                        class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm lg:sticky lg:top-6"
+                        class="rounded-2xl border border-border bg-card p-5 lg:sticky lg:top-6"
                     >
                         <p
-                            class="mb-4 text-[11px] font-semibold tracking-widest text-stone-400 uppercase"
+                            class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                         >
-                            Order Summary
+                            Order summary
                         </p>
-                        <div class="mb-4 flex items-start justify-between">
-                            <span class="text-sm font-semibold text-stone-800"
+                        <div class="mt-3 flex items-baseline justify-between">
+                            <span class="text-base font-semibold"
                                 >{{ plan.name }} plan</span
                             >
-                            <span class="text-xs text-stone-400">{{
-                                selectedPeriod.fullLabel
+                            <span class="text-xs text-muted-foreground">{{
+                                selectedPeriod.months === 1
+                                    ? '1 month'
+                                    : selectedPeriod.fullLabel
                             }}</span>
                         </div>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between text-stone-600">
-                                <span>Monthly price</span
-                                ><span class="font-medium text-stone-800">{{
-                                    fmt(discountedMonthly)
-                                }}</span>
+
+                        <dl class="mt-4 space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">
+                                    Price per month
+                                </dt>
+                                <dd>{{ fmt(discountedMonthly) }}</dd>
                             </div>
-                            <div class="flex justify-between text-stone-600">
-                                <span>Duration</span
-                                ><span class="font-medium text-stone-800"
-                                    >× {{ selectedPeriod.months }} mo</span
-                                >
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">Duration</dt>
+                                <dd>× {{ selectedPeriod.months }} mo</dd>
                             </div>
-                            <div class="flex justify-between text-stone-600">
-                                <span>Subtotal</span
-                                ><span class="font-medium text-stone-800">{{
-                                    fmt(subtotal)
-                                }}</span>
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">Subtotal</dt>
+                                <dd>{{ fmt(subtotal) }}</dd>
                             </div>
-                            <div class="flex justify-between text-stone-600">
-                                <span>VAT ({{ props.vatPct }}%)</span
-                                ><span class="font-medium text-stone-800">{{
-                                    fmt(vatAmount)
-                                }}</span>
+                            <div class="flex justify-between">
+                                <dt class="text-muted-foreground">
+                                    VAT ({{ props.vatPct }}%)
+                                </dt>
+                                <dd>{{ fmt(vatAmount) }}</dd>
                             </div>
                             <div
                                 v-if="savedAmount > 0"
-                                class="flex justify-between font-medium text-emerald-600"
+                                class="flex justify-between font-medium text-emerald-500"
                             >
-                                <span>You save</span
-                                ><span>− {{ fmt(savedAmount) }}</span>
+                                <dt>You save</dt>
+                                <dd>− {{ fmt(savedAmount) }}</dd>
                             </div>
-                        </div>
-                        <hr class="my-4 border-stone-100" />
-                        <div class="flex items-baseline justify-between">
-                            <span class="text-sm font-medium text-stone-700"
-                                >Total due today</span
-                            >
-                            <span class="text-xl font-bold text-stone-900">{{
+                        </dl>
+
+                        <div
+                            class="mt-4 flex items-end justify-between border-t border-border pt-4"
+                        >
+                            <div>
+                                <p class="text-sm font-semibold">
+                                    Total due today
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    {{
+                                        selectedPeriod.months === 1
+                                            ? 'Billed monthly'
+                                            : `Billed once for ${selectedPeriod.months} months`
+                                    }}
+                                </p>
+                            </div>
+                            <span class="text-3xl font-bold text-primary">{{
                                 fmt(totalDue)
                             }}</span>
                         </div>
-                        <p class="mt-0.5 text-right text-xs text-stone-400">
-                            {{
-                                selectedPeriod.months === 1
-                                    ? 'Billed monthly'
-                                    : `Billed once for ${selectedPeriod.months} months`
-                            }}
-                        </p>
-                        <div
-                            v-if="!canProceed"
-                            class="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-700"
-                        >
-                            <AlertCircle class="h-3.5 w-3.5 shrink-0" />
-                            <span v-if="!requiredKycComplete"
-                                >Upload all required KYC documents.</span
+
+                        <div class="mt-5 border-t border-border pt-4">
+                            <p
+                                class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                             >
-                            <span
-                                v-else-if="
-                                    !agreementAccepted ||
-                                    !signerAuthorityConfirmed
-                                "
-                                >Review and accept the business agreement.</span
-                            >
-                            <span
-                                v-else-if="
-                                    !agreement.accepted && !signatureImage
-                                "
-                                >Upload the owner signature image.</span
-                            >
-                            <span v-else
-                                >Please fill in all required fields.</span
-                            >
+                                Before you proceed
+                            </p>
+                            <ul class="mt-3 space-y-2.5">
+                                <li
+                                    v-for="item in checklist"
+                                    :key="item.label"
+                                    class="flex items-center gap-2.5 text-sm"
+                                    :class="
+                                        item.done ? '' : 'text-muted-foreground'
+                                    "
+                                >
+                                    <span
+                                        class="flex h-5 w-5 items-center justify-center rounded-full border"
+                                        :class="
+                                            item.done
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-muted-foreground/40'
+                                        "
+                                    >
+                                        <Check
+                                            v-if="item.done"
+                                            class="h-3 w-3"
+                                        />
+                                    </span>
+                                    {{ item.label }}
+                                    <span class="sr-only">{{
+                                        item.done ? '(done)' : '(not done)'
+                                    }}</span>
+                                </li>
+                            </ul>
                         </div>
+
                         <Button
-                            class="mt-4 w-full bg-blue-500"
+                            class="mt-5 h-11 w-full"
                             type="button"
                             :disabled="!canProceed || isSubmitting"
                             @click="proceedToPayment"
@@ -1340,23 +1328,26 @@ function proceedToPayment() {
                                     : 'Proceed to order'
                             }}
                         </Button>
-                        <div
-                            class="mt-4 flex items-center justify-center gap-5"
+                        <p
+                            v-if="proceedHint"
+                            class="mt-3 text-center text-xs text-muted-foreground"
                         >
-                            <span
-                                class="flex items-center gap-1.5 text-xs text-stone-400"
-                            >
+                            {{ proceedHint }}
+                        </p>
+
+                        <div
+                            class="mt-4 flex items-center justify-center gap-5 text-xs text-muted-foreground"
+                        >
+                            <span class="flex items-center gap-1.5">
                                 <ShieldCheck class="h-3.5 w-3.5" /> Secure
                             </span>
-                            <span
-                                class="flex items-center gap-1.5 text-xs text-stone-400"
-                            >
+                            <span class="flex items-center gap-1.5">
                                 <Clock class="h-3.5 w-3.5" /> Instant activation
                             </span>
                         </div>
                     </div>
-                </div>
+                </aside>
             </div>
-        </div>
+        </main>
     </div>
 </template>

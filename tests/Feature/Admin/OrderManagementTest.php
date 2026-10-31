@@ -298,3 +298,36 @@ test('only the super admin can open the order table', function () {
     $this->actingAs(User::factory()->create(['role' => AccountType::ShopOwner->value]));
     expect($this->get(route('admin.orders.index'))->status())->toBeIn([302, 403]);
 });
+
+test('super admin can reject a pending application with a reason', function () {
+    Notification::fake();
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $order = createAdminOrder(['status' => 'pending']);
+
+    $this->actingAs($admin)
+        ->post(route('admin.orders.reject', $order->public_id), ['rejection_reason' => 'Documents are unreadable.'])
+        ->assertRedirect();
+
+    expect($order->refresh()->status)->toBe('rejected')
+        ->and($order->rejection_reason)->toBe('Documents are unreadable.');
+});
+
+test('rejecting an application that is no longer pending shows a validation error, not a 409 page', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $order = createAdminOrder(['status' => 'approved']);
+
+    $this->actingAs($admin)
+        ->post(route('admin.orders.reject', $order->public_id), ['rejection_reason' => 'Too late.'])
+        ->assertSessionHasErrors('order');
+
+    expect($order->refresh()->status)->toBe('approved');
+});
+
+test('rejecting an application requires a reason', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $order = createAdminOrder(['status' => 'pending']);
+
+    $this->actingAs($admin)
+        ->post(route('admin.orders.reject', $order->public_id), ['rejection_reason' => '  '])
+        ->assertSessionHasErrors('rejection_reason');
+});

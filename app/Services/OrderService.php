@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
 use App\Notifications\OrderApprovedNotification;
+use App\Notifications\PlanRejectedNotification;
 use App\Repositories\OrderRepository;
 use App\Repositories\ShopRepository;
 use App\Repositories\UserRepository;
@@ -202,6 +203,30 @@ class OrderService
     public function syncApprovedShop(Order $order): Shop
     {
         return $this->shopRepository->syncFromApprovedOrder($order);
+    }
+
+    /**
+     * @throws ValidationException when the application is no longer pending (already handled or expired)
+     */
+    public function reject(Order $order, string $reason): Order
+    {
+        $rejected = DB::transaction(function () use ($order, $reason) {
+            $locked = $this->orderRepository->findForApproval($order->id);
+
+            if ($locked->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'order' => 'This application is already '.$locked->status.' and can no longer be rejected. Refresh the page.',
+                ]);
+            }
+
+            $this->orderRepository->markRejected($locked, $reason);
+
+            return $this->orderRepository->refresh($locked);
+        });
+
+        $rejected->user?->notify(new PlanRejectedNotification($rejected, $reason, false));
+
+        return $rejected;
     }
 
     public function approveWithPlatformSignature(
