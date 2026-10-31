@@ -229,7 +229,6 @@ class ShopDashboardController extends Controller
             ->get()
             ->map(fn ($i) => [
                 'name' => $i->name,
-                'sku' => $i->sku,
                 'quantity' => $i->quantity,
                 'min_stock' => $i->min_stock,
                 'status' => $i->stock_status,
@@ -239,13 +238,12 @@ class ShopDashboardController extends Controller
 
         // Recemt inventory movements
         $recentMovements = InventoryMovement::forShop($shopId)
-            ->with('inventory:id,name,sku', 'user:id,name')
+            ->with('inventory:id,name', 'user:id,name')
             ->latest()
             ->limit(8)
             ->get()
             ->map(fn ($m) => [
                 'item' => $m->inventory?->name ?? '—',
-                'sku' => $m->inventory?->sku ?? '—',
                 'type' => $m->type,
                 'quantity' => $m->quantity,
                 'before' => $m->quantity_before,

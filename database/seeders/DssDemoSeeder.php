@@ -160,7 +160,6 @@ class DssDemoSeeder extends Seeder
             'inventory_categories_id' => $category->id,
             'supplier_id' => $suppliers[$supplier]->id,
             'name' => $name,
-            'sku' => 'DSS-'.strtoupper($key),
             'unit' => $unit,
             'quantity' => $qty,
             'min_stock' => $min,

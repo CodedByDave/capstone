@@ -229,6 +229,7 @@ function clearGeo() {
 </script>
 
 <template>
+
     <Head title="Shop Settings" />
 
     <ShopLayout title="Shop Settings">
@@ -255,15 +256,10 @@ function clearGeo() {
                     </div>
 
                     <!-- Cover Photo -->
-                    <section
-                        id="cover"
-                        class="scroll-mt-4 space-y-5 border-t pt-8"
-                    >
+                    <section id="cover" class="scroll-mt-4 space-y-5 border-t pt-8">
                         <div>
                             <div class="flex items-center gap-2">
-                                <ImagePlus
-                                    class="h-4 w-4 text-muted-foreground"
-                                />
+                                <ImagePlus class="h-4 w-4 text-muted-foreground" />
                                 <h3 class="text-base font-semibold">
                                     Cover Photo
                                 </h3>
@@ -275,66 +271,36 @@ function clearGeo() {
                         </div>
 
                         <div
-                            class="group relative flex h-48 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted/30"
-                        >
-                            <img
-                                v-if="coverPreview"
-                                :src="coverPreview"
-                                alt="Cover photo"
-                                class="h-full w-full object-cover"
-                            />
-                            <div
-                                v-else
-                                class="flex flex-col items-center gap-2 text-muted-foreground"
-                            >
+                            class="group relative flex h-48 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted/30">
+                            <img v-if="coverPreview" :src="coverPreview" alt="Cover photo"
+                                class="h-full w-full object-cover" />
+                            <div v-else class="flex flex-col items-center gap-2 text-muted-foreground">
                                 <ImagePlus class="h-10 w-10 opacity-30" />
                                 <p class="text-xs">No cover photo uploaded</p>
                             </div>
 
-                            <button
-                                v-if="coverPreview"
-                                type="button"
-                                aria-label="Remove cover photo"
+                            <button v-if="coverPreview" type="button" aria-label="Remove cover photo"
                                 class="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                                :disabled="removingCover"
-                                @click="removeCover"
-                            >
-                                <Loader2
-                                    v-if="removingCover"
-                                    class="h-4 w-4 animate-spin"
-                                />
+                                :disabled="removingCover" @click="removeCover">
+                                <Loader2 v-if="removingCover" class="h-4 w-4 animate-spin" />
                                 <Trash2 v-else class="h-4 w-4" />
                             </button>
                         </div>
 
-                        <input
-                            ref="coverInput"
-                            type="file"
-                            accept="image/*"
-                            class="hidden"
-                            @change="onCoverChange"
-                        />
+                        <input ref="coverInput" type="file" accept="image/*" class="hidden" @change="onCoverChange" />
                         <p class="text-xs text-muted-foreground">
                             PNG, JPG or WEBP — max 4 MB.
                         </p>
 
-                        <div
-                            class="flex flex-wrap items-center justify-end gap-3"
-                        >
-                            <p
-                                class="text-xs text-muted-foreground"
-                                aria-live="polite"
-                            >
+                        <div class="flex flex-wrap items-center justify-end gap-3">
+                            <p class="text-xs text-muted-foreground" aria-live="polite">
                                 {{
                                     coverFile
                                         ? 'You have unsaved changes'
                                         : 'No changes yet'
                                 }}
                             </p>
-                            <Button
-                                variant="outline"
-                                @click="coverInput?.click()"
-                            >
+                            <Button variant="outline" @click="coverInput?.click()">
                                 <Upload class="mr-1.5 h-4 w-4" />
                                 {{
                                     coverPreview
@@ -342,24 +308,15 @@ function clearGeo() {
                                         : 'Upload Photo'
                                 }}
                             </Button>
-                            <Button
-                                :disabled="!coverFile || uploadingCover"
-                                @click="uploadCover"
-                            >
-                                <Loader2
-                                    v-if="uploadingCover"
-                                    class="mr-1.5 h-4 w-4 animate-spin"
-                                />
+                            <Button :disabled="!coverFile || uploadingCover" @click="uploadCover">
+                                <Loader2 v-if="uploadingCover" class="mr-1.5 h-4 w-4 animate-spin" />
                                 {{ uploadingCover ? 'Saving…' : 'Save Photo' }}
                             </Button>
                         </div>
                     </section>
 
                     <!-- Geolocation -->
-                    <section
-                        id="location"
-                        class="scroll-mt-4 space-y-5 border-t pt-8"
-                    >
+                    <section id="location" class="scroll-mt-4 space-y-5 border-t pt-8">
                         <div>
                             <div class="flex items-center gap-2">
                                 <MapPin class="h-4 w-4 text-muted-foreground" />
@@ -375,43 +332,27 @@ function clearGeo() {
                             </p>
                         </div>
 
-                        <div
-                            v-if="hasGeo"
-                            class="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-4 py-3"
-                        >
+                        <div v-if="hasGeo"
+                            class="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-4 py-3">
                             <div class="flex items-center gap-2">
-                                <CheckCircle2
-                                    class="h-4 w-4 shrink-0 text-emerald-600"
-                                />
+                                <CheckCircle2 class="h-4 w-4 shrink-0 text-emerald-600" />
                                 <div>
-                                    <p
-                                        class="text-xs font-semibold text-emerald-700"
-                                    >
+                                    <p class="text-xs font-semibold text-emerald-700">
                                         Location is set
                                     </p>
-                                    <p
-                                        class="font-mono text-xs text-emerald-700"
-                                    >
+                                    <p class="font-mono text-xs text-emerald-700">
                                         {{ props.shop.latitude?.toFixed(6) }},
                                         {{ props.shop.longitude?.toFixed(6) }}
                                     </p>
                                 </div>
                             </div>
-                            <a
-                                v-if="mapsUrl"
-                                :href="mapsUrl"
-                                target="_blank"
-                                rel="noopener"
-                                class="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
-                            >
+                            <a v-if="mapsUrl" :href="mapsUrl" target="_blank" rel="noopener"
+                                class="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline">
                                 View on Maps
                                 <ExternalLink class="h-3 w-3" />
                             </a>
                         </div>
-                        <div
-                            v-else
-                            class="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3"
-                        >
+                        <div v-else class="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3">
                             <MapPin class="h-4 w-4 shrink-0 text-amber-600" />
                             <p class="text-xs text-amber-700">
                                 No location set. Staff clock-in will not check
@@ -419,18 +360,14 @@ function clearGeo() {
                             </p>
                         </div>
 
-                        <div
-                            v-if="props.shop.status !== 'active'"
-                            class="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3"
-                        >
-                            <AlertTriangle
-                                class="mt-0.5 h-4 w-4 shrink-0 text-amber-600"
-                            />
+                        <div v-if="props.shop.status !== 'active'"
+                            class="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3">
+                            <AlertTriangle class="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                             <p class="text-xs text-amber-700">
                                 Your shop is currently
                                 <span class="font-semibold capitalize">{{
                                     props.shop.status
-                                }}</span>
+                                    }}</span>
                                 and will not appear in user searches until it is
                                 approved and active.
                             </p>
@@ -438,83 +375,42 @@ function clearGeo() {
 
                         <div class="grid gap-x-4 gap-y-5 sm:grid-cols-2">
                             <div class="space-y-1.5">
-                                <label
-                                    for="shop-latitude"
-                                    class="text-sm font-medium"
-                                    >Latitude</label
-                                >
-                                <Input
-                                    id="shop-latitude"
-                                    v-model="lat"
-                                    placeholder="e.g. 14.5995"
-                                    class="font-mono text-sm"
-                                />
+                                <label for="shop-latitude" class="text-sm font-medium">Latitude</label>
+                                <Input id="shop-latitude" v-model="lat" placeholder="e.g. 14.5995"
+                                    class="font-mono text-sm" />
                             </div>
                             <div class="space-y-1.5">
-                                <label
-                                    for="shop-longitude"
-                                    class="text-sm font-medium"
-                                    >Longitude</label
-                                >
-                                <Input
-                                    id="shop-longitude"
-                                    v-model="lng"
-                                    placeholder="e.g. 120.9842"
-                                    class="font-mono text-sm"
-                                />
+                                <label for="shop-longitude" class="text-sm font-medium">Longitude</label>
+                                <Input id="shop-longitude" v-model="lng" placeholder="e.g. 120.9842"
+                                    class="font-mono text-sm" />
                             </div>
                         </div>
 
                         <p class="text-xs text-muted-foreground">
                             You can get coordinates from
-                            <a
-                                href="https://www.google.com/maps"
-                                target="_blank"
-                                rel="noopener"
-                                class="underline hover:text-foreground"
-                                >Google Maps</a
-                            >
+                            <a href="https://www.google.com/maps" target="_blank" rel="noopener"
+                                class="underline hover:text-foreground">Google Maps</a>
                             — right-click your shop location and copy the
                             coordinates. Or use the button below to auto-detect
                             your current location.
                         </p>
 
-                        <div
-                            class="flex flex-wrap items-center justify-end gap-3"
-                        >
-                            <p
-                                class="mr-auto text-xs text-muted-foreground sm:mr-0"
-                                aria-live="polite"
-                            >
+                        <div class="flex flex-wrap items-center justify-end gap-3">
+                            <p class="mr-auto text-xs text-muted-foreground sm:mr-0" aria-live="polite">
                                 {{
                                     geoDirty
                                         ? 'You have unsaved changes'
                                         : 'No changes yet'
                                 }}
                             </p>
-                            <Button
-                                v-if="hasGeo"
-                                variant="outline"
-                                class="border-red-200 text-red-600 hover:bg-red-50"
-                                :disabled="clearing"
-                                @click="clearGeo"
-                            >
-                                <Loader2
-                                    v-if="clearing"
-                                    class="mr-1.5 h-4 w-4 animate-spin"
-                                />
+                            <Button v-if="hasGeo" variant="outline" class="border-red-200 text-red-600 hover:bg-red-50"
+                                :disabled="clearing" @click="clearGeo">
+                                <Loader2 v-if="clearing" class="mr-1.5 h-4 w-4 animate-spin" />
                                 <Trash2 v-else class="mr-1.5 h-4 w-4" />
                                 {{ clearing ? 'Clearing…' : 'Clear Location' }}
                             </Button>
-                            <Button
-                                variant="outline"
-                                :disabled="locating"
-                                @click="useMyLocation"
-                            >
-                                <Loader2
-                                    v-if="locating"
-                                    class="mr-1.5 h-4 w-4 animate-spin"
-                                />
+                            <Button variant="outline" :disabled="locating" @click="useMyLocation">
+                                <Loader2 v-if="locating" class="mr-1.5 h-4 w-4 animate-spin" />
                                 <Navigation v-else class="mr-1.5 h-4 w-4" />
                                 {{
                                     locating
@@ -522,28 +418,17 @@ function clearGeo() {
                                         : 'Use My Current Location'
                                 }}
                             </Button>
-                            <Button
-                                :disabled="saving || !geoDirty"
-                                @click="saveGeo"
-                            >
-                                <Loader2
-                                    v-if="saving"
-                                    class="mr-1.5 h-4 w-4 animate-spin"
-                                />
+                            <Button :disabled="saving || !geoDirty" @click="saveGeo">
+                                <Loader2 v-if="saving" class="mr-1.5 h-4 w-4 animate-spin" />
                                 {{ saving ? 'Saving…' : 'Save Location' }}
                             </Button>
                         </div>
                     </section>
 
-                    <section
-                        id="data"
-                        class="scroll-mt-4 space-y-4 border-t pt-8"
-                    >
+                    <section id="data" class="scroll-mt-4 space-y-4 border-t pt-8">
                         <div>
                             <div class="flex items-center gap-2">
-                                <Database
-                                    class="h-4 w-4 text-muted-foreground"
-                                />
+                                <Database class="h-4 w-4 text-muted-foreground" />
                                 <h3 class="text-base font-semibold">
                                     Your Data
                                 </h3>
@@ -568,9 +453,7 @@ function clearGeo() {
                     <Card>
                         <CardContent class="space-y-4 p-4">
                             <div class="flex items-center gap-2">
-                                <Building2
-                                    class="h-4 w-4 text-muted-foreground"
-                                />
+                                <Building2 class="h-4 w-4 text-muted-foreground" />
                                 <h3 class="text-sm font-semibold">
                                     Shop Information
                                 </h3>
@@ -611,21 +494,12 @@ function clearGeo() {
                             </dl>
 
                             <div class="border-t pt-4">
-                                <p
-                                    class="mb-2 text-xs font-medium text-muted-foreground"
-                                >
+                                <p class="mb-2 text-xs font-medium text-muted-foreground">
                                     Jump to
                                 </p>
-                                <nav
-                                    aria-label="Settings sections"
-                                    class="flex flex-col"
-                                >
-                                    <a
-                                        v-for="link in sectionLinks"
-                                        :key="link.href"
-                                        :href="link.href"
-                                        class="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                                    >
+                                <nav aria-label="Settings sections" class="flex flex-col">
+                                    <a v-for="link in sectionLinks" :key="link.href" :href="link.href"
+                                        class="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                                         {{ link.label }}
                                     </a>
                                 </nav>
@@ -636,11 +510,8 @@ function clearGeo() {
                                     Control customer pickup and delivery without
                                     deleting historical records.
                                 </p>
-                                <Button
-                                    variant="outline"
-                                    class="w-full"
-                                    @click="router.visit('/shop/setup')"
-                                >
+                                <Button variant="default" class="w-full bg-blue-600 text-white hover:bg-blue-700"
+                                    @click="router.visit('/shop/setup')">
                                     <SlidersHorizontal class="mr-1.5 h-4 w-4" />
                                     Review Operations Setup
                                 </Button>

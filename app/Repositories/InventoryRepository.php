@@ -25,8 +25,7 @@ class InventoryRepository extends Repository
 
         if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name', 'like', "%{$filters['search']}%")
-                    ->orWhere('sku', 'like', "%{$filters['search']}%");
+                $q->where('name', 'like', "%{$filters['search']}%");
             });
         }
 

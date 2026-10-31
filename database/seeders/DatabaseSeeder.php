@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             TestLocationSeeder::class,
             IssueReportSeeder::class,
             DssDemoSeeder::class,
+            DefenseDemoSeeder::class,
         ]);
     }
 }

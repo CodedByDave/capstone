@@ -48,7 +48,6 @@ interface Movement {
 interface InventoryItem {
     id: number;
     name: string;
-    sku: string;
     description: string | null;
     unit: string;
     quantity: number;
@@ -322,14 +321,6 @@ const movementTypeOptions = computed(() => [
                                     Name
                                 </p>
                                 <p class="font-medium">{{ inventory.name }}</p>
-                            </div>
-                            <div class="space-y-1">
-                                <p
-                                    class="text-xs font-semibold text-muted-foreground uppercase"
-                                >
-                                    SKU
-                                </p>
-                                <p class="font-mono">{{ inventory.sku }}</p>
                             </div>
                             <div class="space-y-1">
                                 <p

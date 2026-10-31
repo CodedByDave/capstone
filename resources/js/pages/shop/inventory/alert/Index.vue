@@ -32,7 +32,6 @@ interface AlertItem {
     inventory: {
         id: number;
         name: string;
-        sku: string;
         unit: string;
         quantity: number;
     } | null;
@@ -206,9 +205,6 @@ const statusTones: Record<string, StatusTone> = {
                 <template #item-item="alert">
                     <p class="font-medium">
                         {{ alert.inventory?.name ?? 'Deleted item' }}
-                    </p>
-                    <p class="font-mono text-xs text-muted-foreground">
-                        {{ alert.inventory?.sku }}
                     </p>
                 </template>
 

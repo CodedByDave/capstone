@@ -42,7 +42,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: '',
-    sku: '',
     description: '',
     unit: 'pcs',
     quantity: 0,
@@ -98,20 +97,6 @@ function submit() {
                         />
                         <p v-if="form.errors.name" class="text-xs text-red-500">
                             {{ form.errors.name }}
-                        </p>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >SKU <span class="text-red-500">*</span></label
-                        >
-                        <Input
-                            v-model="form.sku"
-                            placeholder="e.g. DET-001"
-                            class="font-mono"
-                            :class="{ 'border-red-500': form.errors.sku }"
-                        />
-                        <p v-if="form.errors.sku" class="text-xs text-red-500">
-                            {{ form.errors.sku }}
                         </p>
                     </div>
                     <div class="col-span-12 space-y-1 sm:col-span-3">

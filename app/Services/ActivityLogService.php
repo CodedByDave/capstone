@@ -88,6 +88,38 @@ class ActivityLogService
         ];
     }
 
+    /**
+     * Recent activity performed by an employee's user account, shaped for display.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getEmployeeActivity(Shop $shop, ?int $userId, int $limit = 10): array
+    {
+        if ($userId === null) {
+            return [];
+        }
+
+        return $this->activityLogs->recentByPerformer($shop->id, $userId, $limit)
+            ->map(function (ActivityLog $log) {
+                $subject = $log->subject;
+                $label = match (true) {
+                    $subject === null => 'Deleted Record',
+                    isset($subject->first_name) => trim($subject->first_name.' '.($subject->last_name ?? '')),
+                    isset($subject->name) => $subject->name,
+                    default => '#'.$log->subject_id,
+                };
+
+                return [
+                    'id' => $log->id,
+                    'module' => $log->module,
+                    'action' => $log->action,
+                    'subject' => $label,
+                    'created_at' => $log->created_at,
+                ];
+            })
+            ->all();
+    }
+
     public function getPerformers(Shop $shop, ?array $performerIds = null): Collection
     {
         return User::whereIn(

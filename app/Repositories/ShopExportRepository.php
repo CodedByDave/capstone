@@ -58,7 +58,7 @@ class ShopExportRepository
     {
         return InventoryMovement::query()
             ->forShop($shopId)
-            ->with('inventory:id,name,sku')
+            ->with('inventory:id,name')
             ->lazyById(self::CHUNK);
     }
 

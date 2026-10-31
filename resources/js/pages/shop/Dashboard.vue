@@ -50,7 +50,6 @@ interface CategoryPoint {
 }
 interface LowStockItem {
     name: string;
-    sku: string;
     quantity: number;
     min_stock: number;
     status: string;
@@ -58,7 +57,6 @@ interface LowStockItem {
 }
 interface RecentMovement {
     item: string;
-    sku: string;
     type: string;
     quantity: number;
     before: number;

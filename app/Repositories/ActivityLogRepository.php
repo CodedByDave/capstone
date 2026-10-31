@@ -22,4 +22,20 @@ class ActivityLogRepository
             ->groupBy('action')
             ->pluck('total', 'action');
     }
+
+    /**
+     * Most recent log entries performed by one user within a shop.
+     *
+     * @return Collection<int, ActivityLog>
+     */
+    public function recentByPerformer(int $shopId, int $userId, int $limit = 10): Collection
+    {
+        return ActivityLog::query()
+            ->where('shop_id', $shopId)
+            ->where('performed_by', $userId)
+            ->with('subject')
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
 }

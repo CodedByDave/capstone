@@ -60,7 +60,6 @@ interface Supplier {
 interface InventoryItem {
     id: number;
     name: string;
-    sku: string;
     unit: string;
     quantity: number;
     min_stock: number;
@@ -176,7 +175,6 @@ const hasFilters = computed(
 
 const headers: DataTableHeader[] = [
     { text: 'Item', value: 'name' },
-    { text: 'SKU', value: 'sku' },
     { text: 'Category', value: 'category' },
     { text: 'Supplier', value: 'supplier' },
     { text: 'Stock', value: 'quantity' },
@@ -482,7 +480,7 @@ function formatPrice(price: string | null) {
                             v-model:search="search"
                             v-model:status="status"
                             :statuses="statusOptions"
-                            search-placeholder="Search name or SKU..."
+                            search-placeholder="Search name..."
                             search-label="Search inventory"
                             status-label="Filter by item status"
                             @submit="applyFilters()"
@@ -562,12 +560,6 @@ function formatPrice(price: string | null) {
                 <template #item-name="item">
                     <p class="font-medium">{{ item.name }}</p>
                     <p class="text-xs text-muted-foreground">{{ item.unit }}</p>
-                </template>
-
-                <template #item-sku="item">
-                    <span class="font-mono text-xs text-muted-foreground">
-                        {{ item.sku }}
-                    </span>
                 </template>
 
                 <template #item-category="item">

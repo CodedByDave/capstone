@@ -4,11 +4,13 @@ import { Input } from '@/components/ui/input';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
+    BookOpen,
     Check,
     CheckCircle2,
     Copy,
     CreditCard,
     Eye,
+    ExternalLink,
     EyeOff,
     FlaskConical,
     Loader2,
@@ -440,6 +442,64 @@ function disconnect() {
                             Use demo keys
                         </Button>
                     </div>
+                </div>
+
+                <div class="rounded-2xl border border-blue-200 bg-blue-50 p-5">
+                    <div class="flex items-center gap-2">
+                        <BookOpen class="h-5 w-5 text-blue-600" />
+                        <h2 class="font-semibold text-blue-950">
+                            How to get your PayMongo credentials
+                        </h2>
+                    </div>
+                    <ol
+                        class="mt-3 list-decimal space-y-2 pl-5 text-sm text-blue-900"
+                    >
+                        <li>
+                            Create or log in to your PayMongo account at
+                            <a
+                                href="https://dashboard.paymongo.com/signup"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 font-medium underline"
+                                >dashboard.paymongo.com<ExternalLink
+                                    class="h-3 w-3"
+                                    aria-hidden="true"
+                            /></a>
+                            and complete the business verification to accept
+                            live payments.
+                        </li>
+                        <li>
+                            In the PayMongo dashboard, open
+                            <strong>Developers → API Keys</strong>.
+                        </li>
+                        <li>
+                            Use the <strong>Test</strong> keys
+                            (<code>sk_test_…</code> / <code>pk_test_…</code>) to
+                            try payments without real money, or switch to
+                            <strong>Live</strong> keys
+                            (<code>sk_live_…</code> / <code>pk_live_…</code>)
+                            once your account is activated.
+                        </li>
+                        <li>
+                            Copy the <strong>Secret key (SK)</strong> and
+                            <strong>Public key (PK)</strong> and paste them into
+                            the fields below. The secret key is shown only once,
+                            so store it safely.
+                        </li>
+                        <li>
+                            Click <strong>Connect Payment Gateway</strong>.
+                            Customers can then pay by GCash, Maya, card, or
+                            GrabPay.
+                        </li>
+                    </ol>
+                    <p class="mt-3 flex items-start gap-2 text-xs text-blue-800">
+                        <ShieldCheck
+                            class="mt-0.5 h-4 w-4 shrink-0"
+                            aria-hidden="true"
+                        />
+                        Never share your secret key with anyone. Both keys must
+                        be from the same mode (test or live).
+                    </p>
                 </div>
 
                 <div class="rounded-2xl border border-gray-200 bg-white p-5">

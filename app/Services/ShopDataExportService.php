@@ -152,16 +152,16 @@ class ShopDataExportService
                 ]),
             ],
             'inventory' => [
-                ['SKU', 'Name', 'Category', 'Supplier', 'Unit', 'Quantity', 'Minimum stock', 'Maximum stock', 'Unit price', 'Selling price', 'Status'],
+                ['Name', 'Category', 'Supplier', 'Unit', 'Quantity', 'Minimum stock', 'Maximum stock', 'Unit price', 'Selling price', 'Status'],
                 $this->map($this->repository->inventory($shopId), fn (Inventory $i) => [
-                    $i->sku, $i->name, $i->category?->name, $i->supplier?->name, $i->unit, $i->quantity,
+                    $i->name, $i->category?->name, $i->supplier?->name, $i->unit, $i->quantity,
                     $i->min_stock, $i->max_stock, $i->unit_price, $i->selling_price, $i->status,
                 ]),
             ],
             'stock-movements' => [
-                ['Date', 'SKU', 'Item', 'Type', 'Quantity', 'Before', 'After', 'Reference', 'Notes'],
+                ['Date', 'Item', 'Type', 'Quantity', 'Before', 'After', 'Reference', 'Notes'],
                 $this->map($this->repository->stockMovements($shopId), fn (InventoryMovement $m) => [
-                    $m->created_at?->toDateTimeString(), $m->inventory?->sku, $m->inventory?->name, $m->type,
+                    $m->created_at?->toDateTimeString(), $m->inventory?->name, $m->type,
                     $m->quantity, $m->quantity_before, $m->quantity_after, $m->reference_number, $m->notes,
                 ]),
             ],

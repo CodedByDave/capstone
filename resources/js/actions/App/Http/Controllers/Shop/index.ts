@@ -1,4 +1,5 @@
 import CheckoutController from './CheckoutController'
+import BusinessAgreementPdfController from './BusinessAgreementPdfController'
 import TrialController from './TrialController'
 import BusinessAgreementController from './BusinessAgreementController'
 import ShopNotificationController from './ShopNotificationController'
@@ -21,6 +22,7 @@ import LogisticsController from './LogisticsController'
 import DeliveryProofController from './DeliveryProofController'
 const Shop = {
     CheckoutController: Object.assign(CheckoutController, CheckoutController),
+BusinessAgreementPdfController: Object.assign(BusinessAgreementPdfController, BusinessAgreementPdfController),
 TrialController: Object.assign(TrialController, TrialController),
 BusinessAgreementController: Object.assign(BusinessAgreementController, BusinessAgreementController),
 ShopNotificationController: Object.assign(ShopNotificationController, ShopNotificationController),

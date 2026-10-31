@@ -27,7 +27,6 @@ interface Supplier {
 interface InventoryItem {
     id: number;
     name: string;
-    sku: string;
     description: string | null;
     unit: string;
     quantity: number;
@@ -59,7 +58,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: inventory.name,
-    sku: inventory.sku,
     description: inventory.description ?? '',
     unit: inventory.unit,
     min_stock: inventory.min_stock,
@@ -117,19 +115,6 @@ function submit() {
                         />
                         <p v-if="form.errors.name" class="text-xs text-red-500">
                             {{ form.errors.name }}
-                        </p>
-                    </div>
-                    <div class="col-span-12 space-y-1 sm:col-span-3">
-                        <label class="text-sm font-medium"
-                            >SKU <span class="text-red-500">*</span></label
-                        >
-                        <Input
-                            v-model="form.sku"
-                            class="font-mono"
-                            :class="{ 'border-red-500': form.errors.sku }"
-                        />
-                        <p v-if="form.errors.sku" class="text-xs text-red-500">
-                            {{ form.errors.sku }}
                         </p>
                     </div>
                     <div class="col-span-12 space-y-1 sm:col-span-3">

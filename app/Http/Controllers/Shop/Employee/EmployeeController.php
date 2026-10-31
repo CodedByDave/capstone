@@ -13,6 +13,7 @@ use App\Models\Employee;
 use App\Models\EmployeeArchive;
 use App\Models\Shop;
 use App\Models\ShopRole;
+use App\Services\ActivityLogService;
 use App\Services\EmployeeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -22,6 +23,7 @@ class EmployeeController extends Controller
 {
     public function __construct(
         private readonly EmployeeService $employeeService,
+        private readonly ActivityLogService $activityLogService,
     ) {}
 
     /* ─── PRIVATE HELPERS ────────────────────────────────────── */
@@ -82,6 +84,7 @@ class EmployeeController extends Controller
         return Inertia::render('shop/employee/Show', [
             'employee' => $employee->load(['creator:id,name', 'updater:id,name']),
             'schedules' => $employee->schedules()->get(),
+            'activity_logs' => $this->activityLogService->getEmployeeActivity($shop, $employee->user_id),
         ]);
     }
 

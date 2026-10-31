@@ -9,7 +9,13 @@ import { toast } from 'vue-sonner';
 import { Button } from '@/components/ui/button';
 
 // icons
-import { ArrowLeft, CalendarDays, Copy, Pencil } from 'lucide-vue-next';
+import {
+    ArrowLeft,
+    CalendarDays,
+    Copy,
+    History,
+    Pencil,
+} from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +45,14 @@ interface Employee {
     updater: AuditUser | null;
 }
 
+interface EmployeeActivity {
+    id: number;
+    module: string;
+    action: string;
+    subject: string;
+    created_at: string;
+}
+
 interface Schedule {
     id: number;
     day: string;
@@ -48,14 +62,19 @@ interface Schedule {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { employee, schedules } = defineProps<{
+const { employee, schedules, activity_logs } = defineProps<{
     employee: Employee;
     schedules: Schedule[];
+    activity_logs: EmployeeActivity[];
 }>();
+
+const actionLabel = (action: string) =>
+    action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 const page = usePage();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
+const logsUrl = computed(() => `${baseRoute.value}/logs`);
 
 const weekdays = [
     'Monday',
@@ -503,6 +522,71 @@ const formatDateTime = (val: string) =>
                                 </dd>
                             </div>
                         </dl>
+                    </section>
+
+                    <section class="border-t pt-8">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-base font-semibold">
+                                    Activity logs
+                                </h3>
+                                <p class="mt-0.5 text-sm text-muted-foreground">
+                                    Recent actions performed by this employee.
+                                </p>
+                            </div>
+                            <Link
+                                :href="logsUrl"
+                                class="text-sm font-medium text-primary hover:underline"
+                            >
+                                View all logs
+                            </Link>
+                        </div>
+
+                        <div
+                            v-if="!activity_logs || activity_logs.length === 0"
+                            class="mt-5 flex flex-col items-center rounded-lg border border-dashed px-4 py-8 text-center"
+                        >
+                            <History
+                                class="h-6 w-6 text-muted-foreground"
+                                aria-hidden="true"
+                            />
+                            <p class="mt-2 text-sm text-muted-foreground">
+                                No activity recorded for this employee yet.
+                            </p>
+                        </div>
+
+                        <ul v-else class="mt-5 divide-y rounded-lg border">
+                            <li
+                                v-for="log in activity_logs"
+                                :key="log.id"
+                                class="flex items-start gap-3 px-4 py-3"
+                            >
+                                <History
+                                    class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                                    aria-hidden="true"
+                                />
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium">
+                                        {{ actionLabel(log.action) }}
+                                        <span
+                                            class="font-normal text-muted-foreground"
+                                            >· {{ log.module }}</span
+                                        >
+                                    </p>
+                                    <p
+                                        class="truncate text-xs text-muted-foreground"
+                                    >
+                                        {{ log.subject }}
+                                    </p>
+                                </div>
+                                <time
+                                    class="shrink-0 text-xs text-muted-foreground"
+                                    :datetime="log.created_at"
+                                >
+                                    {{ formatDateTime(log.created_at) }}
+                                </time>
+                            </li>
+                        </ul>
                     </section>
                 </div>
 

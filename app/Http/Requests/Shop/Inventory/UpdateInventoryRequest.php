@@ -20,7 +20,6 @@ class UpdateInventoryRequest extends FormRequest
             'inventory_categories_id' => ['nullable', 'exists:inventory_categories,id'],
             'supplier_id' => ['nullable', 'exists:suppliers,id'],
             'name' => ['required', 'string', 'max:255'],
-            'sku' => ['required', 'string', 'max:100', Rule::unique('inventory', 'sku')->ignore($inventoryId)],
             'description' => ['nullable', 'string', 'max:2000'],
             'unit' => ['required', 'string', 'max:50'],
             'min_stock' => ['required', 'integer', 'min:0'],
@@ -34,7 +33,6 @@ class UpdateInventoryRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'sku.unique' => 'This SKU is already used by another inventory item.',
             'max_stock.gt' => 'Max stock must be greater than min stock.',
         ];
     }

@@ -18,7 +18,6 @@ class Inventory extends Model
         'inventory_categories_id',
         'supplier_id',
         'name',
-        'sku',
         'description',
         'unit',
         'quantity',
