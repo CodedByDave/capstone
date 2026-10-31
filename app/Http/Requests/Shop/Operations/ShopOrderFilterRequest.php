@@ -28,6 +28,7 @@ class ShopOrderFilterRequest extends FormRequest
             'status' => ['nullable', Rule::in(ShopOrder::STATUSES)],
             'payment_status' => ['nullable', Rule::in(ShopOrder::PAYMENT_STATUSES)],
             'archived' => ['nullable', 'boolean'],
+            'new_only' => ['nullable', 'boolean'],
             'sort_by' => ['nullable', Rule::in([
                 'order_number', 'customer', 'service', 'status', 'payment_status', 'total', 'created_at',
             ])],
@@ -51,6 +52,7 @@ class ShopOrderFilterRequest extends FormRequest
             'status' => $validated['status'] ?? null,
             'payment_status' => $validated['payment_status'] ?? null,
             'archived' => (bool) ($validated['archived'] ?? false),
+            'new_only' => (bool) ($validated['new_only'] ?? false),
             'sort_by' => $validated['sort_by'] ?? 'created_at',
             'sort_direction' => $validated['sort_direction'] ?? 'desc',
             'per_page' => (int) $validated['per_page'],

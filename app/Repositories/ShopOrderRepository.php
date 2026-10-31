@@ -31,6 +31,10 @@ class ShopOrderRepository
             $query->where('payment_status', $filters['payment_status']);
         }
 
+        if (! empty($filters['new_only']) && ! $onlyTrashed) {
+            $query->where('created_at', '>=', now()->startOfDay());
+        }
+
         if (filled($filters['search'] ?? null)) {
             $like = '%'.addcslashes((string) $filters['search'], '%_\\').'%';
 
@@ -233,6 +237,22 @@ class ShopOrderRepository
     public function countUnpaid(int $shopId): int
     {
         return $this->model->forShop($shopId)->where('payment_status', 'unpaid')->count();
+    }
+
+    /** Orders placed since the given moment (used for the "new orders" badge). */
+    public function countCreatedSince(int $shopId, \DateTimeInterface $since): int
+    {
+        return $this->model->forShop($shopId)->where('created_at', '>=', $since)->count();
+    }
+
+    /** The shop a user works in: the owner's own shop, or the shop their staff record belongs to. */
+    public function shopIdForUser(User $user): ?int
+    {
+        if ($user->role === 'owner') {
+            return Shop::where('owner_id', $user->id)->value('id');
+        }
+
+        return Employee::where('user_id', $user->id)->value('shop_id');
     }
 
     public function countByStatus(int $shopId): array

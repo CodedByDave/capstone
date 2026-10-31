@@ -9,6 +9,7 @@ use App\Models\Shop;
 use App\Services\NotificationService;
 use App\Services\PlatformRatingService;
 use App\Services\PlatformRoleService;
+use App\Services\ShopOrderService;
 use App\Services\ShopSetupService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class HandleInertiaRequests extends Middleware
         private readonly NotificationService $notifications,
         private readonly ShopSetupService $shopSetup,
         private readonly PlatformRatingService $platformRatings,
+        private readonly ShopOrderService $shopOrders,
     ) {}
 
     public function version(Request $request): ?string
@@ -68,6 +70,10 @@ class HandleInertiaRequests extends Middleware
 
             'platformPermissions' => fn () => $this->platformRoles
                 ->permissionsForRole($request->user()?->role),
+
+            'sidebarBadges' => fn () => $request->user()
+                ? $this->shopOrders->sidebarBadgesFor($request->user())
+                : null,
 
             'shopCapabilities' => fn () => $request->user()
                 ? $this->shopSetup->capabilitiesForUser($request->user())

@@ -77,6 +77,7 @@ interface Paginator {
 const props = defineProps<{
     orders: Paginator;
     statusSummary: Record<string, number>;
+    newOrdersCount: number;
     filters: Record<string, string | number | boolean | null | undefined>;
     showArchived: boolean;
 }>();
@@ -110,7 +111,10 @@ const base = computed(() =>
 // ─── Filters and server options ────────────────────
 
 const search = ref(String(props.filters.search ?? ''));
-const status = ref(String(props.filters.status ?? ''));
+// "new" is a date-based view (orders placed today), not an order status.
+const status = ref(
+    props.filters.new_only ? 'new' : String(props.filters.status ?? ''),
+);
 const paymentStatus = ref(String(props.filters.payment_status ?? ''));
 const tableLoading = ref(false);
 
@@ -124,7 +128,9 @@ const serverOptions = ref<DataTableOptions>({
 function query() {
     return {
         search: search.value || undefined,
-        status: status.value || undefined,
+        status:
+            status.value && status.value !== 'new' ? status.value : undefined,
+        new_only: status.value === 'new' ? 1 : undefined,
         payment_status: paymentStatus.value || undefined,
         archived: props.showArchived ? 1 : undefined,
         sort_by: serverOptions.value.sortBy,
@@ -136,7 +142,7 @@ function query() {
 
 function applyFilters() {
     router.get(base.value, query(), {
-        only: ['orders', 'statusSummary', 'filters'],
+        only: ['orders', 'statusSummary', 'newOrdersCount', 'filters'],
         preserveState: true,
         preserveScroll: true,
         replace: true,
@@ -197,6 +203,7 @@ const resetTable = () => {
 
 const statusOptions = computed(() => [
     { value: '', label: 'All', count: totalOrders.value },
+    { value: 'new', label: 'New (today)', count: props.newOrdersCount },
     ...['pending', 'in_progress', 'completed', 'picked_up'].map((value) => ({
         value,
         label: formatLabel(value),
@@ -303,7 +310,7 @@ const changeStatus = (order: Order, next: 'picked_up') => {
         { status: next },
         {
             preserveScroll: true,
-            only: ['orders', 'statusSummary', 'flash', 'toast'],
+            only: ['orders', 'statusSummary', 'newOrdersCount', 'flash', 'toast'],
             onError: (errors) =>
                 toast.error(
                     errors.status ?? 'The order status could not be changed.',

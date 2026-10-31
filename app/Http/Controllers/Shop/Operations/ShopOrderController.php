@@ -66,6 +66,7 @@ class ShopOrderController extends Controller
         return Inertia::render('shop/operations/orders/Index', [
             'orders' => $orders,
             'statusSummary' => $this->service->getStatusSummary($shopId),
+            'newOrdersCount' => $this->service->newOrdersToday($shopId),
             'filters' => $filters,
             'showArchived' => $filters['archived'],
         ]);

@@ -45,6 +45,24 @@ class ShopOrderService
         return $this->repository->findById($id);
     }
 
+    /** Orders placed today, i.e. the "New" orders for the shop. */
+    public function newOrdersToday(int $shopId): int
+    {
+        return $this->repository->countCreatedSince($shopId, now()->startOfDay());
+    }
+
+    /** @return array{operations_orders: int}|null Sidebar badge counts for a shop owner or staff member. */
+    public function sidebarBadgesFor(User $user): ?array
+    {
+        if (! in_array($user->role, ['owner', 'staff'], true)) {
+            return null;
+        }
+
+        $shopId = $this->repository->shopIdForUser($user);
+
+        return $shopId ? ['operations_orders' => $this->newOrdersToday($shopId)] : null;
+    }
+
     public function getStatusSummary(int $shopId): array
     {
         return $this->repository->countByStatus($shopId);

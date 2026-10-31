@@ -295,3 +295,27 @@ test('guests and customers cannot open the orders list', function () {
     $this->actingAs(User::factory()->create(['role' => AccountType::Customer->value]));
     expect($this->get('/shop/operations/orders')->status())->toBeIn([302, 403]);
 });
+
+test('the new filter and sidebar badge count only orders placed today for that shop', function () {
+    $shop = listShop();
+    $other = listShop('Other Laundry');
+    listOrder($shop, ['order_number' => 'TODAY-1', 'created_at' => now()]);
+    listOrder($shop, ['order_number' => 'TODAY-2', 'created_at' => now()]);
+    listOrder($shop, ['order_number' => 'YESTERDAY', 'created_at' => now()->subDays(2)]);
+    listOrder($other, ['order_number' => 'NOT-MINE', 'created_at' => now()]);
+
+    $response = $this->actingAs($shop->owner)->get('/shop/operations/orders?new_only=1')->assertOk();
+
+    expect(listed($response))->toEqualCanonicalizing(['TODAY-1', 'TODAY-2']);
+    expect($response->viewData('page')['props']['newOrdersCount'])->toBe(2);
+    expect($response->viewData('page')['props']['sidebarBadges'])->toBe(['operations_orders' => 2]);
+});
+
+test('staff see the same new order badge for their shop', function () {
+    $shop = listShop();
+    listOrder($shop, ['created_at' => now()]);
+
+    $response = $this->actingAs(listStaff($shop))->get('/staff/operations/orders')->assertOk();
+
+    expect($response->viewData('page')['props']['sidebarBadges'])->toBe(['operations_orders' => 1]);
+});

@@ -74,6 +74,21 @@ const shopCapabilities = computed(
             offers_delivery: boolean;
         },
 );
+// Red-dot counts per sidebar item, e.g. orders placed today on "All Orders".
+const sidebarBadges = computed(
+    () =>
+        ((page.props as any).sidebarBadges ?? {}) as Record<string, number>,
+);
+const subBadge = (title: string, moduleName: string): number =>
+    moduleName === 'Operations' && title === 'All Orders'
+        ? (sidebarBadges.value.operations_orders ?? 0)
+        : 0;
+const moduleBadge = (moduleName: string): number =>
+    getSubActions(moduleName).reduce(
+        (sum, sub) => sum + subBadge(sub.title, moduleName),
+        0,
+    );
+const badgeLabel = (n: number) => (n > 99 ? '99+' : String(n));
 const ownerCan = (permission: string) =>
     !isOwner.value || platformPermissions.value.includes(permission);
 
@@ -190,6 +205,12 @@ const allOperationsSubActions = [
         icon: Zap,
         href: '/shop/operations/order-automation',
         show: () => isOwner.value,
+    },
+    {
+        title: 'Logistics',
+        icon: Truck,
+        href: '/shop/logistics',
+        show: () => isOwner.value && showOwnerLogistics.value,
     },
     {
         title: 'Complaints',
@@ -397,6 +418,7 @@ const areaChecks: Record<string, (url: string) => boolean> = {
     Operations: (url) =>
         url.startsWith('/shop/operations') ||
         url.startsWith('/staff/operations') ||
+        url.startsWith('/shop/logistics') ||
         url.startsWith('/shop/orders') ||
         url.startsWith('/staff/orders') ||
         url.startsWith('/shop/services') ||
@@ -570,9 +592,13 @@ const dashboardItem = computed(() => {
 const ownerHomeHref = computed(() =>
     ownerCan('shop.dashboard') ? '/shop/dashboard' : '/',
 );
+const showOwnerLogistics = computed(
+    () =>
+        ownerCan('shop.operations') && shopCapabilities.value.offers_delivery,
+);
+const hasOwnerOperationalTools = computed(() => ownerCan('shop.settings'));
 const hasOwnerAdministration = computed(() =>
     [
-        'shop.operations',
         'shop.staff',
         'shop.settings',
         'shop.finance',
@@ -620,6 +646,11 @@ const hasOwnerAdministration = computed(() =>
                                         class="h-4 w-4 shrink-0"
                                     />
                                     <span>{{ mod.title }}</span>
+                                    <span
+                                        v-if="moduleBadge(mod.moduleName) > 0"
+                                        class="h-2 w-2 rounded-full bg-red-500"
+                                        :aria-label="`${moduleBadge(mod.moduleName)} new`"
+                                    />
                                 </span>
                                 <CollapsibleTrigger as-child>
                                     <span
@@ -663,6 +694,25 @@ const hasOwnerAdministration = computed(() =>
                                                     class="h-3.5 w-3.5"
                                                 />
                                                 {{ sub.title }}
+                                                <span
+                                                    v-if="
+                                                        subBadge(
+                                                            sub.title,
+                                                            mod.moduleName,
+                                                        ) > 0
+                                                    "
+                                                    class="ml-auto min-w-4 rounded-full bg-red-500 px-1 text-center text-[10px] leading-4 font-semibold text-white"
+                                                    :aria-label="`${subBadge(sub.title, mod.moduleName)} new orders today`"
+                                                >
+                                                    {{
+                                                        badgeLabel(
+                                                            subBadge(
+                                                                sub.title,
+                                                                mod.moduleName,
+                                                            ),
+                                                        )
+                                                    }}
+                                                </span>
                                             </Link>
                                         </SidebarMenuSubButton>
                                     </SidebarMenuSubItem>
@@ -709,6 +759,24 @@ const hasOwnerAdministration = computed(() =>
             </SidebarMenuItem>
         </SidebarMenu>
 
+        <!-- Owner day-to-day tools: operational, so kept out of Administration -->
+        <SidebarMenu v-if="isOwner && isApproved && hasOwnerOperationalTools" class="px-2">
+            <SidebarMenuItem v-if="ownerCan('shop.settings')">
+                <SidebarMenuButton
+                    as-child
+                    :is-active="currentUrl.startsWith('/shop/customer-qr')"
+                >
+                    <Link
+                        href="/shop/customer-qr"
+                        class="flex w-full items-center gap-2"
+                    >
+                        <QrCode class="h-4 w-4 shrink-0" />
+                        <span>Customer QR</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </SidebarMenu>
+
         <!-- Owner-only admin section -->
         <div
             v-if="isOwner && isApproved && hasOwnerAdministration"
@@ -720,25 +788,6 @@ const hasOwnerAdministration = computed(() =>
                 Administration
             </p>
             <SidebarMenu>
-                <SidebarMenuItem
-                    v-if="
-                        ownerCan('shop.operations') &&
-                        shopCapabilities.offers_delivery
-                    "
-                >
-                    <SidebarMenuButton
-                        as-child
-                        :is-active="currentUrl.startsWith('/shop/logistics')"
-                    >
-                        <Link
-                            href="/shop/logistics"
-                            class="flex w-full items-center gap-2"
-                        >
-                            <Truck class="h-4 w-4" />
-                            <span>Logistics</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
                 <SidebarMenuItem v-if="ownerCan('shop.staff')">
                     <SidebarMenuButton
                         as-child
@@ -796,20 +845,6 @@ const hasOwnerAdministration = computed(() =>
                         >
                             <CreditCard class="h-4 w-4" />
                             <span>Payment Settings</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem v-if="ownerCan('shop.settings')">
-                    <SidebarMenuButton
-                        as-child
-                        :is-active="currentUrl.startsWith('/shop/customer-qr')"
-                    >
-                        <Link
-                            href="/shop/customer-qr"
-                            class="flex w-full items-center gap-2"
-                        >
-                            <QrCode class="h-4 w-4" />
-                            <span>Customer QR</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
