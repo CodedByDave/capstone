@@ -20,6 +20,8 @@ class Inventory extends Model
         'name',
         'description',
         'unit',
+        'package_unit',
+        'package_size',
         'quantity',
         'min_stock',
         'max_stock',
@@ -32,6 +34,7 @@ class Inventory extends Model
         'unit_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'quantity' => 'integer',
+        'package_size' => 'integer',
         'min_stock' => 'integer',
         'max_stock' => 'integer',
     ];

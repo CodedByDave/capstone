@@ -44,6 +44,8 @@ const form = useForm({
     name: '',
     description: '',
     unit: 'pcs',
+    package_unit: '',
+    package_size: '',
     quantity: 0,
     min_stock: 5,
     max_stock: '',
@@ -85,8 +87,30 @@ const saveStatus = computed(() =>
     form.isDirty ? 'You have unsaved changes' : 'No changes yet',
 );
 
+// When the item is bought in packages (e.g. bottles of 5,000 ml), the stock
+// fields are typed in packages and saved in the item's own unit.
+const usesPackages = computed(
+    () => form.package_unit.trim() !== '' && Number(form.package_size) > 0,
+);
+const packageCount = computed(() => Number(form.package_size) || 0);
+const inUnit = (packages: number | string) =>
+    Math.round(Number(packages || 0) * packageCount.value);
+const entryLabel = computed(() =>
+    usesPackages.value ? form.package_unit.trim() : form.unit,
+);
+
 function submit() {
-    form.post(base.value, {
+    form.transform((data) =>
+        usesPackages.value
+            ? {
+                  ...data,
+                  quantity: inUnit(data.quantity),
+                  min_stock: inUnit(data.min_stock),
+                  max_stock:
+                      data.max_stock === '' ? '' : inUnit(data.max_stock),
+              }
+            : { ...data, package_unit: '', package_size: '' },
+    ).post(base.value, {
         onSuccess: () => form.reset(),
     });
 }
@@ -249,9 +273,70 @@ function submit() {
                         <div class="mt-5 grid grid-cols-12 gap-x-6 gap-y-5">
                             <div class="col-span-12 space-y-1.5 sm:col-span-4">
                                 <label
+                                    for="item-package-unit"
+                                    class="text-sm font-medium"
+                                    >Bought as
+                                    <span class="text-xs text-muted-foreground"
+                                        >(optional)</span
+                                    ></label
+                                >
+                                <Input
+                                    id="item-package-unit"
+                                    v-model="form.package_unit"
+                                    placeholder="e.g. bottle, pack, sack"
+                                />
+                                <p
+                                    v-if="form.errors.package_unit"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.package_unit }}
+                                </p>
+                            </div>
+                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
+                                <label
+                                    for="item-package-size"
+                                    class="text-sm font-medium"
+                                    >Contents per
+                                    {{ form.package_unit.trim() || 'package' }}
+                                    <span class="text-xs text-muted-foreground"
+                                        >({{ form.unit }})</span
+                                    ></label
+                                >
+                                <Input
+                                    id="item-package-size"
+                                    v-model="form.package_size"
+                                    type="number"
+                                    min="1"
+                                    placeholder="e.g. 5000"
+                                />
+                                <p
+                                    v-if="form.errors.package_size"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.package_size }}
+                                </p>
+                            </div>
+                            <p
+                                class="col-span-12 -mt-2 text-xs text-muted-foreground"
+                            >
+                                <template v-if="usesPackages"
+                                    >Stock below is entered in
+                                    {{ form.package_unit.trim() }}s. It is saved
+                                    as {{ form.unit }} (1
+                                    {{ form.package_unit.trim() }} =
+                                    {{ packageCount.toLocaleString() }}
+                                    {{ form.unit }}).</template
+                                >
+                                <template v-else
+                                    >Leave these empty to enter stock directly in
+                                    {{ form.unit }}.</template
+                                >
+                            </p>
+                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
+                                <label
                                     for="item-quantity"
                                     class="text-sm font-medium"
-                                    >Initial quantity
+                                    >Initial quantity ({{ entryLabel }})
                                     <span class="text-red-500">*</span></label
                                 >
                                 <Input
@@ -259,6 +344,7 @@ function submit() {
                                     v-model="form.quantity"
                                     type="number"
                                     min="0"
+                                    :step="usesPackages ? 'any' : 1"
                                     :class="{
                                         'border-red-500': form.errors.quantity,
                                     }"
@@ -274,7 +360,7 @@ function submit() {
                                 <label
                                     for="item-min"
                                     class="text-sm font-medium"
-                                    >Minimum stock
+                                    >Minimum stock ({{ entryLabel }})
                                     <span class="text-red-500">*</span></label
                                 >
                                 <Input
@@ -282,6 +368,7 @@ function submit() {
                                     v-model="form.min_stock"
                                     type="number"
                                     min="0"
+                                    :step="usesPackages ? 'any' : 1"
                                     :class="{
                                         'border-red-500': form.errors.min_stock,
                                     }"
@@ -520,13 +607,15 @@ function submit() {
                                 Starting stock
                             </dt>
                             <dd class="font-medium">
-                                {{ form.quantity || 0 }} {{ form.unit }}
+                                {{ usesPackages ? inUnit(form.quantity).toLocaleString() : form.quantity || 0 }}
+                                {{ form.unit }}
                             </dd>
                         </div>
                         <div class="flex items-center justify-between">
                             <dt class="text-muted-foreground">Alert at</dt>
                             <dd class="font-medium">
-                                {{ form.min_stock || 0 }} {{ form.unit }}
+                                {{ usesPackages ? inUnit(form.min_stock).toLocaleString() : form.min_stock || 0 }}
+                                {{ form.unit }}
                             </dd>
                         </div>
                         <div class="flex items-center justify-between">

@@ -50,6 +50,8 @@ interface InventoryItem {
     name: string;
     description: string | null;
     unit: string;
+    package_unit: string | null;
+    package_size: number | null;
     quantity: number;
     min_stock: number;
     max_stock: number | null;
@@ -79,6 +81,18 @@ const showAdjust = ref(false);
 const adjustError = ref<string | null>(null);
 const adjusting = ref(false);
 
+// An item bought in packages (e.g. bottles of 5,000 ml) can be adjusted in
+// packages; the stock itself always moves in the item's own unit.
+const hasPackage = computed(
+    () => !!inventory.package_unit && (inventory.package_size ?? 0) > 0,
+);
+const adjustInPackages = ref(hasPackage.value);
+const packagesOnHand = computed(() =>
+    hasPackage.value
+        ? Math.round((inventory.quantity / inventory.package_size!) * 100) / 100
+        : null,
+);
+
 const adjustForm = ref({
     type: 'restock',
     quantity: 1,
@@ -96,10 +110,16 @@ async function submitAdjust() {
     adjustError.value = null;
 
     try {
-        await axios.post(
-            `${base.value}/${inventory.id}/adjust`,
-            adjustForm.value,
-        );
+        await axios.post(`${base.value}/${inventory.id}/adjust`, {
+            ...adjustForm.value,
+            quantity:
+                hasPackage.value && adjustInPackages.value
+                    ? Math.round(
+                          Number(adjustForm.value.quantity) *
+                              inventory.package_size!,
+                      )
+                    : adjustForm.value.quantity,
+        });
         router.reload({ only: ['inventory'] });
         showAdjust.value = false;
         adjustForm.value = {
@@ -261,12 +281,33 @@ const movementTypeOptions = computed(() => [
                             </Select>
                         </div>
                         <div class="col-span-12 space-y-1 sm:col-span-2">
-                            <label class="text-sm font-medium">Quantity</label>
+                            <label class="text-sm font-medium"
+                                >Quantity ({{
+                                    hasPackage && adjustInPackages
+                                        ? inventory.package_unit
+                                        : inventory.unit
+                                }})</label
+                            >
                             <Input
                                 v-model="adjustForm.quantity"
                                 type="number"
-                                min="1"
+                                min="0"
+                                :step="
+                                    hasPackage && adjustInPackages ? 'any' : 1
+                                "
                             />
+                            <button
+                                v-if="hasPackage"
+                                type="button"
+                                class="text-xs text-primary hover:underline"
+                                @click="adjustInPackages = !adjustInPackages"
+                            >
+                                {{
+                                    adjustInPackages
+                                        ? `Enter in ${inventory.unit} instead`
+                                        : `Enter in ${inventory.package_unit} instead`
+                                }}
+                            </button>
                         </div>
                         <div class="col-span-12 space-y-1 sm:col-span-3">
                             <label class="text-sm font-medium"
@@ -421,6 +462,16 @@ const movementTypeOptions = computed(() => [
                                 {{ inventory.quantity }}
                             </p>
                             <p class="mt-1 text-sm text-muted-foreground">
+                                {{ inventory.unit }}
+                            </p>
+                            <p
+                                v-if="packagesOnHand !== null"
+                                class="mt-1 text-xs text-muted-foreground"
+                            >
+                                ≈ {{ packagesOnHand }}
+                                {{ inventory.package_unit }}(s) · 1
+                                {{ inventory.package_unit }} =
+                                {{ inventory.package_size?.toLocaleString() }}
                                 {{ inventory.unit }}
                             </p>
                         </CardContent>

@@ -19,6 +19,8 @@ class StoreInventoryRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'unit' => ['required', 'string', 'max:50'],
+            'package_unit' => ['nullable', 'string', 'max:50', 'required_with:package_size'],
+            'package_size' => ['nullable', 'integer', 'min:1', 'required_with:package_unit'],
             'quantity' => ['required', 'integer', 'min:0'],
             'min_stock' => ['required', 'integer', 'min:0'],
             'max_stock' => ['nullable', 'integer', 'min:0', 'gt:min_stock'],

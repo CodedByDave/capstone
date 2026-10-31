@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { caviteLocations } from '@/constants/caviteLocations';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import L from 'leaflet';
@@ -278,11 +279,16 @@ async function reverseGeocode(lat: number, lng: number) {
                     // No curated list for this town: use the name from the map.
                     form.barangay = rawBarangayName;
                 } else {
-                    const matchedBarangay = barangays.find(
-                        (b) =>
-                            b.name.toLowerCase().includes(rawBarangay) ||
-                            rawBarangay.includes(b.name.toLowerCase()),
-                    );
+                    const wanted = normalizeBarangay(rawBarangayName);
+                    const matchedBarangay =
+                        barangays.find(
+                            (b) => normalizeBarangay(b.name) === wanted,
+                        ) ??
+                        barangays.find(
+                            (b) =>
+                                normalizeBarangay(b.name).includes(wanted) ||
+                                wanted.includes(normalizeBarangay(b.name)),
+                        );
                     if (matchedBarangay) form.barangay = matchedBarangay.name;
                 }
             }
@@ -323,99 +329,35 @@ onUnmounted(() => {
 });
 
 /* ---------------- MUNICIPALITIES / BARANGAYS ---------------- */
+// Complete PSGC list of Cavite cities/municipalities and their barangays.
 const barangaysByMunicipality: Record<
     string,
     Array<{ name: string; postal: string }>
-> = {
-    'City of Cavite': [
-        { name: 'Barangay 1 (Hen. M. Alvarez)', postal: '4100' },
-        { name: 'Barangay 2 (Hen. C. Tirona)', postal: '4100' },
-        { name: 'Barangay 3 (M. Paterno)', postal: '4100' },
-        { name: 'Barangay 4 (M. Roxas)', postal: '4100' },
-    ],
+> = Object.fromEntries(
+    Object.entries(caviteLocations).map(([municipality, data]) => [
+        municipality,
+        data.barangays.map((name) => ({ name, postal: data.postal })),
+    ]),
+);
 
-    'City of Dasmariñas': [
-        { name: 'Burol', postal: '4114' },
-        { name: 'Burol II', postal: '4114' },
-        { name: 'Dangcalan', postal: '4114' },
-        { name: 'Langkaan I', postal: '4114' },
-        { name: 'Langkaan II', postal: '4114' },
-        { name: 'Langkaan III', postal: '4114' },
-        { name: 'Langkaan IV', postal: '4114' },
-        { name: 'Malagasang I', postal: '4114' },
-        { name: 'Malagasang II', postal: '4114' },
-        { name: 'Paliparan I', postal: '4114' },
-        { name: 'Paliparan II', postal: '4114' },
-        { name: 'Paliparan III', postal: '4114' },
-        { name: 'Real', postal: '4114' },
-        { name: 'Salawag', postal: '4114' },
-        { name: 'San Agustin', postal: '4114' },
-        { name: 'San Jose', postal: '4114' },
-        { name: 'San Miguel', postal: '4114' },
-        { name: 'Sampaloc', postal: '4114' },
-        { name: 'Santo Niño', postal: '4114' },
-        { name: 'Santo Tomas', postal: '4114' },
-        { name: 'Sapang Malapit', postal: '4114' },
-    ],
+const postalByMunicipality: Record<string, string> = Object.fromEntries(
+    Object.entries(caviteLocations).map(([municipality, data]) => [
+        municipality,
+        data.postal,
+    ]),
+);
 
-    'City of Bacoor': [
-        { name: 'Aniban', postal: '4102' },
-        { name: 'Bayanan', postal: '4102' },
-        { name: 'Burgos', postal: '4102' },
-        { name: 'Zapote', postal: '4102' },
-        { name: 'Niog', postal: '4102' },
-        { name: 'Molino I', postal: '4102' },
-        { name: 'Molino II', postal: '4102' },
-        { name: 'Molino III', postal: '4102' },
-        { name: 'Molino IV', postal: '4102' },
-    ],
-
-    'City of Imus': [
-        { name: 'Buhay na Tubig', postal: '4103' },
-        { name: 'Anabu I', postal: '4103' },
-        { name: 'Anabu II', postal: '4103' },
-        { name: 'Barangka', postal: '4103' },
-        { name: 'Burgos', postal: '4103' },
-        { name: 'Dela Paz', postal: '4103' },
-    ],
-
-    'City of Trece Martires': [
-        { name: 'Centro I', postal: '4109' },
-        { name: 'Centro II', postal: '4109' },
-        { name: 'Buenavista', postal: '4109' },
-        { name: 'Palico', postal: '4109' },
-    ],
-
-    'City of General Trias': [
-        { name: 'Pasong Camachile I', postal: '4107' },
-        { name: 'Pasong Camachile II', postal: '4107' },
-        { name: 'Navarro', postal: '4107' },
-        { name: 'Manggahan', postal: '4107' },
-    ],
-};
-
-/**
- * Other Cavite cities and municipalities. They have no curated barangay list yet, so the barangay
- * is typed in (or filled from the pin) and the postal code comes from the municipality.
- */
-const postalByMunicipality: Record<string, string> = {
-    Alfonso: '4123',
-    Amadeo: '4119',
-    Carmona: '4116',
-    'General Mariano Alvarez': '4117',
-    Indang: '4122',
-    Kawit: '4104',
-    Magallanes: '4113',
-    Maragondon: '4112',
-    Mendez: '4121',
-    Naic: '4110',
-    Noveleta: '4105',
-    Rosario: '4106',
-    Silang: '4118',
-    'City of Tagaytay': '4120',
-    Tanza: '4108',
-    Ternate: '4111',
-};
+/** Lower-case barangay name without "Barangay"/"Brgy" prefixes or "(Pob.)" suffixes. */
+function normalizeBarangay(name: string): string {
+    return name
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\(.*?\)/g, '')
+        .replace(/^(barangay|brgy\.?)\s+/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 
 /** Lower-case, accent-free town name without a "City of" prefix, for matching map results. */
 function normalizePlace(name: string): string {
@@ -424,15 +366,15 @@ function normalizePlace(name: string): string {
         .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
         .replace(/^city of\s+/, '')
+        .replace(/^gen\.\s*/, 'general ')
         .replace(/\s+city$/, '')
         .replace(/^cavite city$/, 'cavite')
         .trim();
 }
 
-const municipalities = [
-    ...Object.keys(barangaysByMunicipality),
-    ...Object.keys(postalByMunicipality),
-].sort((a, b) => normalizePlace(a).localeCompare(normalizePlace(b)));
+const municipalities = Object.keys(barangaysByMunicipality).sort((a, b) =>
+    normalizePlace(a).localeCompare(normalizePlace(b)),
+);
 
 const hasBarangayList = computed(
     () => (barangaysByMunicipality[form.municipality] ?? []).length > 0,

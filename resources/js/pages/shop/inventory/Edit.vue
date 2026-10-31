@@ -29,6 +29,8 @@ interface InventoryItem {
     name: string;
     description: string | null;
     unit: string;
+    package_unit?: string | null;
+    package_size?: number | null;
     quantity: number;
     min_stock: number;
     max_stock: number | null;
@@ -60,6 +62,8 @@ const form = useForm({
     name: inventory.name,
     description: inventory.description ?? '',
     unit: inventory.unit,
+    package_unit: inventory.package_unit ?? '',
+    package_size: inventory.package_size ?? '',
     min_stock: inventory.min_stock,
     max_stock: inventory.max_stock ?? '',
     unit_price: inventory.unit_price ?? '',
@@ -143,6 +147,44 @@ function submit() {
                                 <SelectItem value="rolls">Rolls</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+                    <div class="col-span-12 space-y-1 sm:col-span-4">
+                        <label class="text-sm font-medium"
+                            >Bought as
+                            <span class="text-xs text-muted-foreground"
+                                >(optional)</span
+                            ></label
+                        >
+                        <Input
+                            v-model="form.package_unit"
+                            placeholder="e.g. bottle, pack, sack"
+                        />
+                        <p
+                            v-if="form.errors.package_unit"
+                            class="text-xs text-red-500"
+                        >
+                            {{ form.errors.package_unit }}
+                        </p>
+                    </div>
+                    <div class="col-span-12 space-y-1 sm:col-span-4">
+                        <label class="text-sm font-medium"
+                            >Contents per
+                            {{ form.package_unit.trim() || 'package' }} ({{
+                                form.unit
+                            }})</label
+                        >
+                        <Input
+                            v-model="form.package_size"
+                            type="number"
+                            min="1"
+                            placeholder="e.g. 5000"
+                        />
+                        <p
+                            v-if="form.errors.package_size"
+                            class="text-xs text-red-500"
+                        >
+                            {{ form.errors.package_size }}
+                        </p>
                     </div>
                     <div class="col-span-12 space-y-1">
                         <label class="text-sm font-medium">Description</label>
