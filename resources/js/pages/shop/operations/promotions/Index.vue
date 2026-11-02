@@ -7,6 +7,7 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    BulkActionButton,
     DataTable,
     RowActions,
     StatusPill,
@@ -241,6 +242,8 @@ function formatDate(d: string | null) {
         year: 'numeric',
     });
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -353,6 +356,7 @@ function formatDate(d: string | null) {
 
             <!-- Table -->
             <DataTable
+                v-model:selected="selected"
                 :options="tableOptions"
                 :headers="headers"
                 :items="tableItems"
@@ -370,6 +374,17 @@ function formatDate(d: string | null) {
                 :hide-rows-per-page="Boolean(paginated)"
                 @update:options="setTableOptions"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="canManage"
+                        resource="promotion"
+                        :action="archived ? 'restore' : 'archive'"
+                        :ids="selected"
+                        noun="promotions"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #item-name="promo">
                     <p class="font-medium">{{ promo.name }}</p>
                     <p

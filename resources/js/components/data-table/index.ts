@@ -1,3 +1,4 @@
+export { default as BulkActionButton } from './BulkActionButton.vue';
 export { default as DataTable, type DataTableHeader } from './DataTable.vue';
 export { default as DataTableToolbar } from './DataTableToolbar.vue';
 export { default as IdentityCell } from './IdentityCell.vue';

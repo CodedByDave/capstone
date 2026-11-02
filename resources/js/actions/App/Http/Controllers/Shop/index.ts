@@ -9,6 +9,7 @@ import ShopDashboardController from './ShopDashboardController'
 import ShopDataController from './ShopDataController'
 import Employee from './Employee'
 import CustomerQrController from './CustomerQrController'
+import BulkArchiveController from './BulkArchiveController'
 import Inventory from './Inventory'
 import Operations from './Operations'
 import PlatformRatingController from './PlatformRatingController'
@@ -32,6 +33,7 @@ ShopDashboardController: Object.assign(ShopDashboardController, ShopDashboardCon
 ShopDataController: Object.assign(ShopDataController, ShopDataController),
 Employee: Object.assign(Employee, Employee),
 CustomerQrController: Object.assign(CustomerQrController, CustomerQrController),
+BulkArchiveController: Object.assign(BulkArchiveController, BulkArchiveController),
 Inventory: Object.assign(Inventory, Inventory),
 Operations: Object.assign(Operations, Operations),
 PlatformRatingController: Object.assign(PlatformRatingController, PlatformRatingController),

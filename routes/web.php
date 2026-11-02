@@ -14,6 +14,7 @@ use App\Http\Controllers\Driver\DriverAppController;
 use App\Http\Controllers\Driver\DriverAttendanceController;
 use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\Shop\BulkArchiveController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\BusinessAgreementPdfController;
 use App\Http\Controllers\Shop\CheckoutController;
@@ -243,6 +244,13 @@ Route::prefix('shop')->middleware([
     Route::get('/employee/import-template', [EmployeeController::class, 'importTemplate'])->name('employee.import.template');
     Route::post('/employee/import', [EmployeeController::class, 'import'])->name('employee.import');
     Route::post('/employee/bulk-restore', [EmployeeController::class, 'bulkRestore'])->name('employee.bulk-restore');
+    Route::post('/employee/bulk-archive', [EmployeeController::class, 'bulkArchive'])->name('employee.bulk-archive');
+
+    // ── Bulk archive / restore for table selections ──────────────────────────
+    foreach (['inventory', 'inventory-category', 'supplier', 'expense', 'service', 'promotion'] as $resource) {
+        Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->defaults('resource', $resource)->name("shop.bulk.{$resource}.archive");
+        Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->defaults('resource', $resource)->name("shop.bulk.{$resource}.restore");
+    }
 
     Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
     Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
@@ -467,6 +475,20 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::post('/attendance/clock-out', [SelfAttendanceController::class, 'clockOut'])->name('staff.attendance.clock-out');
 
     // ── Employee ──────────────────────────────────────────────────────────────
+    // ── Bulk archive / restore for table selections ──────────────────────────
+    $staffBulk = [
+        'Inventory Management' => ['inventory', 'inventory-category', 'supplier'],
+        'Finance Management' => ['expense'],
+        'Operations' => ['service', 'promotion'],
+    ];
+    foreach ($staffBulk as $module => $resources) {
+        Route::middleware('permission:'.$module.($module === 'Operations' ? ',manage' : ',archive'))->group(function () use ($resources) {
+            foreach ($resources as $resource) {
+                Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->defaults('resource', $resource)->name("staff.bulk.{$resource}.archive");
+                Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->defaults('resource', $resource)->name("staff.bulk.{$resource}.restore");
+            }
+        });
+    }
     Route::middleware('permission:HRM,create')->group(function () {
         Route::get('/employee/create', [EmployeeController::class, 'create'])->name('staff.employee.create');
         Route::post('/employee', [EmployeeController::class, 'store'])->name('staff.employee.store');
@@ -474,6 +496,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::middleware('permission:HRM,archive')->group(function () {
         Route::get('/employee/archive', [EmployeeController::class, 'archive'])->name('staff.employee.archive');
         Route::post('/employee/bulk-restore', [EmployeeController::class, 'bulkRestore'])->name('staff.employee.bulk-restore');
+        Route::post('/employee/bulk-archive', [EmployeeController::class, 'bulkArchive'])->name('staff.employee.bulk-archive');
     });
     Route::middleware('permission:HRM,import')->group(function () {
         Route::get('/employee/import-template', [EmployeeController::class, 'importTemplate'])->name('staff.employee.import.template');

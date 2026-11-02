@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     type DataTableHeader,
     RowActions,
@@ -9,7 +10,7 @@ import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -123,6 +124,8 @@ function formatDate(val: string): string {
         day: 'numeric',
     });
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -149,6 +152,8 @@ function formatDate(val: string): string {
             <!-- ── Table ───────────────────────────────────────── -->
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
+                item-key="public_id"
                 :headers="headers"
                 :items="expenses.data"
                 :total="expenses.total"
@@ -160,6 +165,16 @@ function formatDate(val: string): string {
                 :min-width="720"
                 hide-rows-per-page
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        resource="expense"
+                        action="restore"
+                        :ids="selected"
+                        noun="archived expenses"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #item-title="exp">
                     <p class="font-medium">{{ exp.title }}</p>
                     <p

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     RowActions,
@@ -398,6 +399,8 @@ function toggleActive(service: ShopService) {
         },
     );
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -487,6 +490,7 @@ function toggleActive(service: ShopService) {
             </div>
 
             <DataTable
+                v-model:selected="selected"
                 v-model:options="options"
                 :headers="headers"
                 :items="pageItems"
@@ -502,6 +506,17 @@ function toggleActive(service: ShopService) {
                 :min-width="1080"
                 @reset="resetFilters"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="canManage"
+                        resource="service"
+                        :action="showArchived ? 'restore' : 'archive'"
+                        :ids="selected"
+                        noun="services"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <DataTableToolbar
                         v-model:search="search"

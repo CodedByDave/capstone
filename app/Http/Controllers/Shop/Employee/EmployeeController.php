@@ -199,6 +199,24 @@ class EmployeeController extends Controller
             ->with('toast', ['type' => 'success', 'message' => 'Employee restored successfully.']);
     }
 
+    public function bulkArchive(BulkEmployeeRequest $request)
+    {
+        $shop = $this->getShop();
+        $employees = $shop->employees()->whereIn('id', $request->ids)->get();
+
+        // Authorize every row first so a forbidden one cannot leave the selection half archived.
+        foreach ($employees as $employee) {
+            Gate::authorize('delete', $employee);
+        }
+
+        $this->employeeService->archiveEmployees($employees);
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => count($employees).' employee(s) archived successfully.',
+        ]);
+    }
+
     public function bulkRestore(BulkEmployeeRequest $request)
     {
         $shop = $this->getShop();

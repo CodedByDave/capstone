@@ -219,6 +219,16 @@ class EmployeeService
         $this->driverRoster->sync($employee);
     }
 
+    /** @param iterable<Employee> $employees */
+    public function archiveEmployees(iterable $employees): void
+    {
+        DB::transaction(function () use ($employees): void {
+            foreach ($employees as $employee) {
+                $this->archiveEmployee($employee);
+            }
+        });
+    }
+
     public function restoreEmployee(Employee $employee): void
     {
         $employee->restore();

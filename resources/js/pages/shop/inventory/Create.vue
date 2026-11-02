@@ -106,7 +106,7 @@ const saveStatus = computed(() =>
 // When the item is bought in packages (e.g. bottles of 5,000 ml), the stock
 // fields are typed in packages and saved in the item's own unit.
 const purchaseUnitOptions = [
-    { value: 'none', label: 'Same as consumption unit' },
+    { value: 'none', label: 'Same as usage' },
     { value: 'bottle', label: 'Bottle' },
     { value: 'gallon', label: 'Gallon' },
     { value: 'sack', label: 'Sack' },
@@ -270,7 +270,7 @@ function submit() {
                                     <Select
                                         v-model="form.inventory_categories_id"
                                     >
-                                        <SelectTrigger
+                                        <SelectTrigger class="w-full min-w-0"
                                             ><SelectValue
                                                 placeholder="Select category"
                                         /></SelectTrigger>
@@ -342,6 +342,7 @@ function submit() {
                                 >
                                 <Select v-model="purchaseUnit">
                                     <SelectTrigger
+                                        class="w-full min-w-0"
                                         :class="{
                                             'border-red-500':
                                                 form.errors.package_unit,
@@ -466,6 +467,7 @@ function submit() {
                                 >
                                 <Select v-model="form.unit">
                                     <SelectTrigger
+                                        class="w-full min-w-0"
                                         :class="{
                                             'border-red-500': form.errors.unit,
                                         }"
@@ -632,7 +634,7 @@ function submit() {
                                     >Supplier</label
                                 >
                                 <Select v-model="form.supplier_id">
-                                    <SelectTrigger
+                                    <SelectTrigger class="w-full min-w-0"
                                         ><SelectValue
                                             placeholder="Select supplier"
                                     /></SelectTrigger>

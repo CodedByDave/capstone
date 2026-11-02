@@ -325,7 +325,7 @@ export const archive = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/shop/employee/import-template'
  */
 const importTemplate9a0217e3d28aadfc0cc7182e40bfe294 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -340,7 +340,7 @@ importTemplate9a0217e3d28aadfc0cc7182e40bfe294.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/shop/employee/import-template'
  */
 importTemplate9a0217e3d28aadfc0cc7182e40bfe294.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ importTemplate9a0217e3d28aadfc0cc7182e40bfe294.url = (options?: RouteQueryOption
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/shop/employee/import-template'
  */
 importTemplate9a0217e3d28aadfc0cc7182e40bfe294.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -358,7 +358,7 @@ importTemplate9a0217e3d28aadfc0cc7182e40bfe294.get = (options?: RouteQueryOption
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/shop/employee/import-template'
  */
 importTemplate9a0217e3d28aadfc0cc7182e40bfe294.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -368,7 +368,7 @@ importTemplate9a0217e3d28aadfc0cc7182e40bfe294.head = (options?: RouteQueryOptio
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/shop/employee/import-template'
  */
     const importTemplate9a0217e3d28aadfc0cc7182e40bfe294Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -378,7 +378,7 @@ importTemplate9a0217e3d28aadfc0cc7182e40bfe294.head = (options?: RouteQueryOptio
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/shop/employee/import-template'
  */
         importTemplate9a0217e3d28aadfc0cc7182e40bfe294Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -387,7 +387,7 @@ importTemplate9a0217e3d28aadfc0cc7182e40bfe294.head = (options?: RouteQueryOptio
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/shop/employee/import-template'
  */
         importTemplate9a0217e3d28aadfc0cc7182e40bfe294Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -403,7 +403,7 @@ importTemplate9a0217e3d28aadfc0cc7182e40bfe294.head = (options?: RouteQueryOptio
     importTemplate9a0217e3d28aadfc0cc7182e40bfe294.form = importTemplate9a0217e3d28aadfc0cc7182e40bfe294Form
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/staff/employee/import-template'
  */
 const importTemplate8571284aeb78abb1b9786d12fed38dc3 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -418,7 +418,7 @@ importTemplate8571284aeb78abb1b9786d12fed38dc3.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/staff/employee/import-template'
  */
 importTemplate8571284aeb78abb1b9786d12fed38dc3.url = (options?: RouteQueryOptions) => {
@@ -427,7 +427,7 @@ importTemplate8571284aeb78abb1b9786d12fed38dc3.url = (options?: RouteQueryOption
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/staff/employee/import-template'
  */
 importTemplate8571284aeb78abb1b9786d12fed38dc3.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -436,7 +436,7 @@ importTemplate8571284aeb78abb1b9786d12fed38dc3.get = (options?: RouteQueryOption
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/staff/employee/import-template'
  */
 importTemplate8571284aeb78abb1b9786d12fed38dc3.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -446,7 +446,7 @@ importTemplate8571284aeb78abb1b9786d12fed38dc3.head = (options?: RouteQueryOptio
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/staff/employee/import-template'
  */
     const importTemplate8571284aeb78abb1b9786d12fed38dc3Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -456,7 +456,7 @@ importTemplate8571284aeb78abb1b9786d12fed38dc3.head = (options?: RouteQueryOptio
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/staff/employee/import-template'
  */
         importTemplate8571284aeb78abb1b9786d12fed38dc3Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -465,7 +465,7 @@ importTemplate8571284aeb78abb1b9786d12fed38dc3.head = (options?: RouteQueryOptio
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importTemplate
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:221
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:239
  * @route '/staff/employee/import-template'
  */
         importTemplate8571284aeb78abb1b9786d12fed38dc3Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -487,7 +487,7 @@ export const importTemplate = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/shop/employee/import'
  */
 const importMethod5c42d232dedbd0bbcbbc8a83766ed433 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -502,7 +502,7 @@ importMethod5c42d232dedbd0bbcbbc8a83766ed433.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/shop/employee/import'
  */
 importMethod5c42d232dedbd0bbcbbc8a83766ed433.url = (options?: RouteQueryOptions) => {
@@ -511,7 +511,7 @@ importMethod5c42d232dedbd0bbcbbc8a83766ed433.url = (options?: RouteQueryOptions)
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/shop/employee/import'
  */
 importMethod5c42d232dedbd0bbcbbc8a83766ed433.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -521,7 +521,7 @@ importMethod5c42d232dedbd0bbcbbc8a83766ed433.post = (options?: RouteQueryOptions
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/shop/employee/import'
  */
     const importMethod5c42d232dedbd0bbcbbc8a83766ed433Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -531,7 +531,7 @@ importMethod5c42d232dedbd0bbcbbc8a83766ed433.post = (options?: RouteQueryOptions
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/shop/employee/import'
  */
         importMethod5c42d232dedbd0bbcbbc8a83766ed433Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -542,7 +542,7 @@ importMethod5c42d232dedbd0bbcbbc8a83766ed433.post = (options?: RouteQueryOptions
     importMethod5c42d232dedbd0bbcbbc8a83766ed433.form = importMethod5c42d232dedbd0bbcbbc8a83766ed433Form
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/staff/employee/import'
  */
 const importMethod7c2cbdc6387a7c15e8abaa9225880670 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -557,7 +557,7 @@ importMethod7c2cbdc6387a7c15e8abaa9225880670.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/staff/employee/import'
  */
 importMethod7c2cbdc6387a7c15e8abaa9225880670.url = (options?: RouteQueryOptions) => {
@@ -566,7 +566,7 @@ importMethod7c2cbdc6387a7c15e8abaa9225880670.url = (options?: RouteQueryOptions)
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/staff/employee/import'
  */
 importMethod7c2cbdc6387a7c15e8abaa9225880670.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -576,7 +576,7 @@ importMethod7c2cbdc6387a7c15e8abaa9225880670.post = (options?: RouteQueryOptions
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/staff/employee/import'
  */
     const importMethod7c2cbdc6387a7c15e8abaa9225880670Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -586,7 +586,7 @@ importMethod7c2cbdc6387a7c15e8abaa9225880670.post = (options?: RouteQueryOptions
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::importMethod
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:251
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:269
  * @route '/staff/employee/import'
  */
         importMethod7c2cbdc6387a7c15e8abaa9225880670Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -603,7 +603,7 @@ export const importMethod = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/shop/employee/bulk-restore'
  */
 const bulkRestorea771fd87e44dc821e46efe31e58b483b = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -618,7 +618,7 @@ bulkRestorea771fd87e44dc821e46efe31e58b483b.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/shop/employee/bulk-restore'
  */
 bulkRestorea771fd87e44dc821e46efe31e58b483b.url = (options?: RouteQueryOptions) => {
@@ -627,7 +627,7 @@ bulkRestorea771fd87e44dc821e46efe31e58b483b.url = (options?: RouteQueryOptions) 
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/shop/employee/bulk-restore'
  */
 bulkRestorea771fd87e44dc821e46efe31e58b483b.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -637,7 +637,7 @@ bulkRestorea771fd87e44dc821e46efe31e58b483b.post = (options?: RouteQueryOptions)
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/shop/employee/bulk-restore'
  */
     const bulkRestorea771fd87e44dc821e46efe31e58b483bForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -647,7 +647,7 @@ bulkRestorea771fd87e44dc821e46efe31e58b483b.post = (options?: RouteQueryOptions)
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/shop/employee/bulk-restore'
  */
         bulkRestorea771fd87e44dc821e46efe31e58b483bForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -658,7 +658,7 @@ bulkRestorea771fd87e44dc821e46efe31e58b483b.post = (options?: RouteQueryOptions)
     bulkRestorea771fd87e44dc821e46efe31e58b483b.form = bulkRestorea771fd87e44dc821e46efe31e58b483bForm
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/staff/employee/bulk-restore'
  */
 const bulkRestore0163d6218acacc518acfd1156fe134e5 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -673,7 +673,7 @@ bulkRestore0163d6218acacc518acfd1156fe134e5.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/staff/employee/bulk-restore'
  */
 bulkRestore0163d6218acacc518acfd1156fe134e5.url = (options?: RouteQueryOptions) => {
@@ -682,7 +682,7 @@ bulkRestore0163d6218acacc518acfd1156fe134e5.url = (options?: RouteQueryOptions) 
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/staff/employee/bulk-restore'
  */
 bulkRestore0163d6218acacc518acfd1156fe134e5.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -692,7 +692,7 @@ bulkRestore0163d6218acacc518acfd1156fe134e5.post = (options?: RouteQueryOptions)
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/staff/employee/bulk-restore'
  */
     const bulkRestore0163d6218acacc518acfd1156fe134e5Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -702,7 +702,7 @@ bulkRestore0163d6218acacc518acfd1156fe134e5.post = (options?: RouteQueryOptions)
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkRestore
- * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:220
  * @route '/staff/employee/bulk-restore'
  */
         bulkRestore0163d6218acacc518acfd1156fe134e5Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -715,6 +715,122 @@ bulkRestore0163d6218acacc518acfd1156fe134e5.post = (options?: RouteQueryOptions)
 export const bulkRestore = {
     '/shop/employee/bulk-restore': bulkRestorea771fd87e44dc821e46efe31e58b483b,
     '/staff/employee/bulk-restore': bulkRestore0163d6218acacc518acfd1156fe134e5,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/shop/employee/bulk-archive'
+ */
+const bulkArchive0c78e49e8b2498b2182f667a4f42085b = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: bulkArchive0c78e49e8b2498b2182f667a4f42085b.url(options),
+    method: 'post',
+})
+
+bulkArchive0c78e49e8b2498b2182f667a4f42085b.definition = {
+    methods: ["post"],
+    url: '/shop/employee/bulk-archive',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/shop/employee/bulk-archive'
+ */
+bulkArchive0c78e49e8b2498b2182f667a4f42085b.url = (options?: RouteQueryOptions) => {
+    return bulkArchive0c78e49e8b2498b2182f667a4f42085b.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/shop/employee/bulk-archive'
+ */
+bulkArchive0c78e49e8b2498b2182f667a4f42085b.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: bulkArchive0c78e49e8b2498b2182f667a4f42085b.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/shop/employee/bulk-archive'
+ */
+    const bulkArchive0c78e49e8b2498b2182f667a4f42085bForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: bulkArchive0c78e49e8b2498b2182f667a4f42085b.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/shop/employee/bulk-archive'
+ */
+        bulkArchive0c78e49e8b2498b2182f667a4f42085bForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: bulkArchive0c78e49e8b2498b2182f667a4f42085b.url(options),
+            method: 'post',
+        })
+    
+    bulkArchive0c78e49e8b2498b2182f667a4f42085b.form = bulkArchive0c78e49e8b2498b2182f667a4f42085bForm
+    /**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/staff/employee/bulk-archive'
+ */
+const bulkArchive676e23b8f122538a6673999c4dad74f2 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: bulkArchive676e23b8f122538a6673999c4dad74f2.url(options),
+    method: 'post',
+})
+
+bulkArchive676e23b8f122538a6673999c4dad74f2.definition = {
+    methods: ["post"],
+    url: '/staff/employee/bulk-archive',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/staff/employee/bulk-archive'
+ */
+bulkArchive676e23b8f122538a6673999c4dad74f2.url = (options?: RouteQueryOptions) => {
+    return bulkArchive676e23b8f122538a6673999c4dad74f2.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/staff/employee/bulk-archive'
+ */
+bulkArchive676e23b8f122538a6673999c4dad74f2.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: bulkArchive676e23b8f122538a6673999c4dad74f2.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/staff/employee/bulk-archive'
+ */
+    const bulkArchive676e23b8f122538a6673999c4dad74f2Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: bulkArchive676e23b8f122538a6673999c4dad74f2.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Employee\EmployeeController::bulkArchive
+ * @see app/Http/Controllers/Shop/Employee/EmployeeController.php:202
+ * @route '/staff/employee/bulk-archive'
+ */
+        bulkArchive676e23b8f122538a6673999c4dad74f2Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: bulkArchive676e23b8f122538a6673999c4dad74f2.url(options),
+            method: 'post',
+        })
+    
+    bulkArchive676e23b8f122538a6673999c4dad74f2.form = bulkArchive676e23b8f122538a6673999c4dad74f2Form
+
+export const bulkArchive = {
+    '/shop/employee/bulk-archive': bulkArchive0c78e49e8b2498b2182f667a4f42085b,
+    '/staff/employee/bulk-archive': bulkArchive676e23b8f122538a6673999c4dad74f2,
 }
 
 /**
@@ -1937,6 +2053,6 @@ export const restore = {
     '/staff/employee/{publicId}/restore': restore2f52fb264b77bb000e20f6280283b141,
 }
 
-const EmployeeController = { create, archive, importTemplate, importMethod, bulkRestore, index, store, show, edit, update, destroy, restore, import: importMethod }
+const EmployeeController = { create, archive, importTemplate, importMethod, bulkRestore, bulkArchive, index, store, show, edit, update, destroy, restore, import: importMethod }
 
 export default EmployeeController

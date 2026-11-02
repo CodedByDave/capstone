@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     RowActions,
@@ -373,6 +374,8 @@ function formatPrice(price: string | null) {
     if (!price) return '—';
     return `₱${Number(price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -628,6 +631,7 @@ function formatPrice(price: string | null) {
             <!-- Table card -->
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
                 :headers="headers"
                 :items="inventory.data"
                 :total="inventory.total"
@@ -645,6 +649,17 @@ function formatPrice(price: string | null) {
                 hide-rows-per-page
                 @reset="resetFilters"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="can('Inventory Management', 'archive')"
+                        resource="inventory"
+                        action="archive"
+                        :ids="selected"
+                        noun="products"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #item-name="item">
                     <p class="font-semibold">{{ item.name }}</p>
                     <p class="text-xs text-muted-foreground">

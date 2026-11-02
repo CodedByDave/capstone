@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     RowActions,
     StatusPill,
@@ -97,6 +98,8 @@ async function deleteSupplier(id: number) {
         deletingId.value = null;
     }
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -105,6 +108,7 @@ async function deleteSupplier(id: number) {
         <div class="space-y-6 px-6">
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
                 :headers="headers"
                 :items="supplierList"
                 :total="total"
@@ -116,6 +120,17 @@ async function deleteSupplier(id: number) {
                 :min-width="900"
                 hide-rows-per-page
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="can('Inventory Management', 'archive')"
+                        resource="supplier"
+                        action="archive"
+                        :ids="selected"
+                        noun="suppliers"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <div
                         class="flex flex-wrap items-center justify-between gap-2"

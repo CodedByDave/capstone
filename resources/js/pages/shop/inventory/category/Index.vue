@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     RowActions,
@@ -158,6 +159,8 @@ async function deleteCategory(id: number) {
         deletingId.value = null;
     }
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -183,6 +186,7 @@ async function deleteCategory(id: number) {
 
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
                 :headers="headers"
                 :items="tableItems"
                 :total="total"
@@ -197,6 +201,17 @@ async function deleteCategory(id: number) {
                 :min-width="640"
                 @reset="reset"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="can('Inventory Management', 'archive')"
+                        resource="inventory-category"
+                        action="archive"
+                        :ids="selected"
+                        noun="categories"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <DataTableToolbar
                         v-model:search="search"

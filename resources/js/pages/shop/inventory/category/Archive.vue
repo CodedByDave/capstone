@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     RowActions,
@@ -82,6 +83,8 @@ async function restoreCategory(id: number) {
         restoringId.value = null;
     }
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -105,6 +108,7 @@ async function restoreCategory(id: number) {
 
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
                 :headers="headers"
                 :items="pageItems"
                 :total="total"
@@ -119,6 +123,16 @@ async function restoreCategory(id: number) {
                 :min-width="640"
                 @reset="reset"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        resource="inventory-category"
+                        action="restore"
+                        :ids="selected"
+                        noun="archived categories"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <DataTableToolbar
                         v-model:search="search"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     RowActions,
@@ -370,6 +371,8 @@ function formatDate(val: string): string {
         day: 'numeric',
     });
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -470,6 +473,8 @@ function formatDate(val: string): string {
             <!-- ── Table ───────────────────────────────────────── -->
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
+                item-key="public_id"
                 :headers="headers"
                 :items="expenses.data"
                 :total="expenses.total"
@@ -486,6 +491,17 @@ function formatDate(val: string): string {
                 hide-rows-per-page
                 @reset="clearFilters"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="can('Finance Management', 'archive') || isOwner"
+                        resource="expense"
+                        action="archive"
+                        :ids="selected"
+                        noun="expenses"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <DataTableToolbar
                         v-model:search="search"

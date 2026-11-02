@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     type DataTableHeader,
     RowActions,
@@ -109,6 +110,8 @@ async function restoreSupplier(id: number) {
         restoringId.value = null;
     }
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -129,6 +132,7 @@ async function restoreSupplier(id: number) {
 
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
                 :headers="headers"
                 :items="archivedList"
                 :total="total"
@@ -140,6 +144,16 @@ async function restoreSupplier(id: number) {
                 :min-width="760"
                 hide-rows-per-page
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        resource="supplier"
+                        action="restore"
+                        :ids="selected"
+                        noun="archived suppliers"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <h2 class="flex items-center gap-2 font-semibold">
                         <Truck class="h-4 w-4 text-muted-foreground" />

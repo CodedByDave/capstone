@@ -7,6 +7,7 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     IdentityCell,
@@ -32,6 +33,13 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -40,17 +48,18 @@ import {
 } from '@/components/ui/select';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import {
+    ArrowUpDown,
     CheckCircle2,
+    ChevronDown,
     Download,
     Eye,
     FileWarning,
     Loader2,
     Pencil,
-    RefreshCcw,
+    Plus,
     Trash,
     Trash2,
     Upload,
-    UserPlus,
     Users,
     X,
 } from 'lucide-vue-next';
@@ -121,17 +130,12 @@ const page = usePage<AppPageProps>();
 const user = computed(() => page.props.auth.user);
 const isOwner = computed(() => user.value.role === 'owner');
 const headers: DataTableHeader[] = [
-    { text: 'Employee ID', value: 'employee_id', width: 130, sortable: true },
-    { text: 'Name', value: 'full_name', width: 220, sortable: true },
-    { text: 'Position', value: 'position', width: 140, sortable: true },
-    {
-        text: 'Employment type',
-        value: 'employment_type',
-        width: 150,
-        sortable: true,
-    },
-    { text: 'Status', value: 'status', width: 110, sortable: true },
-    { text: 'Actions', value: 'actions', width: 130, align: 'center' },
+    { text: 'Employee', value: 'full_name', width: 260, sortable: true },
+    { text: 'ID', value: 'employee_id', width: 140, sortable: true },
+    { text: 'Position', value: 'position', width: 160, sortable: true },
+    { text: 'Type', value: 'employment_type', width: 150, sortable: true },
+    { text: 'Status', value: 'status', width: 120, sortable: true },
+    { text: '', value: 'actions', width: 64, align: 'center' },
 ];
 const permissions = computed(() => user.value.permissions ?? {});
 
@@ -194,8 +198,8 @@ const serverOptions = ref<DataTableOptions>({
 
 const statCards = computed(() => [
     { label: 'Total employees', value: stats.total },
-    { label: 'Active employees', value: stats.active },
-    { label: 'Inactive employees', value: stats.inactive },
+    { label: 'Active', value: stats.active },
+    { label: 'Inactive', value: stats.inactive },
     { label: 'New this month', value: stats.new_this_month },
 ]);
 
@@ -490,6 +494,8 @@ async function submitImport() {
         importing.value = false;
     }
 }
+
+const selected = ref<Array<string | number>>([]);
 </script>
 
 <template>
@@ -497,16 +503,92 @@ async function submitImport() {
 
     <ShopLayout :breadcrumbs="breadcrumbs" title="Employee List">
         <div class="space-y-6 px-6">
+            <!-- Page header -->
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Employees</h1>
+                    <p class="text-sm text-muted-foreground">
+                        Manage your team, positions and employment records.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <DropdownMenu v-if="can('HRM', 'view') || isOwner">
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" class="h-11">
+                                <ArrowUpDown
+                                    class="mr-2 h-4 w-4"
+                                    aria-hidden="true"
+                                />
+                                Import / export
+                                <ChevronDown
+                                    class="ml-2 h-4 w-4"
+                                    aria-hidden="true"
+                                />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                v-if="can('HRM', 'view')"
+                                @select="exportCSV"
+                            >
+                                <Download class="mr-2 h-4 w-4" />
+                                Export CSV
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                v-if="isOwner"
+                                @select="openImport"
+                            >
+                                <Upload class="mr-2 h-4 w-4" />
+                                Import CSV
+                            </DropdownMenuItem>
+                            <template #bulk-actions>
+                                <BulkActionButton
+                                    v-if="can('HRM', 'archive')"
+                                    resource="employee"
+                                    action="archive"
+                                    :ids="selected"
+                                    noun="employees"
+                                    @done="selected = []"
+                                />
+                            </template>
+
+                            <template v-if="isOwner">
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    @select="
+                                        router.visit('/shop/employee/archive')
+                                    "
+                                >
+                                    <Trash class="mr-2 h-4 w-4" />
+                                    Archived employees
+                                </DropdownMenuItem>
+                            </template>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Button
+                        v-if="can('HRM', 'create')"
+                        class="h-11"
+                        @click="router.visit(`${baseRoute}/employee/create`)"
+                    >
+                        <Plus class="mr-2 h-4 w-4" aria-hidden="true" />
+                        Add employee
+                    </Button>
+                </div>
+            </div>
+
             <!-- Compact KPIs -->
             <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
+                    <CardContent class="p-5">
                         <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
+                            class="mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                         >
                             {{ item.label }}
                         </p>
-                        <p class="text-2xl font-bold">{{ item.value }}</p>
+                        <p class="font-mono text-3xl font-bold">
+                            {{ item.value }}
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -514,14 +596,16 @@ async function submitImport() {
             <!-- Employee table -->
             <DataTable
                 v-model:options="serverOptions"
+                v-model:selected="selected"
                 :headers="headers"
                 :items="tableItems"
                 :total="employees.total"
                 :loading="tableLoading"
                 noun="employees"
+                :row-label="(item) => String(item.full_name)"
                 :empty-icon="Users"
                 empty-message="No employees match the selected filters."
-                :min-width="1000"
+                :min-width="900"
                 @reset="resetFilters"
             >
                 <template #toolbar>
@@ -529,7 +613,7 @@ async function submitImport() {
                         v-model:search="searchQuery"
                         :status="statusFilter"
                         :statuses="statusOptions"
-                        search-placeholder="Search employee, ID, contact..."
+                        search-placeholder="Search name, ID or email"
                         search-label="Search employees"
                         status-label="Filter by employee status"
                         @update:status="setStatus"
@@ -540,7 +624,7 @@ async function submitImport() {
                             @update:model-value="filterTable"
                         >
                             <SelectTrigger
-                                class="w-44"
+                                class="h-11 w-52"
                                 aria-label="Filter by employment type"
                             >
                                 <SelectValue placeholder="Employment type" />
@@ -558,71 +642,7 @@ async function submitImport() {
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-                            @click="resetFilters"
-                        >
-                            <RefreshCcw class="mr-1.5 h-4 w-4" />
-                            Reset
-                        </Button>
-
-                        <template #actions>
-                            <Button
-                                v-if="can('HRM', 'view')"
-                                size="sm"
-                                variant="outline"
-                                class="bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:text-white dark:hover:bg-green-700"
-                                @click="exportCSV"
-                            >
-                                <Download class="mr-1.5 h-4 w-4" />
-                                Export CSV
-                            </Button>
-
-                            <Button
-                                v-if="isOwner"
-                                size="sm"
-                                variant="outline"
-                                class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
-                                @click="openImport"
-                            >
-                                <Upload class="mr-1.5 h-4 w-4" />
-                                Import CSV
-                            </Button>
-
-                            <Button
-                                v-if="isOwner"
-                                size="sm"
-                                variant="outline"
-                                class="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700"
-                                @click="router.visit('/shop/employee/archive')"
-                            >
-                                <Trash class="mr-1.5 h-4 w-4" />
-                                Archive
-                            </Button>
-
-                            <Button
-                                v-if="can('HRM', 'create')"
-                                size="sm"
-                                @click="
-                                    router.visit(`${baseRoute}/employee/create`)
-                                "
-                                variant="outline"
-                                class="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
-                            >
-                                <UserPlus class="mr-1.5 h-4 w-4" />
-                                Add Employee
-                            </Button>
-                        </template>
                     </DataTableToolbar>
-                </template>
-
-                <template #item-employee_id="employee">
-                    <span class="font-mono text-xs whitespace-nowrap">
-                        {{ employee.employee_id }}
-                    </span>
                 </template>
 
                 <template #item-full_name="employee">
@@ -630,6 +650,14 @@ async function submitImport() {
                         :name="employee.full_name"
                         :secondary="employee.email"
                     />
+                </template>
+
+                <template #item-employee_id="employee">
+                    <span
+                        class="font-mono text-sm font-medium whitespace-nowrap"
+                    >
+                        {{ employee.employee_id }}
+                    </span>
                 </template>
 
                 <template #item-position="employee">
@@ -640,7 +668,7 @@ async function submitImport() {
 
                 <template #item-employment_type="employee">
                     <span
-                        class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                        class="rounded-full bg-muted px-2.5 py-1 text-xs font-medium whitespace-nowrap text-foreground/80"
                     >
                         {{ employmentTypeLabel(employee.employment_type) }}
                     </span>
