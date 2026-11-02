@@ -56,6 +56,8 @@ function inventoryPhotoItem(array $overrides = []): array
     return array_merge([
         'name' => 'Detergent',
         'unit' => 'pcs',
+        'package_unit' => 'box',
+        'package_size' => 12,
         'quantity' => 10,
         'min_stock' => 2,
         'status' => 'active',

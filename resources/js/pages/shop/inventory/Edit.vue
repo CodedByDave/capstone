@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InventorySalesOptions from '@/components/shop/InventorySalesOptions.vue';
 import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
+import UnitConfigurationSteps from '@/components/shop/UnitConfigurationSteps.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { formatQuantity, packageStock } from '@/lib/inventoryStock';
+import { usageUnitsFor } from '@/lib/inventoryUnits';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, ArrowUpDown, Loader2, Package } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -64,17 +66,23 @@ const base = computed(() =>
 );
 
 // Units offered in the dropdown; an older item may carry another one (e.g. "sachet"), which is kept as an option.
-const standardUnits = [
-    'pcs',
-    'kg',
-    'g',
-    'liters',
-    'ml',
-    'bottles',
-    'boxes',
-    'packs',
-    'rolls',
-];
+const unitOptions = computed(() => {
+    const options = [
+        { value: 'pcs', label: 'Pieces (pcs)' },
+        { value: 'kg', label: 'Kilograms (kg)' },
+        { value: 'g', label: 'Grams (g)' },
+        { value: 'liters', label: 'Liters (L)' },
+        { value: 'ml', label: 'Milliliters (ml)' },
+        { value: 'bottles', label: 'Bottles' },
+        { value: 'boxes', label: 'Boxes' },
+        { value: 'packs', label: 'Packs' },
+        { value: 'rolls', label: 'Rolls' },
+    ];
+
+    return options.some((o) => o.value === inventory.unit)
+        ? options
+        : [{ value: inventory.unit, label: inventory.unit }, ...options];
+});
 
 // reka-ui's SelectItem cannot use an empty value, so the "none" option uses this instead.
 const NONE = '__none__';
@@ -89,7 +97,16 @@ const form = useForm({
     package_size: inventory.package_size ?? '',
     min_stock: inventory.min_stock,
     max_stock: inventory.max_stock ?? '',
-    unit_price: inventory.unit_price ?? '',
+    // Typed per purchase unit (e.g. per bottle) and saved per unit (per ml) on submit.
+    unit_price: (inventory.unit_price !== null &&
+    inventory.unit_price !== undefined &&
+    (inventory.package_size ?? 0) > 0
+        ? Number(
+              (Number(inventory.unit_price) * inventory.package_size!).toFixed(
+                  2,
+              ),
+          )
+        : (inventory.unit_price ?? '')) as number | string,
     addon_enabled: !!inventory.addon_enabled,
     addon_name: inventory.addon_name ?? '',
     addon_quantity: (inventory.addon_quantity ?? '') as number | string,
@@ -108,7 +125,6 @@ const form = useForm({
 
 // How the item is bought from the supplier (e.g. a bottle of 5,000 ml). "Same as usage" means no package.
 const purchaseUnitOptions = [
-    { value: 'none', label: 'Same as usage' },
     { value: 'bottle', label: 'Bottle' },
     { value: 'gallon', label: 'Gallon' },
     { value: 'sack', label: 'Sack' },
@@ -127,24 +143,54 @@ const extraPurchaseUnit = computed(() =>
         : null,
 );
 
+const purchaseOptions = computed(() =>
+    extraPurchaseUnit.value
+        ? [
+              {
+                  value: extraPurchaseUnit.value,
+                  label: extraPurchaseUnit.value,
+              },
+              ...purchaseUnitOptions,
+          ]
+        : purchaseUnitOptions,
+);
+
 const purchaseUnit = computed({
-    get: () => form.package_unit || 'none',
+    get: () => form.package_unit,
     set: (value: string) => {
-        form.package_unit = value === 'none' ? '' : value;
-        if (value === 'none') form.package_size = '';
+        form.package_unit = value;
         form.clearErrors('package_unit', 'package_size');
     },
 });
 const purchaseSelected = computed(() => form.package_unit !== '');
 
-// The container size is counted in the usage unit, so changing the unit clears it.
+function purchaseUnitFits(packageUnit: string, unit: string): boolean {
+    const allowed = usageUnitsFor(packageUnit);
+
+    return !packageUnit || !allowed || allowed.includes(unit);
+}
+
+// The container size is counted in the usage unit, so changing the unit clears it. The purchase
+// unit stays when it still fits the new unit (the dropdowns only offer matching pairs).
 watch(
     () => form.unit,
-    () => {
-        form.package_unit = '';
+    (unit) => {
+        if (!purchaseUnitFits(form.package_unit, unit)) {
+            form.package_unit = '';
+        }
         form.package_size = '';
         form.clearErrors('package_unit', 'package_size');
     },
+);
+
+// Stock is changed through Stock adjustment, so the field only displays it.
+const stockDisplay = computed({
+    get: () => formatQuantity(inventory.quantity),
+    set: () => {},
+});
+
+const stepErrors = computed(
+    () => form.errors as Record<string, string | undefined>,
 );
 
 const supplierName = computed(
@@ -154,8 +200,13 @@ const supplierName = computed(
 );
 
 // What one unit costs the shop (the saved cost is already per unit), for the pricing overview.
+const packageCount = computed(() => Number(form.package_size) || 0);
 const costPerUnit = computed(() =>
-    form.unit_price === '' ? null : Number(form.unit_price),
+    form.unit_price === ''
+        ? null
+        : packageCount.value > 0
+          ? Number(form.unit_price) / packageCount.value
+          : Number(form.unit_price),
 );
 
 // ─── Side panel preview and save status ────────────────────────────────────
@@ -177,7 +228,7 @@ const photoPreview = computed(() =>
 const previewPrice = computed(() =>
     form.unit_price === ''
         ? '₱ —'
-        : `₱${Number(form.unit_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })} / ${form.unit}`,
+        : `₱${Number(form.unit_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })} / ${form.package_unit || form.unit}`,
 );
 
 const saveStatus = computed(() => {
@@ -245,6 +296,13 @@ function submitAdjust() {
 function submit() {
     form.transform((data) => ({
         ...data,
+        // The cost is typed per purchase unit and saved per unit (₱80 per 5,000 ml = ₱0.016 per ml).
+        unit_price:
+            data.unit_price === '' || packageCount.value <= 0
+                ? data.unit_price
+                : Number(
+                      (Number(data.unit_price) / packageCount.value).toFixed(4),
+                  ),
         _method: 'put',
     })).post(`${base.value}/${inventory.id}`, { forceFormData: true });
 }
@@ -406,215 +464,25 @@ function submit() {
                         <p class="mt-0.5 text-sm text-muted-foreground">
                             The usage unit, how it is bought, and what you pay.
                         </p>
-                        <div class="mt-5 grid grid-cols-12 gap-x-5 gap-y-5">
-                            <!-- Purchase unit -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label class="text-sm font-medium"
-                                    >Purchase unit</label
-                                >
-                                <Select v-model="purchaseUnit">
-                                    <SelectTrigger
-                                        class="w-full min-w-0"
-                                        :class="{
-                                            'border-red-500':
-                                                form.errors.package_unit,
-                                        }"
-                                        ><SelectValue placeholder="Select unit"
-                                    /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-if="extraPurchaseUnit"
-                                            :value="extraPurchaseUnit"
-                                            >{{ extraPurchaseUnit }}</SelectItem
-                                        >
-                                        <SelectItem
-                                            v-for="p in purchaseUnitOptions"
-                                            :key="p.value"
-                                            :value="p.value"
-                                            >{{ p.label }}</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                                <p class="text-xs text-muted-foreground">
-                                    How you buy it from the supplier.
-                                </p>
-                                <p
-                                    v-if="form.errors.package_unit"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.package_unit }}
-                                </p>
-                            </div>
-
-                            <!-- Container size -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label
-                                    for="item-package-size"
-                                    class="text-sm font-medium"
-                                    >Container size</label
-                                >
-                                <div class="flex items-center gap-2">
-                                    <Input
-                                        id="item-package-size"
-                                        v-model="form.package_size"
-                                        type="number"
-                                        min="1"
-                                        placeholder="5000"
-                                        :disabled="!purchaseSelected"
-                                        :class="{
-                                            'border-red-500':
-                                                form.errors.package_size,
-                                        }"
-                                    />
-                                    <span
-                                        class="shrink-0 text-sm text-muted-foreground"
-                                        >{{ form.unit }}</span
-                                    >
-                                </div>
-                                <p class="text-xs text-muted-foreground">
-                                    <template v-if="purchaseSelected"
-                                        >e.g. 5000 {{ form.unit }} per
-                                        {{ form.package_unit }}</template
-                                    >
-                                    <template v-else
-                                        >Not needed when bought in
-                                        {{ form.unit }}.</template
-                                    >
-                                </p>
-                                <p
-                                    v-if="form.errors.package_size"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.package_size }}
-                                </p>
-                            </div>
-
-                            <!-- Stock quantity (read-only: changed through Stock adjustment) -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label
-                                    for="item-quantity"
-                                    class="text-sm font-medium"
-                                    >Stock quantity</label
-                                >
-                                <div class="flex items-center gap-2">
-                                    <Input
-                                        id="item-quantity"
-                                        :model-value="
-                                            formatQuantity(inventory.quantity)
-                                        "
-                                        readonly
-                                        disabled
-                                    />
-                                    <span
-                                        class="shrink-0 text-sm text-muted-foreground"
-                                        >{{ inventory.unit }}</span
-                                    >
-                                </div>
-                                <p class="text-xs text-muted-foreground">
-                                    Change it under Stock adjustment below.
-                                </p>
-                            </div>
-
-                            <!-- Consumption unit -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label class="text-sm font-medium"
-                                    >Consumption unit
-                                    <span class="text-red-500">*</span></label
-                                >
-                                <Select v-model="form.unit">
-                                    <SelectTrigger
-                                        class="w-full min-w-0"
-                                        :class="{
-                                            'border-red-500': form.errors.unit,
-                                        }"
-                                        ><SelectValue placeholder="Select unit"
-                                    /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-if="
-                                                !standardUnits.includes(
-                                                    inventory.unit,
-                                                )
-                                            "
-                                            :value="inventory.unit"
-                                            >{{ inventory.unit }}</SelectItem
-                                        >
-                                        <SelectItem value="pcs"
-                                            >Pieces (pcs)</SelectItem
-                                        >
-                                        <SelectItem value="kg"
-                                            >Kilograms (kg)</SelectItem
-                                        >
-                                        <SelectItem value="g"
-                                            >Grams (g)</SelectItem
-                                        >
-                                        <SelectItem value="liters"
-                                            >Liters (L)</SelectItem
-                                        >
-                                        <SelectItem value="ml"
-                                            >Milliliters (ml)</SelectItem
-                                        >
-                                        <SelectItem value="bottles"
-                                            >Bottles</SelectItem
-                                        >
-                                        <SelectItem value="boxes"
-                                            >Boxes</SelectItem
-                                        >
-                                        <SelectItem value="packs"
-                                            >Packs</SelectItem
-                                        >
-                                        <SelectItem value="rolls"
-                                            >Rolls</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                                <p class="text-xs text-muted-foreground">
-                                    Used for internal &amp; add-on usage.
-                                </p>
-                                <p
-                                    v-if="form.errors.unit"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.unit }}
-                                </p>
-                            </div>
-
-                            <!-- Cost -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label
-                                    for="item-cost"
-                                    class="text-sm font-medium"
-                                    >Cost per {{ form.unit }} (₱)</label
-                                >
-                                <Input
-                                    id="item-cost"
-                                    v-model="form.unit_price"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    :class="{
-                                        'border-red-500':
-                                            form.errors.unit_price,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.unit_price"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.unit_price }}
-                                </p>
-                            </div>
+                        <div class="mt-5">
+                            <UnitConfigurationSteps
+                                v-model:unit="form.unit"
+                                v-model:purchase-unit="purchaseUnit"
+                                v-model:package-size="form.package_size"
+                                v-model:quantity="stockDisplay"
+                                v-model:cost="form.unit_price"
+                                stock-readonly
+                                stock-hint="Change it under Stock adjustment below."
+                                :unit-options="unitOptions"
+                                :purchase-options="purchaseOptions"
+                                :purchase-selected="purchaseSelected"
+                                :package-unit="form.package_unit"
+                                :entry-label="inventory.unit"
+                                :uses-packages="false"
+                                :total-stock="inventory.quantity"
+                                :cost-label="`Cost per ${form.package_unit || 'purchase unit'} (₱)`"
+                                :errors="stepErrors"
+                            />
                         </div>
                     </section>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InventorySalesOptions from '@/components/shop/InventorySalesOptions.vue';
 import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
+import UnitConfigurationSteps from '@/components/shop/UnitConfigurationSteps.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -106,7 +107,6 @@ const saveStatus = computed(() =>
 // When the item is bought in packages (e.g. bottles of 5,000 ml), the stock
 // fields are typed in packages and saved in the item's own unit.
 const purchaseUnitOptions = [
-    { value: 'none', label: 'Same as usage' },
     { value: 'bottle', label: 'Bottle' },
     { value: 'gallon', label: 'Gallon' },
     { value: 'sack', label: 'Sack' },
@@ -118,10 +118,9 @@ const purchaseUnitOptions = [
 ];
 
 const purchaseUnit = computed({
-    get: () => form.package_unit || 'none',
+    get: () => form.package_unit,
     set: (value: string) => {
-        form.package_unit = value === 'none' ? '' : value;
-        if (value === 'none') form.package_size = '';
+        form.package_unit = value;
         form.clearErrors('package_unit', 'package_size');
     },
 });
@@ -142,6 +141,10 @@ const costPerUnit = computed(() =>
 );
 const entryLabel = computed(() =>
     usesPackages.value ? form.package_unit.trim() : form.unit,
+);
+
+const stepErrors = computed(
+    () => form.errors as Record<string, string | undefined>,
 );
 
 function submit() {
@@ -167,7 +170,7 @@ function submit() {
                                 ).toFixed(4),
                             ),
               }
-            : { ...data, package_unit: '', package_size: '' };
+            : data;
     }).post(base.value, {
         onSuccess: () => form.reset(),
     });
@@ -332,199 +335,23 @@ function submit() {
                                 </p>
                             </div>
                         </div>
-                        <div class="mt-5 grid grid-cols-12 gap-x-5 gap-y-4">
-                            <!-- Purchase unit -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label class="text-sm font-medium"
-                                    >Purchase unit</label
-                                >
-                                <Select v-model="purchaseUnit">
-                                    <SelectTrigger
-                                        class="w-full min-w-0"
-                                        :class="{
-                                            'border-red-500':
-                                                form.errors.package_unit,
-                                        }"
-                                        ><SelectValue placeholder="Select unit"
-                                    /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="p in purchaseUnitOptions"
-                                            :key="p.value"
-                                            :value="p.value"
-                                            >{{ p.label }}</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                                <p class="text-xs text-muted-foreground">
-                                    How you buy it from the supplier.
-                                </p>
-                                <p
-                                    v-if="form.errors.package_unit"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.package_unit }}
-                                </p>
-                            </div>
-
-                            <!-- Container size -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label
-                                    for="item-package-size"
-                                    class="text-sm font-medium"
-                                    >Container size</label
-                                >
-                                <div class="flex items-center gap-2">
-                                    <Input
-                                        id="item-package-size"
-                                        v-model="form.package_size"
-                                        type="number"
-                                        min="1"
-                                        placeholder="5000"
-                                        :disabled="!purchaseSelected"
-                                        :class="{
-                                            'border-red-500':
-                                                form.errors.package_size,
-                                        }"
-                                    />
-                                    <span
-                                        class="shrink-0 text-sm text-muted-foreground"
-                                        >{{ form.unit }}</span
-                                    >
-                                </div>
-                                <p class="text-xs text-muted-foreground">
-                                    <template v-if="purchaseSelected"
-                                        >e.g. 5000 {{ form.unit }} per
-                                        {{ form.package_unit }}</template
-                                    >
-                                    <template v-else
-                                        >Not needed when bought in
-                                        {{ form.unit }}.</template
-                                    >
-                                </p>
-                                <p
-                                    v-if="form.errors.package_size"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.package_size }}
-                                </p>
-                            </div>
-
-                            <!-- Stock quantity -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label
-                                    for="item-quantity"
-                                    class="text-sm font-medium"
-                                    >Stock quantity
-                                    <span class="text-red-500">*</span></label
-                                >
-                                <div class="flex items-center gap-2">
-                                    <Input
-                                        id="item-quantity"
-                                        v-model="form.quantity"
-                                        type="number"
-                                        min="0"
-                                        :step="usesPackages ? 'any' : 1"
-                                        :class="{
-                                            'border-red-500':
-                                                form.errors.quantity,
-                                        }"
-                                    />
-                                    <span
-                                        class="shrink-0 text-sm text-muted-foreground"
-                                        >{{ entryLabel }}</span
-                                    >
-                                </div>
-                                <p
-                                    v-if="usesPackages"
-                                    class="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
-                                >
-                                    Total stock:
-                                    {{ inUnit(form.quantity).toLocaleString() }}
-                                    {{ form.unit }}
-                                </p>
-                                <p
-                                    v-if="form.errors.quantity"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.quantity }}
-                                </p>
-                            </div>
-
-                            <!-- Consumption unit -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label class="text-sm font-medium"
-                                    >Consumption unit
-                                    <span class="text-red-500">*</span></label
-                                >
-                                <Select v-model="form.unit">
-                                    <SelectTrigger
-                                        class="w-full min-w-0"
-                                        :class="{
-                                            'border-red-500': form.errors.unit,
-                                        }"
-                                        ><SelectValue placeholder="Select unit"
-                                    /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="u in unitOptions"
-                                            :key="u.value"
-                                            :value="u.value"
-                                            >{{ u.label }}</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                                <p class="text-xs text-muted-foreground">
-                                    Used for internal &amp; add-on usage.
-                                </p>
-                                <p
-                                    v-if="form.errors.unit"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.unit }}
-                                </p>
-                            </div>
-
-                            <!-- Cost -->
-                            <div
-                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
-                            >
-                                <label
-                                    for="item-cost"
-                                    class="text-sm font-medium"
-                                    >{{
-                                        usesPackages
-                                            ? `Cost per ${form.package_unit.trim()} (₱)`
-                                            : `Cost per ${form.unit} (₱)`
-                                    }}</label
-                                >
-                                <Input
-                                    id="item-cost"
-                                    v-model="form.unit_price"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    :class="{
-                                        'border-red-500':
-                                            form.errors.unit_price,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.unit_price"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.unit_price }}
-                                </p>
-                            </div>
+                        <div class="mt-5">
+                            <UnitConfigurationSteps
+                                v-model:unit="form.unit"
+                                v-model:purchase-unit="purchaseUnit"
+                                v-model:package-size="form.package_size"
+                                v-model:quantity="form.quantity"
+                                v-model:cost="form.unit_price"
+                                :unit-options="unitOptions"
+                                :purchase-options="purchaseUnitOptions"
+                                :purchase-selected="purchaseSelected"
+                                :package-unit="form.package_unit"
+                                :entry-label="entryLabel"
+                                :uses-packages="usesPackages"
+                                :total-stock="inUnit(form.quantity)"
+                                :cost-label="`Cost per ${form.package_unit.trim() || 'purchase unit'} (₱)`"
+                                :errors="stepErrors"
+                            />
                         </div>
                     </section>
 

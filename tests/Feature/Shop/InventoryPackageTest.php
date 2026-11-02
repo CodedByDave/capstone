@@ -53,6 +53,8 @@ function packageItem(array $overrides = []): array
     return array_merge([
         'name' => 'Liquid detergent',
         'unit' => 'ml',
+        'package_unit' => 'bottle',
+        'package_size' => 5000,
         'quantity' => 15000,
         'min_stock' => 2000,
         'status' => 'active',
@@ -73,21 +75,14 @@ test('an item bought in packages stores its package name and size', function () 
         ->and($item->package_size)->toBe(5000);
 });
 
-test('an item without packages still saves as before', function () {
+test('the purchase unit and its size are required', function () {
     $owner = packageShopOwner();
 
-    $this->actingAs($owner)->post('/shop/inventory', packageItem())->assertSessionHasNoErrors();
-
-    $item = Inventory::where('name', 'Liquid detergent')->firstOrFail();
-    expect($item->package_unit)->toBeNull()->and($item->package_size)->toBeNull();
-});
-
-test('the package name and size must be given together and the size must be positive', function () {
-    $owner = packageShopOwner();
-
-    $this->actingAs($owner)->post('/shop/inventory', packageItem(['package_unit' => 'bottle']))
+    $this->actingAs($owner)->post('/shop/inventory', packageItem(['package_unit' => '', 'package_size' => '']))
+        ->assertSessionHasErrors(['package_unit', 'package_size']);
+    $this->actingAs($owner)->post('/shop/inventory', packageItem(['package_unit' => 'bottle', 'package_size' => '']))
         ->assertSessionHasErrors('package_size');
-    $this->actingAs($owner)->post('/shop/inventory', packageItem(['package_size' => 5000]))
+    $this->actingAs($owner)->post('/shop/inventory', packageItem(['package_unit' => '', 'package_size' => 5000]))
         ->assertSessionHasErrors('package_unit');
     $this->actingAs($owner)->post('/shop/inventory', packageItem(['package_unit' => 'bottle', 'package_size' => 0]))
         ->assertSessionHasErrors('package_size');
@@ -184,7 +179,7 @@ test('switching the sales options off clears the settings and the selling price'
     $item = Inventory::firstOrFail();
 
     $this->actingAs($owner)->put("/shop/inventory/{$item->id}", [
-        'name' => $item->name, 'unit' => 'ml', 'min_stock' => 2000, 'status' => 'active',
+        'name' => $item->name, 'unit' => 'ml', 'package_unit' => 'bottle', 'package_size' => 5000, 'min_stock' => 2000, 'status' => 'active',
         'addon_enabled' => false,
     ])->assertSessionHasNoErrors();
 

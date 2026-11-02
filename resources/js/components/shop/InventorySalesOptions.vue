@@ -93,6 +93,50 @@ const retailProfit = computed(() => {
     return price - props.costPerUnit * size;
 });
 
+// Plain-language profit summaries shown under each option (no inputs): what the stock used costs,
+// and, when the item is bought in containers, what a whole container earns once sold this way.
+const hasContainer = computed(
+    () => !!props.packageUnit && containerSize.value > 0,
+);
+const containerCost = computed(() =>
+    props.costPerUnit !== null && hasContainer.value
+        ? props.costPerUnit * containerSize.value
+        : null,
+);
+
+function summarise(size: number, price: number) {
+    if (props.costPerUnit === null || !size) return null;
+
+    const stockCost = props.costPerUnit * size;
+    const count = hasContainer.value
+        ? Math.floor(containerSize.value / size)
+        : 0;
+    const revenue = count * price;
+
+    return {
+        stockCost,
+        price,
+        perSale: price - stockCost,
+        count,
+        revenue,
+        net:
+            containerCost.value === null ? null : revenue - containerCost.value,
+    };
+}
+
+const addonSummary = computed(() =>
+    summarise(
+        Number(props.form.addon_quantity),
+        Number(props.form.addon_price) || 0,
+    ),
+);
+const retailSummary = computed(() =>
+    summarise(
+        Number(props.form.retail_pack_size),
+        Number(props.form.retail_price) || 0,
+    ),
+);
+
 const addonPerUnit = computed(() => {
     const qty = Number(props.form.addon_quantity);
     return qty > 0 ? Number(props.form.addon_price) / qty : null;
@@ -201,6 +245,53 @@ const retailPerUnit = computed(() => {
                                 {{ form.errors.addon_price }}
                             </p>
                         </div>
+                    </div>
+                    <div
+                        v-if="addonSummary"
+                        class="space-y-0.5 text-xs text-muted-foreground"
+                    >
+                        <p>
+                            The stock used costs
+                            {{ peso(addonSummary.stockCost) }} per add-on.
+                        </p>
+                        <template v-if="addonSummary.price > 0">
+                            <p v-if="addonSummary.count > 0">
+                                1 {{ packageUnit }} ({{
+                                    containerSize.toLocaleString()
+                                }}
+                                {{ unit }}) gives
+                                {{ addonSummary.count }} add-ons ×
+                                {{ peso(addonSummary.price) }} =
+                                {{ peso(addonSummary.revenue) }}.
+                            </p>
+                            <p
+                                v-if="addonSummary.net !== null"
+                                class="font-medium"
+                                :class="
+                                    addonSummary.net < 0
+                                        ? 'text-red-600'
+                                        : 'text-emerald-600'
+                                "
+                            >
+                                Net profit per {{ packageUnit }}:
+                                {{ peso(addonSummary.net) }} ({{
+                                    packageUnit
+                                }}
+                                costs {{ peso(containerCost ?? 0) }}).
+                            </p>
+                            <p
+                                v-else
+                                class="font-medium"
+                                :class="
+                                    addonSummary.perSale < 0
+                                        ? 'text-red-600'
+                                        : 'text-emerald-600'
+                                "
+                            >
+                                Net profit per add-on:
+                                {{ peso(addonSummary.perSale) }}.
+                            </p>
+                        </template>
                     </div>
                     <p
                         v-if="addonPerUnit !== null && addonPerUnit > 0"
@@ -312,6 +403,55 @@ const retailPerUnit = computed(() => {
                             </p>
                         </div>
                     </div>
+                    <div
+                        v-if="retailSummary"
+                        class="space-y-0.5 text-xs text-muted-foreground"
+                    >
+                        <p>
+                            The stock in this pack costs
+                            {{ peso(retailSummary.stockCost) }}.
+                        </p>
+                        <template v-if="retailSummary.price > 0">
+                            <p v-if="retailSummary.count > 0">
+                                1 {{ packageUnit }} ({{
+                                    containerSize.toLocaleString()
+                                }}
+                                {{ unit }}) gives {{ retailSummary.count }}
+                                {{
+                                    retailSummary.count === 1 ? 'pack' : 'packs'
+                                }}
+                                × {{ peso(retailSummary.price) }} =
+                                {{ peso(retailSummary.revenue) }}.
+                            </p>
+                            <p
+                                v-if="retailSummary.net !== null"
+                                class="font-medium"
+                                :class="
+                                    retailSummary.net < 0
+                                        ? 'text-red-600'
+                                        : 'text-emerald-600'
+                                "
+                            >
+                                Net profit per {{ packageUnit }}:
+                                {{ peso(retailSummary.net) }} ({{
+                                    packageUnit
+                                }}
+                                costs {{ peso(containerCost ?? 0) }}).
+                            </p>
+                            <p
+                                v-else
+                                class="font-medium"
+                                :class="
+                                    retailSummary.perSale < 0
+                                        ? 'text-red-600'
+                                        : 'text-emerald-600'
+                                "
+                            >
+                                Net profit per pack:
+                                {{ peso(retailSummary.perSale) }}.
+                            </p>
+                        </template>
+                    </div>
                     <p
                         v-if="retailPerUnit !== null && retailPerUnit > 0"
                         class="text-xs text-muted-foreground"
@@ -370,6 +510,13 @@ const retailPerUnit = computed(() => {
                         {{ peso(addonProfit) }}
                     </dd>
                 </div>
+                <p
+                    v-if="addonProfit !== null && addonProfit < 0"
+                    class="text-xs text-red-600"
+                >
+                    The add-on sells below what its stock costs. Raise the
+                    price.
+                </p>
                 <div v-if="retailProfit !== null" class="flex justify-between">
                     <dt class="text-muted-foreground">
                         Profit per retail pack ({{ retailCount }}

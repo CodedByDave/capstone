@@ -26,8 +26,8 @@ class UpdateInventoryRequest extends FormRequest
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_photo' => ['nullable', 'boolean'],
             'unit' => ['required', 'string', 'max:50'],
-            'package_unit' => ['nullable', 'string', 'max:50', 'required_with:package_size'],
-            'package_size' => ['nullable', 'integer', 'min:1', 'required_with:package_unit'],
+            'package_unit' => ['required', 'string', 'max:50'],
+            'package_size' => ['required', 'integer', 'min:1'],
             'min_stock' => ['required', 'integer', 'min:0'],
             'max_stock' => ['nullable', 'integer', 'min:0', 'gt:min_stock'],
             'unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
@@ -38,6 +38,8 @@ class UpdateInventoryRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'package_unit.required' => 'Choose the purchase unit — the cost price is entered per purchase unit.',
+            'package_size.required' => 'Enter how much one purchase unit holds.',
             'max_stock.gt' => 'Max stock must be greater than min stock.',
             'photo.image' => 'The item photo must be an image.',
             'photo.mimes' => 'The item photo must be a JPG, PNG, or WebP image.',
