@@ -2,18 +2,35 @@
 
 namespace App\Repositories;
 
+use App\DTOs\TableSort;
 use App\Models\Promotion;
+use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class PromotionRepository
 {
-    public function paginate(int $shopId, int $perPage = 15): LengthAwarePaginator
+    use AppliesTableSort;
+
+    public function paginate(int $shopId, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return Promotion::where('shop_id', $shopId)
-            ->withCount('orders')
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $query = Promotion::where('shop_id', $shopId)->withCount('orders');
+
+        $sorted = $this->applyTableSort($query, $sort, [
+            'name' => 'name',
+            'type' => 'type',
+            'value' => 'value',
+            'min_order_amount' => 'min_order_amount',
+            'validity' => 'starts_at',
+            'orders_count' => 'orders_count',
+            'status' => 'is_active',
+        ]);
+
+        if (! $sorted) {
+            $query->orderByDesc('created_at');
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function allActive(int $shopId): Collection

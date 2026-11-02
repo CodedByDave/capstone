@@ -2,7 +2,11 @@
 
 namespace App\Repositories;
 
+use App\DTOs\TableSort;
+use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
+use App\Models\ShopService;
+use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
@@ -10,6 +14,8 @@ use Illuminate\Support\Carbon;
 /** All reads and writes of the payments made toward shop orders. */
 class OrderPaymentRepository
 {
+    use AppliesTableSort;
+
     /** How long a cancelled online checkout is still checked in case it was paid anyway. */
     public const CANCELLED_RECHECK_HOURS = 6;
 
@@ -100,14 +106,38 @@ class OrderPaymentRepository
             ->when($method, fn ($q) => $q->where('method', $method));
     }
 
-    public function paginateIncome(int $shopId, ?string $from, ?string $to, ?string $method, int $perPage = 15): LengthAwarePaginator
+    public function paginateIncome(int $shopId, ?string $from, ?string $to, ?string $method, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->incomeQuery($shopId, $from, $to, $method)
-            ->with('order:id,order_number,customer_name,service_id', 'order.service:id,service_name')
-            ->latest('paid_at')
-            ->latest('id')
-            ->paginate($perPage)
-            ->withQueryString();
+        $query = $this->incomeQuery($shopId, $from, $to, $method)
+            ->with('order:id,order_number,customer_name,service_id', 'order.service:id,service_name');
+
+        $orderColumn = fn (string $column) => fn ($q, $dir) => $q->orderBy(
+            ShopOrder::query()
+                ->select($column)
+                ->whereColumn('shop_orders.id', 'shop_order_payments.shop_order_id'),
+            $dir,
+        );
+
+        $sorted = $this->applyTableSort($query, $sort, [
+            'paid_at' => 'paid_at',
+            'amount_paid' => 'amount',
+            'payment_method' => 'method',
+            'order_number' => $orderColumn('order_number'),
+            'customer_name' => $orderColumn('customer_name'),
+            'service' => fn ($q, $dir) => $q->orderBy(
+                ShopService::query()
+                    ->select('service_name')
+                    ->join('shop_orders', 'shop_orders.service_id', '=', 'services_and_pricing.id')
+                    ->whereColumn('shop_orders.id', 'shop_order_payments.shop_order_id'),
+                $dir,
+            ),
+        ]);
+
+        if (! $sorted) {
+            $query->latest('paid_at')->latest('id');
+        }
+
+        return $query->paginate($perPage)->withQueryString();
     }
 
     public function incomeBetween(int $shopId, string $from, string $to): Collection

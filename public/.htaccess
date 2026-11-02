@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Allow the PWA service worker (served from /build/) to control the whole site
+    <IfModule mod_headers.c>
+        <FilesMatch "^sw\.js$">
+            Header set Service-Worker-Allowed "/"
+            Header set Cache-Control "no-cache"
+        </FilesMatch>
+    </IfModule>
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

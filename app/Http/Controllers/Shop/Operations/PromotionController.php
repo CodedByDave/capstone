@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop\Operations;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Employee;
 use App\Models\Promotion;
 use App\Models\Shop;
@@ -34,7 +35,7 @@ class PromotionController extends Controller
         return auth()->user()->role === 'owner' ? '/shop' : '/staff';
     }
 
-    public function index(Request $request)
+    public function index(TableSortRequest $request)
     {
         $shop = $this->getShop();
         $archived = $request->boolean('archived');
@@ -42,7 +43,7 @@ class PromotionController extends Controller
         return Inertia::render('shop/operations/promotions/Index', [
             'promotions' => $archived
                 ? $this->promotionService->archived($shop)
-                : $this->promotionService->paginate($shop),
+                : $this->promotionService->paginate($shop, 15, $request->sort()),
             'stats' => $this->promotionService->getStats($shop),
             'archived' => $archived,
         ]);

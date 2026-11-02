@@ -1,4 +1,3 @@
-
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
@@ -30,6 +29,13 @@ export default defineConfig({
             ? [
                   wayfinder({
                       formVariants: true,
+                      // Regenerating deletes and rewrites ~220 files, and for several seconds
+                      // Vite answers 404 for them: a page that loads then is a white page. The
+                      // default also reruns it on every save of a Form Request, Resource or
+                      // Middleware, which cannot change the generated helpers. Only the route
+                      // files do; after adding a controller method, run
+                      // `php artisan wayfinder:generate --with-form`.
+                      patterns: ['routes/**/*.php'],
                   }),
               ]
             : []),
@@ -45,6 +51,10 @@ export default defineConfig({
 
         VitePWA({
             registerType: 'autoUpdate',
+            // The worker file lives in /build/, so without this its scope is /build/
+            // and it never controls the site root, which makes the app non-installable.
+            // Needs the Service-Worker-Allowed header (see public/.htaccess).
+            scope: '/',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
             manifest: {
                 name: 'LaundryHub',

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -9,6 +8,8 @@ import {
     statusTone,
     type DataTableHeader,
 } from '@/components/data-table';
+import CompleteOrderDialog from '@/components/shop/CompleteOrderDialog.vue';
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,8 +22,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { usePermissions } from '@/composables/usePermissions';
 import type { DataTableOptions } from '@/composables/useDataTable';
+import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -30,6 +31,7 @@ import { debounce } from 'lodash';
 import {
     AlertCircle,
     Archive,
+    CheckCheck,
     CheckCircle,
     Clock,
     CreditCard,
@@ -41,6 +43,7 @@ import {
     Plus,
     RotateCcw,
     Trash2,
+    Undo2,
     X,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -57,6 +60,8 @@ interface Order {
     customer_phone: string | null;
     status: string;
     deliver_to_customer?: boolean;
+    pricing_model?: 'per_kg' | 'per_bundle' | 'per_piece';
+    actual_weight_kg?: string | null;
     payment_status: string;
     payment_method: string;
     total_amount: string;
@@ -304,13 +309,66 @@ const orderStatusTone = (s: string) =>
 const canPickUp = (order: Order) =>
     order.status === 'completed' && !order.deliver_to_customer;
 
-const changeStatus = (order: Order, next: 'picked_up') => {
+// An order still being worked on can be completed by hand, e.g. when it is done early or the
+// automation has not caught up. It needs a final price, so an unweighed order goes to Edit first.
+const canComplete = (order: Order) => order.status === 'in_progress';
+// A completion made by mistake can be taken back until the order is picked up.
+const canRevert = (order: Order) => order.status === 'completed';
+
+const orderToComplete = ref<Order | null>(null);
+const showCompleteDialog = ref(false);
+const completeDialogMode = ref<'complete' | 'revert'>('complete');
+
+const startRevert = (order: Order) => {
+    orderToComplete.value = order;
+    completeDialogMode.value = 'revert';
+    showCompleteDialog.value = true;
+};
+
+const startComplete = (order: Order) => {
+    const priced =
+        order.pricing_model === 'per_piece' ||
+        (order.actual_weight_kg !== null &&
+            order.actual_weight_kg !== undefined);
+
+    if (!priced) {
+        toast.info('Enter the actual weight first, then complete the order.');
+        router.visit(`${base.value}/${order.payment_public_id}/edit`);
+        return;
+    }
+
+    orderToComplete.value = order;
+    completeDialogMode.value = 'complete';
+    showCompleteDialog.value = true;
+};
+
+const completeOrder = () => {
+    if (orderToComplete.value)
+        changeStatus(
+            orderToComplete.value,
+            completeDialogMode.value === 'complete'
+                ? 'completed'
+                : 'in_progress',
+        );
+    orderToComplete.value = null;
+};
+
+const changeStatus = (
+    order: Order,
+    next: 'picked_up' | 'completed' | 'in_progress',
+) => {
     router.patch(
         `${base.value}/${order.payment_public_id}/status`,
         { status: next },
         {
             preserveScroll: true,
-            only: ['orders', 'statusSummary', 'newOrdersCount', 'flash', 'toast'],
+            only: [
+                'orders',
+                'statusSummary',
+                'newOrdersCount',
+                'flash',
+                'toast',
+            ],
             onError: (errors) =>
                 toast.error(
                     errors.status ?? 'The order status could not be changed.',
@@ -664,9 +722,30 @@ const handleDelete = () => {
                                     ),
                             },
                             {
+                                label: 'Mark as completed',
+                                icon: CheckCheck,
+                                show:
+                                    !showArchived &&
+                                    canManage &&
+                                    canComplete(order),
+                                onSelect: () => startComplete(order),
+                            },
+                            {
+                                label: 'Revert to in progress',
+                                icon: Undo2,
+                                show:
+                                    !showArchived &&
+                                    canManage &&
+                                    canRevert(order),
+                                onSelect: () => startRevert(order),
+                            },
+                            {
                                 label: 'Mark as picked up',
                                 icon: PackageCheck,
-                                show: !showArchived && canManage && canPickUp(order),
+                                show:
+                                    !showArchived &&
+                                    canManage &&
+                                    canPickUp(order),
                                 onSelect: () =>
                                     changeStatus(order, 'picked_up'),
                             },
@@ -697,6 +776,14 @@ const handleDelete = () => {
                 </template>
             </DataTable>
         </div>
+
+        <CompleteOrderDialog
+            v-model:open="showCompleteDialog"
+            :mode="completeDialogMode"
+            :order-number="orderToComplete?.order_number"
+            :customer-name="orderToComplete?.customer_name"
+            @confirm="completeOrder"
+        />
 
         <!-- ── Delete Alert Dialog ────────────────────── -->
         <AlertDialog

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -341,12 +341,18 @@ const hasFilters = computed(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Title', value: 'title' },
-    { text: 'Category', value: 'category' },
-    { text: 'Date', value: 'expense_date', width: 140 },
-    { text: 'Reference', value: 'reference_number' },
-    { text: 'Recorded by', value: 'creator' },
-    { text: 'Amount', value: 'amount', align: 'right', width: 140 },
+    { text: 'Title', value: 'title', sortable: true },
+    { text: 'Category', value: 'category', sortable: true },
+    { text: 'Date', value: 'expense_date', sortable: true, width: 140 },
+    { text: 'Reference', value: 'reference_number', sortable: true },
+    { text: 'Recorded by', value: 'creator', sortable: true },
+    {
+        text: 'Amount',
+        value: 'amount',
+        sortable: true,
+        align: 'right',
+        width: 140,
+    },
     { text: 'Actions', value: 'actions', align: 'center', width: 120 },
 ];
 

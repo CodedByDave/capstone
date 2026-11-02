@@ -2,14 +2,20 @@
 
 namespace App\Repositories;
 
+use App\DTOs\TableSort;
 use App\Models\Delivery;
 use App\Models\OrderRating;
+use App\Models\Rider;
+use App\Models\ShopOrder;
+use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class DeliveryRepository extends Repository
 {
+    use AppliesTableSort;
+
     public function __construct(Delivery $delivery)
     {
         parent::__construct($delivery);
@@ -36,15 +42,36 @@ class DeliveryRepository extends Repository
             ->first();
     }
 
-    public function paginateForShop(int $shopId, ?string $status, int $perPage = 15): LengthAwarePaginator
+    public function paginateForShop(int $shopId, ?string $status, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return Delivery::query()
+        $query = Delivery::query()
             ->with(['rider', 'order:id,order_number', 'photos'])
             ->where('shop_id', $shopId)
-            ->when($status, fn ($query) => $query->where('status', $status))
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString();
+            ->when($status, fn ($query) => $query->where('status', $status));
+
+        $sorted = $this->applyTableSort($query, $sort, [
+            'customer_name' => 'customer_name',
+            'status' => 'status',
+            'created_at' => 'created_at',
+            'order' => fn ($q, $dir) => $q->orderBy(
+                ShopOrder::query()
+                    ->select('order_number')
+                    ->whereColumn('shop_orders.id', 'deliveries.shop_order_id'),
+                $dir,
+            ),
+            'rider' => fn ($q, $dir) => $q->orderBy(
+                Rider::query()
+                    ->select('name')
+                    ->whereColumn('riders.id', 'deliveries.rider_id'),
+                $dir,
+            ),
+        ]);
+
+        if (! $sorted) {
+            $query->latest();
+        }
+
+        return $query->paginate($perPage)->withQueryString();
     }
 
     /** @return array<string, int> delivery counts keyed by status, for the shop */

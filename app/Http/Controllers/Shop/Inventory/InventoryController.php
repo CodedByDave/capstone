@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Shop\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Inventory\AdjustStockRequest;
+use App\Http\Requests\Shop\Inventory\InventoryFilterRequest;
 use App\Http\Requests\Shop\Inventory\StoreInventoryRequest;
 use App\Http\Requests\Shop\Inventory\UpdateInventoryRequest;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Employee;
 use App\Models\Inventory;
 use App\Models\Shop;
@@ -38,10 +40,10 @@ class InventoryController extends Controller
         return Shop::findOrFail($employee->shop_id);
     }
 
-    public function index()
+    public function index(InventoryFilterRequest $request)
     {
         $shop = $this->getShop();
-        $filters = request()->only(['search', 'category_id', 'supplier_id', 'status', 'stock']);
+        $filters = $request->filters();
 
         return Inertia::render('shop/inventory/Index', [
             'inventory' => $this->inventoryService->paginate($shop->id, perPage: 15, filters: $filters),
@@ -67,7 +69,11 @@ class InventoryController extends Controller
     {
         $shop = $this->getShop();
 
-        $this->inventoryService->create($shop->id, $request->validated());
+        $this->inventoryService->create(
+            $shop->id,
+            $request->safe()->except('photo'),
+            $request->file('photo'),
+        );
 
         $route = auth()->user()->role === 'owner' ? 'inventory.index' : 'staff.inventory.index';
 
@@ -110,7 +116,12 @@ class InventoryController extends Controller
 
         abort_if(! $item, 404);
 
-        $this->inventoryService->update($item, $request->validated());
+        $this->inventoryService->update(
+            $item,
+            $request->safe()->except(['photo', 'remove_photo']),
+            $request->file('photo'),
+            $request->boolean('remove_photo'),
+        );
 
         return redirect()->route('inventory.show', $inventory->id)
             ->with('toast', ['type' => 'success', 'message' => 'Inventory item updated.']);
@@ -126,7 +137,25 @@ class InventoryController extends Controller
         $this->inventoryService->delete($item);
 
         return redirect()->route('inventory.index')
-            ->with('toast', ['type' => 'success', 'message' => 'Item archived successfully.']);
+            ->with('toast', ['type' => 'success', 'message' => 'Product archived successfully.']);
+    }
+
+    public function archive(TableSortRequest $request)
+    {
+        $shop = $this->getShop();
+
+        return Inertia::render('shop/inventory/Archive', [
+            'archived' => $this->inventoryService->archived($shop->id, $request->sort()),
+        ]);
+    }
+
+    public function restore(int $id)
+    {
+        $shop = $this->getShop();
+
+        $this->inventoryService->restore($id, $shop->id);
+
+        return response()->json(['success' => true]);
     }
 
     public function adjustStock(AdjustStockRequest $request, Inventory $inventory)

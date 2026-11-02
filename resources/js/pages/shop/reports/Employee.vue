@@ -13,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -174,10 +175,15 @@ const roleChartData = computed(() => ({
 }));
 
 const recentHeaders: DataTableHeader[] = [
-    { text: 'Name', value: 'name' },
-    { text: 'Email', value: 'email' },
-    { text: 'Joined', value: 'created_at' },
+    { text: 'Name', value: 'name', sortable: true },
+    { text: 'Email', value: 'email', sortable: true },
+    { text: 'Joined', value: 'created_at', sortable: true },
 ];
+
+const { options: recentOptions, pageItems: recentRows } = useDataTable(
+    () => props.recentEmployees,
+    { rowsPerPage: 100 },
+);
 
 const barOptions = {
     responsive: true,
@@ -379,7 +385,9 @@ const doughnutOptions = {
             <!-- Recent employees -->
             <DataTable
                 :headers="recentHeaders"
-                :items="recentEmployees"
+                v-model:options="recentOptions"
+                :items="recentRows"
+                :total="recentEmployees.length"
                 item-key="email"
                 noun="employees"
                 :empty-icon="Users"

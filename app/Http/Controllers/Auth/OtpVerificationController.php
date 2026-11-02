@@ -189,7 +189,9 @@ class OtpVerificationController extends Controller
 
             DB::commit();
 
-            session()->forget(['pending_registration', 'referral_shop_id']);
+            // Drop any stale "intended" URL (e.g. /shop/employee visited earlier while
+            // logged out) so the new account's first login lands on its own dashboard.
+            session()->forget(['pending_registration', 'referral_shop_id', 'url.intended']);
 
             Log::info('Account created successfully', [
                 'email' => $user->email,

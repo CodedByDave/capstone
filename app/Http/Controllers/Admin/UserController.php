@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BulkUserRequest;
+use App\Http\Requests\TableSortRequest;
 use App\Models\User;
 use App\Services\ActivityLogService;
 use App\Services\UserManagementService;
@@ -133,12 +134,12 @@ class UserController extends Controller
 
     // ── Archive index ─────────────────────────────────────────────────────────
 
-    public function archiveIndex(Request $request)
+    public function archiveIndex(TableSortRequest $request)
     {
         $filters = $request->only(['search', 'role']);
 
         return Inertia::render('admin/users/Archive', [
-            'users' => $this->userManagementService->getArchivedPaginated($filters),
+            'users' => $this->userManagementService->getArchivedPaginated($filters, 20, $request->sort()),
             'total' => $this->userManagementService->getArchivedTotal(),
             'filters' => $filters,
         ]);

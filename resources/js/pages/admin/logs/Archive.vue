@@ -136,10 +136,10 @@ const categoryOptions = [
 const { options, loading } = usePaginatorTable(() => props.logs, ['logs']);
 
 const headers: DataTableHeader[] = [
-    { text: 'User', value: 'name', width: 240 },
+    { text: 'User', value: 'name', width: 240, sortable: true },
     { text: 'Role', value: 'role' },
-    { text: 'Type', value: 'category' },
-    { text: 'Module / event', value: 'module' },
+    { text: 'Type', value: 'category', sortable: true },
+    { text: 'Module / event', value: 'module', sortable: true },
     { text: 'Context', value: 'context' },
     { text: 'Archived at', value: 'archived_at' },
     { text: 'Actions', value: 'actions', align: 'center', width: 120 },

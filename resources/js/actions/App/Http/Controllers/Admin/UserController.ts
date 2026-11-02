@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\UserController::index
- * @see app/Http/Controllers/Admin/UserController.php:22
+ * @see app/Http/Controllers/Admin/UserController.php:23
  * @route '/admin/users'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::index
- * @see app/Http/Controllers/Admin/UserController.php:22
+ * @see app/Http/Controllers/Admin/UserController.php:23
  * @route '/admin/users'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::index
- * @see app/Http/Controllers/Admin/UserController.php:22
+ * @see app/Http/Controllers/Admin/UserController.php:23
  * @route '/admin/users'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Admin\UserController::index
- * @see app/Http/Controllers/Admin/UserController.php:22
+ * @see app/Http/Controllers/Admin/UserController.php:23
  * @route '/admin/users'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::index
- * @see app/Http/Controllers/Admin/UserController.php:22
+ * @see app/Http/Controllers/Admin/UserController.php:23
  * @route '/admin/users'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::index
- * @see app/Http/Controllers/Admin/UserController.php:22
+ * @see app/Http/Controllers/Admin/UserController.php:23
  * @route '/admin/users'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Admin\UserController::index
- * @see app/Http/Controllers/Admin/UserController.php:22
+ * @see app/Http/Controllers/Admin/UserController.php:23
  * @route '/admin/users'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::exportCsv
- * @see app/Http/Controllers/Admin/UserController.php:41
+ * @see app/Http/Controllers/Admin/UserController.php:42
  * @route '/admin/users/export'
  */
 export const exportCsv = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ exportCsv.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::exportCsv
- * @see app/Http/Controllers/Admin/UserController.php:41
+ * @see app/Http/Controllers/Admin/UserController.php:42
  * @route '/admin/users/export'
  */
 exportCsv.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ exportCsv.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::exportCsv
- * @see app/Http/Controllers/Admin/UserController.php:41
+ * @see app/Http/Controllers/Admin/UserController.php:42
  * @route '/admin/users/export'
  */
 exportCsv.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ exportCsv.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Admin\UserController::exportCsv
- * @see app/Http/Controllers/Admin/UserController.php:41
+ * @see app/Http/Controllers/Admin/UserController.php:42
  * @route '/admin/users/export'
  */
 exportCsv.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ exportCsv.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::exportCsv
- * @see app/Http/Controllers/Admin/UserController.php:41
+ * @see app/Http/Controllers/Admin/UserController.php:42
  * @route '/admin/users/export'
  */
     const exportCsvForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ exportCsv.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::exportCsv
- * @see app/Http/Controllers/Admin/UserController.php:41
+ * @see app/Http/Controllers/Admin/UserController.php:42
  * @route '/admin/users/export'
  */
         exportCsvForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ exportCsv.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Admin\UserController::exportCsv
- * @see app/Http/Controllers/Admin/UserController.php:41
+ * @see app/Http/Controllers/Admin/UserController.php:42
  * @route '/admin/users/export'
  */
         exportCsvForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ exportCsv.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     exportCsv.form = exportCsvForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::importCsv
- * @see app/Http/Controllers/Admin/UserController.php:72
+ * @see app/Http/Controllers/Admin/UserController.php:73
  * @route '/admin/users/import'
  */
 export const importCsv = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ importCsv.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::importCsv
- * @see app/Http/Controllers/Admin/UserController.php:72
+ * @see app/Http/Controllers/Admin/UserController.php:73
  * @route '/admin/users/import'
  */
 importCsv.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ importCsv.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::importCsv
- * @see app/Http/Controllers/Admin/UserController.php:72
+ * @see app/Http/Controllers/Admin/UserController.php:73
  * @route '/admin/users/import'
  */
 importCsv.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -191,7 +191,7 @@ importCsv.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::importCsv
- * @see app/Http/Controllers/Admin/UserController.php:72
+ * @see app/Http/Controllers/Admin/UserController.php:73
  * @route '/admin/users/import'
  */
     const importCsvForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -201,7 +201,7 @@ importCsv.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::importCsv
- * @see app/Http/Controllers/Admin/UserController.php:72
+ * @see app/Http/Controllers/Admin/UserController.php:73
  * @route '/admin/users/import'
  */
         importCsvForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -212,7 +212,7 @@ importCsv.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     importCsv.form = importCsvForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::bulkArchive
- * @see app/Http/Controllers/Admin/UserController.php:118
+ * @see app/Http/Controllers/Admin/UserController.php:119
  * @route '/admin/users/bulk-archive'
  */
 export const bulkArchive = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ bulkArchive.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::bulkArchive
- * @see app/Http/Controllers/Admin/UserController.php:118
+ * @see app/Http/Controllers/Admin/UserController.php:119
  * @route '/admin/users/bulk-archive'
  */
 bulkArchive.url = (options?: RouteQueryOptions) => {
@@ -236,7 +236,7 @@ bulkArchive.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::bulkArchive
- * @see app/Http/Controllers/Admin/UserController.php:118
+ * @see app/Http/Controllers/Admin/UserController.php:119
  * @route '/admin/users/bulk-archive'
  */
 bulkArchive.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -246,7 +246,7 @@ bulkArchive.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::bulkArchive
- * @see app/Http/Controllers/Admin/UserController.php:118
+ * @see app/Http/Controllers/Admin/UserController.php:119
  * @route '/admin/users/bulk-archive'
  */
     const bulkArchiveForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -256,7 +256,7 @@ bulkArchive.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::bulkArchive
- * @see app/Http/Controllers/Admin/UserController.php:118
+ * @see app/Http/Controllers/Admin/UserController.php:119
  * @route '/admin/users/bulk-archive'
  */
         bulkArchiveForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -267,7 +267,7 @@ bulkArchive.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     bulkArchive.form = bulkArchiveForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::archiveIndex
- * @see app/Http/Controllers/Admin/UserController.php:136
+ * @see app/Http/Controllers/Admin/UserController.php:137
  * @route '/admin/users/archive'
  */
 export const archiveIndex = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -282,7 +282,7 @@ archiveIndex.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::archiveIndex
- * @see app/Http/Controllers/Admin/UserController.php:136
+ * @see app/Http/Controllers/Admin/UserController.php:137
  * @route '/admin/users/archive'
  */
 archiveIndex.url = (options?: RouteQueryOptions) => {
@@ -291,7 +291,7 @@ archiveIndex.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::archiveIndex
- * @see app/Http/Controllers/Admin/UserController.php:136
+ * @see app/Http/Controllers/Admin/UserController.php:137
  * @route '/admin/users/archive'
  */
 archiveIndex.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -300,7 +300,7 @@ archiveIndex.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Admin\UserController::archiveIndex
- * @see app/Http/Controllers/Admin/UserController.php:136
+ * @see app/Http/Controllers/Admin/UserController.php:137
  * @route '/admin/users/archive'
  */
 archiveIndex.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -310,7 +310,7 @@ archiveIndex.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::archiveIndex
- * @see app/Http/Controllers/Admin/UserController.php:136
+ * @see app/Http/Controllers/Admin/UserController.php:137
  * @route '/admin/users/archive'
  */
     const archiveIndexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -320,7 +320,7 @@ archiveIndex.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::archiveIndex
- * @see app/Http/Controllers/Admin/UserController.php:136
+ * @see app/Http/Controllers/Admin/UserController.php:137
  * @route '/admin/users/archive'
  */
         archiveIndexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -329,7 +329,7 @@ archiveIndex.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Admin\UserController::archiveIndex
- * @see app/Http/Controllers/Admin/UserController.php:136
+ * @see app/Http/Controllers/Admin/UserController.php:137
  * @route '/admin/users/archive'
  */
         archiveIndexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -345,7 +345,7 @@ archiveIndex.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     archiveIndex.form = archiveIndexForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::restore
- * @see app/Http/Controllers/Admin/UserController.php:149
+ * @see app/Http/Controllers/Admin/UserController.php:150
  * @route '/admin/users/archive/{id}/restore'
  */
 export const restore = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -360,7 +360,7 @@ restore.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::restore
- * @see app/Http/Controllers/Admin/UserController.php:149
+ * @see app/Http/Controllers/Admin/UserController.php:150
  * @route '/admin/users/archive/{id}/restore'
  */
 restore.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -388,7 +388,7 @@ restore.url = (args: { id: string | number } | [id: string | number ] | string |
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::restore
- * @see app/Http/Controllers/Admin/UserController.php:149
+ * @see app/Http/Controllers/Admin/UserController.php:150
  * @route '/admin/users/archive/{id}/restore'
  */
 restore.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -398,7 +398,7 @@ restore.post = (args: { id: string | number } | [id: string | number ] | string 
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::restore
- * @see app/Http/Controllers/Admin/UserController.php:149
+ * @see app/Http/Controllers/Admin/UserController.php:150
  * @route '/admin/users/archive/{id}/restore'
  */
     const restoreForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -408,7 +408,7 @@ restore.post = (args: { id: string | number } | [id: string | number ] | string 
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::restore
- * @see app/Http/Controllers/Admin/UserController.php:149
+ * @see app/Http/Controllers/Admin/UserController.php:150
  * @route '/admin/users/archive/{id}/restore'
  */
         restoreForm.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -419,7 +419,7 @@ restore.post = (args: { id: string | number } | [id: string | number ] | string 
     restore.form = restoreForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::bulkRestore
- * @see app/Http/Controllers/Admin/UserController.php:164
+ * @see app/Http/Controllers/Admin/UserController.php:165
  * @route '/admin/users/archive/bulk-restore'
  */
 export const bulkRestore = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -434,7 +434,7 @@ bulkRestore.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::bulkRestore
- * @see app/Http/Controllers/Admin/UserController.php:164
+ * @see app/Http/Controllers/Admin/UserController.php:165
  * @route '/admin/users/archive/bulk-restore'
  */
 bulkRestore.url = (options?: RouteQueryOptions) => {
@@ -443,7 +443,7 @@ bulkRestore.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::bulkRestore
- * @see app/Http/Controllers/Admin/UserController.php:164
+ * @see app/Http/Controllers/Admin/UserController.php:165
  * @route '/admin/users/archive/bulk-restore'
  */
 bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -453,7 +453,7 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::bulkRestore
- * @see app/Http/Controllers/Admin/UserController.php:164
+ * @see app/Http/Controllers/Admin/UserController.php:165
  * @route '/admin/users/archive/bulk-restore'
  */
     const bulkRestoreForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -463,7 +463,7 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::bulkRestore
- * @see app/Http/Controllers/Admin/UserController.php:164
+ * @see app/Http/Controllers/Admin/UserController.php:165
  * @route '/admin/users/archive/bulk-restore'
  */
         bulkRestoreForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -474,7 +474,7 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     bulkRestore.form = bulkRestoreForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:182
+ * @see app/Http/Controllers/Admin/UserController.php:183
  * @route '/admin/users/archive/{id}'
  */
 export const forceDelete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -489,7 +489,7 @@ forceDelete.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:182
+ * @see app/Http/Controllers/Admin/UserController.php:183
  * @route '/admin/users/archive/{id}'
  */
 forceDelete.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -517,7 +517,7 @@ forceDelete.url = (args: { id: string | number } | [id: string | number ] | stri
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:182
+ * @see app/Http/Controllers/Admin/UserController.php:183
  * @route '/admin/users/archive/{id}'
  */
 forceDelete.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -527,7 +527,7 @@ forceDelete.delete = (args: { id: string | number } | [id: string | number ] | s
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:182
+ * @see app/Http/Controllers/Admin/UserController.php:183
  * @route '/admin/users/archive/{id}'
  */
     const forceDeleteForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -542,7 +542,7 @@ forceDelete.delete = (args: { id: string | number } | [id: string | number ] | s
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:182
+ * @see app/Http/Controllers/Admin/UserController.php:183
  * @route '/admin/users/archive/{id}'
  */
         forceDeleteForm.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -558,7 +558,7 @@ forceDelete.delete = (args: { id: string | number } | [id: string | number ] | s
     forceDelete.form = forceDeleteForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::show
- * @see app/Http/Controllers/Admin/UserController.php:95
+ * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
  */
 export const show = (args: { user: string | { public_id: string } } | [user: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -573,7 +573,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::show
- * @see app/Http/Controllers/Admin/UserController.php:95
+ * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
  */
 show.url = (args: { user: string | { public_id: string } } | [user: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -606,7 +606,7 @@ show.url = (args: { user: string | { public_id: string } } | [user: string | { p
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::show
- * @see app/Http/Controllers/Admin/UserController.php:95
+ * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
  */
 show.get = (args: { user: string | { public_id: string } } | [user: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -615,7 +615,7 @@ show.get = (args: { user: string | { public_id: string } } | [user: string | { p
 })
 /**
 * @see \App\Http\Controllers\Admin\UserController::show
- * @see app/Http/Controllers/Admin/UserController.php:95
+ * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
  */
 show.head = (args: { user: string | { public_id: string } } | [user: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -625,7 +625,7 @@ show.head = (args: { user: string | { public_id: string } } | [user: string | { 
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::show
- * @see app/Http/Controllers/Admin/UserController.php:95
+ * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
  */
     const showForm = (args: { user: string | { public_id: string } } | [user: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -635,7 +635,7 @@ show.head = (args: { user: string | { public_id: string } } | [user: string | { 
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::show
- * @see app/Http/Controllers/Admin/UserController.php:95
+ * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
  */
         showForm.get = (args: { user: string | { public_id: string } } | [user: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -644,7 +644,7 @@ show.head = (args: { user: string | { public_id: string } } | [user: string | { 
         })
             /**
 * @see \App\Http\Controllers\Admin\UserController::show
- * @see app/Http/Controllers/Admin/UserController.php:95
+ * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
  */
         showForm.head = (args: { user: string | { public_id: string } } | [user: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -660,7 +660,7 @@ show.head = (args: { user: string | { public_id: string } } | [user: string | { 
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Admin\UserController::destroy
- * @see app/Http/Controllers/Admin/UserController.php:104
+ * @see app/Http/Controllers/Admin/UserController.php:105
  * @route '/admin/users/{user}'
  */
 export const destroy = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -675,7 +675,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::destroy
- * @see app/Http/Controllers/Admin/UserController.php:104
+ * @see app/Http/Controllers/Admin/UserController.php:105
  * @route '/admin/users/{user}'
  */
 destroy.url = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -708,7 +708,7 @@ destroy.url = (args: { user: number | { id: number } } | [user: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::destroy
- * @see app/Http/Controllers/Admin/UserController.php:104
+ * @see app/Http/Controllers/Admin/UserController.php:105
  * @route '/admin/users/{user}'
  */
 destroy.delete = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -718,7 +718,7 @@ destroy.delete = (args: { user: number | { id: number } } | [user: number | { id
 
     /**
 * @see \App\Http\Controllers\Admin\UserController::destroy
- * @see app/Http/Controllers/Admin/UserController.php:104
+ * @see app/Http/Controllers/Admin/UserController.php:105
  * @route '/admin/users/{user}'
  */
     const destroyForm = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -733,7 +733,7 @@ destroy.delete = (args: { user: number | { id: number } } | [user: number | { id
 
             /**
 * @see \App\Http\Controllers\Admin\UserController::destroy
- * @see app/Http/Controllers/Admin/UserController.php:104
+ * @see app/Http/Controllers/Admin/UserController.php:105
  * @route '/admin/users/{user}'
  */
         destroyForm.delete = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

@@ -72,7 +72,7 @@ const clear = () => {
                 <img
                     v-if="shownUrl"
                     :src="shownUrl"
-                    alt="Service photo preview"
+                    alt="Photo preview"
                     class="h-full w-full object-cover"
                 />
                 <template v-else>
@@ -111,7 +111,7 @@ const clear = () => {
                 <img
                     v-if="shownUrl"
                     :src="shownUrl"
-                    alt="Service photo preview"
+                    alt="Photo preview"
                     class="h-full w-full object-cover"
                 />
                 <ImagePlus v-else class="h-8 w-8" />

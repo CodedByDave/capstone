@@ -3,6 +3,7 @@
 namespace App\Http\Responses;
 
 use App\Enums\AccountType;
+use App\Services\BusinessAgreementService;
 use App\Services\LoginLogService;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
@@ -32,6 +33,15 @@ class LoginResponse implements LoginResponseContract
         }
 
         $url = route(AccountType::dashboardRouteFor($user->role));
+
+        // A newly registered owner (shop still pending) or one who owes the current
+        // agreement must start at the dashboard flow; a stale "intended" URL such as
+        // /shop/employee must not win.
+        if ($user->role === AccountType::ShopOwner->value
+            && ($user->shop?->status === 'pending'
+                || app(BusinessAgreementService::class)->requiresCurrentAcceptance($user))) {
+            $request->session()->forget('url.intended');
+        }
 
         return $request->wantsJson()
             ? response()->json(['two_factor' => false])

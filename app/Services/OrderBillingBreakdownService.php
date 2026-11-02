@@ -49,6 +49,21 @@ class OrderBillingBreakdownService
                 $rate,
                 $bundleWeight,
             ),
+            'extra_services' => $order->serviceLines->map(fn ($line) => $this->serviceLine(
+                $line->service_name,
+                $line->pricing_model,
+                (float) match ($line->pricing_model) {
+                    'per_kg' => $line->weight_kg,
+                    'per_piece' => $line->piece_count,
+                    default => $line->bundle_quantity,
+                },
+                (float) match ($line->pricing_model) {
+                    'per_kg' => $line->price_per_kg,
+                    'per_piece' => $line->price_per_piece,
+                    default => $line->bundle_price,
+                },
+                (float) $line->bundle_weight_kg,
+            ))->values()->all(),
             'additional_charges' => (float) $order->additional_charges,
             ...$this->additionalChargeDetail($order),
             'discount' => (float) $order->discount_amount,

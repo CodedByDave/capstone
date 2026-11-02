@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -8,6 +7,7 @@ import {
     statusTone,
     type DataTableHeader,
 } from '@/components/data-table';
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -88,6 +88,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 const dateFrom = ref(props.filters.dateFrom ?? '');
 const dateTo = ref(props.filters.dateTo ?? '');
 const method = ref(props.filters.method ?? '');
+// The "all" option needs a non-empty value; the filter itself stays ''.
+const NONE = '__none__';
 
 function applyFilters() {
     router.get(
@@ -120,13 +122,19 @@ const hasFilters = computed(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Order #', value: 'order_number' },
-    { text: 'Customer', value: 'customer_name' },
-    { text: 'Service', value: 'service' },
-    { text: 'Method', value: 'payment_method' },
-    { text: 'Date paid', value: 'paid_at' },
+    { text: 'Order #', value: 'order_number', sortable: true },
+    { text: 'Customer', value: 'customer_name', sortable: true },
+    { text: 'Service', value: 'service', sortable: true },
+    { text: 'Method', value: 'payment_method', sortable: true },
+    { text: 'Date paid', value: 'paid_at', sortable: true },
     { text: 'Status', value: 'payment_status' },
-    { text: 'Amount', value: 'amount_paid', align: 'right', width: 140 },
+    {
+        text: 'Amount',
+        value: 'amount_paid',
+        sortable: true,
+        align: 'right',
+        width: 140,
+    },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -270,7 +278,12 @@ function methodLabel(val: string | null): string {
                             placeholder="To"
                             aria-label="To date"
                         />
-                        <Select v-model="method">
+                        <Select
+                            :model-value="method || NONE"
+                            @update:model-value="
+                                (v) => (method = v === NONE ? '' : String(v))
+                            "
+                        >
                             <SelectTrigger
                                 class="sm:w-40"
                                 aria-label="Filter by payment method"
@@ -278,7 +291,9 @@ function methodLabel(val: string | null): string {
                                 <SelectValue placeholder="All methods" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All methods</SelectItem>
+                                <SelectItem :value="NONE"
+                                    >All methods</SelectItem
+                                >
                                 <SelectItem value="cash">Cash</SelectItem>
                                 <SelectItem value="gcash">GCash</SelectItem>
                                 <SelectItem value="maya">Maya</SelectItem>

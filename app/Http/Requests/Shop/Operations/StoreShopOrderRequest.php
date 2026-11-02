@@ -128,6 +128,12 @@ class StoreShopOrderRequest extends FormRequest
             'customer_agreement_accepted' => ['required', 'accepted'],
 
             // ─── Supplies ──────────────────────────────────
+            // ─── Additional services ───────────────────────
+            'service_lines' => ['nullable', 'array', 'max:10'],
+            'service_lines.*.service_id' => ['required', 'integer', Rule::exists('services_and_pricing', 'id')],
+            'service_lines.*.weight_kg' => ['nullable', 'numeric', 'min:0.1', 'max:999.99'],
+            'service_lines.*.piece_count' => ['nullable', 'integer', 'min:1', 'max:500'],
+
             'supplies' => ['nullable', 'array'],
             'supplies.*.inventory_id' => ['required', 'integer', 'exists:inventory,id'],
             'supplies.*.quantity_used' => ['required', 'numeric', 'min:0.01'],

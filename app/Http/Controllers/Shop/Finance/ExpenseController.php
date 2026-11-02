@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop\Finance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -35,25 +36,25 @@ class ExpenseController extends Controller
         return auth()->user()->role === 'owner' ? '/shop' : '/staff';
     }
 
-    public function index(Request $request)
+    public function index(TableSortRequest $request)
     {
         $shop = $this->getShop();
         $filters = $request->only(['search', 'category_id', 'date_from', 'date_to']);
 
         return Inertia::render('shop/finance/expenses/Index', [
-            'expenses' => $this->expenseService->paginate($shop, $filters),
+            'expenses' => $this->expenseService->paginate($shop, $filters, 10, $request->sort()),
             'stats' => $this->expenseService->getStats($shop),
             'categories' => $this->expenseService->getCategories($shop),
             'filters' => $filters,
         ]);
     }
 
-    public function archive()
+    public function archive(TableSortRequest $request)
     {
         $shop = $this->getShop();
 
         return Inertia::render('shop/finance/expenses/Archive', [
-            'expenses' => $this->expenseService->getArchived($shop),
+            'expenses' => $this->expenseService->getArchived($shop, $request->sort()),
         ]);
     }
 

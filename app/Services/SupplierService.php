@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Models\Supplier;
 use App\Repositories\SupplierRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -14,14 +15,14 @@ class SupplierService
         private readonly SupplierRepository $supplierRepository,
     ) {}
 
-    public function paginate(int $shopId, int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $shopId, ?TableSort $sort = null, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->supplierRepository->paginateForShop($shopId, $perPage);
+        return $this->supplierRepository->paginateForShop($shopId, $sort, $perPage);
     }
 
-    public function archived(int $shopId): LengthAwarePaginator
+    public function archived(int $shopId, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->supplierRepository->archivedForShop($shopId);
+        return $this->supplierRepository->archivedForShop($shopId, $sort);
     }
 
     public function allActive(int $shopId): Collection

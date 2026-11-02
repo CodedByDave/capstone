@@ -2,12 +2,18 @@
 
 namespace App\Repositories;
 
+use App\DTOs\TableSort;
 use App\Models\Inventory;
+use App\Models\InventoryCategory;
+use App\Models\Supplier;
+use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class InventoryRepository extends Repository
 {
+    use AppliesTableSort;
+
     public function __construct(Inventory $inventory)
     {
         parent::__construct($inventory);
@@ -20,8 +26,7 @@ class InventoryRepository extends Repository
     ): LengthAwarePaginator {
         $query = $this->query()
             ->where('shop_id', $shopId)
-            ->with(['category', 'supplier'])
-            ->orderBy('name');
+            ->with(['category', 'supplier']);
 
         if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
@@ -45,7 +50,37 @@ class InventoryRepository extends Repository
             $query->whereColumn('quantity', '<=', 'min_stock');
         }
 
+        $this->applySorting($query, $filters['sort_by'] ?? 'name', $filters['sort_direction'] ?? 'asc');
+
         return $query->paginate($perPage);
+    }
+
+    /**
+     * Sorts the list by one of its column headers. Category and supplier sort by their name, and
+     * every sort falls back to the item name so equal rows keep a stable order across pages.
+     */
+    private function applySorting($query, string $sortBy, string $direction): void
+    {
+        $direction = $direction === 'desc' ? 'desc' : 'asc';
+
+        match ($sortBy) {
+            'category' => $query->orderBy(
+                InventoryCategory::query()
+                    ->select('name')
+                    ->whereColumn('inventory_categories.id', 'inventory.inventory_categories_id'),
+                $direction,
+            ),
+            'supplier' => $query->orderBy(
+                Supplier::query()
+                    ->select('name')
+                    ->whereColumn('suppliers.id', 'inventory.supplier_id'),
+                $direction,
+            ),
+            'quantity', 'unit_price', 'status' => $query->orderBy($sortBy, $direction),
+            default => null,
+        };
+
+        $query->orderBy('name', $sortBy === 'name' ? $direction : 'asc')->orderBy('id');
     }
 
     public function allForShop(int $shopId): Collection
@@ -85,6 +120,45 @@ class InventoryRepository extends Repository
             ->where('status', 'active')
             ->whereDoesntHave('lowStockAlerts')
             ->get();
+    }
+
+    public function archivedForShop(int $shopId, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
+    {
+        $query = $this->query()
+            ->onlyTrashed()
+            ->where('shop_id', $shopId)
+            ->with(['category', 'supplier']);
+
+        $sorted = $this->applyTableSort($query, $sort, [
+            'name' => 'name',
+            'quantity' => 'quantity',
+            'deleted_at' => 'deleted_at',
+            'category' => fn ($q, $dir) => $q->orderBy(
+                InventoryCategory::query()
+                    ->select('name')
+                    ->whereColumn('inventory_categories.id', 'inventory.inventory_categories_id'),
+                $dir,
+            ),
+            'supplier' => fn ($q, $dir) => $q->orderBy(
+                Supplier::query()
+                    ->select('name')
+                    ->whereColumn('suppliers.id', 'inventory.supplier_id'),
+                $dir,
+            ),
+        ]);
+
+        if (! $sorted) {
+            $query->orderByDesc('deleted_at');
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    public function restoreForShop(int $id, int $shopId): bool
+    {
+        $item = $this->query()->onlyTrashed()->where('shop_id', $shopId)->findOrFail($id);
+
+        return (bool) $item->restore();
     }
 
     public function createForShop(int $shopId, array $data): Inventory

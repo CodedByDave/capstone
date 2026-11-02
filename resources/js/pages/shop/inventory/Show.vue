@@ -9,29 +9,14 @@ import {
 } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { packageStock } from '@/lib/inventoryStock';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import axios from 'axios';
-import {
-    AlertTriangle,
-    ArrowLeft,
-    ArrowUpDown,
-    Loader2,
-    Pencil,
-    X,
-} from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { AlertTriangle, ArrowLeft, ArrowUpDown, Pencil } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 interface Movement {
     id: number;
@@ -49,6 +34,7 @@ interface InventoryItem {
     id: number;
     name: string;
     description: string | null;
+    photo_url?: string | null;
     unit: string;
     package_unit: string | null;
     package_size: number | null;
@@ -74,69 +60,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Inventory', href: base.value },
     { title: inventory.name, href: `${base.value}/${inventory.id}` },
 ];
-
-// ─── Stock Adjust ─────────────────────────────────────────────────────────────
-
-const showAdjust = ref(false);
-const adjustError = ref<string | null>(null);
-const adjusting = ref(false);
-
-// An item bought in packages (e.g. bottles of 5,000 ml) can be adjusted in
-// packages; the stock itself always moves in the item's own unit.
-const hasPackage = computed(
-    () => !!inventory.package_unit && (inventory.package_size ?? 0) > 0,
-);
-const adjustInPackages = ref(hasPackage.value);
-const packagesOnHand = computed(() =>
-    hasPackage.value
-        ? Math.round((inventory.quantity / inventory.package_size!) * 100) / 100
-        : null,
-);
-
-const adjustForm = ref({
-    type: 'restock',
-    quantity: 1,
-    reference_number: '',
-    notes: '',
-});
-
-async function submitAdjust() {
-    if (!adjustForm.value.quantity || adjustForm.value.quantity === 0) {
-        adjustError.value = 'Quantity cannot be zero.';
-        return;
-    }
-
-    adjusting.value = true;
-    adjustError.value = null;
-
-    try {
-        await axios.post(`${base.value}/${inventory.id}/adjust`, {
-            ...adjustForm.value,
-            quantity:
-                hasPackage.value && adjustInPackages.value
-                    ? Math.round(
-                          Number(adjustForm.value.quantity) *
-                              inventory.package_size!,
-                      )
-                    : adjustForm.value.quantity,
-        });
-        router.reload({ only: ['inventory'] });
-        showAdjust.value = false;
-        adjustForm.value = {
-            type: 'restock',
-            quantity: 1,
-            reference_number: '',
-            notes: '',
-        };
-    } catch (err: any) {
-        adjustError.value =
-            err.response?.data?.errors?.quantity?.[0] ??
-            err.response?.data?.message ??
-            'Failed to adjust stock.';
-    } finally {
-        adjusting.value = false;
-    }
-}
 
 function formatPrice(price: string | null) {
     if (!price) return '—';
@@ -207,13 +130,6 @@ const movementTypeOptions = computed(() => [
                 <div class="flex gap-2">
                     <Button
                         v-if="isOwner || can('Inventory Management', 'update')"
-                        variant="outline"
-                        @click="showAdjust = !showAdjust"
-                    >
-                        <ArrowUpDown class="mr-2 h-4 w-4" /> Adjust Stock
-                    </Button>
-                    <Button
-                        v-if="isOwner || can('Inventory Management', 'update')"
                         @click="router.visit(`${base}/${inventory.id}/edit`)"
                     >
                         <Pencil class="mr-2 h-4 w-4" /> Edit
@@ -234,126 +150,17 @@ const movementTypeOptions = computed(() => [
                 </span>
             </div>
 
-            <!-- Adjust stock panel -->
-            <Card v-if="showAdjust" class="border-blue-200 bg-blue-50/30">
-                <CardHeader class="pb-3">
-                    <div class="flex items-center justify-between">
-                        <CardTitle class="flex items-center gap-2 text-sm">
-                            <ArrowUpDown class="h-4 w-4" /> Adjust Stock
-                        </CardTitle>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            class="h-7 w-7"
-                            @click="showAdjust = false"
-                        >
-                            <X class="h-4 w-4" />
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div
-                        v-if="adjustError"
-                        class="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
-                    >
-                        {{ adjustError }}
-                    </div>
-                    <div class="grid grid-cols-12 gap-4">
-                        <div class="col-span-12 space-y-1 sm:col-span-3">
-                            <label class="text-sm font-medium">Type</label>
-                            <Select v-model="adjustForm.type">
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="restock"
-                                        >Restock</SelectItem
-                                    >
-                                    <SelectItem value="usage">Usage</SelectItem>
-                                    <SelectItem value="adjustment"
-                                        >Adjustment</SelectItem
-                                    >
-                                    <SelectItem value="return"
-                                        >Return</SelectItem
-                                    >
-                                    <SelectItem value="damage"
-                                        >Damage</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div class="col-span-12 space-y-1 sm:col-span-2">
-                            <label class="text-sm font-medium"
-                                >Quantity ({{
-                                    hasPackage && adjustInPackages
-                                        ? inventory.package_unit
-                                        : inventory.unit
-                                }})</label
-                            >
-                            <Input
-                                v-model="adjustForm.quantity"
-                                type="number"
-                                min="0"
-                                :step="
-                                    hasPackage && adjustInPackages ? 'any' : 1
-                                "
-                            />
-                            <button
-                                v-if="hasPackage"
-                                type="button"
-                                class="text-xs text-primary hover:underline"
-                                @click="adjustInPackages = !adjustInPackages"
-                            >
-                                {{
-                                    adjustInPackages
-                                        ? `Enter in ${inventory.unit} instead`
-                                        : `Enter in ${inventory.package_unit} instead`
-                                }}
-                            </button>
-                        </div>
-                        <div class="col-span-12 space-y-1 sm:col-span-3">
-                            <label class="text-sm font-medium"
-                                >Reference No.
-                                <span class="text-xs text-muted-foreground"
-                                    >(optional)</span
-                                ></label
-                            >
-                            <Input
-                                v-model="adjustForm.reference_number"
-                                placeholder="e.g. PO-001"
-                            />
-                        </div>
-                        <div class="col-span-12 space-y-1 sm:col-span-4">
-                            <label class="text-sm font-medium"
-                                >Notes
-                                <span class="text-xs text-muted-foreground"
-                                    >(optional)</span
-                                ></label
-                            >
-                            <Input
-                                v-model="adjustForm.notes"
-                                placeholder="Reason for adjustment..."
-                            />
-                        </div>
-                    </div>
-                    <div class="mt-4 flex justify-end gap-2">
-                        <Button variant="outline" @click="showAdjust = false"
-                            >Cancel</Button
-                        >
-                        <Button :disabled="adjusting" @click="submitAdjust">
-                            <Loader2
-                                v-if="adjusting"
-                                class="mr-2 h-4 w-4 animate-spin"
-                            />
-                            {{ adjusting ? 'Saving...' : 'Save Adjustment' }}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
             <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <!-- Details -->
                 <Card class="md:col-span-2">
                     <CardHeader><CardTitle>Item Details</CardTitle></CardHeader>
                     <CardContent>
+                        <img
+                            v-if="inventory.photo_url"
+                            :src="inventory.photo_url"
+                            :alt="`Photo of ${inventory.name}`"
+                            class="mb-6 h-40 w-40 rounded-xl border object-cover"
+                        />
                         <div class="grid grid-cols-2 gap-6 text-sm">
                             <div class="space-y-1">
                                 <p
@@ -465,14 +272,18 @@ const movementTypeOptions = computed(() => [
                                 {{ inventory.unit }}
                             </p>
                             <p
-                                v-if="packagesOnHand !== null"
+                                v-if="packageStock(inventory)"
                                 class="mt-1 text-xs text-muted-foreground"
                             >
-                                ≈ {{ packagesOnHand }}
-                                {{ inventory.package_unit }}(s) · 1
-                                {{ inventory.package_unit }} =
-                                {{ inventory.package_size?.toLocaleString() }}
-                                {{ inventory.unit }}
+                                = {{ packageStock(inventory)!.full }}
+                                <template
+                                    v-if="packageStock(inventory)!.remainder"
+                                    >+
+                                    {{
+                                        packageStock(inventory)!.remainder
+                                    }}</template
+                                >
+                                · {{ packageStock(inventory)!.perPackage }}
                             </p>
                         </CardContent>
                     </Card>

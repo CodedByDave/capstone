@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Shop\Employee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Employee\GeneratePayrollRequest;
 use App\Http\Requests\Shop\Employee\UpdatePayrollItemRequest;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
@@ -40,12 +41,12 @@ class PayrollController extends Controller
         return auth()->user()->role === 'owner' ? '/shop' : '/staff';
     }
 
-    public function index()
+    public function index(TableSortRequest $request)
     {
         $shop = $this->getShop();
 
         return Inertia::render('shop/employee/payroll/Index', [
-            'payrolls' => $this->payrollService->paginate($shop),
+            'payrolls' => $this->payrollService->paginate($shop, 10, $request->sort()),
             'stats' => $this->payrollService->getStats($shop),
             'settings' => [
                 'deduct_sss' => (bool) $shop->deduct_sss,

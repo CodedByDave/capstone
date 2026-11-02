@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/shop/supplier'
  */
 const index6e9ba6528fc430e854109f2ba05c86df = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index6e9ba6528fc430e854109f2ba05c86df.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/shop/supplier'
  */
 index6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/shop/supplier'
  */
 index6e9ba6528fc430e854109f2ba05c86df.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index6e9ba6528fc430e854109f2ba05c86df.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/shop/supplier'
  */
 index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/shop/supplier'
  */
     const index6e9ba6528fc430e854109f2ba05c86dfForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/shop/supplier'
  */
         index6e9ba6528fc430e854109f2ba05c86dfForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/shop/supplier'
  */
         index6e9ba6528fc430e854109f2ba05c86dfForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
     index6e9ba6528fc430e854109f2ba05c86df.form = index6e9ba6528fc430e854109f2ba05c86dfForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/staff/supplier'
  */
 const index58c8d01005028baa95eea79080e74e73 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ index58c8d01005028baa95eea79080e74e73.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/staff/supplier'
  */
 index58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ index58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/staff/supplier'
  */
 index58c8d01005028baa95eea79080e74e73.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ index58c8d01005028baa95eea79080e74e73.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/staff/supplier'
  */
 index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/staff/supplier'
  */
     const index58c8d01005028baa95eea79080e74e73Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/staff/supplier'
  */
         index58c8d01005028baa95eea79080e74e73Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
  * @route '/staff/supplier'
  */
         index58c8d01005028baa95eea79080e74e73Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/shop/supplier/create'
  */
 const create3c850cff1273649ac4d585a784308198 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +178,7 @@ create3c850cff1273649ac4d585a784308198.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/shop/supplier/create'
  */
 create3c850cff1273649ac4d585a784308198.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ create3c850cff1273649ac4d585a784308198.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/shop/supplier/create'
  */
 create3c850cff1273649ac4d585a784308198.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ create3c850cff1273649ac4d585a784308198.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/shop/supplier/create'
  */
 create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/shop/supplier/create'
  */
     const create3c850cff1273649ac4d585a784308198Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/shop/supplier/create'
  */
         create3c850cff1273649ac4d585a784308198Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -225,7 +225,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/shop/supplier/create'
  */
         create3c850cff1273649ac4d585a784308198Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -241,7 +241,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
     create3c850cff1273649ac4d585a784308198.form = create3c850cff1273649ac4d585a784308198Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/staff/supplier/create'
  */
 const create00fe20f8daccb1efd9e3ffedcf0d39bc = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -256,7 +256,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/staff/supplier/create'
  */
 create00fe20f8daccb1efd9e3ffedcf0d39bc.url = (options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/staff/supplier/create'
  */
 create00fe20f8daccb1efd9e3ffedcf0d39bc.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/staff/supplier/create'
  */
 create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/staff/supplier/create'
  */
     const create00fe20f8daccb1efd9e3ffedcf0d39bcForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/staff/supplier/create'
  */
         create00fe20f8daccb1efd9e3ffedcf0d39bcForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:42
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
  * @route '/staff/supplier/create'
  */
         create00fe20f8daccb1efd9e3ffedcf0d39bcForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -325,7 +325,7 @@ export const create = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/shop/supplier'
  */
 const store6e9ba6528fc430e854109f2ba05c86df = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +340,7 @@ store6e9ba6528fc430e854109f2ba05c86df.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/shop/supplier'
  */
 store6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ store6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/shop/supplier'
  */
 store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +359,7 @@ store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/shop/supplier'
  */
     const store6e9ba6528fc430e854109f2ba05c86dfForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/shop/supplier'
  */
         store6e9ba6528fc430e854109f2ba05c86dfForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +380,7 @@ store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): Rout
     store6e9ba6528fc430e854109f2ba05c86df.form = store6e9ba6528fc430e854109f2ba05c86dfForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/staff/supplier'
  */
 const store58c8d01005028baa95eea79080e74e73 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +395,7 @@ store58c8d01005028baa95eea79080e74e73.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/staff/supplier'
  */
 store58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
@@ -404,7 +404,7 @@ store58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/staff/supplier'
  */
 store58c8d01005028baa95eea79080e74e73.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +414,7 @@ store58c8d01005028baa95eea79080e74e73.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/staff/supplier'
  */
     const store58c8d01005028baa95eea79080e74e73Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +424,7 @@ store58c8d01005028baa95eea79080e74e73.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:47
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
  * @route '/staff/supplier'
  */
         store58c8d01005028baa95eea79080e74e73Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -441,7 +441,7 @@ export const store = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/shop/supplier/{supplier}/edit'
  */
 const edit0c6ab6d54107232d4e45828eeb7251a7 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -456,7 +456,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/shop/supplier/{supplier}/edit'
  */
 edit0c6ab6d54107232d4e45828eeb7251a7.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -489,7 +489,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.url = (args: { supplier: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/shop/supplier/{supplier}/edit'
  */
 edit0c6ab6d54107232d4e45828eeb7251a7.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -498,7 +498,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.get = (args: { supplier: number | { id: num
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/shop/supplier/{supplier}/edit'
  */
 edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -508,7 +508,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: number | { id: nu
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/shop/supplier/{supplier}/edit'
  */
     const edit0c6ab6d54107232d4e45828eeb7251a7Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -518,7 +518,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: number | { id: nu
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/shop/supplier/{supplier}/edit'
  */
         edit0c6ab6d54107232d4e45828eeb7251a7Form.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -527,7 +527,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: number | { id: nu
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/shop/supplier/{supplier}/edit'
  */
         edit0c6ab6d54107232d4e45828eeb7251a7Form.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -543,7 +543,7 @@ edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: number | { id: nu
     edit0c6ab6d54107232d4e45828eeb7251a7.form = edit0c6ab6d54107232d4e45828eeb7251a7Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/staff/supplier/{supplier}/edit'
  */
 const edita494b0a8c6a3075af8912048b200805f = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -558,7 +558,7 @@ edita494b0a8c6a3075af8912048b200805f.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/staff/supplier/{supplier}/edit'
  */
 edita494b0a8c6a3075af8912048b200805f.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -591,7 +591,7 @@ edita494b0a8c6a3075af8912048b200805f.url = (args: { supplier: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/staff/supplier/{supplier}/edit'
  */
 edita494b0a8c6a3075af8912048b200805f.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -600,7 +600,7 @@ edita494b0a8c6a3075af8912048b200805f.get = (args: { supplier: number | { id: num
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/staff/supplier/{supplier}/edit'
  */
 edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -610,7 +610,7 @@ edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: number | { id: nu
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/staff/supplier/{supplier}/edit'
  */
     const edita494b0a8c6a3075af8912048b200805fForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -620,7 +620,7 @@ edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: number | { id: nu
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/staff/supplier/{supplier}/edit'
  */
         edita494b0a8c6a3075af8912048b200805fForm.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -629,7 +629,7 @@ edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: number | { id: nu
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
  * @route '/staff/supplier/{supplier}/edit'
  */
         edita494b0a8c6a3075af8912048b200805fForm.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -651,7 +651,7 @@ export const edit = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/shop/supplier/{supplier}'
  */
 const updateee3c239cbef8c85b0573326c696b1053 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -666,7 +666,7 @@ updateee3c239cbef8c85b0573326c696b1053.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/shop/supplier/{supplier}'
  */
 updateee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -699,7 +699,7 @@ updateee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/shop/supplier/{supplier}'
  */
 updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -709,7 +709,7 @@ updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: number | { id: n
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/shop/supplier/{supplier}'
  */
     const updateee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -724,7 +724,7 @@ updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: number | { id: n
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/shop/supplier/{supplier}'
  */
         updateee3c239cbef8c85b0573326c696b1053Form.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -740,7 +740,7 @@ updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: number | { id: n
     updateee3c239cbef8c85b0573326c696b1053.form = updateee3c239cbef8c85b0573326c696b1053Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/staff/supplier/{supplier}'
  */
 const update543927b6848bff5be51ec716751c4ddf = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -755,7 +755,7 @@ update543927b6848bff5be51ec716751c4ddf.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/staff/supplier/{supplier}'
  */
 update543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -788,7 +788,7 @@ update543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/staff/supplier/{supplier}'
  */
 update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -798,7 +798,7 @@ update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: number | { id: n
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/staff/supplier/{supplier}'
  */
     const update543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -813,7 +813,7 @@ update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: number | { id: n
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:64
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
  * @route '/staff/supplier/{supplier}'
  */
         update543927b6848bff5be51ec716751c4ddfForm.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -835,7 +835,7 @@ export const update = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/shop/supplier/{supplier}'
  */
 const destroyee3c239cbef8c85b0573326c696b1053 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -850,7 +850,7 @@ destroyee3c239cbef8c85b0573326c696b1053.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/shop/supplier/{supplier}'
  */
 destroyee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -883,7 +883,7 @@ destroyee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/shop/supplier/{supplier}'
  */
 destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -893,7 +893,7 @@ destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: number | { i
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/shop/supplier/{supplier}'
  */
     const destroyee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -908,7 +908,7 @@ destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: number | { i
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/shop/supplier/{supplier}'
  */
         destroyee3c239cbef8c85b0573326c696b1053Form.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -924,7 +924,7 @@ destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: number | { i
     destroyee3c239cbef8c85b0573326c696b1053.form = destroyee3c239cbef8c85b0573326c696b1053Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/staff/supplier/{supplier}'
  */
 const destroy543927b6848bff5be51ec716751c4ddf = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -939,7 +939,7 @@ destroy543927b6848bff5be51ec716751c4ddf.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/staff/supplier/{supplier}'
  */
 destroy543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -972,7 +972,7 @@ destroy543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/staff/supplier/{supplier}'
  */
 destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -982,7 +982,7 @@ destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: number | { i
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/staff/supplier/{supplier}'
  */
     const destroy543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -997,7 +997,7 @@ destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: number | { i
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
  * @route '/staff/supplier/{supplier}'
  */
         destroy543927b6848bff5be51ec716751c4ddfForm.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1019,7 +1019,7 @@ export const destroy = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/shop/supplier/archive'
  */
 const archiveef72c80cb61b4d4a66d71aee47dcc5db = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1034,7 +1034,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/shop/supplier/archive'
  */
 archiveef72c80cb61b4d4a66d71aee47dcc5db.url = (options?: RouteQueryOptions) => {
@@ -1043,7 +1043,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/shop/supplier/archive'
  */
 archiveef72c80cb61b4d4a66d71aee47dcc5db.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1052,7 +1052,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/shop/supplier/archive'
  */
 archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -1062,7 +1062,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/shop/supplier/archive'
  */
     const archiveef72c80cb61b4d4a66d71aee47dcc5dbForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1072,7 +1072,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/shop/supplier/archive'
  */
         archiveef72c80cb61b4d4a66d71aee47dcc5dbForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1081,7 +1081,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/shop/supplier/archive'
  */
         archiveef72c80cb61b4d4a66d71aee47dcc5dbForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1097,7 +1097,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
     archiveef72c80cb61b4d4a66d71aee47dcc5db.form = archiveef72c80cb61b4d4a66d71aee47dcc5dbForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/staff/supplier/archive'
  */
 const archive5af740144f8b943698fcd31d2712e8df = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1112,7 +1112,7 @@ archive5af740144f8b943698fcd31d2712e8df.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/staff/supplier/archive'
  */
 archive5af740144f8b943698fcd31d2712e8df.url = (options?: RouteQueryOptions) => {
@@ -1121,7 +1121,7 @@ archive5af740144f8b943698fcd31d2712e8df.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/staff/supplier/archive'
  */
 archive5af740144f8b943698fcd31d2712e8df.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1130,7 +1130,7 @@ archive5af740144f8b943698fcd31d2712e8df.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/staff/supplier/archive'
  */
 archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -1140,7 +1140,7 @@ archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/staff/supplier/archive'
  */
     const archive5af740144f8b943698fcd31d2712e8dfForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1150,7 +1150,7 @@ archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/staff/supplier/archive'
  */
         archive5af740144f8b943698fcd31d2712e8dfForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1159,7 +1159,7 @@ archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:84
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
  * @route '/staff/supplier/archive'
  */
         archive5af740144f8b943698fcd31d2712e8dfForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1181,7 +1181,7 @@ export const archive = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/shop/supplier/{id}/restore'
  */
 const restore5aea0d71094787f36454f7fe0dd9ac9d = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1196,7 +1196,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/shop/supplier/{id}/restore'
  */
 restore5aea0d71094787f36454f7fe0dd9ac9d.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1224,7 +1224,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.url = (args: { id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/shop/supplier/{id}/restore'
  */
 restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1234,7 +1234,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/shop/supplier/{id}/restore'
  */
     const restore5aea0d71094787f36454f7fe0dd9ac9dForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1244,7 +1244,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/shop/supplier/{id}/restore'
  */
         restore5aea0d71094787f36454f7fe0dd9ac9dForm.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1255,7 +1255,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | 
     restore5aea0d71094787f36454f7fe0dd9ac9d.form = restore5aea0d71094787f36454f7fe0dd9ac9dForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/staff/supplier/{id}/restore'
  */
 const restore28f12e27e550867e6342123918c4d493 = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1270,7 +1270,7 @@ restore28f12e27e550867e6342123918c4d493.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/staff/supplier/{id}/restore'
  */
 restore28f12e27e550867e6342123918c4d493.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1298,7 +1298,7 @@ restore28f12e27e550867e6342123918c4d493.url = (args: { id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/staff/supplier/{id}/restore'
  */
 restore28f12e27e550867e6342123918c4d493.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1308,7 +1308,7 @@ restore28f12e27e550867e6342123918c4d493.post = (args: { id: string | number } | 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/staff/supplier/{id}/restore'
  */
     const restore28f12e27e550867e6342123918c4d493Form = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1318,7 +1318,7 @@ restore28f12e27e550867e6342123918c4d493.post = (args: { id: string | number } | 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
  * @route '/staff/supplier/{id}/restore'
  */
         restore28f12e27e550867e6342123918c4d493Form.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

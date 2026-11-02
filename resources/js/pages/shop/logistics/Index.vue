@@ -403,11 +403,11 @@ const statusFilterOptions = computed(() => [
 ]);
 
 const headers: DataTableHeader[] = [
-    { text: 'Customer', value: 'customer_name', width: 260 },
-    { text: 'Order', value: 'order' },
-    { text: 'Rider / courier', value: 'rider' },
-    { text: 'Status', value: 'status' },
-    { text: 'Date', value: 'created_at' },
+    { text: 'Customer', value: 'customer_name', sortable: true, width: 260 },
+    { text: 'Order', value: 'order', sortable: true },
+    { text: 'Rider / courier', value: 'rider', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
+    { text: 'Date', value: 'created_at', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 230 },
 ];
 

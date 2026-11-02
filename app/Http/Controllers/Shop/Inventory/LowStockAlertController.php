@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Inventory\UpdateLowStockAlertRequest;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Employee;
 use App\Models\LowStockAlert;
 use App\Models\Shop;
@@ -31,12 +32,12 @@ class LowStockAlertController extends Controller
         return Shop::findOrFail($employee->shop_id);
     }
 
-    public function index()
+    public function index(TableSortRequest $request)
     {
         $shop = $this->getShop();
 
         return Inertia::render('shop/inventory/alert/Index', [
-            'alerts' => $this->alertService->paginate($shop->id),
+            'alerts' => $this->alertService->paginate($shop->id, $request->sort()),
             'unreadCount' => $this->alertService->unreadCount($shop->id),
             'reorderSuggestions' => $this->reorderService->forShop($shop->id),
         ]);

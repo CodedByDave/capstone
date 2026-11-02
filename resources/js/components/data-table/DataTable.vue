@@ -69,7 +69,7 @@ const props = withDefaults(
         compact: false,
         minWidth: undefined,
         itemKey: 'id',
-        selectable: false,
+        selectable: true,
         rowLabel: undefined,
         noun: 'records',
         emptyMessage: undefined,
@@ -191,7 +191,10 @@ function toggleSort(column: string) {
 }
 
 function keyOf(item: Item): string | number {
-    return item[props.itemKey] as string | number;
+    const key = item[props.itemKey] as string | number | undefined | null;
+
+    // Rows without the key column still need a distinct selection key.
+    return key ?? `row-${options.value.page}-${props.items.indexOf(item)}`;
 }
 
 const pageKeys = computed(() => props.items.map(keyOf));
@@ -561,6 +564,16 @@ onUpdated(syncAriaSort);
 .app-data-table :deep(.dt-align-center),
 .app-data-table :deep(thead th.dt-align-center .header) {
     justify-content: center;
+    text-align: center;
+}
+
+/* EasyDataTable gives every body cell `text-align: left` (td.direction-left); this out-ranks it so
+   right- and center-aligned columns line their values up under their header. */
+.app-data-table :deep(tbody td.dt-align-right) {
+    text-align: right;
+}
+
+.app-data-table :deep(tbody td.dt-align-center) {
     text-align: center;
 }
 

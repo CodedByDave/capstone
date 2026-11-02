@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Enums\PayBasis;
 use App\Models\Attendance;
 use App\Models\Employee;
@@ -22,9 +23,9 @@ class PayrollService
         private readonly ExpenseService $expenseService,
     ) {}
 
-    public function paginate(Shop $shop, int $perPage = 10): LengthAwarePaginator
+    public function paginate(Shop $shop, int $perPage = 10, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->payrollRepository->paginate($shop, $perPage);
+        return $this->payrollRepository->paginate($shop, $perPage, $sort);
     }
 
     public function find(int $id, Shop $shop): Payroll

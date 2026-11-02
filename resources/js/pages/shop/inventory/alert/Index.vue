@@ -90,11 +90,11 @@ const { options, loading } = usePaginatorTable(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Item', value: 'item' },
-    { text: 'Stock at alert', value: 'quantity_at_alert' },
-    { text: 'Current stock', value: 'current' },
-    { text: 'Status', value: 'status' },
-    { text: 'Triggered', value: 'created_at' },
+    { text: 'Item', value: 'item', sortable: true },
+    { text: 'Stock at alert', value: 'quantity_at_alert', sortable: true },
+    { text: 'Current stock', value: 'current', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
+    { text: 'Triggered', value: 'created_at', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 140 },
 ];
 

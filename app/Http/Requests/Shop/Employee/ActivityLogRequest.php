@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Shop\Employee;
 
+use App\DTOs\TableSort;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ActivityLogRequest extends FormRequest
 {
@@ -29,11 +31,21 @@ class ActivityLogRequest extends FormRequest
             'date_to' => ['nullable', 'date'],
             'search' => ['nullable', 'string', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
+            'sort_by' => ['nullable', Rule::in(['created_at', 'module', 'action', 'performer'])],
+            'sort_direction' => ['nullable', Rule::in(['asc', 'desc'])],
         ];
+    }
+
+    public function sort(): TableSort
+    {
+        return new TableSort(
+            $this->validated('sort_by'),
+            $this->validated('sort_direction') === 'desc' ? 'desc' : 'asc',
+        );
     }
 
     public function filters(): array
     {
-        return $this->only(['action', 'performed_by', 'module', 'date_from', 'date_to', 'search']);
+        return $this->only(['action', 'performed_by', 'module', 'date_from', 'date_to', 'search', 'sort_by', 'sort_direction']);
     }
 }

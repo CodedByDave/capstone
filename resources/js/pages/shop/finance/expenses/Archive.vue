@@ -96,10 +96,16 @@ const { options, loading } = usePaginatorTable(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Title', value: 'title' },
-    { text: 'Category', value: 'category' },
-    { text: 'Date', value: 'expense_date', width: 140 },
-    { text: 'Amount', value: 'amount', align: 'right', width: 140 },
+    { text: 'Title', value: 'title', sortable: true },
+    { text: 'Category', value: 'category', sortable: true },
+    { text: 'Date', value: 'expense_date', sortable: true, width: 140 },
+    {
+        text: 'Amount',
+        value: 'amount',
+        sortable: true,
+        align: 'right',
+        width: 140,
+    },
     { text: 'Actions', value: 'actions', align: 'center', width: 100 },
 ];
 

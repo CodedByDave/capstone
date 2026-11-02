@@ -89,6 +89,12 @@ class UpdateShopOrderRequest extends FormRequest
             'payment_state' => ['nullable', Rule::in(['paid', 'unpaid'])],
             'status' => ['required', Rule::in(ShopOrder::STATUSES)],           // ← add
             'estimated_completion_at' => ['nullable', 'date'],
+            // ─── Additional services ───────────────────────
+            'service_lines' => ['nullable', 'array', 'max:10'],
+            'service_lines.*.service_id' => ['required', 'integer', Rule::exists('services_and_pricing', 'id')],
+            'service_lines.*.weight_kg' => ['nullable', 'numeric', 'min:0.1', 'max:999.99'],
+            'service_lines.*.piece_count' => ['nullable', 'integer', 'min:1', 'max:500'],
+
             'supplies' => ['nullable', 'array'],
             'supplies.*.inventory_id' => ['required', 'integer', 'exists:inventory,id'],
             'supplies.*.quantity_used' => ['required', 'numeric', 'min:0.01'],

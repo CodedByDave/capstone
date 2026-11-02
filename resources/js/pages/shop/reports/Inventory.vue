@@ -13,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -231,11 +232,16 @@ const movementTypeData = computed(() => ({
 }));
 
 const topHeaders: DataTableHeader[] = [
-    { text: 'Item', value: 'name' },
-    { text: 'Quantity', value: 'quantity' },
-    { text: 'Min stock', value: 'min_stock' },
-    { text: 'Status', value: 'status' },
+    { text: 'Item', value: 'name', sortable: true },
+    { text: 'Quantity', value: 'quantity', sortable: true },
+    { text: 'Min stock', value: 'min_stock', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
 ];
+
+const { options: topOptions, pageItems: topRows } = useDataTable(
+    () => props.topStocked,
+    { rowsPerPage: 100 },
+);
 
 const chartOptions = {
     responsive: true,
@@ -501,7 +507,9 @@ const doughnutOptions = {
             <!-- Top stocked -->
             <DataTable
                 :headers="topHeaders"
-                :items="topStocked"
+                v-model:options="topOptions"
+                :items="topRows"
+                :total="topStocked.length"
                 noun="items"
                 :empty-icon="Package"
                 empty-message="No items."

@@ -2,20 +2,43 @@
 
 namespace App\Repositories;
 
+use App\DTOs\TableSort;
 use App\Models\Payroll;
 use App\Models\Shop;
+use App\Models\User;
+use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PayrollRepository
 {
-    public function paginate(Shop $shop, int $perPage = 10): LengthAwarePaginator
+    use AppliesTableSort;
+
+    public function paginate(Shop $shop, int $perPage = 10, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return Payroll::with(['creator:id,name'])
+        $query = Payroll::with(['creator:id,name'])
             ->withCount('items')
             ->withSum('items', 'net_pay')
-            ->where('shop_id', $shop->id)
-            ->latest('period_start')
-            ->paginate($perPage);
+            ->where('shop_id', $shop->id);
+
+        $sorted = $this->applyTableSort($query, $sort, [
+            'period_label' => 'period_start',
+            'period_range' => 'period_start',
+            'items_count' => 'items_count',
+            'items_sum_net_pay' => 'items_sum_net_pay',
+            'status' => 'status',
+            'creator' => fn ($q, $dir) => $q->orderBy(
+                User::query()
+                    ->select('name')
+                    ->whereColumn('users.id', 'payrolls.created_by'),
+                $dir,
+            ),
+        ]);
+
+        if (! $sorted) {
+            $query->latest('period_start');
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function find(int $id, Shop $shop): Payroll

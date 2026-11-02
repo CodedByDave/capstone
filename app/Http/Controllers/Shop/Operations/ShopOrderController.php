@@ -120,7 +120,7 @@ class ShopOrderController extends Controller
 
     public function show(ShopOrder $order): Response
     {
-        $order->load(['service', 'supplies', 'shop']);
+        $order->load(['service', 'serviceLines', 'supplies', 'shop']);
 
         return Inertia::render('shop/operations/orders/Show', [
             'shopOrder' => $order,
@@ -145,7 +145,7 @@ class ShopOrderController extends Controller
     public function edit(ShopOrder $order): Response
     {
         $shopId = $this->getShopId();
-        $order->load(['service', 'supplies']);
+        $order->load(['service', 'serviceLines', 'supplies']);
 
         return Inertia::render('shop/operations/orders/Edit', [
             'shopOrder' => $order,
@@ -183,7 +183,7 @@ class ShopOrderController extends Controller
 
     public function updateStatus(UpdateOrderStatusRequest $request, ShopOrder $order): RedirectResponse
     {
-        $this->service->updateStatus($order, $request->validated('status'));
+        $this->service->changeStatusByStaff($order, $request->validated('status'));
 
         return back()->with('toast', [
             'type' => 'success',

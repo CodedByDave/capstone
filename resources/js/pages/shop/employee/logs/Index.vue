@@ -101,6 +101,8 @@ const { logs, performers, modules, filters, actionCounts } = defineProps<{
         date_from?: string;
         date_to?: string;
         search?: string;
+        sort_by?: string;
+        sort_direction?: string;
     };
 }>();
 
@@ -126,6 +128,8 @@ const tableLoading = ref(false);
 const options = ref<DataTableOptions>({
     page: logs.current_page,
     rowsPerPage: logs.per_page,
+    sortBy: filters.sort_by,
+    sortType: filters.sort_direction === 'desc' ? 'desc' : 'asc',
 });
 
 const statusOptions = computed<StatusOption[]>(() => [
@@ -156,16 +160,21 @@ const hasFilters = computed(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Date', value: 'created_at', width: 170 },
-    { text: 'Module', value: 'module' },
+    { text: 'Date', value: 'created_at', width: 170, sortable: true },
+    { text: 'Module', value: 'module', sortable: true },
     { text: 'Subject', value: 'subject' },
-    { text: 'Action', value: 'action' },
-    { text: 'Performed by', value: 'performer' },
+    { text: 'Action', value: 'action', sortable: true },
+    { text: 'Performed by', value: 'performer', sortable: true },
     { text: 'Changes', value: 'changes', width: 320 },
 ];
 
 watch([() => options.value.page, () => options.value.rowsPerPage], ([page]) =>
     applyFilters(page),
+);
+
+// A new sort always starts again from the first page.
+watch([() => options.value.sortBy, () => options.value.sortType], () =>
+    applyFilters(1),
 );
 
 function applyFilters(currentPage = 1) {
@@ -182,6 +191,10 @@ function applyFilters(currentPage = 1) {
                     : moduleFilter.value,
             date_from: dateFrom.value || undefined,
             date_to: dateTo.value || undefined,
+            sort_by: options.value.sortBy,
+            sort_direction: options.value.sortBy
+                ? options.value.sortType
+                : undefined,
             per_page: options.value.rowsPerPage,
             page: currentPage,
         },

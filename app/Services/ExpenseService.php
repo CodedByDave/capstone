@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Inventory;
@@ -21,14 +22,14 @@ class ExpenseService
         private readonly OrderPaymentRepository $orderPayments,
     ) {}
 
-    public function paginate(Shop $shop, array $filters = [], int $perPage = 10): LengthAwarePaginator
+    public function paginate(Shop $shop, array $filters = [], int $perPage = 10, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->expenseRepository->paginate($shop, $filters, $perPage);
+        return $this->expenseRepository->paginate($shop, $filters, $perPage, $sort);
     }
 
-    public function getArchived(Shop $shop): LengthAwarePaginator
+    public function getArchived(Shop $shop, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->expenseRepository->getArchived($shop);
+        return $this->expenseRepository->getArchived($shop, 10, $sort);
     }
 
     public function getCategories(Shop $shop): Collection
@@ -75,7 +76,7 @@ class ExpenseService
             'title' => "Restock: {$inventory->name}",
             'amount' => $amount,
             'expense_date' => now()->toDateString(),
-            'description' => "{$quantity} {$inventory->unit} at ₱".number_format((float) $inventory->unit_price, 2),
+            'description' => "{$quantity} {$inventory->unit} at ₱".rtrim(rtrim(number_format((float) $inventory->unit_price, 4), '0'), '.')." per {$inventory->unit}",
             'reference_number' => $referenceNumber,
         ]);
     }

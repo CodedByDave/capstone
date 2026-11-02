@@ -85,7 +85,8 @@ class ShopOrderService
         $order = DB::transaction(function () use ($data, $actor, $ipAddress, $userAgent) {
             $supplies = $data['supplies'] ?? [];
             $agreementVersion = $data['customer_agreement_version'];
-            unset($data['supplies']);
+            $requestedLines = $data['service_lines'] ?? [];
+            unset($data['supplies'], $data['service_lines']);
             $data = $this->withoutAlternateContactUnlessRiderInvolved($data);
             unset($data['customer_agreement_version'], $data['customer_agreement_accepted']);
 
@@ -103,6 +104,18 @@ class ShopOrderService
             // The estimated completion is never typed in: it follows from the shop's automation wait.
             $data['estimated_completion_at'] = now()->addMinutes($this->defaultCompletionMinutes((int) $data['shop_id']));
 
+            // Extra services are priced here from the shop's own rates, never from the browser.
+            $serviceLines = $this->buildServiceLines($requestedLines, (int) $data['shop_id'], ($data['pickup_type'] ?? null) === 'pickup');
+            if ($serviceLines !== []) {
+                $data['total_amount'] = round(max(
+                    0,
+                    $this->mainServiceAmount($data)
+                        + array_sum(array_column($serviceLines, 'amount'))
+                        + (float) ($data['additional_charges'] ?? 0)
+                        - (float) ($data['discount_amount'] ?? 0),
+                ), 2);
+            }
+
             // Money received now is recorded as a payment; the order's totals follow from it.
             $paidNow = round((float) ($data['amount_paid'] ?? 0), 2);
             if ($paidNow > round((float) $data['total_amount'], 2)) {
@@ -113,6 +126,7 @@ class ShopOrderService
             unset($data['amount_paid'], $data['payment_status'], $data['paid_at']);
 
             $order = $this->repository->create($data);
+            $this->repository->replaceServiceLines($order, $serviceLines);
             $this->orderPayments->recordInitialPayment($actor, $order, $paidNow, $data['payment_method'] ?? null);
 
             foreach ($supplies as $supply) {
@@ -322,7 +336,8 @@ class ShopOrderService
                 $data['overdue_notified_at'] = null;
             }
             $newSupplies = $data['supplies'] ?? [];
-            unset($data['supplies']);
+            $requestedLines = $data['service_lines'] ?? [];
+            unset($data['supplies'], $data['service_lines']);
             $data = $this->withoutAlternateContactUnlessRiderInvolved($data);
 
             $data['pricing_model'] = $service->pricing_model;
@@ -355,6 +370,10 @@ class ShopOrderService
                     ? (float) $data['actual_weight_kg'] * (float) $service->price_per_kg
                     : (float) ($data['bundle_quantity'] ?? 1) * (float) $service->bundle_price;
             }
+
+            // Additional services are re-priced from the shop's current rates and added to the base.
+            $serviceLines = $this->buildServiceLines($requestedLines, (int) $order->shop_id, ($data['pickup_type'] ?? $order->pickup_type) === 'pickup');
+            $baseAmount += array_sum(array_column($serviceLines, 'amount'));
 
             // A customer-requested delivery fee is owned by the delivery flow, not the edit form,
             // so it is carried over from the stored order rather than read from the request.
@@ -392,6 +411,7 @@ class ShopOrderService
             // Persist the authoritative pricing and weight values, then re-derive the payment
             // status because the total may have changed.
             $this->repository->update($order, $data);
+            $this->repository->replaceServiceLines($order, $serviceLines);
             $this->orderPayments->sync($order);
 
             if (($requestedPayment === 'paid' && ! $wasPaid)
@@ -433,7 +453,7 @@ class ShopOrderService
                 $this->inventory->alertIfLowStock($item->refresh());
             }
 
-            $updated = $order->fresh(['service', 'supplies', 'shop', 'customer']);
+            $updated = $order->fresh(['service', 'serviceLines', 'supplies', 'shop', 'customer']);
 
             if ($updated->user_id
                 && $previousActualWeight === null
@@ -456,6 +476,80 @@ class ShopOrderService
         }
 
         return $updated;
+    }
+
+    /**
+     * Prices the additional service lines of an order from the shop's own services.
+     *
+     * @param  array<int, array<string, mixed>>  $lines  service_id plus weight_kg or piece_count per line.
+     * @return list<array<string, mixed>> Rows ready to store, each with its copy of the rate and its amount.
+     *
+     * @throws ValidationException When a service is not one of the shop's active services.
+     */
+    private function buildServiceLines(array $lines, int $shopId, bool $weighedLater): array
+    {
+        $built = [];
+
+        foreach (array_values($lines) as $index => $line) {
+            $service = $this->repository->findActiveServiceForShop((int) ($line['service_id'] ?? 0), $shopId);
+
+            if (! $service) {
+                throw ValidationException::withMessages([
+                    "service_lines.$index.service_id" => 'The selected service is unavailable for this shop.',
+                ]);
+            }
+
+            $weight = filled($line['weight_kg'] ?? null) ? (float) $line['weight_kg'] : null;
+            $pieces = filled($line['piece_count'] ?? null) ? (int) $line['piece_count'] : null;
+            $bundles = null;
+
+            if ($service->isPerPiece()) {
+                if ($pieces === null) {
+                    throw ValidationException::withMessages(["service_lines.$index.piece_count" => 'Enter how many pieces.']);
+                }
+                $weight = null;
+                $amount = $pieces * (float) $service->price_per_piece;
+            } else {
+                if ($weight === null && ! $weighedLater) {
+                    throw ValidationException::withMessages(["service_lines.$index.weight_kg" => 'Enter the weight in kg.']);
+                }
+                $pieces = null;
+                if ($service->isPerBundle() && $weight !== null) {
+                    $bundles = max(1, (int) ceil($weight / max((float) $service->bundle_weight_kg, 0.01)));
+                }
+                $amount = match (true) {
+                    $weight === null => 0.0,
+                    $service->isPerBundle() => $bundles * (float) $service->bundle_price,
+                    default => $weight * (float) $service->price_per_kg,
+                };
+            }
+
+            $built[] = [
+                'service_id' => $service->id,
+                'service_name' => $service->service_name,
+                'pricing_model' => $service->pricing_model,
+                'price_per_kg' => $service->price_per_kg,
+                'bundle_weight_kg' => $service->bundle_weight_kg,
+                'bundle_price' => $service->bundle_price,
+                'price_per_piece' => $service->price_per_piece,
+                'weight_kg' => $weight,
+                'bundle_quantity' => $bundles,
+                'piece_count' => $pieces,
+                'amount' => round($amount, 2),
+            ];
+        }
+
+        return $built;
+    }
+
+    /** The order's main service amount from the rate and quantity fields of a new order. */
+    private function mainServiceAmount(array $data): float
+    {
+        return match ($data['pricing_model'] ?? 'per_kg') {
+            'per_piece' => (int) ($data['piece_count'] ?? 0) * (float) ($data['price_per_piece'] ?? 0),
+            'per_bundle' => (float) ($data['bundle_quantity'] ?? 1) * (float) ($data['bundle_price'] ?? 0),
+            default => (float) ($data['actual_weight_kg'] ?? 0) * (float) ($data['price_per_kg'] ?? 0),
+        };
     }
 
     /** The alternate contact only matters when a rider collects or delivers the laundry, so other orders keep none. */
@@ -565,6 +659,60 @@ class ShopOrderService
         if ($reason !== null) {
             throw ValidationException::withMessages(['status' => $reason]);
         }
+    }
+
+    /**
+     * A status change made by hand. Completing an order early (or when it is overdue and the
+     * automation has not done it) is allowed only for an order being worked on whose price is final,
+     * so the customer is never told to pay an amount that can still change.
+     *
+     * @throws ValidationException
+     */
+    public function changeStatusByStaff(ShopOrder $order, string $status): ShopOrder
+    {
+        if ($status === 'completed' && $order->status !== 'completed') {
+            if ($order->status !== 'in_progress') {
+                throw ValidationException::withMessages([
+                    'status' => 'Only an order that is in progress can be marked as completed.',
+                ]);
+            }
+
+            if (! $order->priceIsConfirmed()) {
+                throw ValidationException::withMessages([
+                    'status' => 'Enter the actual weight on the Edit page before completing this order.',
+                ]);
+            }
+        }
+
+        if ($status === 'in_progress' && $order->status === 'completed') {
+            return $this->reopenCompletedOrder($order);
+        }
+
+        return $this->updateStatus($order, $status);
+    }
+
+    /**
+     * Undoes a completion made by mistake: the order goes back to in progress, loses its completion
+     * time, and the return delivery created for it is withdrawn unless a rider already has the laundry.
+     *
+     * @throws ValidationException
+     */
+    private function reopenCompletedOrder(ShopOrder $order): ShopOrder
+    {
+        return DB::transaction(function () use ($order): ShopOrder {
+            $locked = $this->repository->lockForUpdate($order);
+
+            if ($locked->status !== 'completed') {
+                throw ValidationException::withMessages([
+                    'status' => 'Only a completed order can be reverted to in progress.',
+                ]);
+            }
+
+            $this->logistics->withdrawDeliveryForReopenedOrder($locked);
+            $this->repository->update($locked, ['completed_at' => null]);
+
+            return $this->updateStatus($locked->refresh(), 'in_progress');
+        });
     }
 
     public function updateStatus(ShopOrder $order, string $status): ShopOrder

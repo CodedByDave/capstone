@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/shop/finance/expenses/archive'
  */
 const archiveb71b21fa9584b56f9d64c53288db0fd0 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ archiveb71b21fa9584b56f9d64c53288db0fd0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/shop/finance/expenses/archive'
  */
 archiveb71b21fa9584b56f9d64c53288db0fd0.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ archiveb71b21fa9584b56f9d64c53288db0fd0.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/shop/finance/expenses/archive'
  */
 archiveb71b21fa9584b56f9d64c53288db0fd0.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ archiveb71b21fa9584b56f9d64c53288db0fd0.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/shop/finance/expenses/archive'
  */
 archiveb71b21fa9584b56f9d64c53288db0fd0.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ archiveb71b21fa9584b56f9d64c53288db0fd0.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/shop/finance/expenses/archive'
  */
     const archiveb71b21fa9584b56f9d64c53288db0fd0Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ archiveb71b21fa9584b56f9d64c53288db0fd0.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/shop/finance/expenses/archive'
  */
         archiveb71b21fa9584b56f9d64c53288db0fd0Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ archiveb71b21fa9584b56f9d64c53288db0fd0.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/shop/finance/expenses/archive'
  */
         archiveb71b21fa9584b56f9d64c53288db0fd0Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ archiveb71b21fa9584b56f9d64c53288db0fd0.head = (options?: RouteQueryOptions): Ro
     archiveb71b21fa9584b56f9d64c53288db0fd0.form = archiveb71b21fa9584b56f9d64c53288db0fd0Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/staff/finance/expenses/archive'
  */
 const archiveed89e6c713086d3217402199d84dfe22 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ archiveed89e6c713086d3217402199d84dfe22.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/staff/finance/expenses/archive'
  */
 archiveed89e6c713086d3217402199d84dfe22.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ archiveed89e6c713086d3217402199d84dfe22.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/staff/finance/expenses/archive'
  */
 archiveed89e6c713086d3217402199d84dfe22.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ archiveed89e6c713086d3217402199d84dfe22.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/staff/finance/expenses/archive'
  */
 archiveed89e6c713086d3217402199d84dfe22.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ archiveed89e6c713086d3217402199d84dfe22.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/staff/finance/expenses/archive'
  */
     const archiveed89e6c713086d3217402199d84dfe22Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ archiveed89e6c713086d3217402199d84dfe22.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/staff/finance/expenses/archive'
  */
         archiveed89e6c713086d3217402199d84dfe22Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ archiveed89e6c713086d3217402199d84dfe22.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::archive
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:51
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:52
  * @route '/staff/finance/expenses/archive'
  */
         archiveed89e6c713086d3217402199d84dfe22Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const archive = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/shop/finance/expenses'
  */
 const indexe1f5df15dce6955d208e6e55cc431576 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +178,7 @@ indexe1f5df15dce6955d208e6e55cc431576.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/shop/finance/expenses'
  */
 indexe1f5df15dce6955d208e6e55cc431576.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ indexe1f5df15dce6955d208e6e55cc431576.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/shop/finance/expenses'
  */
 indexe1f5df15dce6955d208e6e55cc431576.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ indexe1f5df15dce6955d208e6e55cc431576.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/shop/finance/expenses'
  */
 indexe1f5df15dce6955d208e6e55cc431576.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ indexe1f5df15dce6955d208e6e55cc431576.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/shop/finance/expenses'
  */
     const indexe1f5df15dce6955d208e6e55cc431576Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ indexe1f5df15dce6955d208e6e55cc431576.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/shop/finance/expenses'
  */
         indexe1f5df15dce6955d208e6e55cc431576Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -225,7 +225,7 @@ indexe1f5df15dce6955d208e6e55cc431576.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/shop/finance/expenses'
  */
         indexe1f5df15dce6955d208e6e55cc431576Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -241,7 +241,7 @@ indexe1f5df15dce6955d208e6e55cc431576.head = (options?: RouteQueryOptions): Rout
     indexe1f5df15dce6955d208e6e55cc431576.form = indexe1f5df15dce6955d208e6e55cc431576Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/staff/finance/expenses'
  */
 const index1d34d1f73e4cbe3544919fd9db59e00c = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -256,7 +256,7 @@ index1d34d1f73e4cbe3544919fd9db59e00c.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/staff/finance/expenses'
  */
 index1d34d1f73e4cbe3544919fd9db59e00c.url = (options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ index1d34d1f73e4cbe3544919fd9db59e00c.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/staff/finance/expenses'
  */
 index1d34d1f73e4cbe3544919fd9db59e00c.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ index1d34d1f73e4cbe3544919fd9db59e00c.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/staff/finance/expenses'
  */
 index1d34d1f73e4cbe3544919fd9db59e00c.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ index1d34d1f73e4cbe3544919fd9db59e00c.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/staff/finance/expenses'
  */
     const index1d34d1f73e4cbe3544919fd9db59e00cForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ index1d34d1f73e4cbe3544919fd9db59e00c.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/staff/finance/expenses'
  */
         index1d34d1f73e4cbe3544919fd9db59e00cForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ index1d34d1f73e4cbe3544919fd9db59e00c.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::index
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:38
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:39
  * @route '/staff/finance/expenses'
  */
         index1d34d1f73e4cbe3544919fd9db59e00cForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -325,7 +325,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/shop/finance/expenses'
  */
 const storee1f5df15dce6955d208e6e55cc431576 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +340,7 @@ storee1f5df15dce6955d208e6e55cc431576.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/shop/finance/expenses'
  */
 storee1f5df15dce6955d208e6e55cc431576.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ storee1f5df15dce6955d208e6e55cc431576.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/shop/finance/expenses'
  */
 storee1f5df15dce6955d208e6e55cc431576.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +359,7 @@ storee1f5df15dce6955d208e6e55cc431576.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/shop/finance/expenses'
  */
     const storee1f5df15dce6955d208e6e55cc431576Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ storee1f5df15dce6955d208e6e55cc431576.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/shop/finance/expenses'
  */
         storee1f5df15dce6955d208e6e55cc431576Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +380,7 @@ storee1f5df15dce6955d208e6e55cc431576.post = (options?: RouteQueryOptions): Rout
     storee1f5df15dce6955d208e6e55cc431576.form = storee1f5df15dce6955d208e6e55cc431576Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/staff/finance/expenses'
  */
 const store1d34d1f73e4cbe3544919fd9db59e00c = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +395,7 @@ store1d34d1f73e4cbe3544919fd9db59e00c.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/staff/finance/expenses'
  */
 store1d34d1f73e4cbe3544919fd9db59e00c.url = (options?: RouteQueryOptions) => {
@@ -404,7 +404,7 @@ store1d34d1f73e4cbe3544919fd9db59e00c.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/staff/finance/expenses'
  */
 store1d34d1f73e4cbe3544919fd9db59e00c.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +414,7 @@ store1d34d1f73e4cbe3544919fd9db59e00c.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/staff/finance/expenses'
  */
     const store1d34d1f73e4cbe3544919fd9db59e00cForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +424,7 @@ store1d34d1f73e4cbe3544919fd9db59e00c.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::store
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:60
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:61
  * @route '/staff/finance/expenses'
  */
         store1d34d1f73e4cbe3544919fd9db59e00cForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -441,7 +441,7 @@ export const store = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/shop/finance/expenses/{expense}'
  */
 const updatef4fa2f469553ee471c6e52cd19bbbe79 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -456,7 +456,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/shop/finance/expenses/{expense}'
  */
 updatef4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -489,7 +489,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { public
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/shop/finance/expenses/{expense}'
  */
 updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -499,7 +499,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/shop/finance/expenses/{expense}'
  */
     const updatef4fa2f469553ee471c6e52cd19bbbe79Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -514,7 +514,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/shop/finance/expenses/{expense}'
  */
         updatef4fa2f469553ee471c6e52cd19bbbe79Form.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -530,7 +530,7 @@ updatef4fa2f469553ee471c6e52cd19bbbe79.put = (args: { expense: string | { public
     updatef4fa2f469553ee471c6e52cd19bbbe79.form = updatef4fa2f469553ee471c6e52cd19bbbe79Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/staff/finance/expenses/{expense}'
  */
 const update8dbe08ed7ad71707d6675635051b7b87 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -545,7 +545,7 @@ update8dbe08ed7ad71707d6675635051b7b87.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/staff/finance/expenses/{expense}'
  */
 update8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -578,7 +578,7 @@ update8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { public
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/staff/finance/expenses/{expense}'
  */
 update8dbe08ed7ad71707d6675635051b7b87.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -588,7 +588,7 @@ update8dbe08ed7ad71707d6675635051b7b87.put = (args: { expense: string | { public
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/staff/finance/expenses/{expense}'
  */
     const update8dbe08ed7ad71707d6675635051b7b87Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -603,7 +603,7 @@ update8dbe08ed7ad71707d6675635051b7b87.put = (args: { expense: string | { public
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::update
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:77
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:78
  * @route '/staff/finance/expenses/{expense}'
  */
         update8dbe08ed7ad71707d6675635051b7b87Form.put = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -625,7 +625,7 @@ export const update = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/shop/finance/expenses/{expense}'
  */
 const destroyf4fa2f469553ee471c6e52cd19bbbe79 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -640,7 +640,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/shop/finance/expenses/{expense}'
  */
 destroyf4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -673,7 +673,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.url = (args: { expense: string | { publi
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/shop/finance/expenses/{expense}'
  */
 destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -683,7 +683,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { pu
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/shop/finance/expenses/{expense}'
  */
     const destroyf4fa2f469553ee471c6e52cd19bbbe79Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -698,7 +698,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { pu
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/shop/finance/expenses/{expense}'
  */
         destroyf4fa2f469553ee471c6e52cd19bbbe79Form.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -714,7 +714,7 @@ destroyf4fa2f469553ee471c6e52cd19bbbe79.delete = (args: { expense: string | { pu
     destroyf4fa2f469553ee471c6e52cd19bbbe79.form = destroyf4fa2f469553ee471c6e52cd19bbbe79Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/staff/finance/expenses/{expense}'
  */
 const destroy8dbe08ed7ad71707d6675635051b7b87 = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -729,7 +729,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/staff/finance/expenses/{expense}'
  */
 destroy8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -762,7 +762,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.url = (args: { expense: string | { publi
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/staff/finance/expenses/{expense}'
  */
 destroy8dbe08ed7ad71707d6675635051b7b87.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -772,7 +772,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.delete = (args: { expense: string | { pu
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/staff/finance/expenses/{expense}'
  */
     const destroy8dbe08ed7ad71707d6675635051b7b87Form = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -787,7 +787,7 @@ destroy8dbe08ed7ad71707d6675635051b7b87.delete = (args: { expense: string | { pu
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroy
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:96
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:97
  * @route '/staff/finance/expenses/{expense}'
  */
         destroy8dbe08ed7ad71707d6675635051b7b87Form.delete = (args: { expense: string | { public_id: string } } | [expense: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -809,7 +809,7 @@ export const destroy = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/shop/finance/expenses/{publicId}/restore'
  */
 const restoree73789164cf08e2ed9a02de764a84935 = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -824,7 +824,7 @@ restoree73789164cf08e2ed9a02de764a84935.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/shop/finance/expenses/{publicId}/restore'
  */
 restoree73789164cf08e2ed9a02de764a84935.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -852,7 +852,7 @@ restoree73789164cf08e2ed9a02de764a84935.url = (args: { publicId: string | number
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/shop/finance/expenses/{publicId}/restore'
  */
 restoree73789164cf08e2ed9a02de764a84935.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -862,7 +862,7 @@ restoree73789164cf08e2ed9a02de764a84935.post = (args: { publicId: string | numbe
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/shop/finance/expenses/{publicId}/restore'
  */
     const restoree73789164cf08e2ed9a02de764a84935Form = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -872,7 +872,7 @@ restoree73789164cf08e2ed9a02de764a84935.post = (args: { publicId: string | numbe
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/shop/finance/expenses/{publicId}/restore'
  */
         restoree73789164cf08e2ed9a02de764a84935Form.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -883,7 +883,7 @@ restoree73789164cf08e2ed9a02de764a84935.post = (args: { publicId: string | numbe
     restoree73789164cf08e2ed9a02de764a84935.form = restoree73789164cf08e2ed9a02de764a84935Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/staff/finance/expenses/{publicId}/restore'
  */
 const restoreeece9e3a2107ecde1f97e7293b5aed55 = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -898,7 +898,7 @@ restoreeece9e3a2107ecde1f97e7293b5aed55.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/staff/finance/expenses/{publicId}/restore'
  */
 restoreeece9e3a2107ecde1f97e7293b5aed55.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -926,7 +926,7 @@ restoreeece9e3a2107ecde1f97e7293b5aed55.url = (args: { publicId: string | number
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/staff/finance/expenses/{publicId}/restore'
  */
 restoreeece9e3a2107ecde1f97e7293b5aed55.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -936,7 +936,7 @@ restoreeece9e3a2107ecde1f97e7293b5aed55.post = (args: { publicId: string | numbe
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/staff/finance/expenses/{publicId}/restore'
  */
     const restoreeece9e3a2107ecde1f97e7293b5aed55Form = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -946,7 +946,7 @@ restoreeece9e3a2107ecde1f97e7293b5aed55.post = (args: { publicId: string | numbe
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::restore
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:106
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:107
  * @route '/staff/finance/expenses/{publicId}/restore'
  */
         restoreeece9e3a2107ecde1f97e7293b5aed55Form.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -963,7 +963,7 @@ export const restore = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/shop/finance/categories'
  */
 const storeCategory4a60445694f863bd8fe509711eca0452 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -978,7 +978,7 @@ storeCategory4a60445694f863bd8fe509711eca0452.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/shop/finance/categories'
  */
 storeCategory4a60445694f863bd8fe509711eca0452.url = (options?: RouteQueryOptions) => {
@@ -987,7 +987,7 @@ storeCategory4a60445694f863bd8fe509711eca0452.url = (options?: RouteQueryOptions
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/shop/finance/categories'
  */
 storeCategory4a60445694f863bd8fe509711eca0452.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -997,7 +997,7 @@ storeCategory4a60445694f863bd8fe509711eca0452.post = (options?: RouteQueryOption
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/shop/finance/categories'
  */
     const storeCategory4a60445694f863bd8fe509711eca0452Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1007,7 +1007,7 @@ storeCategory4a60445694f863bd8fe509711eca0452.post = (options?: RouteQueryOption
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/shop/finance/categories'
  */
         storeCategory4a60445694f863bd8fe509711eca0452Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1018,7 +1018,7 @@ storeCategory4a60445694f863bd8fe509711eca0452.post = (options?: RouteQueryOption
     storeCategory4a60445694f863bd8fe509711eca0452.form = storeCategory4a60445694f863bd8fe509711eca0452Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/staff/finance/categories'
  */
 const storeCategory8d240a6c91a50e4aaecf714e97aaee82 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1033,7 +1033,7 @@ storeCategory8d240a6c91a50e4aaecf714e97aaee82.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/staff/finance/categories'
  */
 storeCategory8d240a6c91a50e4aaecf714e97aaee82.url = (options?: RouteQueryOptions) => {
@@ -1042,7 +1042,7 @@ storeCategory8d240a6c91a50e4aaecf714e97aaee82.url = (options?: RouteQueryOptions
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/staff/finance/categories'
  */
 storeCategory8d240a6c91a50e4aaecf714e97aaee82.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1052,7 +1052,7 @@ storeCategory8d240a6c91a50e4aaecf714e97aaee82.post = (options?: RouteQueryOption
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/staff/finance/categories'
  */
     const storeCategory8d240a6c91a50e4aaecf714e97aaee82Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1062,7 +1062,7 @@ storeCategory8d240a6c91a50e4aaecf714e97aaee82.post = (options?: RouteQueryOption
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::storeCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:114
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:115
  * @route '/staff/finance/categories'
  */
         storeCategory8d240a6c91a50e4aaecf714e97aaee82Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1079,7 +1079,7 @@ export const storeCategory = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/shop/finance/categories/{category}'
  */
 const destroyCategory31181b5d6883b6ed6de5f524a009a977 = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1094,7 +1094,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/shop/finance/categories/{category}'
  */
 destroyCategory31181b5d6883b6ed6de5f524a009a977.url = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -1127,7 +1127,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.url = (args: { category: string 
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/shop/finance/categories/{category}'
  */
 destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1137,7 +1137,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: stri
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/shop/finance/categories/{category}'
  */
     const destroyCategory31181b5d6883b6ed6de5f524a009a977Form = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1152,7 +1152,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: stri
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/shop/finance/categories/{category}'
  */
         destroyCategory31181b5d6883b6ed6de5f524a009a977Form.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1168,7 +1168,7 @@ destroyCategory31181b5d6883b6ed6de5f524a009a977.delete = (args: { category: stri
     destroyCategory31181b5d6883b6ed6de5f524a009a977.form = destroyCategory31181b5d6883b6ed6de5f524a009a977Form
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/staff/finance/categories/{category}'
  */
 const destroyCategory38f448f8ee856b5b8e6a38e8e75d786f = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1183,7 +1183,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/staff/finance/categories/{category}'
  */
 destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -1216,7 +1216,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.url = (args: { category: string 
 
 /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/staff/finance/categories/{category}'
  */
 destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1226,7 +1226,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.delete = (args: { category: stri
 
     /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/staff/finance/categories/{category}'
  */
     const destroyCategory38f448f8ee856b5b8e6a38e8e75d786fForm = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1241,7 +1241,7 @@ destroyCategory38f448f8ee856b5b8e6a38e8e75d786f.delete = (args: { category: stri
 
             /**
 * @see \App\Http\Controllers\Shop\Finance\ExpenseController::destroyCategory
- * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:137
+ * @see app/Http/Controllers/Shop/Finance/ExpenseController.php:138
  * @route '/staff/finance/categories/{category}'
  */
         destroyCategory38f448f8ee856b5b8e6a38e8e75d786fForm.delete = (args: { category: string | { public_id: string } } | [category: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

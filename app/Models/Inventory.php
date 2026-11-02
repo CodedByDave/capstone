@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Inventory extends Model
 {
@@ -19,6 +21,7 @@ class Inventory extends Model
         'supplier_id',
         'name',
         'description',
+        'photo_path',
         'unit',
         'package_unit',
         'package_size',
@@ -27,12 +30,29 @@ class Inventory extends Model
         'max_stock',
         'unit_price',
         'selling_price',
+        'addon_enabled',
+        'addon_name',
+        'addon_quantity',
+        'addon_price',
+        'retail_enabled',
+        'retail_name',
+        'retail_pack_size',
+        'retail_price',
+        'notes',
         'status',
     ];
 
+    protected $appends = ['photo_url'];
+
     protected $casts = [
-        'unit_price' => 'decimal:2',
-        'selling_price' => 'decimal:2',
+        'unit_price' => 'decimal:4',
+        'selling_price' => 'decimal:4',
+        'addon_enabled' => 'boolean',
+        'addon_quantity' => 'integer',
+        'addon_price' => 'decimal:2',
+        'retail_enabled' => 'boolean',
+        'retail_pack_size' => 'integer',
+        'retail_price' => 'decimal:2',
         'quantity' => 'integer',
         'package_size' => 'integer',
         'min_stock' => 'integer',
@@ -67,6 +87,16 @@ class Inventory extends Model
     }
 
     // ── Accessors ──────────────────────────────────────────
+
+    /** Public URL of the item photo, or null when it has none (or the column was not selected). */
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            $path = $this->attributes['photo_path'] ?? null;
+
+            return $path ? Storage::disk('public')->url($path) : null;
+        });
+    }
 
     public function getIsLowStockAttribute(): bool
     {

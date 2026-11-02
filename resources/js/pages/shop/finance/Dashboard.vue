@@ -2,6 +2,7 @@
 import { DataTable, type DataTableHeader } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -146,11 +147,24 @@ const chartOptions = {
 // ─── Recent expenses table ────────────────────────────────────────────────────
 
 const recentHeaders: DataTableHeader[] = [
-    { text: 'Title', value: 'title' },
-    { text: 'Category', value: 'category' },
-    { text: 'Date', value: 'expense_date' },
-    { text: 'Amount', value: 'amount', align: 'right' },
+    { text: 'Title', value: 'title', sortable: true },
+    { text: 'Category', value: 'category', sortable: true },
+    { text: 'Date', value: 'expense_date', sortable: true },
+    { text: 'Amount', value: 'amount', sortable: true, align: 'right' },
 ];
+
+const { options: recentOptions, pageItems: recentRows } = useDataTable(
+    () => props.data.recent_expenses,
+    {
+        rowsPerPage: 100,
+        sortValue: (expense, column) =>
+            column === 'category'
+                ? expense.category?.name
+                : column === 'amount'
+                  ? Number(expense.amount)
+                  : (expense as unknown as Record<string, unknown>)[column],
+    },
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -408,7 +422,9 @@ function formatDate(val: string): string {
             <!-- ── Recent Expenses ────────────────────────────── -->
             <DataTable
                 :headers="recentHeaders"
-                :items="data.recent_expenses"
+                v-model:options="recentOptions"
+                :items="recentRows"
+                :total="data.recent_expenses.length"
                 noun="expenses"
                 :empty-icon="ReceiptText"
                 empty-message="No expenses recorded yet."

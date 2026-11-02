@@ -33,7 +33,9 @@ class BusinessAgreementController extends Controller
             $request->userAgent(),
         );
 
-        return redirect()->intended(route('shop.dashboard'))->with('toast', [
+        $request->session()->forget('url.intended');
+
+        return redirect()->route('shop.dashboard')->with('toast', [
             'type' => 'success',
             'message' => 'Business agreement accepted successfully.',
         ]);

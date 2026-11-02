@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import InventorySalesOptions from '@/components/shop/InventorySalesOptions.vue';
+import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,8 +14,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Loader2, Package } from 'lucide-vue-next';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import {
+    ArrowLeft,
+    CheckCircle2,
+    Loader2,
+    Package,
+    Save,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Category {
@@ -43,6 +51,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     name: '',
     description: '',
+    photo: null as File | null,
     unit: 'pcs',
     package_unit: '',
     package_size: '',
@@ -50,15 +59,30 @@ const form = useForm({
     min_stock: 5,
     max_stock: '',
     unit_price: '',
-    selling_price: '',
+    addon_enabled: false,
+    addon_name: '',
+    addon_quantity: '' as number | string,
+    addon_price: '' as number | string,
+    retail_enabled: false,
+    retail_name: '',
+    retail_pack_size: '' as number | string,
+    retail_price: '' as number | string,
+    notes: '',
     status: 'active',
     inventory_categories_id: '',
     supplier_id: '',
 });
 
-const statusOptions = [
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
+const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'liters', label: 'Liters (L)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'bottles', label: 'Bottles' },
+    { value: 'boxes', label: 'Boxes' },
+    { value: 'packs', label: 'Packs' },
+    { value: 'rolls', label: 'Rolls' },
 ];
 
 const peso = (value: string | number) =>
@@ -75,42 +99,76 @@ const supplierName = computed(
         'No supplier',
 );
 
-const margin = computed(() => {
-    if (form.unit_price === '' || form.selling_price === '') {
-        return null;
-    }
-
-    return Number(form.selling_price) - Number(form.unit_price);
-});
-
 const saveStatus = computed(() =>
     form.isDirty ? 'You have unsaved changes' : 'No changes yet',
 );
 
 // When the item is bought in packages (e.g. bottles of 5,000 ml), the stock
 // fields are typed in packages and saved in the item's own unit.
+const purchaseUnitOptions = [
+    { value: 'none', label: 'Same as consumption unit' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'gallon', label: 'Gallon' },
+    { value: 'sack', label: 'Sack' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'carton', label: 'Carton' },
+    { value: 'drum', label: 'Drum' },
+    { value: 'roll', label: 'Roll' },
+];
+
+const purchaseUnit = computed({
+    get: () => form.package_unit || 'none',
+    set: (value: string) => {
+        form.package_unit = value === 'none' ? '' : value;
+        if (value === 'none') form.package_size = '';
+        form.clearErrors('package_unit', 'package_size');
+    },
+});
+const purchaseSelected = computed(() => form.package_unit !== '');
 const usesPackages = computed(
-    () => form.package_unit.trim() !== '' && Number(form.package_size) > 0,
+    () => purchaseSelected.value && Number(form.package_size) > 0,
 );
 const packageCount = computed(() => Number(form.package_size) || 0);
 const inUnit = (packages: number | string) =>
     Math.round(Number(packages || 0) * packageCount.value);
+// What one unit costs the shop, for the pricing overview.
+const costPerUnit = computed(() =>
+    form.unit_price === ''
+        ? null
+        : usesPackages.value
+          ? Number(form.unit_price) / packageCount.value
+          : Number(form.unit_price),
+);
 const entryLabel = computed(() =>
     usesPackages.value ? form.package_unit.trim() : form.unit,
 );
 
 function submit() {
-    form.transform((data) =>
-        usesPackages.value
+    form.transform((raw) => {
+        const data = {
+            ...raw,
+        };
+
+        return usesPackages.value
             ? {
                   ...data,
                   quantity: inUnit(data.quantity),
                   min_stock: inUnit(data.min_stock),
                   max_stock:
                       data.max_stock === '' ? '' : inUnit(data.max_stock),
+                  // The cost is typed per package and saved per unit (₱80 per 5,000 ml = ₱0.016 per ml).
+                  unit_price:
+                      data.unit_price === ''
+                          ? ''
+                          : Number(
+                                (
+                                    Number(data.unit_price) / packageCount.value
+                                ).toFixed(4),
+                            ),
               }
-            : { ...data, package_unit: '', package_size: '' },
-    ).post(base.value, {
+            : { ...data, package_unit: '', package_size: '' };
+    }).post(base.value, {
         onSuccess: () => form.reset(),
     });
 }
@@ -122,28 +180,21 @@ function submit() {
         <div class="mx-auto max-w-6xl space-y-6 px-6 pb-10">
             <!-- Header -->
             <div class="flex items-start justify-between gap-4">
-                <div>
-                    <nav
-                        aria-label="Breadcrumb"
-                        class="mb-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"
+                <div class="flex items-start gap-3">
+                    <span
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40"
                     >
-                        <span>Inventory</span>
-                        <span aria-hidden="true">/</span>
-                        <Link :href="base" class="hover:text-foreground"
-                            >Items</Link
-                        >
-                        <span aria-hidden="true">/</span>
-                        <span class="font-medium text-foreground"
-                            >Add item</span
-                        >
-                    </nav>
-                    <h2 class="text-2xl font-bold tracking-tight">
-                        New inventory item
-                    </h2>
-                    <p class="mt-1 text-sm text-muted-foreground">
-                        Add a supply or product and set when to be alerted to
-                        restock.
-                    </p>
+                        <Package class="h-6 w-6" aria-hidden="true" />
+                    </span>
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight">
+                            Add Inventory Item
+                        </h2>
+                        <p class="mt-0.5 text-sm text-muted-foreground">
+                            Configure your supply with flexible usage options,
+                            units, and pricing.
+                        </p>
+                    </div>
                 </div>
                 <Button
                     type="button"
@@ -151,7 +202,8 @@ function submit() {
                     class="shrink-0"
                     @click="router.visit(base)"
                 >
-                    <ArrowLeft class="mr-2 h-4 w-4" /> Back to inventory
+                    <ArrowLeft class="mr-2 h-4 w-4" aria-hidden="true" /> Back
+                    to inventory
                 </Button>
             </div>
 
@@ -159,42 +211,257 @@ function submit() {
                 class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]"
                 @submit.prevent="submit"
             >
-                <!-- Left column -->
-                <div class="space-y-8">
-                    <!-- Basic information -->
-                    <section>
-                        <h3 class="text-base font-semibold">
-                            Basic information
-                        </h3>
-                        <p class="mt-0.5 text-sm text-muted-foreground">
-                            What the item is and how it is counted.
-                        </p>
-                        <div class="mt-5 grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-1.5 sm:col-span-8">
-                                <label
-                                    for="item-name"
-                                    class="text-sm font-medium"
-                                    >Item name
-                                    <span class="text-red-500">*</span></label
-                                >
-                                <Input
-                                    id="item-name"
-                                    v-model="form.name"
-                                    placeholder="e.g. Detergent Powder"
-                                    :class="{
-                                        'border-red-500': form.errors.name,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.name"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.name }}
+                <div class="space-y-6">
+                    <!-- 1. Basic information -->
+                    <section class="rounded-xl border bg-card p-5">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white"
+                                >1</span
+                            >
+                            <div>
+                                <h3 class="text-base font-semibold">
+                                    Basic Information
+                                </h3>
+                                <p class="text-sm text-muted-foreground">
+                                    What is this item and how is it counted?
                                 </p>
                             </div>
-                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
+                        </div>
+                        <div class="mt-5 grid gap-6 md:grid-cols-[180px_1fr]">
+                            <ServicePhotoInput
+                                v-model="form.photo"
+                                compact
+                                :error="form.errors.photo"
+                            />
+                            <div class="grid grid-cols-12 gap-x-5 gap-y-4">
+                                <div
+                                    class="col-span-12 space-y-1.5 sm:col-span-7"
+                                >
+                                    <label
+                                        for="item-name"
+                                        class="text-sm font-medium"
+                                        >Item name
+                                        <span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <Input
+                                        id="item-name"
+                                        v-model="form.name"
+                                        placeholder="e.g. Fabric Conditioner"
+                                        :class="{
+                                            'border-red-500': form.errors.name,
+                                        }"
+                                    />
+                                    <p
+                                        v-if="form.errors.name"
+                                        class="text-xs text-red-500"
+                                    >
+                                        {{ form.errors.name }}
+                                    </p>
+                                </div>
+                                <div
+                                    class="col-span-12 space-y-1.5 sm:col-span-5"
+                                >
+                                    <label class="text-sm font-medium"
+                                        >Category</label
+                                    >
+                                    <Select
+                                        v-model="form.inventory_categories_id"
+                                    >
+                                        <SelectTrigger
+                                            ><SelectValue
+                                                placeholder="Select category"
+                                        /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none"
+                                                >No Category</SelectItem
+                                            >
+                                            <SelectItem
+                                                v-for="c in categories"
+                                                :key="c.id"
+                                                :value="String(c.id)"
+                                                >{{ c.name }}</SelectItem
+                                            >
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div class="col-span-12 space-y-1.5">
+                                    <label
+                                        for="item-description"
+                                        class="text-sm font-medium"
+                                        >Description
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >(optional)</span
+                                        ></label
+                                    >
+                                    <Textarea
+                                        id="item-description"
+                                        v-model="form.description"
+                                        placeholder="Optional item description..."
+                                        rows="3"
+                                        maxlength="2000"
+                                    />
+                                    <p
+                                        v-if="form.errors.description"
+                                        class="text-xs text-red-500"
+                                    >
+                                        {{ form.errors.description }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 2. Unit configuration -->
+                    <section class="rounded-xl border bg-card p-5">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white"
+                                >2</span
+                            >
+                            <div>
+                                <h3 class="text-base font-semibold">
+                                    Unit Configuration
+                                </h3>
+                                <p class="text-sm text-muted-foreground">
+                                    Set the usage unit, how it is bought, and
+                                    the starting stock.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid grid-cols-12 gap-x-5 gap-y-4">
+                            <!-- Purchase unit -->
+                            <div
+                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
+                            >
                                 <label class="text-sm font-medium"
-                                    >Unit
+                                    >Purchase unit</label
+                                >
+                                <Select v-model="purchaseUnit">
+                                    <SelectTrigger
+                                        :class="{
+                                            'border-red-500':
+                                                form.errors.package_unit,
+                                        }"
+                                        ><SelectValue placeholder="Select unit"
+                                    /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            v-for="p in purchaseUnitOptions"
+                                            :key="p.value"
+                                            :value="p.value"
+                                            >{{ p.label }}</SelectItem
+                                        >
+                                    </SelectContent>
+                                </Select>
+                                <p class="text-xs text-muted-foreground">
+                                    How you buy it from the supplier.
+                                </p>
+                                <p
+                                    v-if="form.errors.package_unit"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.package_unit }}
+                                </p>
+                            </div>
+
+                            <!-- Container size -->
+                            <div
+                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
+                            >
+                                <label
+                                    for="item-package-size"
+                                    class="text-sm font-medium"
+                                    >Container size</label
+                                >
+                                <div class="flex items-center gap-2">
+                                    <Input
+                                        id="item-package-size"
+                                        v-model="form.package_size"
+                                        type="number"
+                                        min="1"
+                                        placeholder="5000"
+                                        :disabled="!purchaseSelected"
+                                        :class="{
+                                            'border-red-500':
+                                                form.errors.package_size,
+                                        }"
+                                    />
+                                    <span
+                                        class="shrink-0 text-sm text-muted-foreground"
+                                        >{{ form.unit }}</span
+                                    >
+                                </div>
+                                <p class="text-xs text-muted-foreground">
+                                    <template v-if="purchaseSelected"
+                                        >e.g. 5000 {{ form.unit }} per
+                                        {{ form.package_unit }}</template
+                                    >
+                                    <template v-else
+                                        >Not needed when bought in
+                                        {{ form.unit }}.</template
+                                    >
+                                </p>
+                                <p
+                                    v-if="form.errors.package_size"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.package_size }}
+                                </p>
+                            </div>
+
+                            <!-- Stock quantity -->
+                            <div
+                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
+                            >
+                                <label
+                                    for="item-quantity"
+                                    class="text-sm font-medium"
+                                    >Stock quantity
+                                    <span class="text-red-500">*</span></label
+                                >
+                                <div class="flex items-center gap-2">
+                                    <Input
+                                        id="item-quantity"
+                                        v-model="form.quantity"
+                                        type="number"
+                                        min="0"
+                                        :step="usesPackages ? 'any' : 1"
+                                        :class="{
+                                            'border-red-500':
+                                                form.errors.quantity,
+                                        }"
+                                    />
+                                    <span
+                                        class="shrink-0 text-sm text-muted-foreground"
+                                        >{{ entryLabel }}</span
+                                    >
+                                </div>
+                                <p
+                                    v-if="usesPackages"
+                                    class="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                                >
+                                    Total stock:
+                                    {{ inUnit(form.quantity).toLocaleString() }}
+                                    {{ form.unit }}
+                                </p>
+                                <p
+                                    v-if="form.errors.quantity"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.quantity }}
+                                </p>
+                            </div>
+
+                            <!-- Consumption unit -->
+                            <div
+                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
+                            >
+                                <label class="text-sm font-medium"
+                                    >Consumption unit
                                     <span class="text-red-500">*</span></label
                                 >
                                 <Select v-model="form.unit">
@@ -205,35 +472,17 @@ function submit() {
                                         ><SelectValue placeholder="Select unit"
                                     /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="pcs"
-                                            >Pieces (pcs)</SelectItem
-                                        >
-                                        <SelectItem value="kg"
-                                            >Kilograms (kg)</SelectItem
-                                        >
-                                        <SelectItem value="g"
-                                            >Grams (g)</SelectItem
-                                        >
-                                        <SelectItem value="liters"
-                                            >Liters (L)</SelectItem
-                                        >
-                                        <SelectItem value="ml"
-                                            >Milliliters (ml)</SelectItem
-                                        >
-                                        <SelectItem value="bottles"
-                                            >Bottles</SelectItem
-                                        >
-                                        <SelectItem value="boxes"
-                                            >Boxes</SelectItem
-                                        >
-                                        <SelectItem value="packs"
-                                            >Packs</SelectItem
-                                        >
-                                        <SelectItem value="rolls"
-                                            >Rolls</SelectItem
+                                        <SelectItem
+                                            v-for="u in unitOptions"
+                                            :key="u.value"
+                                            :value="u.value"
+                                            >{{ u.label }}</SelectItem
                                         >
                                     </SelectContent>
                                 </Select>
+                                <p class="text-xs text-muted-foreground">
+                                    Used for internal &amp; add-on usage.
+                                </p>
                                 <p
                                     v-if="form.errors.unit"
                                     class="text-xs text-red-500"
@@ -241,126 +490,94 @@ function submit() {
                                     {{ form.errors.unit }}
                                 </p>
                             </div>
-                            <div class="col-span-12 space-y-1.5">
+
+                            <!-- Cost -->
+                            <div
+                                class="col-span-12 space-y-1.5 sm:col-span-6 lg:col-span-3"
+                            >
                                 <label
-                                    for="item-description"
+                                    for="item-cost"
                                     class="text-sm font-medium"
-                                    >Description</label
+                                    >{{
+                                        usesPackages
+                                            ? `Cost per ${form.package_unit.trim()} (₱)`
+                                            : `Cost per ${form.unit} (₱)`
+                                    }}</label
                                 >
-                                <Textarea
-                                    id="item-description"
-                                    v-model="form.description"
-                                    placeholder="Optional item description..."
-                                    rows="2"
+                                <Input
+                                    id="item-cost"
+                                    v-model="form.unit_price"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    :class="{
+                                        'border-red-500':
+                                            form.errors.unit_price,
+                                    }"
                                 />
                                 <p
-                                    v-if="form.errors.description"
+                                    v-if="form.errors.unit_price"
                                     class="text-xs text-red-500"
                                 >
-                                    {{ form.errors.description }}
+                                    {{ form.errors.unit_price }}
                                 </p>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Stock -->
-                    <section class="border-t pt-8">
-                        <h3 class="text-base font-semibold">Stock</h3>
-                        <p class="mt-0.5 text-sm text-muted-foreground">
-                            Starting quantity and the levels that trigger a
-                            low-stock alert.
-                        </p>
-                        <div class="mt-5 grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
-                                <label
-                                    for="item-package-unit"
-                                    class="text-sm font-medium"
-                                    >Bought as
-                                    <span class="text-xs text-muted-foreground"
-                                        >(optional)</span
-                                    ></label
-                                >
-                                <Input
-                                    id="item-package-unit"
-                                    v-model="form.package_unit"
-                                    placeholder="e.g. bottle, pack, sack"
-                                />
-                                <p
-                                    v-if="form.errors.package_unit"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.package_unit }}
-                                </p>
-                            </div>
-                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
-                                <label
-                                    for="item-package-size"
-                                    class="text-sm font-medium"
-                                    >Contents per
-                                    {{ form.package_unit.trim() || 'package' }}
-                                    <span class="text-xs text-muted-foreground"
-                                        >({{ form.unit }})</span
-                                    ></label
-                                >
-                                <Input
-                                    id="item-package-size"
-                                    v-model="form.package_size"
-                                    type="number"
-                                    min="1"
-                                    placeholder="e.g. 5000"
-                                />
-                                <p
-                                    v-if="form.errors.package_size"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.package_size }}
-                                </p>
-                            </div>
-                            <p
-                                class="col-span-12 -mt-2 text-xs text-muted-foreground"
+                    <!-- 3. Sales options -->
+                    <section class="rounded-xl border bg-card p-5">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white"
+                                >3</span
                             >
-                                <template v-if="usesPackages"
-                                    >Stock below is entered in
-                                    {{ form.package_unit.trim() }}s. It is saved
-                                    as {{ form.unit }} (1
-                                    {{ form.package_unit.trim() }} =
-                                    {{ packageCount.toLocaleString() }}
-                                    {{ form.unit }}).</template
-                                >
-                                <template v-else
-                                    >Leave these empty to enter stock directly in
-                                    {{ form.unit }}.</template
-                                >
-                            </p>
-                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
-                                <label
-                                    for="item-quantity"
-                                    class="text-sm font-medium"
-                                    >Initial quantity ({{ entryLabel }})
-                                    <span class="text-red-500">*</span></label
-                                >
-                                <Input
-                                    id="item-quantity"
-                                    v-model="form.quantity"
-                                    type="number"
-                                    min="0"
-                                    :step="usesPackages ? 'any' : 1"
-                                    :class="{
-                                        'border-red-500': form.errors.quantity,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.quantity"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.quantity }}
+                            <div>
+                                <h3 class="text-base font-semibold">
+                                    Sales Options
+                                </h3>
+                                <p class="text-sm text-muted-foreground">
+                                    Choose how customers are charged for this
+                                    item. Internal use is set per service in
+                                    Operations → Services.
                                 </p>
                             </div>
+                        </div>
+                        <div class="mt-5">
+                            <InventorySalesOptions
+                                :form="form"
+                                :unit="form.unit"
+                                :cost-per-unit="costPerUnit"
+                                :package-unit="form.package_unit.trim()"
+                                :package-size="form.package_size"
+                            />
+                        </div>
+                    </section>
+
+                    <!-- 4. Stock alerts & settings -->
+                    <section class="rounded-xl border bg-card p-5">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white"
+                                >4</span
+                            >
+                            <div>
+                                <h3 class="text-base font-semibold">
+                                    Stock Alerts &amp; Additional Settings
+                                </h3>
+                                <p class="text-sm text-muted-foreground">
+                                    When to be alerted, where it comes from, and
+                                    any notes.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid grid-cols-12 gap-x-5 gap-y-4">
                             <div class="col-span-12 space-y-1.5 sm:col-span-4">
                                 <label
                                     for="item-min"
                                     class="text-sm font-medium"
-                                    >Minimum stock ({{ entryLabel }})
+                                    >Reorder level ({{ entryLabel }})
                                     <span class="text-red-500">*</span></label
                                 >
                                 <Input
@@ -374,7 +591,8 @@ function submit() {
                                     }"
                                 />
                                 <p class="text-xs text-muted-foreground">
-                                    Alert triggers at or below this.
+                                    Get notified when stock falls to or below
+                                    this level.
                                 </p>
                                 <p
                                     v-if="form.errors.min_stock"
@@ -409,106 +627,7 @@ function submit() {
                                     {{ form.errors.max_stock }}
                                 </p>
                             </div>
-                        </div>
-                    </section>
-
-                    <!-- Pricing -->
-                    <section class="border-t pt-8">
-                        <h3 class="text-base font-semibold">Pricing</h3>
-                        <p class="mt-0.5 text-sm text-muted-foreground">
-                            What the item costs you and, if sold, what customers
-                            pay.
-                        </p>
-                        <div class="mt-5 grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-1.5 sm:col-span-6">
-                                <label
-                                    for="item-cost"
-                                    class="text-sm font-medium"
-                                    >Unit price (₱)</label
-                                >
-                                <Input
-                                    id="item-cost"
-                                    v-model="form.unit_price"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    :class="{
-                                        'border-red-500':
-                                            form.errors.unit_price,
-                                    }"
-                                />
-                                <p class="text-xs text-muted-foreground">
-                                    Your cost from the supplier.
-                                </p>
-                                <p
-                                    v-if="form.errors.unit_price"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.unit_price }}
-                                </p>
-                            </div>
-                            <div class="col-span-12 space-y-1.5 sm:col-span-6">
-                                <label
-                                    for="item-sell"
-                                    class="text-sm font-medium"
-                                    >Selling price (₱)</label
-                                >
-                                <Input
-                                    id="item-sell"
-                                    v-model="form.selling_price"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    :class="{
-                                        'border-red-500':
-                                            form.errors.selling_price,
-                                    }"
-                                />
-                                <p class="text-xs text-muted-foreground">
-                                    Charged to the customer.
-                                </p>
-                                <p
-                                    v-if="form.errors.selling_price"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.selling_price }}
-                                </p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Classification -->
-                    <section class="border-t pt-8">
-                        <h3 class="text-base font-semibold">Classification</h3>
-                        <p class="mt-0.5 text-sm text-muted-foreground">
-                            Group the item and note where you buy it.
-                        </p>
-                        <div class="mt-5 grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-1.5 sm:col-span-6">
-                                <label class="text-sm font-medium"
-                                    >Category</label
-                                >
-                                <Select v-model="form.inventory_categories_id">
-                                    <SelectTrigger
-                                        ><SelectValue
-                                            placeholder="Select category"
-                                    /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none"
-                                            >No Category</SelectItem
-                                        >
-                                        <SelectItem
-                                            v-for="c in categories"
-                                            :key="c.id"
-                                            :value="String(c.id)"
-                                            >{{ c.name }}</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div class="col-span-12 space-y-1.5 sm:col-span-6">
+                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
                                 <label class="text-sm font-medium"
                                     >Supplier</label
                                 >
@@ -530,44 +649,30 @@ function submit() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            <div class="col-span-12 space-y-1.5 sm:col-span-6">
+                                <label
+                                    for="item-notes"
+                                    class="text-sm font-medium"
+                                    >Notes
+                                    <span class="text-xs text-muted-foreground"
+                                        >(optional)</span
+                                    ></label
+                                >
+                                <Textarea
+                                    id="item-notes"
+                                    v-model="form.notes"
+                                    placeholder="e.g. Keep in a cool and dry place."
+                                    rows="2"
+                                    maxlength="1000"
+                                />
+                                <p
+                                    v-if="form.errors.notes"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.notes }}
+                                </p>
+                            </div>
                         </div>
-                    </section>
-
-                    <!-- Status -->
-                    <section class="border-t pt-8">
-                        <h3 class="text-base font-semibold">Status</h3>
-                        <p class="mt-0.5 text-sm text-muted-foreground">
-                            Inactive items stay on record but are set aside from
-                            day-to-day use.
-                        </p>
-                        <div
-                            class="mt-5 grid max-w-md grid-cols-2 gap-3"
-                            role="radiogroup"
-                            aria-label="Item status"
-                        >
-                            <button
-                                v-for="option in statusOptions"
-                                :key="option.value"
-                                type="button"
-                                role="radio"
-                                :aria-checked="form.status === option.value"
-                                class="rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                                :class="
-                                    form.status === option.value
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                                        : 'border-input hover:bg-muted/50'
-                                "
-                                @click="form.status = option.value"
-                            >
-                                {{ option.label }}
-                            </button>
-                        </div>
-                        <p
-                            v-if="form.errors.status"
-                            class="mt-1 text-xs text-red-500"
-                        >
-                            {{ form.errors.status }}
-                        </p>
                     </section>
                 </div>
 
@@ -601,20 +706,78 @@ function submit() {
                         </div>
                     </div>
 
-                    <dl class="mt-4 space-y-2 text-sm">
+                    <ul class="mt-3 space-y-1 text-sm">
+                        <li class="flex items-center gap-2">
+                            <CheckCircle2
+                                class="h-4 w-4 text-emerald-500"
+                                aria-hidden="true"
+                            />
+                            Internal use (set in Services)
+                        </li>
+                        <li
+                            class="flex items-center gap-2"
+                            :class="
+                                form.addon_enabled
+                                    ? ''
+                                    : 'text-muted-foreground/60'
+                            "
+                        >
+                            <CheckCircle2
+                                class="h-4 w-4"
+                                :class="
+                                    form.addon_enabled
+                                        ? 'text-emerald-500'
+                                        : 'text-muted-foreground/40'
+                                "
+                                aria-hidden="true"
+                            />
+                            Additional charge
+                        </li>
+                        <li
+                            class="flex items-center gap-2"
+                            :class="
+                                form.retail_enabled
+                                    ? ''
+                                    : 'text-muted-foreground/60'
+                            "
+                        >
+                            <CheckCircle2
+                                class="h-4 w-4"
+                                :class="
+                                    form.retail_enabled
+                                        ? 'text-emerald-500'
+                                        : 'text-muted-foreground/40'
+                                "
+                                aria-hidden="true"
+                            />
+                            Retail product
+                        </li>
+                    </ul>
+
+                    <dl class="mt-4 space-y-2 border-t pt-4 text-sm">
                         <div class="flex items-center justify-between">
                             <dt class="text-muted-foreground">
                                 Starting stock
                             </dt>
                             <dd class="font-medium">
-                                {{ usesPackages ? inUnit(form.quantity).toLocaleString() : form.quantity || 0 }}
+                                {{
+                                    usesPackages
+                                        ? inUnit(form.quantity).toLocaleString()
+                                        : form.quantity || 0
+                                }}
                                 {{ form.unit }}
                             </dd>
                         </div>
                         <div class="flex items-center justify-between">
                             <dt class="text-muted-foreground">Alert at</dt>
                             <dd class="font-medium">
-                                {{ usesPackages ? inUnit(form.min_stock).toLocaleString() : form.min_stock || 0 }}
+                                {{
+                                    usesPackages
+                                        ? inUnit(
+                                              form.min_stock,
+                                          ).toLocaleString()
+                                        : form.min_stock || 0
+                                }}
                                 {{ form.unit }}
                             </dd>
                         </div>
@@ -623,37 +786,9 @@ function submit() {
                             <dd class="font-medium">
                                 {{
                                     form.unit_price !== ''
-                                        ? peso(form.unit_price)
+                                        ? `${peso(form.unit_price)}${usesPackages ? ` / ${form.package_unit.trim()}` : ''}`
                                         : '—'
                                 }}
-                            </dd>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <dt class="text-muted-foreground">Selling price</dt>
-                            <dd class="font-medium">
-                                {{
-                                    form.selling_price !== ''
-                                        ? peso(form.selling_price)
-                                        : '—'
-                                }}
-                            </dd>
-                        </div>
-                        <div
-                            v-if="margin !== null"
-                            class="flex items-center justify-between"
-                        >
-                            <dt class="text-muted-foreground">
-                                Margin per unit
-                            </dt>
-                            <dd
-                                class="font-medium"
-                                :class="
-                                    margin < 0
-                                        ? 'text-red-600'
-                                        : 'text-emerald-600'
-                                "
-                            >
-                                {{ peso(margin) }}
                             </dd>
                         </div>
                         <div class="flex items-center justify-between">
@@ -684,8 +819,14 @@ function submit() {
                             <Loader2
                                 v-if="form.processing"
                                 class="mr-2 h-4 w-4 animate-spin"
+                                aria-hidden="true"
                             />
-                            {{ form.processing ? 'Saving…' : 'Add item' }}
+                            <Save
+                                v-else
+                                class="mr-2 h-4 w-4"
+                                aria-hidden="true"
+                            />
+                            {{ form.processing ? 'Saving…' : 'Save item' }}
                         </Button>
                         <Button
                             type="button"

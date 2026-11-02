@@ -20,7 +20,16 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 export function usePWA() {
     const installApp = async () => {
-        if (!deferredPrompt.value) return;
+        if (!deferredPrompt.value) {
+            window.alert(
+                isInStandaloneMode
+                    ? 'LaundryHub is already installed.'
+                    : isIOS
+                      ? 'To install: tap the Share button, then "Add to Home Screen".'
+                      : 'To install: open your browser menu and choose "Install app" or "Add to Home screen".',
+            );
+            return;
+        }
         await deferredPrompt.value.prompt();
         const { outcome } = await deferredPrompt.value.userChoice;
         if (outcome === 'accepted') {

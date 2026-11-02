@@ -2,17 +2,20 @@
 import { Info, ReceiptText, Truck } from 'lucide-vue-next';
 import { computed } from 'vue';
 
+export interface BillingServiceLine {
+    name: string;
+    pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
+    quantity: number;
+    unit: 'kg' | 'bundle' | 'piece';
+    rate: number;
+    bundle_weight_kg: number | null;
+    amount: number;
+}
+
 export interface BillingBreakdown {
     is_estimate: boolean;
-    service: {
-        name: string;
-        pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
-        quantity: number;
-        unit: 'kg' | 'bundle' | 'piece';
-        rate: number;
-        bundle_weight_kg: number | null;
-        amount: number;
-    };
+    service: BillingServiceLine;
+    extra_services?: BillingServiceLine[];
     additional_charges: number;
     supplies?: {
         name: string;
@@ -41,8 +44,7 @@ function currency(value: number) {
     return `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 }
 
-const serviceDetail = computed(() => {
-    const { service } = props.breakdown;
+function lineDetail(service: BillingServiceLine) {
     const quantity = Number(service.quantity.toFixed(2));
 
     if (service.unit === 'kg') {
@@ -58,7 +60,9 @@ const serviceDetail = computed(() => {
         : '';
 
     return `${quantity} ${quantity === 1 ? 'bundle' : 'bundles'} × ${currency(service.rate)}${size}`;
-});
+}
+
+const serviceDetail = computed(() => lineDetail(props.breakdown.service));
 </script>
 
 <template>
@@ -93,6 +97,22 @@ const serviceDetail = computed(() => {
             </div>
             <span class="font-semibold whitespace-nowrap text-gray-800">{{
                 currency(breakdown.service.amount)
+            }}</span>
+        </div>
+
+        <div
+            v-for="(extra, index) in breakdown.extra_services ?? []"
+            :key="`extra-${index}`"
+            class="flex items-start justify-between gap-3 border-t border-gray-100 px-4 py-3 text-sm"
+        >
+            <div>
+                <p class="font-medium text-gray-800">{{ extra.name }}</p>
+                <p class="mt-0.5 text-xs text-gray-500">
+                    {{ lineDetail(extra) }}
+                </p>
+            </div>
+            <span class="font-semibold whitespace-nowrap text-gray-800">{{
+                currency(extra.amount)
             }}</span>
         </div>
 

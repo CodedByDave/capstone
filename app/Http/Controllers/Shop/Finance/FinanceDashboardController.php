@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop\Finance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\Shop;
@@ -41,7 +42,7 @@ class FinanceDashboardController extends Controller
         ]);
     }
 
-    public function income(Request $request)
+    public function income(TableSortRequest $request)
     {
         $shop = $this->getShop();
         $dateFrom = $request->get('date_from');
@@ -49,7 +50,7 @@ class FinanceDashboardController extends Controller
         $method = $request->get('payment_method');
 
         return Inertia::render('shop/finance/Income', [
-            'income' => $this->income->paginate($shop->id, $dateFrom, $dateTo, $method),
+            'income' => $this->income->paginate($shop->id, $dateFrom, $dateTo, $method, $request->sort()),
             'stats' => $this->income->stats($shop->id),
             'filters' => compact('dateFrom', 'dateTo', 'method'),
         ]);

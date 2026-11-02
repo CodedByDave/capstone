@@ -360,6 +360,9 @@ interface ModalForm {
     remarks: string;
 }
 
+// reka-ui's SelectItem cannot use an empty value, so the "none" option uses this instead.
+const NONE = '__none__';
+
 const modal = ref<{
     open: boolean;
     employee: Employee | null;
@@ -790,7 +793,12 @@ function saveModal() {
                                     >Clock In</label
                                 >
                                 <Select
-                                    v-model="modal.form.time_in"
+                                    :model-value="modal.form.time_in || NONE"
+                                    @update:model-value="
+                                        (v) =>
+                                            (modal.form.time_in =
+                                                v === NONE ? '' : String(v))
+                                    "
                                     :disabled="modal.form.status === 'absent'"
                                 >
                                     <SelectTrigger class="h-9 text-sm">
@@ -805,7 +813,7 @@ function saveModal() {
                                         </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent class="max-h-60">
-                                        <SelectItem value=""
+                                        <SelectItem :value="NONE"
                                             >— None —</SelectItem
                                         >
                                         <SelectItem
@@ -823,7 +831,12 @@ function saveModal() {
                                     >Clock Out</label
                                 >
                                 <Select
-                                    v-model="modal.form.time_out"
+                                    :model-value="modal.form.time_out || NONE"
+                                    @update:model-value="
+                                        (v) =>
+                                            (modal.form.time_out =
+                                                v === NONE ? '' : String(v))
+                                    "
                                     :disabled="modal.form.status === 'absent'"
                                 >
                                     <SelectTrigger class="h-9 text-sm">
@@ -838,7 +851,7 @@ function saveModal() {
                                         </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent class="max-h-60">
-                                        <SelectItem value=""
+                                        <SelectItem :value="NONE"
                                             >— None —</SelectItem
                                         >
                                         <SelectItem

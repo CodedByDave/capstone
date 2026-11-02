@@ -15,8 +15,8 @@ use App\Http\Controllers\Driver\DriverAttendanceController;
 use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
-use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\BusinessAgreementPdfController;
+use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\CustomerQrController;
 use App\Http\Controllers\Shop\DeliveryProofController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
@@ -295,6 +295,8 @@ Route::prefix('shop')->middleware([
     // ── Inventory ─────────────────────────────────────────────────────────────
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
+    Route::get('/inventory/archive', [InventoryController::class, 'archive'])->name('inventory.archive');
+    Route::post('/inventory/{id}/restore', [InventoryController::class, 'restore'])->name('inventory.restore');
     Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
     Route::get('/inventory/{inventory}', [InventoryController::class, 'show'])->name('inventory.show');
     Route::get('/inventory/{inventory}/edit', [InventoryController::class, 'edit'])->name('inventory.edit');
@@ -519,6 +521,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     // ── Inventory ─────────────────────────────────────────────────────────────
     Route::middleware('permission:Inventory Management,view')->group(function () {
         Route::get('/inventory', [InventoryController::class, 'index'])->name('staff.inventory.index');
+        Route::get('/inventory/archive', [InventoryController::class, 'archive'])->name('staff.inventory.archive');
     });
     Route::middleware('permission:Inventory Management,create')->group(function () {
         Route::get('/inventory/create', [InventoryController::class, 'create'])->name('staff.inventory.create');
@@ -533,6 +536,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
 
     Route::middleware('permission:Inventory Management,archive')->group(function () {
         Route::delete('/inventory/{inventory}', [InventoryController::class, 'destroy'])->name('staff.inventory.destroy');
+        Route::post('/inventory/{id}/restore', [InventoryController::class, 'restore'])->name('staff.inventory.restore');
     });
 
     // ── Low Stock Alerts ──────────────────────────────────────────────────────

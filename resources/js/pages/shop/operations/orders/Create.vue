@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
+import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import ServiceLinesEditor, {
+    type ServiceLineInput,
+} from '@/components/shop/ServiceLinesEditor.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
@@ -86,6 +89,7 @@ const form = useForm({
     total_amount: 0,
     amount_paid: 0,
     promotion_id: '' as string | number,
+    service_lines: [] as ServiceLineInput[],
     supplies: [] as {
         inventory_id: number;
         quantity_used: number;
@@ -190,11 +194,18 @@ const baseTotal = computed(() => {
     );
 });
 
+const linesEditor = ref<InstanceType<typeof ServiceLinesEditor> | null>(null);
+const extraServicesTotal = computed(() =>
+    Number(linesEditor.value?.total ?? 0),
+);
+
 const promoDiscount = computed(() => {
     const promo = selectedPromotion.value;
     if (!promo) return 0;
     const total =
-        baseTotal.value + (parseFloat(String(form.additional_charges)) || 0);
+        baseTotal.value +
+        extraServicesTotal.value +
+        (parseFloat(String(form.additional_charges)) || 0);
     const min = promo.min_order_amount ? parseFloat(promo.min_order_amount) : 0;
     if (min > 0 && total < min) return 0;
     if (promo.type === 'percentage')
@@ -209,7 +220,10 @@ const onPromotionChange = () => {
 const computedTotal = computed(() => {
     const charges = parseFloat(String(form.additional_charges)) || 0;
     const discount = parseFloat(String(form.discount_amount)) || 0;
-    return Math.max(0, baseTotal.value + charges - discount);
+    return Math.max(
+        0,
+        baseTotal.value + extraServicesTotal.value + charges - discount,
+    );
 });
 
 // ─── Supplies ──────────────────────────────────────
@@ -789,6 +803,14 @@ watch(
                                 </div>
                             </div>
                         </div>
+                        <div class="mt-8 border-t pt-8">
+                            <ServiceLinesEditor
+                                ref="linesEditor"
+                                v-model="form.service_lines"
+                                :services="services ?? []"
+                                :errors="form.errors"
+                            />
+                        </div>
                     </div>
 
                     <!-- ── Pricing ───────────────────────────── -->
@@ -1263,6 +1285,17 @@ watch(
                                 <dt class="text-muted-foreground">Service</dt>
                                 <dd class="font-medium">
                                     {{ formatCurrency(baseTotal) }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="form.service_lines.length"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    Additional services
+                                </dt>
+                                <dd class="font-medium">
+                                    {{ formatCurrency(extraServicesTotal) }}
                                 </dd>
                             </div>
                             <div class="flex justify-between gap-3">

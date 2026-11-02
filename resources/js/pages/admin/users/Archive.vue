@@ -126,12 +126,12 @@ const hasFilters = computed(
 const { options, loading } = usePaginatorTable(() => props.users, ['users']);
 
 const headers: DataTableHeader[] = [
-    { text: 'Name', value: 'name', width: 200 },
-    { text: 'Email', value: 'email' },
-    { text: 'Role', value: 'role' },
-    { text: 'Shop', value: 'shop' },
-    { text: 'Joined', value: 'created_at' },
-    { text: 'Archived at', value: 'deleted_at' },
+    { text: 'Name', value: 'name', sortable: true, width: 200 },
+    { text: 'Email', value: 'email', sortable: true },
+    { text: 'Role', value: 'role', sortable: true },
+    { text: 'Shop', value: 'shop', sortable: true },
+    { text: 'Joined', value: 'created_at', sortable: true },
+    { text: 'Archived at', value: 'deleted_at', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 120 },
 ];
 

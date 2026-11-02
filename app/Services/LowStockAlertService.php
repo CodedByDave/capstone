@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Models\LowStockAlert;
 use App\Repositories\LowStockAlertRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -23,9 +24,9 @@ class LowStockAlertService
         return $this->alertRepository->unreadCountForShop($shopId);
     }
 
-    public function paginate(int $shopId, int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $shopId, ?TableSort $sort = null, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->alertRepository->paginateForShop($shopId, $perPage);
+        return $this->alertRepository->paginateForShop($shopId, $perPage, $sort);
     }
 
     public function markAsRead(LowStockAlert $alert): void

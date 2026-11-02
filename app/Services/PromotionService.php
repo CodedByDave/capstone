@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Models\Promotion;
 use App\Models\Shop;
 use App\Repositories\PromotionRepository;
@@ -15,9 +16,9 @@ class PromotionService
         private readonly ActivityLogService $activityLogService,
     ) {}
 
-    public function paginate(Shop $shop, int $perPage = 15): LengthAwarePaginator
+    public function paginate(Shop $shop, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->repo->paginate($shop->id, $perPage);
+        return $this->repo->paginate($shop->id, $perPage, $sort);
     }
 
     public function activeForShop(Shop $shop): Collection

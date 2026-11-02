@@ -176,6 +176,12 @@ class ShopOrder extends Model
         return $this->belongsTo(ShopService::class, 'service_id');
     }
 
+    /** Additional services billed on this order next to its main service. */
+    public function serviceLines(): HasMany
+    {
+        return $this->hasMany(ShopOrderServiceLine::class, 'shop_order_id')->orderBy('id');
+    }
+
     public function promotion(): BelongsTo
     {
         return $this->belongsTo(Promotion::class);
@@ -266,7 +272,12 @@ class ShopOrder extends Model
      */
     public function priceIsConfirmed(): bool
     {
-        return $this->actual_weight_kg !== null || $this->pricing_model === 'per_piece';
+        $mainPriced = $this->actual_weight_kg !== null || $this->pricing_model === 'per_piece';
+
+        // An additional service that is still waiting for its weight leaves the total open too.
+        return $mainPriced && ! $this->serviceLines->contains(
+            fn (ShopOrderServiceLine $line) => $line->pricing_model !== 'per_piece' && $line->weight_kg === null,
+        );
     }
 
     public function isPaid(): bool

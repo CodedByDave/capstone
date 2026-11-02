@@ -2,36 +2,70 @@
 
 namespace App\Repositories;
 
+use App\DTOs\TableSort;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Shop;
+use App\Models\User;
+use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class ExpenseRepository
 {
-    public function paginate(Shop $shop, array $filters = [], int $perPage = 10): LengthAwarePaginator
+    use AppliesTableSort;
+
+    public function paginate(Shop $shop, array $filters = [], int $perPage = 10, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return Expense::with(['category:id,name', 'creator:id,name'])
+        $query = Expense::with(['category:id,name', 'creator:id,name'])
             ->where('shop_id', $shop->id)
             ->when($filters['category_id'] ?? null, fn ($q, $v) => $q->where('category_id', $v))
             ->when($filters['date_from'] ?? null, fn ($q, $v) => $q->where('expense_date', '>=', $v))
             ->when($filters['date_to'] ?? null, fn ($q, $v) => $q->where('expense_date', '<=', $v))
-            ->when($filters['search'] ?? null, fn ($q, $v) => $q->where('title', 'like', "%{$v}%"))
-            ->latest('expense_date')
-            ->latest('id')
-            ->paginate($perPage)
-            ->withQueryString();
+            ->when($filters['search'] ?? null, fn ($q, $v) => $q->where('title', 'like', "%{$v}%"));
+
+        $this->sortExpenses($query, $sort);
+
+        return $query->paginate($perPage)->withQueryString();
     }
 
-    public function getArchived(Shop $shop, int $perPage = 10): LengthAwarePaginator
+    public function getArchived(Shop $shop, int $perPage = 10, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return Expense::onlyTrashed()
+        $query = Expense::onlyTrashed()
             ->with(['category:id,name', 'creator:id,name'])
-            ->where('shop_id', $shop->id)
-            ->latest('expense_date')
-            ->latest('id')
-            ->paginate($perPage);
+            ->where('shop_id', $shop->id);
+
+        $this->sortExpenses($query, $sort);
+
+        return $query->paginate($perPage)->withQueryString();
+    }
+
+    /** Sorts by a table column, falling back to the newest expense date first. */
+    private function sortExpenses(Builder $query, ?TableSort $sort): void
+    {
+        $sorted = $this->applyTableSort($query, $sort, [
+            'title' => 'title',
+            'expense_date' => 'expense_date',
+            'reference_number' => 'reference_number',
+            'amount' => 'amount',
+            'category' => fn ($q, $dir) => $q->orderBy(
+                ExpenseCategory::query()
+                    ->select('name')
+                    ->whereColumn('expense_categories.id', 'expenses.category_id'),
+                $dir,
+            ),
+            'creator' => fn ($q, $dir) => $q->orderBy(
+                User::query()
+                    ->select('name')
+                    ->whereColumn('users.id', 'expenses.created_by'),
+                $dir,
+            ),
+        ]);
+
+        if (! $sorted) {
+            $query->latest('expense_date')->latest('id');
+        }
     }
 
     public function create(array $data): Expense

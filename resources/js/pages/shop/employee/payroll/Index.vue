@@ -263,12 +263,12 @@ const { options, loading } = usePaginatorTable(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Period', value: 'period_label' },
-    { text: 'Date range', value: 'period_range' },
-    { text: 'Employees', value: 'items_count' },
-    { text: 'Total net pay', value: 'items_sum_net_pay' },
-    { text: 'Status', value: 'status' },
-    { text: 'Created by', value: 'creator' },
+    { text: 'Period', value: 'period_label', sortable: true },
+    { text: 'Date range', value: 'period_range', sortable: true },
+    { text: 'Employees', value: 'items_count', sortable: true },
+    { text: 'Total net pay', value: 'items_sum_net_pay', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
+    { text: 'Created by', value: 'creator', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 110 },
 ];
 </script>

@@ -82,7 +82,7 @@ class ShopOrderRepository
 
     public function findById(int $id): ?ShopOrder
     {
-        return $this->model->with(['service', 'supplies'])->find($id);
+        return $this->model->with(['service', 'supplies', 'serviceLines'])->find($id);
     }
 
     public function findForCustomerOnlinePayment(string $paymentPublicId, int $customerId): ?ShopOrder
@@ -203,6 +203,16 @@ class ShopOrderRepository
             ->where('shop_id', $shopId)
             ->where('is_active', true)
             ->first();
+    }
+
+    /** Replaces the order's additional service lines with the given rows. */
+    public function replaceServiceLines(ShopOrder $order, array $lines): void
+    {
+        $order->serviceLines()->delete();
+
+        foreach ($lines as $line) {
+            $order->serviceLines()->create($line);
+        }
     }
 
     public function update(ShopOrder $order, array $data): ShopOrder

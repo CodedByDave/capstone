@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop\Inventory;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Inventory\StoreSupplierRequest;
 use App\Http\Requests\Shop\Inventory\UpdateSupplierRequest;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Shop;
 use App\Models\Supplier;
 use App\Services\SupplierService;
@@ -30,12 +31,12 @@ class SupplierController extends Controller
         return Shop::findOrFail($employee->shop_id);
     }
 
-    public function index()
+    public function index(TableSortRequest $request)
     {
         $shop = $this->getShop();
 
         return Inertia::render('shop/inventory/supplier/Index', [
-            'suppliers' => $this->supplierService->paginate($shop->id),
+            'suppliers' => $this->supplierService->paginate($shop->id, $request->sort()),
         ]);
     }
 
@@ -81,12 +82,12 @@ class SupplierController extends Controller
             ->with('toast', ['type' => 'success', 'message' => 'Supplier archived successfully.']);
     }
 
-    public function archive()
+    public function archive(TableSortRequest $request)
     {
         $shop = $this->getShop();
 
         return Inertia::render('shop/inventory/supplier/Archive', [
-            'archived' => $this->supplierService->archived($shop->id),
+            'archived' => $this->supplierService->archived($shop->id, $request->sort()),
         ]);
     }
 

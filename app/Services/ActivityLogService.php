@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Models\ActivityLog;
 use App\Models\Shop;
 use App\Models\User;
@@ -34,42 +35,27 @@ class ActivityLogService
         ]);
     }
 
-    public function getPaginatedLogs(Shop $shop, object $request, ?array $performerIds = null): LengthAwarePaginator
+    /**
+     * One page of a shop's activity logs, filtered by the request and ordered by the table sort.
+     *
+     * @param  array<int>|null  $performerIds
+     */
+    public function getPaginatedLogs(Shop $shop, object $request, ?array $performerIds = null, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return ActivityLog::query()
-            ->where('shop_id', $shop->id)
-            ->when($performerIds !== null, fn ($q) => $q->whereIn('performed_by', $performerIds))
-            ->with(['subject', 'performer:id,name'])
-            ->when($request->action ?? null, fn ($q) => $q->where('action', $request->action))
-            ->when($request->performed_by ?? null, fn ($q) => $q->where('performed_by', (int) $request->performed_by))
-            ->when($request->module ?? null, fn ($q) => $q->where('module', $request->module))
-            ->when($request->date_from ?? null, fn ($q) => $q->where(
-                'created_at',
-                '>=',
-                \Carbon\Carbon::parse($request->date_from, 'Asia/Manila')->startOfDay()->utc()
-            ))
-            ->when($request->date_to ?? null, fn ($q) => $q->where(
-                'created_at',
-                '<=',
-                \Carbon\Carbon::parse($request->date_to, 'Asia/Manila')->endOfDay()->utc()
-            ))
-            ->when(
-                $request->search ?? null,
-                fn ($q) => $q->whereHasMorph(
-                    'subject',
-                    '*',
-                    fn ($sq, $type) => match (true) {
-                        str_ends_with($type, 'Employee') => $sq->where(
-                            fn ($s) => $s->where('first_name', 'like', "%{$request->search}%")
-                                ->orWhere('last_name', 'like', "%{$request->search}%")
-                        ),
-                        default => $sq->where('name', 'like', "%{$request->search}%"),
-                    }
-                )
-            )
-            ->latest()
-            ->paginate($request->per_page ?? 10)
-            ->withQueryString();
+        return $this->activityLogs->paginateForShop(
+            $shop->id,
+            [
+                'action' => $request->action ?? null,
+                'performed_by' => $request->performed_by ?? null,
+                'module' => $request->module ?? null,
+                'date_from' => $request->date_from ?? null,
+                'date_to' => $request->date_to ?? null,
+                'search' => $request->search ?? null,
+            ],
+            $performerIds,
+            (int) ($request->per_page ?? 10),
+            $sort,
+        );
     }
 
     /**

@@ -2,13 +2,18 @@
 
 namespace App\Repositories;
 
+use App\DTOs\TableSort;
 use App\Enums\AccountType;
+use App\Models\Shop;
 use App\Models\User;
+use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class UserRepository extends Repository
 {
+    use AppliesTableSort;
+
     public function __construct(User $user)
     {
         parent::__construct($user);
@@ -124,12 +129,29 @@ class UserRepository extends Repository
             ->delete();
     }
 
-    public function getArchivedPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    public function getArchivedPaginated(array $filters = [], int $perPage = 20, ?TableSort $sort = null): LengthAwarePaginator
     {
         $query = User::onlyTrashed()
             ->where('role', '!=', AccountType::SuperAdmin->value)
-            ->with('shop')
-            ->latest();
+            ->with('shop');
+
+        $sorted = $this->applyTableSort($query, $sort, [
+            'name' => 'name',
+            'email' => 'email',
+            'role' => 'role',
+            'created_at' => 'created_at',
+            'deleted_at' => 'deleted_at',
+            'shop' => fn ($q, $dir) => $q->orderBy(
+                Shop::select('shop_name')
+                    ->whereColumn('shops.owner_id', 'users.id')
+                    ->limit(1),
+                $dir,
+            ),
+        ]);
+
+        if (! $sorted) {
+            $query->latest();
+        }
 
         if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {

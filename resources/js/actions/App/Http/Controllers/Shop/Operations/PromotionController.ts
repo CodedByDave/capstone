@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/shop/operations/promos'
  */
 const index9c39362ed83aa81bc159439b65bbd8bf = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index9c39362ed83aa81bc159439b65bbd8bf.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/shop/operations/promos'
  */
 index9c39362ed83aa81bc159439b65bbd8bf.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index9c39362ed83aa81bc159439b65bbd8bf.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/shop/operations/promos'
  */
 index9c39362ed83aa81bc159439b65bbd8bf.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index9c39362ed83aa81bc159439b65bbd8bf.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/shop/operations/promos'
  */
 index9c39362ed83aa81bc159439b65bbd8bf.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index9c39362ed83aa81bc159439b65bbd8bf.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/shop/operations/promos'
  */
     const index9c39362ed83aa81bc159439b65bbd8bfForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index9c39362ed83aa81bc159439b65bbd8bf.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/shop/operations/promos'
  */
         index9c39362ed83aa81bc159439b65bbd8bfForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index9c39362ed83aa81bc159439b65bbd8bf.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/shop/operations/promos'
  */
         index9c39362ed83aa81bc159439b65bbd8bfForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index9c39362ed83aa81bc159439b65bbd8bf.head = (options?: RouteQueryOptions): Rout
     index9c39362ed83aa81bc159439b65bbd8bf.form = index9c39362ed83aa81bc159439b65bbd8bfForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/staff/operations/promos'
  */
 const index48f57d45c75e865737acacdda605d06d = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ index48f57d45c75e865737acacdda605d06d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/staff/operations/promos'
  */
 index48f57d45c75e865737acacdda605d06d.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ index48f57d45c75e865737acacdda605d06d.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/staff/operations/promos'
  */
 index48f57d45c75e865737acacdda605d06d.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ index48f57d45c75e865737acacdda605d06d.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/staff/operations/promos'
  */
 index48f57d45c75e865737acacdda605d06d.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ index48f57d45c75e865737acacdda605d06d.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/staff/operations/promos'
  */
     const index48f57d45c75e865737acacdda605d06dForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ index48f57d45c75e865737acacdda605d06d.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/staff/operations/promos'
  */
         index48f57d45c75e865737acacdda605d06dForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ index48f57d45c75e865737acacdda605d06d.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::index
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:37
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:38
  * @route '/staff/operations/promos'
  */
         index48f57d45c75e865737acacdda605d06dForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/shop/operations/promos/create'
  */
 const create16d5f4209b67b807b3b99dc8b019519b = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +178,7 @@ create16d5f4209b67b807b3b99dc8b019519b.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/shop/operations/promos/create'
  */
 create16d5f4209b67b807b3b99dc8b019519b.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ create16d5f4209b67b807b3b99dc8b019519b.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/shop/operations/promos/create'
  */
 create16d5f4209b67b807b3b99dc8b019519b.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ create16d5f4209b67b807b3b99dc8b019519b.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/shop/operations/promos/create'
  */
 create16d5f4209b67b807b3b99dc8b019519b.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ create16d5f4209b67b807b3b99dc8b019519b.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/shop/operations/promos/create'
  */
     const create16d5f4209b67b807b3b99dc8b019519bForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ create16d5f4209b67b807b3b99dc8b019519b.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/shop/operations/promos/create'
  */
         create16d5f4209b67b807b3b99dc8b019519bForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -225,7 +225,7 @@ create16d5f4209b67b807b3b99dc8b019519b.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/shop/operations/promos/create'
  */
         create16d5f4209b67b807b3b99dc8b019519bForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -241,7 +241,7 @@ create16d5f4209b67b807b3b99dc8b019519b.head = (options?: RouteQueryOptions): Rou
     create16d5f4209b67b807b3b99dc8b019519b.form = create16d5f4209b67b807b3b99dc8b019519bForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/staff/operations/promos/create'
  */
 const create0739cab17c98b53123eb94a0e5198536 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -256,7 +256,7 @@ create0739cab17c98b53123eb94a0e5198536.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/staff/operations/promos/create'
  */
 create0739cab17c98b53123eb94a0e5198536.url = (options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ create0739cab17c98b53123eb94a0e5198536.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/staff/operations/promos/create'
  */
 create0739cab17c98b53123eb94a0e5198536.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ create0739cab17c98b53123eb94a0e5198536.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/staff/operations/promos/create'
  */
 create0739cab17c98b53123eb94a0e5198536.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ create0739cab17c98b53123eb94a0e5198536.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/staff/operations/promos/create'
  */
     const create0739cab17c98b53123eb94a0e5198536Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ create0739cab17c98b53123eb94a0e5198536.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/staff/operations/promos/create'
  */
         create0739cab17c98b53123eb94a0e5198536Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ create0739cab17c98b53123eb94a0e5198536.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::create
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:51
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:52
  * @route '/staff/operations/promos/create'
  */
         create0739cab17c98b53123eb94a0e5198536Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -325,7 +325,7 @@ export const create = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/shop/operations/promos'
  */
 const store9c39362ed83aa81bc159439b65bbd8bf = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +340,7 @@ store9c39362ed83aa81bc159439b65bbd8bf.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/shop/operations/promos'
  */
 store9c39362ed83aa81bc159439b65bbd8bf.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ store9c39362ed83aa81bc159439b65bbd8bf.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/shop/operations/promos'
  */
 store9c39362ed83aa81bc159439b65bbd8bf.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +359,7 @@ store9c39362ed83aa81bc159439b65bbd8bf.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/shop/operations/promos'
  */
     const store9c39362ed83aa81bc159439b65bbd8bfForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ store9c39362ed83aa81bc159439b65bbd8bf.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/shop/operations/promos'
  */
         store9c39362ed83aa81bc159439b65bbd8bfForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +380,7 @@ store9c39362ed83aa81bc159439b65bbd8bf.post = (options?: RouteQueryOptions): Rout
     store9c39362ed83aa81bc159439b65bbd8bf.form = store9c39362ed83aa81bc159439b65bbd8bfForm
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/staff/operations/promos'
  */
 const store48f57d45c75e865737acacdda605d06d = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +395,7 @@ store48f57d45c75e865737acacdda605d06d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/staff/operations/promos'
  */
 store48f57d45c75e865737acacdda605d06d.url = (options?: RouteQueryOptions) => {
@@ -404,7 +404,7 @@ store48f57d45c75e865737acacdda605d06d.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/staff/operations/promos'
  */
 store48f57d45c75e865737acacdda605d06d.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +414,7 @@ store48f57d45c75e865737acacdda605d06d.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/staff/operations/promos'
  */
     const store48f57d45c75e865737acacdda605d06dForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +424,7 @@ store48f57d45c75e865737acacdda605d06d.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::store
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:56
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:57
  * @route '/staff/operations/promos'
  */
         store48f57d45c75e865737acacdda605d06dForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -441,7 +441,7 @@ export const store = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/shop/operations/promos/{promotion}/edit'
  */
 const edit95f895296bb40647272d019b543a0368 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -456,7 +456,7 @@ edit95f895296bb40647272d019b543a0368.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/shop/operations/promos/{promotion}/edit'
  */
 edit95f895296bb40647272d019b543a0368.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -489,7 +489,7 @@ edit95f895296bb40647272d019b543a0368.url = (args: { promotion: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/shop/operations/promos/{promotion}/edit'
  */
 edit95f895296bb40647272d019b543a0368.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -498,7 +498,7 @@ edit95f895296bb40647272d019b543a0368.get = (args: { promotion: number | { id: nu
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/shop/operations/promos/{promotion}/edit'
  */
 edit95f895296bb40647272d019b543a0368.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -508,7 +508,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: number | { id: n
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/shop/operations/promos/{promotion}/edit'
  */
     const edit95f895296bb40647272d019b543a0368Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -518,7 +518,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: number | { id: n
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/shop/operations/promos/{promotion}/edit'
  */
         edit95f895296bb40647272d019b543a0368Form.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -527,7 +527,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: number | { id: n
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/shop/operations/promos/{promotion}/edit'
  */
         edit95f895296bb40647272d019b543a0368Form.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -543,7 +543,7 @@ edit95f895296bb40647272d019b543a0368.head = (args: { promotion: number | { id: n
     edit95f895296bb40647272d019b543a0368.form = edit95f895296bb40647272d019b543a0368Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/staff/operations/promos/{promotion}/edit'
  */
 const edit13aa6292ef14e6d94015ee222b5b9671 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -558,7 +558,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/staff/operations/promos/{promotion}/edit'
  */
 edit13aa6292ef14e6d94015ee222b5b9671.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -591,7 +591,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.url = (args: { promotion: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/staff/operations/promos/{promotion}/edit'
  */
 edit13aa6292ef14e6d94015ee222b5b9671.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -600,7 +600,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.get = (args: { promotion: number | { id: nu
 })
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/staff/operations/promos/{promotion}/edit'
  */
 edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -610,7 +610,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: number | { id: n
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/staff/operations/promos/{promotion}/edit'
  */
     const edit13aa6292ef14e6d94015ee222b5b9671Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -620,7 +620,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: number | { id: n
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/staff/operations/promos/{promotion}/edit'
  */
         edit13aa6292ef14e6d94015ee222b5b9671Form.get = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -629,7 +629,7 @@ edit13aa6292ef14e6d94015ee222b5b9671.head = (args: { promotion: number | { id: n
         })
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::edit
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:77
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:78
  * @route '/staff/operations/promos/{promotion}/edit'
  */
         edit13aa6292ef14e6d94015ee222b5b9671Form.head = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -651,7 +651,7 @@ export const edit = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/shop/operations/promos/{promotion}'
  */
 const update24cb406459369ee1dbf9e397062e5e73 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -666,7 +666,7 @@ update24cb406459369ee1dbf9e397062e5e73.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/shop/operations/promos/{promotion}'
  */
 update24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -699,7 +699,7 @@ update24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/shop/operations/promos/{promotion}'
  */
 update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -709,7 +709,7 @@ update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: number | { id: 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/shop/operations/promos/{promotion}'
  */
     const update24cb406459369ee1dbf9e397062e5e73Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -724,7 +724,7 @@ update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: number | { id: 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/shop/operations/promos/{promotion}'
  */
         update24cb406459369ee1dbf9e397062e5e73Form.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -740,7 +740,7 @@ update24cb406459369ee1dbf9e397062e5e73.put = (args: { promotion: number | { id: 
     update24cb406459369ee1dbf9e397062e5e73.form = update24cb406459369ee1dbf9e397062e5e73Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/staff/operations/promos/{promotion}'
  */
 const update0fb4570b2c298095301e289765df7319 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -755,7 +755,7 @@ update0fb4570b2c298095301e289765df7319.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/staff/operations/promos/{promotion}'
  */
 update0fb4570b2c298095301e289765df7319.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -788,7 +788,7 @@ update0fb4570b2c298095301e289765df7319.url = (args: { promotion: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/staff/operations/promos/{promotion}'
  */
 update0fb4570b2c298095301e289765df7319.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -798,7 +798,7 @@ update0fb4570b2c298095301e289765df7319.put = (args: { promotion: number | { id: 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/staff/operations/promos/{promotion}'
  */
     const update0fb4570b2c298095301e289765df7319Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -813,7 +813,7 @@ update0fb4570b2c298095301e289765df7319.put = (args: { promotion: number | { id: 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::update
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:87
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:88
  * @route '/staff/operations/promos/{promotion}'
  */
         update0fb4570b2c298095301e289765df7319Form.put = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -835,7 +835,7 @@ export const update = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
 const toggleActive5730ad0ee9897bc69e40d4361ed01bc9 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -850,7 +850,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
 toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -883,7 +883,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.url = (args: { promotion: number | 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
 toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -893,7 +893,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: number 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
     const toggleActive5730ad0ee9897bc69e40d4361ed01bc9Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -908,7 +908,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: number 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/shop/operations/promos/{promotion}/toggle'
  */
         toggleActive5730ad0ee9897bc69e40d4361ed01bc9Form.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -924,7 +924,7 @@ toggleActive5730ad0ee9897bc69e40d4361ed01bc9.patch = (args: { promotion: number 
     toggleActive5730ad0ee9897bc69e40d4361ed01bc9.form = toggleActive5730ad0ee9897bc69e40d4361ed01bc9Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
 const toggleActive8ed1eac8b7193796f68ee24a241e76e0 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -939,7 +939,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
 toggleActive8ed1eac8b7193796f68ee24a241e76e0.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -972,7 +972,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.url = (args: { promotion: number | 
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
 toggleActive8ed1eac8b7193796f68ee24a241e76e0.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -982,7 +982,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.patch = (args: { promotion: number 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
     const toggleActive8ed1eac8b7193796f68ee24a241e76e0Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -997,7 +997,7 @@ toggleActive8ed1eac8b7193796f68ee24a241e76e0.patch = (args: { promotion: number 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::toggleActive
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:109
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:110
  * @route '/staff/operations/promos/{promotion}/toggle'
  */
         toggleActive8ed1eac8b7193796f68ee24a241e76e0Form.patch = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1019,7 +1019,7 @@ export const toggleActive = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/shop/operations/promos/{promotion}'
  */
 const destroy24cb406459369ee1dbf9e397062e5e73 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1034,7 +1034,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/shop/operations/promos/{promotion}'
  */
 destroy24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1067,7 +1067,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.url = (args: { promotion: number | { id:
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/shop/operations/promos/{promotion}'
  */
 destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1077,7 +1077,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: number | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/shop/operations/promos/{promotion}'
  */
     const destroy24cb406459369ee1dbf9e397062e5e73Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1092,7 +1092,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: number | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/shop/operations/promos/{promotion}'
  */
         destroy24cb406459369ee1dbf9e397062e5e73Form.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1108,7 +1108,7 @@ destroy24cb406459369ee1dbf9e397062e5e73.delete = (args: { promotion: number | { 
     destroy24cb406459369ee1dbf9e397062e5e73.form = destroy24cb406459369ee1dbf9e397062e5e73Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/staff/operations/promos/{promotion}'
  */
 const destroy0fb4570b2c298095301e289765df7319 = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1123,7 +1123,7 @@ destroy0fb4570b2c298095301e289765df7319.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/staff/operations/promos/{promotion}'
  */
 destroy0fb4570b2c298095301e289765df7319.url = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -1156,7 +1156,7 @@ destroy0fb4570b2c298095301e289765df7319.url = (args: { promotion: number | { id:
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/staff/operations/promos/{promotion}'
  */
 destroy0fb4570b2c298095301e289765df7319.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1166,7 +1166,7 @@ destroy0fb4570b2c298095301e289765df7319.delete = (args: { promotion: number | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/staff/operations/promos/{promotion}'
  */
     const destroy0fb4570b2c298095301e289765df7319Form = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1181,7 +1181,7 @@ destroy0fb4570b2c298095301e289765df7319.delete = (args: { promotion: number | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::destroy
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:120
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:121
  * @route '/staff/operations/promos/{promotion}'
  */
         destroy0fb4570b2c298095301e289765df7319Form.delete = (args: { promotion: number | { id: number } } | [promotion: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1203,7 +1203,7 @@ export const destroy = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/shop/operations/promos/{promotion}/restore'
  */
 const restorec75498aaf04384600601c35a2956d101 = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1218,7 +1218,7 @@ restorec75498aaf04384600601c35a2956d101.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/shop/operations/promos/{promotion}/restore'
  */
 restorec75498aaf04384600601c35a2956d101.url = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1246,7 +1246,7 @@ restorec75498aaf04384600601c35a2956d101.url = (args: { promotion: string | numbe
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/shop/operations/promos/{promotion}/restore'
  */
 restorec75498aaf04384600601c35a2956d101.patch = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1256,7 +1256,7 @@ restorec75498aaf04384600601c35a2956d101.patch = (args: { promotion: string | num
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/shop/operations/promos/{promotion}/restore'
  */
     const restorec75498aaf04384600601c35a2956d101Form = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1271,7 +1271,7 @@ restorec75498aaf04384600601c35a2956d101.patch = (args: { promotion: string | num
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/shop/operations/promos/{promotion}/restore'
  */
         restorec75498aaf04384600601c35a2956d101Form.patch = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1287,7 +1287,7 @@ restorec75498aaf04384600601c35a2956d101.patch = (args: { promotion: string | num
     restorec75498aaf04384600601c35a2956d101.form = restorec75498aaf04384600601c35a2956d101Form
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/staff/operations/promos/{promotion}/restore'
  */
 const restore902d6a8afacdfc605dee41d55dca0cd8 = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1302,7 +1302,7 @@ restore902d6a8afacdfc605dee41d55dca0cd8.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/staff/operations/promos/{promotion}/restore'
  */
 restore902d6a8afacdfc605dee41d55dca0cd8.url = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1330,7 +1330,7 @@ restore902d6a8afacdfc605dee41d55dca0cd8.url = (args: { promotion: string | numbe
 
 /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/staff/operations/promos/{promotion}/restore'
  */
 restore902d6a8afacdfc605dee41d55dca0cd8.patch = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -1340,7 +1340,7 @@ restore902d6a8afacdfc605dee41d55dca0cd8.patch = (args: { promotion: string | num
 
     /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/staff/operations/promos/{promotion}/restore'
  */
     const restore902d6a8afacdfc605dee41d55dca0cd8Form = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1355,7 +1355,7 @@ restore902d6a8afacdfc605dee41d55dca0cd8.patch = (args: { promotion: string | num
 
             /**
 * @see \App\Http\Controllers\Shop\Operations\PromotionController::restore
- * @see app/Http/Controllers/Shop/Operations/PromotionController.php:130
+ * @see app/Http/Controllers/Shop/Operations/PromotionController.php:131
  * @route '/staff/operations/promos/{promotion}/restore'
  */
         restore902d6a8afacdfc605dee41d55dca0cd8Form.patch = (args: { promotion: string | number } | [promotion: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

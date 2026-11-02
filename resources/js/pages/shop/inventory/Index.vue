@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -20,6 +19,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -29,17 +34,20 @@ import {
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { formatQuantity, packageStock } from '@/lib/inventoryStock';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     AlertTriangle,
+    Archive,
+    ChevronDown,
+    Download,
     Eye,
     Layers,
     Package,
     Pencil,
     Plus,
     RefreshCcw,
-    Trash2,
     Truck,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -61,6 +69,9 @@ interface InventoryItem {
     id: number;
     name: string;
     unit: string;
+    /** How the item is bought (e.g. "bottle") and how much of `unit` one holds (e.g. 5000). */
+    package_unit?: string | null;
+    package_size?: number | null;
     quantity: number;
     min_stock: number;
     max_stock: number | null;
@@ -110,6 +121,9 @@ const supplierBase = computed(() =>
 const categoryBase = computed(() =>
     isOwner.value ? '/shop/inventory/category' : '/staff/inventory/category',
 );
+const exportBase = computed(() =>
+    isOwner.value ? '/shop/export' : '/staff/export',
+);
 const alertsBase = computed(() =>
     isOwner.value ? '/shop/inventory/alerts' : '/staff/inventory/alerts',
 );
@@ -152,11 +166,21 @@ const supplierId = ref(props.filters.supplier_id ?? 'all');
 const status = ref(props.filters.status ?? 'all');
 const stock = ref(props.filters.stock ?? 'all');
 
+const DEFAULT_SORT = { sortBy: 'name', sortType: 'asc' } as const;
+
 const tableLoading = ref(false);
 const options = ref<DataTableOptions>({
     page: props.inventory.current_page,
     rowsPerPage: props.inventory.per_page,
+    sortBy: props.filters.sort_by ?? DEFAULT_SORT.sortBy,
+    sortType: props.filters.sort_direction === 'desc' ? 'desc' : 'asc',
 });
+
+const isSorted = computed(
+    () =>
+        options.value.sortBy !== DEFAULT_SORT.sortBy ||
+        options.value.sortType !== DEFAULT_SORT.sortType,
+);
 
 const statusOptions = [
     { value: 'all', label: 'All' },
@@ -170,17 +194,18 @@ const hasFilters = computed(
         categoryId.value !== 'all' ||
         supplierId.value !== 'all' ||
         status.value !== 'all' ||
-        stock.value !== 'all',
+        stock.value !== 'all' ||
+        isSorted.value,
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Item', value: 'name' },
-    { text: 'Category', value: 'category' },
-    { text: 'Supplier', value: 'supplier' },
-    { text: 'Stock', value: 'quantity' },
-    { text: 'Unit price', value: 'unit_price' },
-    { text: 'Status', value: 'status' },
-    { text: 'Actions', value: 'actions', align: 'center', width: 150 },
+    { text: 'Item', value: 'name', sortable: true },
+    { text: 'Category', value: 'category', sortable: true },
+    { text: 'Supplier', value: 'supplier', sortable: true },
+    { text: 'On hand', value: 'quantity', sortable: true },
+    { text: 'Unit price', value: 'unit_price', sortable: true, align: 'right' },
+    { text: 'Status', value: 'status', sortable: true },
+    { text: 'Actions', value: 'actions', align: 'center', width: 96 },
 ];
 
 watch(
@@ -203,6 +228,13 @@ watch(
 
 watch(status, () => applyFilters());
 
+// Sorting runs on the server so it covers every page, not just the one on screen. The sources
+// are separate getters: one getter returning a fresh array would count as changed on every
+// reload (the page replaces `options`), and each reload would trigger another.
+watch([() => options.value.sortBy, () => options.value.sortType], () =>
+    applyFilters(),
+);
+
 function applyFilters(page = 1) {
     router.get(
         base.value,
@@ -214,6 +246,8 @@ function applyFilters(page = 1) {
                 supplierId.value !== 'all' ? supplierId.value : undefined,
             status: status.value !== 'all' ? status.value : undefined,
             stock: stock.value !== 'all' ? stock.value : undefined,
+            sort_by: isSorted.value ? options.value.sortBy : undefined,
+            sort_direction: isSorted.value ? options.value.sortType : undefined,
             page: page > 1 ? page : undefined,
         },
         {
@@ -231,17 +265,18 @@ function applyFilters(page = 1) {
 }
 
 function resetFilters() {
-    const statusChanged = status.value !== 'all';
+    // A status or sort change already reloads through its own watcher.
+    const reloadsItself = status.value !== 'all' || isSorted.value;
     search.value = '';
     categoryId.value = 'all';
     supplierId.value = 'all';
     status.value = 'all';
     stock.value = 'all';
-    // A status change already reloads through the status watcher.
-    if (!statusChanged) applyFilters();
+    options.value = { ...options.value, ...DEFAULT_SORT, page: 1 };
+    if (!reloadsItself) applyFilters();
 }
 
-// ─── Delete ───────────────────────────────────────────────────────────────────
+// ─── Archive ───────────────────────────────────────────────────────────────────
 
 const itemToDelete = ref<InventoryItem | null>(null);
 const isDeleteOpen = ref(false);
@@ -264,9 +299,9 @@ function confirmDelete() {
         preserveScroll: true,
         onSuccess: () => {
             itemToDelete.value = null;
-            toast.success('Item deleted successfully.');
+            toast.success('Product archived successfully.');
         },
-        onError: () => toast.error('Failed to delete item.'),
+        onError: () => toast.error('Failed to archive product.'),
     });
     isDeleteOpen.value = false;
 }
@@ -286,6 +321,54 @@ function stockBadge(item: InventoryItem): { label: string; tone: StatusTone } {
     return { label: 'In stock', tone: 'success' };
 }
 
+/**
+ * How full the stock is, for the bar under the quantity. The target is the item's max stock, or
+ * four times its reorder point when no max is set; an item with neither shows a full bar.
+ */
+function stockPercent(item: InventoryItem): number {
+    const quantity = Number(item.quantity) || 0;
+    if (quantity <= 0) return 0;
+
+    const max = Number(item.max_stock) || 0;
+    const reorder = Number(item.min_stock) || 0;
+    const target = max > 0 ? max : reorder > 0 ? reorder * 4 : quantity;
+
+    // A sliver stays visible so a nearly empty item is not mistaken for an empty one.
+    return Math.min(100, Math.max(4, Math.round((quantity / target) * 100)));
+}
+
+function stockBarClass(item: InventoryItem): string {
+    if (isOutOfStock(item)) return 'bg-red-500';
+    if (isLowStock(item)) return 'bg-amber-500';
+    return 'bg-blue-600';
+}
+
+const statCards = computed(() => [
+    {
+        label: 'Total items',
+        value: props.inventory.total,
+        icon: Package,
+    },
+    {
+        label: 'Low stock',
+        value: props.lowStock.length,
+        icon: AlertTriangle,
+        // Green while nothing needs reordering, amber when something does.
+        dot: props.lowStock.length > 0 ? 'bg-amber-500' : 'bg-emerald-500',
+        valueClass: props.lowStock.length > 0 ? 'text-amber-600' : '',
+    },
+    {
+        label: 'Categories',
+        value: props.categories.length,
+        icon: Layers,
+    },
+    {
+        label: 'Suppliers',
+        value: props.suppliers.length,
+        icon: Truck,
+    },
+]);
+
 function formatPrice(price: string | null) {
     if (!price) return '—';
     return `₱${Number(price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
@@ -296,78 +379,135 @@ function formatPrice(price: string | null) {
     <Head title="Inventory" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Inventory Management">
         <div class="space-y-6 px-6">
-            <!-- Stats row -->
-            <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
+            <!-- Page header -->
+            <div
+                class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3"
+            >
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Inventory</h2>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Track supplies, stock levels and reorder points.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" class="h-10 gap-2">
+                                <Download class="h-4 w-4" aria-hidden="true" />
+                                Export
+                                <ChevronDown
+                                    class="h-4 w-4 text-muted-foreground"
+                                    aria-hidden="true"
+                                />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" class="min-w-52">
+                            <DropdownMenuItem as-child class="min-h-9">
+                                <a :href="`${exportBase}/inventory`" download>
+                                    <Download
+                                        class="h-4 w-4"
+                                        aria-hidden="true"
+                                    />
+                                    Inventory (CSV)
+                                </a>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem as-child class="min-h-9">
+                                <a
+                                    :href="`${exportBase}/stock-movements`"
+                                    download
+                                >
+                                    <Download
+                                        class="h-4 w-4"
+                                        aria-hidden="true"
+                                    />
+                                    Stock movements (CSV)
+                                </a>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" class="h-10 gap-2">
+                                Manage
+                                <ChevronDown
+                                    class="h-4 w-4 text-muted-foreground"
+                                    aria-hidden="true"
+                                />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" class="min-w-44">
+                            <DropdownMenuItem
+                                class="min-h-9 cursor-pointer"
+                                @select="router.visit(categoryBase)"
                             >
-                                Total Items
-                            </p>
-                            <div
-                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100"
-                            >
-                                <Package class="h-4 w-4 text-blue-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold">{{ inventory.total }}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Low Stock
-                            </p>
-                            <div
-                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100"
-                            >
-                                <AlertTriangle class="h-4 w-4 text-amber-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-amber-600">
-                            {{ lowStock.length }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
+                                <Layers class="h-4 w-4" aria-hidden="true" />
                                 Categories
-                            </p>
-                            <div
-                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100"
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                class="min-h-9 cursor-pointer"
+                                @select="router.visit(supplierBase)"
                             >
-                                <Layers class="h-4 w-4 text-purple-600" />
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold">
-                            {{ categories.length }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
+                                <Truck class="h-4 w-4" aria-hidden="true" />
                                 Suppliers
-                            </p>
-                            <div
-                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100"
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                v-if="
+                                    isOwner ||
+                                    can('Inventory Management', 'view')
+                                "
+                                class="min-h-9 cursor-pointer"
+                                @select="router.visit(`${base}/archive`)"
                             >
-                                <Truck class="h-4 w-4 text-green-600" />
-                            </div>
+                                <Archive class="h-4 w-4" aria-hidden="true" />
+                                Archive
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Button
+                        v-if="isOwner || can('Inventory Management', 'create')"
+                        class="h-10 bg-blue-600 text-white hover:bg-blue-700"
+                        @click="router.visit(`${base}/create`)"
+                    >
+                        <Plus class="mr-1.5 h-4 w-4" aria-hidden="true" />
+                        Add item
+                    </Button>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <Card
+                    v-for="card in statCards"
+                    :key="card.label"
+                    class="gap-0 py-0"
+                >
+                    <CardContent class="p-5">
+                        <div class="flex items-center justify-between gap-2">
+                            <p
+                                class="flex items-center gap-2 text-[11px] font-medium tracking-widest text-muted-foreground uppercase"
+                            >
+                                {{ card.label }}
+                                <span
+                                    v-if="card.dot"
+                                    class="h-1.5 w-1.5 rounded-full"
+                                    :class="card.dot"
+                                    aria-hidden="true"
+                                />
+                            </p>
+                            <component
+                                :is="card.icon"
+                                class="h-4 w-4 shrink-0 text-muted-foreground"
+                                aria-hidden="true"
+                            />
                         </div>
-                        <p class="text-3xl font-bold">{{ suppliers.length }}</p>
+                        <p
+                            class="mt-3 text-3xl font-bold tabular-nums"
+                            :class="card.valueClass"
+                        >
+                            {{ card.value }}
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -391,7 +531,7 @@ function formatPrice(price: string | null) {
                             :key="item.id"
                             class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700"
                         >
-                            {{ item.name }} ({{ item.quantity }}
+                            {{ item.name }} ({{ formatQuantity(item.quantity) }}
                             {{ item.unit }})
                         </span>
                         <span
@@ -412,6 +552,79 @@ function formatPrice(price: string | null) {
                 </Button>
             </div>
 
+            <!-- Filters -->
+            <DataTableToolbar
+                v-model:search="search"
+                v-model:status="status"
+                :statuses="statusOptions"
+                search-placeholder="Search by name"
+                search-label="Search inventory"
+                status-label="Filter by item status"
+                @submit="applyFilters()"
+            >
+                <Select
+                    v-model="categoryId"
+                    @update:model-value="() => applyFilters()"
+                >
+                    <SelectTrigger
+                        class="w-44 data-[size=default]:h-11"
+                        aria-label="Filter by category"
+                        ><SelectValue placeholder="All categories"
+                    /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All categories</SelectItem>
+                        <SelectItem
+                            v-for="c in categories"
+                            :key="c.id"
+                            :value="String(c.id)"
+                            >{{ c.name }}</SelectItem
+                        >
+                    </SelectContent>
+                </Select>
+                <Select
+                    v-model="supplierId"
+                    @update:model-value="() => applyFilters()"
+                >
+                    <SelectTrigger
+                        class="w-44 data-[size=default]:h-11"
+                        aria-label="Filter by supplier"
+                        ><SelectValue placeholder="All suppliers"
+                    /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All suppliers</SelectItem>
+                        <SelectItem
+                            v-for="s in suppliers"
+                            :key="s.id"
+                            :value="String(s.id)"
+                            >{{ s.name }}</SelectItem
+                        >
+                    </SelectContent>
+                </Select>
+                <Select
+                    v-model="stock"
+                    @update:model-value="() => applyFilters()"
+                >
+                    <SelectTrigger
+                        class="w-36 data-[size=default]:h-11"
+                        aria-label="Filter by stock level"
+                        ><SelectValue placeholder="All stock"
+                    /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All stock</SelectItem>
+                        <SelectItem value="low">Low stock</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Button
+                    v-if="hasFilters"
+                    variant="ghost"
+                    class="h-11"
+                    @click="resetFilters"
+                >
+                    <RefreshCcw class="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Reset
+                </Button>
+            </DataTableToolbar>
+
             <!-- Table card -->
             <DataTable
                 v-model:options="options"
@@ -420,6 +633,7 @@ function formatPrice(price: string | null) {
                 :total="inventory.total"
                 :loading="tableLoading"
                 noun="inventory items"
+                :row-label="(item) => item.name"
                 :empty-icon="Package"
                 :empty-message="
                     hasFilters
@@ -431,184 +645,112 @@ function formatPrice(price: string | null) {
                 hide-rows-per-page
                 @reset="resetFilters"
             >
-                <template #toolbar>
-                    <div class="space-y-3">
-                        <div
-                            class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
-                        >
-                            <h2 class="flex items-center gap-2 font-semibold">
-                                <Package
-                                    class="h-4 w-4 text-muted-foreground"
-                                />
-                                Inventory List
-                            </h2>
-                            <div class="flex flex-wrap gap-2">
-                                <ExportCsvButton dataset="inventory" />
-                                <ExportCsvButton
-                                    dataset="stock-movements"
-                                    label="Export stock movements"
-                                />
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    @click="router.visit(categoryBase)"
-                                >
-                                    <Layers class="mr-1.5 h-4 w-4" /> Categories
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    class="bg-yellow-500 text-white hover:bg-yellow-600 hover:text-white"
-                                    @click="router.visit(supplierBase)"
-                                >
-                                    <Truck class="mr-1.5 h-4 w-4" /> Suppliers
-                                </Button>
-                                <Button
-                                    v-if="
-                                        isOwner ||
-                                        can('Inventory Management', 'create')
-                                    "
-                                    size="sm"
-                                    @click="router.visit(`${base}/create`)"
-                                >
-                                    <Plus class="mr-1.5 h-4 w-4" /> Add Item
-                                </Button>
-                            </div>
-                        </div>
-
-                        <DataTableToolbar
-                            v-model:search="search"
-                            v-model:status="status"
-                            :statuses="statusOptions"
-                            search-placeholder="Search name..."
-                            search-label="Search inventory"
-                            status-label="Filter by item status"
-                            @submit="applyFilters()"
-                        >
-                            <Select
-                                v-model="categoryId"
-                                @update:model-value="() => applyFilters()"
-                            >
-                                <SelectTrigger
-                                    class="w-40"
-                                    aria-label="Filter by category"
-                                    ><SelectValue placeholder="Category"
-                                /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all"
-                                        >All Categories</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="c in categories"
-                                        :key="c.id"
-                                        :value="String(c.id)"
-                                        >{{ c.name }}</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                            <Select
-                                v-model="supplierId"
-                                @update:model-value="() => applyFilters()"
-                            >
-                                <SelectTrigger
-                                    class="w-40"
-                                    aria-label="Filter by supplier"
-                                    ><SelectValue placeholder="Supplier"
-                                /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all"
-                                        >All Suppliers</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="s in suppliers"
-                                        :key="s.id"
-                                        :value="String(s.id)"
-                                        >{{ s.name }}</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                            <Select
-                                v-model="stock"
-                                @update:model-value="() => applyFilters()"
-                            >
-                                <SelectTrigger
-                                    class="w-32"
-                                    aria-label="Filter by stock level"
-                                    ><SelectValue placeholder="Stock"
-                                /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all"
-                                        >All Stock</SelectItem
-                                    >
-                                    <SelectItem value="low"
-                                        >Low Stock</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                @click="resetFilters"
-                            >
-                                <RefreshCcw class="mr-1.5 h-4 w-4" />
-                                Reset
-                            </Button>
-                        </DataTableToolbar>
-                    </div>
-                </template>
-
                 <template #item-name="item">
-                    <p class="font-medium">{{ item.name }}</p>
-                    <p class="text-xs text-muted-foreground">{{ item.unit }}</p>
+                    <p class="font-semibold">{{ item.name }}</p>
+                    <p class="text-xs text-muted-foreground">
+                        Unit: {{ item.unit }}
+                    </p>
                 </template>
 
                 <template #item-category="item">
-                    <span class="text-xs text-muted-foreground">
+                    <span :class="item.category ? '' : 'text-muted-foreground'">
                         {{ item.category?.name ?? '—' }}
                     </span>
                 </template>
 
                 <template #item-supplier="item">
-                    <span class="text-xs text-muted-foreground">
+                    <span :class="item.supplier ? '' : 'text-muted-foreground'">
                         {{ item.supplier?.name ?? '—' }}
                     </span>
                 </template>
 
                 <template #item-quantity="item">
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium">{{ item.quantity }}</span>
-                        <StatusPill :tone="stockBadge(item).tone">
-                            {{ stockBadge(item).label }}
-                        </StatusPill>
+                    <div class="min-w-56 py-1">
+                        <div
+                            class="flex flex-wrap items-center gap-x-2 gap-y-1"
+                        >
+                            <span
+                                class="text-[15px] font-semibold whitespace-nowrap tabular-nums"
+                            >
+                                <template v-if="packageStock(item)">
+                                    {{ packageStock(item)!.full }}
+                                    <span
+                                        v-if="packageStock(item)!.remainder"
+                                        class="font-normal text-muted-foreground"
+                                        >+
+                                        {{
+                                            packageStock(item)!.remainder
+                                        }}</span
+                                    >
+                                </template>
+                                <template v-else>
+                                    {{ formatQuantity(item.quantity) }}
+                                    {{ item.unit }}
+                                </template>
+                            </span>
+                            <StatusPill :tone="stockBadge(item).tone">
+                                {{ stockBadge(item).label }}
+                            </StatusPill>
+                        </div>
+                        <div
+                            class="mt-1.5 h-1 w-40 overflow-hidden rounded-full bg-muted"
+                            role="progressbar"
+                            aria-label="Stock level compared with the reorder point"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            :aria-valuenow="stockPercent(item)"
+                        >
+                            <div
+                                class="h-full rounded-full"
+                                :class="stockBarClass(item)"
+                                :style="{ width: `${stockPercent(item)}%` }"
+                            />
+                        </div>
+                        <p
+                            v-if="packageStock(item)"
+                            class="mt-1.5 text-xs whitespace-nowrap text-muted-foreground"
+                        >
+                            {{ formatQuantity(item.quantity) }}
+                            {{ item.unit }} total ·
+                            {{ packageStock(item)!.perPackage }}
+                        </p>
+                        <p
+                            class="text-xs whitespace-nowrap text-muted-foreground"
+                            :class="packageStock(item) ? '' : 'mt-1.5'"
+                        >
+                            Reorder at {{ formatQuantity(item.min_stock) }}
+                            {{ item.unit }}
+                        </p>
+                        <p
+                            v-if="reorderSuggestions[item.id]"
+                            class="mt-0.5 text-xs font-medium text-amber-700"
+                        >
+                            {{
+                                reorderSuggestions[item.id].suggested_quantity >
+                                0
+                                    ? `Order ~${reorderSuggestions[item.id].suggested_quantity} ${item.unit}`
+                                    : 'Reorder soon'
+                            }}
+                            · ~{{
+                                Math.ceil(
+                                    reorderSuggestions[item.id].days_left,
+                                )
+                            }}d left,
+                            {{ reorderSuggestions[item.id].lead_time_days }}d
+                            lead
+                        </p>
                     </div>
-                    <p class="mt-0.5 text-xs text-muted-foreground">
-                        Min: {{ item.min_stock }}
-                    </p>
-                    <p
-                        v-if="reorderSuggestions[item.id]"
-                        class="mt-0.5 text-xs font-medium text-amber-700"
-                    >
-                        {{
-                            reorderSuggestions[item.id].suggested_quantity > 0
-                                ? `Order ~${reorderSuggestions[item.id].suggested_quantity} ${item.unit}`
-                                : 'Reorder soon'
-                        }}
-                        · ~{{
-                            Math.ceil(reorderSuggestions[item.id].days_left)
-                        }}d left,
-                        {{ reorderSuggestions[item.id].lead_time_days }}d lead
-                    </p>
                 </template>
 
                 <template #item-unit_price="item">
-                    <span class="whitespace-nowrap text-muted-foreground">
+                    <span class="font-semibold whitespace-nowrap tabular-nums">
                         {{ formatPrice(item.unit_price) }}
                     </span>
                 </template>
 
                 <template #item-status="item">
                     <StatusPill
-                        :tone="item.status === 'active' ? 'success' : 'neutral'"
+                        :tone="item.status === 'active' ? 'info' : 'neutral'"
                     >
                         {{ statusLabel(item.status) }}
                     </StatusPill>
@@ -634,8 +776,8 @@ function formatPrice(price: string | null) {
                                     router.visit(`${base}/${item.id}/edit`),
                             },
                             {
-                                label: 'Delete',
-                                icon: Trash2,
+                                label: 'Archive',
+                                icon: Archive,
                                 destructive: true,
                                 show:
                                     isOwner ||
@@ -648,15 +790,16 @@ function formatPrice(price: string | null) {
             </DataTable>
         </div>
 
-        <!-- Delete Confirm Dialog -->
+        <!-- Archive Confirm Dialog -->
         <AlertDialog v-model:open="isDeleteOpen">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Item</AlertDialogTitle>
+                    <AlertDialogTitle>Archive Product</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to delete
-                        <strong>{{ itemToDelete?.name }}</strong
-                        >? This action cannot be undone.
+                        Are you sure you want to archive this product?
+                        <strong>{{ itemToDelete?.name }}</strong>
+                        will be hidden from the inventory list. You can restore
+                        it later from the Archive page.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -664,7 +807,7 @@ function formatPrice(price: string | null) {
                         >Cancel</Button
                     >
                     <Button variant="destructive" @click="confirmDelete"
-                        >Delete</Button
+                        >Archive</Button
                     >
                 </AlertDialogFooter>
             </AlertDialogContent>

@@ -164,6 +164,18 @@ const {
     total: clientTotal,
 } = useDataTable(() => (paginated.value ? [] : rows.value), {
     sortBy: 'name',
+    // Validity and status are shown from other fields, so sort by those.
+    sortValue: (promo, column) => {
+        const record = promo as unknown as Record<string, unknown>;
+
+        if (column === 'validity') return record.starts_at;
+        if (column === 'status') return record.is_active;
+        if (column === 'value' || column === 'min_order_amount') {
+            return Number(record[column]);
+        }
+
+        return record[column];
+    },
 });
 
 const tableOptions = computed(() =>
@@ -182,13 +194,18 @@ function setTableOptions(next: DataTableOptions) {
 }
 
 const headers: DataTableHeader[] = [
-    { text: 'Name', value: 'name' },
-    { text: 'Type', value: 'type' },
-    { text: 'Value', value: 'value' },
-    { text: 'Min. order', value: 'min_order_amount' },
-    { text: 'Validity', value: 'validity' },
-    { text: 'Orders used', value: 'orders_count', align: 'center' },
-    { text: 'Status', value: 'status' },
+    { text: 'Name', value: 'name', sortable: true },
+    { text: 'Type', value: 'type', sortable: true },
+    { text: 'Value', value: 'value', sortable: true },
+    { text: 'Min. order', value: 'min_order_amount', sortable: true },
+    { text: 'Validity', value: 'validity', sortable: true },
+    {
+        text: 'Orders used',
+        value: 'orders_count',
+        sortable: true,
+        align: 'center',
+    },
+    { text: 'Status', value: 'status', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 150 },
 ];
 

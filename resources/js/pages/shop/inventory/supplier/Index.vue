@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     DataTable,
     RowActions,
@@ -7,6 +6,7 @@ import {
     statusLabel,
     type DataTableHeader,
 } from '@/components/data-table';
+import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import { Button } from '@/components/ui/button';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
@@ -76,12 +76,12 @@ const total = computed(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Supplier', value: 'name' },
-    { text: 'Contact person', value: 'contact_person' },
-    { text: 'Phone', value: 'phone' },
-    { text: 'Email address', value: 'email' },
-    { text: 'Items', value: 'inventory_count' },
-    { text: 'Status', value: 'status' },
+    { text: 'Supplier', value: 'name', sortable: true },
+    { text: 'Contact person', value: 'contact_person', sortable: true },
+    { text: 'Phone', value: 'phone', sortable: true },
+    { text: 'Email address', value: 'email', sortable: true },
+    { text: 'Items', value: 'inventory_count', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 120 },
 ];
 

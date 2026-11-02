@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Enums\AccountType;
 use App\Models\User;
 use App\Repositories\UserRepository;
@@ -190,9 +191,9 @@ class UserManagementService
         $this->userRepository->bulkArchive($ids);
     }
 
-    public function getArchivedPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    public function getArchivedPaginated(array $filters = [], int $perPage = 20, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->userRepository->getArchivedPaginated($filters, $perPage);
+        return $this->userRepository->getArchivedPaginated($filters, $perPage, $sort);
     }
 
     public function getArchivedTotal(): int

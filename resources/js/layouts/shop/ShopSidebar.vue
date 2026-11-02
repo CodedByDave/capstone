@@ -76,8 +76,7 @@ const shopCapabilities = computed(
 );
 // Red-dot counts per sidebar item, e.g. orders placed today on "All Orders".
 const sidebarBadges = computed(
-    () =>
-        ((page.props as any).sidebarBadges ?? {}) as Record<string, number>,
+    () => ((page.props as any).sidebarBadges ?? {}) as Record<string, number>,
 );
 const subBadge = (title: string, moduleName: string): number =>
     moduleName === 'Operations' && title === 'All Orders'
@@ -593,17 +592,13 @@ const ownerHomeHref = computed(() =>
     ownerCan('shop.dashboard') ? '/shop/dashboard' : '/',
 );
 const showOwnerLogistics = computed(
-    () =>
-        ownerCan('shop.operations') && shopCapabilities.value.offers_delivery,
+    () => ownerCan('shop.operations') && shopCapabilities.value.offers_delivery,
 );
 const hasOwnerOperationalTools = computed(() => ownerCan('shop.settings'));
 const hasOwnerAdministration = computed(() =>
-    [
-        'shop.staff',
-        'shop.settings',
-        'shop.finance',
-        'payments.manage_own',
-    ].some(ownerCan),
+    ['shop.staff', 'shop.settings', 'shop.finance', 'payments.manage_own'].some(
+        ownerCan,
+    ),
 );
 </script>
 
@@ -640,17 +635,25 @@ const hasOwnerAdministration = computed(() =>
                                 "
                                 @click="toggleCollapsible(mod.moduleName)"
                             >
-                                <span class="flex items-center gap-2">
-                                    <component
-                                        :is="mod.icon"
-                                        class="h-4 w-4 shrink-0"
-                                    />
-                                    <span>{{ mod.title }}</span>
-                                    <span
-                                        v-if="moduleBadge(mod.moduleName) > 0"
-                                        class="h-2 w-2 rounded-full bg-red-500"
-                                        :aria-label="`${moduleBadge(mod.moduleName)} new`"
-                                    />
+                                <span class="flex min-w-0 items-center gap-2">
+                                    <!-- The new-orders dot sits on the icon so it never takes row width from the label. -->
+                                    <span class="relative shrink-0">
+                                        <component
+                                            :is="mod.icon"
+                                            class="h-4 w-4"
+                                        />
+                                        <span
+                                            v-if="
+                                                moduleBadge(mod.moduleName) > 0
+                                            "
+                                            class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-sidebar"
+                                            role="img"
+                                            :aria-label="`${moduleBadge(mod.moduleName)} new`"
+                                        />
+                                    </span>
+                                    <span class="whitespace-nowrap">{{
+                                        mod.title
+                                    }}</span>
                                 </span>
                                 <CollapsibleTrigger as-child>
                                     <span
@@ -760,7 +763,10 @@ const hasOwnerAdministration = computed(() =>
         </SidebarMenu>
 
         <!-- Owner day-to-day tools: operational, so kept out of Administration -->
-        <SidebarMenu v-if="isOwner && isApproved && hasOwnerOperationalTools" class="px-2">
+        <SidebarMenu
+            v-if="isOwner && isApproved && hasOwnerOperationalTools"
+            class="px-2"
+        >
             <SidebarMenuItem v-if="ownerCan('shop.settings')">
                 <SidebarMenuButton
                     as-child

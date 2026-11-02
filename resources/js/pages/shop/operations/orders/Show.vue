@@ -5,17 +5,19 @@ import {
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
+import CompleteOrderDialog from '@/components/shop/CompleteOrderDialog.vue';
 import { type OrderPayment } from '@/components/shop/OrderPaymentsCard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
 import { usePermissions } from '@/composables/usePermissions';
+import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Check,
+    CheckCheck,
     CheckCircle,
     Clock,
     CreditCard,
@@ -25,6 +27,7 @@ import {
     PackageCheck,
     Pencil,
     Truck,
+    Undo2,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -70,6 +73,15 @@ interface Order {
     completed_at: string | null;
     created_at: string;
     service?: { service_name: string };
+    service_lines?: {
+        id: number;
+        service_name: string;
+        pricing_model: 'per_kg' | 'per_bundle' | 'per_piece';
+        weight_kg: string | null;
+        bundle_quantity: number | null;
+        piece_count: number | null;
+        amount: string;
+    }[];
     supplies: Supply[];
 }
 
@@ -170,6 +182,52 @@ const statusSteps = [
     { value: 'in_progress', label: 'In progress' },
     { value: 'completed', label: 'Completed' },
 ];
+// Completing by hand: the order must be in progress, and its price final. An unweighed order is
+// sent to Edit to enter the actual weight first.
+const canComplete = computed(
+    () => canManage.value && props.shopOrder.status === 'in_progress',
+);
+const showCompleteDialog = ref(false);
+const completeDialogMode = ref<'complete' | 'revert'>('complete');
+
+// A completion made by mistake can be taken back until the order is picked up.
+const canRevert = computed(
+    () => canManage.value && props.shopOrder.status === 'completed',
+);
+const startRevert = () => {
+    completeDialogMode.value = 'revert';
+    showCompleteDialog.value = true;
+};
+
+const startComplete = () => {
+    if (isAwaitingWeight.value) {
+        toast.info('Enter the actual weight first, then complete the order.');
+        router.visit(`${base.value}/${props.shopOrder.payment_public_id}/edit`);
+        return;
+    }
+
+    completeDialogMode.value = 'complete';
+    showCompleteDialog.value = true;
+};
+
+const completeOrder = () =>
+    router.patch(
+        `${base.value}/${props.shopOrder.payment_public_id}/status`,
+        {
+            status:
+                completeDialogMode.value === 'complete'
+                    ? 'completed'
+                    : 'in_progress',
+        },
+        {
+            preserveScroll: true,
+            onError: (errors) =>
+                toast.error(
+                    errors.status ?? 'The order status could not be changed.',
+                ),
+        },
+    );
+
 const isCancelled = computed(() => props.shopOrder.status === 'cancelled');
 const currentStep = computed(() =>
     props.shopOrder.status === 'picked_up'
@@ -322,6 +380,16 @@ const statusIcon = (s: string) =>
                 <div class="flex shrink-0 flex-wrap justify-end gap-2">
                     <Button variant="outline" @click="router.visit(base)">
                         <ArrowLeft class="mr-2 h-4 w-4" /> Back to orders
+                    </Button>
+                    <Button
+                        v-if="canRevert"
+                        variant="outline"
+                        @click="startRevert"
+                    >
+                        <Undo2 class="mr-2 h-4 w-4" /> Revert to in progress
+                    </Button>
+                    <Button v-if="canComplete" @click="startComplete">
+                        <CheckCheck class="mr-2 h-4 w-4" /> Mark as completed
                     </Button>
                     <Button
                         v-if="canManage"
@@ -638,6 +706,41 @@ const statusIcon = (s: string) =>
                                     {{ shopOrder.service?.service_name ?? '—' }}
                                 </dd>
                             </div>
+                            <div
+                                v-if="shopOrder.service_lines?.length"
+                                class="sm:col-span-2"
+                            >
+                                <dt
+                                    class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                >
+                                    Additional services
+                                </dt>
+                                <dd class="mt-1 space-y-1 text-sm">
+                                    <div
+                                        v-for="line in shopOrder.service_lines"
+                                        :key="line.id"
+                                        class="flex justify-between gap-3"
+                                    >
+                                        <span>
+                                            {{ line.service_name }}
+                                            <span class="text-muted-foreground">
+                                                —
+                                                {{
+                                                    line.pricing_model ===
+                                                    'per_piece'
+                                                        ? `${line.piece_count} pc`
+                                                        : line.weight_kg
+                                                          ? `${line.weight_kg} kg`
+                                                          : 'awaiting weight'
+                                                }}
+                                            </span>
+                                        </span>
+                                        <span class="tabular-nums">{{
+                                            formatCurrency(line.amount)
+                                        }}</span>
+                                    </div>
+                                </dd>
+                            </div>
                             <div>
                                 <dt
                                     class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
@@ -705,9 +808,7 @@ const statusIcon = (s: string) =>
                                         Actual weight
                                     </dt>
                                     <dd class="mt-1 text-sm">
-                                        {{
-                                            shopOrder.actual_weight_kg ?? '—'
-                                        }}
+                                        {{ shopOrder.actual_weight_kg ?? '—' }}
                                         kg
                                     </dd>
                                 </div>
@@ -937,6 +1038,16 @@ const statusIcon = (s: string) =>
                         Pricing summary
                     </p>
                     <div class="mt-3 space-y-2 text-sm">
+                        <div
+                            v-for="line in shopOrder.service_lines ?? []"
+                            :key="`sum-${line.id}`"
+                            class="flex justify-between gap-3"
+                        >
+                            <span class="text-muted-foreground">{{
+                                line.service_name
+                            }}</span>
+                            <span>{{ formatCurrency(line.amount) }}</span>
+                        </div>
                         <div class="flex justify-between gap-3">
                             <span class="text-muted-foreground">Subtotal</span>
                             <span>
@@ -1067,5 +1178,12 @@ const statusIcon = (s: string) =>
                 </aside>
             </div>
         </div>
+        <CompleteOrderDialog
+            v-model:open="showCompleteDialog"
+            :mode="completeDialogMode"
+            :order-number="shopOrder.order_number"
+            :customer-name="shopOrder.customer_name"
+            @confirm="completeOrder"
+        />
     </ShopLayout>
 </template>

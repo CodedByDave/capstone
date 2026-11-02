@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import ServiceLinesEditor, {
+    type ServiceLineInput,
+} from '@/components/shop/ServiceLinesEditor.vue';
 import { Button } from '@/components/ui/button';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { toLocalInputValue } from '@/lib/datetime';
@@ -68,6 +71,11 @@ interface Order {
     status: string;
     estimated_completion_at: string | null;
     supplies: { id: number; pivot: { quantity_used: number; unit: string } }[];
+    service_lines?: {
+        service_id: number | null;
+        weight_kg: string | null;
+        piece_count: number | null;
+    }[];
 }
 
 const props = defineProps<{
@@ -114,6 +122,11 @@ const form = useForm({
     price_per_piece: props.shopOrder.price_per_piece ?? 0,
     piece_count: (props.shopOrder.piece_count ?? '') as string | number,
     promotion_id: props.shopOrder.promotion_id ?? ('' as string | number),
+    service_lines: (props.shopOrder.service_lines ?? []).map((line) => ({
+        service_id: line.service_id ?? '',
+        weight_kg: line.weight_kg ?? '',
+        piece_count: line.piece_count ?? '',
+    })) as ServiceLineInput[],
     additional_charges: props.shopOrder.additional_charges,
     discount_amount: props.shopOrder.discount_amount,
     total_amount: props.shopOrder.total_amount,
@@ -204,10 +217,15 @@ const baseTotal = computed(() => {
     );
 });
 
+const linesEditor = ref<InstanceType<typeof ServiceLinesEditor> | null>(null);
+const extraServicesTotal = computed(() =>
+    Number(linesEditor.value?.total ?? 0),
+);
+
 const promoDiscount = computed(() => {
     const promo = selectedPromotion.value;
     if (!promo) return 0;
-    const total = baseTotal.value;
+    const total = baseTotal.value + extraServicesTotal.value;
     if (promo.min_order_amount && total < parseFloat(promo.min_order_amount))
         return 0;
     if (promo.type === 'percentage')
@@ -228,7 +246,10 @@ const computedTotal = computed(() => {
     const charges = parseFloat(String(form.additional_charges)) || 0;
     const discount = parseFloat(String(form.discount_amount)) || 0;
     return (
-        Math.max(0, baseTotal.value + charges - discount) + deliveryFee.value
+        Math.max(
+            0,
+            baseTotal.value + extraServicesTotal.value + charges - discount,
+        ) + deliveryFee.value
     );
 });
 
@@ -1034,6 +1055,16 @@ const balanceDue = computed(() =>
                         </div>
                     </div>
 
+                    <!-- Additional services -->
+                    <div class="border-t pt-8">
+                        <ServiceLinesEditor
+                            ref="linesEditor"
+                            v-model="form.service_lines"
+                            :services="services ?? []"
+                            :errors="form.errors"
+                        />
+                    </div>
+
                     <!-- Pricing -->
                     <div class="border-t pt-8">
                         <h3 class="mb-4 text-base font-semibold">
@@ -1436,6 +1467,17 @@ const balanceDue = computed(() =>
                                 <dt class="text-muted-foreground">Service</dt>
                                 <dd class="font-medium">
                                     {{ formatCurrency(baseTotal) }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="form.service_lines.length"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    Additional services
+                                </dt>
+                                <dd class="font-medium">
+                                    {{ formatCurrency(extraServicesTotal) }}
                                 </dd>
                             </div>
                             <div class="flex justify-between gap-3">

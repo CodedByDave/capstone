@@ -224,31 +224,58 @@ export function usePaginatorTable(
     only?: string[],
 ) {
     const loading = ref(false);
+    // The active sort lives in the URL (`sort_by` / `sort_direction`) so the backend owns it.
+    const query = new URLSearchParams(window.location.search);
+    const urlSortBy = query.get('sort_by') || undefined;
     const options = ref<DataTableOptions>({
         page: paginator().current_page,
         rowsPerPage:
             paginator().per_page ?? Math.max(paginator().data.length, 1),
+        sortBy: urlSortBy,
+        sortType: query.get('sort_direction') === 'desc' ? 'desc' : 'asc',
     });
 
     watch(paginator, (current) => {
+        // The URL is the source of truth for the sort, so a filter reload that drops it clears it.
+        const url = new URLSearchParams(window.location.search);
+
         options.value = {
             ...options.value,
             page: current.current_page,
             rowsPerPage: current.per_page ?? options.value.rowsPerPage,
+            sortBy: url.get('sort_by') || undefined,
+            sortType: url.get('sort_direction') === 'desc' ? 'desc' : 'asc',
         };
     });
 
+    // Paging and sorting both reload the page; a sort change always returns to page 1.
     watch(
-        () => options.value.page,
-        (page) => {
-            if (page === paginator().current_page) return;
-
+        () => [
+            options.value.page,
+            options.value.sortBy,
+            options.value.sortType,
+        ],
+        () => {
             const params = Object.fromEntries(
                 new URLSearchParams(window.location.search),
             );
+            const { page, sortBy, sortType } = options.value;
+            const sortChanged =
+                Boolean(sortBy) &&
+                (params.sort_by !== sortBy ||
+                    params.sort_direction !== sortType);
+
+            if (!sortChanged && page === paginator().current_page) return;
+
             router.get(
                 window.location.pathname,
-                { ...params, page },
+                {
+                    ...params,
+                    ...(sortChanged
+                        ? { sort_by: sortBy, sort_direction: sortType }
+                        : {}),
+                    page: sortChanged ? 1 : page,
+                },
                 {
                     only,
                     preserveState: true,

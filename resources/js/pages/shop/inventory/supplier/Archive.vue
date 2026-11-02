@@ -82,10 +82,10 @@ const total = computed(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Supplier', value: 'name' },
-    { text: 'Contact', value: 'contact' },
-    { text: 'Items', value: 'inventory_count' },
-    { text: 'Archived on', value: 'deleted_at', width: 150 },
+    { text: 'Supplier', value: 'name', sortable: true },
+    { text: 'Contact', value: 'contact', sortable: true },
+    { text: 'Items', value: 'inventory_count', sortable: true },
+    { text: 'Archived on', value: 'deleted_at', width: 150, sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 140 },
 ];
 

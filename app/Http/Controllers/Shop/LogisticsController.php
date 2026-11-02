@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Logistics\UpdateDeliveryStatusRequest;
+use App\Http\Requests\TableSortRequest;
 use App\Models\Delivery;
 use App\Services\LogisticsService;
 use Illuminate\Http\RedirectResponse;
@@ -21,10 +22,10 @@ class LogisticsController extends Controller
 
     // ── Deliveries ────────────────────────────────────────────────────────────
 
-    public function index(Request $request): Response
+    public function index(TableSortRequest $request): Response
     {
         return Inertia::render('shop/logistics/Index', [
-            ...$this->service->board($request->user(), $request->get('status')),
+            ...$this->service->board($request->user(), $request->get('status'), $request->sort()),
             'filters' => $request->only('status'),
         ]);
     }

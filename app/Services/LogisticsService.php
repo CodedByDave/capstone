@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Models\Delivery;
 use App\Models\ShopOrder;
 use App\Models\User;
@@ -47,14 +48,14 @@ class LogisticsService
 
     // ── Deliveries ────────────────────────────────────────────────────────────
 
-    public function board(User $user, ?string $status): array
+    public function board(User $user, ?string $status, ?TableSort $sort = null): array
     {
         $shopId = $this->shopIdFor($user);
 
         $counts = $this->deliveries->statusCountsForShop($shopId);
 
         return [
-            'deliveries' => $this->deliveries->paginateForShop($shopId, $status),
+            'deliveries' => $this->deliveries->paginateForShop($shopId, $status, 15, $sort),
             'riders' => $this->riders->activeForShop($shopId),
             'stats' => collect(self::STATUSES)
                 ->mapWithKeys(fn ($key) => [$key => $counts[$key] ?? 0])
@@ -356,6 +357,29 @@ class LogisticsService
         $this->assignWaitingDeliveries($delivery->shop_id);
 
         return $delivery;
+    }
+
+    /**
+     * Takes back the return delivery that completing an order created, when the order is reopened
+     * after a mistake. Only a delivery nobody has collected yet can be withdrawn.
+     *
+     * @throws ValidationException when the rider already has the laundry
+     */
+    public function withdrawDeliveryForReopenedOrder(ShopOrder $order): void
+    {
+        $delivery = $order->delivery;
+
+        if ($delivery === null) {
+            return;
+        }
+
+        if (! in_array($delivery->status, ['pending', 'assigned'], true)) {
+            throw ValidationException::withMessages([
+                'status' => 'The rider already has this order for delivery, so it cannot be reopened. Handle it in Logistics.',
+            ]);
+        }
+
+        $this->deliveries->delete($delivery);
     }
 
     public function deleteDelivery(User $user, Delivery $delivery): void

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\TableSort;
 use App\Models\ShopOrderPayment;
 use App\Repositories\OrderPaymentRepository;
 use App\Repositories\ShopOrderRepository;
@@ -17,9 +18,9 @@ class FinanceIncomeService
         private readonly ShopOrderRepository $orders,
     ) {}
 
-    public function paginate(int $shopId, ?string $from, ?string $to, ?string $method): LengthAwarePaginator
+    public function paginate(int $shopId, ?string $from, ?string $to, ?string $method, ?TableSort $sort = null): LengthAwarePaginator
     {
-        return $this->payments->paginateIncome($shopId, $from, $to, $method)
+        return $this->payments->paginateIncome($shopId, $from, $to, $method, 15, $sort)
             ->through(fn (ShopOrderPayment $payment) => $this->row($payment));
     }
 
