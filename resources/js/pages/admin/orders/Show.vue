@@ -19,9 +19,11 @@ import {
     CreditCard,
     Download,
     FileSignature,
+    FileText,
+    ShieldCheck,
     X,
 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,11 @@ interface Payment {
 }
 
 interface Order {
+    kyc_bir?: string | null;
+    kyc_dti?: string | null;
+    kyc_mayors?: string | null;
+    kyc_sanitary?: string | null;
+    kyc_flags?: string[] | null;
     public_id: string;
     transaction_reference: string;
     shop_name: string;
@@ -90,11 +97,39 @@ interface AgreementAcceptance {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { order, agreementAcceptance, platformSigner } = defineProps<{
-    order: Order;
-    agreementAcceptance: AgreementAcceptance | null;
-    platformSigner: { name: string; role: string };
-}>();
+interface KycReviewRow {
+    key: string;
+    label: string;
+    ocr: string | null;
+    typed: string | null;
+    confirmed: string | null;
+    status: 'match' | 'mismatch' | 'unread';
+}
+
+const { order, agreementAcceptance, platformSigner, kycReview, kycFlagOptions } =
+    defineProps<{
+        order: Order;
+        agreementAcceptance: AgreementAcceptance | null;
+        platformSigner: { name: string; role: string };
+        kycReview: KycReviewRow[];
+        kycFlagOptions: { key: string; label: string }[];
+    }>();
+
+const kycStatusMeta = {
+    match: { text: 'Matches', cls: 'bg-emerald-100 text-emerald-700' },
+    mismatch: { text: 'Mismatch', cls: 'bg-red-100 text-red-600' },
+    unread: { text: 'Not read', cls: 'bg-stone-100 text-stone-600' },
+} as const;
+const kycDocLinks = [
+    { key: 'kyc_bir', label: 'BIR' },
+    { key: 'kyc_dti', label: 'DTI' },
+    { key: 'kyc_mayors', label: "Mayor's permit" },
+    { key: 'kyc_sanitary', label: 'Sanitary permit' },
+] as const;
+const mismatchedKeys = computed(() =>
+    kycReview.filter((r) => r.status === 'mismatch').map((r) => r.key),
+);
+const rejectFlags = ref<string[]>([]);
 
 const downloadingAgreement = ref(false);
 
@@ -245,6 +280,8 @@ function submitApproval() {
 
 function openRejectDialog() {
     rejectionReason.value = '';
+    // Start with the fields OCR found to be mismatched; the admin can adjust.
+    rejectFlags.value = [...mismatchedKeys.value];
     showRejectDialog.value = true;
 }
 
@@ -253,7 +290,7 @@ function submitReject() {
     submitting.value = true;
     router.post(
         `/admin/orders/${order.public_id}/reject`,
-        { rejection_reason: rejectionReason.value },
+        { rejection_reason: rejectionReason.value, flags: rejectFlags.value },
         {
             onError: () => {
                 // Already handled elsewhere: close the dialog and reload the current status.
@@ -325,6 +362,86 @@ function submitReject() {
                     </Button>
                 </div>
             </div>
+
+            <!-- KYC verification: OCR vs. what the shop submitted -->
+            <section
+                v-if="kycReview.length"
+                class="rounded-xl border bg-background"
+                aria-labelledby="kyc-verification-title"
+            >
+                <div
+                    class="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3"
+                >
+                    <h2
+                        id="kyc-verification-title"
+                        class="flex items-center gap-2 text-sm font-semibold"
+                    >
+                        <ShieldCheck class="h-4 w-4" /> KYC verification
+                    </h2>
+                    <div class="flex flex-wrap gap-3 text-xs">
+                        <template v-for="doc in kycDocLinks" :key="doc.key">
+                            <a
+                                v-if="order[doc.key]"
+                                :href="`/admin/kyc-file?path=${encodeURIComponent(order[doc.key] as string)}`"
+                                target="_blank"
+                                rel="noopener"
+                                class="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                            >
+                                <FileText class="h-3.5 w-3.5" />
+                                {{ doc.label }}
+                            </a>
+                        </template>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead
+                            class="bg-muted/40 text-xs tracking-wide text-muted-foreground uppercase"
+                        >
+                            <tr>
+                                <th class="px-4 py-2 font-medium">Field</th>
+                                <th class="px-4 py-2 font-medium">Read by OCR</th>
+                                <th class="px-4 py-2 font-medium">Registered</th>
+                                <th class="px-4 py-2 font-medium">Confirmed by shop</th>
+                                <th class="px-4 py-2 font-medium">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            <tr
+                                v-for="row in kycReview"
+                                :key="row.key"
+                                :class="row.status === 'mismatch' ? 'bg-red-50/50' : ''"
+                            >
+                                <td class="px-4 py-2.5 font-medium">{{ row.label }}</td>
+                                <td class="px-4 py-2.5">{{ row.ocr ?? '—' }}</td>
+                                <td class="px-4 py-2.5">{{ row.typed ?? '—' }}</td>
+                                <td class="px-4 py-2.5">{{ row.confirmed ?? '—' }}</td>
+                                <td class="px-4 py-2.5">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
+                                        :class="kycStatusMeta[row.status].cls"
+                                    >
+                                        <span class="h-1.5 w-1.5 rounded-full bg-current" />
+                                        {{ kycStatusMeta[row.status].text }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p
+                    v-if="order.kyc_flags?.length"
+                    class="border-t px-4 py-2 text-xs text-muted-foreground"
+                >
+                    Flagged on rejection:
+                    {{
+                        kycFlagOptions
+                            .filter((o) => order.kyc_flags?.includes(o.key))
+                            .map((o) => o.label)
+                            .join(', ')
+                    }}
+                </p>
+            </section>
 
             <!-- Rejection reason banner -->
             <div
@@ -882,6 +999,33 @@ function submitReject() {
                             </p>
                         </div>
                     </div>
+                    <fieldset
+                        v-if="kycReview.length"
+                        class="mb-3 rounded-lg border p-3"
+                    >
+                        <legend class="px-1 text-xs font-medium">
+                            What needs to be corrected? (optional)
+                        </legend>
+                        <div class="grid max-h-40 gap-1.5 overflow-y-auto sm:grid-cols-2">
+                            <label
+                                v-for="opt in kycFlagOptions"
+                                :key="opt.key"
+                                class="flex cursor-pointer items-center gap-2 text-sm"
+                            >
+                                <input
+                                    v-model="rejectFlags"
+                                    type="checkbox"
+                                    :value="opt.key"
+                                    class="h-4 w-4 rounded border"
+                                />
+                                {{ opt.label }}
+                            </label>
+                        </div>
+                        <p class="mt-2 text-xs text-muted-foreground">
+                            Anything you leave unchecked is kept as the shop
+                            submitted it when they resubmit.
+                        </p>
+                    </fieldset>
                     <textarea
                         v-model="rejectionReason"
                         rows="4"

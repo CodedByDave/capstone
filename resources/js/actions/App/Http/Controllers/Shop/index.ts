@@ -1,5 +1,7 @@
 import CheckoutController from './CheckoutController'
 import BusinessAgreementPdfController from './BusinessAgreementPdfController'
+import KycDocumentScanController from './KycDocumentScanController'
+import KycVerificationController from './KycVerificationController'
 import TrialController from './TrialController'
 import BusinessAgreementController from './BusinessAgreementController'
 import ShopNotificationController from './ShopNotificationController'
@@ -24,6 +26,8 @@ import DeliveryProofController from './DeliveryProofController'
 const Shop = {
     CheckoutController: Object.assign(CheckoutController, CheckoutController),
 BusinessAgreementPdfController: Object.assign(BusinessAgreementPdfController, BusinessAgreementPdfController),
+KycDocumentScanController: Object.assign(KycDocumentScanController, KycDocumentScanController),
+KycVerificationController: Object.assign(KycVerificationController, KycVerificationController),
 TrialController: Object.assign(TrialController, TrialController),
 BusinessAgreementController: Object.assign(BusinessAgreementController, BusinessAgreementController),
 ShopNotificationController: Object.assign(ShopNotificationController, ShopNotificationController),

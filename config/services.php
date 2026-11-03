@@ -48,6 +48,13 @@ return [
         'timeout' => (int) env('OSRM_TIMEOUT', 4),
         'cache_ttl' => (int) env('OSRM_CACHE_TTL', 86400),
     ],
+    // OCR.space reads KYC permits to pre-fill expiry dates. Leave the key empty to disable.
+    'ocr_space' => [
+        'key' => env('OCR_SPACE_API_KEY'),
+        'url' => env('OCR_SPACE_URL', 'https://api.ocr.space/parse/image'),
+        'engine' => (int) env('OCR_SPACE_ENGINE', 2),
+        'timeout' => (int) env('OCR_SPACE_TIMEOUT', 30),
+    ],
     'google' => [
         'maps_key' => env('GOOGLE_MAPS_API_KEY'),
         'client_id' => env('GOOGLE_CLIENT_ID'),

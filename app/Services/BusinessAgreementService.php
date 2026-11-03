@@ -209,9 +209,9 @@ class BusinessAgreementService
 
         $acceptance = $this->agreementRepository->acceptanceForOrder($order);
 
-        if (! $acceptance || ! $acceptance->signature_path) {
+        if (! $acceptance) {
             throw ValidationException::withMessages([
-                'agreement' => 'The shop must sign the current agreement before this order can be approved.',
+                'agreement' => 'The shop must accept the current agreement before this order can be approved.',
             ]);
         }
 
@@ -266,17 +266,11 @@ class BusinessAgreementService
             return $existingAcceptance;
         }
 
-        if (empty($data['signature_image']) || empty($data['signature_method'])) {
-            throw ValidationException::withMessages([
-                'signature_image' => 'Draw the owner signature or upload a signature image to continue.',
-            ]);
-        }
-
-        $signaturePath = $this->agreementRepository->storeSignature(
-            $data['signature_image'],
-            $shop,
-            $agreement,
-        );
+        // A signature image is optional: typing the name and accepting the terms is enough.
+        $hasSignature = ! empty($data['signature_image']) && ! empty($data['signature_method']);
+        $signaturePath = $hasSignature
+            ? $this->agreementRepository->storeSignature($data['signature_image'], $shop, $agreement)
+            : null;
 
         $acceptance = $this->agreementRepository->createAcceptance(
             $agreement,
@@ -286,7 +280,7 @@ class BusinessAgreementService
             [
                 'signer_name' => $data['signer_name'],
                 'signer_role' => $data['signer_role'],
-                'signature_method' => $data['signature_method'],
+                'signature_method' => $hasSignature ? $data['signature_method'] : null,
                 'signature_path' => $signaturePath,
                 'ip_address' => $ipAddress,
                 'user_agent' => $userAgent ? mb_substr($userAgent, 0, 2000) : null,

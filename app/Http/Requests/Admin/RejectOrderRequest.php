@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Services\KycReviewService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RejectOrderRequest extends FormRequest
 {
@@ -23,6 +25,8 @@ class RejectOrderRequest extends FormRequest
     {
         return [
             'rejection_reason' => ['required', 'string', 'max:1000'],
+            'flags' => ['nullable', 'array'],
+            'flags.*' => ['string', Rule::in(KycReviewService::FLAGGABLE)],
         ];
     }
 

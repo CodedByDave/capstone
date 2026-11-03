@@ -33,9 +33,20 @@ class OrderRepository extends Repository
         $order->update(['status' => 'approved']);
     }
 
-    public function markRejected(Order $order, string $reason): void
+    public function markRejected(Order $order, string $reason, array $flags = []): void
     {
-        $order->update(['status' => 'rejected', 'rejection_reason' => $reason]);
+        $order->update(['status' => 'rejected', 'rejection_reason' => $reason, 'kyc_flags' => $flags ?: null]);
+    }
+
+    public function findLatestRejectedApplication(int $userId): ?Order
+    {
+        return Order::query()
+            ->where('user_id', $userId)
+            ->where('status', 'rejected')
+            ->where('is_upgrade', false)
+            ->where('is_trial', false)
+            ->latest('id')
+            ->first();
     }
 
     public function refresh(Order $order): Order

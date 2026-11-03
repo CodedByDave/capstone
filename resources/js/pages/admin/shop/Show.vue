@@ -81,6 +81,7 @@ interface ShopDetails {
         created_at: string;
     } | null;
     latest_order: LatestOrder | null;
+    tax_type?: 'vat' | 'non_vat' | null;
     permit_files: {
         bir: string | null;
         dti: string | null;
@@ -651,6 +652,14 @@ function enableShop() {
                             <span class="capitalize">
                                 {{ shop.permit_submission.status }}
                             </span>
+                            <template v-if="shop.tax_type">
+                                ·
+                                {{
+                                    shop.tax_type === 'vat'
+                                        ? 'VAT-registered'
+                                        : 'Non-VAT'
+                                }}
+                            </template>
                         </div>
                     </div>
                 </CardHeader>

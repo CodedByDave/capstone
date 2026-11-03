@@ -9,6 +9,7 @@ use App\Models\Shop;
 use App\Models\User;
 use App\Services\ActivityLogService;
 use App\Services\BusinessAgreementService;
+use App\Services\KycVerificationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ class ShopController extends Controller
     public function __construct(
         private readonly ActivityLogService $activityLogService,
         private readonly BusinessAgreementService $businessAgreementService,
+        private readonly KycVerificationService $kycVerifications,
     ) {}
 
     public function index(Request $request)
@@ -137,10 +139,13 @@ class ShopController extends Controller
             ->latest('created_at')
             ->latest('id')
             ->first();
+        // New owners submit documents through KYC verification; older shops have them on the order.
+        $kyc = $this->kycVerifications->permitSnapshotForOwner($shop->owner_id);
 
         return Inertia::render('admin/shop/Show', [
-            'shop' => array_merge($this->serializeShop($shop), [
+            'shop' => array_merge($this->serializeShop($shop), array_filter($kyc['expiry'] ?? [], fn ($date, $key) => empty($shop->{$key}), ARRAY_FILTER_USE_BOTH), [
                 'block_street' => $shop->block_street,
+                'tax_type' => $shop->tax_type,
                 'postal_code' => $shop->postal_code,
                 'latitude' => $shop->latitude,
                 'longitude' => $shop->longitude,
@@ -175,17 +180,21 @@ class ShopController extends Controller
                         'price' => $module->price,
                     ])->values(),
                 ] : null,
-                'permit_files' => [
+                'permit_files' => $kyc['files'] ?? [
                     'bir' => $kycOrder?->kyc_bir,
                     'dti' => $kycOrder?->kyc_dti,
                     'mayors' => $kycOrder?->kyc_mayors,
                     'sanitary' => $kycOrder?->kyc_sanitary,
                 ],
-                'permit_submission' => $kycOrder ? [
+                'permit_submission' => $kyc ? [
+                    'order_public_id' => $kyc['submission']['reference'],
+                    'status' => $kyc['submission']['status'],
+                    'submitted_at' => $kyc['submission']['submitted_at'],
+                ] : ($kycOrder ? [
                     'order_public_id' => $kycOrder->public_id,
                     'status' => $kycOrder->status,
                     'submitted_at' => $kycOrder->created_at,
-                ] : null,
+                ] : null),
                 'business_agreement' => $this->businessAgreementService->currentAgreementDataForShop($shop),
             ]),
         ]);

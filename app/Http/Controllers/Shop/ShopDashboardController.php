@@ -11,6 +11,7 @@ use App\Models\LowStockAlert;
 use App\Models\Module;
 use App\Models\ShopOrder;
 use App\Services\BusinessAgreementService;
+use App\Services\KycVerificationService;
 use App\Services\OrderService;
 use App\Services\ShopDashboardService;
 use Carbon\Carbon;
@@ -24,6 +25,7 @@ class ShopDashboardController extends Controller
         private readonly OrderService $orderService,
         private readonly BusinessAgreementService $businessAgreementService,
         private readonly ShopDashboardService $dashboardService,
+        private readonly KycVerificationService $kycVerifications,
     ) {}
 
     public function index(ShopDashboardRequest $request)
@@ -118,6 +120,7 @@ class ShopDashboardController extends Controller
                 'modules' => Module::all(),
                 'order' => null,
                 'has_used_trial' => $hasUsedTrial,
+                'kyc' => $user->isOwner() ? $this->kycVerifications->onboardingData($user) : null,
                 'rejected_order' => $rejectedOrder ? [
                     'id' => $rejectedOrder->id,
                     'shop_name' => $rejectedOrder->shop_name,

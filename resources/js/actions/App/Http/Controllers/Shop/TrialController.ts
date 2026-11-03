@@ -79,7 +79,7 @@ show.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Shop\TrialController::start
- * @see app/Http/Controllers/Shop/TrialController.php:43
+ * @see app/Http/Controllers/Shop/TrialController.php:50
  * @route '/trial'
  */
 export const start = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ start.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\TrialController::start
- * @see app/Http/Controllers/Shop/TrialController.php:43
+ * @see app/Http/Controllers/Shop/TrialController.php:50
  * @route '/trial'
  */
 start.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ start.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\TrialController::start
- * @see app/Http/Controllers/Shop/TrialController.php:43
+ * @see app/Http/Controllers/Shop/TrialController.php:50
  * @route '/trial'
  */
 start.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ start.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Shop\TrialController::start
- * @see app/Http/Controllers/Shop/TrialController.php:43
+ * @see app/Http/Controllers/Shop/TrialController.php:50
  * @route '/trial'
  */
     const startForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ start.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Shop\TrialController::start
- * @see app/Http/Controllers/Shop/TrialController.php:43
+ * @see app/Http/Controllers/Shop/TrialController.php:50
  * @route '/trial'
  */
         startForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

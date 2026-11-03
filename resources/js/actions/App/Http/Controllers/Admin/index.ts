@@ -4,6 +4,7 @@ import ShopController from './ShopController'
 import UserController from './UserController'
 import LoginLogController from './LoginLogController'
 import OrderController from './OrderController'
+import KycVerificationController from './KycVerificationController'
 import AnalyticsController from './AnalyticsController'
 import PlatformRatingController from './PlatformRatingController'
 import IssueReportController from './IssueReportController'
@@ -14,6 +15,7 @@ ShopController: Object.assign(ShopController, ShopController),
 UserController: Object.assign(UserController, UserController),
 LoginLogController: Object.assign(LoginLogController, LoginLogController),
 OrderController: Object.assign(OrderController, OrderController),
+KycVerificationController: Object.assign(KycVerificationController, KycVerificationController),
 AnalyticsController: Object.assign(AnalyticsController, AnalyticsController),
 PlatformRatingController: Object.assign(PlatformRatingController, PlatformRatingController),
 IssueReportController: Object.assign(IssueReportController, IssueReportController),

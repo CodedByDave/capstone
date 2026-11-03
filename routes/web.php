@@ -18,6 +18,9 @@ use App\Http\Controllers\Shop\BulkArchiveController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\BusinessAgreementPdfController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Admin\KycVerificationController as AdminKycVerificationController;
+use App\Http\Controllers\Shop\KycDocumentScanController;
+use App\Http\Controllers\Shop\KycVerificationController;
 use App\Http\Controllers\Shop\CustomerQrController;
 use App\Http\Controllers\Shop\DeliveryProofController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
@@ -101,6 +104,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('business-agreement.preview');
     Route::get('/business-agreement-acceptances/{acceptancePublicId}/pdf', [BusinessAgreementPdfController::class, 'show'])
         ->name('business-agreement.pdf');
+    Route::post('/kyc/scan-expiry', [KycDocumentScanController::class, 'scan'])
+        ->middleware('throttle:20,1')
+        ->name('kyc.scan-expiry');
+    Route::post('/kyc-verification', [KycVerificationController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('kyc-verification.store');
     Route::get('/checkout/confirm', [CheckoutController::class, 'confirm'])->name('checkout.confirm');
     Route::post('/checkout/process', [CheckoutController::class, 'checkout'])->name('checkout.process');
     Route::post('/shop/payment/pay', [CheckoutController::class, 'pay'])->name('shop.payment.pay');
@@ -185,6 +194,13 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
         Route::get('/{order:public_id}', [OrderController::class, 'show'])->name('show');
         Route::post('/{order:public_id}/approve', [OrderController::class, 'approve'])->name('approve');
         Route::post('/{order:public_id}/reject', [OrderController::class, 'reject'])->name('reject');
+    });
+
+    Route::prefix('kyc-verifications')->name('admin.kyc.')->group(function () {
+        Route::get('/', [AdminKycVerificationController::class, 'index'])->name('index');
+        Route::get('/{verification:public_id}', [AdminKycVerificationController::class, 'show'])->name('show');
+        Route::post('/{verification:public_id}/approve', [AdminKycVerificationController::class, 'approve'])->name('approve');
+        Route::post('/{verification:public_id}/reject', [AdminKycVerificationController::class, 'reject'])->name('reject');
     });
 
     Route::get('/kyc-file', [OrderController::class, 'serveKyc'])->name('admin.kyc-file');

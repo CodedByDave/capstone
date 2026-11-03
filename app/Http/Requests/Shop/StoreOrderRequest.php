@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Shop;
 
+use App\Repositories\KycVerificationRepository;
 use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -14,7 +16,9 @@ class StoreOrderRequest extends FormRequest
 
     public function rules(): array
     {
-        return array_merge([
+        $verified = $this->user() && app(KycVerificationRepository::class)->isVerifiedOwner($this->user()->id);
+
+        return array_merge($verified ? [] : $this->kycRules(), [
             'plan_name' => ['required', 'string', 'in:Basic,Standard,Premium'],
             'billing_months' => ['required', 'integer', 'in:1,12,24,48'],
             'shop_name' => ['required', 'string', 'min:2', 'max:255'],
@@ -25,20 +29,43 @@ class StoreOrderRequest extends FormRequest
             'barangay' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:10'],
             'payment_method' => ['nullable', 'string', 'in:gcash,maya,card,grab_pay,dob,billease'],
-            'kyc_bir' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'kyc_dti' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'kyc_mayors' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+        ], AcceptBusinessAgreementRequest::agreementRules());
+    }
+
+    /** KYC rules apply only to owners an admin has not verified yet. */
+    private function kycRules(): array
+    {
+        return [
+            // A document kept from a rejected application may be reused instead of re-uploaded.
+            'reuse_kyc' => ['nullable', 'array'],
+            'reuse_kyc.*' => ['string', 'in:bir,dti,mayors,sanitary'],
+            'kyc_bir' => [Rule::requiredIf(! $this->reuses('bir')), 'nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'kyc_dti' => [Rule::requiredIf(! $this->reuses('dti')), 'nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'kyc_mayors' => [Rule::requiredIf(! $this->reuses('mayors')), 'nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'kyc_confirmed' => ['required', 'array'],
+            'kyc_confirmed.tin' => ['required', 'string', 'regex:/^\d{3}[\s-]?\d{3}[\s-]?\d{3}([\s-]?\d{3,5})?$/'],
+            'kyc_confirmed.registered_name' => ['required', 'string', 'min:2', 'max:255'],
+            'kyc_confirmed.registered_address' => ['required', 'string', 'min:5', 'max:255'],
             'kyc_sanitary' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'bir_expiry_date' => ['required', 'date', 'after:today'],
             'mayors_expiry_date' => ['required', 'date', 'after:today'],
             'dti_expiry_date' => ['required', 'date', 'after:today'],
             'sanitary_expiry_date' => ['nullable', 'date', 'after:today'],
-        ], AcceptBusinessAgreementRequest::agreementRules());
+        ];
+    }
+
+    private function reuses(string $doc): bool
+    {
+        return in_array($doc, (array) $this->input('reuse_kyc', []), true);
     }
 
     public function messages(): array
     {
         return [
+            'kyc_confirmed.tin.required' => 'Confirm the TIN read from your document.',
+            'kyc_confirmed.tin.regex' => 'TIN must look like 123-456-789 or 123-456-789-000.',
+            'kyc_confirmed.registered_name.required' => 'Confirm the registered name.',
+            'kyc_confirmed.registered_address.required' => 'Confirm the registered address.',
             'shop_name.required' => 'Business name is required.',
             'shop_name.min' => 'Business name must be at least 2 characters.',
             'phone.required' => 'Phone number is required.',

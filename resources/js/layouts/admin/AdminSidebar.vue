@@ -54,6 +54,11 @@ const mainNavItems: NavItem[] = [
         icon: Store,
     },
     {
+        title: 'KYC Verifications',
+        href: '/admin/kyc-verifications',
+        icon: ShieldCheck,
+    },
+    {
         title: 'Order Management',
         href: '/admin/orders',
         icon: ListOrdered,

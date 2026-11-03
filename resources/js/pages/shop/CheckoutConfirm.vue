@@ -3,6 +3,7 @@ import AgreementSignatureInput from '@/components/business/AgreementSignatureInp
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useKycExpiryScan } from '@/composables/useKycExpiryScan';
 import { Label } from '@/components/ui/label';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
@@ -37,7 +38,7 @@ interface Period {
     discountPct: number;
 }
 interface UploadedFile {
-    file: File;
+    file?: File;
     preview?: string;
     name: string;
     size: string;
@@ -75,6 +76,13 @@ const props = defineProps<{
         postal_code?: string;
     };
     agreement: Agreement;
+    previousSubmission?: {
+        reason: string | null;
+        flags: string[];
+        reusable_docs: string[];
+        expiry: Record<string, string>;
+        confirmed: Record<string, string>;
+    } | null;
 }>();
 
 const page = usePage();
@@ -307,6 +315,17 @@ onMounted(() => {
 });
 
 // ── KYC ───────────────────────────────────────────────────────────────────
+const { scanState, scanResults, scanDocument, resetScan } =
+    useKycExpiryScan();
+// Documents kept from a rejected application (not re-uploaded).
+const reused = reactive<Record<string, boolean>>({});
+// Values the shop confirms in the review form after OCR has read the documents.
+const confirmed = reactive<Record<string, string>>({
+    tin: '',
+    registered_name: '',
+    registered_address: '',
+});
+const confirmedEdited = reactive<Record<string, boolean>>({});
 const kycDocs = ref<Record<string, UploadedFile | null>>({
     bir: null,
     dti: null,
@@ -379,12 +398,108 @@ function handleFileUpload(e: Event, key: string) {
             : undefined,
     };
     (e.target as HTMLInputElement).value = '';
+    expiry[key] = '';
+    reused[key] = false;
+    scanDocument(key, file).then((result) => {
+        // Ignore the result if the file was removed or replaced meanwhile.
+        if (!result || kycDocs.value[key]?.file !== file) return;
+        if (result.expiry_date) expiry[key] = result.expiry_date;
+        fillConfirmedFromScan();
+    });
+}
+
+// Pre-fill the review form from BIR first, then DTI, without overwriting edits.
+function fillConfirmedFromScan() {
+    for (const field of Object.keys(confirmed)) {
+        if (confirmedEdited[field]) continue;
+        const value =
+            (kycDocs.value.bir && scanResults.bir?.[field as 'tin']) ||
+            (kycDocs.value.dti && scanResults.dti?.[field as 'tin']) ||
+            '';
+        if (value) confirmed[field] = value;
+    }
 }
 function removeFile(key: string) {
     if (kycDocs.value[key]?.preview)
         URL.revokeObjectURL(kycDocs.value[key]!.preview!);
     kycDocs.value[key] = null;
     expiry[key] = '';
+    reused[key] = false;
+    resetScan(key);
+    fillConfirmedFromScan();
+}
+
+// ── Review form: what OCR read vs. what was typed at registration ───────────
+const flagLabels: Record<string, string> = {
+    tin: 'TIN',
+    registered_name: 'Registered name',
+    registered_address: 'Registered address',
+    bir_expiry_date: 'BIR expiry date',
+    dti_expiry_date: 'DTI expiry date',
+    mayors_expiry_date: "Mayor's permit expiry date",
+    sanitary_expiry_date: 'Sanitary permit expiry date',
+    kyc_bir: 'BIR document',
+    kyc_dti: 'DTI document',
+    kyc_mayors: "Mayor's permit document",
+    kyc_sanitary: 'Sanitary permit document',
+};
+const registeredAddress = computed(() =>
+    [
+        shopForm.value.block_street,
+        shopForm.value.barangay,
+        shopForm.value.municipality,
+        shopForm.value.postal_code,
+    ]
+        .filter(Boolean)
+        .join(', '),
+);
+const reviewVisible = computed(() => !!(kycDocs.value.bir || kycDocs.value.dti));
+const reviewScanning = computed(
+    () =>
+        scanState.bir === 'scanning' || scanState.dti === 'scanning',
+);
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+function looksLike(a: string, b: string) {
+    const x = norm(a);
+    const y = norm(b);
+    if (!x || !y) return null;
+    if (x.includes(y) || y.includes(x)) return true;
+    const tokens = y.split(' ').filter((t) => t.length > 2);
+    if (!tokens.length) return null;
+    return tokens.filter((t) => x.includes(t)).length / tokens.length >= 0.6;
+}
+const nameMatch = computed(() =>
+    looksLike(confirmed.registered_name, shopForm.value.shop_name),
+);
+const addressMatch = computed(() =>
+    looksLike(confirmed.registered_address, registeredAddress.value),
+);
+const confirmedComplete = computed(
+    () =>
+        confirmed.tin.trim().length >= 9 &&
+        confirmed.registered_name.trim().length >= 2 &&
+        confirmed.registered_address.trim().length >= 5,
+);
+
+// Keep what the admin did not flag from a rejected application.
+const previous = props.previousSubmission;
+if (previous) {
+    previous.reusable_docs.forEach((doc) => {
+        kycDocs.value[doc] = {
+            name: 'Previously uploaded document (kept)',
+            size: '',
+        };
+        reused[doc] = true;
+    });
+    Object.entries(previous.expiry).forEach(([doc, date]) => {
+        if (reused[doc] || kycMeta[doc]) expiry[doc] = date;
+    });
+    Object.entries(previous.confirmed).forEach(([field, value]) => {
+        if (field in confirmed && value) {
+            confirmed[field] = value;
+            confirmedEdited[field] = true;
+        }
+    });
 }
 
 // ── Agreement PDF preview ──────────────────────────────────────────────────
@@ -463,7 +578,10 @@ const shopInfoComplete = computed(
         !!shopForm.value.postal_code,
 );
 const kycComplete = computed(
-    () => requiredKycComplete.value && requiredKeys.every((k) => !!expiry[k]),
+    () =>
+        requiredKycComplete.value &&
+        requiredKeys.every((k) => !!expiry[k]) &&
+        confirmedComplete.value,
 );
 const agreementComplete = computed(
     () =>
@@ -485,7 +603,7 @@ const checklist = computed(() => [
 const proceedHint = computed(() => {
     if (!shopInfoComplete.value) return 'Complete your shop information.';
     if (!kycComplete.value)
-        return 'Upload your permits and enter their expiry dates.';
+        return 'Upload your permits, then confirm the details read from them.';
     if (!agreementComplete.value)
         return 'Upload your signature and accept the agreement.';
     return '';
@@ -508,6 +626,13 @@ function proceedToPayment() {
     formData.append('postal_code', shopForm.value.postal_code);
     Object.entries(kycDocs.value).forEach(([key, fileObj]) => {
         if (fileObj?.file) formData.append(`kyc_${key}`, fileObj.file);
+    });
+    Object.entries(confirmed).forEach(([field, value]) =>
+        formData.append(`kyc_confirmed[${field}]`, value.trim()),
+    );
+    Object.keys(reused).forEach((doc) => {
+        if (reused[doc] && kycDocs.value[doc])
+            formData.append('reuse_kyc[]', doc);
     });
     formData.append('bir_expiry_date', expiry.bir);
     formData.append('mayors_expiry_date', expiry.mayors);
@@ -903,6 +1028,32 @@ function proceedToPayment() {
                             <span class="text-red-500">*</span> are required.
                         </p>
 
+                        <!-- Rejection feedback from the admin -->
+                        <div
+                            v-if="previousSubmission?.reason"
+                            class="mt-4 rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-sm"
+                            role="alert"
+                        >
+                            <p class="font-semibold text-red-600">
+                                Your last submission was rejected
+                            </p>
+                            <p class="mt-1 text-muted-foreground">
+                                {{ previousSubmission.reason }}
+                            </p>
+                            <p
+                                v-if="previousSubmission.flags.length"
+                                class="mt-2 text-xs text-muted-foreground"
+                            >
+                                Please correct:
+                                <span class="font-medium text-foreground">{{
+                                    previousSubmission.flags
+                                        .map((f) => flagLabels[f] ?? f)
+                                        .join(', ')
+                                }}</span
+                                >. Everything else was kept as you submitted it.
+                            </p>
+                        </div>
+
                         <ul
                             class="mt-4 divide-y divide-border border-y border-border"
                         >
@@ -966,6 +1117,40 @@ function proceedToPayment() {
                                             :min="tomorrow"
                                             class="h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                                         />
+                                        <p
+                                            v-if="
+                                                scanState[key] &&
+                                                scanState[key] !== 'idle'
+                                            "
+                                            class="mt-1 flex items-center gap-1 text-xs"
+                                            :class="
+                                                scanState[key] === 'found'
+                                                    ? 'text-emerald-600'
+                                                    : scanState[key] ===
+                                                        'scanning'
+                                                      ? 'text-muted-foreground'
+                                                      : 'text-amber-600'
+                                            "
+                                            role="status"
+                                        >
+                                            <Loader2
+                                                v-if="
+                                                    scanState[key] ===
+                                                    'scanning'
+                                                "
+                                                class="h-3 w-3 animate-spin"
+                                            />
+                                            {{
+                                                scanState[key] === 'scanning'
+                                                    ? 'Reading document…'
+                                                    : scanState[key] === 'found'
+                                                      ? 'Detected from your document. Please verify.'
+                                                      : scanState[key] ===
+                                                          'expired'
+                                                        ? 'Detected date has already passed. Check or upload a valid document.'
+                                                        : 'Could not read the date. Please enter it.'
+                                            }}
+                                        </p>
                                     </div>
                                     <div
                                         class="flex items-center gap-3 self-end"
@@ -1003,13 +1188,123 @@ function proceedToPayment() {
                             </li>
                         </ul>
 
+                        <!-- Review: OCR result vs. registration details -->
+                        <div
+                            v-if="reviewVisible"
+                            class="mt-6"
+                            aria-labelledby="kyc-review-title"
+                        >
+                            <h3
+                                id="kyc-review-title"
+                                class="text-sm font-semibold"
+                            >
+                                Review your business details
+                            </h3>
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                We read these from your uploaded document.
+                                Correct anything that is wrong, then compare it
+                                with what you registered.
+                            </p>
+                            <div class="mt-3 grid gap-4 md:grid-cols-2">
+                                <div class="rounded-lg border border-border p-4">
+                                    <p
+                                        class="flex items-center gap-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        <Loader2
+                                            v-if="reviewScanning"
+                                            class="h-3.5 w-3.5 animate-spin"
+                                        />
+                                        Read from your document
+                                    </p>
+                                    <div class="mt-3 space-y-3">
+                                        <div>
+                                            <Label for="kyc-tin">TIN</Label>
+                                            <Input
+                                                id="kyc-tin"
+                                                v-model="confirmed.tin"
+                                                placeholder="123-456-789-000"
+                                                @input="confirmedEdited.tin = true"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label for="kyc-reg-name"
+                                                >Registered name</Label
+                                            >
+                                            <Input
+                                                id="kyc-reg-name"
+                                                v-model="confirmed.registered_name"
+                                                @input="
+                                                    confirmedEdited.registered_name = true
+                                                "
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label for="kyc-reg-address"
+                                                >Registered address</Label
+                                            >
+                                            <Input
+                                                id="kyc-reg-address"
+                                                v-model="confirmed.registered_address"
+                                                @input="
+                                                    confirmedEdited.registered_address = true
+                                                "
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="rounded-lg border border-border bg-muted/30 p-4"
+                                >
+                                    <p
+                                        class="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        What you registered
+                                    </p>
+                                    <dl class="mt-3 space-y-3 text-sm">
+                                        <div>
+                                            <dt class="text-xs text-muted-foreground">
+                                                Business name
+                                            </dt>
+                                            <dd class="font-medium">
+                                                {{ shopForm.shop_name || '—' }}
+                                            </dd>
+                                            <p
+                                                v-if="nameMatch !== null"
+                                                class="mt-1 text-xs"
+                                                :class="nameMatch ? 'text-emerald-600' : 'text-amber-600'"
+                                            >
+                                                {{ nameMatch ? 'Matches the document' : 'Does not match the document' }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <dt class="text-xs text-muted-foreground">
+                                                Business address
+                                            </dt>
+                                            <dd class="font-medium">
+                                                {{ registeredAddress || '—' }}
+                                            </dd>
+                                            <p
+                                                v-if="addressMatch !== null"
+                                                class="mt-1 text-xs"
+                                                :class="addressMatch ? 'text-emerald-600' : 'text-amber-600'"
+                                            >
+                                                {{ addressMatch ? 'Matches the document' : 'Does not match the document' }}
+                                            </p>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+
                         <p
                             class="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
                         >
                             <Lock class="h-3.5 w-3.5 shrink-0" />
                             Documents are encrypted and used only for business
-                            verification. They are never shared with third
-                            parties.
+                            verification. Uploaded files are sent to OCR.space
+                            only to read the expiry date, and are not shared
+                            with anyone else.
                         </p>
                     </section>
 
@@ -1325,7 +1620,7 @@ function proceedToPayment() {
                             {{
                                 isSubmitting
                                     ? 'Processing...'
-                                    : 'Proceed to order'
+                                    : 'Confirm & Submit Verification'
                             }}
                         </Button>
                         <p

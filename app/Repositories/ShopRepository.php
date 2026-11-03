@@ -105,6 +105,12 @@ class ShopRepository extends Repository
         );
     }
 
+    /** Record the permit expiry dates and tax type an admin verified. */
+    public function applyVerifiedPermits(int $ownerId, array $dates): void
+    {
+        Shop::withTrashed()->where('owner_id', $ownerId)->update($dates);
+    }
+
     public function activateForTrial(int $ownerId, array $data): Shop
     {
         $existingShop = Shop::withTrashed()->where('owner_id', $ownerId)->first();

@@ -8,6 +8,7 @@ use App\Models\Shop;
 use App\Models\User;
 use App\Notifications\OrderApprovedNotification;
 use App\Notifications\PlanRejectedNotification;
+use App\Repositories\KycVerificationRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\ShopRepository;
 use App\Repositories\UserRepository;
@@ -15,6 +16,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -49,7 +51,14 @@ class OrderService
         protected UserRepository $userRepository,
         protected ShopRepository $shopRepository,
         protected BusinessAgreementService $businessAgreementService,
+        protected KycDocumentScanService $kycScanner,
+        protected KycVerificationRepository $kycVerifications,
     ) {}
+
+    public function isKycVerified(int $userId): bool
+    {
+        return $this->kycVerifications->isVerifiedOwner($userId);
+    }
 
     public function hasOpenApplication(int $userId): bool
     {
@@ -74,6 +83,8 @@ class OrderService
             'billingMonths' => (int) ($checkout['billing_months'] ?? 12),
             'vatPct' => 12,
             'user' => ['name' => $user->name, 'email' => $user->email],
+            'previousSubmission' => $this->previousSubmissionData($user->id),
+            'kycVerified' => $this->isKycVerified($user->id),
             'shop' => [
                 'phone' => $shop?->phone ?? '',
                 'shop_name' => $shop?->shop_name ?? '',
@@ -110,6 +121,14 @@ class OrderService
             $billingMonths = (int) $data['billing_months'];
             $grandTotal = $this->calculateGrandTotal($planName, $billingMonths);
 
+            // A verified owner's documents are already on file; copy them instead of asking again.
+            $verification = $this->kycVerifications->latestApprovedForUser($user->id);
+            if ($verification) {
+                foreach (['bir', 'dti', 'mayors', 'sanitary'] as $doc) {
+                    $data["{$doc}_expiry_date"] = $verification->{"{$doc}_expiry_date"}?->toDateString();
+                }
+            }
+
             $order = $this->create([
                 ...$data,
                 'owner_name' => $user->name,
@@ -118,16 +137,50 @@ class OrderService
                 'total_price' => $grandTotal,
             ]);
 
+            if ($verification || $this->isKycVerified($user->id)) {
+                $this->orderRepository->updateKycDocuments($order, $verification ? [
+                    'kyc_bir' => $verification->kyc_bir,
+                    'kyc_dti' => $verification->kyc_dti,
+                    'kyc_mayors' => $verification->kyc_mayors,
+                    'kyc_sanitary' => $verification->kyc_sanitary,
+                    'kyc_ocr_data' => $verification->kyc_ocr_data,
+                    'kyc_confirmed_data' => $verification->kyc_confirmed_data,
+                ] : []);
+                $this->businessAgreementService->acceptForOrder($user, $order, $data, $ipAddress, $userAgent);
+
+                return $order->refresh()->load('modules');
+            }
+
+            $previous = $this->orderRepository->findLatestRejectedApplication($user->id);
+            $reuse = (array) ($data['reuse_kyc'] ?? []);
             $kycPaths = [];
-            foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {
-                if (! empty($data[$key])) {
-                    $kycPaths[$key] = $data[$key]->store("kyc/{$order->id}", 'private');
+            $ocrData = [];
+
+            foreach (['bir', 'dti', 'mayors', 'sanitary'] as $doc) {
+                $column = "kyc_{$doc}";
+                $upload = $data[$column] ?? null;
+
+                if ($upload) {
+                    $kycPaths[$column] = $upload->store("kyc/{$order->id}", 'private');
+                    // What OCR really read for this exact file (recalled server-side, never taken from the browser).
+                    $ocrData[$doc] = $this->kycScanner->recall($user->id, $upload);
+                } elseif (in_array($doc, $reuse, true) && $previous && $this->canReuseDocument($previous, $doc)) {
+                    $kycPaths[$column] = "kyc/{$order->id}/".basename($previous->{$column});
+                    Storage::disk('private')->copy($previous->{$column}, $kycPaths[$column]);
+                    $ocrData[$doc] = $previous->kyc_ocr_data[$doc] ?? null;
                 }
             }
 
-            if ($kycPaths !== []) {
-                $this->orderRepository->updateKycDocuments($order, $kycPaths);
+            foreach (['bir', 'dti', 'mayors'] as $required) {
+                if (! isset($kycPaths["kyc_{$required}"])) {
+                    throw new OrderSubmissionException('Please upload all required business documents.');
+                }
             }
+
+            $this->orderRepository->updateKycDocuments($order, $kycPaths + [
+                'kyc_ocr_data' => array_filter($ocrData) ?: null,
+                'kyc_confirmed_data' => $this->confirmedKycData($data['kyc_confirmed'] ?? []),
+            ]);
 
             $this->businessAgreementService->acceptForOrder(
                 $user,
@@ -139,6 +192,56 @@ class OrderService
 
             return $order->refresh()->load('modules');
         });
+    }
+
+    /** A kept document must exist on disk and must not have been flagged by the admin. */
+    private function canReuseDocument(Order $previous, string $doc): bool
+    {
+        $path = $previous->{"kyc_{$doc}"};
+
+        return $path
+            && ! in_array("kyc_{$doc}", $previous->kyc_flags ?? [], true)
+            && Storage::disk('private')->exists($path);
+    }
+
+    private function confirmedKycData(array $confirmed): array
+    {
+        return [
+            'tin' => trim((string) ($confirmed['tin'] ?? '')),
+            'registered_name' => trim((string) ($confirmed['registered_name'] ?? '')),
+            'registered_address' => trim((string) ($confirmed['registered_address'] ?? '')),
+        ];
+    }
+
+    /**
+     * What the shop may keep from its last rejected application: everything the
+     * admin did not flag. Flagged fields and documents must be redone.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function previousSubmissionData(int $userId): ?array
+    {
+        $previous = $this->orderRepository->findLatestRejectedApplication($userId);
+        if (! $previous) {
+            return null;
+        }
+
+        $flags = $previous->kyc_flags ?? [];
+        $keep = fn (string $key) => ! in_array($key, $flags, true);
+        $docs = ['bir', 'dti', 'mayors', 'sanitary'];
+
+        return [
+            'reason' => $previous->rejection_reason,
+            'flags' => $flags,
+            'reusable_docs' => array_values(array_filter($docs, fn ($d) => $this->canReuseDocument($previous, $d))),
+            'expiry' => collect($docs)
+                ->filter(fn ($d) => $keep("{$d}_expiry_date") && $previous->{"{$d}_expiry_date"})
+                ->mapWithKeys(fn ($d) => [$d => $previous->{"{$d}_expiry_date"}->toDateString()])
+                ->all(),
+            'confirmed' => collect($previous->kyc_confirmed_data ?? [])
+                ->filter(fn ($v, $k) => $keep($k))
+                ->all(),
+        ];
     }
 
     public function resubmissionStatus(int $userId): array
@@ -208,9 +311,9 @@ class OrderService
     /**
      * @throws ValidationException when the application is no longer pending (already handled or expired)
      */
-    public function reject(Order $order, string $reason): Order
+    public function reject(Order $order, string $reason, array $flags = []): Order
     {
-        $rejected = DB::transaction(function () use ($order, $reason) {
+        $rejected = DB::transaction(function () use ($order, $reason, $flags) {
             $locked = $this->orderRepository->findForApproval($order->id);
 
             if ($locked->status !== 'pending') {
@@ -219,7 +322,7 @@ class OrderService
                 ]);
             }
 
-            $this->orderRepository->markRejected($locked, $reason);
+            $this->orderRepository->markRejected($locked, $reason, array_values(array_unique($flags)));
 
             return $this->orderRepository->refresh($locked);
         });

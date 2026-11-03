@@ -30,6 +30,13 @@ class TrialController extends Controller
             ]);
         }
 
+        if (! $availability['is_verified']) {
+            return redirect()->route('shop.dashboard')->with('toast', [
+                'type' => 'info',
+                'message' => 'Verify your business documents first.',
+            ]);
+        }
+
         if ($availability['has_used_trial']) {
             return redirect()->route('plans')->with('toast', [
                 'type' => 'info',

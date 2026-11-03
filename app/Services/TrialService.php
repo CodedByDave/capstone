@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\OrderSubmissionException;
 use App\Models\Order;
 use App\Models\User;
+use App\Repositories\KycVerificationRepository;
 use App\Repositories\ShopRepository;
 use App\Repositories\TrialRepository;
 use App\Repositories\UserRepository;
@@ -29,6 +30,7 @@ class TrialService
         private readonly ShopRepository $shopRepository,
         private readonly UserRepository $userRepository,
         private readonly BusinessAgreementService $agreementService,
+        private readonly KycVerificationRepository $verifications,
     ) {}
 
     public function pageData(User $user): array
@@ -55,7 +57,19 @@ class TrialService
         return [
             'has_open_application' => $this->trialRepository->hasOpenApplication($user->id),
             'has_used_trial' => $this->trialRepository->hasUsedTrial($user->id),
+            'is_verified' => $this->verifications->isVerifiedOwner($user->id),
         ];
+    }
+
+    /**
+     * Start the trial for an owner whose KYC an admin just approved. The agreement was
+     * signed at submission, so only the shop details are needed here.
+     */
+    public function startForVerifiedOwner(User $user, array $shopData): Order
+    {
+        return $this->start($user, $shopData + [
+            'agreement_public_id' => $this->agreementService->currentAgreementData($user)['public_id'],
+        ], null, null);
     }
 
     public function start(
@@ -70,6 +84,10 @@ class TrialService
 
             if ($availability['has_open_application']) {
                 throw new OrderSubmissionException('You already have an active plan or pending order.');
+            }
+
+            if (! $availability['is_verified']) {
+                throw new OrderSubmissionException('Verify your business documents first. The free trial starts once an admin approves them.');
             }
 
             if ($availability['has_used_trial']) {

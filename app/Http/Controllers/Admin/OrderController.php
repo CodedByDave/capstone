@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\OrderFilterRequest;
 use App\Http\Requests\Admin\RejectOrderRequest;
 use App\Models\Order;
 use App\Services\BusinessAgreementService;
+use App\Services\KycReviewService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +20,7 @@ class OrderController extends Controller
     public function __construct(
         private readonly OrderService $orderService,
         private readonly BusinessAgreementService $businessAgreementService,
+        private readonly KycReviewService $kycReviewService,
     ) {}
 
     public function index(OrderFilterRequest $request)
@@ -96,6 +98,8 @@ class OrderController extends Controller
     {
         return Inertia::render('admin/orders/Show', [
             'order' => $this->orderService->adminDetails($order),
+            'kycReview' => $this->kycReviewService->rows($order),
+            'kycFlagOptions' => $this->kycReviewService->flagOptions(),
             'agreementAcceptance' => $this->businessAgreementService->acceptanceDataForOrder($order),
             'platformSigner' => [
                 'name' => $request->user()->name,
@@ -123,7 +127,11 @@ class OrderController extends Controller
 
     public function reject(RejectOrderRequest $request, Order $order)
     {
-        $this->orderService->reject($order, $request->validated('rejection_reason'));
+        $this->orderService->reject(
+            $order,
+            $request->validated('rejection_reason'),
+            $request->validated('flags') ?? [],
+        );
 
         return redirect()->back()
             ->with('toast', ['type' => 'error', 'message' => "{$order->shop_name} rejected. No payment was collected."]);

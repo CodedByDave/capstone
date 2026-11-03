@@ -42,43 +42,5 @@
         @endif
         <p>{!! nl2br(e($clause['body'])) !!}</p>
     @endforeach
-
-    <div class="signatures">
-        <div class="label">Signatures</div>
-        <table class="sign">
-            <tr>
-                <td>
-                    <div class="line">
-                        @if ($ownerSignature)
-                            <img src="{{ $ownerSignature }}" alt="Owner signature">
-                        @else
-                            <span class="pending">Owner signature pending</span>
-                        @endif
-                    </div>
-                    <div class="name">{{ $signerName ?: '________________' }}</div>
-                    <div class="muted">{{ $signerRole }}</div>
-                    <div class="muted">For {{ $businessName }}</div>
-                </td>
-                <td>
-                    <div class="line">
-                        @if ($platformSignature)
-                            <img src="{{ $platformSignature }}" alt="LaundryHub representative signature">
-                        @else
-                            <span class="pending">Awaiting platform signature</span>
-                        @endif
-                    </div>
-                    @if ($platformSignerName)
-                        <div class="name">{{ $platformSignerName }}</div>
-                        <div class="muted">{{ $platformSignerRole }}</div>
-                    @endif
-                    <div class="muted">For LaundryHub</div>
-                </td>
-            </tr>
-        </table>
-        <div class="stamp">
-            Business signed: {{ $signedAt ?? 'Not yet signed' }}
-            @if ($platformSignedAt) &nbsp;&middot;&nbsp; Platform signed: {{ $platformSignedAt }} @endif
-        </div>
-    </div>
 </body>
 </html>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import { useKycExpiryScan } from '@/composables/useKycExpiryScan';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import {
@@ -180,6 +181,8 @@ interface UploadedFile {
     preview?: string;
 }
 
+const { scanState, scanExpiry, resetScan } = useKycExpiryScan();
+
 const kycDocs = ref<Record<string, UploadedFile | null>>({
     bir: null,
     dti: null,
@@ -243,12 +246,20 @@ function handleFileUpload(e: Event, key: string) {
             : undefined,
     };
     (e.target as HTMLInputElement).value = '';
+    expiryDates.value[key] = '';
+    scanExpiry(key, file).then((date) => {
+        // Ignore the result if the file was removed or replaced meanwhile.
+        if (date && kycDocs.value[key]?.file === file)
+            expiryDates.value[key] = date;
+    });
 }
 
 function removeFile(key: string) {
     if (kycDocs.value[key]?.preview)
         URL.revokeObjectURL(kycDocs.value[key]!.preview!);
     kycDocs.value[key] = null;
+    expiryDates.value[key] = '';
+    resetScan(key);
 }
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
@@ -631,8 +642,31 @@ function submit() {
                             "
                             class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                         />
-                        <p class="text-xs text-stone-400">
-                            Enter the expiry date printed on this document.
+                        <p
+                            v-if="scanState[key] && scanState[key] !== 'idle'"
+                            class="text-xs"
+                            :class="
+                                scanState[key] === 'found'
+                                    ? 'text-emerald-600'
+                                    : scanState[key] === 'scanning'
+                                      ? 'text-stone-500'
+                                      : 'text-amber-600'
+                            "
+                            role="status"
+                        >
+                            {{
+                                scanState[key] === 'scanning'
+                                    ? 'Reading document…'
+                                    : scanState[key] === 'found'
+                                      ? 'Detected from your document. Please verify.'
+                                      : scanState[key] === 'expired'
+                                        ? 'Detected date has already passed. Check or upload a valid document.'
+                                        : 'Could not read the date. Please enter it.'
+                            }}
+                        </p>
+                        <p v-else class="text-xs text-stone-400">
+                            Auto-filled from your upload, or enter the expiry
+                            date printed on this document.
                         </p>
                     </div>
 

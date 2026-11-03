@@ -19,6 +19,7 @@ import { useDataTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue';
 import { type BreadcrumbItem } from '@/types';
+import KycVerificationForm from '@/components/business/KycVerificationForm.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import Chart from 'chart.js/auto';
 import {
@@ -182,6 +183,25 @@ const props = defineProps<{
         is_trial: boolean;
     } | null;
     has_used_trial?: boolean;
+    kyc?: {
+        status: 'none' | 'pending' | 'approved' | 'rejected';
+        verified: boolean;
+        submitted_at: string | null;
+        previous: {
+            reason: string | null;
+            flags: string[];
+            reusable_docs: string[];
+            expiry: Record<string, string>;
+            confirmed: Record<string, string>;
+        } | null;
+        registration: {
+            shop_name: string;
+            block_street: string;
+            barangay: string;
+            municipality: string;
+            postal_code: string;
+        };
+    } | null;
     stats?: {
         employees: { total: number; active: number; inactive: number };
         inventory: { total: number; low_stock: number; out_of_stock: number };
@@ -240,6 +260,8 @@ const canResubmit = computed(
 );
 const isExpired = computed(() => !!props.expired_order);
 const showOrder = ref(false);
+// New owners verify their business first; trial and plans unlock after admin approval.
+const needsKyc = computed(() => !!props.kyc && !props.kyc.verified);
 const showTrialConfirm = ref(false);
 const isRefreshing = ref(false);
 
@@ -1685,9 +1707,40 @@ function proceedToPay() {
 
             <!-- NOT PAID: Choose path -->
             <template v-else>
+                <!-- KYC verification (first step for new owners) -->
+                <div v-if="needsKyc && kyc" class="px-4 pt-8 pb-12">
+                    <div
+                        v-if="kyc.status === 'pending'"
+                        class="mx-auto max-w-xl rounded-2xl border bg-background p-8 text-center"
+                    >
+                        <div
+                            class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100"
+                        >
+                            <Clock class="h-8 w-8 text-yellow-500" />
+                        </div>
+                        <h2 class="mb-2 text-xl font-semibold">
+                            Verification under review
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            We received your documents
+                            <span v-if="kyc.submitted_at"
+                                >on {{ kyc.submitted_at }}</span
+                            >. Our admin is checking them. Your 7-day free
+                            trial starts automatically once you are approved,
+                            and we will email you.
+                        </p>
+                    </div>
+                    <KycVerificationForm
+                        v-else
+                        :user="{ name: user.name, email: user.email }"
+                        :kyc="kyc"
+                        :agreement="props.agreement"
+                    />
+                </div>
+
                 <!-- Choice screen -->
                 <div
-                    v-if="!showOrder"
+                    v-if="!showOrder && !needsKyc"
                     class="flex min-h-[60vh] flex-1 items-start justify-center px-4 pt-8"
                 >
                     <div class="w-full max-w-2xl">

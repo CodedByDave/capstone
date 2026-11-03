@@ -92,6 +92,13 @@ class CheckoutController extends Controller
             ]);
         }
 
+        if (auth()->user()->isOwner() && ! $this->orderService->isKycVerified(auth()->id())) {
+            return redirect()->route('shop.dashboard')->with('toast', [
+                'type' => 'info',
+                'message' => 'Verify your business documents first, then choose a plan.',
+            ]);
+        }
+
         return Inertia::render('shop/CheckoutConfirm', array_merge(
             $this->orderService->checkoutConfirmationData(auth()->user(), $checkout ?? []),
             ['agreement' => $this->businessAgreementService->currentAgreementData(auth()->user())],
