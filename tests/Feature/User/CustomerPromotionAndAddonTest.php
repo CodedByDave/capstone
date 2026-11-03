@@ -81,3 +81,24 @@ it('lists only enabled add-on items with their price for customers', function ()
     expect($options)->toHaveCount(1)
         ->and($options[0])->toMatchArray(['name' => 'Extra softener', 'quantity' => 30, 'unit' => 'ml', 'price' => 15.0]);
 });
+
+it('prices the additional charges a customer picks into the estimate', function () {
+    [$shop, $service] = promoShop();
+    $item = Inventory::create(['shop_id' => $shop->id, 'unit' => 'ml', 'quantity' => 1000, 'min_stock' => 1, 'unit_price' => 0.2, 'status' => 'active', 'name' => 'Softener', 'addon_enabled' => true, 'addon_name' => 'Extra softener', 'addon_quantity' => 30, 'addon_price' => 15]);
+
+    $lines = app(\App\Services\CustomerAdditionalChargeService::class)->resolve($shop->id, [['id' => $item->id, 'count' => 2]]);
+    $estimate = app(OrderBillingBreakdownService::class)->estimate($service, 5, null, null, $lines);
+
+    expect($estimate['additional_charges'])->toBe(30.0)
+        ->and($estimate['total'])->toBe(330.0)
+        ->and($estimate['supplies'][0])->toMatchArray(['name' => 'Extra softener', 'quantity' => 60.0, 'amount' => 30.0]);
+});
+
+it('rejects an additional charge the shop does not offer', function () {
+    [$shop] = promoShop();
+    [$otherShop] = promoShop();
+    $foreign = Inventory::create(['shop_id' => $otherShop->id, 'unit' => 'ml', 'quantity' => 1000, 'min_stock' => 1, 'unit_price' => 0.2, 'status' => 'active', 'name' => 'Softener', 'addon_enabled' => true, 'addon_quantity' => 30, 'addon_price' => 15]);
+
+    expect(fn () => app(\App\Services\CustomerAdditionalChargeService::class)->resolve($shop->id, [['id' => $foreign->id, 'count' => 1]]))
+        ->toThrow(ValidationException::class);
+});

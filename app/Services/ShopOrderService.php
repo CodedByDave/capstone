@@ -31,6 +31,7 @@ class ShopOrderService
         private readonly ServiceSupplyUsageService $serviceSupplies,
         private readonly ExpenseService $expenses,
         private readonly ShopOrderAutomationSettingRepository $automationSettings,
+        private readonly CustomerAdditionalChargeService $additionalCharges,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -194,11 +195,15 @@ class ShopOrderService
                 throw ValidationException::withMessages(['estimated_weight_kg' => 'Enter the estimated weight of your laundry.']);
             }
 
+            // The additional charges the customer picked, priced from the shop's own add-on items.
+            $additionalLines = $this->additionalCharges->resolve($shop->id, $data['additional_items'] ?? [], lock: true);
+
             $estimate = $this->billing->estimate(
                 $service,
                 (float) ($data['estimated_weight_kg'] ?? 0),
                 isset($data['piece_count']) ? (int) $data['piece_count'] : null,
                 filled($data['promotion_id'] ?? null) ? (int) $data['promotion_id'] : null,
+                $additionalLines,
             );
             $estimatedBundles = $service->pricing_model === 'per_bundle'
                 ? (int) $estimate['service']['quantity']
@@ -228,7 +233,7 @@ class ShopOrderService
                 'bundle_quantity' => $estimatedBundles,
                 'price_per_piece' => $service->price_per_piece,
                 'piece_count' => $service->isPerPiece() ? (int) $data['piece_count'] : null,
-                'additional_charges' => 0,
+                'additional_charges' => $estimate['additional_charges'],
                 'promotion_id' => filled($data['promotion_id'] ?? null) ? (int) $data['promotion_id'] : null,
                 'discount_amount' => $estimate['discount'],
                 'total_amount' => $estimatedTotal,
@@ -238,6 +243,18 @@ class ShopOrderService
                 'amount_paid' => 0,
                 'status' => 'pending',
             ]);
+
+            // The picked items are put aside from stock now, as they are when the shop adds them to an order.
+            foreach ($additionalLines as $line) {
+                if ((float) $line['item']->quantity < $line['quantity']) {
+                    throw ValidationException::withMessages([
+                        'additional_items' => "Not enough {$line['name']} in stock right now.",
+                    ]);
+                }
+
+                $this->repository->attachSupply($order, $line['item']->id, $line['quantity'], $line['unit'], $line['unit_price']);
+                $this->inventory->deductStock($line['item'], $line['quantity']);
+            }
 
             $order->setRelation('shop', $shop);
             $order->setRelation('service', $service);

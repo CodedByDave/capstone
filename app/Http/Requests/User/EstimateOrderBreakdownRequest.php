@@ -20,6 +20,9 @@ class EstimateOrderBreakdownRequest extends FormRequest
             'service_id' => ['required', 'integer'],
             'estimated_weight_kg' => ['nullable', 'numeric', 'min:0.5', 'max:100'],
             'piece_count' => ['nullable', 'integer', 'min:1', 'max:500'],
+            'additional_items' => ['nullable', 'array', 'max:20'],
+            'additional_items.*.id' => ['required', 'integer'],
+            'additional_items.*.count' => ['required', 'integer', 'min:1', 'max:10'],
             'promotion_id' => ['nullable', 'integer', Rule::exists('promotions', 'id')->where('shop_id', $this->user()?->referred_shop_id)],
         ];
     }

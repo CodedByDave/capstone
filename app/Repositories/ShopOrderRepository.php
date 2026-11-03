@@ -215,6 +215,16 @@ class ShopOrderRepository
         }
     }
 
+    /** Records a shop item used on the order, at the price per unit it was charged. */
+    public function attachSupply(ShopOrder $order, int $inventoryId, float $quantity, string $unit, ?float $unitPrice): void
+    {
+        $order->supplies()->attach($inventoryId, [
+            'quantity_used' => $quantity,
+            'unit' => $unit,
+            'unit_price' => $unitPrice,
+        ]);
+    }
+
     public function update(ShopOrder $order, array $data): ShopOrder
     {
         $order->update($data);

@@ -33,6 +33,10 @@ class StoreUserOrderRequest extends FormRequest
             'customer_lat' => ['nullable', 'required_with:customer_lng', 'numeric', 'between:-90,90'],
             'customer_lng' => ['nullable', 'required_with:customer_lat', 'numeric', 'between:-180,180'],
             'promotion_id' => ['nullable', 'integer', Rule::exists('promotions', 'id')->where('shop_id', $this->user()?->referred_shop_id)],
+            // Optional extras from the shop's add-on items; the order service checks the shop really offers them.
+            'additional_items' => ['nullable', 'array', 'max:20'],
+            'additional_items.*.id' => ['required', 'integer'],
+            'additional_items.*.count' => ['required', 'integer', 'min:1', 'max:10'],
             'special_instructions' => ['nullable', 'string', 'max:500'],
             'customer_agreement_version' => ['required', 'string', 'max:30'],
             'customer_agreement_accepted' => ['required', 'accepted'],

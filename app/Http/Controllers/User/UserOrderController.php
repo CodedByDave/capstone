@@ -143,6 +143,7 @@ class UserOrderController extends Controller
             (float) ($data['estimated_weight_kg'] ?? 0),
             isset($data['piece_count']) ? (int) $data['piece_count'] : null,
             isset($data['promotion_id']) ? (int) $data['promotion_id'] : null,
+            $data['additional_items'] ?? [],
         ));
     }
 

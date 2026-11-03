@@ -103,6 +103,27 @@ class InventoryRepository extends Repository
             ->get(['id', 'name', 'unit', 'addon_name', 'addon_quantity', 'addon_price']);
     }
 
+    /**
+     * Add-on items of a shop by id; an item that is archived or no longer an add-on is left out.
+     *
+     * @param  list<int>  $ids
+     */
+    public function addonItemsByIds(int $shopId, array $ids, bool $lock = false): Collection
+    {
+        $query = $this->query()
+            ->where('shop_id', $shopId)
+            ->where('status', 'active')
+            ->where('addon_enabled', true)
+            ->whereIn('id', $ids);
+
+        return $lock ? $query->lockForUpdate()->get() : $query->get();
+    }
+
+    public function decrementQuantity(Inventory $inventory, float $quantity): void
+    {
+        $inventory->decrement('quantity', $quantity);
+    }
+
     public function findForShop(int $id, int $shopId): ?Inventory
     {
         return $this->query()

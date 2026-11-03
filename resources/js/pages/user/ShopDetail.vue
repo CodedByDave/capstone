@@ -25,6 +25,7 @@ import {
     Bell,
     Loader2,
     MapPin,
+    Minus,
     Package,
     Phone,
     Plus,
@@ -149,6 +150,23 @@ const form = ref({
     customer_agreement_accepted: false,
 });
 
+// Additional charges the customer picks: how many of each shop add-on item to include.
+const MAX_EXTRA = 10;
+const extras = ref<Record<number, number>>({});
+const additionalItems = computed(() =>
+    Object.entries(extras.value)
+        .filter(([, count]) => count > 0)
+        .map(([id, count]) => ({ id: Number(id), count })),
+);
+
+function changeExtra(id: number, change: number) {
+    const next = Math.min(
+        MAX_EXTRA,
+        Math.max(0, (extras.value[id] ?? 0) + change),
+    );
+    extras.value = { ...extras.value, [id]: next };
+}
+
 // Pre-fill the pickup address from the device location; the customer can still edit it.
 const { locating, failed, detectLocation } = usePickupAddressAutofill();
 
@@ -222,6 +240,7 @@ function openOrder(service: ShopService) {
     form.value.estimated_weight_kg = '';
     form.value.piece_count = '';
     form.value.promotion_id = '';
+    extras.value = {};
     isOrderOpen.value = true;
     form.value.customer_agreement_accepted = false;
 }
@@ -315,6 +334,10 @@ async function loadEstimate() {
     if (form.value.promotion_id !== '') {
         query.set('promotion_id', String(form.value.promotion_id));
     }
+    additionalItems.value.forEach((item, index) => {
+        query.set(`additional_items[${index}][id]`, String(item.id));
+        query.set(`additional_items[${index}][count]`, String(item.count));
+    });
 
     try {
         const response = await fetch(`/user/orders/estimate?${query}`, {
@@ -341,6 +364,7 @@ watch(
         form.value.estimated_weight_kg,
         form.value.piece_count,
         form.value.promotion_id,
+        JSON.stringify(additionalItems.value),
     ],
     () => {
         clearTimeout(estimateTimer);
@@ -372,7 +396,7 @@ async function submitOrder() {
     if (placing.value) return;
     placing.value = true;
     await resolvePickupPin();
-    router.post('/user/orders', form.value, {
+    router.post('/user/orders', { ...form.value, additional_items: additionalItems.value }, {
         preserveScroll: true,
         onSuccess: () => {
             closeOrder();
@@ -633,8 +657,7 @@ function goBack() {
                     Additional charges
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
-                    Optional extras the shop can add to your order when
-                    your laundry is processed.
+                    Optional extras you can add when you place an order.
                 </p>
                 <ul
                     class="mt-3 divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white"
@@ -835,6 +858,76 @@ function goBack() {
                                     class="mt-1 text-xs text-red-500"
                                 >
                                     {{ errors.promotion_id }}
+                                </p>
+                            </div>
+                            <div v-if="additionalCharges.length" class="mt-4">
+                                <p
+                                    class="text-sm font-medium text-muted-foreground"
+                                >
+                                    Additional charges (optional)
+                                </p>
+                                <ul
+                                    class="mt-1 divide-y divide-border rounded-xl border border-border"
+                                >
+                                    <li
+                                        v-for="item in additionalCharges"
+                                        :key="item.id"
+                                        class="flex items-center justify-between gap-3 px-3 py-2"
+                                    >
+                                        <span class="min-w-0 text-sm">
+                                            <span class="block font-medium">{{
+                                                item.name
+                                            }}</span>
+                                            <span
+                                                class="block text-xs text-muted-foreground"
+                                                >{{ item.quantity }}
+                                                {{ item.unit }} ·
+                                                {{ money(item.price) }}</span
+                                            >
+                                        </span>
+                                        <span
+                                            class="flex shrink-0 items-center gap-1"
+                                        >
+                                            <button
+                                                type="button"
+                                                class="flex size-11 items-center justify-center rounded-full border border-border disabled:opacity-40"
+                                                :aria-label="`Remove one ${item.name}`"
+                                                :disabled="!extras[item.id]"
+                                                @click="changeExtra(item.id, -1)"
+                                            >
+                                                <Minus
+                                                    class="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                            <span
+                                                class="w-6 text-center text-sm font-semibold tabular-nums"
+                                                aria-live="polite"
+                                                >{{ extras[item.id] ?? 0 }}</span
+                                            >
+                                            <button
+                                                type="button"
+                                                class="flex size-11 items-center justify-center rounded-full border border-blue-600 text-blue-600 disabled:opacity-40"
+                                                :aria-label="`Add one ${item.name}`"
+                                                :disabled="
+                                                    (extras[item.id] ?? 0) >=
+                                                    MAX_EXTRA
+                                                "
+                                                @click="changeExtra(item.id, 1)"
+                                            >
+                                                <Plus
+                                                    class="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                        </span>
+                                    </li>
+                                </ul>
+                                <p
+                                    v-if="errors.additional_items"
+                                    class="mt-1 text-xs text-red-500"
+                                >
+                                    {{ errors.additional_items }}
                                 </p>
                             </div>
                             <BillingBreakdown

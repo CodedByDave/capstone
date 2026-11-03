@@ -219,6 +219,13 @@ class InventoryService
         });
     }
 
+    /** Takes stock out for an order's additional charges; the caller owns the transaction. */
+    public function deductStock(Inventory $inventory, float $quantity): void
+    {
+        $this->inventoryRepository->decrementQuantity($inventory, $quantity);
+        $this->alertIfLowStock($inventory->refresh());
+    }
+
     /**
      * Raises an unread low stock alert when the item sits at or below its minimum. Every path
      * that changes stock or the minimum calls this, so the alerts page never misses an item.

@@ -17,6 +17,7 @@ class OrderBillingBreakdownService
     public function __construct(
         private readonly ShopOrderRepository $repository,
         private readonly PromotionService $promotions,
+        private readonly CustomerAdditionalChargeService $additionalCharges,
     ) {}
 
     public function forOrder(ShopOrder $order): array
@@ -114,8 +115,10 @@ class OrderBillingBreakdownService
     /**
      * Estimate for a service at an estimated weight, using the same rounding the order uses at placement.
      */
-    public function estimate(ShopService $service, float $weightKg, ?int $pieces = null, ?int $promotionId = null): array
+    public function estimate(ShopService $service, float $weightKg, ?int $pieces = null, ?int $promotionId = null, array $additionalLines = []): array
     {
+        $additional = $this->additionalCharges->total($additionalLines);
+
         $bundleWeight = (float) $service->bundle_weight_kg;
 
         $quantity = match ($service->pricing_model) {
@@ -137,21 +140,21 @@ class OrderBillingBreakdownService
         return [
             'is_estimate' => ! $service->isPerPiece(),
             'service' => $line,
-            'additional_charges' => 0.0,
-            'supplies' => [],
+            'additional_charges' => $additional,
+            'supplies' => $this->additionalCharges->breakdownLines($additionalLines),
             'other_charges' => 0.0,
             'discount' => $discount,
             'delivery_fee' => 0.0,
-            'total' => round($line['amount'] - $discount, 2),
+            'total' => round($line['amount'] + $additional - $discount, 2),
             'amount_paid' => 0.0,
-            'balance_due' => round($line['amount'] - $discount, 2),
+            'balance_due' => round($line['amount'] + $additional - $discount, 2),
         ];
     }
 
     /**
      * Estimate for an active service of an active shop; anything else is treated as not found.
      */
-    public function estimateFor(int $shopId, int $serviceId, float $weightKg, ?int $pieces = null, ?int $promotionId = null): array
+    public function estimateFor(int $shopId, int $serviceId, float $weightKg, ?int $pieces = null, ?int $promotionId = null, array $additionalItems = []): array
     {
         $shop = $this->repository->findActiveShop($shopId);
         $service = $shop ? $this->repository->findActiveServiceForShop($serviceId, $shop->id) : null;
@@ -169,7 +172,13 @@ class OrderBillingBreakdownService
             throw ValidationException::withMessages(['estimated_weight_kg' => 'Enter the estimated weight of your laundry.']);
         }
 
-        return $this->estimate($service, $weightKg, $pieces, $promotionId);
+        return $this->estimate(
+            $service,
+            $weightKg,
+            $pieces,
+            $promotionId,
+            $this->additionalCharges->resolve($shop->id, $additionalItems),
+        );
     }
 
     private function serviceLine(string $name, string $pricingModel, float $quantity, float $rate, float $bundleWeight): array
