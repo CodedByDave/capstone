@@ -125,6 +125,14 @@ class Inventory extends Model
         return $query->where('status', 'active');
     }
 
+    /** Items enabled for an additional charge, plus any ids that must stay listed (e.g. already on the record). */
+    public function scopeUsableAsSupply($query, array $keepIds = [])
+    {
+        return $query->where(function ($q) use ($keepIds) {
+            $q->where('addon_enabled', true)->orWhereIn('id', $keepIds);
+        });
+    }
+
     public function scopeForShop($query, int $shopId)
     {
         return $query->where('shop_id', $shopId);

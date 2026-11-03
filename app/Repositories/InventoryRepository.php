@@ -92,6 +92,17 @@ class InventoryRepository extends Repository
             ->get();
     }
 
+    /** Active items the shop charges for as an add-on, for the customer-facing price list. */
+    public function addonItemsForShop(int $shopId): Collection
+    {
+        return $this->query()
+            ->where('shop_id', $shopId)
+            ->where('status', 'active')
+            ->where('addon_enabled', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'unit', 'addon_name', 'addon_quantity', 'addon_price']);
+    }
+
     public function findForShop(int $id, int $shopId): ?Inventory
     {
         return $this->query()

@@ -113,6 +113,7 @@ class DeliveryTrackingService
             // The shop's proof photos are opened through an authenticated route by public id.
             'photos' => $delivery->photos->map(fn ($photo) => [
                 'public_id' => $photo->public_id,
+                'kind' => $photo->kind,
                 'uploaded_at' => $photo->created_at?->toIso8601String(),
             ])->values()->all(),
             'shop' => [

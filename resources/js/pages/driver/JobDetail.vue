@@ -19,7 +19,13 @@ import {
 } from '@/lib/googleMaps';
 import type { DriverInfo, DriverJob } from '@/types/driver';
 import { router } from '@inertiajs/vue3';
-import { ChevronLeft, MessageSquare, Navigation, Phone } from 'lucide-vue-next';
+import {
+    Camera,
+    ChevronLeft,
+    MessageSquare,
+    Navigation,
+    Phone,
+} from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -154,8 +160,31 @@ function advance(extra: Record<string, unknown> = {}) {
     );
 }
 
+// Collecting the laundry from the customer needs a photo of it as proof.
+const pickupOpen = ref(false);
+const pickupPhoto = ref<File | null>(null);
+const pickupInput = ref<HTMLInputElement | null>(null);
+
+function onPickupPicked(event: Event) {
+    pickupPhoto.value = (event.target as HTMLInputElement).files?.[0] ?? null;
+}
+
+function confirmPickup() {
+    if (!pickupPhoto.value) return;
+
+    advance({ proof_photo: pickupPhoto.value });
+    pickupOpen.value = false;
+}
+
 function confirm() {
     if (!props.job.next_status || !checklistDone.value) return;
+
+    if (props.job.requires_pickup_photo) {
+        pickupPhoto.value = null;
+        if (pickupInput.value) pickupInput.value.value = '';
+        pickupOpen.value = true;
+        return;
+    }
 
     if (props.job.next_status === 'delivered' && collectDue.value > 0) {
         collected.value = collectDue.value.toFixed(2);
@@ -617,6 +646,62 @@ const finishedLabel = computed(() =>
                         @click="confirmCollection"
                     >
                         Confirm delivery
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog v-model:open="pickupOpen">
+            <DialogContent class="max-w-sm">
+                <DialogHeader>
+                    <DialogTitle>Photo of the laundry</DialogTitle>
+                    <DialogDescription>
+                        Take a photo of the laundry you are picking up. The shop
+                        and the customer can see it as proof of pickup.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="space-y-1.5">
+                    <input
+                        ref="pickupInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        class="hidden"
+                        @change="onPickupPicked"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="h-12 w-full rounded-xl"
+                        @click="pickupInput?.click()"
+                    >
+                        <Camera class="mr-2 h-4 w-4" />
+                        {{
+                            pickupPhoto
+                                ? 'Retake photo of the laundry'
+                                : 'Take photo of the laundry'
+                        }}
+                    </Button>
+                    <p
+                        v-if="pickupPhoto"
+                        class="truncate text-xs text-emerald-700"
+                    >
+                        {{ pickupPhoto.name }}
+                    </p>
+                    <p v-else class="text-xs text-red-500">
+                        A photo is required to confirm the pickup.
+                    </p>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="pickupOpen = false">
+                        Cancel
+                    </Button>
+                    <Button
+                        class="bg-blue-600 hover:bg-blue-700"
+                        :disabled="busy || !pickupPhoto"
+                        @click="confirmPickup"
+                    >
+                        Confirm pickup
                     </Button>
                 </DialogFooter>
             </DialogContent>

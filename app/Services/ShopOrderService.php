@@ -198,6 +198,7 @@ class ShopOrderService
                 $service,
                 (float) ($data['estimated_weight_kg'] ?? 0),
                 isset($data['piece_count']) ? (int) $data['piece_count'] : null,
+                filled($data['promotion_id'] ?? null) ? (int) $data['promotion_id'] : null,
             );
             $estimatedBundles = $service->pricing_model === 'per_bundle'
                 ? (int) $estimate['service']['quantity']
@@ -228,7 +229,8 @@ class ShopOrderService
                 'price_per_piece' => $service->price_per_piece,
                 'piece_count' => $service->isPerPiece() ? (int) $data['piece_count'] : null,
                 'additional_charges' => 0,
-                'discount_amount' => 0,
+                'promotion_id' => filled($data['promotion_id'] ?? null) ? (int) $data['promotion_id'] : null,
+                'discount_amount' => $estimate['discount'],
                 'total_amount' => $estimatedTotal,
                 // Customers choose how to pay once the actual weight is confirmed; until then it stays cash.
                 'payment_method' => $data['payment_method'] ?? 'cash',

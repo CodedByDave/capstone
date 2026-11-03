@@ -28,6 +28,8 @@ export interface DriverJob {
     notes: string | null;
     /** Cash to collect at the door on a delivery with a balance; null when nothing is due. */
     collect_amount?: number | null;
+    /** The rider must photograph the laundry before confirming a pickup from the customer. */
+    requires_pickup_photo?: boolean;
     /** Payments already received on the order (online or at the shop), shown as proof it is settled. */
     paid_payments?: {
         method: string;

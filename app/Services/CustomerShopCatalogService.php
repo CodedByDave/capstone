@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Shop;
+use App\Repositories\InventoryRepository;
 use Illuminate\Support\Collection;
 
 /**
@@ -10,7 +11,31 @@ use Illuminate\Support\Collection;
  */
 class CustomerShopCatalogService
 {
-    public function __construct(private readonly ServiceCategoryService $categories) {}
+    public function __construct(
+        private readonly ServiceCategoryService $categories,
+        private readonly InventoryRepository $inventory,
+    ) {}
+
+    /**
+     * The extra items a shop charges for on top of a service (e.g. 30 ml extra softener for ₱15),
+     * with only their name, amount and price: no stock or cost leaves the shop.
+     *
+     * @return list<array{id: int, name: string, quantity: int, unit: string, price: float}>
+     */
+    public function additionalChargeOptions(int $shopId): array
+    {
+        return $this->inventory->addonItemsForShop($shopId)
+            ->filter(fn ($item) => (float) $item->addon_price > 0 && (int) $item->addon_quantity > 0)
+            ->map(fn ($item) => [
+                'id' => $item->id,
+                'name' => $item->addon_name ?: $item->name,
+                'quantity' => (int) $item->addon_quantity,
+                'unit' => $item->unit,
+                'price' => (float) $item->addon_price,
+            ])
+            ->values()
+            ->all();
+    }
 
     /**
      * Services as the customer sees them: the supplies each one uses (name, quantity, unit only, so

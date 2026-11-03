@@ -162,6 +162,13 @@ class DriverAppService
             throw new DriverJobException('Take a photo of the cash you collected as proof.');
         }
 
+        // Collecting the laundry from the customer needs a photo of it as proof.
+        $needsPickupProof = $status === 'picked_up' && $delivery->isPickupRun();
+
+        if ($needsPickupProof && $cashProof === null) {
+            throw new DriverJobException('Take a photo of the laundry you picked up as proof.');
+        }
+
         $changes = ['status' => $status, 'notes' => $notes ?? $delivery->notes];
         if ($status === 'picked_up' && ! $delivery->picked_up_at) {
             $changes['picked_up_at'] = now();
@@ -170,8 +177,12 @@ class DriverAppService
             $changes['delivered_at'] = now();
         }
 
-        DB::transaction(function () use ($delivery, $rider, $changes, $status, $toCollect, $collected, $actor, $cashProof) {
+        DB::transaction(function () use ($delivery, $rider, $changes, $status, $toCollect, $collected, $actor, $cashProof, $needsPickupProof) {
             $this->deliveries->update($delivery, $changes);
+
+            if ($needsPickupProof && $actor !== null) {
+                $this->proofs->add($actor, $delivery, [$cashProof], DeliveryPhoto::KIND_PICKUP);
+            }
 
             // Cash collected at the door is recorded as a payment on the order, by the rider.
             if ($toCollect !== null && $collected > 0 && $actor !== null && $delivery->order !== null) {
@@ -340,6 +351,8 @@ class DriverAppService
                 'picked_up' => 'delivered',
                 default => null,
             },
+            // True when the rider must photograph the laundry before confirming the pickup.
+            'requires_pickup_photo' => $run->status === 'assigned' && $run->isPickupRun(),
             'action_label' => $this->actionLabel($run),
             'checklist' => $this->checklist($run, $number),
         ];

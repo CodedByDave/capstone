@@ -18,7 +18,8 @@ class UpdateJobStatusRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:500'],
             // Cash the rider took at the door when handing the laundry over (0 when nothing was paid).
             'collected_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
-            // Photo of the cash taken at the door; required by the service whenever cash was collected.
+            // Photo of the cash taken at the door, or of the laundry picked up from the customer;
+            // the service requires it in both cases.
             'proof_photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }

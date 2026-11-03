@@ -27,6 +27,7 @@ import {
     MapPin,
     Package,
     Phone,
+    Plus,
 } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -52,6 +53,23 @@ interface ShopService {
     bundle_weight_kg: string | null;
     bundle_price: string | null;
     photo_url: string | null;
+}
+
+interface AdditionalChargeOption {
+    id: number;
+    name: string;
+    quantity: number;
+    unit: string;
+    price: number;
+}
+
+interface CustomerPromotion {
+    id: number;
+    name: string;
+    headline: string;
+    description: string | null;
+    min_order_amount: number | null;
+    ends_at: string | null;
 }
 
 interface ShopInfo {
@@ -80,6 +98,8 @@ interface ShopInfo {
 const props = defineProps<{
     shop: ShopInfo;
     services: ShopService[];
+    additionalCharges: AdditionalChargeOption[];
+    promotions: CustomerPromotion[];
     userLat: number | null;
     userLng: number | null;
     customerAgreement: {
@@ -124,6 +144,7 @@ const form = ref({
     customer_lat: null as number | null,
     customer_lng: null as number | null,
     special_instructions: '',
+    promotion_id: '' as string | number,
     customer_agreement_version: props.customerAgreement.version,
     customer_agreement_accepted: false,
 });
@@ -200,6 +221,7 @@ function openOrder(service: ShopService) {
     // Each service is counted differently, so start the amount fields fresh.
     form.value.estimated_weight_kg = '';
     form.value.piece_count = '';
+    form.value.promotion_id = '';
     isOrderOpen.value = true;
     form.value.customer_agreement_accepted = false;
 }
@@ -290,6 +312,9 @@ async function loadEstimate() {
     } else {
         query.set('estimated_weight_kg', form.value.estimated_weight_kg);
     }
+    if (form.value.promotion_id !== '') {
+        query.set('promotion_id', String(form.value.promotion_id));
+    }
 
     try {
         const response = await fetch(`/user/orders/estimate?${query}`, {
@@ -315,6 +340,7 @@ watch(
         form.value.service_id,
         form.value.estimated_weight_kg,
         form.value.piece_count,
+        form.value.promotion_id,
     ],
     () => {
         clearTimeout(estimateTimer);
@@ -598,6 +624,43 @@ function goBack() {
                     </li>
                 </ul>
             </section>
+
+            <!-- ── Additional charges ─────────────────────────── -->
+            <section v-if="additionalCharges.length" class="mt-8">
+                <h2
+                    class="text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
+                >
+                    Additional charges
+                </h2>
+                <p class="mt-1 text-xs text-slate-500">
+                    Optional extras the shop can add to your order when
+                    your laundry is processed.
+                </p>
+                <ul
+                    class="mt-3 divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white"
+                >
+                    <li
+                        v-for="item in additionalCharges"
+                        :key="item.id"
+                        class="flex items-center justify-between gap-3 px-4 py-3"
+                    >
+                        <span class="flex items-center gap-2 text-sm text-slate-900">
+                            <Plus
+                                class="h-4 w-4 shrink-0 text-blue-600"
+                                aria-hidden="true"
+                            />
+                            {{ item.name }}
+                            <span class="text-xs text-slate-500"
+                                >{{ item.quantity }} {{ item.unit }}</span
+                            >
+                        </span>
+                        <span
+                            class="text-sm font-semibold text-slate-900 tabular-nums"
+                            >{{ money(item.price) }}</span
+                        >
+                    </li>
+                </ul>
+            </section>
         </div>
 
         <!-- ── Order sheet ─────────────────────────────────────── -->
@@ -742,6 +805,38 @@ function goBack() {
                                     errors.estimated_weight_kg
                                 }}
                             </p>
+                            <div v-if="promotions.length" class="mt-4">
+                                <label
+                                    for="order-promotion"
+                                    class="text-sm font-medium text-muted-foreground"
+                                    >Promotion</label
+                                >
+                                <select
+                                    id="order-promotion"
+                                    v-model="form.promotion_id"
+                                    class="mt-1 block min-h-12 w-full rounded-xl border border-border bg-background px-3 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                >
+                                    <option value="">No promotion</option>
+                                    <option
+                                        v-for="promo in promotions"
+                                        :key="promo.id"
+                                        :value="promo.id"
+                                    >
+                                        {{ promo.name }} · {{ promo.headline
+                                        }}{{
+                                            promo.min_order_amount
+                                                ? ` (min. ${money(promo.min_order_amount)})`
+                                                : ''
+                                        }}
+                                    </option>
+                                </select>
+                                <p
+                                    v-if="errors.promotion_id"
+                                    class="mt-1 text-xs text-red-500"
+                                >
+                                    {{ errors.promotion_id }}
+                                </p>
+                            </div>
                             <BillingBreakdown
                                 v-if="estimate"
                                 class="mt-3"

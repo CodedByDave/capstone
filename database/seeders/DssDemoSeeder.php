@@ -156,6 +156,7 @@ class DssDemoSeeder extends Seeder
         ];
 
         $make = fn (string $key, string $name, string $unit, int $qty, int $min, float $price, string $supplier) => [$key => Inventory::create([
+            ...self::salesOptions($key, $unit, $price),
             'shop_id' => $this->shop->id,
             'inventory_categories_id' => $category->id,
             'supplier_id' => $suppliers[$supplier]->id,
@@ -173,6 +174,41 @@ class DssDemoSeeder extends Seeder
             ...$make('bags', 'Plastic Bags', 'pcs', 400, 100, 2.50, 'pack'),
             ...$make('stain', 'Stain Remover', 'bottle', 6, 5, 120.00, 'pro'),
             ...$make('bleach', 'Bleach', 'bottle', 0, 5, 45.00, 'pro'),
+        ];
+    }
+
+    /**
+     * Unit configuration and sales options per item, mirroring InventoryService: the purchase package,
+     * an optional add-on (charged on orders) and an optional retail pack. `selling_price` is the per-unit
+     * price derived from the add-on, otherwise the retail pack.
+     *
+     * @return array<string, mixed>
+     */
+    private static function salesOptions(string $key, string $unit, float $cost): array
+    {
+        $config = [
+            'detergent' => ['box', 50, ['Extra detergent', 1, 12], ['Detergent sachet', 1, 12]],
+            'softener' => ['box', 50, ['Extra softener', 1, 10], ['Softener sachet', 1, 10]],
+            'bags' => ['pack', 100, ['Extra plastic bag', 1, 5], null],
+            'stain' => ['carton', 12, ['Spot treatment', 1, 40], ['Stain remover bottle', 1, 180]],
+            'bleach' => ['carton', 12, null, ['Bleach bottle', 1, 70]],
+            'hangers' => ['pack', 50, ['Extra hanger', 1, 12], null],
+        ][$key];
+        [$packageUnit, $packageSize, $addon, $retail] = $config;
+        $perUnit = $addon ? $addon[2] / $addon[1] : ($retail ? $retail[2] / $retail[1] : null);
+
+        return [
+            'package_unit' => $packageUnit,
+            'package_size' => $packageSize,
+            'addon_enabled' => $addon !== null,
+            'addon_name' => $addon[0] ?? null,
+            'addon_quantity' => $addon[1] ?? null,
+            'addon_price' => $addon[2] ?? null,
+            'retail_enabled' => $retail !== null,
+            'retail_name' => $retail[0] ?? null,
+            'retail_pack_size' => $retail[1] ?? null,
+            'retail_price' => $retail[2] ?? null,
+            'selling_price' => $perUnit !== null ? round($perUnit, 4) : null,
         ];
     }
 

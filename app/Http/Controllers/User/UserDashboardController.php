@@ -156,6 +156,8 @@ class UserDashboardController extends Controller
                 'rating_count' => $rating['count'] ?? 0,
             ],
             'services' => $this->catalog->serviceCards($shop->id, $services),
+            'additionalCharges' => $this->catalog->additionalChargeOptions($shop->id),
+            'promotions' => $this->promotions->forCustomer($shop->id),
             'customerAgreement' => $this->customerAgreementService->agreementData($shop),
             'userLat' => $lat ?: null,
             'userLng' => $lng ?: null,

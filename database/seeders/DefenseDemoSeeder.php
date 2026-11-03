@@ -116,6 +116,7 @@ class DefenseDemoSeeder extends Seeder
             $this->customer = $this->seedCustomer();
             $this->seedWalkInOrders();
             $this->seedOnlineOrders();
+            $this->seedExtraServiceLines();
             $this->seedStockUsage($items);
             $this->seedAttendance($employees);
             $this->seedPayroll($employees);
@@ -234,6 +235,7 @@ class DefenseDemoSeeder extends Seeder
         ];
 
         $make = fn (string $key, string $name, string $unit, int $qty, int $min, float $price, string $supplier) => [$key => Inventory::create([
+            ...self::salesOptions($key, $unit, $price),
             'shop_id' => $this->shop->id,
             'inventory_categories_id' => $category->id,
             'supplier_id' => $suppliers[$supplier]->id,
@@ -252,6 +254,41 @@ class DefenseDemoSeeder extends Seeder
             ...$make('stain', 'Stain Remover', 'bottle', 4, 6, 120.00, 'pro'),   // low stock
             ...$make('bleach', 'Bleach', 'bottle', 3, 8, 45.00, 'pro'),          // low stock
             ...$make('hangers', 'Hangers', 'pcs', 180, 50, 7.00, 'pack'),
+        ];
+    }
+
+    /**
+     * Unit configuration and sales options per item, mirroring InventoryService: the purchase package,
+     * an optional add-on (charged on orders) and an optional retail pack. `selling_price` is the per-unit
+     * price derived from the add-on, otherwise the retail pack.
+     *
+     * @return array<string, mixed>
+     */
+    private static function salesOptions(string $key, string $unit, float $cost): array
+    {
+        $config = [
+            'detergent' => ['box', 50, ['Extra detergent', 1, 12], ['Detergent sachet', 1, 12]],
+            'softener' => ['box', 50, ['Extra softener', 1, 10], ['Softener sachet', 1, 10]],
+            'bags' => ['pack', 100, ['Extra plastic bag', 1, 5], null],
+            'stain' => ['carton', 12, ['Spot treatment', 1, 40], ['Stain remover bottle', 1, 180]],
+            'bleach' => ['carton', 12, null, ['Bleach bottle', 1, 70]],
+            'hangers' => ['pack', 50, ['Extra hanger', 1, 12], null],
+        ][$key];
+        [$packageUnit, $packageSize, $addon, $retail] = $config;
+        $perUnit = $addon ? $addon[2] / $addon[1] : ($retail ? $retail[2] / $retail[1] : null);
+
+        return [
+            'package_unit' => $packageUnit,
+            'package_size' => $packageSize,
+            'addon_enabled' => $addon !== null,
+            'addon_name' => $addon[0] ?? null,
+            'addon_quantity' => $addon[1] ?? null,
+            'addon_price' => $addon[2] ?? null,
+            'retail_enabled' => $retail !== null,
+            'retail_name' => $retail[0] ?? null,
+            'retail_pack_size' => $retail[1] ?? null,
+            'retail_price' => $retail[2] ?? null,
+            'selling_price' => $perUnit !== null ? round($perUnit, 4) : null,
         ];
     }
 
@@ -641,6 +678,42 @@ class DefenseDemoSeeder extends Seeder
         }
 
         return array_key_first($weights);
+    }
+
+    /**
+     * Multi-service orders: some unpaid per-kg orders also carry a comforter (per bundle) or dry-cleaning
+     * (per piece) line, stored as service lines with the order total updated to match.
+     */
+    private function seedExtraServiceLines(): void
+    {
+        $orders = ShopOrder::query()->forShop($this->shop->id)
+            ->where('pricing_model', 'per_kg')
+            ->where('payment_status', 'unpaid')
+            ->whereNotIn('status', ['cancelled'])
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get();
+
+        foreach ($orders as $index => $order) {
+            $service = $this->services[$index % 2 === 0 ? 'comforter' : 'dry'];
+            $bundles = $service->pricing_model === 'per_bundle' ? 1 : null;
+            $pieces = $service->pricing_model === 'per_piece' ? mt_rand(2, 4) : null;
+            $amount = $bundles ? $bundles * (float) $service->bundle_price : $pieces * (float) $service->price_per_piece;
+
+            $order->serviceLines()->create([
+                'service_id' => $service->id,
+                'service_name' => $service->service_name,
+                'pricing_model' => $service->pricing_model,
+                'bundle_weight_kg' => $bundles ? $service->bundle_weight_kg : null,
+                'bundle_price' => $bundles ? $service->bundle_price : null,
+                'bundle_quantity' => $bundles,
+                'price_per_piece' => $pieces ? $service->price_per_piece : null,
+                'piece_count' => $pieces,
+                'amount' => $amount,
+            ]);
+
+            ShopOrder::unguarded(fn () => $order->update(['total_amount' => (float) $order->total_amount + $amount]));
+        }
     }
 
     /** @param array<string, Inventory> $items */

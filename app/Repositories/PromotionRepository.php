@@ -33,6 +33,15 @@ class PromotionRepository
         return $query->paginate($perPage);
     }
 
+    /** A promotion of this shop that is switched on and inside its dates, or null. */
+    public function findUsableForShop(int $id, int $shopId): ?Promotion
+    {
+        return Promotion::where('shop_id', $shopId)
+            ->active()
+            ->valid()
+            ->find($id);
+    }
+
     public function allActive(int $shopId): Collection
     {
         return Promotion::where('shop_id', $shopId)

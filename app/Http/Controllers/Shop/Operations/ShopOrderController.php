@@ -88,6 +88,7 @@ class ShopOrderController extends Controller
                 ->get(),
             'inventoryItems' => Inventory::where('shop_id', $shopId)
                 ->where('status', 'active')
+                ->usableAsSupply()
                 ->orderBy('name')
                 ->get(['id', 'name', 'unit', 'quantity', 'selling_price']),
             'promotions' => Promotion::where('shop_id', $shopId)
@@ -160,6 +161,7 @@ class ShopOrderController extends Controller
                 ->get(),
             'inventoryItems' => Inventory::where('shop_id', $shopId)
                 ->where('status', 'active')
+                ->usableAsSupply($order->supplies->pluck('id')->all())
                 ->orderBy('name')
                 ->get(['id', 'name', 'unit', 'quantity', 'selling_price']),
             'promotions' => Promotion::where('shop_id', $shopId)

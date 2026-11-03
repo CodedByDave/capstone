@@ -32,6 +32,7 @@ class StoreUserOrderRequest extends FormRequest
             // The pinned pickup spot, so the rider can be followed on a map. Both or neither.
             'customer_lat' => ['nullable', 'required_with:customer_lng', 'numeric', 'between:-90,90'],
             'customer_lng' => ['nullable', 'required_with:customer_lat', 'numeric', 'between:-180,180'],
+            'promotion_id' => ['nullable', 'integer', Rule::exists('promotions', 'id')->where('shop_id', $this->user()?->referred_shop_id)],
             'special_instructions' => ['nullable', 'string', 'max:500'],
             'customer_agreement_version' => ['required', 'string', 'max:30'],
             'customer_agreement_accepted' => ['required', 'accepted'],

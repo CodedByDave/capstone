@@ -8,6 +8,7 @@ use App\Models\Shop;
 use App\Repositories\PromotionRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class PromotionService
 {
@@ -36,6 +37,8 @@ class PromotionService
         return $this->repo->allActive($shopId)
             ->map(fn (Promotion $promotion) => [
                 'id' => $promotion->id,
+                'type' => $promotion->type,
+                'value' => (float) $promotion->value,
                 'name' => $promotion->name,
                 'headline' => $promotion->type === 'percentage'
                     ? rtrim(rtrim(number_format((float) $promotion->value, 2, '.', ''), '0'), '.').'% off'
@@ -46,6 +49,27 @@ class PromotionService
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * The discount a customer gets from a promotion on an order total. A promotion that is not the
+     * shop's, is switched off, expired, or whose minimum order is not met is rejected, never ignored.
+     */
+    public function discountFor(int $shopId, int $promotionId, float $total): float
+    {
+        $promotion = $this->repo->findUsableForShop($promotionId, $shopId);
+
+        if (! $promotion) {
+            throw ValidationException::withMessages(['promotion_id' => 'This promotion is no longer available.']);
+        }
+
+        if ($promotion->min_order_amount !== null && $total < (float) $promotion->min_order_amount) {
+            throw ValidationException::withMessages([
+                'promotion_id' => 'This promotion needs an order of at least ₱'.number_format((float) $promotion->min_order_amount, 2).'.',
+            ]);
+        }
+
+        return $promotion->computeDiscount($total);
     }
 
     public function archived(Shop $shop): Collection

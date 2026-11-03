@@ -40,7 +40,11 @@ export interface DeliveryTracking {
         driver_phone: string | null;
         vehicle_plate: string | null;
     } | null;
-    photos: { public_id: string; uploaded_at: string | null }[];
+    photos: {
+        public_id: string;
+        kind?: string;
+        uploaded_at: string | null;
+    }[];
     shop: Point & { name: string | null };
     destination: Point;
     rider: { lat: number; lng: number; located_at: string | null } | null;
@@ -457,7 +461,11 @@ onUnmounted(() => {
                 class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400"
             >
                 <Camera class="h-3.5 w-3.5" />
-                Photos from the shop
+                {{
+                    tracking.photos.some((p) => p.kind === 'pickup')
+                        ? 'Photos of your laundry'
+                        : 'Photos from the shop'
+                }}
             </p>
             <div class="grid grid-cols-3 gap-2">
                 <a
@@ -470,7 +478,11 @@ onUnmounted(() => {
                 >
                     <img
                         :src="`/user/orders/delivery-photos/${photo.public_id}`"
-                        alt="Delivery photo from the shop"
+                        :alt="
+                            photo.kind === 'pickup'
+                                ? 'Photo of your laundry at pickup'
+                                : 'Delivery photo from the shop'
+                        "
                         class="h-full w-full object-cover"
                         loading="lazy"
                     />
