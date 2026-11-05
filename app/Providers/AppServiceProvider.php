@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\OrderPaymentRecorded;
 use App\Events\OrderWeightConfirmed;
 use App\Listeners\ApplyOrderStatusAutomation;
+use App\Listeners\SetDriverAvailabilityOnAuth;
 use App\Listeners\StartOrderWhenReady;
 use App\Models\Employee;
 use App\Models\Order;
@@ -13,6 +14,8 @@ use App\Observers\EmployeeObserver;
 use App\Observers\OrderObserver;
 use App\Repositories\Contracts\PlatformRoleRepositoryInterface;
 use App\Repositories\Eloquent\PlatformRoleRepository;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
@@ -40,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(OrderPaymentRecorded::class, [ApplyOrderStatusAutomation::class, 'onPaymentRecorded']);
         Event::listen(OrderPaymentRecorded::class, StartOrderWhenReady::class);
         Event::listen(OrderWeightConfirmed::class, StartOrderWhenReady::class);
+        Event::listen(Login::class, [SetDriverAvailabilityOnAuth::class, 'onLogin']);
+        Event::listen(Logout::class, [SetDriverAvailabilityOnAuth::class, 'onLogout']);
 
         Route::bind('service', function ($value) {
             return ShopService::withTrashed()->findOrFail($value);

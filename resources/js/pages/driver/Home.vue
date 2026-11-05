@@ -7,7 +7,7 @@ import type {
     DriverJob,
     EarningsSummary,
 } from '@/types/driver';
-import { Link, router } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import {
     Bell,
     MapPin,
@@ -53,17 +53,6 @@ const bars = computed(() =>
         index < props.today.jobs_completed ? 'bg-[#22e06b]' : 'bg-white',
     ),
 );
-
-const toggling = ref(false);
-
-function toggleOnline() {
-    toggling.value = true;
-    router.patch(
-        '/driver/availability',
-        { online: !props.driver.is_online },
-        { preserveScroll: true, onFinish: () => (toggling.value = false) },
-    );
-}
 </script>
 
 <template>
@@ -76,21 +65,18 @@ function toggleOnline() {
                 </h1>
                 <p class="mt-0.5 flex items-center gap-1 text-[10px]">
                     Status :
-                    <button
-                        type="button"
-                        role="switch"
-                        :aria-checked="driver.is_online"
-                        :disabled="toggling"
+                    <!-- No switch: signing in puts a driver online on a scheduled day, signing out takes them offline. -->
+                    <span
                         :class="[
-                            'rounded-full px-2 py-0.5 text-[10px] font-medium disabled:opacity-60',
+                            'rounded-full px-2 py-0.5 text-[10px] font-medium',
                             driver.is_online
                                 ? 'bg-[#c9f5d6] text-[#17803d]'
                                 : 'bg-slate-200 text-slate-600',
                         ]"
-                        @click="toggleOnline"
+                        role="status"
                     >
                         {{ driver.is_online ? 'Online' : 'Offline' }}
-                    </button>
+                    </span>
                 </p>
             </div>
             <button
@@ -155,7 +141,8 @@ function toggleOnline() {
             v-if="!driver.is_online"
             class="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800"
         >
-            You are offline, so new orders are not assigned to you.
+            You are offline, so new orders are not assigned to you. Sign in
+            again on a day in your work schedule to go online.
         </p>
 
         <!-- New task -->

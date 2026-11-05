@@ -734,3 +734,58 @@ test('a driver with no shift today is shown offline even if left online earlier'
     expect($rider->fresh()->is_online)->toBeFalse()
         ->and($rider->fresh()->available_since)->toBeNull();
 });
+
+// ── Drivers go online when they sign in and offline when they sign out ───────
+
+test('signing in puts a scheduled driver online and signing out takes them offline', function () {
+    $rider = onlineRider(driverShop(), online: false);
+    $user = $rider->employee->user;
+
+    Illuminate\Support\Facades\Auth::login($user);
+    expect($rider->fresh()->is_online)->toBeTrue()
+        ->and($rider->fresh()->available_since)->not->toBeNull();
+
+    Illuminate\Support\Facades\Auth::logout();
+    expect($rider->fresh()->is_online)->toBeFalse()
+        ->and($rider->fresh()->available_since)->toBeNull();
+});
+
+test('a driver with no shift today stays offline when signing in', function () {
+    $rider = onlineRider(driverShop(), online: false, scheduled: false);
+
+    Illuminate\Support\Facades\Auth::login($rider->employee->user);
+
+    expect($rider->fresh()->is_online)->toBeFalse();
+});
+
+test('a driver who signs in picks up a delivery that was waiting for a driver', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop, online: false);
+    $delivery = App\Models\Delivery::create([
+        'shop_id' => $shop->id,
+        'customer_name' => 'Maria Cruz',
+        'delivery_address' => 'Anabu, Imus',
+        'status' => 'pending',
+    ]);
+
+    Illuminate\Support\Facades\Auth::login($rider->employee->user);
+
+    expect($delivery->fresh())->status->toBe('assigned')->rider_id->toBe($rider->id);
+});
+
+test('signing in as someone who is not a driver changes nothing', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop, online: false);
+
+    Illuminate\Support\Facades\Auth::login($shop->owner);
+
+    expect($rider->fresh()->is_online)->toBeFalse();
+});
+
+test('the driver home page has no online switch, only a status', function () {
+    $rider = onlineRider(driverShop());
+
+    $this->actingAs($rider->employee->user)->get('/driver')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('driver.is_online', true));
+});

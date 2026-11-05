@@ -137,6 +137,35 @@ class DriverAppService
     }
 
     /**
+     * A driver signing in is ready for work, so they go online on a day in their schedule. On a
+     * day off they stay offline: nothing is assigned to them and the app says why.
+     */
+    public function goOnlineOnLogin(User $user): void
+    {
+        $rider = $this->riders->findActiveForUser($user->id);
+
+        if ($rider === null) {
+            return;
+        }
+
+        try {
+            $this->setOnline($rider, true);
+        } catch (DriverJobException) {
+            // No shift today: the driver simply stays offline.
+        }
+    }
+
+    /** A driver who signs out is no longer reachable, so new orders go to someone else. */
+    public function goOfflineOnLogout(User $user): void
+    {
+        $rider = $this->riders->findActiveForUser($user->id);
+
+        if ($rider !== null && $rider->is_online) {
+            $this->riders->setOnline($rider, false);
+        }
+    }
+
+    /**
      * The driver says yes to a run they were just assigned; only then does it count as theirs to start.
      *
      * @throws ModelNotFoundException when the run is not this driver's

@@ -52,6 +52,8 @@ interface Rider {
     name: string;
     vehicle_type: string | null;
     available: boolean;
+    /** Why the rider cannot take a run now: On delivery, No shift today or Offline. */
+    unavailable_reason: string | null;
 }
 
 interface DeliveryPhoto {
@@ -852,7 +854,11 @@ function fmtTime(d: string) {
                                             "
                                             class="text-amber-600"
                                         >
-                                            · On delivery</span
+                                            ·
+                                            {{
+                                                r.unavailable_reason ??
+                                                'Unavailable'
+                                            }}</span
                                         >
                                     </SelectItem>
                                 </SelectContent>

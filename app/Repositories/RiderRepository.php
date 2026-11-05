@@ -24,9 +24,18 @@ class RiderRepository extends Repository
             ->whereNotNull('employee_id')
             ->orderBy('name')
             ->get(['id', 'name', 'vehicle_type', 'is_online'])
-            ->each(fn (Rider $rider) => $rider->setAttribute('available', $rider->is_online
-                && in_array($rider->id, $onDuty, true)
-                && ! in_array($rider->id, $busy, true)));
+            ->each(function (Rider $rider) use ($busy, $onDuty): void {
+                // Why the rider cannot take a run right now, so staff are not told "on delivery" for an offline driver.
+                $reason = match (true) {
+                    in_array($rider->id, $busy, true) => 'On delivery',
+                    ! in_array($rider->id, $onDuty, true) => 'No shift today',
+                    ! $rider->is_online => 'Offline',
+                    default => null,
+                };
+
+                $rider->setAttribute('available', $reason === null);
+                $rider->setAttribute('unavailable_reason', $reason);
+            });
     }
 
     /** @return list<int> ids of the shop's riders whose employee has a shift scheduled today */
