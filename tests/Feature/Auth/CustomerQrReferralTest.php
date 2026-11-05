@@ -101,52 +101,82 @@ test('a logged in customer without a shop is linked by scanning a QR', function 
 
     $this->actingAs($customer)
         ->get(route('customer.join', $shop->public_id))
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('user.shops.show', $shop->id));
 
     expect($customer->fresh()->referred_shop_id)->toBe($shop->id);
 });
 
-test('a customer already linked to a shop is not moved to another shop', function () {
+test('scanning another shop keeps the home shop and opens the scanned shop', function () {
     $own = referralShop('Own Shop');
     $other = referralShop('Other Shop');
     $customer = referralCustomer($own);
 
     $this->actingAs($customer)
         ->get(route('customer.join', $other->public_id))
-        ->assertRedirect(route('user.dashboard'))
-        ->assertSessionHas('toast.type', 'warning');
+        ->assertRedirect(route('user.shops.show', $other->id));
 
     expect($customer->fresh()->referred_shop_id)->toBe($own->id);
 });
 
-test('customers only reach the page of their own shop', function () {
+test('customers can open the page of any active shop', function () {
     $own = referralShop('Own Shop');
     $other = referralShop('Other Shop');
     $customer = referralCustomer($own);
 
     $this->actingAs($customer)->get(route('user.shops.show', $own->id))->assertOk();
-    $this->actingAs($customer)->get(route('user.shops.show', $other->id))->assertNotFound();
+    $this->actingAs($customer)->get(route('user.shops.show', $other->id))->assertOk();
     $this->actingAs($customer)->get(route('user.shops'))
-        ->assertRedirect(route('user.shops.show', $own->id));
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('user/Shops')
+            ->has('shops', 2)
+            ->where('shops.0.shop_name', 'Own Shop')
+            ->where('shops.0.is_home_shop', true));
 });
 
-test('the customer dashboard lists only the linked shop', function () {
+test('the customer dashboard lists the home shop first and then the other shops', function () {
     $own = referralShop('Own Shop');
-    referralShop('Other Shop');
+    referralShop('Another Shop');
 
     $this->actingAs(referralCustomer($own))
         ->get(route('user.dashboard'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('nearbyShops', 1)
-            ->where('nearbyShops.0.shop_name', 'Own Shop'));
+            ->has('nearbyShops', 2)
+            ->where('nearbyShops.0.shop_name', 'Own Shop')
+            ->where('nearbyShops.1.shop_name', 'Another Shop'));
 });
 
-test('customers cannot place an order with another shop', function () {
+test('the dashboard sorts shops by distance from the customer', function () {
+    $own = referralShop('Own Shop');
+    $far = referralShop('Far Shop');
+    $near = referralShop('Near Shop');
+    $far->update(['latitude' => 14.60, 'longitude' => 121.00]);
+    $near->update(['latitude' => 14.4001, 'longitude' => 120.9401]);
+
+    $this->actingAs(referralCustomer($own))
+        ->get(route('user.dashboard', ['lat' => 14.40, 'lng' => 120.94]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('nearbyShops.0.shop_name', 'Own Shop')
+            ->where('nearbyShops.1.shop_name', 'Near Shop')
+            ->where('nearbyShops.2.shop_name', 'Far Shop'));
+});
+
+test('customers can place an order with a shop other than their home shop', function () {
     $own = referralShop('Own Shop');
     $other = referralShop('Other Shop');
 
     $this->actingAs(referralCustomer($own))
         ->postJson(route('user.orders.store'), ['shop_id' => $other->id])
+        ->assertJsonMissingValidationErrors('shop_id');
+});
+
+test('customers cannot place an order with an inactive shop', function () {
+    $own = referralShop('Own Shop');
+    $closed = referralShop('Closed Shop');
+    $closed->update(['status' => 'inactive']);
+
+    $this->actingAs(referralCustomer($own))
+        ->postJson(route('user.orders.store'), ['shop_id' => $closed->id])
         ->assertJsonValidationErrors('shop_id');
 });
 

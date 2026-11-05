@@ -158,3 +158,43 @@ it('counts expired and not-yet-started promotions as inactive in the shop stats'
 
     expect($stats)->toMatchArray(['total' => 4, 'active' => 1, 'inactive' => 3]);
 });
+
+it('also shows promotions of a shop the customer has ordered from, but not shops they never chose', function () {
+    $home = homeShop();
+    $ordered = homeShop();
+    $stranger = homeShop();
+    makePromotion($home, ['name' => 'Home promo']);
+    makePromotion($ordered, ['name' => 'Ordered promo']);
+    makePromotion($stranger, ['name' => 'Stranger promo']);
+
+    $customer = homeCustomer($home);
+    $service = \App\Models\ShopService::create([
+        'shop_id' => $ordered->id,
+        'service_name' => 'Wash',
+        'is_active' => true,
+        'pricing_model' => 'per_kg',
+        'price_per_kg' => 60,
+    ]);
+    \App\Models\ShopOrder::create([
+        'shop_id' => $ordered->id,
+        'user_id' => $customer->id,
+        'order_source' => 'online',
+        'service_id' => $service->id,
+        'order_number' => 'ORD-HOME1',
+        'customer_name' => 'Customer',
+        'pickup_type' => 'walk_in',
+        'pricing_model' => 'per_kg',
+        'price_per_kg' => 60,
+        'total_amount' => 180,
+        'payment_method' => 'cash',
+        'payment_status' => 'unpaid',
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($customer)
+        ->get('/user/dashboard')
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('promotions', 2)
+            ->where('promotions.0.shop_name', 'Home Laundry')
+        );
+});

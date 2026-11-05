@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
 import type { DriverAttendance } from '@/types/driver';
 import { router } from '@inertiajs/vue3';
 import {
+    ArrowDownLeft,
     CalendarOff,
-    Clock,
     Loader2,
-    LogIn,
-    LogOut,
     MapPinOff,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -48,24 +45,20 @@ function time12(value: string | null): string {
     return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
 }
 
+const compact = (value: string | null): string => {
+    if (!value) return '';
+    const [h, m] = value.split(':');
+    const hour = parseInt(h, 10);
+    return `${hour % 12 || 12}${m === '00' ? '' : `:${m}`}${hour >= 12 ? 'PM' : 'AM'}`;
+};
+
 const shiftLabel = computed(() =>
     props.attendance.shift
-        ? `${time12(props.attendance.shift.start)} – ${time12(props.attendance.shift.end)}`
+        ? `${compact(props.attendance.shift.start)}-${compact(props.attendance.shift.end)}`
         : null,
 );
 
-const statusChip = computed(() => {
-    switch (props.attendance.record?.status) {
-        case 'present':
-            return { label: 'Present', cls: 'bg-emerald-100 text-emerald-700' };
-        case 'late':
-            return { label: 'Late', cls: 'bg-amber-100 text-amber-700' };
-        case 'absent':
-            return { label: 'Absent', cls: 'bg-red-100 text-red-600' };
-        default:
-            return null;
-    }
-});
+const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
 /** Asks for the phone's position. Nothing is sent to the server unless this succeeds. */
 function requestLocation(
@@ -129,112 +122,77 @@ async function clockOut() {
 </script>
 
 <template>
-    <section class="mt-4 rounded-2xl bg-white p-4">
-        <div class="flex items-start justify-between gap-3">
-            <div>
-                <h2 class="flex items-center gap-2 text-base font-bold">
-                    <Clock class="h-4 w-4" aria-hidden="true" />
-                    Attendance
-                </h2>
-                <p v-if="shiftLabel" class="mt-0.5 text-xs text-slate-500">
-                    Scheduled shift today: {{ shiftLabel }}
+    <section class="mt-3 rounded-2xl bg-[#f3f3f3] p-4">
+        <div class="flex items-center gap-3">
+            <div class="min-w-0">
+                <p class="text-sm font-semibold">{{ dayName }}</p>
+                <p class="text-[10px] text-slate-500">
+                    {{ shiftLabel ?? 'No shift' }}
                 </p>
             </div>
-            <span
-                v-if="statusChip"
-                :class="[
-                    'rounded-full px-2.5 py-1 text-xs font-semibold',
-                    statusChip.cls,
-                ]"
-            >
-                {{ statusChip.label }}
-            </span>
-        </div>
 
-        <!-- Not scheduled -->
-        <div
-            v-if="!canClockIn && !clockedIn"
-            class="mt-3 flex items-start gap-2 rounded-xl bg-slate-100 p-3 text-xs text-slate-600"
-        >
-            <CalendarOff class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>{{ attendance.blocked_reason }}</span>
-        </div>
-
-        <!-- Times -->
-        <div
-            v-if="clockedIn || attendance.record"
-            class="mt-3 grid grid-cols-2 gap-2 text-sm"
-        >
-            <div class="rounded-xl bg-slate-50 p-3">
-                <p class="text-[11px] text-slate-500">Clocked in</p>
-                <p class="font-semibold">
-                    {{ time12(attendance.record?.time_in ?? null) }}
-                </p>
-            </div>
-            <div class="rounded-xl bg-slate-50 p-3">
-                <p class="text-[11px] text-slate-500">Clocked out</p>
-                <p class="font-semibold">
-                    {{ time12(attendance.record?.time_out ?? null) }}
-                </p>
-            </div>
-        </div>
-        <p
-            v-if="attendance.record?.remarks"
-            class="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700"
-        >
-            {{ attendance.record.remarks }}
-        </p>
-
-        <!-- Location is required -->
-        <p
-            v-if="locationBlocked && !clockedOut"
-            class="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-xs text-amber-800"
-            role="alert"
-        >
-            <MapPinOff class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>
-                Location is off. Turn it on for this site in your browser or
-                phone settings, then try again. You cannot clock in without it.
-            </span>
-        </p>
-
-        <!-- Actions -->
-        <div class="mt-3">
-            <Button
-                v-if="!clockedIn"
-                class="h-12 w-full rounded-xl bg-blue-600 font-semibold hover:bg-blue-700"
-                :disabled="!canClockIn || busy || locating"
+            <button
+                type="button"
+                class="rounded-full bg-[#5b6cff] px-3 py-1 text-[11px] font-semibold text-white disabled:opacity-50"
+                :disabled="clockedIn || !canClockIn || busy || locating"
                 @click="clockIn"
             >
                 <Loader2
-                    v-if="busy || locating"
-                    class="mr-2 h-4 w-4 animate-spin"
+                    v-if="(busy || locating) && !clockedIn"
+                    class="mr-1 inline h-3 w-3 animate-spin"
                 />
-                <LogIn v-else class="mr-2 h-4 w-4" />
-                {{ locating ? 'Getting your location…' : 'Clock in' }}
-            </Button>
-
-            <Button
-                v-else-if="!clockedOut"
-                variant="outline"
-                class="h-12 w-full rounded-xl font-semibold"
-                :disabled="busy || locating"
+                Clock-in
+            </button>
+            <button
+                type="button"
+                class="rounded-full bg-[#ff5b5b] px-3 py-1 text-[11px] font-semibold text-white disabled:opacity-50"
+                :disabled="!clockedIn || clockedOut || busy || locating"
                 @click="clockOut"
             >
                 <Loader2
-                    v-if="busy || locating"
-                    class="mr-2 h-4 w-4 animate-spin"
+                    v-if="(busy || locating) && clockedIn"
+                    class="mr-1 inline h-3 w-3 animate-spin"
                 />
-                <LogOut v-else class="mr-2 h-4 w-4" />
-                Clock out
-            </Button>
-
-            <p
-                v-else
-                class="py-2 text-center text-sm font-semibold text-slate-500"
-            >
-                Done for today.
-            </p>
+                Clock-out
+            </button>
+            <ArrowDownLeft
+                class="ml-auto h-4 w-4 shrink-0 text-slate-500"
+                aria-hidden="true"
+            />
         </div>
+
+        <p
+            v-if="clockedIn || attendance.record"
+            class="mt-2 text-[11px] text-slate-600"
+        >
+            In {{ time12(attendance.record?.time_in ?? null) }} · Out
+            {{ time12(attendance.record?.time_out ?? null) }}
+        </p>
+
+        <p
+            v-if="!canClockIn && !clockedIn"
+            class="mt-2 flex items-start gap-2 text-[11px] text-slate-600"
+        >
+            <CalendarOff
+                class="mt-0.5 h-3.5 w-3.5 shrink-0"
+                aria-hidden="true"
+            />
+            {{ attendance.blocked_reason }}
+        </p>
+        <p
+            v-if="attendance.record?.remarks"
+            class="mt-2 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700"
+        >
+            {{ attendance.record.remarks }}
+        </p>
+        <p
+            v-if="locationBlocked && !clockedOut"
+            class="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 p-2 text-[11px] text-amber-800"
+            role="alert"
+        >
+            <MapPinOff class="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            Location is off. Turn it on for this site, then try again. You
+            cannot clock in without it.
+        </p>
     </section>
 </template>

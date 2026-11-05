@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Driver;
 use App\Exceptions\DriverJobException;
 use App\Exceptions\RiderLocationException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Driver\AcceptJobRequest;
+use App\Http\Requests\Driver\RejectJobRequest;
 use App\Http\Requests\Driver\SetAvailabilityRequest;
 use App\Http\Requests\Driver\UpdateJobStatusRequest;
 use App\Http\Requests\Driver\UpdateRiderLocationRequest;
 use App\Services\Driver\DriverAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /** What a driver does: go online or offline, move a run forward, share their position. */
 class DriverJobController extends Controller
@@ -51,6 +54,49 @@ class DriverJobController extends Controller
         }
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Status updated.']);
+    }
+
+    public function accept(AcceptJobRequest $request, string $job): RedirectResponse
+    {
+        try {
+            $this->service->accept($request->attributes->get('rider'), $job);
+        } catch (DriverJobException $exception) {
+            return back()->with('toast', ['type' => 'error', 'message' => $exception->getMessage()]);
+        }
+
+        return back()->with('toast', ['type' => 'success', 'message' => 'Order accepted. You can head out now.']);
+    }
+
+    public function reject(RejectJobRequest $request, string $job): RedirectResponse
+    {
+        try {
+            $this->service->reject(
+                $request->attributes->get('rider'),
+                $job,
+                $request->validated('reason'),
+                $request->validated('note'),
+                $request->file('proof_photo'),
+            );
+        } catch (DriverJobException $exception) {
+            return back()->with('toast', ['type' => 'error', 'message' => $exception->getMessage()]);
+        }
+
+        return redirect('/driver/jobs')->with('toast', [
+            'type' => 'success',
+            'message' => 'Order rejected. The shop was told, and you are now offline.',
+        ]);
+    }
+
+    public function alerts(Request $request): JsonResponse
+    {
+        return response()->json(['alerts' => $this->service->alerts($request->user())]);
+    }
+
+    public function markAlertRead(Request $request, string $id): JsonResponse
+    {
+        $this->service->markAlertRead($request->user(), $id);
+
+        return response()->json(['ok' => true]);
     }
 
     public function updateLocation(UpdateRiderLocationRequest $request, string $job): JsonResponse

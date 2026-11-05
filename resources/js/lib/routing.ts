@@ -1,14 +1,13 @@
+import { MAPBOX_TOKEN } from '@/lib/mapbox';
 import type { LatLng } from '@/lib/maps';
 
 /**
- * Road routing for the live tracking page. The public OSRM demo server is free and needs no key,
- * but it is meant for light use: point `VITE_ROUTING_URL` at your own OSRM (or a compatible
- * router) for heavy traffic. When routing is unreachable the page falls back to a straight line
- * and a speed-based estimate, so tracking still works.
+ * Road routing for live tracking and driver directions, from the rider's current position (so it
+ * cannot go through the shop-scoped proxy). It calls Mapbox Directions with the public token. When
+ * routing is unreachable the page falls back to a straight line and a speed-based estimate, so
+ * tracking still works.
  */
-const ROUTING_URL = (
-    import.meta.env.VITE_ROUTING_URL ?? 'https://router.project-osrm.org'
-).replace(/\/$/, '');
+const DIRECTIONS_URL = 'https://api.mapbox.com/directions/v5/mapbox/driving';
 
 const ROUTING_TIMEOUT_MS = 8_000;
 
@@ -72,9 +71,11 @@ export async function fetchRoute(
     to: LatLng,
     signal?: AbortSignal,
 ): Promise<RoadRoute> {
+    if (!MAPBOX_TOKEN) return straightLine(from, to);
+
     const url =
-        `${ROUTING_URL}/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}` +
-        '?overview=full&geometries=geojson';
+        `${DIRECTIONS_URL}/${from.lng},${from.lat};${to.lng},${to.lat}` +
+        `?overview=full&geometries=geojson&access_token=${encodeURIComponent(MAPBOX_TOKEN)}`;
 
     // A slow router must not freeze the ETA: give up after a few seconds and use the estimate.
     const timeout = new AbortController();
@@ -148,4 +149,27 @@ export function formatDuration(seconds: number): string {
     const rest = minutes % 60;
 
     return rest === 0 ? `${hours} hr` : `${hours} hr ${rest} min`;
+}
+
+export interface RouteSummary {
+    distanceText: string;
+    durationText: string;
+    distanceMeters: number;
+    durationSeconds: number;
+}
+
+/** "3.2 km" / "450 m" */
+export function formatDistance(meters: number): string {
+    return meters < 1000
+        ? `${Math.round(meters / 10) * 10} m`
+        : `${(meters / 1000).toFixed(1)} km`;
+}
+
+export function summarizeRoute(route: RoadRoute): RouteSummary {
+    return {
+        distanceText: formatDistance(route.distanceMeters),
+        durationText: formatDuration(route.durationSeconds),
+        distanceMeters: route.distanceMeters,
+        durationSeconds: route.durationSeconds,
+    };
 }

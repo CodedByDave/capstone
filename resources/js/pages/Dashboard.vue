@@ -34,11 +34,13 @@ interface NearbyShop {
     services_count: number;
     rating_avg: number | null;
     rating_count: number;
+    is_home_shop?: boolean;
 }
 
 interface Promotion {
     id: number;
     name: string;
+    shop_name?: string | null;
     headline: string;
     description: string | null;
     min_order_amount: number | null;
@@ -53,10 +55,12 @@ interface RatingPrompt {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-defineProps<{
+const props = defineProps<{
     recentOrders: RecentOrder[];
     totalOrders: number;
     nearbyShops: NearbyShop[];
+    userLat: number | null;
+    userLng: number | null;
     ratingPrompt: RatingPrompt | null;
     promotions: Promotion[];
 }>();
@@ -125,8 +129,38 @@ function currency(val: number) {
 }
 
 function goToShop(shop: NearbyShop) {
-    router.visit(`/user/shops/${shop.id}`);
+    const query = props.userLat
+        ? `?lat=${props.userLat}&lng=${props.userLng}`
+        : '';
+    router.visit(`/user/shops/${shop.id}${query}`);
 }
+
+// Ask for the customer's location once so the shops can be listed nearest first.
+const locating = ref(false);
+function locateMe() {
+    if (!navigator.geolocation) return;
+    locating.value = true;
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            router.get(
+                '/user/dashboard',
+                { lat: pos.coords.latitude, lng: pos.coords.longitude },
+                {
+                    replace: true,
+                    preserveScroll: true,
+                    onFinish: () => (locating.value = false),
+                },
+            );
+        },
+        () => {
+            locating.value = false;
+        },
+        { timeout: 8000 },
+    );
+}
+onMounted(() => {
+    if (!props.userLat) locateMe();
+});
 
 // Promotions carousel: the dots follow the card closest to the left edge.
 const promoTrack = ref<HTMLElement | null>(null);
@@ -223,7 +257,8 @@ function promoDetail(promo: Promotion) {
                         <p
                             class="relative text-[10px] font-medium tracking-[0.14em] uppercase opacity-90"
                         >
-                            {{ promo.name }}
+                            {{ promo.shop_name ? `${promo.shop_name} · ` : ''
+                            }}{{ promo.name }}
                         </p>
                         <p
                             class="relative mt-6 font-display text-[32px] leading-10 font-bold"
@@ -253,42 +288,89 @@ function promoDetail(promo: Promotion) {
                 </div>
             </section>
 
-            <!-- ── Your shop ──────────────────────────────────── -->
-            <div
-                v-for="shop in nearbyShops"
-                :key="shop.id"
-                class="mt-4 flex items-center justify-between gap-3 text-xs"
-            >
-                <p class="min-w-0 truncate text-slate-600">
-                    {{ shop.shop_name }} · {{ shop.barangay }},
-                    {{ shop.municipality }}
-                </p>
-                <button
-                    type="button"
-                    class="shrink-0 font-medium text-blue-600 hover:underline"
-                    @click="goToShop(shop)"
-                >
-                    View shop
-                </button>
-            </div>
+            <!-- ── Nearby shops ───────────────────────────────── -->
+            <section class="mt-5" aria-labelledby="nearby-heading">
+                <div class="flex items-center justify-between gap-3">
+                    <h2
+                        id="nearby-heading"
+                        class="text-sm font-semibold text-slate-800"
+                    >
+                        {{
+                            userLat ? 'Laundry shops near you' : 'Laundry shops'
+                        }}
+                    </h2>
+                    <div class="flex items-center gap-3 text-xs">
+                        <button
+                            v-if="!userLat"
+                            type="button"
+                            class="font-medium text-blue-600 hover:underline disabled:opacity-50"
+                            :disabled="locating"
+                            @click="locateMe"
+                        >
+                            {{ locating ? 'Locating…' : 'Use my location' }}
+                        </button>
+                        <button
+                            type="button"
+                            class="font-medium text-blue-600 hover:underline"
+                            @click="router.visit('/user/shops')"
+                        >
+                            See all
+                        </button>
+                    </div>
+                </div>
 
-            <!-- ── No shop yet ────────────────────────────────── -->
-            <div
-                v-if="nearbyShops.length === 0"
-                class="mt-7 flex flex-col items-center border-y border-slate-100 px-4 py-8 text-center"
-            >
-                <QrCode
-                    class="mb-2 h-8 w-8 text-slate-400"
-                    aria-hidden="true"
-                />
-                <p class="text-sm font-semibold text-slate-800">
-                    Scan your laundry shop's QR code
-                </p>
-                <p class="mt-1 text-xs text-slate-500">
-                    Ask the shop for its QR code and scan it to connect your
-                    account and start ordering.
-                </p>
-            </div>
+                <ul class="mt-2 divide-y divide-slate-100">
+                    <li v-for="shop in nearbyShops" :key="shop.id">
+                        <button
+                            type="button"
+                            class="flex min-h-12 w-full items-center justify-between gap-3 py-2.5 text-left"
+                            @click="goToShop(shop)"
+                        >
+                            <span class="min-w-0">
+                                <span
+                                    class="block truncate text-sm font-medium text-slate-800"
+                                >
+                                    {{ shop.shop_name }}
+                                    <span
+                                        v-if="shop.is_home_shop"
+                                        class="ml-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700"
+                                        >Your shop</span
+                                    >
+                                </span>
+                                <span
+                                    class="block truncate text-xs text-slate-500"
+                                >
+                                    {{ shop.barangay }}, {{ shop.municipality }}
+                                    <template v-if="shop.distance_km !== null">
+                                        · {{ shop.distance_km }} km
+                                    </template>
+                                </span>
+                            </span>
+                            <span
+                                class="shrink-0 text-xs font-medium text-blue-600"
+                                >View</span
+                            >
+                        </button>
+                    </li>
+                </ul>
+
+                <div
+                    v-if="nearbyShops.length === 0"
+                    class="mt-3 flex flex-col items-center border-y border-slate-100 px-4 py-8 text-center"
+                >
+                    <QrCode
+                        class="mb-2 h-8 w-8 text-slate-400"
+                        aria-hidden="true"
+                    />
+                    <p class="text-sm font-semibold text-slate-800">
+                        No laundry shops found yet
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Allow location access to find shops near you, or scan a
+                        shop's QR code.
+                    </p>
+                </div>
+            </section>
 
             <!-- ── Actions ────────────────────────────────────── -->
             <div class="mt-5 space-y-3">

@@ -8,7 +8,7 @@ use App\Repositories\ShopRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
- * A shop owner's operating hours: open around the clock, or only between two times of day.
+ * A shop owner's operating hours: the weekdays the shop opens, and either all day or only between two times.
  */
 class ShopOperatingHoursService
 {
@@ -22,6 +22,7 @@ class ShopOperatingHoursService
             'is_open_24_7' => (bool) $shop->is_open_24_7,
             'opens_at' => $shop->opens_at ? substr($shop->opens_at, 0, 5) : '08:00',
             'closes_at' => $shop->closes_at ? substr($shop->closes_at, 0, 5) : '17:00',
+            'operating_days' => $shop->openDays(),
         ];
     }
 
@@ -35,6 +36,7 @@ class ShopOperatingHoursService
             // Keep the last custom hours when switching to 24/7, so switching back needs no retyping.
             'opens_at' => $always ? $shop->opens_at : $data['opens_at'],
             'closes_at' => $always ? $shop->closes_at : $data['closes_at'],
+            'operating_days' => collect($data['operating_days'] ?? $shop->openDays())->map(fn ($day) => (int) $day)->unique()->sort()->values()->all(),
         ]);
     }
 

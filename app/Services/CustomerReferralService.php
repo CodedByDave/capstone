@@ -8,8 +8,8 @@ use App\Repositories\ShopRepository;
 use App\Repositories\UserRepository;
 
 /**
- * Customers join a laundry shop by scanning its QR code and stay tied to that shop, so a shop never
- * loses a customer it referred to another shop.
+ * Customers sign up by scanning a laundry shop's QR code. The first shop is kept as their home shop
+ * (and credited as the referrer), but they are free to browse and order from any nearby shop.
  */
 class CustomerReferralService
 {
@@ -40,19 +40,14 @@ class CustomerReferralService
     }
 
     /**
-     * Ties a customer that has no shop yet to the scanned shop.
-     *
-     * @return bool false when the customer already belongs to a shop
+     * Remembers the first shop a customer scanned as their home shop. Scanning another shop later
+     * never moves or blocks them: customers can browse and order from any active shop.
      */
-    public function bindCustomer(User $customer, Shop $shop): bool
+    public function bindCustomer(User $customer, Shop $shop): void
     {
-        if ($customer->referred_shop_id !== null) {
-            return $customer->referred_shop_id === $shop->id;
+        if ($customer->referred_shop_id === null) {
+            $this->users->setReferredShop($customer, $shop->id);
         }
-
-        $this->users->setReferredShop($customer, $shop->id);
-
-        return true;
     }
 
     /** @return array{name: string, municipality: string|null, barangay: string|null} */

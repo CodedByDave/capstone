@@ -10,7 +10,9 @@ use App\Models\Rider;
 use App\Models\ShopOrderPayment;
 use App\Models\User;
 use App\Notifications\DeliveryNotification;
+use App\Notifications\DeliveryRejectedNotification;
 use App\Repositories\DeliveryRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\RiderRepository;
 use App\Services\DeliveryProofService;
 use App\Services\LogisticsService;
@@ -19,6 +21,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * The driver app: a driver sees and moves only the runs assigned to them. A run keeps the
@@ -37,6 +40,7 @@ class DriverAppService
         private readonly DriverAttendanceService $attendance,
         private readonly OrderPaymentService $orderPayments,
         private readonly DeliveryProofService $proofs,
+        private readonly NotificationRepository $notifications,
     ) {}
 
     // ── Pages ─────────────────────────────────────────────────────────────────
@@ -108,6 +112,7 @@ class DriverAppService
         return [
             'driver' => $this->driverPayload($rider),
             'rating' => $this->deliveries->averageRatingForRider($rider->id),
+            'attendance' => $this->attendance->state($rider),
             'attendance_history' => $this->attendance->history($rider),
         ];
     }
@@ -129,6 +134,103 @@ class DriverAppService
         }
 
         return $rider;
+    }
+
+    /**
+     * The driver says yes to a run they were just assigned; only then does it count as theirs to start.
+     *
+     * @throws ModelNotFoundException when the run is not this driver's
+     * @throws DriverJobException when the run is not waiting for an answer
+     */
+    public function accept(Rider $rider, string $publicId): Delivery
+    {
+        $delivery = $this->findOwnJob($rider, $publicId);
+
+        if (! $delivery->awaitsAcceptance()) {
+            throw new DriverJobException('This order is no longer waiting for your answer.');
+        }
+
+        $this->deliveries->update($delivery, ['accepted_at' => now()]);
+
+        return $delivery;
+    }
+
+    /**
+     * The driver turns a run down with a reason and a photo as proof (an emergency, a breakdown...).
+     * The run goes back in line for the next free driver, never this one, and the driver goes offline
+     * so nothing else is handed to them while they sort their problem out.
+     *
+     * @throws ModelNotFoundException when the run is not this driver's
+     * @throws DriverJobException when the run is already on the road
+     */
+    public function reject(Rider $rider, string $publicId, string $reason, ?string $note, UploadedFile $photo): Delivery
+    {
+        $delivery = $this->findOwnJob($rider, $publicId);
+
+        if ($delivery->status !== 'assigned') {
+            throw new DriverJobException('You can only reject an order before you pick it up.');
+        }
+
+        $path = $photo->store("delivery-rejections/{$delivery->shop_id}/{$delivery->public_id}", 'private');
+
+        try {
+            $rejection = DB::transaction(function () use ($delivery, $rider, $reason, $note, $path) {
+                $rejection = $this->deliveries->createRejection($delivery, $rider->id, [
+                    'reason' => $reason,
+                    'note' => $note,
+                    'photo_path' => $path,
+                ]);
+
+                $this->deliveries->update($delivery, [
+                    'rider_id' => null,
+                    'status' => 'pending',
+                    'assigned_at' => null,
+                    'accepted_at' => null,
+                    'rider_lat' => null,
+                    'rider_lng' => null,
+                    'rider_located_at' => null,
+                ]);
+
+                $this->riders->setOnline($rider, false);
+
+                return $rejection;
+            });
+        } catch (\Throwable $exception) {
+            Storage::disk('private')->delete($path);
+
+            throw $exception;
+        }
+
+        $delivery->load(['order.customer', 'order.shop.owner']);
+        $delivery->order?->shop?->owner?->notify(new DeliveryRejectedNotification($delivery, $rejection, $rider->name));
+
+        // The next free driver gets it; if nobody can, the customer and shop are told.
+        $this->logistics->assignWaitingDeliveries($delivery->shop_id);
+
+        if ($this->deliveries->waitingForOrder((int) $delivery->shop_order_id)) {
+            $this->logistics->announceNoRider($delivery);
+        }
+
+        return $delivery->refresh();
+    }
+
+    /** @return list<array{id: string, title: string, body: string, url: ?string}> new-run alerts the app has not shown yet */
+    public function alerts(User $user): array
+    {
+        return $this->notifications->unreadOfTypes($user, ['driver_assignment'], 10)
+            ->map(fn ($notification) => [
+                'id' => $notification->id,
+                'title' => $notification->data['title'] ?? '',
+                'body' => $notification->data['body'] ?? '',
+                'url' => $notification->data['url'] ?? null,
+            ])
+            ->values()
+            ->all();
+    }
+
+    public function markAlertRead(User $user, string $id): void
+    {
+        $this->notifications->markRead($user, $id);
     }
 
     /**
@@ -170,6 +272,10 @@ class DriverAppService
         }
 
         $changes = ['status' => $status, 'notes' => $notes ?? $delivery->notes];
+        // Going ahead with a run counts as accepting it.
+        if (! $delivery->accepted_at) {
+            $changes['accepted_at'] = now();
+        }
         if ($status === 'picked_up' && ! $delivery->picked_up_at) {
             $changes['picked_up_at'] = now();
         }
@@ -249,6 +355,8 @@ class DriverAppService
 
         return [
             'name' => $rider->name,
+            'email' => $rider->employee?->email,
+            'avatar' => $rider->employee?->user?->profilePhotoUrl(),
             'phone' => $rider->phone,
             'vehicle_type' => $rider->vehicle_type,
             'is_online' => (bool) $rider->is_online,
@@ -343,6 +451,8 @@ class DriverAppService
             'distance_km' => $run->distance_km !== null ? (float) $run->distance_km : null,
             'assigned_at' => $run->assigned_at?->toIso8601String(),
             'finished_at' => $finished ? $run->updated_at?->toIso8601String() : null,
+            // A freshly assigned run waits for the driver to accept or reject it before they set off.
+            'awaiting_acceptance' => $run->awaitsAcceptance(),
             'target' => ($headingToCustomer ? $customerStop : $shopStop) + ['kind' => $headingToCustomer ? 'customer' : 'shop'],
             'customer_stop' => $customerStop + ['kind' => 'customer'],
             'shop_stop' => $shopStop + ['kind' => 'shop'],

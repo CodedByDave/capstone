@@ -1,9 +1,8 @@
 <script setup lang="ts">
+import MapView from '@/components/map/MapView.vue';
+import { addMarker, dotElement, pinElement, toLngLat } from '@/lib/mapbox';
 import {
-    createBaseMap,
-    dotIcon,
     formatPeso,
-    pinIcon,
     reverseGeocode,
     searchPlaces,
     type LatLng,
@@ -11,7 +10,6 @@ import {
 } from '@/lib/maps';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
-import L from 'leaflet';
 import {
     Info,
     Loader,
@@ -21,7 +19,8 @@ import {
     Search,
     Truck,
 } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import type { Map as MapboxMap, Marker } from 'mapbox-gl';
+import { computed, onUnmounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 interface FeeBreakdown {
@@ -70,14 +69,14 @@ function onSearchInput() {
         suggestions.value = [];
         return;
     }
-    // Debounced; the Nominatim client also spaces requests at least 1 s apart.
-    searchTimer = setTimeout(() => runSearch(query), 700);
+    // Debounced; the server caches repeated searches.
+    searchTimer = setTimeout(() => runSearch(query), 450);
 }
 
 async function runSearch(query: string) {
     searching.value = true;
     try {
-        suggestions.value = await searchPlaces(query);
+        suggestions.value = await searchPlaces(query, props.shopLocation);
         if (suggestions.value.length === 0) {
             toast.info('No matching places found. Try a nearby landmark.');
         }
@@ -93,9 +92,9 @@ async function runSearch(query: string) {
 function chooseSuggestion(place: PlaceResult) {
     suggestions.value = [];
     searchQuery.value = '';
-    address.value = place.display_name;
-    setPin({ lat: parseFloat(place.lat), lng: parseFloat(place.lon) }, false);
-    map?.setView([pin.value!.lat, pin.value!.lng], 17);
+    address.value = place.label;
+    setPin({ lat: place.lat, lng: place.lng }, false);
+    map?.easeTo({ center: toLngLat(place), zoom: 17 });
 }
 
 function useMyLocation() {
@@ -111,10 +110,10 @@ function useMyLocation() {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
             });
-            map?.setView(
-                [position.coords.latitude, position.coords.longitude],
-                17,
-            );
+            map?.easeTo({
+                center: [position.coords.longitude, position.coords.latitude],
+                zoom: 17,
+            });
         },
         (error) => {
             locating.value = false;
@@ -130,33 +129,26 @@ function useMyLocation() {
 
 // ─── Map ─────────────────────────────────────────────────────────────────────
 
-const mapEl = ref<HTMLElement | null>(null);
-let map: L.Map | null = null;
-let pinMarker: L.Marker | null = null;
+let map: MapboxMap | null = null;
+let pinMarker: Marker | null = null;
 
-onMounted(() => {
-    if (!mapEl.value) return;
-    const center: L.LatLngTuple | undefined = props.shopLocation
-        ? [props.shopLocation.lat, props.shopLocation.lng]
-        : undefined;
-    map = createBaseMap(mapEl.value, center, 14);
+function onMapReady(created: MapboxMap) {
+    map = created;
 
     if (props.shopLocation) {
-        L.marker([props.shopLocation.lat, props.shopLocation.lng], {
-            icon: dotIcon('#7c3aed'),
-            keyboard: false,
-        })
-            .bindTooltip(props.shopName ?? 'Shop')
-            .addTo(map);
+        const shop = dotElement('#7c3aed');
+        shop.title = props.shopName ?? 'Shop';
+        addMarker(map, shop, props.shopLocation);
     }
 
-    map.on('click', (event: L.LeafletMouseEvent) => setPin(event.latlng));
-});
+    map.on('click', (event) =>
+        setPin({ lat: event.lngLat.lat, lng: event.lngLat.lng }),
+    );
+}
 
 onUnmounted(() => {
     if (searchTimer) clearTimeout(searchTimer);
     if (quoteTimer) clearTimeout(quoteTimer);
-    map?.remove();
     map = null;
 });
 
@@ -165,15 +157,16 @@ function setPin(point: LatLng, lookupAddress = true) {
 
     if (map) {
         if (pinMarker) {
-            pinMarker.setLatLng([point.lat, point.lng]);
+            pinMarker.setLngLat(toLngLat(point));
         } else {
-            pinMarker = L.marker([point.lat, point.lng], {
-                icon: pinIcon(),
+            const element = pinElement();
+            element.title = 'Delivery location';
+            pinMarker = addMarker(map, element, point, {
+                anchor: 'bottom',
                 draggable: true,
-                title: 'Delivery location',
-            }).addTo(map);
+            });
             pinMarker.on('dragend', () => {
-                const position = pinMarker!.getLatLng();
+                const position = pinMarker!.getLngLat();
                 setPin({ lat: position.lat, lng: position.lng });
             });
         }
@@ -314,9 +307,12 @@ function submit() {
             />
             <ul
                 v-if="suggestions.length"
-                class="absolute z-[1000] mt-1 max-h-56 w-full overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900"
+                class="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900"
             >
-                <li v-for="place in suggestions" :key="place.place_id">
+                <li
+                    v-for="place in suggestions"
+                    :key="`${place.lat},${place.lng}`"
+                >
                     <button
                         type="button"
                         class="flex w-full items-start gap-2 px-3 py-2 text-left text-xs text-gray-700 hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-gray-800"
@@ -325,7 +321,7 @@ function submit() {
                         <MapPin
                             class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400"
                         />
-                        <span>{{ place.display_name }}</span>
+                        <span>{{ place.label }}</span>
                     </button>
                 </li>
             </ul>
@@ -335,11 +331,14 @@ function submit() {
         <div
             class="isolate overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
         >
-            <div
-                ref="mapEl"
-                class="h-64 w-full sm:h-72"
+            <MapView
+                class="w-full"
+                height-class="h-64 sm:h-72"
+                :center="shopLocation"
+                :zoom="15"
                 role="application"
                 aria-label="Delivery location map. Tap to drop a pin; drag the pin to adjust."
+                @ready="onMapReady"
             />
         </div>
         <div class="flex items-center justify-between gap-2">

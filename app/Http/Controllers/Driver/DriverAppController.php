@@ -26,9 +26,9 @@ class DriverAppController extends Controller
 
     public function show(Request $request, string $job): Response
     {
-        return Inertia::render('driver/JobDetail', [
+        // A job opens on the map page, which carries the whole pickup/delivery flow.
+        return Inertia::render('driver/Map', [
             ...$this->service->job($request->attributes->get('rider'), $job),
-            'maps_key' => config('services.google.maps_key'),
         ]);
     }
 
@@ -36,7 +36,6 @@ class DriverAppController extends Controller
     {
         return Inertia::render('driver/Map', [
             ...$this->service->map($request->attributes->get('rider')),
-            'maps_key' => config('services.google.maps_key'),
         ]);
     }
 

@@ -452,6 +452,37 @@ test('the owner saves operating hours from settings', function () {
     expect($shop->fresh()->is_open_24_7)->toBeTrue();
 });
 
+test('a shop is closed on the weekdays it does not open', function () {
+    // 2026-11-04 is a Wednesday (3); the shop opens Monday, Wednesday and Friday.
+    $shop = new App\Models\Shop(['is_open_24_7' => false, 'opens_at' => '08:00:00', 'closes_at' => '17:00:00', 'operating_days' => [1, 3, 5]]);
+    $wednesday = Illuminate\Support\Carbon::parse('2026-11-04 10:00');
+    $thursday = Illuminate\Support\Carbon::parse('2026-11-05 10:00');
+    $allDay = new App\Models\Shop(['is_open_24_7' => true, 'operating_days' => [1]]);
+
+    expect($shop->isOpenAt($wednesday))->toBeTrue()
+        ->and($shop->isOpenAt($thursday))->toBeFalse()
+        ->and($allDay->isOpenAt($wednesday))->toBeFalse();
+
+    // Overnight hours belong to the day the shop opened: Wednesday 10pm-6am still covers Thursday 2am.
+    $night = new App\Models\Shop(['is_open_24_7' => false, 'opens_at' => '22:00:00', 'closes_at' => '06:00:00', 'operating_days' => [3]]);
+    expect($night->isOpenAt(Illuminate\Support\Carbon::parse('2026-11-05 02:00')))->toBeTrue()
+        ->and($night->isOpenAt(Illuminate\Support\Carbon::parse('2026-11-04 02:00')))->toBeFalse();
+});
+
+test('the owner saves the days the shop is open', function () {
+    $shop = driverShop();
+
+    $this->withoutMiddleware(ownerGates())->actingAs($shop->owner)
+        ->patch('/shop/settings/operating-hours', ['is_open_24_7' => false, 'opens_at' => '08:00', 'closes_at' => '17:00', 'operating_days' => [5, 1, 3]])
+        ->assertSessionHasNoErrors();
+
+    expect($shop->fresh()->operating_days)->toBe([1, 3, 5]);
+
+    $this->withoutMiddleware(ownerGates())->actingAs($shop->owner)
+        ->patch('/shop/settings/operating-hours', ['is_open_24_7' => true, 'operating_days' => []])
+        ->assertSessionHasErrors('operating_days');
+});
+
 function ownerGates(): array
 {
     return [

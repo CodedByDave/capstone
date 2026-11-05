@@ -3,6 +3,7 @@ import UserOrderController from './UserOrderController'
 import OrderTrackingController from './OrderTrackingController'
 import UserOrderComplaintController from './UserOrderComplaintController'
 import UserOrderRatingController from './UserOrderRatingController'
+import UserOrderWeightController from './UserOrderWeightController'
 import UserPaymentController from './UserPaymentController'
 import UserNotificationController from './UserNotificationController'
 const User = {
@@ -11,6 +12,7 @@ UserOrderController: Object.assign(UserOrderController, UserOrderController),
 OrderTrackingController: Object.assign(OrderTrackingController, OrderTrackingController),
 UserOrderComplaintController: Object.assign(UserOrderComplaintController, UserOrderComplaintController),
 UserOrderRatingController: Object.assign(UserOrderRatingController, UserOrderRatingController),
+UserOrderWeightController: Object.assign(UserOrderWeightController, UserOrderWeightController),
 UserPaymentController: Object.assign(UserPaymentController, UserPaymentController),
 UserNotificationController: Object.assign(UserNotificationController, UserNotificationController),
 }

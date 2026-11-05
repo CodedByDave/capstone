@@ -3,24 +3,24 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\IssueReportController;
+use App\Http\Controllers\Admin\KycVerificationController as AdminKycVerificationController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PlatformRatingController as AdminPlatformRatingController;
 use App\Http\Controllers\Admin\PlatformRoleController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Api\MapController;
 use App\Http\Controllers\BusinessAgreementSignatureController;
 use App\Http\Controllers\Driver\DriverAppController;
 use App\Http\Controllers\Driver\DriverAttendanceController;
 use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\Shop\BulkArchiveController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
 use App\Http\Controllers\Shop\BusinessAgreementPdfController;
 use App\Http\Controllers\Shop\CheckoutController;
-use App\Http\Controllers\Admin\KycVerificationController as AdminKycVerificationController;
-use App\Http\Controllers\Shop\KycDocumentScanController;
-use App\Http\Controllers\Shop\KycVerificationController;
 use App\Http\Controllers\Shop\CustomerQrController;
 use App\Http\Controllers\Shop\DeliveryProofController;
 use App\Http\Controllers\Shop\Employee\ActivityLogsController;
@@ -35,10 +35,13 @@ use App\Http\Controllers\Shop\Inventory\InventoryCategoryController;
 use App\Http\Controllers\Shop\Inventory\InventoryController;
 use App\Http\Controllers\Shop\Inventory\LowStockAlertController;
 use App\Http\Controllers\Shop\Inventory\SupplierController;
+use App\Http\Controllers\Shop\KycDocumentScanController;
+use App\Http\Controllers\Shop\KycVerificationController;
 use App\Http\Controllers\Shop\LogisticsController;
 use App\Http\Controllers\Shop\Operations\OrderAutomationController;
 use App\Http\Controllers\Shop\Operations\OrderComplaintController;
 use App\Http\Controllers\Shop\Operations\OrderRatingController;
+use App\Http\Controllers\Shop\Operations\OrderWeightProofController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Operations\ServiceCategoryController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
@@ -63,6 +66,7 @@ use App\Http\Controllers\User\UserNotificationController;
 use App\Http\Controllers\User\UserOrderComplaintController;
 use App\Http\Controllers\User\UserOrderController;
 use App\Http\Controllers\User\UserOrderRatingController;
+use App\Http\Controllers\User\UserOrderWeightController;
 use App\Http\Controllers\User\UserPaymentController;
 use App\Services\ShopDataExportService;
 use Illuminate\Support\Facades\Route;
@@ -83,11 +87,20 @@ Route::prefix('driver')->middleware(['auth', 'verified', 'role:staff', 'driver']
     Route::post('/attendance/clock-in', [DriverAttendanceController::class, 'clockIn'])->name('driver.attendance.clock-in');
     Route::post('/attendance/clock-out', [DriverAttendanceController::class, 'clockOut'])->name('driver.attendance.clock-out');
     Route::patch('/jobs/{job}/status', [DriverJobController::class, 'updateStatus'])->whereUlid('job')->name('driver.jobs.status');
+    Route::post('/jobs/{job}/accept', [DriverJobController::class, 'accept'])->whereUlid('job')->middleware('throttle:30,1')->name('driver.jobs.accept');
+    Route::post('/jobs/{job}/reject', [DriverJobController::class, 'reject'])->whereUlid('job')->middleware('throttle:10,1')->name('driver.jobs.reject');
+    Route::get('/alerts', [DriverJobController::class, 'alerts'])->middleware('throttle:60,1')->name('driver.alerts');
+    Route::post('/alerts/{id}/read', [DriverJobController::class, 'markAlertRead'])->whereUuid('id')->name('driver.alerts.read');
     Route::post('/jobs/{job}/location', [DriverJobController::class, 'updateLocation'])
         ->whereUlid('job')
         ->middleware('throttle:60,1')
         ->name('driver.jobs.location');
 });
+
+// Staff upload their own profile picture (shown in the driver app and wherever their avatar appears).
+Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])
+    ->middleware(['auth', 'verified', 'role:staff'])
+    ->name('profile.photo');
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 
@@ -95,7 +108,20 @@ Route::get('/shop/checkout/{plan}', [CheckoutController::class, 'show']);
 Route::post('/checkout/select', [CheckoutController::class, 'select']);
 Route::get('/plans', [CheckoutController::class, 'plans'])->name('plans');
 
+// Address search for pickers, including shop registration before login. Throttled and cached.
+Route::prefix('api')->middleware('throttle:30,1')->name('map.')->group(function () {
+    Route::get('/geocode', [MapController::class, 'geocode'])->name('geocode');
+    Route::get('/reverse-geocode', [MapController::class, 'reverseGeocode'])->name('reverse-geocode');
+});
+
 Route::middleware(['auth'])->group(function () {
+    // Shop-scoped map data (Mapbox proxy): the token stays on the server and results are cached.
+    Route::prefix('api')->middleware('throttle:60,1')->name('map.')->group(function () {
+        Route::get('/shops/{shop}/route', [MapController::class, 'route'])->name('route');
+        Route::get('/shops/{shop}/fee-quote', [MapController::class, 'feeQuote'])->name('fee-quote');
+        Route::post('/shops/{shop}/optimize', [MapController::class, 'optimize'])->name('optimize');
+    });
+
     Route::get('/business-agreement-acceptances/{acceptancePublicId}/signature', [BusinessAgreementSignatureController::class, 'show'])
         ->name('business-agreement.signature');
     Route::get('/business-agreement-platform-signatures/{signaturePublicId}', [BusinessAgreementSignatureController::class, 'platformShow'])
@@ -345,6 +371,8 @@ Route::prefix('shop')->middleware([
         ->middleware('shop.capability:pickup')
         ->name('shop.orders.store');
     Route::get('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
+    Route::get('operations/orders/{order:payment_public_id}/receipt', [ShopOrderController::class, 'receiptPdf'])->middleware('throttle:30,1')->name('shop.orders.receipt');
+    Route::get('operations/orders/{order:payment_public_id}/weight-proof', [OrderWeightProofController::class, 'show'])->middleware('throttle:60,1')->name('shop.orders.weight-proof');
     Route::get('operations/orders/{order:payment_public_id}/edit', [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
     Route::put('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
     Route::delete('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
@@ -470,6 +498,7 @@ Route::prefix('shop')->middleware([
         Route::get('/logistics', [LogisticsController::class, 'index'])->name('shop.logistics');
         Route::post('/logistics/{delivery}/photos', [DeliveryProofController::class, 'store'])->name('shop.logistics.photos.store');
         Route::get('/logistics/photos/{photo}', [DeliveryProofController::class, 'show'])->name('shop.logistics.photos.show');
+        Route::get('/logistics/rejections/{rejection}/photo', [DeliveryProofController::class, 'rejection'])->whereUlid('rejection')->name('shop.logistics.rejections.photo');
         Route::delete('/logistics/photos/{photo}', [DeliveryProofController::class, 'destroy'])->name('shop.logistics.photos.destroy');
         Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
         Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
@@ -639,6 +668,8 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::middleware('permission:Operations,view')->group(function () {
         Route::get('/operations/orders', [ShopOrderController::class, 'index'])->name('staff.orders.index');
         Route::get('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('staff.orders.show');
+        Route::get('/operations/orders/{order:payment_public_id}/receipt', [ShopOrderController::class, 'receiptPdf'])->middleware('throttle:30,1')->name('staff.orders.receipt');
+        Route::get('/operations/orders/{order:payment_public_id}/weight-proof', [OrderWeightProofController::class, 'show'])->middleware('throttle:60,1')->name('staff.orders.weight-proof');
         Route::get('/operations/services', [ShopServiceController::class, 'index'])->name('staff.services.index');
         Route::get('/operations/services/export', [ShopServiceController::class, 'export'])->name('staff.services.export');
         Route::get('/operations/services/import-template', [ShopServiceController::class, 'importTemplate'])->name('staff.services.import-template');
@@ -799,6 +830,9 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
         ->middleware('throttle:20,1')
         ->name('orders.rating.store');
     Route::post('/orders/{order:payment_public_id}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order:payment_public_id}/weight/approve', [UserOrderWeightController::class, 'approve'])->middleware('throttle:20,1')->name('orders.weight.approve');
+    Route::post('/orders/{order:payment_public_id}/weight/decline', [UserOrderWeightController::class, 'decline'])->middleware('throttle:20,1')->name('orders.weight.decline');
+    Route::get('/orders/{order:payment_public_id}/weight/proof', [UserOrderWeightController::class, 'proof'])->middleware('throttle:60,1')->name('orders.weight.proof');
     Route::post('/orders/{paymentPublicId}/pay-online', [UserPaymentController::class, 'pay'])->whereUlid('paymentPublicId')->name('orders.pay-online');
     Route::post('/orders/{paymentPublicId}/payment/check', [UserPaymentController::class, 'check'])->whereUlid('paymentPublicId')->middleware('throttle:20,1')->name('orders.payment.check');
     Route::get('/orders/{paymentPublicId}/payment/demo', [UserPaymentController::class, 'demo'])->whereUlid('paymentPublicId')->name('orders.payment.demo');

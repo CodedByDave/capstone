@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { createBaseMap, dotIcon, formatPeso } from '@/lib/maps';
+import MapView from '@/components/map/MapView.vue';
+import {
+    addMarker,
+    dotElement,
+    drawRouteLine,
+    fitPoints,
+    toLngLat,
+} from '@/lib/mapbox';
+import { formatPeso, type LatLng } from '@/lib/maps';
+import { fetchRoute } from '@/lib/routing';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
-import L from 'leaflet';
 import {
     Camera,
     CheckCircle2,
@@ -13,6 +21,7 @@ import {
     Truck,
     X,
 } from 'lucide-vue-next';
+import type { Map as MapboxMap, Marker } from 'mapbox-gl';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
@@ -160,10 +169,10 @@ const riderUpdatedAgo = computed(() => {
 
 // ─── Map ─────────────────────────────────────────────────────────────────────
 
-const mapEl = ref<HTMLElement | null>(null);
-let map: L.Map | null = null;
-let layers: L.LayerGroup | null = null;
+let map: MapboxMap | null = null;
+let markers: Marker[] = [];
 let fitted = false;
+let routeAbort: AbortController | null = null;
 
 function hasPoint(point: Point | null): point is { lat: number; lng: number } {
     return !!point && point.lat !== null && point.lng !== null;
@@ -173,63 +182,85 @@ const hasMap = computed(
     () => hasPoint(tracking.value.destination) || hasPoint(tracking.value.shop),
 );
 
+const mapCenter = computed<LatLng | null>(() => {
+    const { shop, destination } = tracking.value;
+    if (hasPoint(destination)) return destination;
+    return hasPoint(shop) ? shop : null;
+});
+
+function addLabelled(
+    m: MapboxMap,
+    color: string,
+    size: number,
+    at: LatLng,
+    label: string,
+) {
+    const element = dotElement(color, size);
+    element.title = label;
+    markers.push(addMarker(m, element, at));
+}
+
+async function drawRoadLine(from: LatLng | null, to: LatLng | null) {
+    routeAbort?.abort();
+    if (!map || !from || !to) {
+        if (map) drawRouteLine(map, 'delivery-route', null);
+        return;
+    }
+
+    routeAbort = new AbortController();
+    try {
+        const route = await fetchRoute(from, to, routeAbort.signal);
+        if (map) {
+            drawRouteLine(
+                map,
+                'delivery-route',
+                route.path.map((p) => toLngLat(p)),
+                {
+                    color: tracking.value.rider ? '#ea580c' : '#6366f1',
+                    dashed: !route.isRoad,
+                },
+            );
+        }
+    } catch {
+        // A newer request replaced this one.
+    }
+}
+
 function drawMap() {
-    if (!map || !layers) return;
-    layers.clearLayers();
+    if (!map) return;
+    markers.forEach((marker) => marker.remove());
+    markers = [];
 
     const { shop, destination, rider } = tracking.value;
-    const bounds: L.LatLngTuple[] = [];
+    const points: LatLng[] = [];
 
     if (hasPoint(shop)) {
-        L.marker([shop.lat, shop.lng], {
-            icon: dotIcon('#7c3aed'),
-            keyboard: false,
-        })
-            .bindTooltip(shop.name ?? 'Shop')
-            .addTo(layers);
-        bounds.push([shop.lat, shop.lng]);
+        addLabelled(map, '#7c3aed', 18, shop, shop.name ?? 'Shop');
+        points.push(shop);
     }
 
     if (hasPoint(destination)) {
-        L.marker([destination.lat, destination.lng], {
-            icon: dotIcon('#059669', 20),
-            keyboard: false,
-        })
-            .bindTooltip('Delivery address')
-            .addTo(layers);
-        bounds.push([destination.lat, destination.lng]);
+        addLabelled(map, '#059669', 20, destination, 'Delivery address');
+        points.push(destination);
     }
 
     if (rider) {
-        L.marker([rider.lat, rider.lng], {
-            icon: dotIcon('#ea580c', 22),
-            keyboard: false,
-            zIndexOffset: 1000,
-        })
-            .bindTooltip(tracking.value.rider_name ?? 'Rider')
-            .addTo(layers);
-        bounds.push([rider.lat, rider.lng]);
+        addLabelled(
+            map,
+            '#ea580c',
+            22,
+            rider,
+            tracking.value.rider_name ?? 'Rider',
+        );
+        points.push(rider);
     }
 
-    // Line from where the laundry is now (rider, else shop) to the customer.
+    // Road route from where the laundry is now (rider, else shop) to the customer.
     const from = rider ?? (hasPoint(shop) ? shop : null);
-    if (from && hasPoint(destination)) {
-        L.polyline(
-            [
-                [from.lat, from.lng],
-                [destination.lat, destination.lng],
-            ],
-            {
-                color: rider ? '#ea580c' : '#6366f1',
-                weight: 3,
-                dashArray: rider ? undefined : '6 8',
-            },
-        ).addTo(layers);
-    }
+    void drawRoadLine(from, hasPoint(destination) ? destination : null);
 
-    if (!fitted && bounds.length > 0) {
-        if (bounds.length === 1) map.setView(bounds[0], 15);
-        else map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+    if (!fitted && points.length > 0) {
+        fitPoints(map, points, { padding: 50, maxZoom: 16 });
         fitted = true;
     }
 }
@@ -239,12 +270,12 @@ function recenter() {
     drawMap();
 }
 
+function onMapReady(created: MapboxMap) {
+    map = created;
+    drawMap();
+}
+
 onMounted(() => {
-    if (mapEl.value && hasMap.value) {
-        map = createBaseMap(mapEl.value);
-        layers = L.layerGroup().addTo(map);
-        drawMap();
-    }
     startPolling();
 });
 
@@ -309,7 +340,7 @@ async function poll() {
 onUnmounted(() => {
     stopped = true;
     if (pollTimer) clearTimeout(pollTimer);
-    map?.remove();
+    routeAbort?.abort();
     map = null;
 });
 </script>
@@ -338,15 +369,18 @@ onUnmounted(() => {
             v-if="hasMap"
             class="relative isolate overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
         >
-            <div
-                ref="mapEl"
-                class="h-56 w-full sm:h-72"
+            <MapView
+                class="w-full"
+                height-class="h-56 sm:h-72"
+                :center="mapCenter"
+                :zoom="15"
                 role="img"
                 aria-label="Map showing the shop, your delivery address and the rider"
+                @ready="onMapReady"
             />
             <button
                 type="button"
-                class="absolute right-2 bottom-2 z-[500] flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1 text-xs font-medium text-gray-700 shadow dark:bg-gray-900/95 dark:text-gray-200"
+                class="absolute right-2 bottom-2 z-10 flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1 text-xs font-medium text-gray-700 shadow dark:bg-gray-900/95 dark:text-gray-200"
                 @click="recenter"
             >
                 <Navigation class="h-3.5 w-3.5" />

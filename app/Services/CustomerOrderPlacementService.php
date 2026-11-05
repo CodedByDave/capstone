@@ -11,6 +11,7 @@ class CustomerOrderPlacementService
     public function __construct(
         private readonly ShopOrderService $orderService,
         private readonly ShopOrderPaymentService $paymentService,
+        private readonly LogisticsService $logistics,
     ) {}
 
     public function place(
@@ -26,8 +27,11 @@ class CustomerOrderPlacementService
             $userAgent,
         );
 
+        // A pickup order needs a rider; if none is free the customer is told right away.
+        $noRider = $this->logistics->isWaitingForRider($order);
+
         if (($data['payment_method'] ?? 'cash') === 'cash') {
-            return ['order' => $order, 'checkout_url' => null, 'payment_error' => null];
+            return ['order' => $order, 'checkout_url' => null, 'payment_error' => null, 'no_rider' => $noRider];
         }
 
         if (! $order->priceIsConfirmed()) {
@@ -35,6 +39,7 @@ class CustomerOrderPlacementService
                 'order' => $order,
                 'checkout_url' => null,
                 'payment_error' => null,
+                'no_rider' => $noRider,
             ];
         }
 
@@ -47,6 +52,7 @@ class CustomerOrderPlacementService
                     (string) $order->payment_method,
                 ),
                 'payment_error' => null,
+                'no_rider' => $noRider,
             ];
         } catch (ShopOrderPaymentException $exception) {
             return ['order' => $order, 'checkout_url' => null, 'payment_error' => $exception->getMessage()];

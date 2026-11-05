@@ -11,6 +11,7 @@ const props = defineProps<{
         is_open_24_7: boolean;
         opens_at: string;
         closes_at: string;
+        operating_days: number[];
     };
 }>();
 
@@ -18,7 +19,24 @@ const form = useForm({
     is_open_24_7: props.hours.is_open_24_7,
     opens_at: props.hours.opens_at,
     closes_at: props.hours.closes_at,
+    operating_days: [...props.hours.operating_days],
 });
+
+const days = [
+    { value: 1, label: 'Mon', full: 'Monday' },
+    { value: 2, label: 'Tue', full: 'Tuesday' },
+    { value: 3, label: 'Wed', full: 'Wednesday' },
+    { value: 4, label: 'Thu', full: 'Thursday' },
+    { value: 5, label: 'Fri', full: 'Friday' },
+    { value: 6, label: 'Sat', full: 'Saturday' },
+    { value: 0, label: 'Sun', full: 'Sunday' },
+];
+
+function toggleDay(day: number) {
+    form.operating_days = form.operating_days.includes(day)
+        ? form.operating_days.filter((d) => d !== day)
+        : [...form.operating_days, day];
+}
 
 const modes = [
     {
@@ -53,13 +71,47 @@ function save() {
                 <h3 class="text-base font-semibold">Operating Hours</h3>
             </div>
             <p class="mt-1 text-sm text-muted-foreground">
-                Choose when your shop is open. Outside these hours, orders wait
-                for a driver until you open again. A driver also needs a work
+                Choose the days and hours your shop is open. Customers cannot
+                order while you are closed, and orders wait for a driver until
+                you open again. A driver also needs a work
                 schedule for the day.
             </p>
         </div>
 
         <div class="space-y-5">
+            <div class="space-y-2">
+                <p id="open-days-label" class="text-sm font-medium">
+                    Days open
+                    <span class="text-red-500" aria-hidden="true">*</span>
+                </p>
+                <div
+                    class="flex flex-wrap gap-2"
+                    role="group"
+                    aria-labelledby="open-days-label"
+                >
+                    <button
+                        v-for="day in days"
+                        :key="day.value"
+                        type="button"
+                        :aria-pressed="form.operating_days.includes(day.value)"
+                        :aria-label="day.full"
+                        :class="[
+                            'min-h-11 min-w-14 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                            form.operating_days.includes(day.value)
+                                ? 'border-primary bg-primary/5 text-primary'
+                                : 'text-muted-foreground hover:border-primary/40',
+                        ]"
+                        @click="toggleDay(day.value)"
+                    >
+                        {{ day.label }}
+                    </button>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                    Customers cannot place orders on days you are closed.
+                </p>
+                <InputError :message="form.errors.operating_days" />
+            </div>
+
             <div
                 class="grid gap-2 sm:grid-cols-2"
                 role="radiogroup"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import MapView from '@/components/map/MapView.vue';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,22 +8,16 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { caviteLocations } from '@/constants/caviteLocations';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { addMarker, pinElement, toLngLat } from '@/lib/mapbox';
+import {
+    reverseGeocodeDetails,
+    searchPlaces,
+    type PlaceResult,
+} from '@/lib/maps';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { CheckCircle2, Eye, EyeOff, MapPin, XCircle } from 'lucide-vue-next';
+import type { Map as MapboxMap, Marker } from 'mapbox-gl';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-
-// Fix Leaflet default marker icon
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-});
 
 /* ---------------- PROPS (from GoogleAuthController) ---------------- */
 const props = defineProps<{
@@ -110,22 +105,15 @@ const passwordStrength = computed(() => {
 });
 
 /* ---------------- MAP PIN ---------------- */
-const mapContainer = ref<HTMLElement | null>(null);
-const mapInstance = ref<L.Map | null>(null);
-const pinMarker = ref<L.Marker | null>(null);
+let mapInstance: MapboxMap | null = null;
+let pinMarker: Marker | null = null;
 const geocoding = ref(false);
 const pinError = ref('');
 const pinned = ref(false);
 
 /* --- Search bar --- */
-interface SearchResult {
-    display_name: string;
-    lat: string;
-    lon: string;
-    place_id: number;
-}
 const searchQuery = ref('');
-const searchResults = ref<SearchResult[]>([]);
+const searchResults = ref<PlaceResult[]>([]);
 const searchLoading = ref(false);
 const showSuggestions = ref(false);
 let searchDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -144,11 +132,7 @@ function onSearchInput() {
 async function fetchSuggestions(q: string) {
     searchLoading.value = true;
     try {
-        const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=6&countrycodes=ph`,
-            { headers: { 'Accept-Language': 'en' } },
-        );
-        searchResults.value = await res.json();
+        searchResults.value = await searchPlaces(q, MAP_CENTER);
         showSuggestions.value = searchResults.value.length > 0;
     } catch {
         searchResults.value = [];
@@ -157,31 +141,39 @@ async function fetchSuggestions(q: string) {
     }
 }
 
-async function selectSuggestion(result: SearchResult) {
-    const lat = parseFloat(result.lat);
-    const lng = parseFloat(result.lon);
+function placePin(lat: number, lng: number) {
+    if (!mapInstance) return;
 
-    showSuggestions.value = false;
-    searchQuery.value = result.display_name;
-
-    const map = mapInstance.value;
-    if (!map) return;
-
-    map.setView([lat, lng], 17);
-
-    if (pinMarker.value) {
-        pinMarker.value.setLatLng([lat, lng]);
-    } else {
-        pinMarker.value = L.marker([lat, lng], { draggable: true }).addTo(
-            map as L.Map,
-        );
-        pinMarker.value.on('dragend', async (evt: L.LeafletEvent) => {
-            const pos = (evt.target as L.Marker).getLatLng();
-            await reverseGeocode(pos.lat, pos.lng);
-        });
+    if (pinMarker) {
+        pinMarker.setLngLat(toLngLat({ lat, lng }));
+        return;
     }
 
-    await reverseGeocode(lat, lng);
+    pinMarker = addMarker(
+        mapInstance,
+        pinElement(),
+        { lat, lng },
+        {
+            anchor: 'bottom',
+            draggable: true,
+        },
+    );
+    pinMarker.on('dragend', async () => {
+        const pos = pinMarker!.getLngLat();
+        await reverseGeocode(pos.lat, pos.lng);
+    });
+}
+
+async function selectSuggestion(result: PlaceResult) {
+    showSuggestions.value = false;
+    searchQuery.value = result.label;
+
+    if (!mapInstance) return;
+
+    mapInstance.easeTo({ center: toLngLat(result), zoom: 17 });
+    placePin(result.lat, result.lng);
+
+    await reverseGeocode(result.lat, result.lng);
 }
 
 function closeSearchOnOutsideClick(e: MouseEvent) {
@@ -197,39 +189,17 @@ onUnmounted(() =>
 );
 
 // Cavite province center as default view
-const MAP_CENTER: L.LatLngTuple = [14.2456, 120.8687];
-const MAP_ZOOM = 12;
+const MAP_CENTER = { lat: 14.2456, lng: 120.8687 };
 
-function initMap() {
-    if (!mapContainer.value || mapInstance.value) return;
+function onMapReady(map: MapboxMap) {
+    mapInstance = map;
 
-    const map = L.map(mapContainer.value).setView(MAP_CENTER, MAP_ZOOM);
+    map.on('click', async (e) => {
+        const { lat, lng } = e.lngLat;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-    }).addTo(map);
-
-    map.on('click', async (e: L.LeafletMouseEvent) => {
-        const { lat, lng } = e.latlng;
-
-        // Place / move pin
-        if (pinMarker.value) {
-            pinMarker.value.setLatLng([lat, lng]);
-        } else {
-            pinMarker.value = L.marker([lat, lng], { draggable: true }).addTo(
-                map,
-            );
-            pinMarker.value.on('dragend', async (evt: L.LeafletEvent) => {
-                const pos = (evt.target as L.Marker).getLatLng();
-                await reverseGeocode(pos.lat, pos.lng);
-            });
-        }
-
+        placePin(lat, lng);
         await reverseGeocode(lat, lng);
     });
-
-    mapInstance.value = map;
 }
 
 async function reverseGeocode(lat: number, lng: number) {
@@ -241,17 +211,10 @@ async function reverseGeocode(lat: number, lng: number) {
     form.longitude = lng;
 
     try {
-        const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { 'Accept-Language': 'en' } },
-        );
-        const data = await res.json();
-        const addr = data.address ?? {};
+        const details = await reverseGeocodeDetails(lat, lng);
 
-        // Nominatim's `county` is the province (Cavite), so it must not be used as the town.
-        const rawCity = normalizePlace(
-            addr.city ?? addr.town ?? addr.municipality ?? '',
-        );
+        // Mapbox's `place` is the city or municipality (the province is a separate level).
+        const rawCity = normalizePlace(details.place ?? '');
 
         const matchedMunicipality = rawCity
             ? municipalities.find((m) => normalizePlace(m) === rawCity)
@@ -261,12 +224,7 @@ async function reverseGeocode(lat: number, lng: number) {
             form.municipality = matchedMunicipality;
 
             const rawBarangayName = String(
-                addr.suburb ??
-                    addr.neighbourhood ??
-                    addr.quarter ??
-                    addr.village ??
-                    addr.hamlet ??
-                    '',
+                details.neighborhood ?? details.locality ?? '',
             ).trim();
             const rawBarangay = rawBarangayName.toLowerCase();
 
@@ -297,7 +255,7 @@ async function reverseGeocode(lat: number, lng: number) {
                 'We could not match this pin to a Cavite town. Pin inside Cavite or pick the municipality manually.';
         }
 
-        const road = addr.road ?? addr.pedestrian ?? '';
+        const road = details.street ?? '';
         if (road) form.block_street = road;
 
         pinned.value = true;
@@ -309,24 +267,6 @@ async function reverseGeocode(lat: number, lng: number) {
         geocoding.value = false;
     }
 }
-
-// Init map when step 2 becomes visible
-watch(
-    () => step.value,
-    async (val) => {
-        if (val === 2) {
-            await nextTick();
-            initMap();
-            // Invalidate size in case container was hidden
-            setTimeout(() => mapInstance.value?.invalidateSize(), 100);
-        }
-    },
-);
-
-onUnmounted(() => {
-    mapInstance.value?.remove();
-    mapInstance.value = null;
-});
 
 /* ---------------- MUNICIPALITIES / BARANGAYS ---------------- */
 // Complete PSGC list of Cavite cities/municipalities and their barangays.
@@ -760,7 +700,7 @@ const goToGoogle = () => {
                                 >
                                     <li
                                         v-for="result in searchResults"
-                                        :key="result.place_id"
+                                        :key="`${result.lat},${result.lng}`"
                                         @click="selectSuggestion(result)"
                                         class="flex cursor-pointer items-start gap-2 px-3 py-2 text-xs transition-colors hover:bg-muted"
                                     >
@@ -768,7 +708,7 @@ const goToGoogle = () => {
                                             class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary"
                                         />
                                         <span class="line-clamp-2">{{
-                                            result.display_name
+                                            result.label
                                         }}</span>
                                     </li>
                                 </ul>
@@ -776,7 +716,14 @@ const goToGoogle = () => {
                         </div>
 
                         <!-- Map canvas -->
-                        <div ref="mapContainer" class="h-72 w-full" />
+                        <MapView
+                            height-class="h-72 w-full"
+                            :center="MAP_CENTER"
+                            :zoom="12"
+                            :pitch="0"
+                            :bearing="0"
+                            @ready="onMapReady"
+                        />
                     </div>
 
                     <div

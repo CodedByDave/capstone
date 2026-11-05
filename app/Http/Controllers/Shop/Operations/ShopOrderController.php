@@ -19,6 +19,7 @@ use App\Models\ShopService;
 use App\Services\CustomerAgreementService;
 use App\Services\LogisticsService;
 use App\Services\OrderPaymentService;
+use App\Services\OrderReceiptService;
 use App\Services\ShopOrderPaymentService;
 use App\Services\ShopOrderService;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,7 @@ class ShopOrderController extends Controller
         private readonly LogisticsService $logistics,
         private readonly OrderPaymentService $payments,
         private readonly ShopOrderPaymentService $onlinePayments,
+        private readonly OrderReceiptService $receipts,
     ) {}
 
     private function getShopId(): int
@@ -80,6 +82,7 @@ class ShopOrderController extends Controller
             'shopId' => $shopId,
             'pickupAwaitsReceipt' => $this->service->pickupOrdersAwaitReceipt($shopId),
             'completionMinutes' => $this->service->defaultCompletionMinutes($shopId),
+            'tax' => $this->service->taxFor($shopId),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'services' => ShopService::where('shop_id', $shopId)
@@ -112,7 +115,14 @@ class ShopOrderController extends Controller
             $request->userAgent(),
         );
 
-        return redirect("{$this->base()}/operations/orders")
+        // A walk-in customer is waiting at the counter, so their receipt opens straight away.
+        $walkIn = $order->pickup_type === 'walk_in';
+        $destination = $walkIn
+            ? "{$this->base()}/operations/orders/{$order->payment_public_id}"
+            : "{$this->base()}/operations/orders";
+
+        return redirect($destination)
+            ->with('show_receipt', $walkIn)
             ->with('toast', [
                 'type' => 'success',
                 'message' => "Order {$order->order_number} created successfully.",
@@ -128,6 +138,19 @@ class ShopOrderController extends Controller
             'customerAgreement' => $this->customerAgreementService->acceptanceData($order),
             'deliveryOption' => $this->logistics->deliveryOptionFor($order),
             'payments' => ShopOrderPaymentResource::collection($this->payments->history($order))->resolve(),
+            'receipt' => $this->receipts->forOrder($order),
+            'openReceipt' => (bool) session('show_receipt', false),
+        ]);
+    }
+
+    public function receiptPdf(Request $request, ShopOrder $order): \Illuminate\Http\Response
+    {
+        // ?inline=1 lets the page print the receipt without downloading it.
+        $disposition = $request->boolean('inline') ? 'inline' : 'attachment';
+
+        return response($this->receipts->pdf($order), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => $disposition.'; filename="receipt-'.$order->order_number.'.pdf"',
         ]);
     }
 

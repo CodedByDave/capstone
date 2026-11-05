@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\MapboxUnavailableException;
+use App\Exceptions\NoRouteFoundException;
 use App\Exceptions\ProtectedPlatformRoleException;
 use App\Http\Middleware\CheckShopSubscription;
 use App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted;
@@ -78,6 +80,14 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return back()->withErrors(['role' => $exception->getMessage()]);
+        });
+
+        $exceptions->render(function (NoRouteFoundException $exception) {
+            return response()->json(['message' => $exception->getMessage(), 'code' => 'no_route'], 422);
+        });
+
+        $exceptions->render(function (MapboxUnavailableException $exception) {
+            return response()->json(['message' => $exception->getMessage(), 'code' => 'map_unavailable'], 503);
         });
 
         $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {

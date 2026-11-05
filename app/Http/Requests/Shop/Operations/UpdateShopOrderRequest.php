@@ -61,6 +61,8 @@ class UpdateShopOrderRequest extends FormRequest
                 'min:0.1',
             ],
             'actual_weight_kg' => ['nullable', 'numeric', 'min:0.1', 'max:999.99'],
+            // Photo of the laundry on the scale; the service requires it when an online order's weight changes.
+            'weight_proof' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'price_per_kg' => ['nullable', 'numeric', 'min:0'],
             'bundle_weight_kg' => [
                 Rule::requiredIf(fn () => $this->input('pricing_model') === 'per_bundle'),

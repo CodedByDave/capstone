@@ -62,6 +62,7 @@ class Shop extends Model
         'is_open_24_7',
         'opens_at',
         'closes_at',
+        'operating_days',
         'driver_daily_rate',
         'platform_rating_prompted_at',
         'setup_completed_at',
@@ -93,6 +94,7 @@ class Shop extends Model
         'offers_pickup' => 'boolean',
         'offers_delivery' => 'boolean',
         'is_open_24_7' => 'boolean',
+        'operating_days' => 'array',
         'delivery_fixed_fee' => 'decimal:2',
         'delivery_base_fee' => 'decimal:2',
         'delivery_per_km_rate' => 'decimal:2',
@@ -133,18 +135,44 @@ class Shop extends Model
         return (bool) $this->offers_delivery && ! $this->hasDeliveryPricing();
     }
 
-    /** Whether the shop is open at the given moment (now by default); hours may pass midnight. */
+    /** Weekdays the shop opens on (0 = Sunday ... 6 = Saturday); every day when none were chosen. */
+    public function openDays(): array
+    {
+        $days = collect($this->operating_days ?? [])
+            ->map(fn ($day) => (int) $day)
+            ->filter(fn (int $day) => $day >= 0 && $day <= 6)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        return $days === [] ? [0, 1, 2, 3, 4, 5, 6] : $days;
+    }
+
+    /**
+     * Whether the shop is open at a moment: it must open on that weekday and, unless it is open
+     * 24 hours, the time must fall between opening and closing. Hours that pass midnight belong to
+     * the day the shop opened, so 10pm-6am on Friday still covers Saturday 2am.
+     */
     public function isOpenAt(?\DateTimeInterface $moment = null): bool
     {
+        $moment = $moment ? \Illuminate\Support\Carbon::instance($moment) : now();
+        $days = $this->openDays();
+
         if ($this->is_open_24_7 || ! $this->opens_at || ! $this->closes_at) {
-            return true;
+            return in_array($moment->dayOfWeek, $days, true);
         }
 
-        $time = ($moment ? \Illuminate\Support\Carbon::instance($moment) : now())->format('H:i:s');
+        $time = $moment->format('H:i:s');
 
-        return $this->opens_at < $this->closes_at
-            ? $time >= $this->opens_at && $time < $this->closes_at
-            : $time >= $this->opens_at || $time < $this->closes_at;
+        if ($this->opens_at < $this->closes_at) {
+            return in_array($moment->dayOfWeek, $days, true)
+                && $time >= $this->opens_at && $time < $this->closes_at;
+        }
+
+        // Overnight hours: the late part belongs to today, the early part to yesterday's opening.
+        return ($time >= $this->opens_at && in_array($moment->dayOfWeek, $days, true))
+            || ($time < $this->closes_at && in_array($moment->copy()->subDay()->dayOfWeek, $days, true));
     }
 
     /** Delivery is available only once the pricing is set, so no run is ever given away free. */

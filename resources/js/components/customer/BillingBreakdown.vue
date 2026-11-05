@@ -27,6 +27,9 @@ export interface BillingBreakdown {
     other_charges?: number | null;
     discount: number;
     delivery_fee?: number;
+    /** Tax added on top of the services and add-ons, with its label (VAT 12% or percentage tax 3%). */
+    tax?: number;
+    tax_label?: string | null;
     total: number;
     amount_paid: number;
     balance_due: number;
@@ -154,6 +157,18 @@ const serviceDetail = computed(() => lineDetail(props.breakdown.service));
                 breakdown.other_charges > 0 ? 'Other charges' : 'Adjustment'
             }}</span>
             <span>{{ currency(breakdown.other_charges) }}</span>
+        </div>
+
+        <div
+            v-if="(breakdown.tax ?? 0) > 0"
+            class="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-sm"
+        >
+            <span class="text-gray-500">{{
+                breakdown.tax_label ?? 'Tax'
+            }}</span>
+            <span class="font-medium text-gray-700">{{
+                currency(breakdown.tax ?? 0)
+            }}</span>
         </div>
 
         <div

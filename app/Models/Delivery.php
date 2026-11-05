@@ -19,7 +19,7 @@ class Delivery extends Model
         'courier', 'courier_reference', 'courier_tracking_url', 'courier_driver_name',
         'courier_driver_phone', 'courier_vehicle_plate', 'courier_cost',
         'status', 'notes', 'driver_token',
-        'assigned_at', 'picked_up_at', 'delivered_at',
+        'assigned_at', 'accepted_at', 'picked_up_at', 'delivered_at',
     ];
 
     public function getRouteKeyName(): string
@@ -43,6 +43,7 @@ class Delivery extends Model
     protected $casts = [
         'customer_phone' => PhilippinePhoneCast::class,
         'assigned_at' => 'datetime',
+        'accepted_at' => 'datetime',
         'picked_up_at' => 'datetime',
         'delivered_at' => 'datetime',
         'destination_lat' => 'float',
@@ -90,6 +91,17 @@ class Delivery extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(DeliveryPhoto::class)->oldest();
+    }
+
+    public function rejections(): HasMany
+    {
+        return $this->hasMany(DeliveryRejection::class);
+    }
+
+    /** The assigned rider has not yet said yes or no to this run. */
+    public function awaitsAcceptance(): bool
+    {
+        return $this->status === 'assigned' && $this->rider_id !== null && $this->accepted_at === null;
     }
 
     public function shop(): BelongsTo

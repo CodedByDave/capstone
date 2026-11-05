@@ -14,7 +14,6 @@ import {
     CheckCircle2,
     Database,
     Download,
-    ExternalLink,
     ImagePlus,
     Loader2,
     MapPin,
@@ -23,6 +22,7 @@ import {
     Trash2,
     Upload,
 } from 'lucide-vue-next';
+import LocationPin from '@/components/map/LocationPin.vue';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -47,6 +47,7 @@ const props = defineProps<{
         is_open_24_7: boolean;
         opens_at: string;
         closes_at: string;
+        operating_days: number[];
     };
 }>();
 
@@ -156,10 +157,19 @@ const sectionLinks = computed(() => [
     { href: '#data', label: 'Your Data' },
 ]);
 
-const mapsUrl = computed(() => {
-    if (!hasGeo.value) return null;
-    return `https://www.google.com/maps?q=${props.shop.latitude},${props.shop.longitude}`;
+const pinLat = computed(() => {
+    const value = parseFloat(lat.value);
+    return Number.isFinite(value) ? value : null;
 });
+const pinLng = computed(() => {
+    const value = parseFloat(lng.value);
+    return Number.isFinite(value) ? value : null;
+});
+
+function pickOnMap(point: { lat: number; lng: number }) {
+    lat.value = point.lat.toFixed(6);
+    lng.value = point.lng.toFixed(6);
+}
 
 function useMyLocation() {
     if (!navigator.geolocation) {
@@ -346,11 +356,6 @@ function clearGeo() {
                                     </p>
                                 </div>
                             </div>
-                            <a v-if="mapsUrl" :href="mapsUrl" target="_blank" rel="noopener"
-                                class="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline">
-                                View on Maps
-                                <ExternalLink class="h-3 w-3" />
-                            </a>
                         </div>
                         <div v-else class="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3">
                             <MapPin class="h-4 w-4 shrink-0 text-amber-600" />
@@ -386,13 +391,12 @@ function clearGeo() {
                             </div>
                         </div>
 
+                        <LocationPin v-if="pinLat !== null && pinLng !== null" :lat="pinLat" :lng="pinLng"
+                            label="your shop" pickable height-class="h-64" @pick="pickOnMap" />
                         <p class="text-xs text-muted-foreground">
-                            You can get coordinates from
-                            <a href="https://www.google.com/maps" target="_blank" rel="noopener"
-                                class="underline hover:text-foreground">Google Maps</a>
-                            — right-click your shop location and copy the
-                            coordinates. Or use the button below to auto-detect
-                            your current location.
+                            Click the map or drag the pin to your shop's
+                            exact spot, type the coordinates, or use the
+                            button below to auto-detect your current location.
                         </p>
 
                         <div class="flex flex-wrap items-center justify-end gap-3">

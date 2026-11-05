@@ -7,6 +7,8 @@ use App\Models\Delivery;
 use App\Models\ShopOrder;
 use App\Models\User;
 use App\Notifications\DeliveryNotification;
+use App\Notifications\DriverAssignmentNotification;
+use App\Notifications\NoRiderAvailableNotification;
 use App\Repositories\DeliveryRepository;
 use App\Repositories\EmployeeRepository;
 use App\Repositories\RiderRepository;
@@ -54,7 +56,29 @@ class LogisticsService
 
         $counts = $this->deliveries->statusCountsForShop($shopId);
 
+        $shop = $this->shops->findShopById($shopId);
+
         return [
+            'map' => [
+                'shop' => $shop === null ? null : [
+                    'public_id' => $shop->public_id,
+                    'name' => $shop->shop_name,
+                    'lat' => $shop->latitude,
+                    'lng' => $shop->longitude,
+                ],
+                'stops' => $this->deliveries->routeStopsForShop($shopId)
+                    ->map(fn (Delivery $delivery): array => [
+                        'public_id' => $delivery->public_id,
+                        'customer_name' => $delivery->customer_name,
+                        'address' => $delivery->delivery_address,
+                        'status' => $delivery->status,
+                        'type' => $delivery->type,
+                        'lat' => $delivery->destination_lat,
+                        'lng' => $delivery->destination_lng,
+                    ])
+                    ->values()
+                    ->all(),
+            ],
             'deliveries' => $this->deliveries->paginateForShop($shopId, $status, 15, $sort),
             'riders' => $this->riders->activeForShop($shopId),
             'stats' => collect(self::STATUSES)
@@ -252,12 +276,13 @@ class LogisticsService
             return null;
         }
 
-        $delivery->load('rider');
+        $delivery->load('rider.employee.user');
 
         if ($delivery->rider_id) {
             $order->customer?->notify(new DeliveryNotification($delivery));
+            $this->notifyDriver($delivery);
         } else {
-            $order->shop->owner?->notify(new DeliveryNotification($delivery));
+            $this->announceNoRider($delivery);
         }
 
         return $delivery;
@@ -280,23 +305,16 @@ class LogisticsService
 
         while (true) {
             $delivery = DB::transaction(function () use ($shopId): ?Delivery {
-                $waiting = $this->deliveries->oldestWaitingForShop($shopId);
-                $rider = $waiting ? $this->riders->findAvailableForShop($shopId) : null;
+                foreach ($this->deliveries->waitingForShop($shopId) as $waiting) {
+                    // A rider who turned this run down is not offered it again.
+                    $rider = $this->riders->findAvailableForShop($shopId, $this->deliveries->rejectedRiderIds($waiting->id));
 
-                if (! $waiting || ! $rider) {
-                    return null;
+                    if ($rider) {
+                        return $this->giveToRider($waiting, $rider);
+                    }
                 }
 
-                $this->deliveries->update($waiting, [
-                    'rider_id' => $rider->id,
-                    'status' => 'assigned',
-                    'assigned_at' => now(),
-                    'rider_lat' => null,
-                    'rider_lng' => null,
-                    'rider_located_at' => null,
-                ]);
-
-                return $waiting;
+                return null;
             });
 
             if ($delivery === null) {
@@ -304,11 +322,50 @@ class LogisticsService
             }
 
             $assigned++;
-            $delivery->load(['rider', 'order.customer']);
+            $delivery->load(['rider.employee.user', 'order.customer']);
             $delivery->order?->customer?->notify(new DeliveryNotification($delivery));
+            $this->notifyDriver($delivery);
         }
 
         return $assigned;
+    }
+
+    private function giveToRider(Delivery $waiting, \App\Models\Rider $rider): Delivery
+    {
+        $this->deliveries->update($waiting, [
+            'rider_id' => $rider->id,
+            'status' => 'assigned',
+            'assigned_at' => now(),
+            'accepted_at' => null,
+            'rider_lat' => null,
+            'rider_lng' => null,
+            'rider_located_at' => null,
+        ]);
+
+        return $waiting;
+    }
+
+    /** A new run lands in the driver's app and on their notification list, awaiting their answer. */
+    public function notifyDriver(Delivery $delivery): void
+    {
+        $delivery->loadMissing(['rider.employee.user', 'order']);
+
+        $delivery->rider?->employee?->user?->notify(new DriverAssignmentNotification($delivery));
+    }
+
+    /** Nobody can take the run right now: the customer learns it is waiting and the shop is asked to act. */
+    public function announceNoRider(Delivery $delivery): void
+    {
+        $delivery->loadMissing(['order.customer', 'order.shop.owner']);
+
+        $delivery->order?->customer?->notify(new NoRiderAvailableNotification($delivery, NoRiderAvailableNotification::FOR_CUSTOMER));
+        $delivery->order?->shop?->owner?->notify(new NoRiderAvailableNotification($delivery, NoRiderAvailableNotification::FOR_SHOP));
+    }
+
+    /** Whether the order's run is still waiting for a rider, so the customer can be told so at once. */
+    public function isWaitingForRider(ShopOrder $order): bool
+    {
+        return $this->deliveries->waitingForOrder($order->id);
     }
 
     public function updateStatus(User $user, Delivery $delivery, array $data): Delivery
@@ -345,7 +402,13 @@ class LogisticsService
             'status' => $data['status'],
             'rider_id' => $riderId,
             'notes' => $data['notes'] ?? $delivery->notes,
-        ], $riderChanged ? ['rider_lat' => null, 'rider_lng' => null, 'rider_located_at' => null] : [], $courier, $timestamps)));
+        ], $riderChanged ? ['rider_lat' => null, 'rider_lng' => null, 'rider_located_at' => null, 'accepted_at' => null] : [], $courier, $timestamps)));
+
+        // A rider handed a run by the shop is told straight away so they can accept or reject it.
+        if ($riderChanged && $riderId !== null && $data['status'] === 'assigned') {
+            $delivery->load('rider.employee.user');
+            $this->notifyDriver($delivery);
+        }
 
         // Notify the customer linked to the shop order, if any.
         $customer = $delivery->order?->customer;

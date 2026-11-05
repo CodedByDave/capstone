@@ -7,6 +7,9 @@ import {
 } from '@/components/data-table';
 import CompleteOrderDialog from '@/components/shop/CompleteOrderDialog.vue';
 import { type OrderPayment } from '@/components/shop/OrderPaymentsCard.vue';
+import OrderReceiptDialog, {
+    type OrderReceipt,
+} from '@/components/shop/OrderReceiptDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePermissions } from '@/composables/usePermissions';
@@ -26,6 +29,7 @@ import {
     Package,
     PackageCheck,
     Pencil,
+    ReceiptText,
     Truck,
     Undo2,
 } from 'lucide-vue-next';
@@ -59,6 +63,9 @@ interface Order {
     piece_count: number | null;
     estimated_weight_kg: string | null;
     actual_weight_kg: string | null;
+    order_source?: string | null;
+    weight_approval_status?: 'pending' | 'approved' | 'declined' | null;
+    has_weight_proof?: boolean;
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
@@ -88,6 +95,8 @@ interface Order {
 const props = defineProps<{
     shopOrder: Order;
     payments: OrderPayment[];
+    receipt: OrderReceipt;
+    openReceipt?: boolean;
     deliveryOption: {
         offers_delivery: boolean;
         can_send: boolean;
@@ -161,6 +170,14 @@ function sendForDelivery() {
         },
     );
 }
+
+// ─── Receipt ───────────────────────────────────────
+
+// A walk-in order opens its receipt right after it is created.
+const receiptOpen = ref(props.openReceipt === true);
+const receiptPdfUrl = computed(
+    () => `${base.value}/${props.shopOrder.payment_public_id}/receipt`,
+);
 
 onMounted(() => {
     const t = page.props.toast as any;
@@ -333,6 +350,11 @@ const statusIcon = (s: string) =>
     <Head :title="`Order ${shopOrder.order_number}`" />
 
     <ShopLayout :title="`Order ${shopOrder.order_number}`">
+        <OrderReceiptDialog
+            v-model:open="receiptOpen"
+            :receipt="receipt"
+            :pdf-url="receiptPdfUrl"
+        />
         <div class="mx-auto max-w-6xl space-y-6 px-6 pb-10">
             <!-- Header -->
             <div class="flex items-start justify-between gap-4">
@@ -380,6 +402,9 @@ const statusIcon = (s: string) =>
                 <div class="flex shrink-0 flex-wrap justify-end gap-2">
                     <Button variant="outline" @click="router.visit(base)">
                         <ArrowLeft class="mr-2 h-4 w-4" /> Back to orders
+                    </Button>
+                    <Button variant="outline" @click="receiptOpen = true">
+                        <ReceiptText class="mr-2 h-4 w-4" /> View receipt
                     </Button>
                     <Button
                         v-if="canRevert"
@@ -810,6 +835,65 @@ const statusIcon = (s: string) =>
                                     <dd class="mt-1 text-sm">
                                         {{ shopOrder.actual_weight_kg ?? '—' }}
                                         kg
+                                    </dd>
+                                </div>
+                                <div v-if="shopOrder.weight_approval_status">
+                                    <dt
+                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Customer approval
+                                    </dt>
+                                    <dd class="mt-1 text-sm">
+                                        <span
+                                            class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                            :class="{
+                                                'bg-amber-50 text-amber-700':
+                                                    shopOrder.weight_approval_status ===
+                                                    'pending',
+                                                'bg-emerald-50 text-emerald-700':
+                                                    shopOrder.weight_approval_status ===
+                                                    'approved',
+                                                'bg-red-50 text-red-700':
+                                                    shopOrder.weight_approval_status ===
+                                                    'declined',
+                                            }"
+                                        >
+                                            <span
+                                                class="h-1.5 w-1.5 rounded-full bg-current"
+                                            ></span>
+                                            {{
+                                                shopOrder.weight_approval_status ===
+                                                'pending'
+                                                    ? 'Awaiting approval'
+                                                    : shopOrder.weight_approval_status ===
+                                                        'approved'
+                                                      ? 'Approved'
+                                                      : 'Declined'
+                                            }}
+                                        </span>
+                                    </dd>
+                                </div>
+                                <div
+                                    v-if="shopOrder.has_weight_proof"
+                                    class="col-span-2"
+                                >
+                                    <dt
+                                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        Weighing photo
+                                    </dt>
+                                    <dd class="mt-1">
+                                        <a
+                                            :href="`${base}/${shopOrder.payment_public_id}/weight-proof`"
+                                            target="_blank"
+                                            rel="noopener"
+                                        >
+                                            <img
+                                                :src="`${base}/${shopOrder.payment_public_id}/weight-proof`"
+                                                alt="Laundry on the scale"
+                                                class="h-32 rounded-lg border object-cover"
+                                            />
+                                        </a>
                                     </dd>
                                 </div>
                             </template>

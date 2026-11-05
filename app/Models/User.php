@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'role',
         'shop_id',
         'referred_shop_id',
+        'profile_photo_path',
         'otp_code',
         'otp_expires_at',
         'google_id',
@@ -95,6 +97,14 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
         'remember_token',
     ];
+
+    /** Public URL of the profile picture, or null when none was uploaded. */
+    public function profilePhotoUrl(): ?string
+    {
+        return $this->profile_photo_path
+            ? Storage::disk('public')->url($this->profile_photo_path)
+            : null;
+    }
 
     protected function casts(): array
     {

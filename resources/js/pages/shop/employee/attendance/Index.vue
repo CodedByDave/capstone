@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LocationPin from '@/components/map/LocationPin.vue';
 import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -346,8 +347,12 @@ const timeOptions = computed(() => {
 
 // ─── Location helpers ─────────────────────────────────────────────────────────
 
-function mapsUrl(lat: number, lng: number): string {
-    return `https://www.google.com/maps?q=${lat},${lng}`;
+const locationView = ref<{ label: string; lat: number; lng: number } | null>(
+    null,
+);
+
+function showLocation(label: string, lat: number, lng: number) {
+    locationView.value = { label, lat: Number(lat), lng: Number(lng) };
 }
 
 // ─── Mark Attendance Modal (owner only) ───────────────────────────────────────
@@ -658,34 +663,36 @@ function saveModal() {
                 <!-- Location -->
                 <template #item-location="row">
                     <div v-if="row.attendance" class="flex flex-col gap-1">
-                        <a
+                        <button
                             v-if="row.attendance.check_in_lat"
-                            :href="
-                                mapsUrl(
+                            type="button"
+                            class="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline"
+                            @click="
+                                showLocation(
+                                    'Clock-in location',
                                     row.attendance.check_in_lat,
                                     row.attendance.check_in_lng,
                                 )
                             "
-                            target="_blank"
-                            class="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline"
                         >
                             <MapPin class="h-3 w-3 shrink-0" />
                             Clock In
-                        </a>
-                        <a
+                        </button>
+                        <button
                             v-if="row.attendance.check_out_lat"
-                            :href="
-                                mapsUrl(
+                            type="button"
+                            class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                            @click="
+                                showLocation(
+                                    'Clock-out location',
                                     row.attendance.check_out_lat,
                                     row.attendance.check_out_lng,
                                 )
                             "
-                            target="_blank"
-                            class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
                         >
                             <MapPin class="h-3 w-3 shrink-0" />
                             Clock Out
-                        </a>
+                        </button>
                         <span
                             v-if="
                                 !row.attendance.check_in_lat &&
@@ -899,6 +906,46 @@ function saveModal() {
                 </div>
             </div>
         </Transition>
+    </Teleport>
+
+    <!-- Clock-in / clock-out location -->
+    <Teleport to="body">
+        <div
+            v-if="locationView"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            role="dialog"
+            aria-modal="true"
+            :aria-label="locationView.label"
+            @click.self="locationView = null"
+            @keydown.esc="locationView = null"
+        >
+            <div
+                class="w-full max-w-lg space-y-3 rounded-2xl bg-background p-4 shadow-xl"
+            >
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="text-sm font-semibold">
+                        {{ locationView.label }}
+                    </h2>
+                    <button
+                        type="button"
+                        class="rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
+                        @click="locationView = null"
+                    >
+                        Close
+                    </button>
+                </div>
+                <LocationPin
+                    :lat="locationView.lat"
+                    :lng="locationView.lng"
+                    :label="locationView.label"
+                    height-class="h-72"
+                />
+                <p class="font-mono text-xs text-muted-foreground">
+                    {{ locationView.lat.toFixed(6) }},
+                    {{ locationView.lng.toFixed(6) }}
+                </p>
+            </div>
+        </div>
     </Teleport>
 </template>
 

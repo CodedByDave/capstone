@@ -3,20 +3,21 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Road distance between two points using the OSRM routing API, falling back to a
- * straight-line (Haversine) distance when OSRM is unreachable or returns no route.
+ * Road distance between two points using Mapbox Directions, falling back to a
+ * straight-line (Haversine) distance when Mapbox is unreachable or returns no route.
  */
 class DistanceService
 {
     private const EARTH_RADIUS_KM = 6371.0;
 
+    public function __construct(private readonly MapboxService $mapbox) {}
+
     /**
-     * @return array{distance_km: float, source: 'osrm'|'haversine'}
+     * @return array{distance_km: float, source: 'mapbox'|'haversine'}
      */
     public function between(float $fromLat, float $fromLng, float $toLat, float $toLng): array
     {
@@ -35,12 +36,12 @@ class DistanceService
             $road = $this->roadDistanceKm($fromLat, $fromLng, $toLat, $toLng);
 
             if ($road !== null) {
-                Cache::put($key, $road, (int) config('services.osrm.cache_ttl', 86400));
+                Cache::put($key, $road, (int) config('services.mapbox.route_ttl', 3600));
             }
         }
 
         if ($road !== null) {
-            return ['distance_km' => round((float) $road, 2), 'source' => 'osrm'];
+            return ['distance_km' => round((float) $road, 2), 'source' => 'mapbox'];
         }
 
         return [
@@ -62,37 +63,13 @@ class DistanceService
 
     private function roadDistanceKm(float $fromLat, float $fromLng, float $toLat, float $toLng): ?float
     {
-        $url = sprintf(
-            '%s/route/v1/driving/%F,%F;%F,%F',
-            rtrim((string) config('services.osrm.url'), '/'),
-            $fromLng,
-            $fromLat,
-            $toLng,
-            $toLat,
-        );
-
         try {
-            $response = Http::timeout((int) config('services.osrm.timeout', 4))
-                ->acceptJson()
-                ->get($url, ['overview' => 'false']);
+            $route = $this->mapbox->route('pricing', $fromLat, $fromLng, $toLat, $toLng);
 
-            $meters = $response->successful() && $response->json('code') === 'Ok'
-                ? $response->json('routes.0.distance')
-                : null;
-
-            if (! is_numeric($meters)) {
-                Log::warning('OSRM returned no usable route; using straight-line distance.', [
-                    'status' => $response->status(),
-                    'code' => $response->json('code'),
-                ]);
-
-                return null;
-            }
-
-            return (float) $meters / 1000;
+            return $route['distance_m'] / 1000;
         } catch (Throwable $exception) {
-            Log::warning('OSRM request failed; using straight-line distance.', [
-                'error' => $exception->getMessage(),
+            Log::warning('Mapbox routing unavailable; using straight-line distance.', [
+                'error' => class_basename($exception),
             ]);
 
             return null;

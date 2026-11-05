@@ -6,7 +6,6 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
-import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import {
     DataTable,
     DataTableToolbar,
@@ -15,6 +14,8 @@ import {
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
+import DispatchMapPanel from '@/components/logistics/DispatchMapPanel.vue';
+import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -108,6 +109,23 @@ const props = defineProps<{
     };
     riders: Rider[];
     stats: Stats;
+    map: {
+        shop: {
+            public_id: string;
+            name: string | null;
+            lat: number | null;
+            lng: number | null;
+        } | null;
+        stops: {
+            public_id: string;
+            customer_name: string;
+            address: string | null;
+            status: string;
+            type: 'pickup' | 'delivery';
+            lat: number;
+            lng: number;
+        }[];
+    };
     filters: { status?: string };
 }>();
 
@@ -469,6 +487,9 @@ function fmtTime(d: string) {
                     </CardContent>
                 </Card>
             </div>
+
+            <!-- ── Dispatch map ── -->
+            <DispatchMapPanel :shop="props.map.shop" :stops="props.map.stops" />
 
             <!-- ── Deliveries Table ── -->
             <DataTable

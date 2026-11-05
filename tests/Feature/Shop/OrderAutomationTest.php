@@ -14,6 +14,7 @@ use App\Services\OrderStatusAutomationService;
 use App\Services\ShopOrderService;
 
 beforeEach(function () {
+    \Illuminate\Support\Facades\Storage::fake('private');
     $this->withoutMiddleware([
         EnsureCurrentBusinessAgreementAccepted::class,
         EnforceOwnerPlatformPermissions::class,
@@ -111,7 +112,13 @@ function flowWeigh(ShopOrder $order, float $kg = 5.0): void
         'estimated_weight_kg' => $order->estimated_weight_kg,
         'actual_weight_kg' => $kg,
         'status' => $order->status,
+        // An online customer approves the weight from a photo of the scale.
+        'weight_proof' => $order->order_source === 'online' ? \Illuminate\Http\UploadedFile::fake()->image('scale.jpg') : null,
     ]);
+
+    if ($order->order_source === 'online') {
+        app(\App\Services\OrderWeightApprovalService::class)->approve($order->customer, $order->fresh());
+    }
 }
 
 function flowRun(): array

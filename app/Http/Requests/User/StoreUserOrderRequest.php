@@ -5,7 +5,6 @@ namespace App\Http\Requests\User;
 use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\In;
 
 class StoreUserOrderRequest extends FormRequest
 {
@@ -17,7 +16,7 @@ class StoreUserOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'shop_id' => ['required', 'exists:shops,id', $this->ownShopRule()],
+            'shop_id' => ['required', Rule::exists('shops', 'id')->where('status', 'active')],
             'service_id' => ['required', 'exists:services_and_pricing,id'],
             'customer_name' => ['required', 'string', 'max:150'],
             'customer_phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
@@ -32,7 +31,7 @@ class StoreUserOrderRequest extends FormRequest
             // The pinned pickup spot, so the rider can be followed on a map. Both or neither.
             'customer_lat' => ['nullable', 'required_with:customer_lng', 'numeric', 'between:-90,90'],
             'customer_lng' => ['nullable', 'required_with:customer_lat', 'numeric', 'between:-180,180'],
-            'promotion_id' => ['nullable', 'integer', Rule::exists('promotions', 'id')->where('shop_id', $this->user()?->referred_shop_id)],
+            'promotion_id' => ['nullable', 'integer', Rule::exists('promotions', 'id')->where('shop_id', $this->input('shop_id'))],
             // Optional extras from the shop's add-on items; the order service checks the shop really offers them.
             'additional_items' => ['nullable', 'array', 'max:20'],
             'additional_items.*.id' => ['required', 'integer'],
@@ -41,12 +40,6 @@ class StoreUserOrderRequest extends FormRequest
             'customer_agreement_version' => ['required', 'string', 'max:30'],
             'customer_agreement_accepted' => ['required', 'accepted'],
         ];
-    }
-
-    /** Customers belong to the shop whose QR they joined through and can only order from it. */
-    private function ownShopRule(): In
-    {
-        return Rule::in(array_filter([$this->user()?->referred_shop_id]));
     }
 
     public function messages(): array

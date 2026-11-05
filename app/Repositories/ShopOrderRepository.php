@@ -152,6 +152,21 @@ class ShopOrderRepository
     /**
      * Re-read the order with a row lock so concurrent delivery requests cannot both pass the eligibility check.
      */
+    /**
+     * The shops a customer has ordered from.
+     *
+     * @return array<int, int>
+     */
+    public function shopIdsOrderedByCustomer(int $userId): array
+    {
+        return $this->model->newQuery()
+            ->where('user_id', $userId)
+            ->distinct()
+            ->pluck('shop_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
     public function lockForUpdate(ShopOrder $order): ShopOrder
     {
         return $this->model->newQuery()->whereKey($order->getKey())->lockForUpdate()->firstOrFail();
@@ -194,6 +209,11 @@ class ShopOrderRepository
     public function findActiveShop(int $shopId): ?Shop
     {
         return Shop::query()->whereKey($shopId)->where('status', 'active')->first();
+    }
+
+    public function taxTypeForShop(int $shopId): ?string
+    {
+        return Shop::query()->whereKey($shopId)->value('tax_type');
     }
 
     public function findActiveServiceForShop(int $serviceId, int $shopId): ?ShopService

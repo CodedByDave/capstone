@@ -121,7 +121,7 @@ class OrderPaymentService
     /**
      * Record the payment taken while the order is created. The caller owns the transaction.
      */
-    public function recordInitialPayment(User $actor, ShopOrder $order, float $amount, ?string $method): ?ShopOrderPayment
+    public function recordInitialPayment(User $actor, ShopOrder $order, float $amount, ?string $method, ?float $tendered = null): ?ShopOrderPayment
     {
         if ($amount <= 0) {
             return null;
@@ -129,6 +129,8 @@ class OrderPaymentService
 
         return $this->addConfirmed($order, [
             'amount' => $amount,
+            'amount_tendered' => $tendered,
+            'change_given' => $tendered === null ? null : round(max(0, $tendered - $amount), 2),
             'method' => $method ?: 'cash',
             'source' => ShopOrderPayment::SOURCE_SHOP,
             'recorded_by' => $actor->id,

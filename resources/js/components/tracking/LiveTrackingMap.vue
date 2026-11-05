@@ -1,4 +1,14 @@
 <script setup lang="ts">
+import MapView from '@/components/map/MapView.vue';
+import {
+    addMarker,
+    drawRouteLine,
+    fitPoints,
+    glideMarker,
+    LIGHT_PRESETS,
+    setLightPreset,
+    toLngLat,
+} from '@/lib/mapbox';
 import type { LatLng } from '@/lib/maps';
 import {
     bearing,
@@ -8,18 +18,16 @@ import {
     type RoadRoute,
 } from '@/lib/routing';
 import {
-    createTrackingMap,
-    glideMarker,
+    chipElement,
     rotateVehicle,
-    shopIcon,
-    stopIcon,
-    vehicleIcon,
-    type TrackingBaseLayer,
+    shopElement,
+    stopElement,
+    vehicleElement,
     type VehicleKind,
 } from '@/lib/trackingMap';
-import L from 'leaflet';
 import { Layers, LocateFixed } from 'lucide-vue-next';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import type { Map as MapboxMap, Marker } from 'mapbox-gl';
+import { onUnmounted, ref, watch } from 'vue';
 
 export interface TrackingEta {
     arriveAt: Date;
@@ -45,18 +53,16 @@ const props = defineProps<{
 
 const emit = defineEmits<{ eta: [value: TrackingEta | null] }>();
 
-const mapEl = ref<HTMLElement | null>(null);
-const baseLayer = ref<TrackingBaseLayer>('map');
+const lightIndex = ref(0);
 const following = ref(true);
 
-let map: L.Map | null = null;
-let setBase: ((kind: TrackingBaseLayer) => void) | null = null;
-let routeCasing: L.Polyline | null = null;
-let routeLine: L.Polyline | null = null;
-let vehicleMarker: L.Marker | null = null;
-let stopMarker: L.Marker | null = null;
-let chipMarker: L.Marker | null = null;
-let shopMarker: L.Marker | null = null;
+const ROUTE_ID = 'trk-route';
+
+let map: MapboxMap | null = null;
+let vehicleMarker: Marker | null = null;
+let stopMarker: Marker | null = null;
+let chipMarker: Marker | null = null;
+let shopMarker: Marker | null = null;
 let cancelGlide: (() => void) | null = null;
 let lastRiderPoint: LatLng | null = null;
 let heading = 0;
@@ -91,26 +97,14 @@ function drawChip() {
         return;
     }
 
-    const time = eta ? formatClock(eta.arriveAt) : '';
-    const html = `<div class="trk-chip"><span class="trk-chip__label">${props.targetLabel}</span>${
-        time ? `<span class="trk-chip__time">${time}</span>` : ''
-    }</div>`;
-    const icon = L.divIcon({
-        className: 'trk-chip-wrap',
-        html,
-        iconSize: undefined,
-        iconAnchor: [0, 18],
-    });
+    const element = chipElement(
+        props.targetLabel,
+        eta ? formatClock(eta.arriveAt) : '',
+    );
 
-    if (chipMarker) chipMarker.setIcon(icon).setLatLng(stop);
-    else {
-        chipMarker = L.marker(stop, {
-            icon,
-            interactive: false,
-            keyboard: false,
-            zIndexOffset: 500,
-        }).addTo(map);
-    }
+    chipMarker?.remove();
+    chipMarker = addMarker(map, element, stop, { anchor: 'bottom' });
+    chipMarker.setOffset([0, -18]);
 }
 
 function drawStatic() {
@@ -118,26 +112,14 @@ function drawStatic() {
 
     const shop = point(props.shop);
     if (shop) {
-        if (shopMarker) shopMarker.setLatLng(shop);
-        else {
-            shopMarker = L.marker(shop, {
-                icon: shopIcon(),
-                keyboard: false,
-                interactive: false,
-            }).addTo(map);
-        }
+        if (shopMarker) shopMarker.setLngLat(toLngLat(shop));
+        else shopMarker = addMarker(map, shopElement(), shop);
     }
 
     const stop = point(props.target);
     if (stop && props.active) {
-        if (stopMarker) stopMarker.setLatLng(stop);
-        else {
-            stopMarker = L.marker(stop, {
-                icon: stopIcon(),
-                keyboard: false,
-                interactive: false,
-            }).addTo(map);
-        }
+        if (stopMarker) stopMarker.setLngLat(toLngLat(stop));
+        else stopMarker = addMarker(map, stopElement(), stop);
     } else {
         stopMarker?.remove();
         stopMarker = null;
@@ -149,41 +131,12 @@ function drawStatic() {
 function drawRoute(route: RoadRoute | null) {
     if (!map) return;
 
-    if (!route) {
-        routeCasing?.remove();
-        routeLine?.remove();
-        routeCasing = routeLine = null;
-        return;
-    }
-
-    const latlngs = route.path.map((p) => [p.lat, p.lng] as L.LatLngTuple);
-    const dash = route.isRoad ? undefined : '6 10';
-
-    if (!routeCasing) {
-        routeCasing = L.polyline(latlngs, {
-            color: '#ffffff',
-            weight: 9,
-            opacity: 0.95,
-            lineCap: 'round',
-            lineJoin: 'round',
-            interactive: false,
-        }).addTo(map);
-        routeLine = L.polyline(latlngs, {
-            color: '#10b981',
-            weight: 5,
-            lineCap: 'round',
-            lineJoin: 'round',
-            dashArray: dash,
-            interactive: false,
-        }).addTo(map);
-    } else {
-        routeCasing.setLatLngs(latlngs);
-        routeLine?.setLatLngs(latlngs);
-        routeLine?.setStyle({ dashArray: dash });
-    }
-
-    // Keep the vehicle above the route line.
-    vehicleMarker?.setZIndexOffset(1000);
+    drawRouteLine(
+        map,
+        ROUTE_ID,
+        route ? route.path.map((p) => toLngLat(p)) : null,
+        { dashed: route ? !route.isRoad : false },
+    );
 }
 
 async function updateRoute(force = false) {
@@ -230,23 +183,30 @@ async function updateRoute(force = false) {
     }
 }
 
+function placeVehicle(
+    mapbox: MapboxMap,
+    at: LatLng,
+    kind: VehicleKind | null,
+): Marker {
+    const marker = addMarker(mapbox, vehicleElement(kind ?? 'motorcycle'), at);
+    marker.getElement().style.zIndex = '10';
+    vehicleMarker = marker;
+
+    return marker;
+}
+
 function moveVehicle(next: LatLng) {
     if (!map) return;
 
     if (!vehicleMarker) {
-        vehicleMarker = L.marker(next, {
-            icon: vehicleIcon(props.vehicle ?? 'motorcycle'),
-            keyboard: false,
-            interactive: false,
-            zIndexOffset: 1000,
-        }).addTo(map);
+        const created = placeVehicle(map, next, props.vehicle);
         lastRiderPoint = next;
 
         // Before it has moved, face the stop so the icon points somewhere sensible.
         const stop = point(props.target);
         if (stop) {
             heading = bearing(next, stop);
-            rotateVehicle(vehicleMarker, heading);
+            rotateVehicle(created.getElement(), heading);
         }
 
         // The rider just appeared: bring them into view.
@@ -262,21 +222,16 @@ function moveVehicle(next: LatLng) {
         lastRiderPoint &&
         distanceMeters(lastRiderPoint, next) > MIN_TURN_METERS
     ) {
-        // Turn the short way round (350° to 10° is 20°, not 340°).
+        // Turn the short way round (350 to 10 degrees is 20, not 340).
         const delta =
             ((bearing(lastRiderPoint, next) - heading + 540) % 360) - 180;
         heading += delta;
-        rotateVehicle(vehicleMarker, heading);
+        rotateVehicle(vehicleMarker.getElement(), heading);
     }
 
     lastRiderPoint = next;
     cancelGlide = glideMarker(vehicleMarker, next, GLIDE_MS, (position) => {
-        if (following.value && map) {
-            map.panTo([position.lat, position.lng], {
-                animate: false,
-                noMoveStart: true,
-            });
-        }
+        if (following.value && map) map.setCenter(toLngLat(position));
     });
 }
 
@@ -290,16 +245,7 @@ function fit() {
     const shop = point(props.shop);
     if (shop && points.length < 2) points.push(shop);
 
-    if (points.length === 0) return;
-    if (points.length === 1) {
-        map.setView([points[0].lat, points[0].lng], 16);
-        return;
-    }
-
-    map.fitBounds(
-        points.map((p) => [p.lat, p.lng] as L.LatLngTuple),
-        { padding: [60, 60], maxZoom: 17 },
-    );
+    fitPoints(map, points, { padding: 80, maxZoom: 17 });
 }
 
 function recenter() {
@@ -307,33 +253,24 @@ function recenter() {
     fit();
 }
 
-function toggleLayer() {
-    baseLayer.value = baseLayer.value === 'map' ? 'satellite' : 'map';
-    setBase?.(baseLayer.value);
+function cycleLighting() {
+    lightIndex.value = (lightIndex.value + 1) % LIGHT_PRESETS.length;
+    if (map) setLightPreset(map, LIGHT_PRESETS[lightIndex.value]);
 }
 
-let resizeObserver: ResizeObserver | null = null;
-
-onMounted(() => {
-    if (!mapEl.value) return;
-
-    const created = createTrackingMap(mapEl.value);
-    map = created.map;
-    setBase = created.setBaseLayer;
+function onReady(created: MapboxMap) {
+    map = created;
 
     // The user dragging the map means they want to look around: stop following the vehicle.
     map.on('dragstart', () => {
         following.value = false;
     });
 
-    resizeObserver = new ResizeObserver(() => map?.invalidateSize());
-    resizeObserver.observe(mapEl.value);
-
     drawStatic();
     if (props.rider && props.active) moveVehicle(props.rider);
     fit();
     void updateRoute(true);
-});
+}
 
 watch(
     () => [props.target.lat, props.target.lng, props.active, props.targetLabel],
@@ -372,34 +309,38 @@ watch(
 watch(
     () => props.vehicle,
     (kind) => {
-        vehicleMarker?.setIcon(vehicleIcon(kind ?? 'motorcycle'));
-        if (vehicleMarker) rotateVehicle(vehicleMarker, heading);
+        if (!vehicleMarker || !map) return;
+        const at = vehicleMarker.getLngLat();
+        vehicleMarker.remove();
+        const replaced = placeVehicle(map, { lat: at.lat, lng: at.lng }, kind);
+        rotateVehicle(replaced.getElement(), heading);
     },
 );
 
 onUnmounted(() => {
     cancelGlide?.();
     routeAbort?.abort();
-    resizeObserver?.disconnect();
-    map?.remove();
     map = null;
 });
 </script>
 
 <template>
     <div class="trk-map relative h-full w-full overflow-hidden bg-[#e9eef2]">
-        <div ref="mapEl" class="absolute inset-0" />
+        <MapView
+            class="absolute inset-0"
+            height-class="h-full"
+            :light-toggle="false"
+            :zoom="16"
+            :center="point(shop) ?? point(target)"
+            @ready="onReady"
+        />
 
-        <div class="absolute top-4 right-4 z-[500] flex flex-col gap-3">
+        <div class="absolute top-4 right-4 z-[5] flex flex-col gap-3">
             <button
                 type="button"
                 class="trk-round-button"
-                :aria-label="
-                    baseLayer === 'map'
-                        ? 'Switch to satellite view'
-                        : 'Switch to map view'
-                "
-                @click="toggleLayer"
+                :aria-label="`Change map lighting (now ${LIGHT_PRESETS[lightIndex]})`"
+                @click="cycleLighting"
             >
                 <Layers class="h-5 w-5" aria-hidden="true" />
             </button>
@@ -417,11 +358,6 @@ onUnmounted(() => {
 </template>
 
 <style>
-.trk-map .leaflet-container {
-    background: #e9eef2;
-    font-family: inherit;
-}
-
 .trk-round-button {
     display: flex;
     height: 3rem;
@@ -498,15 +434,11 @@ onUnmounted(() => {
 }
 
 /* The time chip above the stop, like "DROPOFF 1:54 pm". */
-.trk-chip-wrap {
-    pointer-events: none;
-}
-
 .trk-chip {
     display: flex;
     flex-direction: column;
     gap: 1px;
-    transform: translate(-50%, -100%);
+    pointer-events: none;
     white-space: nowrap;
     border-radius: 0.75rem;
     background: #fff;

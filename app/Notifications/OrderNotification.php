@@ -51,10 +51,14 @@ class OrderNotification extends Notification
                 'status' => $order->status,
             ],
             'weight_confirmed' => [
-                'title' => 'Final weight confirmed',
-                'body' => 'Your laundry weighs '.number_format((float) $order->actual_weight_kg, 2)
-                    .' kg. The final amount for order #'.$order->order_number.' is ₱'
-                    .number_format((float) $order->total_amount, 2).'. You can now pay online.',
+                'title' => $order->weight_approval_status === 'pending' ? 'Please review your laundry weight' : 'Final weight confirmed',
+                'body' => $order->weight_approval_status === 'pending'
+                    ? 'The shop weighed your laundry at '.number_format((float) $order->actual_weight_kg, 2)
+                        .' kg. The final amount for order #'.$order->order_number.' is ₱'
+                        .number_format((float) $order->total_amount, 2).'. Check the photo, then approve or cancel the order.'
+                    : 'Your laundry weighs '.number_format((float) $order->actual_weight_kg, 2)
+                        .' kg. The final amount for order #'.$order->order_number.' is ₱'
+                        .number_format((float) $order->total_amount, 2).'. You can now pay online.',
                 'order_id' => $order->id,
                 'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
@@ -70,6 +74,17 @@ class OrderNotification extends Notification
                 'order_number' => $order->order_number,
                 'type' => 'payment_updated',
                 'payment_status' => $order->payment_status,
+            ],
+            'weight_decided' => [
+                'title' => $order->weight_approval_status === 'approved' ? 'Weight approved' : 'Weight declined',
+                'body' => $order->weight_approval_status === 'approved'
+                    ? "The customer approved the weight of order #{$order->order_number}. It can now start."
+                    : "The customer declined the recorded weight and cancelled order #{$order->order_number}.",
+                'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
+                'order_number' => $order->order_number,
+                'type' => 'weight_decided',
+                'url' => ($notifiable->role === 'owner' ? '/shop' : '/staff').'/operations/orders/'.$order->payment_public_id,
             ],
             'cancelled' => [
                 'title' => 'Order cancelled',

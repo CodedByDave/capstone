@@ -1,5 +1,7 @@
 export interface DriverInfo {
     name: string;
+    email?: string | null;
+    avatar?: string | null;
     phone: string | null;
     vehicle_type: string | null;
     is_online: boolean;
@@ -44,6 +46,8 @@ export interface DriverJob {
     target: JobStop;
     customer_stop: JobStop;
     shop_stop: JobStop;
+    /** A freshly assigned run the driver must accept or reject before setting off. */
+    awaiting_acceptance?: boolean;
     next_status: 'picked_up' | 'delivered' | null;
     action_label: string | null;
     checklist: string[];

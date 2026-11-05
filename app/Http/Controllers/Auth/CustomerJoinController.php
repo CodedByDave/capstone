@@ -40,10 +40,12 @@ class CustomerJoinController extends Controller
             ]);
         }
 
-        $joined = $this->referrals->bindCustomer($user, $shop);
+        $this->referrals->bindCustomer($user, $shop);
 
-        return redirect()->route('user.dashboard')->with('toast', $joined
-            ? ['type' => 'success', 'message' => "You are now connected to {$shop->shop_name}."]
-            : ['type' => 'warning', 'message' => 'Your account is already connected to another shop.']);
+        // Straight to the shop they scanned; the rest of the nearby shops stay one tap away.
+        return redirect()->route('user.shops.show', $shop->id)->with('toast', [
+            'type' => 'success',
+            'message' => "Welcome to {$shop->shop_name}.",
+        ]);
     }
 }

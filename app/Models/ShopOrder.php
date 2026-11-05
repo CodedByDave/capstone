@@ -53,6 +53,8 @@ class ShopOrder extends Model
         'promotion_id',
         'discount_amount',
         'delivery_fee',
+        'tax_rate',
+        'tax_amount',
         'total_amount',
         'payment_method',
         'payment_status',
@@ -66,7 +68,16 @@ class ShopOrder extends Model
         'overdue_notified_at',
         'completed_at',
         'picked_up_at',
+        'weight_proof_path',
+        'weight_approval_status',
+        'weight_proof_uploaded_at',
+        'weight_decided_at',
     ];
+
+    /** The storage path of the weighing photo is never sent to the browser. */
+    protected $hidden = ['weight_proof_path'];
+
+    protected $appends = ['has_weight_proof'];
 
     protected $casts = [
         'customer_phone' => PhilippinePhoneCast::class,
@@ -85,6 +96,8 @@ class ShopOrder extends Model
         'additional_charges' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
+        'tax_rate' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'paid_at' => 'datetime',
@@ -93,6 +106,8 @@ class ShopOrder extends Model
         'overdue_notified_at' => 'datetime',
         'completed_at' => 'datetime',
         'picked_up_at' => 'datetime',
+        'weight_proof_uploaded_at' => 'datetime',
+        'weight_decided_at' => 'datetime',
     ];
 
     // ─── Enums ────────────────────────────────────────────────────────────────
@@ -272,12 +287,29 @@ class ShopOrder extends Model
      */
     public function priceIsConfirmed(): bool
     {
+        // An online customer has to accept the shop's weight before the price is final.
+        if ($this->awaitingWeightApproval()) {
+            return false;
+        }
+
         $mainPriced = $this->actual_weight_kg !== null || $this->pricing_model === 'per_piece';
 
         // An additional service that is still waiting for its weight leaves the total open too.
         return $mainPriced && ! $this->serviceLines->contains(
             fn (ShopOrderServiceLine $line) => $line->pricing_model !== 'per_piece' && $line->weight_kg === null,
         );
+    }
+
+    public function getHasWeightProofAttribute(): bool
+    {
+        return filled($this->weight_proof_path);
+    }
+
+    /** An online order whose shop-entered weight the customer has not approved yet. */
+    public function awaitingWeightApproval(): bool
+    {
+        return $this->order_source === 'online'
+            && $this->weight_approval_status === 'pending';
     }
 
     public function isPaid(): bool

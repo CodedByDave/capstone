@@ -26,13 +26,15 @@ class ShopOrderPayment extends Model
     public const SOURCE_ONLINE = 'online';
 
     protected $fillable = [
-        'shop_order_id', 'shop_id', 'amount', 'method', 'reference', 'note', 'status', 'source',
+        'shop_order_id', 'shop_id', 'amount', 'amount_tendered', 'change_given', 'method', 'reference', 'note', 'status', 'source',
         'recorded_by', 'paid_at', 'paymongo_session_id', 'paymongo_payment_id',
         'voided_at', 'voided_by', 'void_reason',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'amount_tendered' => 'decimal:2',
+        'change_given' => 'decimal:2',
         'paid_at' => 'datetime',
         'voided_at' => 'datetime',
     ];

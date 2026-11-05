@@ -32,6 +32,11 @@ class DeliveryProofController extends Controller
         return Storage::disk('private')->response($this->proof->pathForShop($request->user(), $photo));
     }
 
+    public function rejection(Request $request, \App\Models\DeliveryRejection $rejection): StreamedResponse
+    {
+        return Storage::disk('private')->response($this->proof->pathForRejection($request->user(), $rejection));
+    }
+
     public function destroy(Request $request, DeliveryPhoto $photo): RedirectResponse
     {
         $this->proof->remove($request->user(), $photo);

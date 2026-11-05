@@ -18,6 +18,7 @@ class OrderBillingBreakdownService
         private readonly ShopOrderRepository $repository,
         private readonly PromotionService $promotions,
         private readonly CustomerAdditionalChargeService $additionalCharges,
+        private readonly OrderTaxService $tax,
     ) {}
 
     public function forOrder(ShopOrder $order): array
@@ -72,6 +73,9 @@ class OrderBillingBreakdownService
             ...$this->additionalChargeDetail($order),
             'discount' => (float) $order->discount_amount,
             'delivery_fee' => (float) $order->delivery_fee,
+            'tax' => (float) $order->tax_amount,
+            'tax_rate' => (float) $order->tax_rate,
+            'tax_label' => $this->tax->labelFor((float) $order->tax_rate),
             'total' => $total,
             'amount_paid' => $amountPaid,
             'balance_due' => round(max(0, $total - $amountPaid), 2),
@@ -137,6 +141,12 @@ class OrderBillingBreakdownService
             ? $this->promotions->discountFor((int) $service->shop_id, $promotionId, $line['amount'])
             : 0.0;
 
+        // Tax follows the shop's BIR registration and is added on top of the services and add-ons.
+        $rate = $this->tax->rateForShop((int) $service->shop_id);
+        $subtotal = $line['amount'] + $additional - $discount;
+        $tax = $this->tax->amountOn($subtotal, $rate);
+        $total = round($subtotal + $tax, 2);
+
         return [
             'is_estimate' => ! $service->isPerPiece(),
             'service' => $line,
@@ -145,9 +155,12 @@ class OrderBillingBreakdownService
             'other_charges' => 0.0,
             'discount' => $discount,
             'delivery_fee' => 0.0,
-            'total' => round($line['amount'] + $additional - $discount, 2),
+            'tax' => $tax,
+            'tax_rate' => $rate,
+            'tax_label' => $this->tax->labelFor($rate),
+            'total' => $total,
             'amount_paid' => 0.0,
-            'balance_due' => round($line['amount'] + $additional - $discount, 2),
+            'balance_due' => $total,
         ];
     }
 

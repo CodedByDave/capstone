@@ -54,6 +54,8 @@ interface Order {
     payment_public_id: string;
     order_number: string;
     status: 'pending' | 'in_progress' | 'completed' | 'picked_up' | 'cancelled';
+    weight_approval_status?: 'pending' | 'approved' | 'declined' | null;
+    weight_proof_url?: string | null;
     payment_status: 'unpaid' | 'partial' | 'paid';
     payment_method: string;
     total_amount: number;
@@ -199,6 +201,24 @@ const statusConfig = {
 
 const showCancelConfirm = ref(false);
 const cancelling = ref(false);
+
+// ─── Approving the weight the shop recorded ──────────────────────────────
+const decidingWeight = ref(false);
+const confirmingDecline = ref(false);
+const decideWeight = (decision: 'approve' | 'decline') => {
+    decidingWeight.value = true;
+    router.post(
+        `/user/orders/${props.order.payment_public_id}/weight/${decision}`,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                decidingWeight.value = false;
+                confirmingDecline.value = false;
+            },
+        },
+    );
+};
 
 function confirmCancel() {
     cancelling.value = true;
@@ -521,6 +541,86 @@ const shopLocation = computed(() =>
                             }}
                         </p>
                     </div>
+                    <div
+                        v-if="order.weight_approval_status === 'pending'"
+                        class="col-span-full space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4"
+                        role="region"
+                        aria-label="Approve the recorded weight"
+                    >
+                        <div class="flex items-start gap-2">
+                            <Info
+                                class="mt-0.5 h-4 w-4 shrink-0 text-amber-700"
+                            />
+                            <p class="text-sm text-amber-800">
+                                The shop weighed your laundry at
+                                <strong>{{ order.actual_weight_kg }} kg</strong>
+                                (you estimated
+                                {{ order.estimated_weight_kg }} kg). The new
+                                total is
+                                <strong
+                                    >₱{{
+                                        Number(order.total_amount).toFixed(2)
+                                    }}</strong
+                                >. Check the photo, then approve to start your
+                                laundry or cancel the order.
+                            </p>
+                        </div>
+                        <a
+                            v-if="order.weight_proof_url"
+                            :href="order.weight_proof_url"
+                            target="_blank"
+                            rel="noopener"
+                            class="block"
+                        >
+                            <img
+                                :src="order.weight_proof_url"
+                                alt="Your laundry on the shop's scale"
+                                class="max-h-64 w-full rounded-lg border bg-white object-contain"
+                            />
+                        </a>
+                        <div
+                            v-if="!confirmingDecline"
+                            class="flex flex-wrap gap-2"
+                        >
+                            <button
+                                type="button"
+                                class="min-h-11 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                                :disabled="decidingWeight"
+                                @click="decideWeight('approve')"
+                            >
+                                Approve weight
+                            </button>
+                            <button
+                                type="button"
+                                class="min-h-11 rounded-lg border border-red-300 bg-white px-4 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                :disabled="decidingWeight"
+                                @click="confirmingDecline = true"
+                            >
+                                Cancel order
+                            </button>
+                        </div>
+                        <div v-else class="flex flex-wrap items-center gap-2">
+                            <span class="text-sm text-red-700"
+                                >Cancel this order instead?</span
+                            >
+                            <button
+                                type="button"
+                                class="min-h-11 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                                :disabled="decidingWeight"
+                                @click="decideWeight('decline')"
+                            >
+                                Yes, cancel order
+                            </button>
+                            <button
+                                type="button"
+                                class="min-h-11 rounded-lg border bg-white px-4 text-sm font-semibold"
+                                :disabled="decidingWeight"
+                                @click="confirmingDecline = false"
+                            >
+                                Keep order
+                            </button>
+                        </div>
+                    </div>
                     <div class="rounded-xl bg-gray-50 p-3">
                         <p class="mb-0.5 text-gray-400">Drop-off</p>
                         <p class="font-semibold text-gray-700 capitalize">
@@ -763,7 +863,11 @@ const shopLocation = computed(() =>
                     class="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-xs text-amber-700"
                 >
                     <Info class="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span v-if="!order.payment_ready">
+                    <span v-if="order.weight_approval_status === 'pending'">
+                        Approve the recorded weight above to unlock online
+                        payment.
+                    </span>
+                    <span v-else-if="!order.payment_ready">
                         Awaiting the shop's actual weight. The amount shown is
                         only an estimate; online payment will unlock after the
                         final weight and price are confirmed.

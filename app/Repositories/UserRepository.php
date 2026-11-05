@@ -29,6 +29,11 @@ class UserRepository extends Repository
         $user->update(['referred_shop_id' => $shopId]);
     }
 
+    public function setProfilePhoto(User $user, string $path): void
+    {
+        $user->update(['profile_photo_path' => $path]);
+    }
+
     public function updatePassword(User $user, string $password): void
     {
         $user->update(['password' => $password]);

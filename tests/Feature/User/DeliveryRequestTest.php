@@ -77,11 +77,15 @@ function dlvOrder(Shop $shop, User $customer, array $overrides = []): ShopOrder
     ], $overrides));
 }
 
-/** OSRM answers with a fixed road distance in meters. */
+/** Mapbox answers with a fixed road distance in meters. */
 function fakeRoadDistance(float $meters): void
 {
-    config()->set('services.osrm.url', 'https://osrm.test');
-    Http::fake(['osrm.test/*' => Http::response(['code' => 'Ok', 'routes' => [['distance' => $meters]]])]);
+    config()->set('services.mapbox.token', 'pk.test');
+    config()->set('services.mapbox.base_url', 'https://mapbox.test');
+    Http::fake(['mapbox.test/*' => Http::response([
+        'code' => 'Ok',
+        'routes' => [['distance' => $meters, 'duration' => 600, 'geometry' => ['type' => 'LineString', 'coordinates' => []], 'legs' => []]],
+    ])]);
 }
 
 function deliveryPayload(array $overrides = []): array

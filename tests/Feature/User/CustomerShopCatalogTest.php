@@ -66,7 +66,7 @@ test('the dashboard nearby shops show a bundle starting price', function () {
     $this->actingAs(catalogCustomer($shop))
         ->get(route('user.dashboard'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('nearbyShops', 1)
+            ->has('nearbyShops', 2)
             ->where('nearbyShops.0.shop_name', 'Nearby Bundle')
             ->where('nearbyShops.0.starting_price', 190)
             ->where('nearbyShops.0.starting_price_unit', 'bundle'));

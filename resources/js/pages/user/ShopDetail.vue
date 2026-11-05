@@ -23,6 +23,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Bell,
+    Clock,
     Loader2,
     MapPin,
     Minus,
@@ -86,6 +87,11 @@ interface ShopInfo {
     distance_km: number | null;
     offers_pickup: boolean;
     offers_delivery: boolean;
+    is_open: boolean;
+    is_open_24_7: boolean;
+    opens_at: string | null;
+    closes_at: string | null;
+    operating_days: number[];
     rating_avg: number | null;
     rating_count: number;
     payment_options: Record<
@@ -218,7 +224,7 @@ async function resolvePickupPin() {
         ]);
         if (match) {
             form.value.customer_lat = Number(match.lat);
-            form.value.customer_lng = Number(match.lon);
+            form.value.customer_lng = Number(match.lng);
             pinnedAddress = form.value.customer_address;
         }
     } catch {
@@ -233,7 +239,24 @@ watch(
     },
 );
 
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Monday first reads more naturally for a week.
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+function formatTime(value: string | null) {
+    if (!value) return '';
+    const [h, m] = value.split(':').map(Number);
+    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+const hoursLabel = computed(() =>
+    props.shop.is_open_24_7 || !props.shop.opens_at || !props.shop.closes_at
+        ? 'Open 24 hours'
+        : `${formatTime(props.shop.opens_at)} – ${formatTime(props.shop.closes_at)}`,
+);
+
 function openOrder(service: ShopService) {
+    if (!props.shop.is_open) return;
     selectedService.value = service;
     form.value.service_id = service.id;
     // Each service is counted differently, so start the amount fields fresh.
@@ -267,6 +290,7 @@ const weightHelp = computed(() => {
 
 const orderHint = computed(() => {
     const f = form.value;
+    if (!props.shop.is_open) return 'This shop is closed right now.';
     if (f.customer_name.trim() === '') return 'Enter your full name.';
     if (!PH_MOBILE.test(f.customer_phone)) return 'Enter a valid phone number.';
 
@@ -446,14 +470,6 @@ function servicePrice(svc: ShopService): {
     return { amount: '—', unit: '', perKg: null };
 }
 
-function directionsUrl(shop: ShopInfo) {
-    const destination =
-        shop.latitude !== null && shop.longitude !== null
-            ? `${shop.latitude},${shop.longitude}`
-            : formatAddress(shop);
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
-}
-
 function goBack() {
     router.visit('/user/dashboard');
 }
@@ -514,6 +530,50 @@ function goBack() {
 
         <!-- ── Contact rows ───────────────────────────────────── -->
         <div class="px-5">
+            <div class="border-b border-slate-100 py-3">
+                <div class="flex min-h-8 items-center gap-3">
+                    <Clock class="h-[18px] w-[18px] shrink-0 text-slate-500" />
+                    <span class="min-w-0 flex-1 text-sm text-slate-800">{{
+                        hoursLabel
+                    }}</span>
+                    <span
+                        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+                        :class="
+                            shop.is_open
+                                ? 'bg-emerald-50 text-emerald-800'
+                                : 'bg-red-50 text-red-800'
+                        "
+                    >
+                        <span
+                            class="h-1.5 w-1.5 rounded-full"
+                            :class="shop.is_open ? 'bg-emerald-600' : 'bg-red-600'"
+                            aria-hidden="true"
+                        />
+                        {{ shop.is_open ? 'Operating' : 'Closed' }}
+                    </span>
+                </div>
+                <ul class="mt-2 ml-[30px] flex flex-wrap gap-1.5" aria-label="Days open">
+                    <li
+                        v-for="day in WEEK_ORDER"
+                        :key="day"
+                        class="rounded-md px-2 py-1 text-xs font-medium"
+                        :class="
+                            shop.operating_days.includes(day)
+                                ? 'bg-blue-50 text-blue-800'
+                                : 'bg-slate-100 text-slate-500 line-through'
+                        "
+                    >
+                        {{ DAY_NAMES[day] }}
+                        <span class="sr-only">{{
+                            shop.operating_days.includes(day) ? 'open' : 'closed'
+                        }}</span>
+                    </li>
+                </ul>
+                <p v-if="!shop.is_open" class="mt-2 ml-[30px] text-xs text-red-700">
+                    This shop is closed right now, so orders cannot be placed. Please
+                    come back on an open day during opening hours.
+                </p>
+            </div>
             <div
                 class="flex min-h-14 items-center gap-3 border-b border-slate-100 py-3"
             >
@@ -521,13 +581,6 @@ function goBack() {
                 <span class="min-w-0 flex-1 text-sm leading-5 text-slate-800">{{
                     formatAddress(shop)
                 }}</span>
-                <a
-                    :href="directionsUrl(shop)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="shrink-0 text-xs font-medium text-blue-600 hover:underline"
-                    >Directions</a
-                >
             </div>
             <div
                 v-if="shop.phone"
@@ -640,10 +693,16 @@ function goBack() {
 
                         <button
                             type="button"
-                            class="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-blue-600 bg-white text-sm font-semibold text-blue-600 transition hover:bg-blue-50 active:bg-blue-100"
+                            class="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border text-sm font-semibold transition"
+                            :class="
+                                shop.is_open
+                                    ? 'border-blue-600 bg-white text-blue-600 hover:bg-blue-50 active:bg-blue-100'
+                                    : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500'
+                            "
+                            :disabled="!shop.is_open"
                             @click="openOrder(svc)"
                         >
-                            Place an order
+                            {{ shop.is_open ? 'Place an order' : 'Shop is closed' }}
                         </button>
                     </li>
                 </ul>

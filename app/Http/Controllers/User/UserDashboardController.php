@@ -9,7 +9,6 @@ use App\Services\CustomerAgreementService;
 use App\Services\CustomerShopCatalogService;
 use App\Services\OrderRatingService;
 use App\Services\PromotionService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -45,63 +44,38 @@ class UserDashboardController extends Controller
                 'created_at' => $o->created_at->toDateString(),
             ]);
 
-        // A customer only sees the shop whose QR they joined through.
-        $nearbyShops = [];
-        if ($user->referred_shop_id) {
-            $nearbyShops = Shop::where('status', 'active')
-                ->where('id', $user->referred_shop_id)
-                ->with(['services' => fn ($q) => $q->where('is_active', true)
-                    ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price')])
-                ->select('id', 'shop_name', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo')
-                ->get()
-                ->map(function ($shop) {
-                    $startingPrice = $this->catalog->startingPrice($shop->services);
+        $lat = $request->float('lat') ?: null;
+        $lng = $request->float('lng') ?: null;
 
-                    return [
-                        'id' => $shop->id,
-                        'shop_name' => $shop->shop_name,
-                        'municipality' => $shop->municipality,
-                        'barangay' => $shop->barangay,
-                        'cover_photo' => $this->coverUrl($shop->cover_photo),
-                        'distance_km' => null,
-                        'starting_price' => $startingPrice['amount'],
-                        'starting_price_unit' => $startingPrice['unit'],
-                        'services_count' => $shop->services->count(),
-                    ];
-                })
-                ->values()
-                ->toArray();
-
-            $summaries = $this->ratings->summariesFor(array_column($nearbyShops, 'id'));
-            $nearbyShops = array_map(fn (array $shop) => $shop + [
-                'rating_avg' => $summaries[$shop['id']]['average'] ?? null,
-                'rating_count' => $summaries[$shop['id']]['count'] ?? 0,
-            ], $nearbyShops);
-        }
+        // Every active shop is open to the customer: the nearest ones when their location is known,
+        // with the shop whose QR they scanned always listed first.
+        $nearbyShops = $this->shopCards($lat, $lng, $user->referred_shop_id);
 
         return Inertia::render('Dashboard', [
             'recentOrders' => $recentOrders,
             'totalOrders' => ShopOrder::where('user_id', $user->id)->count(),
             'ratingPrompt' => $this->ratings->promptFor($user),
             'nearbyShops' => $nearbyShops,
-            'promotions' => $user->referred_shop_id
-                ? $this->promotions->forCustomer((int) $user->referred_shop_id)
-                : [],
+            'userLat' => $lat,
+            'userLng' => $lng,
+            'promotions' => $this->promotions->forCustomerHome($user),
         ]);
     }
 
     // ─── Shops list ───────────────────────────────────────────────────────────
 
-    public function shops(Request $request): RedirectResponse
+    public function shops(Request $request): Response
     {
-        // Customers have a single shop, so the shop list is replaced by that shop's page.
-        $referredShopId = $request->user()->referred_shop_id;
+        $lat = $request->float('lat') ?: null;
+        $lng = $request->float('lng') ?: null;
+        $search = $request->string('search')->trim()->toString();
 
-        if (! $referredShopId) {
-            return redirect()->route('user.dashboard');
-        }
-
-        return redirect()->route('user.shops.show', $referredShopId);
+        return Inertia::render('user/Shops', [
+            'shops' => $this->shopCards($lat, $lng, $request->user()->referred_shop_id, $search, limit: null),
+            'userLat' => $lat,
+            'userLng' => $lng,
+            'search' => $search,
+        ]);
     }
 
     // ─── Shop detail ──────────────────────────────────────────────────────────
@@ -109,7 +83,6 @@ class UserDashboardController extends Controller
     public function showShop(Request $request, Shop $shop): Response
     {
         abort_if($shop->status !== 'active', 404);
-        abort_if($request->user()->referred_shop_id !== $shop->id, 404);
 
         $lat = $request->float('lat');
         $lng = $request->float('lng');
@@ -152,6 +125,11 @@ class UserDashboardController extends Controller
                 'distance_km' => $distance,
                 'offers_pickup' => (bool) $shop->offers_pickup,
                 'offers_delivery' => $shop->canDeliver(),
+                'is_open' => $shop->isOpenAt(),
+                'is_open_24_7' => (bool) $shop->is_open_24_7,
+                'opens_at' => $shop->opens_at ? substr($shop->opens_at, 0, 5) : null,
+                'closes_at' => $shop->closes_at ? substr($shop->closes_at, 0, 5) : null,
+                'operating_days' => $shop->openDays(),
                 'rating_avg' => $rating['average'] ?? null,
                 'rating_count' => $rating['count'] ?? 0,
             ],
@@ -162,6 +140,80 @@ class UserDashboardController extends Controller
             'userLat' => $lat ?: null,
             'userLng' => $lng ?: null,
         ]);
+    }
+
+    // ─── Shop cards ───────────────────────────────────────────────────────────
+
+    /**
+     * Active shops as browse cards, nearest first when the customer's location is known, otherwise by
+     * name. The shop the customer joined through is always first.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function shopCards(?float $lat, ?float $lng, ?int $homeShopId, string $search = '', ?int $limit = 5): array
+    {
+        $query = Shop::where('status', 'active')
+            ->with(['services' => fn ($q) => $q->where('is_active', true)
+                ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price', 'bundle_weight_kg', 'price_per_piece')])
+            ->select('id', 'shop_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('shop_name', 'like', "%{$search}%")
+                    ->orWhere('municipality', 'like', "%{$search}%")
+                    ->orWhere('barangay', 'like', "%{$search}%");
+            });
+        }
+
+        $found = $query->get();
+        $summaries = $this->ratings->summariesFor($found->pluck('id')->all());
+
+        $cards = $found->map(function ($shop) use ($lat, $lng, $summaries) {
+            $startingPrice = $this->catalog->startingPrice($shop->services);
+
+            return [
+                'id' => $shop->id,
+                'shop_name' => $shop->shop_name,
+                'phone' => $shop->phone,
+                'block_street' => $shop->block_street,
+                'municipality' => $shop->municipality,
+                'barangay' => $shop->barangay,
+                'latitude' => $shop->latitude,
+                'longitude' => $shop->longitude,
+                'cover_photo' => $this->coverUrl($shop->cover_photo),
+                'distance_km' => ($lat && $lng && $shop->latitude && $shop->longitude)
+                    ? $this->haversine($lat, $lng, $shop->latitude, $shop->longitude)
+                    : null,
+                'starting_price' => $startingPrice['amount'],
+                'starting_price_unit' => $startingPrice['unit'],
+                'services_count' => $shop->services->count(),
+                'rating_avg' => $summaries[$shop->id]['average'] ?? null,
+                'rating_count' => $summaries[$shop->id]['count'] ?? 0,
+            ];
+        });
+
+        $cards = ($lat && $lng)
+            ? $cards->sortBy(fn ($card) => $card['distance_km'] ?? 9999)
+            : $cards->sortBy('shop_name');
+
+        $cards = $cards->values();
+        $home = $homeShopId ? $cards->firstWhere('id', $homeShopId) : null;
+
+        if ($limit !== null) {
+            // The nearest few, but never at the cost of the customer's own shop.
+            $cards = $cards->reject(fn ($card) => $card['id'] === $homeShopId)->take($home ? $limit - 1 : $limit)->values();
+        } else {
+            $cards = $cards->reject(fn ($card) => $card['id'] === $homeShopId)->values();
+        }
+
+        if ($home) {
+            $cards->prepend($home);
+        }
+
+        return $cards
+            ->map(fn ($card) => [...$card, 'is_home_shop' => $card['id'] === $homeShopId])
+            ->values()
+            ->all();
     }
 
     // ─── URL helpers ──────────────────────────────────────────────────────────

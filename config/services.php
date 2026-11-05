@@ -41,12 +41,15 @@ return [
         'demo_secret_key' => env('PAYMONGO_DEMO_SECRET_KEY', 'sk_test_demoLaundryHubPanel2026'),
         'demo_public_key' => env('PAYMONGO_DEMO_PUBLIC_KEY', 'pk_test_demoLaundryHubPanel2026'),
     ],
-    // Public OSRM routing server used for delivery road distances (no API key).
-    // Point OSRM_URL at a self-hosted instance for production traffic.
-    'osrm' => [
-        'url' => env('OSRM_URL', 'https://router.project-osrm.org'),
-        'timeout' => (int) env('OSRM_TIMEOUT', 4),
-        'cache_ttl' => (int) env('OSRM_CACHE_TTL', 86400),
+    // Mapbox powers geocoding, road routing and route optimisation. The server-side proxy uses
+    // MAPBOX_SECRET_TOKEN when set and otherwise falls back to the public (pk.) token, which the
+    // Geocoding, Directions and Optimization APIs accept. The browser only ever gets the public token.
+    'mapbox' => [
+        'token' => env('MAPBOX_SECRET_TOKEN') ?: env('VITE_MAPBOX_TOKEN'),
+        'base_url' => env('MAPBOX_BASE_URL', 'https://api.mapbox.com'),
+        'timeout' => (int) env('MAPBOX_TIMEOUT', 6),
+        'geocode_ttl' => (int) env('MAPBOX_GEOCODE_TTL', 86400),
+        'route_ttl' => (int) env('MAPBOX_ROUTE_TTL', 3600),
     ],
     // OCR.space reads KYC permits to pre-fill expiry dates. Leave the key empty to disable.
     'ocr_space' => [
@@ -56,7 +59,6 @@ return [
         'timeout' => (int) env('OCR_SPACE_TIMEOUT', 30),
     ],
     'google' => [
-        'maps_key' => env('GOOGLE_MAPS_API_KEY'),
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),

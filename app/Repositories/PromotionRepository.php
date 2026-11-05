@@ -42,6 +42,21 @@ class PromotionRepository
             ->find($id);
     }
 
+    /**
+     * Usable promotions across several shops, with the shop loaded for display.
+     *
+     * @param  array<int, int>  $shopIds
+     */
+    public function allActiveForShops(array $shopIds): Collection
+    {
+        return Promotion::whereIn('shop_id', $shopIds)
+            ->active()
+            ->valid()
+            ->with('shop:id,shop_name')
+            ->orderBy('name')
+            ->get();
+    }
+
     public function allActive(int $shopId): Collection
     {
         return Promotion::where('shop_id', $shopId)

@@ -104,6 +104,10 @@ class UserOrderController extends Controller
                 'pricing_model' => $order->pricing_model,
                 'price_per_kg' => $order->price_per_kg,
                 'payment_ready' => $order->priceIsConfirmed(),
+                'weight_approval_status' => $order->weight_approval_status,
+                'weight_proof_url' => $order->weight_proof_path
+                    ? route('user.orders.weight.proof', $order->payment_public_id)
+                    : null,
                 'piece_count' => $order->piece_count,
                 'price_per_piece' => $order->price_per_piece,
                 'created_at' => $order->created_at->format('M d, Y'),
@@ -171,7 +175,8 @@ class UserOrderController extends Controller
 
         return redirect()->route('user.orders.index')->with('toast', [
             'type' => 'success',
-            'message' => "Order {$result['order']->order_number} placed! The shop will confirm and process it shortly.",
+            'message' => "Order {$result['order']->order_number} placed! The shop will confirm and process it shortly."
+                .($result['no_rider'] ? ' No rider is available right now, so your pickup will be assigned as soon as one is free.' : ''),
         ]);
     }
 

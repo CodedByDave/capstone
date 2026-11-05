@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LocationPin from '@/components/map/LocationPin.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -263,10 +264,6 @@ function kycUrl(path: string) {
 
 function isImage(path: string) {
     return /\.(jpg|jpeg|png)$/i.test(path);
-}
-
-function mapUrl() {
-    return `https://www.google.com/maps?q=${shop.latitude},${shop.longitude}`;
 }
 
 function confirmDisable() {
@@ -592,15 +589,14 @@ function enableShop() {
                             <p class="font-medium">
                                 {{ shop.latitude }}, {{ shop.longitude }}
                             </p>
-                            <a
-                                :href="mapUrl()"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="mt-1 inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                            >
-                                Open in Maps
-                                <ExternalLink class="h-3 w-3" />
-                            </a>
+                            <LocationPin
+                                :lat="Number(shop.latitude)"
+                                :lng="Number(shop.longitude)"
+                                :label="shop.shop_name ?? 'the shop'"
+                                height-class="h-44"
+                                :zoom="15"
+                                class="mt-2"
+                            />
                         </div>
                         <div>
                             <p class="detail-label">Last shop activity</p>

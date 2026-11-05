@@ -1,34 +1,30 @@
 <script setup lang="ts">
 import type { DriverJob } from '@/types/driver';
 import { Link } from '@inertiajs/vue3';
-import {
-    ArrowDownToLine,
-    ArrowUpFromLine,
-    ChevronRight,
-} from 'lucide-vue-next';
+import { ArrowRight } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps<{ job: DriverJob }>();
 
-const isPickup = computed(() => props.job.type === 'pickup');
+const initials = computed(() =>
+    props.job.customer_name
+        .split(' ')
+        .map((part) => part[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase(),
+);
 
-const time = computed(() => {
-    const at = props.job.finished_at ?? props.job.assigned_at;
-    return at
-        ? new Date(at).toLocaleTimeString('en-PH', {
-              hour: '2-digit',
-              minute: '2-digit',
-          })
-        : '';
-});
-
-const statusLabel = computed(
+const status = computed(
     () =>
         ({
-            assigned: 'Assigned',
-            picked_up: 'On the way',
-            delivered: 'Done',
-            failed: 'Failed',
+            assigned: { label: 'Not done', cls: 'bg-[#ffe9a8] text-[#8a6100]' },
+            picked_up: {
+                label: 'Picked up',
+                cls: 'bg-[#c9f5d6] text-[#17803d]',
+            },
+            delivered: { label: 'Done', cls: 'bg-[#c9f5d6] text-[#17803d]' },
+            failed: { label: 'Failed', cls: 'bg-red-100 text-red-600' },
         })[props.job.status],
 );
 </script>
@@ -36,48 +32,42 @@ const statusLabel = computed(
 <template>
     <Link
         :href="`/driver/jobs/${job.public_id}`"
-        class="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm"
+        class="flex items-center gap-3 border-b border-slate-300 py-3 last:border-b-0"
     >
         <span
-            :class="[
-                'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
-                isPickup
-                    ? 'bg-orange-100 text-orange-700'
-                    : 'bg-blue-100 text-blue-700',
-            ]"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-300 text-xs font-semibold text-slate-600"
+            aria-hidden="true"
         >
-            <ArrowUpFromLine
-                v-if="isPickup"
-                class="h-5 w-5"
-                aria-hidden="true"
-            />
-            <ArrowDownToLine v-else class="h-5 w-5" aria-hidden="true" />
+            {{ initials }}
         </span>
 
         <span class="min-w-0 flex-1">
-            <span class="flex items-baseline justify-between gap-2">
-                <span class="truncate font-semibold">{{
+            <span class="flex items-center gap-2">
+                <span class="truncate text-sm font-semibold text-slate-700">{{
                     job.customer_name
                 }}</span>
-                <span class="shrink-0 text-sm font-medium">{{ time }}</span>
+                <span
+                    :class="[
+                        'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                        status.cls,
+                    ]"
+                >
+                    {{ status.label }}
+                </span>
             </span>
-            <span class="block truncate text-xs text-slate-500">
+            <span class="block truncate text-[11px] text-slate-500">
                 {{ job.address ?? 'No address' }}
             </span>
             <span
-                class="mt-1 flex items-center gap-2 text-[11px] text-slate-500"
+                v-if="job.order_number"
+                class="block text-[11px] font-semibold text-slate-600"
             >
-                <span v-if="job.order_number">#{{ job.order_number }}</span>
-                <span
-                    class="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600"
-                >
-                    {{ statusLabel }}
-                </span>
+                {{ job.order_number }}
             </span>
         </span>
 
-        <ChevronRight
-            class="h-4 w-4 shrink-0 text-slate-400"
+        <ArrowRight
+            class="h-4 w-4 shrink-0 text-slate-500"
             aria-hidden="true"
         />
     </Link>

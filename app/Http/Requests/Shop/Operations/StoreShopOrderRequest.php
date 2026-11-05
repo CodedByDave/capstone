@@ -20,6 +20,7 @@ class StoreShopOrderRequest extends FormRequest
             'additional_charges' => $this->additional_charges ?? 0,
             'discount_amount' => $this->discount_amount ?? 0,
             'amount_paid' => $this->amount_paid ?? 0,
+            'amount_tendered' => $this->filled('amount_tendered') ? $this->amount_tendered : null,
             'price_per_kg' => $this->price_per_kg ?? 0,
         ]);
     }
@@ -123,6 +124,8 @@ class StoreShopOrderRequest extends FormRequest
             'total_amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['nullable', Rule::in(ShopOrder::PAYMENT_METHODS)],
             'amount_paid' => ['nullable', 'numeric', 'min:0'],
+            // Cash the customer handed over; the change is worked out from it, never typed in.
+            'amount_tendered' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
             'estimated_completion_at' => ['nullable', 'date'],
             'customer_agreement_version' => ['required', 'string', 'max:30'],
             'customer_agreement_accepted' => ['required', 'accepted'],

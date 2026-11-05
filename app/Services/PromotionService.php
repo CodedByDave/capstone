@@ -5,7 +5,9 @@ namespace App\Services;
 use App\DTOs\TableSort;
 use App\Models\Promotion;
 use App\Models\Shop;
+use App\Models\User;
 use App\Repositories\PromotionRepository;
+use App\Repositories\ShopOrderRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
@@ -14,6 +16,7 @@ class PromotionService
 {
     public function __construct(
         private readonly PromotionRepository $repo,
+        private readonly ShopOrderRepository $shopOrders,
         private readonly ActivityLogService $activityLogService,
     ) {}
 
@@ -35,18 +38,50 @@ class PromotionService
     public function forCustomer(int $shopId): array
     {
         return $this->repo->allActive($shopId)
+            ->map(fn (Promotion $promotion) => $this->presentForCustomer($promotion))
+            ->values()
+            ->all();
+    }
+
+    /** @return array<string, mixed> */
+    private function presentForCustomer(Promotion $promotion): array
+    {
+        return [
+            'id' => $promotion->id,
+            'type' => $promotion->type,
+            'value' => (float) $promotion->value,
+            'name' => $promotion->name,
+            'headline' => $promotion->type === 'percentage'
+                ? rtrim(rtrim(number_format((float) $promotion->value, 2, '.', ''), '0'), '.').'% off'
+                : '₱'.number_format((float) $promotion->value, 0).' off',
+            'description' => $promotion->description,
+            'min_order_amount' => $promotion->min_order_amount !== null ? (float) $promotion->min_order_amount : null,
+            'ends_at' => $promotion->ends_at?->toDateString(),
+        ];
+    }
+
+    /**
+     * Promotions for the Home banner: only from shops the customer has chosen, meaning the shop they
+     * joined through and any shop they have ordered from. Each one names its shop.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function forCustomerHome(User $customer): array
+    {
+        $shopIds = array_values(array_unique(array_filter([
+            $customer->referred_shop_id,
+            ...$this->shopOrders->shopIdsOrderedByCustomer($customer->id),
+        ])));
+
+        if ($shopIds === []) {
+            return [];
+        }
+
+        return $this->repo->allActiveForShops($shopIds)
             ->map(fn (Promotion $promotion) => [
-                'id' => $promotion->id,
-                'type' => $promotion->type,
-                'value' => (float) $promotion->value,
-                'name' => $promotion->name,
-                'headline' => $promotion->type === 'percentage'
-                    ? rtrim(rtrim(number_format((float) $promotion->value, 2, '.', ''), '0'), '.').'% off'
-                    : '₱'.number_format((float) $promotion->value, 0).' off',
-                'description' => $promotion->description,
-                'min_order_amount' => $promotion->min_order_amount !== null ? (float) $promotion->min_order_amount : null,
-                'ends_at' => $promotion->ends_at?->toDateString(),
-            ])
+                'shop_id' => $promotion->shop_id,
+                'shop_name' => $promotion->shop?->shop_name,
+            ] + $this->presentForCustomer($promotion))
             ->values()
             ->all();
     }

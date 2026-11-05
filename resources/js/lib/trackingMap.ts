@@ -1,57 +1,8 @@
-import type { LatLng } from '@/lib/maps';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
 /**
- * The look of the live tracking map: soft, light tiles, no zoom buttons, a white vehicle with a
- * gentle shadow, and a pulsing green stop, in the style of ride-hailing apps.
+ * The look of the live tracking markers: a white vehicle with a gentle shadow, a pulsing green
+ * stop and a dark shop pin, in the style of ride-hailing apps. Markers are plain DOM elements
+ * for Mapbox GL; the styles live in LiveTrackingMap.vue.
  */
-
-export type TrackingBaseLayer = 'map' | 'satellite';
-
-const BASE_LAYERS: Record<
-    TrackingBaseLayer,
-    { url: string; attribution: string }
-> = {
-    map: {
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        attribution: '© OpenStreetMap contributors © CARTO',
-    },
-    satellite: {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attribution: 'Tiles © Esri',
-    },
-};
-
-export function createTrackingMap(el: HTMLElement): {
-    map: L.Map;
-    setBaseLayer: (kind: TrackingBaseLayer) => void;
-} {
-    const map = L.map(el, {
-        zoomControl: false,
-        attributionControl: false,
-        zoomSnap: 0.5,
-    }).setView([14.2456, 120.8687], 14);
-
-    L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
-
-    let current: L.TileLayer | null = null;
-
-    const setBaseLayer = (kind: TrackingBaseLayer) => {
-        current?.remove();
-        const source = BASE_LAYERS[kind];
-        current = L.tileLayer(source.url, {
-            attribution: source.attribution,
-            maxZoom: 19,
-            subdomains: 'abcd',
-        }).addTo(map);
-        current.bringToBack();
-    };
-
-    setBaseLayer('map');
-
-    return { map, setBaseLayer };
-}
 
 // ─── Vehicles ────────────────────────────────────────────────────────────────
 
@@ -81,77 +32,53 @@ const MOTORCYCLE_SVG = `
 export type VehicleKind = 'car' | 'motorcycle';
 
 /** The vehicle on the map. Its inner element is rotated to face the way it is travelling. */
-export function vehicleIcon(kind: VehicleKind): L.DivIcon {
+export function vehicleElement(kind: VehicleKind): HTMLElement {
     const svg = kind === 'car' ? CAR_SVG : MOTORCYCLE_SVG;
     const [w, h] = kind === 'car' ? [34, 61] : [28, 56];
-
-    return L.divIcon({
-        className: 'trk-vehicle',
-        html: `<div class="trk-vehicle__body" style="width:${w}px;height:${h}px">${svg}</div>`,
-        iconSize: [w, h],
-        iconAnchor: [w / 2, h / 2],
-    });
+    const el = document.createElement('div');
+    el.className = 'trk-vehicle';
+    el.innerHTML = `<div class="trk-vehicle__body" style="width:${w}px;height:${h}px">${svg}</div>`;
+    return el;
 }
 
 /** Turns the vehicle (0 = pointing north, clockwise). */
-export function rotateVehicle(marker: L.Marker, degrees: number): void {
-    const body = marker
-        .getElement()
-        ?.querySelector<HTMLElement>('.trk-vehicle__body');
+export function rotateVehicle(element: HTMLElement, degrees: number): void {
+    const body = element.querySelector<HTMLElement>('.trk-vehicle__body');
     if (body) body.style.transform = `rotate(${degrees}deg)`;
 }
 
 /** The green stop the rider is heading to. */
-export function stopIcon(): L.DivIcon {
-    return L.divIcon({
-        className: 'trk-stop',
-        html: '<span class="trk-stop__pulse"></span><span class="trk-stop__dot"></span>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-    });
+export function stopElement(): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'trk-stop';
+    el.style.cssText = 'width:24px;height:24px';
+    el.innerHTML =
+        '<span class="trk-stop__pulse"></span><span class="trk-stop__dot"></span>';
+    return el;
 }
 
 /** A small dark pin for the shop. */
-export function shopIcon(): L.DivIcon {
-    return L.divIcon({
-        className: 'trk-shop',
-        html: '<span class="trk-shop__pin"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></span>',
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
-    });
+export function shopElement(): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'trk-shop';
+    el.innerHTML =
+        '<span class="trk-shop__pin"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></span>';
+    return el;
 }
 
-// ─── Smooth movement ─────────────────────────────────────────────────────────
-
-/**
- * Glides a marker from where it is to a new position instead of jumping, so the vehicle keeps
- * moving between GPS updates. Returns a function that cancels the animation.
- */
-export function glideMarker(
-    marker: L.Marker,
-    to: LatLng,
-    durationMs: number,
-    onFrame?: (position: LatLng) => void,
-): () => void {
-    const start = marker.getLatLng();
-    const from = { lat: start.lat, lng: start.lng };
-    const startedAt = performance.now();
-    let frame = 0;
-
-    const step = (now: number) => {
-        const t = Math.min(1, (now - startedAt) / durationMs);
-        // Ease out, so it slows slightly as it reaches the reported point.
-        const eased = 1 - (1 - t) ** 2;
-        const position = {
-            lat: from.lat + (to.lat - from.lat) * eased,
-            lng: from.lng + (to.lng - from.lng) * eased,
-        };
-        marker.setLatLng(position);
-        onFrame?.(position);
-        if (t < 1) frame = requestAnimationFrame(step);
-    };
-
-    frame = requestAnimationFrame(step);
-
-    return () => cancelAnimationFrame(frame);
+/** The time chip above the stop, like "DROPOFF 1:54 pm". */
+export function chipElement(label: string, time: string): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'trk-chip';
+    const labelEl = document.createElement('span');
+    labelEl.className = 'trk-chip__label';
+    labelEl.textContent = label;
+    el.append(labelEl);
+    if (time) {
+        const timeEl = document.createElement('span');
+        timeEl.className = 'trk-chip__time';
+        timeEl.textContent = time;
+        el.append(timeEl);
+    }
+    return el;
 }

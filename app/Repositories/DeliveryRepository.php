@@ -42,6 +42,69 @@ class DeliveryRepository extends Repository
             ->first();
     }
 
+    /**
+     * Every delivery still without a rider for the shop's own riders, oldest first, so a run that
+     * every free rider already turned down does not hold up the ones behind it. Meant to be called
+     * inside the caller's transaction: the rows are locked while one is claimed.
+     *
+     * @return \Illuminate\Support\Collection<int, Delivery>
+     */
+    public function waitingForShop(int $shopId): \Illuminate\Support\Collection
+    {
+        return Delivery::query()
+            ->where('shop_id', $shopId)
+            ->where('status', 'pending')
+            ->whereNull('rider_id')
+            ->where('courier', Delivery::COURIER_OWN_RIDER)
+            ->oldest('id')
+            ->lockForUpdate()
+            ->get();
+    }
+
+    public function waitingForOrder(int $shopOrderId): bool
+    {
+        return Delivery::query()
+            ->where('shop_order_id', $shopOrderId)
+            ->where('status', 'pending')
+            ->whereNull('rider_id')
+            ->exists();
+    }
+
+    /** @return list<int> riders who already turned this run down, so it is not offered to them again */
+    public function rejectedRiderIds(int $deliveryId): array
+    {
+        return \App\Models\DeliveryRejection::query()
+            ->where('delivery_id', $deliveryId)
+            ->pluck('rider_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function createRejection(Delivery $delivery, int $riderId, array $data): \App\Models\DeliveryRejection
+    {
+        return $delivery->rejections()->create(['rider_id' => $riderId] + $data);
+    }
+
+    /**
+     * Open runs that can be shown on the dispatch map: they still have somewhere to go and a pinned
+     * destination. Capped so one busy shop cannot flood the map.
+     *
+     * @return \Illuminate\Support\Collection<int, Delivery>
+     */
+    public function routeStopsForShop(int $shopId, int $limit = 30): \Illuminate\Support\Collection
+    {
+        return Delivery::query()
+            ->select(['id', 'public_id', 'customer_name', 'delivery_address', 'status', 'type', 'destination_lat', 'destination_lng'])
+            ->where('shop_id', $shopId)
+            ->whereIn('status', ['pending', 'assigned', 'picked_up'])
+            ->whereNotNull('destination_lat')
+            ->whereNotNull('destination_lng')
+            ->oldest('id')
+            ->limit($limit)
+            ->get();
+    }
+
     public function paginateForShop(int $shopId, ?string $status, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
     {
         $query = Delivery::query()

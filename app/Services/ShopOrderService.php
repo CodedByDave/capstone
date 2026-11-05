@@ -14,8 +14,10 @@ use App\Repositories\ShopOrderRepository;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -32,6 +34,7 @@ class ShopOrderService
         private readonly ExpenseService $expenses,
         private readonly ShopOrderAutomationSettingRepository $automationSettings,
         private readonly CustomerAdditionalChargeService $additionalCharges,
+        private readonly OrderTaxService $tax,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -79,6 +82,12 @@ class ShopOrderService
             ?? ShopOrderAutomationSetting::DEFAULT_GRACE_MINUTES;
     }
 
+    /** The tax rate and label the order form shows for this shop (from its BIR registration). */
+    public function taxFor(int $shopId): array
+    {
+        return $this->tax->forShop($shopId);
+    }
+
     // ─── Create ───────────────────────────────────────────────────────────────
 
     public function createOrder(array $data, User $actor, ?string $ipAddress = null, ?string $userAgent = null): ShopOrder
@@ -117,6 +126,14 @@ class ShopOrderService
                 ), 2);
             }
 
+            // The form's total is the amount before tax; the shop's tax is added here, never in the browser.
+            $subtotal = round((float) $data['total_amount'], 2);
+            $rate = $this->tax->rateForShop((int) $data['shop_id']);
+            $tax = $this->tax->amountOn($subtotal, $rate);
+            $data['tax_rate'] = $rate;
+            $data['tax_amount'] = $tax;
+            $data['total_amount'] = round($subtotal + $tax, 2);
+
             // Money received now is recorded as a payment; the order's totals follow from it.
             $paidNow = round((float) ($data['amount_paid'] ?? 0), 2);
             if ($paidNow > round((float) $data['total_amount'], 2)) {
@@ -124,11 +141,25 @@ class ShopOrderService
                     'amount_paid' => 'The payment received cannot be more than the order total.',
                 ]);
             }
-            unset($data['amount_paid'], $data['payment_status'], $data['paid_at']);
+
+            // Cash handed over covers the payment; anything above it goes back to the customer as change.
+            $tendered = filled($data['amount_tendered'] ?? null) ? round((float) $data['amount_tendered'], 2) : null;
+            if ($tendered !== null && $paidNow > 0 && $tendered < $paidNow) {
+                throw ValidationException::withMessages([
+                    'amount_tendered' => 'The cash received is less than the payment of ₱'.number_format($paidNow, 2).'.',
+                ]);
+            }
+            unset($data['amount_paid'], $data['amount_tendered'], $data['payment_status'], $data['paid_at']);
 
             $order = $this->repository->create($data);
             $this->repository->replaceServiceLines($order, $serviceLines);
-            $this->orderPayments->recordInitialPayment($actor, $order, $paidNow, $data['payment_method'] ?? null);
+            $this->orderPayments->recordInitialPayment(
+                $actor,
+                $order,
+                $paidNow,
+                $data['payment_method'] ?? null,
+                $paidNow > 0 ? $tendered : null,
+            );
 
             foreach ($supplies as $supply) {
                 if (empty($supply['inventory_id'])) {
@@ -181,6 +212,9 @@ class ShopOrderService
             $shop = $this->repository->findActiveShop((int) $data['shop_id']);
             if (! $shop) {
                 throw ValidationException::withMessages(['shop_id' => 'The selected shop is unavailable.']);
+            }
+            if (! $shop->isOpenAt()) {
+                throw ValidationException::withMessages(['shop_id' => $shop->shop_name.' is closed right now, so it cannot take new orders. Check its opening days and hours.']);
             }
             $service = $this->repository->findActiveServiceForShop((int) $data['service_id'], $shop->id);
             if (! $service) {
@@ -236,6 +270,8 @@ class ShopOrderService
                 'additional_charges' => $estimate['additional_charges'],
                 'promotion_id' => filled($data['promotion_id'] ?? null) ? (int) $data['promotion_id'] : null,
                 'discount_amount' => $estimate['discount'],
+                'tax_rate' => $estimate['tax_rate'],
+                'tax_amount' => $estimate['tax'],
                 'total_amount' => $estimatedTotal,
                 // Customers choose how to pay once the actual weight is confirmed; until then it stays cash.
                 'payment_method' => $data['payment_method'] ?? 'cash',
@@ -336,6 +372,29 @@ class ShopOrderService
 
             $previousActualWeight = $order->actual_weight_kg;
 
+            // An online customer approves the weight the shop entered, so it needs a photo of the scale.
+            $proof = $data['weight_proof'] ?? null;
+            unset($data['weight_proof']);
+            $weightNeedsApproval = $order->order_source === 'online'
+                && array_key_exists('actual_weight_kg', $data)
+                && filled($data['actual_weight_kg'])
+                && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg;
+
+            if ($weightNeedsApproval) {
+                if (! $proof instanceof UploadedFile) {
+                    throw ValidationException::withMessages([
+                        'weight_proof' => 'Attach a photo of the laundry on the scale so the customer can verify the weight.',
+                    ]);
+                }
+
+                $newProofPath = $proof->store("weight-proofs/{$order->shop_id}/{$order->payment_public_id}", 'private');
+                $oldProofPath = $order->weight_proof_path;
+                $data['weight_proof_path'] = $newProofPath;
+                $data['weight_approval_status'] = 'pending';
+                $data['weight_proof_uploaded_at'] = now();
+                $data['weight_decided_at'] = null;
+            }
+
             if (($data['status'] ?? null) === 'picked_up' && $order->status !== 'picked_up') {
                 $this->assertCanBePickedUp($order);
                 $data['picked_up_at'] = now();
@@ -346,6 +405,9 @@ class ShopOrderService
                 $data['completed_at'] = now();
             }
             if (($data['status'] ?? null) === 'in_progress' && $order->status !== 'in_progress') {
+                if ($order->awaitingWeightApproval() || $weightNeedsApproval) {
+                    throw ValidationException::withMessages(['status' => 'The customer must approve the recorded weight before this order can start.']);
+                }
                 $data['in_progress_at'] = now();
                 $data['overdue_notified_at'] = null;
             }
@@ -396,12 +458,17 @@ class ShopOrderService
 
             // A customer-requested delivery fee is owned by the delivery flow, not the edit form,
             // so it is carried over from the stored order rather than read from the request.
-            $data['total_amount'] = round(max(
+            // The order keeps the tax rate it was placed with; the tax follows the new subtotal and the
+            // delivery fee stays untaxed. Orders from before tax existed have a 0 rate and stay untaxed.
+            $subtotal = round(max(
                 0,
                 $baseAmount
                     + (float) ($data['additional_charges'] ?? 0)
                     - (float) ($data['discount_amount'] ?? 0),
-            ) + (float) $order->delivery_fee, 2);
+            ), 2);
+            $tax = $this->tax->amountOn($subtotal, (float) $order->tax_rate);
+            $data['tax_amount'] = $tax;
+            $data['total_amount'] = round($subtotal + $tax + (float) $order->delivery_fee, 2);
             unset($data['delivery_fee']);
 
             // What has been paid comes only from the recorded payments; the form cannot change it.
@@ -474,13 +541,19 @@ class ShopOrderService
 
             $updated = $order->fresh(['service', 'serviceLines', 'supplies', 'shop', 'customer']);
 
+            if (! empty($oldProofPath) && $oldProofPath !== ($newProofPath ?? null)) {
+                Storage::disk('private')->delete($oldProofPath);
+            }
+
             if ($updated->user_id
-                && $previousActualWeight === null
-                && $updated->actual_weight_kg !== null) {
+                && ($weightNeedsApproval || ($previousActualWeight === null && $updated->actual_weight_kg !== null))) {
                 $updated->customer?->notify(new OrderNotification($updated, 'weight_confirmed'));
             }
 
-            if ($previousActualWeight === null && $updated->actual_weight_kg !== null) {
+            // An online order's weight only counts once the customer approves it (see OrderWeightApprovalService).
+            if ($previousActualWeight === null
+                && $updated->actual_weight_kg !== null
+                && ! $updated->awaitingWeightApproval()) {
                 OrderWeightConfirmed::dispatch($updated);
             }
 
@@ -743,6 +816,13 @@ class ShopOrderService
 
         if ($status === 'picked_up') {
             $this->assertCanBePickedUp($order);
+        }
+
+        // Laundry is not worked on until the customer has approved the weight the shop recorded.
+        if ($status === 'in_progress' && $order->awaitingWeightApproval()) {
+            throw ValidationException::withMessages([
+                'status' => 'The customer must approve the recorded weight before this order can start.',
+            ]);
         }
 
         $data = ['status' => $status];

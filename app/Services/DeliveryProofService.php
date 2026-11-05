@@ -65,6 +65,19 @@ class DeliveryProofService
         return $this->existingPath($photo);
     }
 
+    /** The proof photo of a driver's rejection, for the shop the run belongs to only. */
+    public function pathForRejection(User $user, \App\Models\DeliveryRejection $rejection): string
+    {
+        $rejection->loadMissing('delivery');
+        $this->assertDeliveryInShop($user, $rejection->delivery);
+
+        if (! Storage::disk(self::DISK)->exists($rejection->photo_path)) {
+            throw (new ModelNotFoundException)->setModel(\App\Models\DeliveryRejection::class);
+        }
+
+        return $rejection->photo_path;
+    }
+
     /** The file path the customer of the linked order may open, or a not-found error. */
     public function pathForCustomer(User $customer, DeliveryPhoto $photo): string
     {

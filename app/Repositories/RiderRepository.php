@@ -67,10 +67,12 @@ class RiderRepository extends Repository
      * riders linked to an employee who is scheduled to work today are considered. Meant to be called inside the caller's
      * transaction: the rows are locked while the choice is made.
      */
-    public function findAvailableForShop(int $shopId): ?Rider
+    /** @param  list<int>  $excluding  riders who must not get this run, such as ones who turned it down */
+    public function findAvailableForShop(int $shopId, array $excluding = []): ?Rider
     {
         return Rider::query()
             ->where('shop_id', $shopId)
+            ->whereNotIn('id', $excluding)
             ->active()
             ->whereNotNull('employee_id')
             ->where('is_online', true)
