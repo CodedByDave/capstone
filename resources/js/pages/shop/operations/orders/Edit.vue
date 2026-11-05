@@ -56,6 +56,9 @@ interface Order {
     piece_count: number | null;
     estimated_weight_kg: string | null;
     actual_weight_kg: string | null;
+    order_source?: string | null;
+    weight_approval_status?: 'pending' | 'approved' | 'declined' | null;
+    has_weight_proof?: boolean;
     price_per_kg: string | null;
     bundle_weight_kg: string | null;
     bundle_price: string | null;
@@ -115,6 +118,7 @@ const form = useForm({
     pricing_model: props.shopOrder.pricing_model,
     estimated_weight_kg: props.shopOrder.estimated_weight_kg ?? '',
     actual_weight_kg: props.shopOrder.actual_weight_kg ?? '',
+    weight_proof: null as File | null,
     price_per_kg: props.shopOrder.price_per_kg ?? 0,
     bundle_weight_kg: props.shopOrder.bundle_weight_kg ?? '',
     bundle_price: props.shopOrder.bundle_price ?? 0,
@@ -242,16 +246,39 @@ const deliveryFee = computed(
     () => parseFloat(String(props.shopOrder.delivery_fee ?? 0)) || 0,
 );
 
-const computedTotal = computed(() => {
+// The order keeps the tax rate it was placed with (0 for orders from before tax was added).
+const taxRate = computed(
+    () =>
+        parseFloat(
+            String((props.shopOrder as { tax_rate?: string }).tax_rate),
+        ) || 0,
+);
+const taxLabel = computed(() => {
+    if (taxRate.value <= 0) return null;
+    if (taxRate.value === 12) return 'VAT (12%)';
+    if (taxRate.value === 3) return 'Percentage tax (3%)';
+    return `Tax (${taxRate.value}%)`;
+});
+
+const subtotal = computed(() => {
     const charges = parseFloat(String(form.additional_charges)) || 0;
     const discount = parseFloat(String(form.discount_amount)) || 0;
-    return (
-        Math.max(
-            0,
-            baseTotal.value + extraServicesTotal.value + charges - discount,
-        ) + deliveryFee.value
+    return Math.max(
+        0,
+        baseTotal.value + extraServicesTotal.value + charges - discount,
     );
 });
+
+// Worked in whole centavos so it rounds the same way as the server; the delivery fee is not taxed.
+const taxAmount = computed(
+    () =>
+        Math.round((Math.round(subtotal.value * 100) * taxRate.value) / 100) /
+        100,
+);
+
+const computedTotal = computed(
+    () => subtotal.value + taxAmount.value + deliveryFee.value,
+);
 
 const formatServiceLabel = (svc: Service) => {
     if (svc.pricing_model === 'per_kg')
@@ -353,7 +380,11 @@ const blurOnWheel = (event: WheelEvent) =>
 
 const submit = () => {
     form.total_amount = String(computedTotal.value);
-    form.put(`${base.value}/${props.shopOrder.payment_public_id}`);
+    // A photo can't travel in a PUT body, so send a POST that Laravel treats as PUT.
+    form.transform((data) => ({ ...data, _method: 'put' })).post(
+        `${base.value}/${props.shopOrder.payment_public_id}`,
+        { forceFormData: true },
+    );
 };
 
 // ─── Drop-off: how the laundry gets to the shop ────────────────────────────
@@ -826,18 +857,17 @@ const balanceDue = computed(() =>
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-span-12 space-y-1">
+                            <div
+                                v-if="riderInvolved"
+                                class="col-span-12 space-y-1"
+                            >
                                 <label class="text-sm font-medium"
                                     >Address
-                                    <span
-                                        v-if="riderInvolved"
-                                        class="text-red-500"
-                                        >*</span
-                                    ></label
+                                    <span class="text-red-500">*</span></label
                                 >
                                 <textarea
                                     v-model="form.customer_address"
-                                    :required="riderInvolved"
+                                    required
                                     rows="2"
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 />
@@ -1011,6 +1041,56 @@ const balanceDue = computed(() =>
                                     >
                                         {{ form.errors.actual_weight_kg }}
                                     </p>
+                                    <div
+                                        v-if="
+                                            shopOrder.order_source ===
+                                                'online' &&
+                                            String(form.actual_weight_kg) !==
+                                                String(
+                                                    shopOrder.actual_weight_kg ??
+                                                        '',
+                                                )
+                                        "
+                                        class="space-y-1 pt-2"
+                                    >
+                                        <label
+                                            class="text-sm font-medium"
+                                            for="weight-proof"
+                                            >Photo of the laundry on the scale
+                                            <span class="text-red-500"
+                                                >*</span
+                                            ></label
+                                        >
+                                        <input
+                                            id="weight-proof"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm"
+                                            :class="{
+                                                'border-red-500':
+                                                    form.errors.weight_proof,
+                                            }"
+                                            @change="
+                                                form.weight_proof =
+                                                    (
+                                                        $event.target as HTMLInputElement
+                                                    ).files?.[0] ?? null
+                                            "
+                                        />
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            The customer sees this photo and
+                                            must approve the weight before the
+                                            order starts.
+                                        </p>
+                                        <p
+                                            v-if="form.errors.weight_proof"
+                                            class="text-xs text-red-500"
+                                        >
+                                            {{ form.errors.weight_proof }}
+                                        </p>
+                                    </div>
                                 </div>
                                 <div
                                     v-if="form.pricing_model === 'per_bundle'"
@@ -1501,6 +1581,17 @@ const balanceDue = computed(() =>
                                             Number(form.discount_amount) || 0,
                                         )
                                     }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="taxLabel"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    {{ taxLabel }}
+                                </dt>
+                                <dd class="font-medium">
+                                    {{ formatCurrency(taxAmount) }}
                                 </dd>
                             </div>
                             <div

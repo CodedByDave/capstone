@@ -43,6 +43,8 @@ const props = defineProps<{
     pickupAwaitsReceipt: boolean;
     /** Minutes from placing an order to its estimated completion, from the shop's order automation setting. */
     completionMinutes: number;
+    /** The shop's tax from its BIR registration: 12% VAT, 3% percentage tax, or none. */
+    tax: { rate: number; label: string | null };
     pickupTypes: string[];
     paymentMethods: string[];
     services?: Service[];
@@ -88,6 +90,7 @@ const form = useForm({
     discount_amount: 0,
     total_amount: 0,
     amount_paid: 0,
+    amount_tendered: '' as string | number,
     promotion_id: '' as string | number,
     service_lines: [] as ServiceLineInput[],
     supplies: [] as {
@@ -217,7 +220,8 @@ const onPromotionChange = () => {
     form.discount_amount = promoDiscount.value;
 };
 
-const computedTotal = computed(() => {
+// The amount before tax.
+const subtotal = computed(() => {
     const charges = parseFloat(String(form.additional_charges)) || 0;
     const discount = parseFloat(String(form.discount_amount)) || 0;
     return Math.max(
@@ -225,6 +229,15 @@ const computedTotal = computed(() => {
         baseTotal.value + extraServicesTotal.value + charges - discount,
     );
 });
+
+// Worked in whole centavos so it rounds the same way as the server.
+const taxAmount = computed(
+    () =>
+        Math.round((Math.round(subtotal.value * 100) * props.tax.rate) / 100) /
+        100,
+);
+
+const computedTotal = computed(() => subtotal.value + taxAmount.value);
 
 // ─── Supplies ──────────────────────────────────────
 
@@ -297,7 +310,19 @@ const paymentMode = ref<PaymentMode>('unpaid');
 
 watch(paymentMode, (mode) => {
     form.amount_paid = mode === 'full' ? computedTotal.value : 0;
+    form.amount_tendered = '';
 });
+
+// Cash handed over at the counter: the change is worked out here and again on the server.
+const tendered = computed(() =>
+    form.amount_tendered === '' ? null : Number(form.amount_tendered) || 0,
+);
+const amountDue = computed(() => Number(form.amount_paid) || 0);
+const changeDue = computed(() =>
+    tendered.value === null
+        ? null
+        : Math.round((tendered.value - amountDue.value) * 100) / 100,
+);
 // A full payment follows the total while the order is still being filled in.
 watch(computedTotal, (total) => {
     if (paymentMode.value === 'full') form.amount_paid = total;
@@ -351,7 +376,8 @@ const blurOnWheel = (event: WheelEvent) =>
     (event.target as HTMLInputElement).blur();
 
 const submit = () => {
-    form.total_amount = computedTotal.value;
+    // The server adds the tax; it is sent the amount before tax.
+    form.total_amount = subtotal.value;
     form.post(base.value);
 };
 
@@ -520,18 +546,17 @@ watch(
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-span-12 space-y-1">
+                            <div
+                                v-if="form.deliver_to_customer"
+                                class="col-span-12 space-y-1"
+                            >
                                 <label class="text-sm font-medium"
                                     >Address
-                                    <span
-                                        v-if="form.deliver_to_customer"
-                                        class="text-red-500"
-                                        >*</span
-                                    ></label
+                                    <span class="text-red-500">*</span></label
                                 >
                                 <textarea
                                     v-model="form.customer_address"
-                                    :required="form.deliver_to_customer"
+                                    required
                                     rows="2"
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 />
@@ -1014,6 +1039,64 @@ watch(
                                 }}</span>
                             </p>
 
+                            <div
+                                v-if="paymentMode === 'full'"
+                                class="col-span-12 space-y-1 sm:col-span-4"
+                            >
+                                <label
+                                    class="text-sm font-medium"
+                                    for="amount-tendered"
+                                    >Cash received
+                                    <span
+                                        class="font-normal text-muted-foreground"
+                                        >(optional)</span
+                                    ></label
+                                >
+                                <input
+                                    id="amount-tendered"
+                                    v-model="form.amount_tendered"
+                                    type="number"
+                                    inputmode="decimal"
+                                    @wheel="blurOnWheel"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="e.g. 500"
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    :class="{
+                                        'border-red-500':
+                                            form.errors.amount_tendered ||
+                                            (changeDue !== null &&
+                                                changeDue < 0),
+                                    }"
+                                />
+                                <p
+                                    v-if="form.errors.amount_tendered"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.amount_tendered }}
+                                </p>
+                                <p
+                                    v-else-if="changeDue !== null && changeDue < 0"
+                                    class="text-xs text-red-600"
+                                    role="alert"
+                                >
+                                    Short by {{ formatCurrency(-changeDue) }}.
+                                    The cash must cover
+                                    {{ formatCurrency(amountDue) }}.
+                                </p>
+                                <p
+                                    v-else-if="changeDue !== null"
+                                    class="text-sm font-semibold text-green-700"
+                                    aria-live="polite"
+                                >
+                                    Change: {{ formatCurrency(changeDue) }}
+                                </p>
+                                <p v-else class="text-xs text-muted-foreground">
+                                    Enter the cash handed over to work out the
+                                    change.
+                                </p>
+                            </div>
+
                             <div class="col-span-12 space-y-1">
                                 <p class="text-sm font-medium">
                                     Estimated completion
@@ -1321,6 +1404,17 @@ watch(
                                     }}
                                 </dd>
                             </div>
+                            <div
+                                v-if="tax.label"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    {{ tax.label }}
+                                </dt>
+                                <dd class="font-medium">
+                                    {{ formatCurrency(taxAmount) }}
+                                </dd>
+                            </div>
                         </dl>
                         <div
                             class="mt-3 flex items-baseline justify-between border-t pt-3"
@@ -1330,6 +1424,69 @@ watch(
                                 formatCurrency(computedTotal)
                             }}</span>
                         </div>
+
+                        <dl
+                            v-if="paymentMode !== 'unpaid'"
+                            class="mt-3 space-y-1.5 border-t pt-3 text-xs"
+                            aria-live="polite"
+                        >
+                            <div class="flex justify-between gap-3">
+                                <dt class="text-muted-foreground">
+                                    Amount paid
+                                </dt>
+                                <dd class="font-medium tabular-nums">
+                                    {{ formatCurrency(amountDue) }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="paymentMode === 'full' && tendered !== null"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    Cash received
+                                </dt>
+                                <dd class="font-medium tabular-nums">
+                                    {{ formatCurrency(tendered) }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="
+                                    paymentMode === 'full' &&
+                                    changeDue !== null
+                                "
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="font-semibold">
+                                    {{ changeDue < 0 ? 'Short by' : 'Change' }}
+                                </dt>
+                                <dd
+                                    class="text-sm font-bold tabular-nums"
+                                    :class="
+                                        changeDue < 0
+                                            ? 'text-red-600'
+                                            : 'text-green-700'
+                                    "
+                                >
+                                    {{ formatCurrency(Math.abs(changeDue)) }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="paymentMode === 'partial'"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="font-semibold">Balance</dt>
+                                <dd class="text-sm font-bold tabular-nums">
+                                    {{
+                                        formatCurrency(
+                                            Math.max(
+                                                0,
+                                                computedTotal - amountDue,
+                                            ),
+                                        )
+                                    }}
+                                </dd>
+                            </div>
+                        </dl>
                     </section>
 
                     <section class="mt-4 border-t pt-4">
