@@ -4,6 +4,7 @@ use App\Enums\AccountType;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
 use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
 use App\Models\Shop;
+use App\Models\ShopOrder;
 use App\Models\User;
 
 function alternateContactErrors(string $requestClass, array $input): Illuminate\Support\MessageBag
@@ -80,7 +81,7 @@ it('requires the phone number and address for a delivery pickup order only', fun
     ]);
 
     expect($complete->keys())->not->toContain('customer_phone', 'customer_address');
-})->with('order requests');
+})->with(['staff create' => [StoreShopOrderRequest::class]]);
 
 it('requires the alternate contact name and number on a delivery pickup order only', function (string $class) {
     $pickup = alternateContactErrors($class, ['pickup_type' => 'pickup']);
@@ -91,7 +92,7 @@ it('requires the alternate contact name and number on a delivery pickup order on
     $walkIn = alternateContactErrors($class, ['pickup_type' => 'walk_in']);
 
     expect($walkIn->keys())->not->toContain('alternate_contact_name', 'alternate_contact_phone');
-})->with('order requests');
+})->with(['staff create' => [StoreShopOrderRequest::class]]);
 
 it('requires the contact details when the finished laundry is delivered to the customer', function (string $class) {
     $delivery = alternateContactErrors($class, ['pickup_type' => 'walk_in', 'deliver_to_customer' => true]);
@@ -104,4 +105,34 @@ it('requires the contact details when the finished laundry is delivered to the c
     $collected = alternateContactErrors($class, ['pickup_type' => 'walk_in', 'deliver_to_customer' => false]);
 
     expect($collected->keys())->not->toContain('customer_phone', 'customer_address', 'alternate_contact_name', 'alternate_contact_phone');
-})->with('order requests');
+})->with(['staff create' => [StoreShopOrderRequest::class]]);
+
+/** Validation errors of the edit form for an order that is already placed. */
+function editOrderErrors(array $order, array $input): Illuminate\Support\MessageBag
+{
+    $request = new UpdateShopOrderRequest;
+    $request->merge($input);
+    $route = new Illuminate\Routing\Route('PUT', 'orders/{order}', []);
+    $route->bind($request);
+    $route->setParameter('order', (new ShopOrder)->forceFill($order));
+    $request->setRouteResolver(fn () => $route);
+
+    return validator($request->all(), $request->rules(), $request->messages())->errors();
+}
+
+it('requires the address and alternate contact when editing an order a rider handles', function (array $order) {
+    $errors = editOrderErrors($order, []);
+
+    expect($errors->first('customer_address'))->toBe('Enter the address the rider should go to.')
+        ->and($errors->first('alternate_contact_name'))->toBe('Enter the name of the alternate contact.')
+        ->and($errors->first('alternate_contact_phone'))->toBe("Enter the alternate contact's mobile number.");
+})->with([
+    'collected by a rider' => [['pickup_type' => 'pickup', 'deliver_to_customer' => false]],
+    'delivered by a rider' => [['pickup_type' => 'walk_in', 'deliver_to_customer' => true]],
+]);
+
+it('needs no address or alternate contact when editing a walk-in order', function () {
+    $errors = editOrderErrors(['pickup_type' => 'walk_in', 'deliver_to_customer' => false], ['pickup_type' => 'pickup', 'deliver_to_customer' => true]);
+
+    expect($errors->keys())->not->toContain('customer_address', 'alternate_contact_name', 'alternate_contact_phone');
+});

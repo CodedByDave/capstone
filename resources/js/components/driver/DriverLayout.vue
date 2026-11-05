@@ -103,9 +103,20 @@ function isActive(match: RegExp): boolean {
 let manifestLink: HTMLLinkElement | null = null;
 let previousManifest: string | null = null;
 
+// The shop can change the driver's schedule while the app is open, so their status and attendance
+// card refresh on their own instead of waiting for a manual reload.
+let statusTimer: ReturnType<typeof setInterval> | undefined;
+
+function refreshStatus() {
+    if (document.hidden) return;
+    router.reload({ only: ['driver', 'attendance'] });
+}
+
 onMounted(() => {
     checkAlerts();
     alertTimer = setInterval(checkAlerts, 15000);
+    statusTimer = setInterval(refreshStatus, 30000);
+    document.addEventListener('visibilitychange', refreshStatus);
     manifestLink = document.querySelector('link[rel="manifest"]');
     previousManifest = manifestLink?.getAttribute('href') ?? null;
     manifestLink?.setAttribute('href', '/driver/manifest.webmanifest');
@@ -113,6 +124,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     clearInterval(alertTimer);
+    clearInterval(statusTimer);
+    document.removeEventListener('visibilitychange', refreshStatus);
     if (manifestLink && previousManifest) {
         manifestLink.setAttribute('href', previousManifest);
     }

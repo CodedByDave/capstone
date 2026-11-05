@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\RolePermission;
 use App\Models\Shop;
 use App\Models\ShopOrder;
+use App\Models\ShopOrderServiceLine;
 use App\Models\ShopService;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -233,6 +234,11 @@ class ShopOrderRepository
         foreach ($lines as $line) {
             $order->serviceLines()->create($line);
         }
+    }
+
+    public function updateServiceLine(ShopOrderServiceLine $line, array $data): void
+    {
+        $line->update($data);
     }
 
     /** Records a shop item used on the order, at the price per unit it was charged. */

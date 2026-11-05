@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { endsNextDay } from '@/lib/shift';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -636,8 +637,14 @@ const formatDateTime = (val: string) =>
                             >
                                 {{
                                     fmtTime(getScheduleForDay(day)!.start_time)
-                                }}–{{
-                                    fmtTime(getScheduleForDay(day)!.end_time)
+                                }}–{{ fmtTime(getScheduleForDay(day)!.end_time)
+                                }}{{
+                                    endsNextDay(
+                                        getScheduleForDay(day)!.start_time,
+                                        getScheduleForDay(day)!.end_time,
+                                    )
+                                        ? ' (next day)'
+                                        : ''
                                 }}
                             </span>
                             <span v-else class="text-sm text-muted-foreground"

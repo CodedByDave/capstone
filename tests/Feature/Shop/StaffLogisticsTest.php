@@ -667,87 +667,94 @@ function editPayload(ShopOrder $order, array $changes = []): array
     ], $changes);
 }
 
-test('completing a pickup order in the Edit form creates its return delivery', function () {
+// ── The Edit form: placed orders are locked ──────────────────────────────────
+
+test('the Edit form cannot change the customer, status, fulfillment or service of an order', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
-    $pickupRider = onlineRider($shop, 'Collector');
-    $order = autoOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 3, 'deliver_to_customer' => true]);
-    app(LogisticsService::class)->dispatchPickupRun($order);
-    // The first rider is out collecting, so a second rider takes the return trip.
-    $rider = onlineRider($shop, 'Free');
-
-    $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['status' => 'completed']))
-        ->assertSessionHasNoErrors();
-
-    expect($order->fresh()->status)->toBe('completed')
-        ->and(Delivery::where('shop_order_id', $order->id)->where('type', 'pickup')->count())->toBe(1)
-        ->and(Delivery::where('shop_order_id', $order->id)->where('type', 'delivery')->first())
-        ->customer_name->toBe('Maria Cruz')
-        ->delivery_address->toBe('12 Rizal St, Imus')
-        ->rider_id->toBe($rider->id);
-});
-
-test('completing a walk-in order marked for delivery in the Edit form creates the delivery', function () {
-    $shop = dispatchShop();
-    $staff = orderManager($shop);
-    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress']);
+    $order = autoOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 3]);
+    $other = ShopService::create([
+        'shop_id' => $shop->id, 'service_name' => 'Dry Clean', 'is_active' => true,
+        'pricing_model' => 'per_kg', 'price_per_kg' => 200,
+    ]);
 
     $this->actingAs($staff)
         ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, [
+            'customer_name' => 'Someone Else',
+            'customer_phone' => '09991234567',
             'status' => 'completed',
+            'pickup_type' => 'walk_in',
             'deliver_to_customer' => true,
+            'service_id' => $other->id,
         ]))
         ->assertSessionHasNoErrors();
 
-    expect($order->fresh()->deliver_to_customer)->toBeTrue()
-        ->and(Delivery::where('shop_order_id', $order->id)->where('type', 'delivery')->count())->toBe(1)
-        ->and(Delivery::where('type', 'pickup')->count())->toBe(0);
+    expect($order->fresh())
+        ->customer_name->toBe('Maria Cruz')
+        ->customer_phone->toBe($order->customer_phone)
+        ->status->toBe('in_progress')
+        ->pickup_type->toBe('pickup')
+        ->deliver_to_customer->toBeFalse()
+        ->service_id->toBe($order->service_id)
+        ->and(Delivery::where('shop_order_id', $order->id)->where('type', 'delivery')->count())->toBe(0);
 });
 
-test('switching an open order to pickup in the Edit form creates the pickup run', function () {
+test('the Edit form updates where the rider goes on an order a rider handles', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['status' => 'pending']);
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, [
+            // The laundry is still with the customer, so nothing is weighed yet.
+            'actual_weight_kg' => null,
+            'customer_address' => '34 Mabini St, Imus',
+            'alternate_contact_name' => 'Pedro Cruz',
+            'alternate_contact_phone' => '09170000000',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($order->fresh())
+        ->customer_address->toBe('34 Mabini St, Imus')
+        ->alternate_contact_name->toBe('Pedro Cruz')
+        ->alternate_contact_phone->not->toBeNull();
+});
+
+test('an order a rider handles still needs an address in the Edit form', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['status' => 'pending']);
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['customer_address' => '']))
+        ->assertSessionHasErrors('customer_address');
+
+    expect($order->fresh()->customer_address)->toBe('12 Rizal St, Imus');
+});
+
+test('a walk-in order without delivery keeps its details when edited', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
     $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'pending', 'actual_weight_kg' => 3]);
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['pickup_type' => 'pickup']))
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['customer_address' => 'Somewhere else']))
         ->assertSessionHasNoErrors();
 
-    expect(Delivery::where('shop_order_id', $order->id)->first())
-        ->type->toBe('pickup')
-        ->customer_name->toBe('Maria Cruz');
+    expect($order->fresh()->customer_address)->toBe('12 Rizal St, Imus');
 });
 
-test('the Edit form needs an address to deliver to and a shop that delivers', function () {
+test('a recorded weight cannot be changed in the Edit form', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
-    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress', 'customer_address' => null]);
+    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress', 'actual_weight_kg' => 3]);
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['deliver_to_customer' => true]))
-        ->assertSessionHasErrors('customer_address');
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['actual_weight_kg' => 5]))
+        ->assertSessionHasNoErrors();
 
-    $noDelivery = dispatchShop(['offers_delivery' => false, 'shop_name' => 'No Delivery']);
-    $other = autoOrder($noDelivery, ['pickup_type' => 'walk_in', 'status' => 'in_progress']);
-    $this->actingAs(orderManager($noDelivery))
-        ->put("/staff/operations/orders/{$other->payment_public_id}", editPayload($other, ['deliver_to_customer' => true]))
-        ->assertSessionHasErrors('deliver_to_customer');
-
-    expect($order->fresh()->deliver_to_customer)->toBeFalse()
-        ->and(Delivery::count())->toBe(0);
-});
-
-test('saving an already completed order again does not create another delivery', function () {
-    $shop = dispatchShop();
-    $staff = orderManager($shop);
-    $order = autoOrder($shop, ['status' => 'in_progress', 'actual_weight_kg' => 3, 'deliver_to_customer' => true]);
-
-    $payload = editPayload($order, ['status' => 'completed']);
-    $this->actingAs($staff)->put("/staff/operations/orders/{$order->payment_public_id}", $payload)->assertSessionHasNoErrors();
-    $this->actingAs($staff)->put("/staff/operations/orders/{$order->payment_public_id}", $payload)->assertSessionHasNoErrors();
-
-    expect(Delivery::where('shop_order_id', $order->id)->where('type', 'delivery')->count())->toBe(1);
+    expect((float) $order->fresh()->actual_weight_kg)->toBe(3.0)
+        ->and((float) $order->fresh()->total_amount)->toBe(180.0);
 });
 
 // ── Pickup orders: weigh only after the rider brings the laundry in ──────────
@@ -791,12 +798,49 @@ test('a pickup order can be weighed once the rider has delivered the laundry to 
     $staff = orderManager($shop);
     $order = autoOrder($shop, ['status' => 'pending']);
     pickupRunFor($order, 'delivered');
+    Storage::fake('private');
+
+    // An online customer approves the weight, so the scale photo goes with it.
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, [
+            'actual_weight_kg' => 3,
+            'weight_proof' => UploadedFile::fake()->image('scale.jpg'),
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect((float) $order->fresh()->actual_weight_kg)->toBe(3.0)
+        ->and($order->fresh()->weight_approval_status)->toBe('pending');
+});
+
+test('an online order cannot be weighed in the Edit form without a photo of the scale', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, ['status' => 'pending']);
+    pickupRunFor($order, 'delivered');
 
     $this->actingAs($staff)
         ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['actual_weight_kg' => 3]))
+        ->assertSessionHasErrors('weight_proof');
+
+    expect($order->fresh()->actual_weight_kg)->toBeNull();
+});
+
+test('a walk-in order is weighed once in the Edit form and priced at its stored rate', function () {
+    $shop = dispatchShop();
+    $staff = orderManager($shop);
+    $order = autoOrder($shop, [
+        'pickup_type' => 'walk_in', 'order_source' => 'shop', 'status' => 'pending',
+        'estimated_weight_kg' => null, 'total_amount' => 0,
+    ]);
+    // A later price change never reprices a placed order.
+    ShopService::whereKey($order->service_id)->update(['price_per_kg' => 999]);
+
+    $this->actingAs($staff)
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['actual_weight_kg' => 4]))
         ->assertSessionHasNoErrors();
 
-    expect((float) $order->fresh()->actual_weight_kg)->toBe(3.0);
+    expect((float) $order->fresh()->actual_weight_kg)->toBe(4.0)
+        ->and((float) $order->fresh()->total_amount)->toBe(240.0);
 });
 
 test('a pickup order with no pickup run yet cannot be weighed either', function () {
@@ -813,10 +857,10 @@ test('saving a pickup order without changing its weight is not blocked', functio
     pickupRunFor($order, 'assigned');
 
     $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['customer_name' => 'Maria C.']))
+        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, ['customer_address' => '34 Mabini St, Imus']))
         ->assertSessionHasNoErrors();
 
-    expect($order->fresh()->customer_name)->toBe('Maria C.');
+    expect($order->fresh()->customer_address)->toBe('34 Mabini St, Imus');
 });
 
 test('walk-in orders and shops without delivery can be weighed straight away', function () {
@@ -883,84 +927,28 @@ test('the order page tracks the delivery back, never the pickup run', function (
         ->assertJsonPath('status', 'assigned');
 });
 
-// ── Not paid / Fully paid in the Edit form ───────────────────────────────────
+// ── Payment and pricing are not changed from the Edit form ───────────────────
 
-test('choosing Fully paid in the Edit form records what is still owed', function () {
+test('the Edit form cannot mark an order paid or change its charges', function () {
     $shop = dispatchShop();
     $staff = orderManager($shop);
-    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
+    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3, 'payment_method' => 'cash']);
 
     $this->actingAs($staff)
         ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order, [
-            'pickup_type' => 'walk_in',
             'payment_state' => 'paid',
             'payment_method' => 'gcash',
-        ]))
-        ->assertSessionHasNoErrors();
-
-    $payment = App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->sole();
-
-    expect($order->fresh()->payment_status)->toBe('paid')
-        ->and((float) $order->fresh()->amount_paid)->toBe(180.0)
-        ->and($payment->method)->toBe('gcash')
-        ->and($payment->source)->toBe('shop')
-        ->and((float) $payment->amount)->toBe(180.0);
-});
-
-test('choosing Not paid in the Edit form takes the shop payments back', function () {
-    $shop = dispatchShop();
-    $staff = orderManager($shop);
-    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
-    app(App\Services\OrderPaymentService::class)->recordShopPayment($staff, $order, ['amount' => 180, 'method' => 'cash']);
-    expect($order->fresh()->payment_status)->toBe('paid');
-
-    $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order->fresh(), [
-            'pickup_type' => 'walk_in',
-            'payment_state' => 'unpaid',
-        ]))
-        ->assertSessionHasNoErrors();
-
-    expect($order->fresh()->payment_status)->toBe('unpaid')
-        ->and((float) $order->fresh()->amount_paid)->toBe(0.0)
-        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->sole()->status)->toBe('voided');
-});
-
-test('an unchanged Fully paid choice does not pay off a total that grew', function () {
-    $shop = dispatchShop();
-    $staff = orderManager($shop);
-    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
-    app(App\Services\OrderPaymentService::class)->recordShopPayment($staff, $order, ['amount' => 180, 'method' => 'cash']);
-
-    $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order->fresh(), [
-            'pickup_type' => 'walk_in',
-            'payment_state' => 'paid',
             'additional_charges' => 20,
+            'discount_amount' => 10,
+            'total_amount' => 999,
         ]))
         ->assertSessionHasNoErrors();
 
-    expect($order->fresh()->payment_status)->toBe('partial')
-        ->and((float) $order->fresh()->amount_paid)->toBe(180.0)
-        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(1);
-});
-
-test('an online payment cannot be taken back from the Edit form', function () {
-    $shop = dispatchShop();
-    $staff = orderManager($shop);
-    $order = autoOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'completed', 'actual_weight_kg' => 3]);
-    App\Models\ShopOrderPayment::create([
-        'shop_order_id' => $order->id, 'shop_id' => $shop->id, 'amount' => 180, 'method' => 'gcash',
-        'status' => 'confirmed', 'source' => 'online', 'paid_at' => now(),
-    ]);
-    app(App\Services\OrderPaymentService::class)->sync($order);
-
-    $this->actingAs($staff)
-        ->put("/staff/operations/orders/{$order->payment_public_id}", editPayload($order->fresh(), [
-            'pickup_type' => 'walk_in',
-            'payment_state' => 'unpaid',
-        ]))
-        ->assertSessionHasErrors('payment_state');
-
-    expect($order->fresh()->payment_status)->toBe('paid');
+    expect($order->fresh())
+        ->payment_status->toBe('unpaid')
+        ->payment_method->toBe('cash')
+        ->and((float) $order->fresh()->amount_paid)->toBe(0.0)
+        ->and((float) $order->fresh()->additional_charges)->toBe(0.0)
+        ->and((float) $order->fresh()->total_amount)->toBe(180.0)
+        ->and(App\Models\ShopOrderPayment::where('shop_order_id', $order->id)->count())->toBe(0);
 });

@@ -49,6 +49,17 @@ class DeliveryRepository extends Repository
      *
      * @return \Illuminate\Support\Collection<int, Delivery>
      */
+    /** @return \Illuminate\Support\Collection<int, int> shops that have a delivery waiting for a rider */
+    public function shopIdsWithWaitingDeliveries(): \Illuminate\Support\Collection
+    {
+        return Delivery::query()
+            ->where('status', 'pending')
+            ->whereNull('rider_id')
+            ->where('courier', Delivery::COURIER_OWN_RIDER)
+            ->distinct()
+            ->pluck('shop_id');
+    }
+
     public function waitingForShop(int $shopId): \Illuminate\Support\Collection
     {
         return Delivery::query()

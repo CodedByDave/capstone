@@ -107,31 +107,16 @@ test('no prompt without a recent completed order', function () {
     promptedShopPage($stale->owner)->assertInertia(fn ($page) => $page->where('platformRatingPrompt', false));
 });
 
-test('completing an order in the edit form stamps its completion time and starts the prompt', function () {
+test('completing an order stamps its completion time and starts the prompt', function () {
     $shop = platformShop();
     $order = shopCompletedOrder($shop, 0, null);
-    $order->update(['status' => 'in_progress', 'payment_status' => 'unpaid']);
+    $order->update(['status' => 'in_progress', 'payment_status' => 'unpaid', 'actual_weight_kg' => 3]);
 
     promptedShopPage($shop->owner)->assertInertia(fn ($page) => $page->where('platformRatingPrompt', false));
 
+    // Status changes go through the status action; the edit form never changes it.
     $this->actingAs($shop->owner)
-        ->put("/shop/operations/orders/{$order->payment_public_id}", [
-            'customer_name' => 'Walk In',
-            'customer_phone' => '09181234567',
-            'service_id' => $order->service_id,
-            'pickup_type' => 'walk_in',
-            'pricing_model' => 'per_kg',
-            'estimated_weight_kg' => 3,
-            'actual_weight_kg' => 3,
-            'price_per_kg' => 60,
-            'additional_charges' => 0,
-            'discount_amount' => 0,
-            'total_amount' => 180,
-            'payment_method' => 'cash',
-            'payment_status' => 'unpaid',
-            'amount_paid' => 0,
-            'status' => 'completed',
-        ])
+        ->patch("/shop/operations/orders/{$order->payment_public_id}/status", ['status' => 'completed'])
         ->assertSessionHasNoErrors();
 
     expect($order->fresh()->completed_at)->not->toBeNull();

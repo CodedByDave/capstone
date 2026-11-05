@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 
 // icons
+import { endsNextDay, isZeroLengthShift } from '@/lib/shift';
 import { ArrowLeft, Loader2, Mail } from 'lucide-vue-next';
 
 interface Shop {
@@ -235,11 +236,12 @@ const scheduleMap = ref(
 
 const scheduleError = computed(() => {
     const invalid = scheduleMap.value.find(
-        (d) => d.enabled && d.start_time >= d.end_time,
+        (d) => d.enabled && isZeroLengthShift(d.start_time, d.end_time),
     );
 
+    // An end time before the start time is an overnight shift that ends the next day.
     return invalid
-        ? `${invalid.day}: end time must be after start time.`
+        ? `${invalid.day}: a shift cannot start and end at the same time.`
         : null;
 });
 
@@ -807,6 +809,16 @@ function submit() {
                                         :aria-label="`${d.day} end time`"
                                         class="h-8 w-32 text-sm"
                                     />
+                                    <span
+                                        v-if="
+                                            endsNextDay(
+                                                d.start_time,
+                                                d.end_time,
+                                            )
+                                        "
+                                        class="text-xs text-muted-foreground"
+                                        >ends next day</span
+                                    >
                                 </div>
                                 <span
                                     v-else

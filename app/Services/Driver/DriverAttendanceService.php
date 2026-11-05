@@ -28,10 +28,11 @@ class DriverAttendanceService
     public function state(Rider $rider): array
     {
         $employee = $rider->employee;
-        $day = now()->format('l');
+        // After midnight, an overnight shift that started yesterday is still the current one.
+        ['date' => $workDay, 'shift' => $shift] = $this->attendance->workDayFor($employee);
+        $day = $workDay->format('l');
 
         $weekly = $this->schedules->forEmployee($employee->id);
-        $shift = $weekly->firstWhere('day', $day);
         $record = $this->attendance->todayFor($employee);
 
         $clockedIn = $record?->time_in !== null;
@@ -44,6 +45,7 @@ class DriverAttendanceService
             'shift' => $shift ? [
                 'start' => $shift->start_time?->format('H:i'),
                 'end' => $shift->end_time?->format('H:i'),
+                'ends_next_day' => $shift->endsNextDay(),
             ] : null,
             'record' => $record ? [
                 'status' => $record->status,

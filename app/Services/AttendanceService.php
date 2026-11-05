@@ -4,9 +4,13 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use App\Models\Shop;
 use App\Repositories\AttendanceRepository;
+use App\Repositories\ScheduleRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AttendanceService
@@ -14,6 +18,7 @@ class AttendanceService
     public function __construct(
         private readonly AttendanceRepository $attendanceRepository,
         private readonly ActivityLogService $activityLogService,
+        private readonly ScheduleRepository $schedules,
     ) {}
 
     public function getPaginated(Shop $shop, array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -129,7 +134,8 @@ class AttendanceService
     public function selfClockIn(Employee $employee, Shop $shop, ?float $lat, ?float $lng): Attendance
     {
         return DB::transaction(function () use ($employee, $shop, $lat, $lng) {
-            $today = now()->toDateString();
+            // After midnight, an overnight shift still counts on the day it started.
+            $workDay = $this->workDayFor($employee)['date']->toDateString();
             $now = now()->format('H:i:s');
 
             // Geo-validation: auto-absent when out of range
@@ -139,18 +145,15 @@ class AttendanceService
                 ? null
                 : 'Auto-marked absent: location was outside the allowed range of the shop.';
 
-            $attendance = Attendance::updateOrCreate(
-                ['employee_id' => $employee->id, 'date' => $today],
-                [
-                    'shop_id' => $shop->id,
-                    'status' => $status,
-                    'time_in' => $withinRange ? $now : null,
-                    'check_in_lat' => $lat,
-                    'check_in_lng' => $lng,
-                    'remarks' => $remarks,
-                    'marked_by' => $employee->user_id,
-                ]
-            );
+            $attendance = $this->attendanceRepository->saveForEmployeeOn($employee->id, $workDay, [
+                'shop_id' => $shop->id,
+                'status' => $status,
+                'time_in' => $withinRange ? $now : null,
+                'check_in_lat' => $lat,
+                'check_in_lng' => $lng,
+                'remarks' => $remarks,
+                'marked_by' => $employee->user_id,
+            ]);
 
             $this->activityLogService->log(
                 subject: $employee,
@@ -174,12 +177,11 @@ class AttendanceService
     public function selfClockOut(Employee $employee, Shop $shop, ?float $lat, ?float $lng): Attendance
     {
         return DB::transaction(function () use ($employee, $shop, $lat, $lng) {
-            $today = now()->toDateString();
             $now = now()->format('H:i:s');
 
-            $attendance = Attendance::where('employee_id', $employee->id)
-                ->where('date', $today)
-                ->firstOrFail();
+            // The record of the current work day, or an overnight shift still open from the day before.
+            $attendance = $this->todayFor($employee)
+                ?? throw (new ModelNotFoundException)->setModel(Attendance::class);
 
             $attendance->update([
                 'time_out' => $now,
@@ -203,13 +205,41 @@ class AttendanceService
     }
 
     /**
-     * Fetch today's attendance record for a specific employee, or null if none.
+     * The attendance record of the employee's current work day, or null if none. A shift clocked
+     * into the day before and not yet clocked out (an overnight shift that ran late) still counts.
      */
     public function todayFor(Employee $employee): ?Attendance
     {
-        return Attendance::where('employee_id', $employee->id)
-            ->where('date', now()->toDateString())
-            ->first();
+        $workDay = $this->workDayFor($employee)['date'];
+        $record = $this->attendanceRepository->findForEmployeeOn($employee->id, $workDay->toDateString());
+
+        if ($record !== null) {
+            return $record;
+        }
+
+        $previous = $this->attendanceRepository->findForEmployeeOn($employee->id, $workDay->copy()->subDay()->toDateString());
+
+        return $previous?->time_in !== null && $previous->time_out === null ? $previous : null;
+    }
+
+    /**
+     * The work day a moment belongs to, with that day's shift. An overnight shift (it ends at or
+     * before its start time) that started yesterday still counts on yesterday until it ends.
+     *
+     * @return array{date: Carbon, shift: ?EmployeeSchedule}
+     */
+    public function workDayFor(Employee $employee, ?Carbon $at = null): array
+    {
+        $at = ($at ?? now())->copy();
+        $weekly = $this->schedules->forEmployee($employee->id);
+        $yesterday = $at->copy()->subDay();
+        $overnight = $weekly->firstWhere('day', $yesterday->format('l'));
+
+        if ($overnight?->endsNextDay() && $at->format('H:i') < $overnight->end_time->format('H:i')) {
+            return ['date' => $yesterday->startOfDay(), 'shift' => $overnight];
+        }
+
+        return ['date' => $at->startOfDay(), 'shift' => $weekly->firstWhere('day', $at->format('l'))];
     }
 
     /**

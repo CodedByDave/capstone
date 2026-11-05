@@ -2,7 +2,6 @@
 
 use App\Enums\AccountType;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
-use App\Http\Requests\Shop\Operations\UpdateShopOrderRequest;
 use App\Models\Promotion;
 use App\Models\Shop;
 use App\Models\User;
@@ -43,9 +42,9 @@ function promotionValidation(string $class, Shop $actingShop, int $promotionId)
     return validator(['promotion_id' => $promotionId], ['promotion_id' => $request->rules()['promotion_id']]);
 }
 
+// The edit form cannot change an order's promotion, so only a new order is checked.
 dataset('order requests with a promotion', [
     'staff create' => [StoreShopOrderRequest::class],
-    'staff edit' => [UpdateShopOrderRequest::class],
 ]);
 
 it('keeps the promotion an order was given', function (string $class) {

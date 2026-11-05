@@ -64,7 +64,12 @@ export interface DriverAttendance {
     day: string;
     has_schedule: boolean;
     is_work_day: boolean;
-    shift: { start: string | null; end: string | null } | null;
+    shift: {
+        start: string | null;
+        end: string | null;
+        /** An overnight shift that finishes the day after it starts. */
+        ends_next_day?: boolean;
+    } | null;
     record: AttendanceRecord | null;
     has_clocked_in: boolean;
     has_clocked_out: boolean;

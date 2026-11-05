@@ -3,42 +3,40 @@
 namespace App\Http\Controllers\Shop\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Employee\DeleteShiftRequest;
 use App\Http\Requests\Shop\Employee\ScheduleRequest;
+use App\Http\Requests\Shop\Employee\ShiftRequest;
 use App\Models\Employee;
 use App\Models\EmployeeSchedule;
 use App\Services\ScheduleService;
-use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
 
+/** An employee's weekly shifts. Access to the employee and shift is checked by each Form Request. */
 class ScheduleController extends Controller
 {
     public function __construct(
         private readonly ScheduleService $scheduleService
     ) {}
 
-    public function create(Employee $employee)
+    /** Replaces the whole week. */
+    public function sync(ScheduleRequest $request, Employee $employee): JsonResponse
     {
-        return Inertia::render('shop/employee/schedule/Create', [
-            'employee' => $employee,
-        ]);
+        return response()->json($this->scheduleService->syncSchedules($employee, $request->validated('schedules')));
     }
 
-    public function sync(ScheduleRequest $request, Employee $employee)
+    public function store(ShiftRequest $request, Employee $employee): JsonResponse
     {
-        $schedules = $this->scheduleService->syncSchedules($employee, $request->validated('schedules'));
-
-        return response()->json($schedules, 200);
+        return response()->json($this->scheduleService->addSchedule($employee, $request->validated()), 201);
     }
 
-    public function update(ScheduleRequest $request, Employee $employee, EmployeeSchedule $schedule)
+    public function update(ShiftRequest $request, Employee $employee, EmployeeSchedule $schedule): JsonResponse
     {
         $updated = $this->scheduleService->updateSchedule($schedule, $request->validated());
 
-        return response()->json(
-            $updated->only(['id', 'work_date', 'start_time', 'end_time'])
-        );
+        return response()->json($updated->only(['id', 'day', 'start_time', 'end_time']));
     }
 
-    public function destroy(Employee $employee, EmployeeSchedule $schedule)
+    public function destroy(DeleteShiftRequest $request, Employee $employee, EmployeeSchedule $schedule): JsonResponse
     {
         $this->scheduleService->deleteSchedule($schedule);
 

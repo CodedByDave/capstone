@@ -27,4 +27,21 @@ class ScheduleRepository extends Repository
     {
         $employee->schedules()->delete();
     }
+
+    public function existsForDay(Employee $employee, string $day): bool
+    {
+        return $employee->schedules()->where('day', $day)->exists();
+    }
+
+    public function updateSchedule(EmployeeSchedule $schedule, array $data): EmployeeSchedule
+    {
+        $schedule->update($data);
+
+        return $schedule->refresh();
+    }
+
+    public function deleteSchedule(EmployeeSchedule $schedule): void
+    {
+        $schedule->delete();
+    }
 }

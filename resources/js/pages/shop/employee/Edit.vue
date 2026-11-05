@@ -16,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { endsNextDay, isZeroLengthShift } from '@/lib/shift';
 import axios from 'axios';
 import { ArrowLeft, Loader2, X } from 'lucide-vue-next';
 
@@ -303,9 +304,12 @@ const scheduleError = ref<string | null>(null);
 
 async function saveSchedule() {
     const active = scheduleMap.value.filter((d) => d.enabled);
-    const invalid = active.find((d) => d.start_time >= d.end_time);
+    // An end time before the start time is an overnight shift that ends the next day.
+    const invalid = active.find((d) =>
+        isZeroLengthShift(d.start_time, d.end_time),
+    );
     if (invalid) {
-        scheduleError.value = `${invalid.day}: end time must be after start time.`;
+        scheduleError.value = `${invalid.day}: a shift cannot start and end at the same time.`;
         return;
     }
 
@@ -1033,6 +1037,16 @@ async function saveSchedule() {
                                             :aria-label="`${d.day} end time`"
                                             class="h-8 w-32 text-sm"
                                         />
+                                        <span
+                                            v-if="
+                                                endsNextDay(
+                                                    d.start_time,
+                                                    d.end_time,
+                                                )
+                                            "
+                                            class="text-xs text-muted-foreground"
+                                            >ends next day</span
+                                        >
                                     </div>
                                 </template>
                                 <span

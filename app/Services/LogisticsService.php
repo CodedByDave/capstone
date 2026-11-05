@@ -330,6 +330,18 @@ class LogisticsService
         return $assigned;
     }
 
+    /**
+     * Safety net run on a schedule: gives every shop's waiting deliveries to any rider who is free
+     * now, for cases no event covers (the shop opening, a rider's shift starting).
+     *
+     * @return int how many waiting deliveries received a rider
+     */
+    public function assignAllWaitingDeliveries(): int
+    {
+        return $this->deliveries->shopIdsWithWaitingDeliveries()
+            ->sum(fn (int $shopId) => $this->assignWaitingDeliveries($shopId));
+    }
+
     private function giveToRider(Delivery $waiting, \App\Models\Rider $rider): Delivery
     {
         $this->deliveries->update($waiting, [

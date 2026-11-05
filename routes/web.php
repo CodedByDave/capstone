@@ -303,7 +303,9 @@ Route::prefix('shop')->middleware([
     Route::post('/employee/{publicId}/restore', [EmployeeController::class, 'restore'])->name('employee.restore');
 
     // Schedule
-    Route::put('/employee/{employee}/schedule', [ScheduleController::class, 'sync']);
+    Route::put('/employee/{employee}/schedule', [ScheduleController::class, 'sync'])->name('schedule.sync');
+    Route::post('/employee/{employee}/schedule', [ScheduleController::class, 'store'])->name('schedule.store');
+    Route::put('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'update'])->name('schedule.update');
     Route::delete('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('schedule.destroy');
 
     // Attendance
@@ -563,6 +565,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
 
     // ── Schedule ──────────────────────────────────────────────────────────────
     Route::middleware('permission:HRM,update')->group(function () {
+        Route::put('/employee/{employee}/schedule', [ScheduleController::class, 'sync'])->name('staff.schedule.sync');
         Route::post('/employee/{employee}/schedule', [ScheduleController::class, 'store'])->name('staff.schedule.store');
         Route::put('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'update'])->name('staff.schedule.update');
         Route::delete('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('staff.schedule.destroy');

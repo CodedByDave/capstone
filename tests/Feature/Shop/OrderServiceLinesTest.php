@@ -147,35 +147,81 @@ it('validates extra service lines on the endpoint', function () {
         ->assertSessionHasErrors('service_lines.0.service_id');
 });
 
-it('adds, changes and removes extra services when an order is edited', function () {
+it('keeps the extra services of a placed order when it is edited', function () {
     $ctx = linesShop();
     $service = app(ShopOrderService::class);
-    $order = $service->createOrder(linesOrderData($ctx), $ctx['owner']);
+    $order = $service->createOrder(linesOrderData($ctx, [
+        'service_lines' => [['service_id' => $ctx['comforter']->id, 'piece_count' => 2]],
+    ]), $ctx['owner']);
 
-    $editData = fn (array $lines) => [
-        'customer_name' => 'Maria Cruz',
-        'service_id' => $ctx['wash']->id,
-        'pickup_type' => 'walk_in',
-        'pricing_model' => 'per_kg',
-        'actual_weight_kg' => 5,
-        'additional_charges' => 0,
-        'discount_amount' => 0,
-        'total_amount' => 0,
-        'payment_method' => 'cash',
-        'status' => 'pending',
-        'service_lines' => $lines,
-    ];
-
-    $updated = $service->updateOrder($order, $editData([['service_id' => $ctx['comforter']->id, 'piece_count' => 3]]));
+    $updated = $service->updateOrder($order, [
+        'service_lines' => [
+            ['service_id' => $ctx['comforter']->id, 'piece_count' => 5],
+            ['service_id' => $ctx['wash']->id, 'weight_kg' => 4],
+        ],
+    ]);
     expect($updated->serviceLines)->toHaveCount(1)
-        ->and((float) $updated->total_amount)->toBe(1050.0);
+        ->and($updated->serviceLines->first()->piece_count)->toBe(2)
+        ->and((float) $updated->total_amount)->toBe(800.0);
 
-    $updated = $service->updateOrder($order->fresh(), $editData([['service_id' => $ctx['comforter']->id, 'piece_count' => 1]]));
-    expect((float) $updated->total_amount)->toBe(550.0);
+    $updated = $service->updateOrder($order->fresh(), ['service_lines' => []]);
+    expect($updated->serviceLines)->toHaveCount(1)
+        ->and((float) $updated->total_amount)->toBe(800.0);
+});
 
-    $updated = $service->updateOrder($order->fresh(), $editData([]));
-    expect($updated->serviceLines)->toHaveCount(0)
-        ->and((float) $updated->total_amount)->toBe(300.0);
+it('weighs an extra service once when it had no weight yet, at its stored rate', function () {
+    $ctx = linesShop();
+    $service = app(ShopOrderService::class);
+    $order = $service->createOrder(linesOrderData($ctx, [
+        'service_lines' => [['service_id' => $ctx['wash']->id, 'weight_kg' => 2]],
+    ]), $ctx['owner']);
+    // As a pickup order would be: the extra service is weighed once the laundry is at the shop.
+    $order->serviceLines()->update(['weight_kg' => null, 'amount' => 0]);
+    $order->update(['total_amount' => 300]);
+    ShopService::whereKey($ctx['wash']->id)->update(['price_per_kg' => 999]);
+
+    $updated = $service->updateOrder($order->fresh(), ['service_lines' => [['weight_kg' => 3]]]);
+
+    expect((float) $updated->serviceLines->first()->weight_kg)->toBe(3.0)
+        ->and((float) $updated->serviceLines->first()->amount)->toBe(180.0)
+        ->and((float) $updated->total_amount)->toBe(480.0);
+
+    // Once weighed, the line keeps its weight.
+    $updated = $service->updateOrder($updated, ['service_lines' => [['weight_kg' => 9]]]);
+    expect((float) $updated->serviceLines->first()->weight_kg)->toBe(3.0);
+});
+
+it('weighs an extra service under the same rules as the main service', function () {
+    $ctx = linesShop();
+    $service = app(ShopOrderService::class);
+    $unweighed = function (array $orderChanges) use ($ctx, $service) {
+        $order = $service->createOrder(linesOrderData($ctx, [
+            'service_lines' => [['service_id' => $ctx['wash']->id, 'weight_kg' => 2]],
+        ]), $ctx['owner']);
+        $order->serviceLines()->update(['weight_kg' => null, 'amount' => 0]);
+        $order->update(array_merge(['total_amount' => 300], $orderChanges));
+
+        return $order->fresh();
+    };
+
+    // A paid order is not weighed again, a closed one not at all.
+    expect(fn () => $service->updateOrder($unweighed(['payment_status' => 'paid']), ['service_lines' => [['weight_kg' => 3]]]))
+        ->toThrow(Illuminate\Validation\ValidationException::class);
+    expect(fn () => $service->updateOrder($unweighed(['status' => 'cancelled']), ['service_lines' => [['weight_kg' => 3]]]))
+        ->toThrow(Illuminate\Validation\ValidationException::class);
+
+    // An online customer approves the weight, so a photo of the scale is needed.
+    $online = $unweighed(['order_source' => 'online']);
+    expect(fn () => $service->updateOrder($online, ['service_lines' => [['weight_kg' => 3]]]))
+        ->toThrow(Illuminate\Validation\ValidationException::class);
+
+    Illuminate\Support\Facades\Storage::fake('private');
+    $updated = $service->updateOrder($online->fresh(), [
+        'service_lines' => [['weight_kg' => 3]],
+        'weight_proof' => Illuminate\Http\UploadedFile::fake()->image('scale.jpg'),
+    ]);
+    expect($updated->weight_approval_status)->toBe('pending')
+        ->and((float) $updated->serviceLines->first()->weight_kg)->toBe(3.0);
 });
 
 // ── Completing an order by hand ──────────────────────────────────────────────

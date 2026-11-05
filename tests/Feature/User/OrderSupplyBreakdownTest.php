@@ -10,7 +10,6 @@ use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Models\User;
 use App\Services\OrderPaymentService;
-use App\Services\ShopOrderService;
 
 beforeEach(function () {
     $this->withoutMiddleware([
@@ -65,7 +64,7 @@ function supplyItem(Shop $shop, string $name, float $price): Inventory
     ]);
 }
 
-/** A weighed order with the given supplies edited in through the shop's own edit flow. */
+/** A weighed order that used the given supplies. */
 function supplyOrder(Shop $shop, User $customer, array $supplies): ShopOrder
 {
     $service = ShopService::create([
@@ -93,24 +92,27 @@ function supplyOrder(Shop $shop, User $customer, array $supplies): ShopOrder
         'status' => 'in_progress',
     ]);
 
-    return supplyEdit($order, $supplies);
+    return supplyAttach($order, $supplies);
 }
 
-/** Saves the order like the edit form: the additional charge is what the supplies add up to. */
-function supplyEdit(ShopOrder $order, array $supplies, ?float $additional = null): ShopOrder
+/** Records the supplies the order used, each at its selling price then, with the additional charge they add up to. */
+function supplyAttach(ShopOrder $order, array $supplies, ?float $additional = null): ShopOrder
 {
-    $charge = $additional ?? collect($supplies)->sum(
-        fn ($supply) => (float) Inventory::find($supply['inventory_id'])->selling_price * $supply['quantity_used'],
-    );
+    $charge = 0.0;
+    foreach ($supplies as $supply) {
+        $price = (float) Inventory::find($supply['inventory_id'])->selling_price;
+        $order->supplies()->attach($supply['inventory_id'], [
+            'quantity_used' => $supply['quantity_used'],
+            'unit' => $supply['unit'],
+            'unit_price' => $price,
+        ]);
+        $charge += $price * $supply['quantity_used'];
+    }
 
-    return app(ShopOrderService::class)->updateOrder($order, [
-        'service_id' => $order->service_id,
-        'estimated_weight_kg' => 3,
-        'actual_weight_kg' => 3,
-        'additional_charges' => $charge,
-        'status' => $order->status,
-        'supplies' => $supplies,
-    ]);
+    $additional ??= $charge;
+    $order->update(['additional_charges' => $additional, 'total_amount' => 180 + $additional]);
+
+    return $order->fresh();
 }
 
 function supplyPay(Shop $shop, ShopOrder $order): void
@@ -153,9 +155,8 @@ test('a later price change does not alter what the receipt shows', function () {
     $softener = supplyItem($shop, 'Fabric Softener', 15);
     $order = supplyOrder($shop, $customer, [['inventory_id' => $softener->id, 'quantity_used' => 2, 'unit' => 'pcs']]);
 
+    // The supply keeps the price it was charged at.
     $softener->update(['selling_price' => 99]);
-    // Editing the order again keeps what the supply was first charged at.
-    $order = supplyEdit($order->refresh(), [['inventory_id' => $softener->id, 'quantity_used' => 2, 'unit' => 'pcs']], 30);
     supplyPay($shop, $order);
 
     $this->actingAs($customer)
@@ -170,8 +171,8 @@ test('a manual charge on top of the supplies shows as other charges', function (
     $shop = supplyShop();
     $customer = User::factory()->create(['role' => AccountType::Customer->value]);
     $softener = supplyItem($shop, 'Fabric Softener', 15);
-    $order = supplyOrder($shop, $customer, [['inventory_id' => $softener->id, 'quantity_used' => 2, 'unit' => 'pcs']]);
-    $order = supplyEdit($order->refresh(), [['inventory_id' => $softener->id, 'quantity_used' => 2, 'unit' => 'pcs']], 50);
+    $order = supplyOrder($shop, $customer, []);
+    $order = supplyAttach($order, [['inventory_id' => $softener->id, 'quantity_used' => 2, 'unit' => 'pcs']], 50);
     supplyPay($shop, $order);
 
     $this->actingAs($customer)

@@ -313,7 +313,18 @@ test('re-weighing an order never restarts or reverts it', function (string $stat
     flowWeigh($order);
 
     expect($order->refresh()->status)->toBe($status);
-})->with(['in_progress', 'completed', 'cancelled']);
+})->with(['in_progress', 'completed']);
+
+test('a cancelled order cannot be weighed, so it stays cancelled', function () {
+    $shop = flowShop();
+    flowRules($shop, ['start_on_weigh_in' => true]);
+    $order = flowOrder($shop, ['status' => 'cancelled', 'actual_weight_kg' => null]);
+
+    expect(fn () => flowWeigh($order))->toThrow(Illuminate\Validation\ValidationException::class);
+
+    expect($order->refresh()->status)->toBe('cancelled')
+        ->and($order->actual_weight_kg)->toBeNull();
+});
 
 // ── Start on payment ─────────────────────────────────────────────────────────
 

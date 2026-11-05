@@ -54,7 +54,7 @@ const compact = (value: string | null): string => {
 
 const shiftLabel = computed(() =>
     props.attendance.shift
-        ? `${compact(props.attendance.shift.start)}-${compact(props.attendance.shift.end)}`
+        ? `${compact(props.attendance.shift.start)}-${compact(props.attendance.shift.end)}${props.attendance.shift.ends_next_day ? ' (next day)' : ''}`
         : null,
 );
 

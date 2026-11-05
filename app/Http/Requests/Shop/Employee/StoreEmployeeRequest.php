@@ -32,9 +32,10 @@ class StoreEmployeeRequest extends FormRequest
             'status' => 'required|in:Active,Inactive',
             'create_account' => 'nullable|boolean',
             'schedules' => ['nullable', 'array'],
-            'schedules.*.day' => ['required', 'string', 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'],
+            'schedules.*.day' => ['required', 'string', 'distinct', 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'],
             'schedules.*.start_time' => ['required', 'date_format:H:i'],
-            'schedules.*.end_time' => ['required', 'date_format:H:i', 'after:schedules.*.start_time'],
+            // An end time at or before the start time is an overnight shift that ends the next day.
+            'schedules.*.end_time' => ['required', 'date_format:H:i', 'different:schedules.*.start_time'],
         ];
     }
 
@@ -60,7 +61,8 @@ class StoreEmployeeRequest extends FormRequest
             'hire_date.required' => 'Hire date is required.',
             'hire_date.before_or_equal' => 'Hire date cannot be a future date.',
             'status.in' => 'Status must be Active or Inactive.',
-            'schedules.*.end_time.after' => 'End time must be after start time.',
+            'schedules.*.end_time.different' => 'A shift cannot start and end at the same time.',
+            'schedules.*.day.distinct' => 'Each day can have only one shift.',
         ];
     }
 }

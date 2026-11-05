@@ -20,6 +20,11 @@ Schedule::command('orders:automate')
     ->everyMinute()
     ->withoutOverlapping(5);
 
+// Hands deliveries that are waiting for a rider to any rider who has become free.
+Schedule::command('deliveries:assign-waiting')
+    ->everyMinute()
+    ->withoutOverlapping(5);
+
 // Backups of the database and uploaded files. A weekly set every Sunday and a monthly set on the 1st;
 // see config/backup.php for the destination disk and how many sets are kept.
 Schedule::command('backup:run --type=weekly')

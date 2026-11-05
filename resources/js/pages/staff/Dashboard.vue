@@ -8,6 +8,7 @@ import {
 } from '@/components/data-table';
 import { useDataTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { endsNextDay } from '@/lib/shift';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     BarChart3,
@@ -120,7 +121,7 @@ const isWorkDay = computed(() => {
 const shiftLabel = computed(() => {
     const s = todaySchedule.value;
     if (!s) return null;
-    return `${fmt12(s.start_time)} – ${fmt12(s.end_time)}`;
+    return `${fmt12(s.start_time)} – ${fmt12(s.end_time)}${endsNextDay(s.start_time, s.end_time) ? ' (next day)' : ''}`;
 });
 
 function fmt12(t: string | null) {

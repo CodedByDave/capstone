@@ -295,18 +295,10 @@ test('per kilogram payment remains locked until the shop records actual weight',
 test('shop actual weight recalculates the final amount and unlocks checkout', function () {
     fakePaymongoHostedCheckout();
     ['customer' => $customer, 'order' => $order] = demoPaymentOrder();
-    $order->update(['actual_weight_kg' => null, 'total_amount' => 200]);
+    // Charges and discount were set when the order was placed; weighing keeps them.
+    $order->update(['actual_weight_kg' => null, 'total_amount' => 215, 'additional_charges' => 20, 'discount_amount' => 5]);
 
-    app(App\Services\ShopOrderService::class)->updateOrder($order, [
-        'service_id' => $order->service_id,
-        'estimated_weight_kg' => 4,
-        'actual_weight_kg' => 4.5,
-        'bundle_quantity' => null,
-        'additional_charges' => 20,
-        'discount_amount' => 5,
-        'amount_paid' => 0,
-        'supplies' => [],
-    ]);
+    app(App\Services\ShopOrderService::class)->updateOrder($order->fresh(), ['actual_weight_kg' => 4.5]);
 
     $order->refresh();
     expect((float) $order->actual_weight_kg)->toBe(4.5)

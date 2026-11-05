@@ -154,9 +154,11 @@ test('tax is taken off the discount-reduced amount and not charged on the delive
         ->and((float) $updated->total_amount)->toBe(218.0);
 });
 
-test('editing an order keeps the rate it was placed with, even if the shop changes tax type', function () {
+test('weighing an order later keeps the rate it was placed with, even if the shop changes tax type', function () {
     $shop = taxShop('non_vat');
     $order = taxOrder($shop);
+    // Not weighed yet: the weight is recorded later, from the edit form.
+    $order->update(['actual_weight_kg' => null]);
 
     Shop::whereKey($shop->id)->update(['tax_type' => 'vat']);
 
@@ -172,10 +174,10 @@ test('editing an order keeps the rate it was placed with, even if the shop chang
         ->and((float) $updated->total_amount)->toBe(309.0);
 });
 
-test('an order from before tax existed stays untaxed when it is edited', function () {
+test('an order from before tax existed stays untaxed when it is weighed later', function () {
     $shop = taxShop('vat');
     $order = taxOrder($shop);
-    $order->update(['tax_rate' => 0, 'tax_amount' => 0, 'total_amount' => 180]);
+    $order->update(['tax_rate' => 0, 'tax_amount' => 0, 'total_amount' => 180, 'actual_weight_kg' => null]);
 
     $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), [
         'service_id' => $order->service_id,

@@ -213,7 +213,7 @@ test('automatic deliveries and pickup runs are not created without pricing', fun
     expect(App\Models\Delivery::count())->toBe(0);
 });
 
-test('the order form refuses deliver to customer without pricing', function () {
+test('the edit form cannot turn on delivery for a placed order', function () {
     [, $shop] = unpricedShop();
     $staff = unpricedStaff($shop, [['Operations', 'manage']]);
     $order = unpricedCompletedOrder($shop, ['pickup_type' => 'walk_in', 'status' => 'in_progress']);
@@ -234,7 +234,7 @@ test('the order form refuses deliver to customer without pricing', function () {
             'payment_status' => 'unpaid',
             'status' => 'in_progress',
         ])
-        ->assertSessionHasErrors('deliver_to_customer');
+        ->assertSessionHasNoErrors();
 
     expect($order->fresh()->deliver_to_customer)->toBeFalse();
 });

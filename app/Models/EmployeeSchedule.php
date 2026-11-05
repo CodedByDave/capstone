@@ -19,6 +19,14 @@ class EmployeeSchedule extends Model
         'end_time' => 'datetime:H:i',
     ];
 
+    /** An overnight shift: it ends at or before the time it starts, so it finishes the next day. */
+    public function endsNextDay(): bool
+    {
+        return $this->start_time !== null
+            && $this->end_time !== null
+            && $this->end_time->format('H:i') <= $this->start_time->format('H:i');
+    }
+
     /**
      * The employee this schedule belongs to
      */

@@ -38,6 +38,10 @@ function orderTotalScenario(array $serviceOverrides = []): array
         'customer_name' => 'Walk In',
         'pickup_type' => 'walk_in',
         'pricing_model' => $service->pricing_model,
+        // An order keeps a copy of the rates it was placed with.
+        'price_per_kg' => $service->price_per_kg,
+        'bundle_weight_kg' => $service->bundle_weight_kg,
+        'bundle_price' => $service->bundle_price,
         'estimated_weight_kg' => 2,
         'total_amount' => 120,
         'payment_status' => 'unpaid',
@@ -61,98 +65,66 @@ function recordConfirmedPayment(ShopOrder $order, float $amount): void
     $order->update(['amount_paid' => $amount, 'payment_status' => 'partial']);
 }
 
-function orderUpdatePayload(ShopService $service, array $overrides = []): array
-{
-    return array_merge([
-        'service_id' => $service->id,
-        'customer_name' => 'Walk In',
-        'pickup_type' => 'walk_in',
-        'estimated_weight_kg' => 2,
-        'actual_weight_kg' => null,
-        'additional_charges' => 0,
+test('weighing a per-kg order keeps its stored additional charges and discount', function () {
+    ['order' => $order] = orderTotalScenario();
+    $order->update(['additional_charges' => 20, 'discount_amount' => 10, 'total_amount' => 130]);
+
+    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), [
+        'actual_weight_kg' => 3,
+        // The charges and discount are locked once the order is placed.
+        'additional_charges' => 999,
         'discount_amount' => 0,
-        'status' => 'pending',
-    ], $overrides);
-}
+    ]);
 
-test('an unweighed per-kg order total keeps additional charges and discount', function () {
-    ['order' => $order, 'service' => $service] = orderTotalScenario();
-
-    $updated = app(ShopOrderService::class)->updateOrder($order, orderUpdatePayload($service, [
-        'additional_charges' => 20,
-        'discount_amount' => 10,
-    ]));
-
-    // 2 kg x 60 = 120 base, + 20 charges - 10 discount
-    expect((float) $updated->total_amount)->toBe(130.0);
+    // 3 kg x 60 = 180, + 20 - 10
+    expect((float) $updated->total_amount)->toBe(190.0)
+        ->and((float) $updated->additional_charges)->toBe(20.0);
 });
 
-test('an unweighed per-bundle order total keeps additional charges and discount', function () {
-    ['order' => $order, 'service' => $service] = orderTotalScenario([
+test('weighing a per-bundle order counts its bundles and keeps its charges and discount', function () {
+    ['order' => $order] = orderTotalScenario([
         'pricing_model' => 'per_bundle',
         'price_per_kg' => null,
         'bundle_weight_kg' => 5,
         'bundle_price' => 200,
     ]);
+    $order->update(['additional_charges' => 50, 'discount_amount' => 25]);
 
-    $updated = app(ShopOrderService::class)->updateOrder($order, orderUpdatePayload($service, [
-        'estimated_weight_kg' => 6,
-        'additional_charges' => 50,
-        'discount_amount' => 25,
-    ]));
+    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), ['actual_weight_kg' => 6]);
 
     // ceil(6 / 5) = 2 bundles x 200 = 400, + 50 - 25
-    expect((float) $updated->total_amount)->toBe(425.0);
-});
-
-test('a weighed order total still uses the actual weight with charges and discount', function () {
-    ['order' => $order, 'service' => $service] = orderTotalScenario();
-
-    $updated = app(ShopOrderService::class)->updateOrder($order, orderUpdatePayload($service, [
-        'actual_weight_kg' => 3,
-        'additional_charges' => 20,
-        'discount_amount' => 10,
-    ]));
-
-    // 3 kg x 60 = 180, + 20 - 10
-    expect((float) $updated->total_amount)->toBe(190.0);
+    expect($updated->bundle_quantity)->toBe(2)
+        ->and((float) $updated->total_amount)->toBe(425.0);
 });
 
 test('an unweighed order without extras keeps the plain estimate', function () {
-    ['order' => $order, 'service' => $service] = orderTotalScenario();
+    ['order' => $order] = orderTotalScenario();
 
-    $updated = app(ShopOrderService::class)->updateOrder($order, orderUpdatePayload($service));
+    $updated = app(ShopOrderService::class)->updateOrder($order, []);
 
     expect((float) $updated->total_amount)->toBe(120.0);
 });
 
-test('a stored delivery fee stays in an unweighed order total with charges and discount', function () {
-    ['order' => $order, 'service' => $service] = orderTotalScenario();
-    $order->update(['delivery_fee' => 45]);
+test('editing an unweighed order leaves its total and delivery fee alone', function () {
+    ['order' => $order] = orderTotalScenario();
+    $order->update(['delivery_fee' => 45, 'total_amount' => 165]);
 
-    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), orderUpdatePayload($service, [
+    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), [
         'additional_charges' => 20,
-        'discount_amount' => 10,
         // A forged fee from the edit form must be ignored.
         'delivery_fee' => 0,
-    ]));
+    ]);
 
-    // 2 kg x 60 = 120, + 20 - 10, + 45 delivery
-    expect((float) $updated->total_amount)->toBe(175.0)
+    expect((float) $updated->total_amount)->toBe(165.0)
         ->and((float) $updated->delivery_fee)->toBe(45.0);
 });
 
 test('a stored delivery fee stays in a weighed order total and keeps the balance due', function () {
-    ['order' => $order, 'service' => $service] = orderTotalScenario();
-    $order->update(['delivery_fee' => 45]);
+    ['order' => $order] = orderTotalScenario();
+    $order->update(['delivery_fee' => 45, 'additional_charges' => 20, 'discount_amount' => 10]);
     recordConfirmedPayment($order, 190);
 
-    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), orderUpdatePayload($service, [
-        'actual_weight_kg' => 3,
-        'additional_charges' => 20,
-        'discount_amount' => 10,
-        'status' => 'completed',
-    ]));
+    $updated = app(ShopOrderService::class)->updateOrder($order->fresh(), ['actual_weight_kg' => 3]);
 
     // 3 kg x 60 = 180, + 20 - 10 = 190 paid, + 45 delivery still owed
     expect((float) $updated->total_amount)->toBe(235.0)

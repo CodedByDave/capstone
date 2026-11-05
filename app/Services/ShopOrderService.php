@@ -6,13 +6,11 @@ use App\Events\OrderWeightConfirmed;
 use App\Models\Inventory;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderAutomationSetting;
-use App\Models\ShopOrderPayment;
+use App\Models\ShopOrderServiceLine;
 use App\Models\User;
 use App\Notifications\OrderNotification;
 use App\Repositories\ShopOrderAutomationSettingRepository;
 use App\Repositories\ShopOrderRepository;
-use Carbon\Carbon;
-use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -332,242 +330,212 @@ class ShopOrderService
 
     // ─── Update ───────────────────────────────────────────────────────────────
 
+    /**
+     * Saves what may still change once an order is placed: where the rider goes (address and
+     * alternate contact, only when a rider is involved) and the first weigh-in of laundry that had
+     * no weight yet. The customer, fulfillment, service, pricing, payment and supplies are locked;
+     * any of them in $data is ignored. Status and payments have their own actions.
+     *
+     * @throws ValidationException
+     */
     public function updateOrder(ShopOrder $order, array $data): ShopOrder
     {
-        $previousStatus = $order->status;
-
         $updated = DB::transaction(function () use ($order, $data) {
             $order = $this->repository->lockForUpdate($order);
+            $changes = [];
 
-            // The edit form never changes status; that goes through updateStatus().
-            $data['status'] = $order->status;
-            // The estimate is fixed once the order exists.
-            unset($data['estimated_completion_at']);
+            if ($order->pickup_type === 'pickup' || $order->deliver_to_customer) {
+                foreach (['customer_address', 'alternate_contact_name', 'alternate_contact_phone'] as $field) {
+                    if (array_key_exists($field, $data)) {
+                        $changes[$field] = $data[$field];
+                    }
+                }
+            }
 
-            if ($order->payment_status === 'paid'
-                && array_key_exists('actual_weight_kg', $data)
-                && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg) {
+            $weight = $this->firstWeighIn($order, $data);
+            $lineWeights = $this->firstLineWeighIns($order, $data['service_lines'] ?? []);
+            $weighed = $weight !== null || $lineWeights !== [];
+
+            if ($weighed && ($blocked = $this->logistics->weighingBlockedReason($order)) !== null) {
                 throw ValidationException::withMessages([
-                    'actual_weight_kg' => 'The actual weight cannot be changed after payment.',
+                    $weight !== null ? 'actual_weight_kg' : 'service_lines' => $blocked,
                 ]);
             }
 
-            $service = $this->repository->findActiveServiceForShop(
-                (int) $data['service_id'],
-                $order->shop_id,
-            );
+            $weightNeedsApproval = false;
+            $oldProofPath = null;
+            $newProofPath = null;
 
-            if (! $service) {
-                throw ValidationException::withMessages([
-                    'service_id' => 'The selected service is unavailable for this shop.',
-                ]);
-            }
+            // Every weigh-in, of the main service or an additional one, follows the same rules.
+            if ($weighed) {
+                $field = $weight !== null ? 'actual_weight_kg' : 'service_lines';
 
-            if (array_key_exists('actual_weight_kg', $data)
-                && filled($data['actual_weight_kg'])
-                && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg
-                && ($blocked = $this->logistics->weighingBlockedReason($order, $data['pickup_type'] ?? null)) !== null) {
-                throw ValidationException::withMessages(['actual_weight_kg' => $blocked]);
-            }
-
-            $previousActualWeight = $order->actual_weight_kg;
-
-            // An online customer approves the weight the shop entered, so it needs a photo of the scale.
-            $proof = $data['weight_proof'] ?? null;
-            unset($data['weight_proof']);
-            $weightNeedsApproval = $order->order_source === 'online'
-                && array_key_exists('actual_weight_kg', $data)
-                && filled($data['actual_weight_kg'])
-                && (float) $data['actual_weight_kg'] !== (float) $order->actual_weight_kg;
-
-            if ($weightNeedsApproval) {
-                if (! $proof instanceof UploadedFile) {
+                if (in_array($order->status, ['cancelled', 'picked_up'], true)) {
                     throw ValidationException::withMessages([
-                        'weight_proof' => 'Attach a photo of the laundry on the scale so the customer can verify the weight.',
+                        $field => 'This order is closed, so its weight can no longer be recorded.',
                     ]);
                 }
 
-                $newProofPath = $proof->store("weight-proofs/{$order->shop_id}/{$order->payment_public_id}", 'private');
-                $oldProofPath = $order->weight_proof_path;
-                $data['weight_proof_path'] = $newProofPath;
-                $data['weight_approval_status'] = 'pending';
-                $data['weight_proof_uploaded_at'] = now();
-                $data['weight_decided_at'] = null;
-            }
-
-            if (($data['status'] ?? null) === 'picked_up' && $order->status !== 'picked_up') {
-                $this->assertCanBePickedUp($order);
-                $data['picked_up_at'] = now();
-            }
-
-            // The edit form can complete an order too; record when, as the status button does.
-            if (($data['status'] ?? null) === 'completed' && $order->status !== 'completed') {
-                $data['completed_at'] = now();
-            }
-            if (($data['status'] ?? null) === 'in_progress' && $order->status !== 'in_progress') {
-                if ($order->awaitingWeightApproval() || $weightNeedsApproval) {
-                    throw ValidationException::withMessages(['status' => 'The customer must approve the recorded weight before this order can start.']);
-                }
-                $data['in_progress_at'] = now();
-                $data['overdue_notified_at'] = null;
-            }
-            // A new estimate means the order can become overdue, and be reminded about, again.
-            if (array_key_exists('estimated_completion_at', $data)
-                && $this->estimateChanged($order->estimated_completion_at, $data['estimated_completion_at'])) {
-                $data['overdue_notified_at'] = null;
-            }
-            $newSupplies = $data['supplies'] ?? [];
-            $requestedLines = $data['service_lines'] ?? [];
-            unset($data['supplies'], $data['service_lines']);
-            $data = $this->withoutAlternateContactUnlessRiderInvolved($data);
-
-            $data['pricing_model'] = $service->pricing_model;
-            $data['price_per_kg'] = $service->price_per_kg;
-            $data['bundle_weight_kg'] = $service->bundle_weight_kg;
-            $data['bundle_price'] = $service->bundle_price;
-            $data['price_per_piece'] = $service->price_per_piece;
-            if (! $service->isPerPiece()) {
-                $data['piece_count'] = null;
-            }
-
-            if ($service->pricing_model === 'per_bundle' && ! empty($data['actual_weight_kg'])) {
-                $data['bundle_quantity'] = max(1, (int) ceil(
-                    (float) $data['actual_weight_kg'] / max((float) $service->bundle_weight_kg, 0.01),
-                ));
-            }
-
-            // Base price comes from the actual weight once weighed, otherwise from the estimate.
-            // Additional charges and discounts apply to either, so they are added in one place.
-            if ($service->isPerPiece()) {
-                $baseAmount = (int) ($data['piece_count'] ?? 0) * (float) $service->price_per_piece;
-            } elseif (empty($data['actual_weight_kg'])) {
-                $baseAmount = $service->pricing_model === 'per_kg'
-                    ? (float) ($data['estimated_weight_kg'] ?? 0) * (float) $service->price_per_kg
-                    : max(1, (int) ceil(
-                        (float) ($data['estimated_weight_kg'] ?? 0) / max((float) $service->bundle_weight_kg, 0.01),
-                    )) * (float) $service->bundle_price;
-            } else {
-                $baseAmount = $service->pricing_model === 'per_kg'
-                    ? (float) $data['actual_weight_kg'] * (float) $service->price_per_kg
-                    : (float) ($data['bundle_quantity'] ?? 1) * (float) $service->bundle_price;
-            }
-
-            // Additional services are re-priced from the shop's current rates and added to the base.
-            $serviceLines = $this->buildServiceLines($requestedLines, (int) $order->shop_id, ($data['pickup_type'] ?? $order->pickup_type) === 'pickup');
-            $baseAmount += array_sum(array_column($serviceLines, 'amount'));
-
-            // A customer-requested delivery fee is owned by the delivery flow, not the edit form,
-            // so it is carried over from the stored order rather than read from the request.
-            // The order keeps the tax rate it was placed with; the tax follows the new subtotal and the
-            // delivery fee stays untaxed. Orders from before tax existed have a 0 rate and stay untaxed.
-            $subtotal = round(max(
-                0,
-                $baseAmount
-                    + (float) ($data['additional_charges'] ?? 0)
-                    - (float) ($data['discount_amount'] ?? 0),
-            ), 2);
-            $tax = $this->tax->amountOn($subtotal, (float) $order->tax_rate);
-            $data['tax_amount'] = $tax;
-            $data['total_amount'] = round($subtotal + $tax + (float) $order->delivery_fee, 2);
-            unset($data['delivery_fee']);
-
-            // What has been paid comes only from the recorded payments; the form cannot change it.
-            unset($data['amount_paid'], $data['payment_status'], $data['paid_at']);
-
-            // The form's Not paid / Fully paid choice, applied after the order is saved; only a change counts.
-            $requestedPayment = $data['payment_state'] ?? null;
-            unset($data['payment_state']);
-            $wasPaid = $order->payment_status === 'paid';
-
-            // Restore old supply quantities back to inventory
-            foreach ($order->supplies as $oldSupply) {
-                Inventory::where('id', $oldSupply->pivot->inventory_id)
-                    ->where('shop_id', $order->shop_id)
-                    ->increment('quantity', (float) $oldSupply->pivot->quantity_used);
-            }
-
-            // Remember what each supply was charged at before the pivot rows are rebuilt.
-            $previousPrices = $order->supplies->mapWithKeys(
-                fn ($supply) => [$supply->id => $supply->pivot->unit_price],
-            );
-
-            // Detach all old supplies from pivot
-            $order->supplies()->detach();
-
-            // Persist the authoritative pricing and weight values, then re-derive the payment
-            // status because the total may have changed.
-            $this->repository->update($order, $data);
-            $this->repository->replaceServiceLines($order, $serviceLines);
-            $this->orderPayments->sync($order);
-
-            if (($requestedPayment === 'paid' && ! $wasPaid)
-                || ($requestedPayment === 'unpaid' && ($wasPaid || (float) $order->fresh()->amount_paid > 0))) {
-                $this->setPaymentState($order->fresh(), $requestedPayment, $data['payment_method'] ?? null, auth()->user());
-            }
-
-            $this->serviceSupplies->sync($order->refresh()->load('service'), auth()->id());
-
-            // Re-attach new supplies and deduct inventory
-            foreach ($newSupplies as $supply) {
-                if (empty($supply['inventory_id'])) {
-                    continue;
-                }
-
-                $item = Inventory::where('id', $supply['inventory_id'])
-                    ->where('shop_id', $order->shop_id)
-                    ->first();
-
-                if (! $item) {
-                    continue;
-                }
-
-                if ($item->quantity < $supply['quantity_used']) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
-                        'supplies' => "Not enough stock for {$item->name}. Available: {$item->quantity} {$item->unit}.",
+                if ($order->payment_status === 'paid') {
+                    throw ValidationException::withMessages([
+                        $field => 'The weight cannot be recorded after the order is paid.',
                     ]);
                 }
 
-                // ← use attach() not create()
-                $order->supplies()->attach($supply['inventory_id'], [
-                    'quantity_used' => $supply['quantity_used'],
-                    'unit' => $supply['unit'],
-                    // A supply already on the order keeps the price it was first charged at.
-                    'unit_price' => $previousPrices[$item->id] ?? $item->selling_price,
-                ]);
+                if ($weight !== null) {
+                    $changes['actual_weight_kg'] = $weight;
+                    if ($order->pricing_model === 'per_bundle') {
+                        $changes['bundle_quantity'] = $this->bundlesFor($weight, (float) $order->bundle_weight_kg);
+                    }
+                }
 
-                $item->decrement('quantity', (float) $supply['quantity_used']);
-                $this->inventory->alertIfLowStock($item->refresh());
+                // An online customer approves the weight the shop entered, so it needs a photo of the scale.
+                if ($order->order_source === 'online') {
+                    $proof = $data['weight_proof'] ?? null;
+                    if (! $proof instanceof UploadedFile) {
+                        throw ValidationException::withMessages([
+                            'weight_proof' => 'Attach a photo of the laundry on the scale so the customer can verify the weight.',
+                        ]);
+                    }
+
+                    $weightNeedsApproval = true;
+                    $newProofPath = $proof->store("weight-proofs/{$order->shop_id}/{$order->payment_public_id}", 'private');
+                    $oldProofPath = $order->weight_proof_path;
+                    $changes['weight_proof_path'] = $newProofPath;
+                    $changes['weight_approval_status'] = 'pending';
+                    $changes['weight_proof_uploaded_at'] = now();
+                    $changes['weight_decided_at'] = null;
+                }
+            }
+
+            if ($weighed) {
+                $lineAmounts = 0.0;
+                foreach ($order->serviceLines as $index => $line) {
+                    if (array_key_exists($index, $lineWeights)) {
+                        $lineChanges = $this->weighedLine($line, $lineWeights[$index]);
+                        $this->repository->updateServiceLine($line, $lineChanges);
+                        $lineAmounts += $lineChanges['amount'];
+                    } else {
+                        $lineAmounts += (float) $line->amount;
+                    }
+                }
+
+                // Priced from the rates stored on the order, so a later price change never reprices it.
+                $subtotal = round(max(
+                    0,
+                    $this->storedBaseAmount($order, $changes) + $lineAmounts
+                        + (float) $order->additional_charges
+                        - (float) $order->discount_amount,
+                ), 2);
+                $changes['tax_amount'] = $this->tax->amountOn($subtotal, (float) $order->tax_rate);
+                $changes['total_amount'] = round($subtotal + $changes['tax_amount'] + (float) $order->delivery_fee, 2);
+            }
+
+            if ($changes !== []) {
+                $this->repository->update($order, $changes);
+            }
+
+            if ($weighed) {
+                // The total changed, so the payment status follows the recorded payments.
+                $this->orderPayments->sync($order);
+            }
+
+            if ($weight !== null) {
+                $this->serviceSupplies->sync($order->refresh()->load('service'), auth()->id());
             }
 
             $updated = $order->fresh(['service', 'serviceLines', 'supplies', 'shop', 'customer']);
 
-            if (! empty($oldProofPath) && $oldProofPath !== ($newProofPath ?? null)) {
+            if ($oldProofPath !== null && $oldProofPath !== $newProofPath) {
                 Storage::disk('private')->delete($oldProofPath);
             }
 
-            if ($updated->user_id
-                && ($weightNeedsApproval || ($previousActualWeight === null && $updated->actual_weight_kg !== null))) {
-                $updated->customer?->notify(new OrderNotification($updated, 'weight_confirmed'));
-            }
+            if ($weighed) {
+                if ($updated->user_id) {
+                    $updated->customer?->notify(new OrderNotification($updated, 'weight_confirmed'));
+                }
 
-            // An online order's weight only counts once the customer approves it (see OrderWeightApprovalService).
-            if ($previousActualWeight === null
-                && $updated->actual_weight_kg !== null
-                && ! $updated->awaitingWeightApproval()) {
-                OrderWeightConfirmed::dispatch($updated);
+                // An online order's weight only counts once the customer approves it (see OrderWeightApprovalService).
+                if (! $weightNeedsApproval && ! $updated->awaitingWeightApproval()) {
+                    OrderWeightConfirmed::dispatch($updated);
+                }
             }
 
             return $updated;
         });
 
-        // The edit form can complete an order or switch it to pickup/delivery, so the board follows.
-        if ($updated->status === 'completed' && $previousStatus !== 'completed') {
-            $this->logistics->dispatchCompletedOrder($updated);
-        } else {
-            $this->logistics->dispatchPickupRun($updated);
-        }
+        // A new address can change where a pending pickup run goes.
+        $this->logistics->dispatchPickupRun($updated);
 
         return $updated;
+    }
+
+    /** The weight to record when this order's main service is weighed for the first time, or null. */
+    private function firstWeighIn(ShopOrder $order, array $data): ?float
+    {
+        if ($order->pricing_model === 'per_piece'
+            || $order->actual_weight_kg !== null
+            || ! filled($data['actual_weight_kg'] ?? null)) {
+            return null;
+        }
+
+        return (float) $data['actual_weight_kg'];
+    }
+
+    /**
+     * The weights to record for additional services that are weighed for the first time, keyed by the
+     * line's position on the order (the edit form sends the lines in the same order).
+     *
+     * @param  array<int, array<string, mixed>>  $requested
+     * @return array<int, float>
+     */
+    private function firstLineWeighIns(ShopOrder $order, array $requested): array
+    {
+        $requested = array_values($requested);
+        $weights = [];
+
+        foreach ($order->serviceLines as $index => $line) {
+            $weight = $requested[$index]['weight_kg'] ?? null;
+
+            if ($line->pricing_model !== 'per_piece' && $line->weight_kg === null && filled($weight)) {
+                $weights[$index] = (float) $weight;
+            }
+        }
+
+        return $weights;
+    }
+
+    /** The weight, bundles and amount of an additional service line once it is weighed, at its stored rates. */
+    private function weighedLine(ShopOrderServiceLine $line, float $weight): array
+    {
+        if ($line->pricing_model === 'per_bundle') {
+            $bundles = $this->bundlesFor($weight, (float) $line->bundle_weight_kg);
+
+            return ['weight_kg' => $weight, 'bundle_quantity' => $bundles, 'amount' => round($bundles * (float) $line->bundle_price, 2)];
+        }
+
+        return ['weight_kg' => $weight, 'bundle_quantity' => null, 'amount' => round($weight * (float) $line->price_per_kg, 2)];
+    }
+
+    /** The main service amount at the order's stored rates; before weighing it follows the customer's estimate. */
+    private function storedBaseAmount(ShopOrder $order, array $changes): float
+    {
+        $weight = $changes['actual_weight_kg'] ?? $order->actual_weight_kg;
+        $weighed = $weight !== null;
+        $weight = (float) ($weight ?? $order->estimated_weight_kg ?? 0);
+
+        return match ($order->pricing_model) {
+            'per_piece' => (int) $order->piece_count * (float) $order->price_per_piece,
+            'per_bundle' => ($weighed
+                ? (int) ($changes['bundle_quantity'] ?? $order->bundle_quantity ?? 1)
+                : $this->bundlesFor($weight, (float) $order->bundle_weight_kg)) * (float) $order->bundle_price,
+            default => $weight * (float) $order->price_per_kg,
+        };
+    }
+
+    private function bundlesFor(float $weight, float $bundleWeight): int
+    {
+        return max(1, (int) ceil($weight / max($bundleWeight, 0.01)));
     }
 
     /**
@@ -655,55 +623,6 @@ class ShopOrderService
         }
 
         return $data;
-    }
-
-    /**
-     * Marks an order fully paid by recording what is still owed, or takes its payments back by voiding
-     * them. Online payments cannot be undone here: they went through the customer's checkout.
-     *
-     * @param  'paid'|'unpaid'  $state
-     *
-     * @throws ValidationException
-     */
-    public function setPaymentState(ShopOrder $order, string $state, ?string $method, User $actor): void
-    {
-        if ($state === 'paid') {
-            $balance = $order->balanceDue();
-
-            if ($balance > 0) {
-                $this->orderPayments->recordShopPayment($actor, $order, [
-                    'amount' => $balance,
-                    'method' => $method ?: 'cash',
-                    'note' => 'Marked as fully paid from the order edit page.',
-                ]);
-            }
-
-            return;
-        }
-
-        $confirmed = $this->orderPayments->history($order)
-            ->filter(fn (ShopOrderPayment $payment) => $payment->isConfirmed());
-
-        if ($confirmed->contains(fn (ShopOrderPayment $payment) => $payment->source === ShopOrderPayment::SOURCE_ONLINE)) {
-            throw ValidationException::withMessages([
-                'payment_state' => 'This order has an online payment, which cannot be undone here.',
-            ]);
-        }
-
-        foreach ($confirmed as $payment) {
-            $this->orderPayments->voidPayment($actor, $order, $payment->public_id, 'Marked as not paid from the order edit page.');
-        }
-    }
-
-    private function estimateChanged(?CarbonInterface $current, mixed $new): bool
-    {
-        $new = blank($new) ? null : Carbon::parse($new);
-
-        if ($current === null || $new === null) {
-            return $current !== $new;
-        }
-
-        return ! $current->equalTo($new);
     }
 
     // ─── Status ───────────────────────────────────────────────────────────────

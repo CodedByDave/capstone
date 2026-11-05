@@ -21,6 +21,12 @@ export interface ServiceLineInput {
 const props = defineProps<{
     services: EditableService[];
     errors?: Record<string, string>;
+    /** The lines of a placed order: they cannot be added, removed or changed. */
+    locked?: boolean;
+    /** While locked, the lines that may still be weighed for the first time. */
+    weighable?: number[];
+    /** While locked, each line's service with the rates stored on the order, by position. */
+    stored?: EditableService[];
 }>();
 
 const lines = defineModel<ServiceLineInput[]>({ required: true });
@@ -28,8 +34,16 @@ const lines = defineModel<ServiceLineInput[]>({ required: true });
 const money = (v: number) =>
     `₱${v.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 
-const serviceOf = (line: ServiceLineInput) =>
+// A placed order is priced at the rates it was stored with, even if the service changed or was archived.
+const serviceOf = (line: ServiceLineInput): EditableService | undefined =>
+    (props.locked ? props.stored?.[lines.value.indexOf(line)] : undefined) ??
     props.services.find((s) => s.id === Number(line.service_id));
+
+const optionsFor = (line: ServiceLineInput): EditableService[] => {
+    if (!props.locked) return props.services;
+    const own = serviceOf(line);
+    return own ? [own] : [];
+};
 
 const label = (svc: EditableService) => {
     if (svc.pricing_model === 'per_kg')
@@ -94,12 +108,20 @@ const blurOnWheel = (event: WheelEvent) =>
                 >
                     Additional services
                 </p>
-                <p class="mt-1 text-xs text-muted-foreground">
+                <p v-if="locked" class="mt-1 text-xs text-muted-foreground">
+                    {{
+                        lines.length
+                            ? 'Set when the order was placed.'
+                            : 'No additional services on this order.'
+                    }}
+                </p>
+                <p v-else class="mt-1 text-xs text-muted-foreground">
                     Add another service for the same customer, for example a
                     comforter priced per piece.
                 </p>
             </div>
             <button
+                v-if="!locked"
                 type="button"
                 class="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 @click="add"
@@ -124,13 +146,14 @@ const blurOnWheel = (event: WheelEvent) =>
                     :id="`line-service-${index}`"
                     v-model="line.service_id"
                     required
+                    :disabled="locked"
                     class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     :class="{ 'border-red-500': error(index, 'service_id') }"
                     @change="onServiceChange(line)"
                 >
                     <option value="" disabled>Select a service…</option>
                     <option
-                        v-for="svc in services"
+                        v-for="svc in optionsFor(line)"
                         :key="svc.id"
                         :value="svc.id"
                     >
@@ -161,6 +184,7 @@ const blurOnWheel = (event: WheelEvent) =>
                         max="500"
                         step="1"
                         required
+                        :disabled="locked"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         :class="{
                             'border-red-500': error(index, 'piece_count'),
@@ -186,7 +210,10 @@ const blurOnWheel = (event: WheelEvent) =>
                         type="number"
                         min="0.1"
                         step="0.01"
-                        :disabled="!serviceOf(line)"
+                        :disabled="
+                            !serviceOf(line) ||
+                            (locked && !weighable?.includes(index))
+                        "
                         class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted/40"
                         :class="{ 'border-red-500': error(index, 'weight_kg') }"
                         @wheel="blurOnWheel"
@@ -208,6 +235,7 @@ const blurOnWheel = (event: WheelEvent) =>
                     >{{ money(amountOf(line)) }}</span
                 >
                 <button
+                    v-if="!locked"
                     type="button"
                     class="inline-flex h-[44px] w-[44px] items-center justify-center rounded-lg text-gray-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     :aria-label="`Remove additional service ${index + 1}`"

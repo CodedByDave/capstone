@@ -13,6 +13,21 @@ class AttendanceRepository extends Repository
         parent::__construct($attendance);
     }
 
+    /** The employee's attendance record for a work day, or null. */
+    public function findForEmployeeOn(int $employeeId, string $date): ?Attendance
+    {
+        return Attendance::query()
+            ->where('employee_id', $employeeId)
+            ->whereDate('date', $date)
+            ->first();
+    }
+
+    /** Creates or replaces the employee's attendance record for a work day. */
+    public function saveForEmployeeOn(int $employeeId, string $date, array $values): Attendance
+    {
+        return Attendance::updateOrCreate(['employee_id' => $employeeId, 'date' => $date], $values);
+    }
+
     /** @return \Illuminate\Database\Eloquent\Collection<int, Attendance> the employee's own records since the date, newest first */
     public function recentForEmployee(int $employeeId, \Illuminate\Support\Carbon $from): \Illuminate\Database\Eloquent\Collection
     {
