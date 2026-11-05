@@ -46,6 +46,8 @@ return [
     // Geocoding, Directions and Optimization APIs accept. The browser only ever gets the public token.
     'mapbox' => [
         'token' => env('MAPBOX_SECRET_TOKEN') ?: env('VITE_MAPBOX_TOKEN'),
+        // The public (pk.) token handed to the browser at runtime, so it is never built into the committed assets.
+        'public_token' => env('VITE_MAPBOX_TOKEN'),
         'base_url' => env('MAPBOX_BASE_URL', 'https://api.mapbox.com'),
         'timeout' => (int) env('MAPBOX_TIMEOUT', 6),
         'geocode_ttl' => (int) env('MAPBOX_GEOCODE_TTL', 86400),

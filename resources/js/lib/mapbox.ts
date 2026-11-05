@@ -6,7 +6,13 @@ import 'mapbox-gl/dist/mapbox-gl.css';
  * Shared Mapbox GL setup. The public (pk.) token is the only credential the browser ever sees;
  * geocoding and shop-scoped routing go through the Laravel proxy.
  */
-export const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN ?? '') as string;
+// The server puts the public token in the page, so the committed build never contains it;
+// a token set at build time still works as a fallback.
+export const MAPBOX_TOKEN = (document
+    .querySelector('meta[name="mapbox-token"]')
+    ?.getAttribute('content') ||
+    import.meta.env.VITE_MAPBOX_TOKEN ||
+    '') as string;
 export const hasMapboxToken = MAPBOX_TOKEN !== '';
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
