@@ -297,6 +297,55 @@ test('a Lalamove booking needs its reference once it is booked, and only a secur
     expect($delivery->fresh()->courier)->toBe('own_rider');
 });
 
+test('a waiting run with no rider is booked with Lalamove from the Book a Lalamove dialog', function () {
+    $shop = dispatchShop();
+    $staff = dispatcher($shop, ['view', 'update']);
+    $delivery = Delivery::create(['shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'pending']);
+
+    // What the dialog sends: no rider, the run moves from pending to assigned.
+    $this->actingAs($staff)
+        ->patch("/staff/logistics/{$delivery->public_id}/status", [
+            'status' => 'assigned',
+            'courier' => 'lalamove',
+            'courier_reference' => 'LLM-777',
+            'courier_tracking_url' => 'https://share.lalamove.com/track/xyz',
+            'courier_driver_name' => null,
+            'courier_driver_phone' => null,
+            'courier_vehicle_plate' => null,
+            'courier_cost' => null,
+            'notes' => null,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($delivery->fresh())
+        ->status->toBe('assigned')
+        ->courier->toBe('lalamove')
+        ->rider_id->toBeNull()
+        ->courier_reference->toBe('LLM-777')
+        ->assigned_at->not->toBeNull();
+});
+
+test('moving a Lalamove run forward in one click keeps its booking details', function () {
+    $shop = dispatchShop();
+    $staff = dispatcher($shop, ['view', 'update']);
+    $delivery = Delivery::create([
+        'shop_id' => $shop->id, 'customer_name' => 'Ana', 'status' => 'assigned',
+        'courier' => 'lalamove', 'courier_reference' => 'LLM-9', 'courier_driver_name' => 'Juan', 'courier_cost' => 120,
+    ]);
+
+    // The row's next-step button sends only the new status.
+    $this->actingAs($staff)
+        ->patch("/staff/logistics/{$delivery->public_id}/status", ['status' => 'picked_up'])
+        ->assertSessionHasNoErrors();
+
+    expect($delivery->fresh())
+        ->status->toBe('picked_up')
+        ->courier->toBe('lalamove')
+        ->courier_reference->toBe('LLM-9')
+        ->courier_driver_name->toBe('Juan')
+        ->courier_cost->toBe('120.00');
+});
+
 test('going back to an own rider clears the courier details', function () {
     $shop = dispatchShop();
     $staff = dispatcher($shop, ['view', 'update']);

@@ -19,13 +19,6 @@ import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import {
     ArrowRight,
@@ -35,7 +28,6 @@ import {
     Loader2,
     MapPin,
     Package,
-    Pencil,
     Phone,
     Plus,
     Trash2,
@@ -219,11 +211,6 @@ function nextLabel(d: Delivery): string {
 
 // ─── Courier ──────────────────────────────────────────────────────────────────
 
-const COURIERS = [
-    { value: 'own_rider', label: 'Own rider' },
-    { value: 'lalamove', label: 'Lalamove' },
-] as const;
-
 function formatCost(value: string | number) {
     return `₱${Number(value).toLocaleString('en-PH', {
         minimumFractionDigits: 2,
@@ -243,96 +230,144 @@ function setFilter(f: string) {
     });
 }
 
-// ─── Update Status Modal ──────────────────────────────────────────────────────
+// ─── Book a Lalamove ──────────────────────────────────────────────────────────
 
-const statusModal = ref<{
-    open: boolean;
-    delivery: Delivery | null;
-    form: any;
-}>({
-    open: false,
-    delivery: null,
-    form: emptyStatusForm(),
-});
-const updatingStatus = ref(false);
+const LALAMOVE_URL = 'https://www.lalamove.com/en-ph/';
 
-function emptyStatusForm() {
+function emptyBookingForm() {
     return {
-        status: '',
-        courier: 'own_rider',
-        rider_id: '',
-        notes: '',
         courier_reference: '',
         courier_tracking_url: '',
         courier_driver_name: '',
         courier_driver_phone: '',
         courier_vehicle_plate: '',
         courier_cost: '',
+        notes: '',
     };
 }
 
-// The open delivery, kept fresh as uploads reload the page props.
-const modalDelivery = computed(
-    () =>
-        props.deliveries.data.find(
-            (d) => d.id === statusModal.value.delivery?.id,
-        ) ?? statusModal.value.delivery,
-);
+const bookingModal = ref<{
+    open: boolean;
+    delivery: Delivery | null;
+    form: ReturnType<typeof emptyBookingForm>;
+}>({ open: false, delivery: null, form: emptyBookingForm() });
+const booking = ref(false);
+const bookingErrors = ref<Record<string, string>>({});
 
-function openStatusModal(delivery: Delivery, nextStatus?: string) {
-    statusModal.value = {
+/** A run with no shop rider can be booked with Lalamove; a booked run's details can still be completed. */
+function canBook(d: Delivery): boolean {
+    return (
+        can('Logistics', 'update') &&
+        (d.status === 'pending' ||
+            (d.courier === 'lalamove' &&
+                ['assigned', 'picked_up'].includes(d.status)))
+    );
+}
+
+function openBooking(delivery: Delivery) {
+    bookingErrors.value = {};
+    bookingModal.value = {
         open: true,
         delivery,
         form: {
-            status: nextStatus ?? delivery.status,
-            courier: delivery.courier ?? 'own_rider',
-            rider_id: delivery.rider_id?.toString() ?? '',
-            notes: delivery.notes ?? '',
             courier_reference: delivery.courier_reference ?? '',
             courier_tracking_url: delivery.courier_tracking_url ?? '',
             courier_driver_name: delivery.courier_driver_name ?? '',
             courier_driver_phone: delivery.courier_driver_phone ?? '',
             courier_vehicle_plate: delivery.courier_vehicle_plate ?? '',
             courier_cost: delivery.courier_cost ?? '',
+            notes: delivery.notes ?? '',
         },
     };
 }
 
-function submitStatus() {
-    if (!statusModal.value.delivery) return;
-    updatingStatus.value = true;
-    const form = statusModal.value.form;
-    const riderId = form.rider_id;
+function submitBooking() {
+    const delivery = bookingModal.value.delivery;
+    if (!delivery) return;
+
+    const form = bookingModal.value.form;
+    booking.value = true;
+    bookingErrors.value = {};
     router.patch(
-        `${base}/${statusModal.value.delivery.public_id}/status`,
+        `${base}/${delivery.public_id}/status`,
         {
-            status: statusModal.value.form.status,
-            courier: form.courier,
-            rider_id:
-                form.courier === 'own_rider' &&
-                riderId &&
-                riderId !== '__none__'
-                    ? riderId
-                    : null,
-            notes: form.notes || null,
+            // Booking a waiting run hands it to Lalamove; a run already booked keeps its status.
+            status:
+                delivery.status === 'pending' ? 'assigned' : delivery.status,
+            courier: 'lalamove',
             courier_reference: form.courier_reference || null,
             courier_tracking_url: form.courier_tracking_url || null,
             courier_driver_name: form.courier_driver_name || null,
             courier_driver_phone: form.courier_driver_phone || null,
             courier_vehicle_plate: form.courier_vehicle_plate || null,
             courier_cost: form.courier_cost === '' ? null : form.courier_cost,
+            notes: form.notes || null,
         },
         {
             preserveScroll: true,
             onSuccess: () => {
-                statusModal.value.open = false;
+                bookingModal.value.open = false;
+            },
+            onError: (errors) => {
+                bookingErrors.value = errors;
             },
             onFinish: () => {
-                updatingStatus.value = false;
+                booking.value = false;
             },
         },
     );
 }
+
+/** The next step of a Lalamove run (picked up, then delivered) in one click. Own riders do this in the driver app, and a waiting run is assigned by the system or booked with Lalamove. */
+const advancing = ref<number | null>(null);
+
+function advance(d: Delivery) {
+    const next = NEXT_STATUS[d.status];
+    if (!next) return;
+
+    advancing.value = d.id;
+    router.patch(
+        `${base}/${d.public_id}/status`,
+        { status: next },
+        {
+            preserveScroll: true,
+            onError: (errors) =>
+                toast.error(Object.values(errors)[0] ?? 'Could not update.'),
+            onFinish: () => {
+                advancing.value = null;
+            },
+        },
+    );
+}
+
+async function copyAddress(address: string | null) {
+    if (!address) return;
+    try {
+        await navigator.clipboard.writeText(address);
+        toast.success('Address copied.');
+    } catch {
+        toast.error('Could not copy the address.');
+    }
+}
+
+// ─── Proof photos dialog ──────────────────────────────────────────────────────
+
+const photosModal = ref<{ open: boolean; delivery: Delivery | null }>({
+    open: false,
+    delivery: null,
+});
+
+function openPhotos(delivery: Delivery) {
+    photosModal.value = { open: true, delivery };
+}
+
+// The open delivery, kept fresh as uploads reload the page props.
+const modalDelivery = computed(
+    () =>
+        props.deliveries.data.find(
+            (d) => d.id === photosModal.value.delivery?.id,
+        ) ?? photosModal.value.delivery,
+);
 
 // ─── Proof photos ─────────────────────────────────────────────────────────────
 
@@ -640,10 +675,21 @@ function fmtTime(d: string) {
                         :label="`delivery for ${d.customer_name}`"
                         :actions="[
                             {
-                                label: 'Edit delivery',
-                                icon: Pencil,
-                                show: can('Logistics', 'update'),
-                                onSelect: () => openStatusModal(d),
+                                label:
+                                    d.courier === 'lalamove'
+                                        ? 'Lalamove booking'
+                                        : 'Book a Lalamove',
+                                icon: Truck,
+                                show: canBook(d),
+                                onSelect: () => openBooking(d),
+                            },
+                            {
+                                label: 'Proof photos',
+                                icon: Camera,
+                                show:
+                                    can('Logistics', 'update') ||
+                                    (d.photos?.length ?? 0) > 0,
+                                onSelect: () => openPhotos(d),
                             },
                             {
                                 label: 'Remove delivery',
@@ -655,17 +701,24 @@ function fmtTime(d: string) {
                             },
                         ]"
                     >
-                        <!-- Quick advance stays visible as the row's primary step -->
+                        <!-- Own riders move their runs in the driver app; only a Lalamove run (no app) is advanced from here -->
                         <button
                             v-if="
+                                d.courier === 'lalamove' &&
+                                d.status !== 'pending' &&
                                 NEXT_STATUS[d.status] &&
                                 can('Logistics', 'update')
                             "
                             type="button"
-                            class="flex h-9 items-center gap-1 rounded-lg bg-primary px-2.5 text-xs whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/90"
-                            @click="openStatusModal(d, NEXT_STATUS[d.status]!)"
+                            class="flex h-9 items-center gap-1 rounded-lg bg-primary px-2.5 text-xs whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+                            :disabled="advancing === d.id"
+                            @click="advance(d)"
                         >
-                            <ArrowRight class="h-3 w-3" />
+                            <Loader2
+                                v-if="advancing === d.id"
+                                class="h-3 w-3 animate-spin"
+                            />
+                            <ArrowRight v-else class="h-3 w-3" />
                             {{ nextLabel(d) }}
                         </button>
                     </RowActions>
@@ -674,206 +727,267 @@ function fmtTime(d: string) {
         </div>
     </ShopLayout>
 
-    <!-- ── Update Status Modal ───────────────────────────────────────────────── -->
+    <!-- ── Book a Lalamove ───────────────────────────────────────────────────── -->
     <Teleport to="body">
         <Transition name="fade">
             <div
-                v-if="statusModal.open"
+                v-if="bookingModal.open"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
-                @click.self="statusModal.open = false"
+                @click.self="bookingModal.open = false"
             >
                 <div
                     class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border bg-background shadow-xl"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="book-lalamove-title"
                 >
                     <div
                         class="flex items-center justify-between border-b px-5 py-4"
                     >
                         <div>
-                            <p class="text-sm font-semibold">Update Delivery</p>
+                            <p
+                                id="book-lalamove-title"
+                                class="flex items-center gap-1.5 text-sm font-semibold"
+                            >
+                                <Truck class="h-4 w-4 text-orange-600" />
+                                Book a Lalamove
+                            </p>
                             <p class="mt-0.5 text-xs text-muted-foreground">
-                                {{ statusModal.delivery?.customer_name }}
+                                {{ bookingModal.delivery?.customer_name }}
                             </p>
                         </div>
                         <button
-                            @click="statusModal.open = false"
-                            class="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted"
+                            type="button"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted"
+                            aria-label="Close"
+                            @click="bookingModal.open = false"
                         >
                             <X class="h-4 w-4" />
                         </button>
                     </div>
 
                     <div class="space-y-3 overflow-y-auto px-5 py-4">
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium">Status</label>
-                            <Select v-model="statusModal.form.status">
-                                <SelectTrigger class="h-9 text-sm">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="s in [
-                                            'pending',
-                                            'assigned',
-                                            'picked_up',
-                                            'delivered',
-                                            'failed',
-                                        ]"
-                                        :key="s"
-                                        :value="s"
-                                    >
-                                        {{ STATUS[s]?.label }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-medium">Courier</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button
-                                    v-for="c in COURIERS"
-                                    :key="c.value"
-                                    type="button"
-                                    class="rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
-                                    :class="
-                                        statusModal.form.courier === c.value
-                                            ? 'border-primary bg-primary/5 text-primary'
-                                            : 'text-muted-foreground hover:bg-muted'
-                                    "
-                                    @click="statusModal.form.courier = c.value"
-                                >
-                                    {{ c.label }}
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Lalamove booking details -->
                         <div
-                            v-if="statusModal.form.courier === 'lalamove'"
-                            class="space-y-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3"
+                            class="space-y-2 rounded-xl border border-orange-200 bg-orange-50/50 p-3"
                         >
                             <p class="text-xs text-muted-foreground">
-                                Book the run in the Lalamove app, then record it
-                                here. The customer sees the driver and tracking
-                                link, never the cost.
+                                No rider for this run? Book it in Lalamove, then
+                                record the booking below. The customer sees the
+                                driver and tracking link, never the cost.
                             </p>
-                            <div class="space-y-1.5">
-                                <label class="text-xs font-medium"
-                                    >Booking / order number</label
-                                >
-                                <Input
-                                    v-model="statusModal.form.courier_reference"
-                                    placeholder="Lalamove order number"
-                                    class="h-9 text-sm"
-                                />
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-xs font-medium"
-                                    >Tracking link</label
-                                >
-                                <Input
-                                    v-model="
-                                        statusModal.form.courier_tracking_url
-                                    "
-                                    placeholder="https://…"
-                                    class="h-9 text-sm"
-                                />
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="space-y-1.5">
-                                    <label class="text-xs font-medium"
-                                        >Driver name</label
-                                    >
-                                    <Input
-                                        v-model="
-                                            statusModal.form.courier_driver_name
-                                        "
-                                        class="h-9 text-sm"
+                            <div
+                                v-if="bookingModal.delivery?.delivery_address"
+                                class="flex items-start justify-between gap-2 text-xs"
+                            >
+                                <span class="flex items-start gap-1.5">
+                                    <MapPin
+                                        class="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
                                     />
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-xs font-medium"
-                                        >Plate number</label
-                                    >
-                                    <Input
-                                        v-model="
-                                            statusModal.form
-                                                .courier_vehicle_plate
-                                        "
-                                        class="h-9 text-sm"
-                                    />
-                                </div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-xs font-medium"
-                                    >Driver phone</label
-                                >
-                                <PhilippinePhoneInput
-                                    v-model="
-                                        statusModal.form.courier_driver_phone
+                                    {{ bookingModal.delivery.delivery_address }}
+                                </span>
+                                <button
+                                    type="button"
+                                    class="shrink-0 rounded-md border px-2 py-1 font-medium hover:bg-muted"
+                                    @click="
+                                        copyAddress(
+                                            bookingModal.delivery
+                                                ?.delivery_address ?? null,
+                                        )
                                     "
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                />
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-xs font-medium"
-                                    >Lalamove cost (₱)</label
                                 >
-                                <Input
-                                    v-model="statusModal.form.courier_cost"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    class="h-9 text-sm"
-                                />
+                                    Copy
+                                </button>
                             </div>
-                        </div>
-
-                        <div v-else class="space-y-1.5">
-                            <label class="text-xs font-medium">Rider</label>
-                            <Select v-model="statusModal.form.rider_id">
-                                <SelectTrigger class="h-9 text-sm">
-                                    <SelectValue placeholder="Unassigned" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__none__"
-                                        >— Unassigned —</SelectItem
-                                    >
-                                    <SelectItem
-                                        v-for="r in props.riders"
-                                        :key="r.id"
-                                        :value="String(r.id)"
-                                    >
-                                        {{ r.name }}
-                                        <span
-                                            v-if="
-                                                !r.available &&
-                                                r.id !==
-                                                    statusModal.delivery
-                                                        ?.rider_id
-                                            "
-                                            class="text-amber-600"
-                                        >
-                                            ·
-                                            {{
-                                                r.unavailable_reason ??
-                                                'Unavailable'
-                                            }}</span
-                                        >
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <a
+                                :href="LALAMOVE_URL"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-orange-600 px-3 text-xs font-medium text-white transition-colors hover:bg-orange-700"
+                            >
+                                <Truck class="h-3.5 w-3.5" />
+                                Open Lalamove
+                            </a>
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="text-xs font-medium">Notes</label>
+                            <label
+                                class="text-xs font-medium"
+                                for="lalamove-reference"
+                                >Booking / order number
+                                <span class="text-red-500">*</span></label
+                            >
                             <Input
-                                v-model="statusModal.form.notes"
+                                id="lalamove-reference"
+                                v-model="bookingModal.form.courier_reference"
+                                placeholder="Lalamove order number"
+                                class="h-9 text-sm"
+                            />
+                            <p
+                                v-if="bookingErrors.courier_reference"
+                                class="text-xs text-red-500"
+                            >
+                                {{ bookingErrors.courier_reference }}
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label
+                                class="text-xs font-medium"
+                                for="lalamove-tracking"
+                                >Tracking link</label
+                            >
+                            <Input
+                                id="lalamove-tracking"
+                                v-model="bookingModal.form.courier_tracking_url"
+                                placeholder="https://…"
+                                class="h-9 text-sm"
+                            />
+                            <p
+                                v-if="bookingErrors.courier_tracking_url"
+                                class="text-xs text-red-500"
+                            >
+                                {{ bookingErrors.courier_tracking_url }}
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="space-y-1.5">
+                                <label
+                                    class="text-xs font-medium"
+                                    for="lalamove-driver"
+                                    >Driver name</label
+                                >
+                                <Input
+                                    id="lalamove-driver"
+                                    v-model="
+                                        bookingModal.form.courier_driver_name
+                                    "
+                                    class="h-9 text-sm"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label
+                                    class="text-xs font-medium"
+                                    for="lalamove-plate"
+                                    >Plate number</label
+                                >
+                                <Input
+                                    id="lalamove-plate"
+                                    v-model="
+                                        bookingModal.form.courier_vehicle_plate
+                                    "
+                                    class="h-9 text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium"
+                                >Driver phone</label
+                            >
+                            <PhilippinePhoneInput
+                                v-model="bookingModal.form.courier_driver_phone"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                            />
+                            <p
+                                v-if="bookingErrors.courier_driver_phone"
+                                class="text-xs text-red-500"
+                            >
+                                {{ bookingErrors.courier_driver_phone }}
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label
+                                class="text-xs font-medium"
+                                for="lalamove-cost"
+                                >Lalamove cost (₱)</label
+                            >
+                            <Input
+                                id="lalamove-cost"
+                                v-model="bookingModal.form.courier_cost"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                class="h-9 text-sm"
+                            />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label
+                                class="text-xs font-medium"
+                                for="lalamove-notes"
+                                >Notes</label
+                            >
+                            <Input
+                                id="lalamove-notes"
+                                v-model="bookingModal.form.notes"
                                 placeholder="Optional…"
                                 class="h-9 text-sm"
                             />
                         </div>
+                    </div>
 
+                    <div
+                        class="flex justify-end gap-2 border-t bg-muted/20 px-5 py-4"
+                    >
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            @click="bookingModal.open = false"
+                            >Cancel</Button
+                        >
+                        <Button
+                            size="sm"
+                            :disabled="booking"
+                            @click="submitBooking"
+                        >
+                            <Loader2
+                                v-if="booking"
+                                class="mr-1.5 h-3.5 w-3.5 animate-spin"
+                            />
+                            {{ booking ? 'Saving…' : 'Save booking' }}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
+
+    <!-- ── Proof photos ──────────────────────────────────────────────────────── -->
+    <Teleport to="body">
+        <Transition name="fade">
+            <div
+                v-if="photosModal.open"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+                @click.self="photosModal.open = false"
+            >
+                <div
+                    class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border bg-background shadow-xl"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="proof-photos-title"
+                >
+                    <div
+                        class="flex items-center justify-between border-b px-5 py-4"
+                    >
+                        <div>
+                            <p
+                                id="proof-photos-title"
+                                class="text-sm font-semibold"
+                            >
+                                Proof photos
+                            </p>
+                            <p class="mt-0.5 text-xs text-muted-foreground">
+                                {{ photosModal.delivery?.customer_name }}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted"
+                            aria-label="Close"
+                            @click="photosModal.open = false"
+                        >
+                            <X class="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 overflow-y-auto px-5 py-4">
                         <!-- Proof photos -->
                         <div class="space-y-2 border-t pt-3">
                             <div class="flex items-center justify-between">
@@ -965,28 +1079,6 @@ function fmtTime(d: string) {
                                 MB each (max 8).
                             </p>
                         </div>
-                    </div>
-
-                    <div
-                        class="flex justify-end gap-2 border-t bg-muted/20 px-5 py-4"
-                    >
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            @click="statusModal.open = false"
-                            >Cancel</Button
-                        >
-                        <Button
-                            size="sm"
-                            :disabled="updatingStatus"
-                            @click="submitStatus"
-                        >
-                            <Loader2
-                                v-if="updatingStatus"
-                                class="mr-1.5 h-3.5 w-3.5 animate-spin"
-                            />
-                            {{ updatingStatus ? 'Saving…' : 'Save' }}
-                        </Button>
                     </div>
                 </div>
             </div>
