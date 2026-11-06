@@ -77,6 +77,18 @@ class OrderRepository extends Repository
             ->first();
     }
 
+    /** The plan of the owner's current paid subscription, or null on a trial or when nothing is active. */
+    public function activePaidPlanName(int $userId): ?string
+    {
+        return Order::query()
+            ->where('user_id', $userId)
+            ->where('status', 'paid')
+            ->where('is_trial', false)
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->value('plan_name');
+    }
+
     /**
      * Whether the owner pays for a plan right now: a paid subscription that has not expired.
      * A free trial does not count.

@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 
 class ShopSetupService
 {
+    private const ADVANCED_REPORTS_PLAN = 'Premium';
+
     public function __construct(
         private readonly ShopRepository $shops,
         private readonly OrderRepository $orders,
@@ -119,6 +121,7 @@ class ShopSetupService
             'offers_pickup' => (bool) $shop->offers_pickup,
             'offers_delivery' => $shop->canDeliver(),
             'delivery_pricing_required' => $shop->needsDeliveryPricing(),
+            'advanced_reports' => $this->hasAdvancedReports((int) $shop->owner_id),
         ];
     }
 
@@ -138,8 +141,16 @@ class ShopSetupService
             'delivery-setup' => (bool) $shop->offers_delivery,
             // Order automation is a paid-plan feature; a free trial does not include it.
             'order-automation' => $this->orders->hasPaidSubscription((int) $shop->owner_id),
+            // Finance, Pricing and Employee reports come with the Premium plan only.
+            'advanced-reports' => $this->hasAdvancedReports((int) $shop->owner_id),
             default => false,
         };
+    }
+
+    /** Advanced reports are included in the Premium plan; Basic and Standard get the basic reports. */
+    private function hasAdvancedReports(int $ownerId): bool
+    {
+        return $this->orders->activePaidPlanName($ownerId) === self::ADVANCED_REPORTS_PLAN;
     }
 
     private function shopForOwner(User $owner): Shop

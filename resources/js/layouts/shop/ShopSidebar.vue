@@ -372,6 +372,7 @@ const moduleIconMap: Record<
 const moduleDisplayNameMap: Record<string, string> = {
     HRM: 'Staff Management',
     Operations: 'Operation Management',
+    'Finance Management': 'Financial Management',
 };
 
 // Sidebar order: operations first, then people, stock, money and insights.

@@ -41,6 +41,16 @@ class EnsureShopCapability
             return $next($request);
         }
 
+        // A basic-plan shop that opens an advanced report is sent back to the reports it has.
+        if ($capability === 'advanced-reports' && $shopId !== null && ! $this->setup->shopSupports($shopId, $capability)) {
+            $overview = $request->user()?->role === 'owner' ? '/shop/reports' : '/staff/reports';
+
+            return redirect($overview)->with('toast', [
+                'type' => 'warning',
+                'message' => $this->message($capability),
+            ]);
+        }
+
         abort_if(
             $shopId === null || ! $this->setup->shopSupports($shopId, $capability),
             403,
@@ -94,6 +104,7 @@ class EnsureShopCapability
             'delivery' => 'Delivery is not available for this shop right now.',
             'delivery-setup' => 'Customer delivery is not offered by this shop.',
             'order-automation' => 'Order automation is available on paid plans only.',
+            'advanced-reports' => 'Finance, Pricing and Employee reports are advanced reports, included in the Premium plan.',
             default => 'This shop capability is not enabled.',
         };
     }

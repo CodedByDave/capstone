@@ -449,9 +449,12 @@ Route::prefix('shop')->middleware([
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportsController::class, 'overview'])->name('overview');
         Route::get('/inventory', [ReportsController::class, 'inventory'])->name('inventory');
-        Route::get('/employee', [ReportsController::class, 'employee'])->name('employee');
-        Route::get('/finance', [ReportsController::class, 'finance'])->name('finance');
-        Route::get('/pricing', [ReportsController::class, 'pricing'])->name('pricing');
+        Route::get('/employee', [ReportsController::class, 'employee'])->name('employee')
+            ->middleware('shop.capability:advanced-reports');
+        Route::get('/finance', [ReportsController::class, 'finance'])->name('finance')
+            ->middleware('shop.capability:advanced-reports');
+        Route::get('/pricing', [ReportsController::class, 'pricing'])->name('pricing')
+            ->middleware('shop.capability:advanced-reports');
         Route::get('/operations', [ReportsController::class, 'operations'])->name('operations');
     });
 
@@ -767,9 +770,12 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::middleware('permission:Reports & Analytics,view')->group(function () {
             Route::get('/', [ReportsController::class, 'overview'])->name('overview');
             Route::get('/inventory', [ReportsController::class, 'inventory'])->name('inventory');
-            Route::get('/employee', [ReportsController::class, 'employee'])->name('employee');
-            Route::get('/finance', [ReportsController::class, 'finance'])->name('finance');
-            Route::get('/pricing', [ReportsController::class, 'pricing'])->name('pricing');
+            Route::get('/employee', [ReportsController::class, 'employee'])->name('employee')
+                ->middleware('shop.capability:advanced-reports');
+            Route::get('/finance', [ReportsController::class, 'finance'])->name('finance')
+                ->middleware('shop.capability:advanced-reports');
+            Route::get('/pricing', [ReportsController::class, 'pricing'])->name('pricing')
+                ->middleware('shop.capability:advanced-reports');
             Route::get('/operations', [ReportsController::class, 'operations'])->name('operations');
         });
     });
