@@ -67,6 +67,14 @@ class ShopDeliveryPricingService
         return $this->shops->updateDeliveryPricing($shop, $values);
     }
 
+    /** The flat fee added to an order when staff move it to the front of the queue. Zero turns rush off. */
+    public function updateRushFee(User $owner, float $fee): Shop
+    {
+        return $this->shops->updateDeliveryPricing($this->shopForOwner($owner), [
+            'rush_fee' => round($fee, 2),
+        ]);
+    }
+
     /** How the driver app shows earnings: nothing, the delivery fee per run, or a flat daily rate. */
     public function updateDriverPay(User $owner, array $data): Shop
     {

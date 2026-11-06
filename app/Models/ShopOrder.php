@@ -63,6 +63,9 @@ class ShopOrder extends Model
         'paymongo_session_id',
         'paymongo_payment_id',
         'status',
+        'is_rush',
+        'rush_fee',
+        'rush_marked_at',
         'estimated_completion_at',
         'in_progress_at',
         'overdue_notified_at',
@@ -94,6 +97,9 @@ class ShopOrder extends Model
         'piece_count' => 'integer',
         'bundle_quantity' => 'integer',
         'additional_charges' => 'decimal:2',
+        'is_rush' => 'boolean',
+        'rush_fee' => 'decimal:2',
+        'rush_marked_at' => 'datetime',
         'discount_amount' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
         'tax_rate' => 'decimal:2',
@@ -117,6 +123,9 @@ class ShopOrder extends Model
     const PAYMENT_METHODS = ['cash', 'gcash', 'maya', 'card', 'grabpay', 'online'];
 
     const PAYMENT_STATUSES = ['unpaid', 'partial', 'paid'];
+
+    /** Orders still to be worked on. They form the shop's queue; an order leaves it once it is completed. */
+    const QUEUE_STATUSES = ['pending', 'in_progress'];
 
     const STATUSES = ['pending', 'in_progress', 'completed', 'picked_up', 'cancelled'];
 

@@ -7,6 +7,7 @@ use App\Http\Requests\Shop\UpdateDeliveryPricingRequest;
 use App\Http\Requests\Shop\UpdateDriverPayRequest;
 use App\Http\Requests\Shop\UpdateOperatingHoursRequest;
 use App\Http\Requests\Shop\UpdatePaymongoSettingsRequest;
+use App\Http\Requests\Shop\UpdateRushFeeRequest;
 use App\Models\Shop;
 use App\Services\ShopDeliveryPricingService;
 use App\Services\ShopOperatingHoursService;
@@ -39,6 +40,7 @@ class ShopSettingsController extends Controller
         return Inertia::render('shop/Settings', [
             'deliveryPricing' => $deliveryPricing->pageData(auth()->user()),
             'operatingHours' => $operatingHours->pageData(auth()->user()),
+            'rushFee' => (float) $shop->rush_fee,
             'shop' => [
                 'shop_name' => $shop->shop_name,
                 'phone' => $shop->phone,
@@ -82,6 +84,18 @@ class ShopSettingsController extends Controller
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'Driver earnings setting saved.',
+        ]);
+    }
+
+    public function updateRushFee(
+        UpdateRushFeeRequest $request,
+        ShopDeliveryPricingService $deliveryPricing,
+    ): RedirectResponse {
+        $deliveryPricing->updateRushFee($request->user(), (float) $request->validated('rush_fee'));
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Rush fee saved.',
         ]);
     }
 

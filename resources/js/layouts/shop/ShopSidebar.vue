@@ -370,7 +370,7 @@ const moduleIconMap: Record<
 };
 
 const moduleDisplayNameMap: Record<string, string> = {
-    HRM: 'Human Resource',
+    HRM: 'Staff Management',
     Operations: 'Operation Management',
 };
 

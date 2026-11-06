@@ -15,6 +15,7 @@ use App\Http\Controllers\BusinessAgreementSignatureController;
 use App\Http\Controllers\Driver\DriverAppController;
 use App\Http\Controllers\Driver\DriverAttendanceController;
 use App\Http\Controllers\Driver\DriverJobController;
+use App\Http\Controllers\Driver\DriverPushController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\Shop\BulkArchiveController;
@@ -90,6 +91,9 @@ Route::prefix('driver')->middleware(['auth', 'verified', 'role:staff', 'driver']
     Route::post('/jobs/{job}/accept', [DriverJobController::class, 'accept'])->whereUlid('job')->middleware('throttle:30,1')->name('driver.jobs.accept');
     Route::post('/jobs/{job}/reject', [DriverJobController::class, 'reject'])->whereUlid('job')->middleware('throttle:10,1')->name('driver.jobs.reject');
     Route::get('/alerts', [DriverJobController::class, 'alerts'])->middleware('throttle:60,1')->name('driver.alerts');
+    Route::get('/push/key', [DriverPushController::class, 'key'])->name('driver.push.key');
+    Route::post('/push/subscribe', [DriverPushController::class, 'store'])->middleware('throttle:20,1')->name('driver.push.subscribe');
+    Route::post('/push/unsubscribe', [DriverPushController::class, 'destroy'])->middleware('throttle:20,1')->name('driver.push.unsubscribe');
     Route::post('/alerts/{id}/read', [DriverJobController::class, 'markAlertRead'])->whereUuid('id')->name('driver.alerts.read');
     Route::post('/jobs/{job}/location', [DriverJobController::class, 'updateLocation'])
         ->whereUlid('job')
@@ -437,6 +441,9 @@ Route::prefix('shop')->middleware([
 
     // Dedicated status & payment update endpoints
     Route::patch('operations/orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('status');
+    Route::patch('operations/orders/{order:payment_public_id}/rush', [ShopOrderController::class, 'setRush'])
+        ->middleware('throttle:30,1')
+        ->name('shop.orders.rush');
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
@@ -491,6 +498,9 @@ Route::prefix('shop')->middleware([
     Route::patch('/settings/driver-pay', [ShopSettingsController::class, 'updateDriverPay'])
         ->middleware('shop.capability:delivery')
         ->name('shop.settings.driver-pay');
+    Route::patch('/settings/rush-fee', [ShopSettingsController::class, 'updateRushFee'])
+        ->middleware('throttle:20,1')
+        ->name('shop.settings.rush-fee');
     Route::patch('/settings/delivery-pricing', [ShopSettingsController::class, 'updateDeliveryPricing'])
         ->middleware('shop.capability:delivery-setup')
         ->name('shop.settings.delivery-pricing');
@@ -691,6 +701,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/operations/orders/restore-all', [ShopOrderController::class, 'restoreAll'])->name('staff.orders.restore-all');
         Route::delete('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
         Route::patch('/operations/orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
+        Route::patch('/operations/orders/{order:payment_public_id}/rush', [ShopOrderController::class, 'setRush'])
+            ->middleware('throttle:30,1')
+            ->name('staff.orders.rush');
         Route::patch('/operations/complaints/{complaint}', [OrderComplaintController::class, 'respond'])
             ->whereUlid('complaint')
             ->middleware('throttle:30,1')

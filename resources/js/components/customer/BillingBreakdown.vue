@@ -17,6 +17,7 @@ export interface BillingBreakdown {
     service: BillingServiceLine;
     extra_services?: BillingServiceLine[];
     additional_charges: number;
+    rush_fee?: number;
     supplies?: {
         name: string;
         quantity: number;
@@ -126,6 +127,16 @@ const serviceDetail = computed(() => lineDetail(props.breakdown.service));
             <span class="text-gray-500">Additional charges</span>
             <span class="font-medium text-gray-700">{{
                 currency(breakdown.additional_charges)
+            }}</span>
+        </div>
+
+        <div
+            v-if="(breakdown.rush_fee ?? 0) > 0"
+            class="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-sm"
+        >
+            <span class="text-gray-500">Rush fee</span>
+            <span class="font-medium text-gray-700">{{
+                currency(breakdown.rush_fee ?? 0)
             }}</span>
         </div>
 

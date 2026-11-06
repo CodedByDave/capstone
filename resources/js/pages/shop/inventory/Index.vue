@@ -204,7 +204,7 @@ const headers: DataTableHeader[] = [
     { text: 'Category', value: 'category', sortable: true },
     { text: 'Supplier', value: 'supplier', sortable: true },
     { text: 'On hand', value: 'quantity', sortable: true },
-    { text: 'Unit price', value: 'unit_price', sortable: true, align: 'right' },
+    { text: 'Cost price', value: 'unit_price', sortable: true, align: 'right' },
     { text: 'Status', value: 'status', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 96 },
 ];
@@ -369,6 +369,19 @@ const statCards = computed(() => [
         icon: Truck,
     },
 ]);
+
+// The stored price is per consumption unit (e.g. per ml); show it per purchase unit (e.g. per bottle).
+function formatCost(item: {
+    unit_price: string | null;
+    package_unit?: string | null;
+    package_size?: number | null;
+}) {
+    if (!item.unit_price) return '—';
+    const size = Number(item.package_size) || 0;
+    if (!item.package_unit || size <= 0) return formatCost(item);
+    const perPackage = (Number(item.unit_price) * size).toFixed(2);
+    return `${formatPrice(perPackage)} / ${item.package_unit}`;
+}
 
 function formatPrice(price: string | null) {
     if (!price) return '—';
@@ -759,7 +772,7 @@ const selected = ref<Array<string | number>>([]);
 
                 <template #item-unit_price="item">
                     <span class="font-semibold whitespace-nowrap tabular-nums">
-                        {{ formatPrice(item.unit_price) }}
+                        {{ formatCost(item) }}
                     </span>
                 </template>
 

@@ -3,6 +3,7 @@ import DeliveryPricingCard, {
     type DeliveryPricing,
 } from '@/components/business/DeliveryPricingCard.vue';
 import OperatingHoursCard from '@/components/business/OperatingHoursCard.vue';
+import RushFeeCard from '@/components/business/RushFeeCard.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,6 +44,7 @@ const props = defineProps<{
         cover_photo: string | null;
     };
     deliveryPricing: DeliveryPricing;
+    rushFee: number;
     operatingHours: {
         is_open_24_7: boolean;
         opens_at: string;
@@ -152,6 +154,7 @@ const addressLine = computed(
 const sectionLinks = computed(() => [
     { href: '#hours', label: 'Operating Hours' },
     { href: '#delivery', label: 'Delivery Pricing' },
+    { href: '#rush', label: 'Rush Fee' },
     { href: '#cover', label: 'Cover Photo' },
     { href: '#location', label: 'Shop Location' },
     { href: '#data', label: 'Your Data' },
@@ -263,6 +266,11 @@ function clearGeo() {
                     <!-- Delivery Pricing -->
                     <div id="delivery" class="scroll-mt-4 border-t pt-8">
                         <DeliveryPricingCard :pricing="props.deliveryPricing" />
+                    </div>
+
+                    <!-- Rush Fee -->
+                    <div id="rush" class="scroll-mt-4 border-t pt-8">
+                        <RushFeeCard :rush-fee="props.rushFee" />
                     </div>
 
                     <!-- Cover Photo -->

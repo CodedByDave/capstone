@@ -33,13 +33,132 @@ class ShopOrderService
         private readonly ShopOrderAutomationSettingRepository $automationSettings,
         private readonly CustomerAdditionalChargeService $additionalCharges,
         private readonly OrderTaxService $tax,
+        private readonly ActivityLogService $activityLog,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
 
     public function getPaginatedOrders(int $shopId, int $perPage = 15, array $filters = [], bool $onlyTrashed = false): LengthAwarePaginator
     {
-        return $this->repository->paginateByShop($shopId, $perPage, $filters, $onlyTrashed);
+        $orders = $this->repository->paginateByShop($shopId, $perPage, $filters, $onlyTrashed);
+
+        if (! $onlyTrashed) {
+            $this->attachQueuePositions($shopId, $orders->getCollection());
+        }
+
+        return $orders;
+    }
+
+    /**
+     * Tells staff which place each order holds in the shop's queue (1 = work on it first), so the
+     * laundry is done in the right order. Orders that have left the queue have no place.
+     *
+     * @param  \Illuminate\Support\Collection<int, ShopOrder>  $orders
+     */
+    private function attachQueuePositions(int $shopId, $orders): void
+    {
+        if ($orders->whereIn('status', ShopOrder::QUEUE_STATUSES)->isEmpty()) {
+            return;
+        }
+
+        $positions = array_flip($this->repository->queueIdsForShop($shopId));
+
+        foreach ($orders as $order) {
+            $order->setAttribute(
+                'queue_position',
+                in_array($order->status, ShopOrder::QUEUE_STATUSES, true) && isset($positions[$order->id])
+                    ? $positions[$order->id] + 1
+                    : null,
+            );
+        }
+    }
+
+    /** @return array{waiting: int, rush: int} How many orders are in the shop's queue, and how many of them are rush. */
+    public function queueSummary(int $shopId): array
+    {
+        $byStatus = $this->repository->countByStatus($shopId);
+
+        return [
+            'waiting' => (int) collect(ShopOrder::QUEUE_STATUSES)->sum(fn (string $status) => $byStatus[$status] ?? 0),
+            'rush' => $this->repository->countRushInQueue($shopId),
+        ];
+    }
+
+    /** The flat rush fee the shop charges, or 0 when it does not offer rush. */
+    public function rushFeeFor(int $shopId): float
+    {
+        return $this->repository->rushFeeForShop($shopId);
+    }
+
+    /**
+     * Moves an order that is still in the queue to the front of the shop's queue for the shop's flat rush fee, or takes
+     * it back out of the rush lane. The fee is added to (or removed from) the order's total and the
+     * payment status follows, so a paid order becomes partial until the balance is collected.
+     */
+    public function setRush(ShopOrder $order, bool $rush, User $actor): ShopOrder
+    {
+        return DB::transaction(function () use ($order, $rush, $actor): ShopOrder {
+            $locked = $this->repository->lockForUpdate($order);
+
+            if ($locked->is_rush === $rush) {
+                return $locked;
+            }
+
+            if (! in_array($locked->status, ShopOrder::QUEUE_STATUSES, true)) {
+                throw ValidationException::withMessages([
+                    'rush' => 'Only an order that is still in the queue can be rushed. Completed orders cannot.',
+                ]);
+            }
+
+            if ($rush) {
+                $fee = $this->repository->rushFeeForShop((int) $locked->shop_id);
+
+                if ($fee <= 0) {
+                    throw ValidationException::withMessages([
+                        'rush' => 'Set a rush fee in Settings before rushing an order.',
+                    ]);
+                }
+            } else {
+                if ((float) $locked->amount_paid > 0) {
+                    throw ValidationException::withMessages([
+                        'rush' => 'The rush fee cannot be removed once a payment has been recorded on the order.',
+                    ]);
+                }
+
+                $fee = 0.0;
+            }
+
+            $delta = $rush ? $fee : -(float) $locked->rush_fee;
+            $delivery = (float) $locked->delivery_fee;
+            $subtotal = round(max(0, (float) $locked->total_amount - (float) $locked->tax_amount - $delivery + $delta), 2);
+            $taxAmount = $this->tax->amountOn($subtotal, (float) $locked->tax_rate);
+
+            $updated = $this->repository->update($locked, [
+                'is_rush' => $rush,
+                'rush_fee' => $fee,
+                'rush_marked_at' => $rush ? now() : null,
+                'tax_amount' => $taxAmount,
+                'total_amount' => round($subtotal + $taxAmount + $delivery, 2),
+            ]);
+
+            // The total changed, so the payment status follows the recorded payments.
+            $updated = $this->orderPayments->sync($updated);
+
+            $this->activityLog->log(
+                $updated,
+                $rush ? 'Marked order as rush' : 'Removed rush from order',
+                ['rush_fee' => $fee, 'by' => $actor->id],
+                (int) $updated->shop_id,
+                'Operations',
+            );
+
+            if ($updated->user_id) {
+                $updated->load('shop');
+                $updated->customer?->notify(new OrderNotification($updated, $rush ? 'rush_marked' : 'rush_removed'));
+            }
+
+            return $updated;
+        });
     }
 
     public function getOrder(int $id): ?ShopOrder
@@ -425,6 +544,7 @@ class ShopOrderService
                     0,
                     $this->storedBaseAmount($order, $changes) + $lineAmounts
                         + (float) $order->additional_charges
+                        + (float) $order->rush_fee
                         - (float) $order->discount_amount,
                 ), 2);
                 $changes['tax_amount'] = $this->tax->amountOn($subtotal, (float) $order->tax_rate);

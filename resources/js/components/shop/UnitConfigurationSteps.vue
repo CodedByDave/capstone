@@ -116,7 +116,7 @@ const suffix =
                         </SelectContent>
                     </Select>
                     <p class="text-xs text-muted-foreground">
-                        Used for internal &amp; add-on usage.
+                        The smallest unit it is used up in.
                     </p>
                     <p v-if="errors.unit" class="text-xs text-red-500">
                         {{ errors.unit }}
@@ -141,7 +141,7 @@ const suffix =
                 <div class="grid gap-3 @min-[14rem]:grid-cols-2">
                     <div class="space-y-1.5">
                         <label class="text-sm font-medium"
-                            >Purchase Unit
+                            >Stock Unit
                             <span class="text-red-500">*</span></label
                         >
                         <Select v-model="purchaseUnit">
@@ -169,7 +169,7 @@ const suffix =
                             </SelectContent>
                         </Select>
                         <p class="text-xs text-muted-foreground">
-                            How you buy it from the supplier. The cost price is
+                            How it is bought and stored. The cost price is
                             entered per purchase unit.
                         </p>
                         <p

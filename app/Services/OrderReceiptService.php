@@ -47,6 +47,9 @@ class OrderReceiptService
         if ($billing['additional_charges'] > 0) {
             $items[] = ['label' => 'Additional charges', 'amount' => (float) $billing['additional_charges']];
         }
+        if (($billing['rush_fee'] ?? 0) > 0) {
+            $items[] = ['label' => 'Rush fee', 'amount' => (float) $billing['rush_fee']];
+        }
         if ($billing['discount'] > 0) {
             $items[] = ['label' => 'Discount', 'amount' => -(float) $billing['discount']];
         }

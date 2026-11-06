@@ -86,6 +86,8 @@ export default defineConfig({
             },
             workbox: {
                 navigateFallback: null,
+                // Shows driver job alerts as system notifications while the app is closed.
+                importScripts: ['/push-sw.js'],
                 globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
             },
         }),

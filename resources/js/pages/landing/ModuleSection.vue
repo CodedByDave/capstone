@@ -13,7 +13,7 @@ const plans = [
         featured: false,
         savings: null,
         modules: [
-            { name: 'Human Resource Managament', included: true },
+            { name: 'Staff Managament', included: true },
             {
                 name: 'Operation Management',
                 included: true,
@@ -31,7 +31,7 @@ const plans = [
         featured: true,
         savings: null,
         modules: [
-            { name: 'Human Resource Managament', included: true },
+            { name: 'Staff Management', included: true },
             {
                 name: 'Operation Management',
                 included: true,
@@ -49,7 +49,7 @@ const plans = [
         featured: false,
         savings: null,
         modules: [
-            { name: 'Human Resource Managament', included: true },
+            { name: 'Staff Management', included: true },
             {
                 name: 'Operation Management',
                 included: true,
@@ -230,7 +230,7 @@ onMounted(() => {
                         >
                             <Check
                                 v-if="mod.included"
-                                
+
                                 :class="[
                                     'h-4 w-4 shrink-0',
                                     plan.featured ? 'text-white' : 'text-emerald-600',
@@ -238,7 +238,7 @@ onMounted(() => {
                             />
                             <Minus
                                 v-else
-                                
+
                                 :class="[
                                     'h-4 w-4 shrink-0',
                                     plan.featured ? 'text-white/30' : 'text-neutral-300',

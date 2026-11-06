@@ -7,6 +7,7 @@ import {
     MapPin,
     Package,
     WashingMachine,
+    Zap,
 } from 'lucide-vue-next';
 import { onMounted } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -22,6 +23,7 @@ interface Order {
     service_name: string;
     status: 'pending' | 'in_progress' | 'completed' | 'picked_up' | 'cancelled';
     payment_status: 'unpaid' | 'partial' | 'paid';
+    is_rush?: boolean;
     total_amount: number;
     order_source: string;
     pickup_type: string;
@@ -185,6 +187,13 @@ function currency(val: number) {
                                         statusConfig[order.status]?.label ??
                                         order.status
                                     }}
+                                </span>
+                                <span
+                                    v-if="order.is_rush"
+                                    class="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700"
+                                >
+                                    <Zap class="h-3 w-3" aria-hidden="true" />
+                                    Rush
                                 </span>
                                 <span
                                     class="rounded-full px-2 py-0.5 text-[10px] font-semibold"

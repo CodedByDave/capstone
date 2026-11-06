@@ -76,14 +76,8 @@ const form = useForm({
 
 const unitOptions = [
     { value: 'pcs', label: 'Pieces (pcs)' },
-    { value: 'kg', label: 'Kilograms (kg)' },
-    { value: 'g', label: 'Grams (g)' },
-    { value: 'liters', label: 'Liters (L)' },
     { value: 'ml', label: 'Milliliters (ml)' },
-    { value: 'bottles', label: 'Bottles' },
-    { value: 'boxes', label: 'Boxes' },
-    { value: 'packs', label: 'Packs' },
-    { value: 'rolls', label: 'Rolls' },
+    { value: 'g', label: 'Grams (g)' },
 ];
 
 const peso = (value: string | number) =>
@@ -107,14 +101,13 @@ const saveStatus = computed(() =>
 // When the item is bought in packages (e.g. bottles of 5,000 ml), the stock
 // fields are typed in packages and saved in the item's own unit.
 const purchaseUnitOptions = [
-    { value: 'bottle', label: 'Bottle' },
-    { value: 'gallon', label: 'Gallon' },
-    { value: 'sack', label: 'Sack' },
-    { value: 'pack', label: 'Pack' },
-    { value: 'box', label: 'Box' },
-    { value: 'carton', label: 'Carton' },
-    { value: 'drum', label: 'Drum' },
-    { value: 'roll', label: 'Roll' },
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'bottle', label: 'Bottles' },
+    { value: 'sack', label: 'Sacks / Bags' },
+    { value: 'box', label: 'Boxes' },
+    { value: 'pack', label: 'Packs' },
+    { value: 'roll', label: 'Rolls' },
+    { value: 'gallon', label: 'Gallons' },
 ];
 
 const purchaseUnit = computed({
@@ -167,7 +160,7 @@ function submit() {
                           : Number(
                                 (
                                     Number(data.unit_price) / packageCount.value
-                                ).toFixed(4),
+                                ).toFixed(8),
                             ),
               }
             : data;

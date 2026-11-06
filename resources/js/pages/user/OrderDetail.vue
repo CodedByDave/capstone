@@ -32,6 +32,7 @@ import {
     Truck,
     WashingMachine,
     X,
+    Zap,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -57,6 +58,7 @@ interface Order {
     weight_approval_status?: 'pending' | 'approved' | 'declined' | null;
     weight_proof_url?: string | null;
     payment_status: 'unpaid' | 'partial' | 'paid';
+    is_rush?: boolean;
     payment_method: string;
     total_amount: number;
     amount_paid: number;
@@ -415,11 +417,20 @@ const shopLocation = computed(() =>
             <div
                 class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
             >
-                <p
-                    class="mb-3 text-xs font-semibold tracking-wide text-gray-400 uppercase"
-                >
-                    Order Status
-                </p>
+                <div class="mb-3 flex items-center justify-between gap-2">
+                    <p
+                        class="text-xs font-semibold tracking-wide text-gray-400 uppercase"
+                    >
+                        Order Status
+                    </p>
+                    <span
+                        v-if="order.is_rush"
+                        class="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700"
+                    >
+                        <Zap class="h-3 w-3" aria-hidden="true" />
+                        Rush order
+                    </span>
+                </div>
 
                 <!-- Cancelled banner -->
                 <div

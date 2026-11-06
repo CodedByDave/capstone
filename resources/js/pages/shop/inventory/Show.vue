@@ -61,6 +61,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: inventory.name, href: `${base.value}/${inventory.id}` },
 ];
 
+// The stored price is per consumption unit (e.g. per ml); show it per purchase unit (e.g. per bottle).
+function formatCost(item: {
+    unit_price: string | null;
+    package_unit?: string | null;
+    package_size?: number | null;
+}) {
+    if (!item.unit_price) return '—';
+    const size = Number(item.package_size) || 0;
+    if (!item.package_unit || size <= 0) return formatCost(item);
+    const perPackage = (Number(item.unit_price) * size).toFixed(2);
+    return `${formatPrice(perPackage)} / ${item.package_unit}`;
+}
+
 function formatPrice(price: string | null) {
     if (!price) return '—';
     return `₱${Number(price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
@@ -215,9 +228,9 @@ const movementTypeOptions = computed(() => [
                                 <p
                                     class="text-xs font-semibold text-muted-foreground uppercase"
                                 >
-                                    Unit Price
+                                    Cost Price
                                 </p>
-                                <p>{{ formatPrice(inventory.unit_price) }}</p>
+                                <p>{{ formatCost(inventory) }}</p>
                             </div>
                             <div class="space-y-1">
                                 <p

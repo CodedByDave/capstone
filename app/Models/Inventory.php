@@ -45,7 +45,7 @@ class Inventory extends Model
     protected $appends = ['photo_url'];
 
     protected $casts = [
-        'unit_price' => 'decimal:4',
+        'unit_price' => 'decimal:8',
         'selling_price' => 'decimal:4',
         'addon_enabled' => 'boolean',
         'addon_quantity' => 'integer',

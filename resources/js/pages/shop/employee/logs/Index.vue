@@ -333,7 +333,7 @@ function toggleRow(id: number) {
                         aria-label="Breadcrumb"
                         class="mb-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"
                     >
-                        <span>Human Resource</span>
+                        <span>Staff Management</span>
                         <span aria-hidden="true">/</span>
                         <span class="font-medium text-foreground"
                             >Activity logs</span

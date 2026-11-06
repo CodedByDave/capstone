@@ -70,6 +70,7 @@ class OrderBillingBreakdownService
                 (float) $line->bundle_weight_kg,
             ))->values()->all(),
             'additional_charges' => (float) $order->additional_charges,
+            'rush_fee' => (float) $order->rush_fee,
             ...$this->additionalChargeDetail($order),
             'discount' => (float) $order->discount_amount,
             'delivery_fee' => (float) $order->delivery_fee,

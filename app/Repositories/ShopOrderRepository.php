@@ -25,7 +25,10 @@ class ShopOrderRepository
             ->forShop($shopId);
 
         if (! empty($filters['status']) && ! $onlyTrashed) {
-            $query->where('status', $filters['status']);
+            // "queue" is every order still to be worked on, not a status of its own.
+            $filters['status'] === 'queue'
+                ? $query->whereIn('status', ShopOrder::QUEUE_STATUSES)
+                : $query->where('status', $filters['status']);
         }
 
         if (! empty($filters['payment_status']) && ! $onlyTrashed) {
@@ -65,6 +68,16 @@ class ShopOrderRepository
             'created_at' => 'created_at',
         ];
 
+        if ($sortBy === 'queue') {
+            // Rush orders first, then in the order they were placed. Orders not waiting sort after the queue.
+            $query->orderByRaw("status in ('pending', 'in_progress') desc")
+                ->orderBy('is_rush', $direction === 'asc' ? 'desc' : 'asc')
+                ->orderBy('created_at', $direction)
+                ->orderBy('id', $direction);
+
+            return;
+        }
+
         if ($sortBy === 'service') {
             // A subquery, not a join, so the shop scope and soft-delete filters stay unambiguous.
             $query->orderBy(
@@ -79,6 +92,42 @@ class ShopOrderRepository
 
         // A stable tie-break so rows never jump between pages.
         $query->orderByDesc('id');
+    }
+
+    /**
+     * The ids of the shop's orders still to be worked on (pending or in progress) in the order the
+     * laundry should be done: rush orders first, then first come, first served. Completed and
+     * archived orders are not in the queue.
+     *
+     * @return list<int>
+     */
+    public function queueIdsForShop(int $shopId): array
+    {
+        return $this->model->newQuery()
+            ->forShop($shopId)
+            ->whereIn('status', ShopOrder::QUEUE_STATUSES)
+            ->orderByDesc('is_rush')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    /** The flat fee the shop charges to rush an order; 0 when it does not offer rush. */
+    public function rushFeeForShop(int $shopId): float
+    {
+        return (float) Shop::query()->whereKey($shopId)->value('rush_fee');
+    }
+
+    /** How many of the shop's orders in the queue are rush orders. */
+    public function countRushInQueue(int $shopId): int
+    {
+        return $this->model->newQuery()
+            ->forShop($shopId)
+            ->whereIn('status', ShopOrder::QUEUE_STATUSES)
+            ->where('is_rush', true)
+            ->count();
     }
 
     public function findById(int $id): ?ShopOrder

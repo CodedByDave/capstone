@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop\Operations;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\Operations\RecordOrderPaymentRequest;
 use App\Http\Requests\Shop\Operations\SendOrderForDeliveryRequest;
+use App\Http\Requests\Shop\Operations\SetOrderRushRequest;
 use App\Http\Requests\Shop\Operations\ShopOrderFilterRequest;
 use App\Http\Requests\Shop\Operations\StoreShopOrderRequest;
 use App\Http\Requests\Shop\Operations\UpdateOrderStatusRequest;
@@ -69,6 +70,8 @@ class ShopOrderController extends Controller
             'orders' => $orders,
             'statusSummary' => $this->service->getStatusSummary($shopId),
             'newOrdersCount' => $this->service->newOrdersToday($shopId),
+            'queueSummary' => $this->service->queueSummary($shopId),
+            'rushFee' => $this->service->rushFeeFor($shopId),
             'filters' => $filters,
             'showArchived' => $filters['archived'],
         ]);
@@ -213,6 +216,19 @@ class ShopOrderController extends Controller
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'Order status updated successfully.',
+        ]);
+    }
+
+    public function setRush(SetOrderRushRequest $request, ShopOrder $order): RedirectResponse
+    {
+        $rush = $request->boolean('rush');
+        $this->service->setRush($order, $rush, $request->user());
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => $rush
+                ? "Order {$order->order_number} moved to the front of the queue."
+                : "Order {$order->order_number} is back in the regular queue.",
         ]);
     }
 

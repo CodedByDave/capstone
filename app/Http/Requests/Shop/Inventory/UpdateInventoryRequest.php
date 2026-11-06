@@ -30,7 +30,7 @@ class UpdateInventoryRequest extends FormRequest
             'package_size' => ['required', 'integer', 'min:1'],
             'min_stock' => ['required', 'integer', 'min:0'],
             'max_stock' => ['nullable', 'integer', 'min:0', 'gt:min_stock'],
-            'unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
+            'unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999.99999999'],
             'status' => ['required', 'in:active,inactive'],
         ];
     }

@@ -36,6 +36,7 @@ import {
     Clock,
     CreditCard,
     Eye,
+    ListOrdered,
     Loader,
     Package,
     PackageCheck,
@@ -45,6 +46,7 @@ import {
     Trash2,
     Undo2,
     X,
+    Zap,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -67,6 +69,10 @@ interface Order {
     total_amount: string;
     amount_paid: string;
     created_at: string;
+    is_rush: boolean;
+    rush_fee: string;
+    // 1 = the next order to work on; null once the order is no longer waiting.
+    queue_position: number | null;
     service?: { service_name: string };
 }
 
@@ -83,6 +89,8 @@ const props = defineProps<{
     orders: Paginator;
     statusSummary: Record<string, number>;
     newOrdersCount: number;
+    queueSummary: { waiting: number; rush: number };
+    rushFee: number;
     filters: Record<string, string | number | boolean | null | undefined>;
     showArchived: boolean;
 }>();
@@ -147,7 +155,13 @@ function query() {
 
 function applyFilters() {
     router.get(base.value, query(), {
-        only: ['orders', 'statusSummary', 'newOrdersCount', 'filters'],
+        only: [
+            'orders',
+            'statusSummary',
+            'newOrdersCount',
+            'queueSummary',
+            'filters',
+        ],
         preserveState: true,
         preserveScroll: true,
         replace: true,
@@ -172,6 +186,25 @@ const filterTable = debounce(() => {
 }, 300);
 
 watch([search, status, paymentStatus], filterTable);
+
+// The queue is shown in queue order, so staff see which laundry to do next.
+watch(status, (value) => {
+    const sorted = serverOptions.value.sortBy;
+
+    if (value === 'queue' && sorted === 'created_at') {
+        serverOptions.value = {
+            ...serverOptions.value,
+            sortBy: 'queue',
+            sortType: 'asc',
+        };
+    } else if (value !== 'queue' && sorted === 'queue') {
+        serverOptions.value = {
+            ...serverOptions.value,
+            sortBy: 'created_at',
+            sortType: 'desc',
+        };
+    }
+});
 
 watch(
     [
@@ -209,6 +242,7 @@ const resetTable = () => {
 const statusOptions = computed(() => [
     { value: '', label: 'All', count: totalOrders.value },
     { value: 'new', label: 'New (today)', count: props.newOrdersCount },
+    { value: 'queue', label: 'In queue', count: props.queueSummary.waiting },
     ...['pending', 'in_progress', 'completed', 'picked_up'].map((value) => ({
         value,
         label: formatLabel(value),
@@ -219,6 +253,9 @@ const statusOptions = computed(() => [
 // ─── Table ─────────────────────────────────────────
 
 const headers = computed<DataTableHeader[]>(() => [
+    ...(props.showArchived
+        ? []
+        : [{ text: 'Queue', value: 'queue', width: 130, sortable: true }]),
     { text: 'Order #', value: 'order_number', width: 150, sortable: true },
     { text: 'Customer', value: 'customer', width: 220, sortable: true },
     { text: 'Service', value: 'service', width: 180, sortable: true },
@@ -249,6 +286,7 @@ const tableItems = computed(() =>
         customer: order.customer_name,
         service: order.service?.service_name ?? '—',
         total: order.total_amount,
+        queue: order.queue_position ?? 0,
         actions: '',
     })),
 );
@@ -366,6 +404,7 @@ const changeStatus = (
                 'orders',
                 'statusSummary',
                 'newOrdersCount',
+                'queueSummary',
                 'flash',
                 'toast',
             ],
@@ -373,6 +412,50 @@ const changeStatus = (
                 toast.error(
                     errors.status ?? 'The order status could not be changed.',
                 ),
+        },
+    );
+};
+
+// ─── Rush ──────────────────────────────────────────
+
+// Only an order still in the queue can be rushed. Taking rush off is blocked once it has a payment.
+const inQueue = (order: Order) => order.queue_position !== null;
+const canRush = (order: Order) =>
+    inQueue(order) && !order.is_rush && props.rushFee > 0;
+const canUnrush = (order: Order) =>
+    inQueue(order) && order.is_rush && Number(order.amount_paid) === 0;
+
+const orderToRush = ref<Order | null>(null);
+const rushMode = ref<'rush' | 'unrush'>('rush');
+const showRushDialog = ref(false);
+
+const startRush = (order: Order, mode: 'rush' | 'unrush') => {
+    orderToRush.value = order;
+    rushMode.value = mode;
+    showRushDialog.value = true;
+};
+
+const confirmRush = () => {
+    const order = orderToRush.value;
+    showRushDialog.value = false;
+    orderToRush.value = null;
+    if (!order) return;
+
+    router.patch(
+        `${base.value}/${order.payment_public_id}/rush`,
+        { rush: rushMode.value === 'rush' },
+        {
+            preserveScroll: true,
+            only: [
+                'orders',
+                'statusSummary',
+                'queueSummary',
+                'flash',
+                'toast',
+                'errors',
+            ],
+            onError: (errors) =>
+                toast.error(errors.rush ?? 'The order could not be updated.'),
         },
     );
 };
@@ -426,8 +509,31 @@ const handleDelete = () => {
             <!-- ── KPI Cards (active view only) ──────────── -->
             <div
                 v-if="!showArchived"
-                class="grid grid-cols-2 gap-4 lg:grid-cols-4"
+                class="grid grid-cols-2 gap-4 lg:grid-cols-5"
             >
+                <Card
+                    class="cursor-pointer transition hover:ring-2 hover:ring-blue-200"
+                    :class="{ 'ring-2 ring-blue-400': status === 'queue' }"
+                    @click="status = status === 'queue' ? '' : 'queue'"
+                >
+                    <CardContent class="pt-5 pb-4">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p
+                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                            >
+                                In Queue
+                            </p>
+                            <ListOrdered class="h-4 w-4 text-blue-500" />
+                        </div>
+                        <p class="text-2xl font-bold">
+                            {{ queueSummary.waiting }}
+                        </p>
+                        <p class="mt-1 text-xs text-muted-foreground">
+                            {{ queueSummary.rush }} rush · Click to filter
+                        </p>
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardContent class="pt-5 pb-4">
                         <div class="mb-2 flex items-center justify-between">
@@ -652,6 +758,35 @@ const handleDelete = () => {
                     </div>
                 </template>
 
+                <template #item-queue="order">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <span
+                            v-if="order.queue_position"
+                            class="inline-flex min-w-9 items-center justify-center rounded-md bg-blue-50 px-2 py-1 text-sm font-bold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+                            :title="
+                                order.queue_position === 1
+                                    ? 'Work on this order next'
+                                    : `${order.queue_position - 1} order(s) ahead of this one`
+                            "
+                            :aria-label="`Number ${order.queue_position} in the queue`"
+                        >
+                            #{{ order.queue_position }}
+                        </span>
+                        <StatusPill
+                            v-if="order.is_rush"
+                            tone="warning"
+                            :icon="Zap"
+                        >
+                            Rush
+                        </StatusPill>
+                        <span
+                            v-if="!order.queue_position && !order.is_rush"
+                            class="text-muted-foreground"
+                            >—</span
+                        >
+                    </div>
+                </template>
+
                 <template #item-order_number="order">
                     <button
                         v-if="!showArchived"
@@ -722,6 +857,24 @@ const handleDelete = () => {
                                     ),
                             },
                             {
+                                label: 'Mark as rush',
+                                icon: Zap,
+                                show:
+                                    !showArchived &&
+                                    canManage &&
+                                    canRush(order),
+                                onSelect: () => startRush(order, 'rush'),
+                            },
+                            {
+                                label: 'Remove rush',
+                                icon: Undo2,
+                                show:
+                                    !showArchived &&
+                                    canManage &&
+                                    canUnrush(order),
+                                onSelect: () => startRush(order, 'unrush'),
+                            },
+                            {
                                 label: 'Mark as completed',
                                 icon: CheckCheck,
                                 show:
@@ -784,6 +937,58 @@ const handleDelete = () => {
             :customer-name="orderToComplete?.customer_name"
             @confirm="completeOrder"
         />
+
+        <!-- ── Rush Alert Dialog ──────────────────────── -->
+        <AlertDialog
+            :open="showRushDialog"
+            @update:open="showRushDialog = $event"
+        >
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>
+                        {{
+                            rushMode === 'rush'
+                                ? 'Rush this order?'
+                                : 'Remove rush?'
+                        }}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        <template v-if="rushMode === 'rush'">
+                            Order
+                            <span class="font-semibold text-foreground">{{
+                                orderToRush?.order_number
+                            }}</span>
+                            moves to the front of the queue and a rush fee of
+                            <span class="font-semibold text-foreground">{{
+                                formatCurrency(rushFee)
+                            }}</span>
+                            is added to the total. If the customer already paid,
+                            the order shows a balance due again.
+                        </template>
+                        <template v-else>
+                            Order
+                            <span class="font-semibold text-foreground">{{
+                                orderToRush?.order_number
+                            }}</span>
+                            goes back to its normal place in the queue and the
+                            rush fee of
+                            <span class="font-semibold text-foreground">{{
+                                formatCurrency(orderToRush?.rush_fee ?? 0)
+                            }}</span>
+                            is taken off the total.
+                        </template>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel @click="showRushDialog = false"
+                        >Cancel</AlertDialogCancel
+                    >
+                    <AlertDialogAction @click="confirmRush">
+                        {{ rushMode === 'rush' ? 'Rush order' : 'Remove rush' }}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         <!-- ── Delete Alert Dialog ────────────────────── -->
         <AlertDialog

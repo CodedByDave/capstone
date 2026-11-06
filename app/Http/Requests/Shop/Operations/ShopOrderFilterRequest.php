@@ -25,12 +25,12 @@ class ShopOrderFilterRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', Rule::in(ShopOrder::STATUSES)],
+            'status' => ['nullable', Rule::in([...ShopOrder::STATUSES, 'queue'])],
             'payment_status' => ['nullable', Rule::in(ShopOrder::PAYMENT_STATUSES)],
             'archived' => ['nullable', 'boolean'],
             'new_only' => ['nullable', 'boolean'],
             'sort_by' => ['nullable', Rule::in([
-                'order_number', 'customer', 'service', 'status', 'payment_status', 'total', 'created_at',
+                'order_number', 'customer', 'service', 'status', 'payment_status', 'total', 'created_at', 'queue',
             ])],
             'sort_direction' => ['nullable', Rule::in(['asc', 'desc'])],
             'per_page' => ['required', 'integer', 'between:5,100'],

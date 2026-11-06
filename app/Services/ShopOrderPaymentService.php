@@ -286,6 +286,7 @@ class ShopOrderPaymentService
             'service_name' => $order->service?->service_name ?? 'Laundry service',
             'weight_kg' => (float) ($order->actual_weight_kg ?? $order->estimated_weight_kg ?? 0),
             'additional_charges' => (float) $order->additional_charges,
+            'rush_fee' => (float) $order->rush_fee,
             ...$this->billing->additionalChargeDetail($order),
             'discount_amount' => (float) $order->discount_amount,
             'delivery_fee' => (float) $order->delivery_fee,

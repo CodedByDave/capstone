@@ -71,6 +71,8 @@ interface Order {
     bundle_price: string | null;
     bundle_quantity: number | null;
     additional_charges: string;
+    is_rush?: boolean;
+    rush_fee?: string;
     discount_amount: string;
     total_amount: string;
     amount_paid: string;
@@ -1171,6 +1173,15 @@ const statusIcon = (s: string) =>
                             >
                             <span>{{
                                 formatCurrency(shopOrder.additional_charges)
+                            }}</span>
+                        </div>
+                        <div
+                            v-if="shopOrder.is_rush"
+                            class="flex justify-between gap-3"
+                        >
+                            <span class="text-muted-foreground">Rush fee</span>
+                            <span>{{
+                                formatCurrency(shopOrder.rush_fee ?? 0)
                             }}</span>
                         </div>
                         <div class="flex justify-between gap-3">

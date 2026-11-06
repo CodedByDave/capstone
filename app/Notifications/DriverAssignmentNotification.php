@@ -4,6 +4,8 @@ namespace App\Notifications;
 
 use App\Models\Delivery;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 /** Tells a driver a run was just assigned to them, so they can accept or reject it. */
 class DriverAssignmentNotification extends Notification
@@ -12,7 +14,8 @@ class DriverAssignmentNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        // Web push reaches the phone as a system notification even when the app is closed.
+        return ['database', WebPushChannel::class];
     }
 
     public function toDatabase(object $notifiable): array
@@ -30,5 +33,20 @@ class DriverAssignmentNotification extends Notification
             'order_number' => $number,
             'url' => '/driver/jobs/'.$delivery->public_id,
         ];
+    }
+
+    public function toWebPush(object $notifiable): WebPushMessage
+    {
+        $data = $this->toDatabase($notifiable);
+
+        return (new WebPushMessage)
+            ->title($data['title'])
+            ->body($data['body'])
+            ->icon('/pwa-192x192.png')
+            ->badge('/pwa-64x64.png')
+            ->tag('driver-job-'.$data['delivery_public_id'])
+            ->vibrate([300, 150, 300, 150, 300])
+            ->requireInteraction()
+            ->data(['url' => $data['url']]);
     }
 }

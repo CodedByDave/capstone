@@ -28,6 +28,7 @@ defineProps<{
         service_name: string;
         weight_kg: number;
         additional_charges: number;
+        rush_fee?: number;
         supplies: {
             name: string;
             quantity: number;
@@ -194,6 +195,7 @@ function printReceipt() {
                                 peso(
                                     receipt.total_amount -
                                         receipt.additional_charges -
+                                        (receipt.rush_fee ?? 0) -
                                         (receipt.delivery_fee ?? 0) +
                                         receipt.discount_amount,
                                 )
@@ -207,6 +209,13 @@ function printReceipt() {
                                 >Additional charges</span
                             >
                             <span>{{ peso(receipt.additional_charges) }}</span>
+                        </div>
+                        <div
+                            v-if="(receipt.rush_fee ?? 0) > 0"
+                            class="flex justify-between border-t border-gray-100 px-4 py-2 text-sm"
+                        >
+                            <span class="text-gray-500">Rush fee</span>
+                            <span>{{ peso(receipt.rush_fee ?? 0) }}</span>
                         </div>
                         <div
                             v-for="supply in receipt.supplies"

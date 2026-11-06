@@ -9,7 +9,7 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string $event, // placed | new_online_order | weight_confirmed | status_changed | payment_updated | cancelled | overdue
+        public readonly string $event, // placed | new_online_order | weight_confirmed | status_changed | payment_updated | cancelled | overdue | rush_marked | rush_removed
         // The payment just received, so the message can say how much and what is left.
         public readonly ?float $amount = null,
     ) {}
@@ -93,6 +93,17 @@ class OrderNotification extends Notification
                 'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'type' => 'cancelled',
+            ],
+            'rush_marked', 'rush_removed' => [
+                'title' => $this->event === 'rush_marked' ? 'Your order is now a rush order' : 'Rush removed from your order',
+                'body' => $this->event === 'rush_marked'
+                    ? "{$order->shop->shop_name} moved order #{$order->order_number} to the front of the queue. A rush fee of ₱"
+                        .number_format((float) $order->rush_fee, 2).' was added to your total.'
+                    : "{$order->shop->shop_name} removed the rush fee from order #{$order->order_number}.",
+                'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
+                'order_number' => $order->order_number,
+                'type' => $this->event,
             ],
             'overdue' => [
                 'title' => 'Order is overdue',

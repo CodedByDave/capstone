@@ -69,14 +69,8 @@ const base = computed(() =>
 const unitOptions = computed(() => {
     const options = [
         { value: 'pcs', label: 'Pieces (pcs)' },
-        { value: 'kg', label: 'Kilograms (kg)' },
-        { value: 'g', label: 'Grams (g)' },
-        { value: 'liters', label: 'Liters (L)' },
         { value: 'ml', label: 'Milliliters (ml)' },
-        { value: 'bottles', label: 'Bottles' },
-        { value: 'boxes', label: 'Boxes' },
-        { value: 'packs', label: 'Packs' },
-        { value: 'rolls', label: 'Rolls' },
+        { value: 'g', label: 'Grams (g)' },
     ];
 
     return options.some((o) => o.value === inventory.unit)
@@ -125,14 +119,13 @@ const form = useForm({
 
 // How the item is bought from the supplier (e.g. a bottle of 5,000 ml). "Same as usage" means no package.
 const purchaseUnitOptions = [
-    { value: 'bottle', label: 'Bottle' },
-    { value: 'gallon', label: 'Gallon' },
-    { value: 'sack', label: 'Sack' },
-    { value: 'pack', label: 'Pack' },
-    { value: 'box', label: 'Box' },
-    { value: 'carton', label: 'Carton' },
-    { value: 'drum', label: 'Drum' },
-    { value: 'roll', label: 'Roll' },
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'bottle', label: 'Bottles' },
+    { value: 'sack', label: 'Sacks / Bags' },
+    { value: 'box', label: 'Boxes' },
+    { value: 'pack', label: 'Packs' },
+    { value: 'roll', label: 'Rolls' },
+    { value: 'gallon', label: 'Gallons' },
 ];
 
 // An item saved with another purchase unit keeps it as an option.
@@ -301,7 +294,7 @@ function submit() {
             data.unit_price === '' || packageCount.value <= 0
                 ? data.unit_price
                 : Number(
-                      (Number(data.unit_price) / packageCount.value).toFixed(4),
+                      (Number(data.unit_price) / packageCount.value).toFixed(8),
                   ),
         _method: 'put',
     })).post(`${base.value}/${inventory.id}`, { forceFormData: true });

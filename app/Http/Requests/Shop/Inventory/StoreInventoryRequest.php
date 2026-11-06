@@ -28,7 +28,7 @@ class StoreInventoryRequest extends FormRequest
             'quantity' => ['required', 'integer', 'min:0'],
             'min_stock' => ['required', 'integer', 'min:0'],
             'max_stock' => ['nullable', 'integer', 'min:0', 'gt:min_stock'],
-            'unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999.9999'],
+            'unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999.99999999'],
             'status' => ['sometimes', 'in:active,inactive'],
         ];
     }

@@ -5,14 +5,13 @@
  * unit narrows the purchase units.
  */
 export const USAGE_UNITS_BY_PURCHASE_UNIT: Record<string, string[]> = {
-    bottle: ['ml', 'liters', 'g', 'kg'],
-    gallon: ['ml', 'liters', 'g', 'kg'],
-    sack: ['g', 'kg'],
-    drum: ['g', 'kg'],
-    pack: ['pcs', 'g', 'kg'],
-    box: ['pcs', 'packs', 'bottles', 'rolls'],
-    carton: ['pcs', 'packs', 'boxes', 'bottles', 'rolls'],
-    roll: ['pcs', 'rolls'],
+    pcs: ['pcs'],
+    bottle: ['ml', 'g'],
+    gallon: ['ml', 'g'],
+    sack: ['g', 'pcs'],
+    pack: ['pcs', 'g', 'ml'],
+    box: ['pcs', 'g', 'ml'],
+    roll: ['pcs'],
 };
 
 /** Consumption units allowed for a purchase unit, or null when there is no restriction. */
