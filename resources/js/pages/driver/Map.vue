@@ -2,11 +2,20 @@
 import DirectionsMap from '@/components/driver/DirectionsMap.vue';
 import DriverLayout from '@/components/driver/DriverLayout.vue';
 import JobWorkflow from '@/components/driver/JobWorkflow.vue';
+import NavigationView from '@/components/driver/NavigationView.vue';
 import { useDriverLocation } from '@/composables/useDriverLocation';
+import { primeSpeech } from '@/composables/useNavigation';
 import type { RouteSummary } from '@/lib/routing';
 import type { DriverInfo, DriverJob } from '@/types/driver';
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeft, MapPin, MessageSquare, Phone, User } from 'lucide-vue-next';
+import {
+    ArrowLeft,
+    MapPin,
+    MessageSquare,
+    Navigation,
+    Phone,
+    User,
+} from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 const props = defineProps<{
@@ -35,6 +44,18 @@ const routeOrigin = computed(() => {
         ? { lat: shop.lat, lng: shop.lng }
         : position.value;
 });
+
+// In-app turn-by-turn navigation to the current stop (pickup, back to the shop, or delivery).
+const navigating = ref(false);
+const canNavigate = computed(
+    () => props.job?.target.lat != null && props.job?.target.lng != null,
+);
+
+function startNavigation() {
+    // Speech must start from this tap, or phones block the spoken turn prompts.
+    primeSpeech();
+    navigating.value = true;
+}
 </script>
 
 <template>
@@ -82,6 +103,16 @@ const routeOrigin = computed(() => {
                 <span v-if="route" class="ml-2 text-[11px] text-slate-500">
                     {{ route.distanceText }} · {{ route.durationText }}
                 </span>
+
+                <button
+                    v-if="canNavigate"
+                    type="button"
+                    class="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    @click="startNavigation"
+                >
+                    <Navigation class="h-5 w-5" aria-hidden="true" />
+                    Start navigation
+                </button>
 
                 <p class="mt-3 flex items-center gap-2 text-base font-semibold">
                     <User class="h-4 w-4" aria-hidden="true" />
@@ -142,6 +173,13 @@ const routeOrigin = computed(() => {
                     <JobWorkflow :job="job" />
                 </div>
             </div>
+
+            <NavigationView
+                v-if="navigating"
+                :position="position"
+                :destination="job.target"
+                @close="navigating = false"
+            />
         </template>
     </DriverLayout>
 </template>

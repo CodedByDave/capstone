@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\Shop;
 
-use App\Exceptions\OrderSubmissionException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\SelectPlanRequest;
-use App\Http\Requests\Shop\StoreOrderRequest;
 use App\Http\Requests\Shop\StorePaymentRequest;
 use App\Models\Order;
 use App\Services\BusinessAgreementService;
@@ -14,10 +12,8 @@ use App\Services\PaymentService;
 use App\Services\ShopService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class CheckoutController extends Controller
 {
@@ -70,7 +66,7 @@ class CheckoutController extends Controller
         session(['checkout' => $request->validated()]);
 
         if (auth()->check()) {
-            return redirect()->route('checkout.confirm');
+            return redirect()->route('shop.upgrade');
         }
 
         return redirect()->route('login')->with('toast', [
@@ -83,15 +79,6 @@ class CheckoutController extends Controller
 
     public function confirm(): Response|RedirectResponse
     {
-        $checkout = session('checkout');
-
-        if (! $checkout && ! session('checkout_url')) {
-            return redirect()->route('landing')->with('toast', [
-                'type' => 'error',
-                'message' => 'No plan selected. Please pick a plan first.',
-            ]);
-        }
-
         if (auth()->user()->isOwner() && ! $this->orderService->isKycVerified(auth()->id())) {
             return redirect()->route('shop.dashboard')->with('toast', [
                 'type' => 'info',
@@ -99,52 +86,18 @@ class CheckoutController extends Controller
             ]);
         }
 
-        return Inertia::render('shop/CheckoutConfirm', array_merge(
-            $this->orderService->checkoutConfirmationData(auth()->user(), $checkout ?? []),
-            ['agreement' => $this->businessAgreementService->currentAgreementData(auth()->user())],
-        ));
+        // A plan is bought from Upgrade Plan: paid online, active as soon as the payment is verified.
+        return redirect()->route('shop.upgrade');
     }
 
-    // ── Process order (no payment — admin reviews first) ──────────────────────
+    // ── Plans are bought from Upgrade Plan; there is no application to review ─────
 
-    public function checkout(StoreOrderRequest $request): RedirectResponse|SymfonyResponse
+    public function checkout(): RedirectResponse
     {
-        try {
-            $this->orderService->submitApplication(
-                $request->user(),
-                $request->validated(),
-                $request->ip(),
-                $request->userAgent(),
-            );
-
-            session()->flash('toast', [
-                'type' => 'success',
-                'message' => 'Order placed! Please wait while our admin reviews your application.',
-            ]);
-
-            // Force a full browser navigation so the Dashboard component remounts
-            // with fresh props (pending_order). An XHR-based redirect would keep
-            // the same component instance alive and leave the stale props in place.
-            return Inertia::location(route('shop.dashboard'));
-        } catch (OrderSubmissionException $exception) {
-            return back()->with('toast', [
-                'type' => 'error',
-                'message' => $exception->getMessage(),
-            ]);
-        } catch (ValidationException $exception) {
-            throw $exception;
-        } catch (\Exception $e) {
-            Log::error('=== CHECKOUT FAILED ===', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-
-            return back()->with('toast', [
-                'type' => 'error',
-                'message' => 'Something went wrong. Please try again.',
-            ]);
-        }
+        return redirect()->route('shop.upgrade')->with('toast', [
+            'type' => 'info',
+            'message' => 'Choose your plan here. It starts as soon as your payment is confirmed.',
+        ]);
     }
 
     // ── Initiate payment for an admin-approved order ───────────────────────────

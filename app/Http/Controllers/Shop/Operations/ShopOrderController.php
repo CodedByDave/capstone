@@ -86,6 +86,8 @@ class ShopOrderController extends Controller
             'pickupAwaitsReceipt' => $this->service->pickupOrdersAwaitReceipt($shopId),
             'completionMinutes' => $this->service->defaultCompletionMinutes($shopId),
             'tax' => $this->service->taxFor($shopId),
+            'rushFee' => $this->service->rushFeeFor($shopId),
+            'riderLoadLimit' => $this->service->riderLoadLimitFor($shopId),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'services' => ShopService::where('shop_id', $shopId)

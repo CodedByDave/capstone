@@ -4,13 +4,11 @@ namespace App\Services;
 
 use App\Models\BusinessAgreement;
 use App\Models\BusinessAgreementAcceptance;
-use App\Models\BusinessAgreementPlatformSignature;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
 use App\Repositories\BusinessAgreementRepository;
 use App\Repositories\ShopRepository;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -121,9 +119,10 @@ class BusinessAgreementService
     }
 
     /**
-     * A shop signs the agreement once, during its free trial. When the trial
-     * owner applies for a paid plan, that signed acceptance moves to the new
-     * order so the admin can countersign it when approving the plan.
+     * A shop accepts the agreement once, during its free trial. When the trial
+     * owner applies for a paid plan, that acceptance moves to the new order so
+     * the admin sees it with the plan. Acceptances countersigned under the old
+     * signing process stay with the order they were signed for.
      */
     public function carryAcceptanceToOrder(User $user, Order $order): void
     {
@@ -156,88 +155,6 @@ class BusinessAgreementService
         return $this->serializeAgreement($agreement, $acceptance);
     }
 
-    public function signatureFor(User $user, string $acceptancePublicId): array
-    {
-        $acceptance = $this->agreementRepository->findAcceptanceByPublicId($acceptancePublicId);
-
-        if (! $acceptance || ! $acceptance->signature_path) {
-            throw ValidationException::withMessages([
-                'signature' => 'No signature image is available for this acceptance.',
-            ]);
-        }
-
-        $canView = $user->isSuperAdmin()
-            || ($user->isOwner() && $acceptance->shop?->owner_id === $user->id);
-
-        if (! $canView) {
-            throw new AuthorizationException('You cannot view this agreement signature.');
-        }
-
-        return $this->agreementRepository->signatureContents($acceptance->signature_path);
-    }
-
-    public function platformSignatureFor(User $user, string $signaturePublicId): array
-    {
-        $signature = $this->agreementRepository->findPlatformSignatureByPublicId($signaturePublicId);
-
-        if (! $signature) {
-            throw ValidationException::withMessages([
-                'signature' => 'No platform signature is available for this agreement.',
-            ]);
-        }
-
-        $canView = $user->isSuperAdmin()
-            || ($user->isOwner() && $signature->acceptance->shop?->owner_id === $user->id);
-
-        if (! $canView) {
-            throw new AuthorizationException('You cannot view this platform signature.');
-        }
-
-        return $this->agreementRepository->signatureContents($signature->signature_path);
-    }
-
-    public function countersignForOrder(
-        User $admin,
-        Order $order,
-        array $data,
-        ?string $ipAddress,
-        ?string $userAgent,
-    ): BusinessAgreementAcceptance {
-        if (! $admin->isSuperAdmin()) {
-            throw new AuthorizationException('Only an authorized platform administrator may countersign agreements.');
-        }
-
-        $acceptance = $this->agreementRepository->acceptanceForOrder($order);
-
-        if (! $acceptance) {
-            throw ValidationException::withMessages([
-                'agreement' => 'The shop must accept the current agreement before this order can be approved.',
-            ]);
-        }
-
-        if ($acceptance->platformSignature) {
-            throw ValidationException::withMessages([
-                'agreement' => 'This agreement has already been countersigned by LaundryHub.',
-            ]);
-        }
-
-        $signaturePath = $this->agreementRepository->storePlatformSignature(
-            $data['platform_signature_image'],
-            $acceptance,
-        );
-
-        $this->agreementRepository->createPlatformSignature($acceptance, $admin, [
-            'signer_name' => $data['platform_signer_name'],
-            'signer_role' => $data['platform_signer_role'],
-            'signature_method' => $data['platform_signature_method'],
-            'signature_path' => $signaturePath,
-            'ip_address' => $ipAddress,
-            'user_agent' => $userAgent ? mb_substr($userAgent, 0, 2000) : null,
-        ]);
-
-        return $this->agreementRepository->refreshAcceptance($acceptance);
-    }
-
     private function recordAcceptance(
         User $user,
         Shop $shop,
@@ -266,12 +183,7 @@ class BusinessAgreementService
             return $existingAcceptance;
         }
 
-        // A signature image is optional: typing the name and accepting the terms is enough.
-        $hasSignature = ! empty($data['signature_image']) && ! empty($data['signature_method']);
-        $signaturePath = $hasSignature
-            ? $this->agreementRepository->storeSignature($data['signature_image'], $shop, $agreement)
-            : null;
-
+        // Acceptance is recorded by the typed name, role and time; no signature image is collected.
         $acceptance = $this->agreementRepository->createAcceptance(
             $agreement,
             $shop,
@@ -280,8 +192,6 @@ class BusinessAgreementService
             [
                 'signer_name' => $data['signer_name'],
                 'signer_role' => $data['signer_role'],
-                'signature_method' => $hasSignature ? $data['signature_method'] : null,
-                'signature_path' => $signaturePath,
                 'ip_address' => $ipAddress,
                 'user_agent' => $userAgent ? mb_substr($userAgent, 0, 2000) : null,
             ],
@@ -325,8 +235,6 @@ class BusinessAgreementService
 
     private function serializeAcceptance(BusinessAgreementAcceptance $acceptance): array
     {
-        $platformSignature = $acceptance->platformSignature;
-
         return [
             'public_id' => $acceptance->public_id,
             'business_name' => $acceptance->business_name,
@@ -334,34 +242,12 @@ class BusinessAgreementService
             'signer_role' => $acceptance->signer_role,
             'accepted_at' => $acceptance->accepted_at?->toIso8601String(),
             'content_hash' => $acceptance->content_hash,
-            'signature_method' => $acceptance->signature_method,
-            'signature_url' => $acceptance->signature_path
-                ? route('business-agreement.signature', $acceptance->public_id)
-                : null,
-            'execution_status' => $platformSignature
-                ? 'fully_executed'
-                : 'awaiting_platform_signature',
-            'platform_signature' => $platformSignature
-                ? $this->serializePlatformSignature($platformSignature)
-                : null,
             'agreement' => [
                 'title' => $acceptance->agreement->title,
                 'version' => $acceptance->agreement->version,
                 'content' => $acceptance->agreement->content,
                 'effective_at' => $acceptance->agreement->effective_at?->toIso8601String(),
             ],
-        ];
-    }
-
-    private function serializePlatformSignature(BusinessAgreementPlatformSignature $signature): array
-    {
-        return [
-            'public_id' => $signature->public_id,
-            'signer_name' => $signature->signer_name,
-            'signer_role' => $signature->signer_role,
-            'signed_at' => $signature->signed_at?->toIso8601String(),
-            'signature_method' => $signature->signature_method,
-            'signature_url' => route('business-agreement.platform-signature', $signature->public_id),
         ];
     }
 }

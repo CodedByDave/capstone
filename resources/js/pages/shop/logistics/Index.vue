@@ -33,6 +33,7 @@ import {
     Trash2,
     Truck,
     User,
+    Weight,
     X,
     XCircle,
 } from 'lucide-vue-next';
@@ -62,6 +63,8 @@ interface Delivery {
     type: 'pickup' | 'delivery';
     rider_id: number | null;
     courier: 'own_rider' | 'lalamove';
+    /** Set when the order's weight is outside the shop's rider load limit, so no rider is auto-assigned. */
+    load_warning?: string | null;
     courier_reference: string | null;
     courier_tracking_url: string | null;
     courier_driver_name: string | null;
@@ -650,6 +653,11 @@ function fmtTime(d: string) {
                     <StatusPill :tone="STATUS_TONE[d.status] ?? 'neutral'">
                         {{ statusLabel(d) }}
                     </StatusPill>
+                    <div v-if="d.load_warning" class="mt-1">
+                        <StatusPill tone="warning" :icon="Weight">
+                            {{ d.load_warning }}
+                        </StatusPill>
+                    </div>
                     <div class="mt-1 space-y-0.5 text-xs text-muted-foreground">
                         <p v-if="d.picked_up_at">
                             Picked up {{ fmtTime(d.picked_up_at) }}

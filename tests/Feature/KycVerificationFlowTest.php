@@ -236,30 +236,40 @@ class KycVerificationFlowTest extends TestCase
         $this->assertSame('approved', $verification->refresh()->status);
     }
 
-    public function test_verified_owner_checks_out_without_uploading_documents_again(): void
+    public function test_a_trial_owner_buys_a_plan_without_documents_or_admin_review(): void
     {
         $verification = $this->submitVerification();
         $this->actingAs($this->admin)->post("/admin/kyc-verifications/{$verification->public_id}/approve");
-        // Pretend the trial was already used, so the owner now buys a plan.
-        Order::where('user_id', $this->owner->id)->update(['status' => 'expired']);
 
+        // Approval started the free trial on its own.
+        $this->assertTrue(Order::where('user_id', $this->owner->id)->where('is_trial', true)->where('status', 'approved')->exists());
+
+        $this->mock(\App\Services\PaymongoService::class)
+            ->shouldReceive('createCheckoutSession')
+            ->once()
+            ->andReturn(['data' => ['id' => 'cs_test_upgrade', 'attributes' => ['checkout_url' => 'https://checkout.paymongo.test/upgrade']]]);
+
+        // Only the plan and the payment method: no documents, no expiry dates.
         $this->actingAs($this->owner)
-            ->withSession(['checkout' => ['plan_name' => 'Basic', 'billing_months' => 1]])
-            ->get('/checkout/confirm')
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page->where('kycVerified', true));
+            ->post('/shop/upgrade/process', ['plan_name' => 'Basic', 'billing_months' => 1, 'payment_method' => 'gcash'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('shop.upgrade.confirm'));
 
-        $this->post('/checkout/process', [
-            'plan_name' => 'Basic', 'billing_months' => 1,
-            'shop_name' => 'Suds & Bubbles Laundry', 'email' => $this->owner->email, 'phone' => '09171234567',
-            'block_street' => '12 Rizal St', 'municipality' => 'Imus', 'barangay' => 'Poblacion', 'postal_code' => '4103',
-            'agreement_public_id' => $this->agreement->public_id, 'signer_name' => 'Juan Dela Cruz', 'signer_role' => 'Owner',
-            'signer_authority_confirmed' => '1', 'agreement_accepted' => '1',
-        ])->assertSessionHasNoErrors();
+        // The plan order waits for the payment, not for an admin, and is on record in Order Management.
+        $order = Order::where('user_id', $this->owner->id)->where('is_trial', false)->firstOrFail();
+        $this->assertSame('Basic', $order->plan_name);
+        $this->assertTrue((bool) $order->is_upgrade);
+        $this->assertNull($order->kyc_bir);
+        $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'paymongo_session_id' => 'cs_test_upgrade']);
+    }
 
-        $order = Order::where('user_id', $this->owner->id)->where('status', 'pending')->firstOrFail();
-        $this->assertSame($verification->kyc_bir, $order->kyc_bir);
-        $this->assertSame('123-456-789-000', $order->kyc_confirmed_data['tin']);
+    public function test_the_old_checkout_application_is_replaced_by_upgrade_plan(): void
+    {
+        $this->actingAs($this->owner)
+            ->post('/checkout/process', ['plan_name' => 'Basic', 'billing_months' => 1])
+            ->assertRedirect(route('shop.upgrade'));
+
+        $this->assertSame(0, Order::where('user_id', $this->owner->id)->where('status', 'pending')->count());
     }
 
     public function test_the_agreement_is_accepted_without_a_signature_image(): void

@@ -31,7 +31,6 @@ trait ValidatesServiceCatalogue
                 Rule::exists('inventory', 'id')->where('shop_id', $shopId)->whereNull('deleted_at'),
             ],
             'supplies.*.quantity' => ['required', 'numeric', 'min:0.01', 'max:9999'],
-            'supplies.*.unit' => ['required', 'string', 'max:50'],
         ];
     }
 
@@ -44,13 +43,12 @@ trait ValidatesServiceCatalogue
             'supplies.max' => 'A service can use at most 20 supplies.',
             'supplies.*.inventory_id.required' => 'Select a supply for this row, or remove the row.',
             'supplies.*.inventory_id.integer' => 'Select a supply from the list.',
-            'supplies.*.quantity.required' => 'Enter how much of this supply the service uses.',
+            'supplies.*.quantity.required' => 'Enter how much of this supply the service consumes.',
             'supplies.*.quantity.numeric' => 'The quantity must be a number.',
             'supplies.*.quantity.max' => 'The quantity cannot be more than 9,999.',
-            'supplies.*.unit.required' => 'Enter the unit, for example sachet or ml.',
             'supplies.*.inventory_id.exists' => 'One of the selected supplies is not in your inventory.',
             'supplies.*.inventory_id.distinct' => 'Each supply can only be listed once.',
-            'supplies.*.quantity.min' => 'Supply quantity must be at least 0.01.',
+            'supplies.*.quantity.min' => 'Consumption must be at least 0.01.',
         ];
     }
 }

@@ -16,11 +16,7 @@ class BusinessAgreementPdfController extends Controller
 
     public function preview(PreviewBusinessAgreementRequest $request): Response
     {
-        $pdf = $this->pdfService->previewPdf(
-            $request->user(),
-            $request->safe()->except('signature_image'),
-            $request->file('signature_image'),
-        );
+        $pdf = $this->pdfService->previewPdf($request->user(), $request->validated());
 
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',

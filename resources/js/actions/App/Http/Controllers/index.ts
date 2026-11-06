@@ -4,7 +4,6 @@ import ProfilePhotoController from './ProfilePhotoController'
 import LandingController from './LandingController'
 import Shop from './Shop'
 import Api from './Api'
-import BusinessAgreementSignatureController from './BusinessAgreementSignatureController'
 import Admin from './Admin'
 import Staff from './Staff'
 import User from './User'
@@ -16,7 +15,6 @@ ProfilePhotoController: Object.assign(ProfilePhotoController, ProfilePhotoContro
 LandingController: Object.assign(LandingController, LandingController),
 Shop: Object.assign(Shop, Shop),
 Api: Object.assign(Api, Api),
-BusinessAgreementSignatureController: Object.assign(BusinessAgreementSignatureController, BusinessAgreementSignatureController),
 Admin: Object.assign(Admin, Admin),
 Staff: Object.assign(Staff, Staff),
 User: Object.assign(User, User),

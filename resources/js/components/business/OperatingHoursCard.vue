@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    patchSettingsForm,
+    useSettingsSection,
+} from '@/composables/useSettingsSaveBar';
 import { useForm } from '@inertiajs/vue3';
-import { Clock, Loader2, Sun, Sunrise } from 'lucide-vue-next';
-import { toast } from 'vue3-toastify';
+import { Clock, Sun, Sunrise } from 'lucide-vue-next';
 
 const props = defineProps<{
     hours: {
@@ -53,14 +55,16 @@ const modes = [
     },
 ];
 
-function save() {
-    form.patch('/shop/settings/operating-hours', {
-        preserveScroll: true,
-        preserveState: (page) =>
-            Object.keys(page.props.errors ?? {}).length > 0,
-        onError: () => toast.error('Operating hours were not saved.'),
-    });
-}
+useSettingsSection({
+    key: 'hours',
+    label: 'Operating hours',
+    isDirty: () => form.isDirty,
+    save: () => patchSettingsForm(form, '/shop/settings/operating-hours'),
+    discard: () => {
+        form.reset();
+        form.clearErrors();
+    },
+});
 </script>
 
 <template>
@@ -73,8 +77,7 @@ function save() {
             <p class="mt-1 text-sm text-muted-foreground">
                 Choose the days and hours your shop is open. Customers cannot
                 order while you are closed, and orders wait for a driver until
-                you open again. A driver also needs a work
-                schedule for the day.
+                you open again. A driver also needs a work schedule for the day.
             </p>
         </div>
 
@@ -163,26 +166,6 @@ function save() {
                     />
                     <InputError :message="form.errors.closes_at" />
                 </div>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-end gap-3">
-                <p class="text-xs text-muted-foreground" aria-live="polite">
-                    {{
-                        form.isDirty
-                            ? 'You have unsaved changes'
-                            : 'No changes yet'
-                    }}
-                </p>
-                <Button
-                    :disabled="form.processing || !form.isDirty"
-                    @click="save"
-                >
-                    <Loader2
-                        v-if="form.processing"
-                        class="mr-1.5 h-4 w-4 animate-spin"
-                    />
-                    Save
-                </Button>
             </div>
         </div>
     </section>

@@ -176,6 +176,25 @@ it('adjusts stock and the expense when the weight changes, and does nothing when
         ->and(Expense::where('shop_order_id', $order->id)->count())->toBe(1);
 });
 
+it('always stores a supply in the inventory items consumption unit', function () {
+    $shop = svcShop();
+    $item = svcStockItem($shop);
+    $item->update(['unit' => 'ml']);
+
+    $service = svcService($shop, [['inventory_id' => $item->id, 'quantity' => 30, 'unit' => 'bottle']]);
+    expect($service->supplies()->first()->pivot->unit)->toBe('ml');
+
+    app(ShopServiceService::class)->update($service, [
+        'service_name' => $service->service_name, 'category' => 'full_service', 'is_active' => true,
+        'pricing_model' => 'per_kg', 'price_per_kg' => 60,
+        'uses_supplies' => true,
+        'supplies' => [['inventory_id' => $item->id, 'quantity' => 40]],
+    ]);
+
+    $pivot = $service->fresh()->supplies()->first()->pivot;
+    expect($pivot->unit)->toBe('ml')->and((float) $pivot->quantity)->toBe(40.0);
+});
+
 it('does not let a service use another shops inventory', function () {
     $shop = svcShop();
     $other = svcShop();

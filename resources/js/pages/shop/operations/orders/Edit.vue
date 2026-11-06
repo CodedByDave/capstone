@@ -68,7 +68,7 @@ interface Order {
     discount_amount: string;
     delivery_fee?: string | null;
     total_amount: string;
-    payment_method: string;
+    payment_method: string | null;
     payment_status: string;
     amount_paid: string;
     status: string;
@@ -334,11 +334,15 @@ const paymentOptions = [
     { value: 'paid', label: 'Fully paid' },
 ] as const;
 
+const methodLabel = (method: string) =>
+    ({ gcash: 'GCash', grabpay: 'GrabPay' })[method] ??
+    method.charAt(0).toUpperCase() + method.slice(1);
+
 const paymentNote = computed(() => {
     const status = props.shopOrder.payment_status;
 
     if (form.payment_state === 'paid' && status !== 'paid') {
-        return `Saving records ${formatCurrency(balanceDue.value)} as received (${form.payment_method.toUpperCase()}).`;
+        return `Saving records ${formatCurrency(balanceDue.value)} as received (${methodLabel(form.payment_method ?? 'cash')}).`;
     }
     if (form.payment_state === 'unpaid' && paidSoFar.value > 0) {
         return `Saving voids the ${formatCurrency(paidSoFar.value)} recorded as paid. Online payments cannot be undone here.`;
@@ -1313,12 +1317,13 @@ const balanceDue = computed(() =>
                                     v-model="form.payment_method"
                                     class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 >
+                                    <option :value="null">Not paid yet</option>
                                     <option
                                         v-for="m in paymentMethods"
                                         :key="m"
                                         :value="m"
                                     >
-                                        {{ m.toUpperCase() }}
+                                        {{ methodLabel(m) }}
                                     </option>
                                 </select>
                             </div>

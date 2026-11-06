@@ -7,8 +7,10 @@ use App\Http\Requests\Shop\UpdateDeliveryPricingRequest;
 use App\Http\Requests\Shop\UpdateDriverPayRequest;
 use App\Http\Requests\Shop\UpdateOperatingHoursRequest;
 use App\Http\Requests\Shop\UpdatePaymongoSettingsRequest;
+use App\Http\Requests\Shop\UpdateRiderLoadLimitRequest;
 use App\Http\Requests\Shop\UpdateRushFeeRequest;
 use App\Models\Shop;
+use App\Services\RiderLoadLimitService;
 use App\Services\ShopDeliveryPricingService;
 use App\Services\ShopOperatingHoursService;
 use App\Services\ShopPaymentSettingsService;
@@ -33,14 +35,18 @@ class ShopSettingsController extends Controller
         return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
     }
 
-    public function index(ShopDeliveryPricingService $deliveryPricing, ShopOperatingHoursService $operatingHours)
-    {
+    public function index(
+        ShopDeliveryPricingService $deliveryPricing,
+        ShopOperatingHoursService $operatingHours,
+        RiderLoadLimitService $riderLoad,
+    ) {
         $shop = $this->getShop();
 
         return Inertia::render('shop/Settings', [
             'deliveryPricing' => $deliveryPricing->pageData(auth()->user()),
             'operatingHours' => $operatingHours->pageData(auth()->user()),
             'rushFee' => (float) $shop->rush_fee,
+            'riderLoadLimit' => $riderLoad->limitsFor($shop),
             'shop' => [
                 'shop_name' => $shop->shop_name,
                 'phone' => $shop->phone,
@@ -96,6 +102,25 @@ class ShopSettingsController extends Controller
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'Rush fee saved.',
+        ]);
+    }
+
+    public function updateRiderLoadLimit(
+        UpdateRiderLoadLimitRequest $request,
+        ShopDeliveryPricingService $deliveryPricing,
+    ): RedirectResponse {
+        $min = $request->validated('rider_min_weight_kg');
+        $max = $request->validated('rider_max_weight_kg');
+
+        $deliveryPricing->updateRiderLoadLimit(
+            $request->user(),
+            $min === null ? null : (float) $min,
+            $max === null ? null : (float) $max,
+        );
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Rider load limit saved.',
         ]);
     }
 

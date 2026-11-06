@@ -9,13 +9,14 @@ import {
     CheckCircle2,
     Copy,
     CreditCard,
-    Eye,
     ExternalLink,
+    Eye,
     EyeOff,
     FlaskConical,
     Loader2,
     PlugZap,
     ShieldCheck,
+    TriangleAlert,
     Unplug,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -448,51 +449,133 @@ function disconnect() {
                     <div class="flex items-center gap-2">
                         <BookOpen class="h-5 w-5 text-blue-600" />
                         <h2 class="font-semibold text-blue-950">
-                            How to get your PayMongo credentials
+                            Guide: How to Link PayMongo to Your Laundry System
                         </h2>
                     </div>
-                    <ol
-                        class="mt-3 list-decimal space-y-2 pl-5 text-sm text-blue-900"
+                    <p class="mt-2 text-sm text-blue-900">
+                        Follow these simple steps so your shop can start
+                        accepting real payments through GCash, Maya, and
+                        Debit/Credit Cards from your customers.
+                    </p>
+
+                    <div class="mt-4 space-y-4 text-sm text-blue-900">
+                        <section>
+                            <h3 class="font-semibold text-blue-950">
+                                Step 1: Log In to PayMongo
+                            </h3>
+                            <ol class="mt-1.5 list-decimal space-y-1.5 pl-5">
+                                <li>
+                                    Open the internet browser on your computer
+                                    or smartphone and go to:
+                                    <a
+                                        href="https://www.paymongo.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1 font-medium underline"
+                                        >paymongo.com<ExternalLink
+                                            class="h-3 w-3"
+                                            aria-hidden="true"
+                                    /></a>
+                                </li>
+                                <li>
+                                    Enter your email to log in to your account.
+                                </li>
+                                <li>
+                                    <strong>Important:</strong> Make sure your
+                                    business profile is fully verified by
+                                    PayMongo so your account can legally accept
+                                    real money from customers.
+                                </li>
+                            </ol>
+                        </section>
+
+                        <section>
+                            <h3 class="font-semibold text-blue-950">
+                                Step 2: Look for the "API Keys" (Your Digital
+                                Keys)
+                            </h3>
+                            <ol class="mt-1.5 list-decimal space-y-1.5 pl-5">
+                                <li>
+                                    On the left side of your PayMongo screen,
+                                    look for the option named
+                                    <strong>Developers</strong> and click it.
+                                </li>
+                                <li>
+                                    Inside that menu, click on
+                                    <strong>API Keys</strong>.
+                                </li>
+                                <li>
+                                    Think of these "Keys" as custom passwords
+                                    that securely connect your laundry software
+                                    to your online cash register.
+                                </li>
+                            </ol>
+                        </section>
+
+                        <section>
+                            <h3 class="font-semibold text-blue-950">
+                                Step 3: Copy and Paste Your Live Keys
+                            </h3>
+                            <ol class="mt-1.5 list-decimal space-y-1.5 pl-5">
+                                <li>
+                                    Look for the codes labeled
+                                    <strong>Live keys</strong> (they start with
+                                    <code>sk_live_</code> and
+                                    <code>pk_live_</code>).
+                                </li>
+                                <li>
+                                    You will see two long rows of text codes:
+                                    the <strong>Secret Key</strong> and the
+                                    <strong>Public Key</strong>.
+                                </li>
+                                <li>
+                                    Copy these codes one by one and paste them
+                                    into the blank boxes provided on the setup
+                                    screen below.
+                                </li>
+                                <li>
+                                    <span
+                                        class="inline-flex items-start gap-1.5 rounded-md bg-amber-50 px-2 py-1 text-amber-900"
+                                    >
+                                        <TriangleAlert
+                                            class="mt-0.5 h-4 w-4 shrink-0 text-amber-600"
+                                            aria-hidden="true"
+                                        />
+                                        <span>
+                                            <strong>Important Warning:</strong>
+                                            The Secret Key will only show on
+                                            your screen one time. Before you
+                                            leave or close that webpage, make
+                                            sure to copy it and save it in a
+                                            safe place (like a notebook app or
+                                            text message) so you don't lose it.
+                                        </span>
+                                    </span>
+                                </li>
+                            </ol>
+                        </section>
+
+                        <section>
+                            <h3 class="font-semibold text-blue-950">
+                                Step 4: Save and Activate
+                            </h3>
+                            <ol class="mt-1.5 list-decimal space-y-1.5 pl-5">
+                                <li>
+                                    Click the button at the bottom that says
+                                    <strong>Connect Payment Gateway</strong>.
+                                </li>
+                                <li>
+                                    You are all set! Your laundry system is now
+                                    ready. Your customers can now pay you
+                                    instantly using GCash or Maya when they drop
+                                    off or book their laundry.
+                                </li>
+                            </ol>
+                        </section>
+                    </div>
+                    <p
+                        class="mt-3 flex items-start gap-2 text-xs text-blue-800"
                     >
-                        <li>
-                            Create or log in to your PayMongo account at
-                            <a
-                                href="https://dashboard.paymongo.com/signup"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="inline-flex items-center gap-1 font-medium underline"
-                                >dashboard.paymongo.com<ExternalLink
-                                    class="h-3 w-3"
-                                    aria-hidden="true"
-                            /></a>
-                            and complete the business verification to accept
-                            live payments.
-                        </li>
-                        <li>
-                            In the PayMongo dashboard, open
-                            <strong>Developers → API Keys</strong>.
-                        </li>
-                        <li>
-                            Use the <strong>Test</strong> keys
-                            (<code>sk_test_…</code> / <code>pk_test_…</code>) to
-                            try payments without real money, or switch to
-                            <strong>Live</strong> keys
-                            (<code>sk_live_…</code> / <code>pk_live_…</code>)
-                            once your account is activated.
-                        </li>
-                        <li>
-                            Copy the <strong>Secret key (SK)</strong> and
-                            <strong>Public key (PK)</strong> and paste them into
-                            the fields below. The secret key is shown only once,
-                            so store it safely.
-                        </li>
-                        <li>
-                            Click <strong>Connect Payment Gateway</strong>.
-                            Customers can then pay by GCash, Maya, card, or
-                            GrabPay.
-                        </li>
-                    </ol>
-                    <p class="mt-3 flex items-start gap-2 text-xs text-blue-800">
                         <ShieldCheck
                             class="mt-0.5 h-4 w-4 shrink-0"
                             aria-hidden="true"

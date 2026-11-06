@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import KycVerificationForm from '@/components/business/KycVerificationForm.vue';
 import {
     DataTable,
     StatusPill,
@@ -19,7 +20,6 @@ import { useDataTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import CheckoutConfirm from '@/pages/shop/CheckoutConfirm.vue';
 import { type BreadcrumbItem } from '@/types';
-import KycVerificationForm from '@/components/business/KycVerificationForm.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import Chart from 'chart.js/auto';
 import {
@@ -238,7 +238,6 @@ const props = defineProps<{
             signer_name: string;
             signer_role: string;
             accepted_at: string;
-            signature_url?: string | null;
         } | null;
     };
 }>();
@@ -1725,9 +1724,9 @@ function proceedToPay() {
                             We received your documents
                             <span v-if="kyc.submitted_at"
                                 >on {{ kyc.submitted_at }}</span
-                            >. Our admin is checking them. Your 7-day free
-                            trial starts automatically once you are approved,
-                            and we will email you.
+                            >. Our admin is checking them. Your 7-day free trial
+                            starts automatically once you are approved, and we
+                            will email you.
                         </p>
                     </div>
                     <KycVerificationForm

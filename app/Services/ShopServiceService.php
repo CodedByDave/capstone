@@ -65,7 +65,7 @@ class ShopServiceService
     public function create(array $data, ?UploadedFile $photo = null): ShopService
     {
         $this->validatePricingFields($data);
-        [$data, $supplies] = $this->splitSupplies($data);
+        [$data, $supplies] = $this->splitSupplies($data, (int) $data['shop_id']);
 
         if ($photo === null) {
             return $this->createWithSupplies($data, $supplies);
@@ -85,7 +85,7 @@ class ShopServiceService
     public function update(ShopService $service, array $data, ?UploadedFile $photo = null, bool $removePhoto = false): ShopService
     {
         $this->validatePricingFields($data);
-        [$data, $supplies] = $this->splitSupplies($data);
+        [$data, $supplies] = $this->splitSupplies($data, (int) $service->shop_id);
 
         $oldPath = $service->photo_path;
         $newPath = null;
@@ -145,13 +145,23 @@ class ShopServiceService
 
     /**
      * The supply lines to keep (none when "Uses supplies" is off) and the rest of the service data.
+     * Each line's unit is always the inventory item's consumption unit, so a service's consumption
+     * is measured the same way its stock is.
      *
      * @return array{0: array, 1: array}
      */
-    private function splitSupplies(array $data): array
+    private function splitSupplies(array $data, int $shopId): array
     {
         $supplies = ! empty($data['uses_supplies']) ? ($data['supplies'] ?? []) : [];
         unset($data['uses_supplies'], $data['supplies']);
+
+        if ($supplies !== []) {
+            $units = $this->inventory->all($shopId)->pluck('unit', 'id');
+            $supplies = array_map(
+                fn (array $line) => [...$line, 'unit' => (string) ($units[(int) $line['inventory_id']] ?? '')],
+                $supplies,
+            );
+        }
 
         return [$data, $supplies];
     }

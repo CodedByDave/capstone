@@ -6,8 +6,6 @@ use App\Exceptions\OrderSubmissionException;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
-use App\Notifications\OrderApprovedNotification;
-use App\Notifications\PlanRejectedNotification;
 use App\Repositories\KycVerificationRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\ShopRepository;
@@ -306,64 +304,6 @@ class OrderService
     public function syncApprovedShop(Order $order): Shop
     {
         return $this->shopRepository->syncFromApprovedOrder($order);
-    }
-
-    /**
-     * @throws ValidationException when the application is no longer pending (already handled or expired)
-     */
-    public function reject(Order $order, string $reason, array $flags = []): Order
-    {
-        $rejected = DB::transaction(function () use ($order, $reason, $flags) {
-            $locked = $this->orderRepository->findForApproval($order->id);
-
-            if ($locked->status !== 'pending') {
-                throw ValidationException::withMessages([
-                    'order' => 'This application is already '.$locked->status.' and can no longer be rejected. Refresh the page.',
-                ]);
-            }
-
-            $this->orderRepository->markRejected($locked, $reason, array_values(array_unique($flags)));
-
-            return $this->orderRepository->refresh($locked);
-        });
-
-        $rejected->user?->notify(new PlanRejectedNotification($rejected, $reason, false));
-
-        return $rejected;
-    }
-
-    public function approveWithPlatformSignature(
-        User $admin,
-        Order $order,
-        array $data,
-        ?string $ipAddress,
-        ?string $userAgent,
-    ): Order {
-        $approvedOrder = DB::transaction(function () use ($admin, $order, $data, $ipAddress, $userAgent) {
-            $lockedOrder = $this->orderRepository->findForApproval($order->id);
-
-            if ($lockedOrder->status !== 'pending') {
-                throw ValidationException::withMessages([
-                    'order' => 'Only pending orders can be approved.',
-                ]);
-            }
-
-            $this->businessAgreementService->countersignForOrder(
-                $admin,
-                $lockedOrder,
-                $data,
-                $ipAddress,
-                $userAgent,
-            );
-
-            $this->orderRepository->markApproved($lockedOrder);
-
-            return $this->orderRepository->refresh($lockedOrder);
-        });
-
-        $approvedOrder->user?->notify(new OrderApprovedNotification($approvedOrder));
-
-        return $approvedOrder;
     }
 
     public function getPaginated(array $filters = [], int $perPage = 20): LengthAwarePaginator

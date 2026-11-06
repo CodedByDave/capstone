@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AgreementSignatureInput from '@/components/business/AgreementSignatureInput.vue';
 import {
     DataTable,
     StatusPill,
@@ -8,11 +7,9 @@ import {
 } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -21,9 +18,8 @@ import {
     FileSignature,
     FileText,
     ShieldCheck,
-    X,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,17 +72,6 @@ interface AgreementAcceptance {
     signer_role: string;
     accepted_at: string;
     content_hash: string;
-    signature_method: 'drawn' | 'uploaded' | null;
-    signature_url: string | null;
-    execution_status: 'awaiting_platform_signature' | 'fully_executed';
-    platform_signature: {
-        public_id: string;
-        signer_name: string;
-        signer_role: string;
-        signed_at: string;
-        signature_method: 'drawn' | 'uploaded';
-        signature_url: string;
-    } | null;
     agreement: {
         title: string;
         version: string;
@@ -106,14 +91,12 @@ interface KycReviewRow {
     status: 'match' | 'mismatch' | 'unread';
 }
 
-const { order, agreementAcceptance, platformSigner, kycReview, kycFlagOptions } =
-    defineProps<{
-        order: Order;
-        agreementAcceptance: AgreementAcceptance | null;
-        platformSigner: { name: string; role: string };
-        kycReview: KycReviewRow[];
-        kycFlagOptions: { key: string; label: string }[];
-    }>();
+const { order, agreementAcceptance, kycReview, kycFlagOptions } = defineProps<{
+    order: Order;
+    agreementAcceptance: AgreementAcceptance | null;
+    kycReview: KycReviewRow[];
+    kycFlagOptions: { key: string; label: string }[];
+}>();
 
 const kycStatusMeta = {
     match: { text: 'Matches', cls: 'bg-emerald-100 text-emerald-700' },
@@ -126,10 +109,6 @@ const kycDocLinks = [
     { key: 'kyc_mayors', label: "Mayor's permit" },
     { key: 'kyc_sanitary', label: 'Sanitary permit' },
 ] as const;
-const mismatchedKeys = computed(() =>
-    kycReview.filter((r) => r.status === 'mismatch').map((r) => r.key),
-);
-const rejectFlags = ref<string[]>([]);
 
 const downloadingAgreement = ref(false);
 
@@ -243,69 +222,6 @@ const paymentStatusLabel: Record<string, string> = {
     refund_pending: 'Refund Pending',
     refunded: 'Refunded',
 };
-
-// ─── Approve / Reject ─────────────────────────────────────────────────────────
-
-const showRejectDialog = ref(false);
-const showApprovalDialog = ref(false);
-const rejectionReason = ref('');
-const submitting = ref(false);
-const approvalForm = useForm({
-    platform_signer_name: platformSigner.name,
-    platform_signer_role: platformSigner.role,
-    platform_signature_method: 'drawn' as 'drawn' | 'uploaded',
-    platform_signature_image: null as File | null,
-    platform_signer_authority_confirmed: false,
-});
-
-function approveOrder() {
-    if (!agreementAcceptance) return;
-    approvalForm.clearErrors();
-    showApprovalDialog.value = true;
-}
-
-function submitApproval() {
-    approvalForm.post(`/admin/orders/${order.public_id}/approve`, {
-        preserveScroll: true,
-        forceFormData: true,
-        onSuccess: () => {
-            showApprovalDialog.value = false;
-            approvalForm.reset(
-                'platform_signature_image',
-                'platform_signer_authority_confirmed',
-            );
-        },
-    });
-}
-
-function openRejectDialog() {
-    rejectionReason.value = '';
-    // Start with the fields OCR found to be mismatched; the admin can adjust.
-    rejectFlags.value = [...mismatchedKeys.value];
-    showRejectDialog.value = true;
-}
-
-function submitReject() {
-    if (!rejectionReason.value.trim()) return;
-    submitting.value = true;
-    router.post(
-        `/admin/orders/${order.public_id}/reject`,
-        { rejection_reason: rejectionReason.value, flags: rejectFlags.value },
-        {
-            onError: () => {
-                // Already handled elsewhere: close the dialog and reload the current status.
-                showRejectDialog.value = false;
-                router.reload();
-            },
-            onSuccess: () => {
-                showRejectDialog.value = false;
-            },
-            onFinish: () => {
-                submitting.value = false;
-            },
-        },
-    );
-}
 </script>
 
 <template>
@@ -335,24 +251,6 @@ function submitReject() {
                     >
                         {{ order.status }}
                     </span>
-                    <template v-if="order.status === 'pending'">
-                        <Button
-                            size="sm"
-                            class="bg-emerald-600 text-white hover:bg-emerald-700"
-                            :disabled="submitting || !agreementAcceptance"
-                            @click="approveOrder"
-                        >
-                            Approve and sign
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="destructive"
-                            :disabled="submitting"
-                            @click="openRejectDialog"
-                        >
-                            Reject
-                        </Button>
-                    </template>
                     <Button
                         variant="outline"
                         size="sm"
@@ -400,9 +298,15 @@ function submitReject() {
                         >
                             <tr>
                                 <th class="px-4 py-2 font-medium">Field</th>
-                                <th class="px-4 py-2 font-medium">Read by OCR</th>
-                                <th class="px-4 py-2 font-medium">Registered</th>
-                                <th class="px-4 py-2 font-medium">Confirmed by shop</th>
+                                <th class="px-4 py-2 font-medium">
+                                    Read by OCR
+                                </th>
+                                <th class="px-4 py-2 font-medium">
+                                    Registered
+                                </th>
+                                <th class="px-4 py-2 font-medium">
+                                    Confirmed by shop
+                                </th>
                                 <th class="px-4 py-2 font-medium">Result</th>
                             </tr>
                         </thead>
@@ -410,18 +314,32 @@ function submitReject() {
                             <tr
                                 v-for="row in kycReview"
                                 :key="row.key"
-                                :class="row.status === 'mismatch' ? 'bg-red-50/50' : ''"
+                                :class="
+                                    row.status === 'mismatch'
+                                        ? 'bg-red-50/50'
+                                        : ''
+                                "
                             >
-                                <td class="px-4 py-2.5 font-medium">{{ row.label }}</td>
-                                <td class="px-4 py-2.5">{{ row.ocr ?? '—' }}</td>
-                                <td class="px-4 py-2.5">{{ row.typed ?? '—' }}</td>
-                                <td class="px-4 py-2.5">{{ row.confirmed ?? '—' }}</td>
+                                <td class="px-4 py-2.5 font-medium">
+                                    {{ row.label }}
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    {{ row.ocr ?? '—' }}
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    {{ row.typed ?? '—' }}
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    {{ row.confirmed ?? '—' }}
+                                </td>
                                 <td class="px-4 py-2.5">
                                     <span
                                         class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
                                         :class="kycStatusMeta[row.status].cls"
                                     >
-                                        <span class="h-1.5 w-1.5 rounded-full bg-current" />
+                                        <span
+                                            class="h-1.5 w-1.5 rounded-full bg-current"
+                                        />
                                         {{ kycStatusMeta[row.status].text }}
                                     </span>
                                 </td>
@@ -719,30 +637,9 @@ function submitReject() {
                                     agreementAcceptance.agreement.version
                                 }}</span>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-muted-foreground"
-                                    >Status</span
-                                >
-                                <span
-                                    class="rounded-full px-2 py-1 text-xs font-medium"
-                                    :class="
-                                        agreementAcceptance.execution_status ===
-                                        'fully_executed'
-                                            ? 'bg-emerald-100 text-emerald-700'
-                                            : 'bg-amber-100 text-amber-700'
-                                    "
-                                >
-                                    {{
-                                        agreementAcceptance.execution_status ===
-                                        'fully_executed'
-                                            ? 'Fully Executed'
-                                            : 'Awaiting Platform Signature'
-                                    }}
-                                </span>
-                            </div>
                             <div>
                                 <p class="text-xs text-muted-foreground">
-                                    Signed by
+                                    Accepted by
                                 </p>
                                 <p class="font-medium">
                                     {{ agreementAcceptance.signer_name }}
@@ -763,35 +660,7 @@ function submitReject() {
                                     }}
                                 </p>
                             </div>
-                            <div v-if="agreementAcceptance.platform_signature">
-                                <p class="text-xs text-muted-foreground">
-                                    Platform representative
-                                </p>
-                                <p class="font-medium">
-                                    {{
-                                        agreementAcceptance.platform_signature
-                                            .signer_name
-                                    }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    {{
-                                        agreementAcceptance.platform_signature
-                                            .signer_role
-                                    }}
-                                    ·
-                                    {{
-                                        formatDate(
-                                            agreementAcceptance
-                                                .platform_signature.signed_at,
-                                        )
-                                    }}
-                                </p>
-                            </div>
                             <Button
-                                v-if="
-                                    agreementAcceptance.execution_status ===
-                                    'fully_executed'
-                                "
                                 variant="outline"
                                 size="sm"
                                 class="w-full gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
@@ -840,222 +709,5 @@ function submitReject() {
                 </div>
             </div>
         </div>
-
-        <!-- Approval and platform signature dialog -->
-        <Teleport to="body">
-            <div
-                v-if="showApprovalDialog"
-                class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
-            >
-                <div
-                    class="fixed inset-0 bg-black/50"
-                    @click="showApprovalDialog = false"
-                />
-                <form
-                    class="relative z-10 my-8 w-full max-w-2xl space-y-5 bg-background p-6 shadow-xl"
-                    @submit.prevent="submitApproval"
-                >
-                    <div>
-                        <h3 class="text-lg font-semibold">
-                            Approve and countersign agreement
-                        </h3>
-                        <p class="mt-1 text-sm text-muted-foreground">
-                            Approval records your signature for LaundryHub and
-                            makes the agreement fully executed.
-                        </p>
-                    </div>
-
-                    <div
-                        v-if="
-                            approvalForm.errors.agreement ||
-                            approvalForm.errors.order
-                        "
-                        class="border-y border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
-                    >
-                        {{
-                            approvalForm.errors.agreement ||
-                            approvalForm.errors.order
-                        }}
-                    </div>
-
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <Label class="mb-1.5">Printed full name</Label>
-                            <Input
-                                v-model="approvalForm.platform_signer_name"
-                            />
-                            <p
-                                v-if="approvalForm.errors.platform_signer_name"
-                                class="mt-1 text-xs text-red-600"
-                            >
-                                {{ approvalForm.errors.platform_signer_name }}
-                            </p>
-                        </div>
-                        <div>
-                            <Label class="mb-1.5"
-                                >Position / signing capacity</Label
-                            >
-                            <Input
-                                v-model="approvalForm.platform_signer_role"
-                            />
-                            <p
-                                v-if="approvalForm.errors.platform_signer_role"
-                                class="mt-1 text-xs text-red-600"
-                            >
-                                {{ approvalForm.errors.platform_signer_role }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <AgreementSignatureInput
-                        v-model="approvalForm.platform_signature_image"
-                        label="LaundryHub representative signature"
-                        description="Draw your authorized platform signature or upload a clear signature image."
-                        file-name="platform-signature.png"
-                        :disabled="approvalForm.processing"
-                        :error="approvalForm.errors.platform_signature_image"
-                        @update:method="
-                            approvalForm.platform_signature_method = $event
-                        "
-                    />
-
-                    <label
-                        class="flex cursor-pointer items-start gap-2 text-sm"
-                    >
-                        <input
-                            v-model="
-                                approvalForm.platform_signer_authority_confirmed
-                            "
-                            type="checkbox"
-                            class="mt-1 accent-emerald-600"
-                        />
-                        <span>
-                            I confirm that I am authorized to approve this order
-                            and bind LaundryHub to this agreement.
-                        </span>
-                    </label>
-                    <p
-                        v-if="
-                            approvalForm.errors
-                                .platform_signer_authority_confirmed
-                        "
-                        class="text-xs text-red-600"
-                    >
-                        {{
-                            approvalForm.errors
-                                .platform_signer_authority_confirmed
-                        }}
-                    </p>
-
-                    <div class="flex justify-end gap-2 border-t pt-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            :disabled="approvalForm.processing"
-                            @click="showApprovalDialog = false"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            class="bg-emerald-600 text-white hover:bg-emerald-700"
-                            :disabled="
-                                approvalForm.processing ||
-                                !approvalForm.platform_signature_image ||
-                                !approvalForm.platform_signer_authority_confirmed
-                            "
-                        >
-                            Approve and sign
-                        </Button>
-                    </div>
-                </form>
-            </div>
-        </Teleport>
-
-        <!-- Reject dialog -->
-        <Teleport to="body">
-            <div
-                v-if="showRejectDialog"
-                class="fixed inset-0 z-50 flex items-center justify-center"
-            >
-                <div
-                    class="absolute inset-0 bg-black/50"
-                    @click="showRejectDialog = false"
-                />
-                <div
-                    class="relative z-10 mx-4 w-full max-w-md rounded-xl bg-background p-6 shadow-xl"
-                >
-                    <div class="mb-4 flex items-start gap-3">
-                        <AlertTriangle
-                            class="mt-0.5 h-5 w-5 shrink-0 text-red-500"
-                        />
-                        <div>
-                            <h3 class="text-base font-semibold">
-                                Reject {{ order.transaction_reference }}
-                            </h3>
-                            <p class="mt-0.5 text-sm text-muted-foreground">
-                                Provide a reason. The shop owner will be
-                                notified by email. No payment will be collected.
-                            </p>
-                        </div>
-                    </div>
-                    <fieldset
-                        v-if="kycReview.length"
-                        class="mb-3 rounded-lg border p-3"
-                    >
-                        <legend class="px-1 text-xs font-medium">
-                            What needs to be corrected? (optional)
-                        </legend>
-                        <div class="grid max-h-40 gap-1.5 overflow-y-auto sm:grid-cols-2">
-                            <label
-                                v-for="opt in kycFlagOptions"
-                                :key="opt.key"
-                                class="flex cursor-pointer items-center gap-2 text-sm"
-                            >
-                                <input
-                                    v-model="rejectFlags"
-                                    type="checkbox"
-                                    :value="opt.key"
-                                    class="h-4 w-4 rounded border"
-                                />
-                                {{ opt.label }}
-                            </label>
-                        </div>
-                        <p class="mt-2 text-xs text-muted-foreground">
-                            Anything you leave unchecked is kept as the shop
-                            submitted it when they resubmit.
-                        </p>
-                    </fieldset>
-                    <textarea
-                        v-model="rejectionReason"
-                        rows="4"
-                        placeholder="e.g. Incomplete or invalid KYC documents submitted."
-                        class="w-full resize-none rounded-lg border bg-muted/30 px-3 py-2 text-sm focus:ring-2 focus:ring-red-400 focus:outline-none"
-                    />
-                    <p
-                        v-if="!rejectionReason.trim()"
-                        class="mt-1 text-xs text-red-400"
-                    >
-                        Reason is required.
-                    </p>
-                    <div class="mt-4 flex justify-end gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            @click="showRejectDialog = false"
-                            >Cancel</Button
-                        >
-                        <Button
-                            size="sm"
-                            variant="destructive"
-                            :disabled="!rejectionReason.trim() || submitting"
-                            @click="submitReject"
-                        >
-                            <X class="mr-1.5 h-4 w-4" /> Confirm Reject
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
     </AdminLayout>
 </template>

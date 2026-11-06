@@ -9,7 +9,6 @@ use App\Repositories\BusinessAgreementRepository;
 use App\Repositories\ShopRepository;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class BusinessAgreementPdfService
@@ -19,11 +18,8 @@ class BusinessAgreementPdfService
         private readonly ShopRepository $shopRepository,
     ) {}
 
-    /**
-     * Render the current agreement as a PDF for the checkout preview. When the
-     * owner has chosen a signature image it is placed on the signature line.
-     */
-    public function previewPdf(User $user, array $data, ?UploadedFile $signature): string
+    /** Render the current agreement as a PDF for the checkout preview. */
+    public function previewPdf(User $user, array $data): string
     {
         $agreement = $this->agreementRepository->current();
 
@@ -46,9 +42,6 @@ class BusinessAgreementPdfService
             'businessName' => $data['business_name'] ?? $shop?->shop_name ?? 'The business identified in the application',
             'signerName' => $data['signer_name'] ?? $user->name,
             'signerRole' => $data['signer_role'] ?? 'Owner',
-            'ownerSignature' => $signature
-                ? $this->dataUri($signature->get(), $signature->getMimeType())
-                : null,
         ]);
     }
 
@@ -80,40 +73,18 @@ class BusinessAgreementPdfService
 
     private function acceptanceView(BusinessAgreementAcceptance $acceptance): array
     {
-        $platform = $acceptance->platformSignature;
-
         return [
             'businessName' => $acceptance->business_name,
             'signerName' => $acceptance->signer_name,
             'signerRole' => $acceptance->signer_role,
-            'ownerSignature' => $this->storedSignature($acceptance->signature_path),
-            'signedAt' => $acceptance->accepted_at?->format('F j, Y'),
-            'platformSignature' => $platform ? $this->storedSignature($platform->signature_path) : null,
-            'platformSignerName' => $platform?->signer_name,
-            'platformSignerRole' => $platform?->signer_role,
-            'platformSignedAt' => $platform?->signed_at?->format('F j, Y'),
+            'acceptedAt' => $acceptance->accepted_at?->format('F j, Y'),
         ];
-    }
-
-    private function storedSignature(?string $path): ?string
-    {
-        if (! $path) {
-            return null;
-        }
-
-        $file = $this->agreementRepository->signatureContents($path);
-
-        return $this->dataUri($file['contents'], $file['mime_type']);
     }
 
     private function render(BusinessAgreement $agreement, array $view): string
     {
         return Pdf::loadView('pdf.business-agreement', array_merge([
-            'signedAt' => null,
-            'platformSignature' => null,
-            'platformSignerName' => null,
-            'platformSignerRole' => null,
-            'platformSignedAt' => null,
+            'acceptedAt' => null,
         ], $view, [
             'title' => $agreement->title,
             'version' => $agreement->version,
@@ -136,10 +107,5 @@ class BusinessAgreementPdfService
             })
             ->values()
             ->all();
-    }
-
-    private function dataUri(string $contents, ?string $mimeType): string
-    {
-        return 'data:'.($mimeType ?: 'image/png').';base64,'.base64_encode($contents);
     }
 }

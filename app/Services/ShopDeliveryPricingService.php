@@ -75,6 +75,15 @@ class ShopDeliveryPricingService
         ]);
     }
 
+    /** The weight range one rider run can carry. A null side means no limit on that side. */
+    public function updateRiderLoadLimit(User $owner, ?float $min, ?float $max): Shop
+    {
+        return $this->shops->updateDeliveryPricing($this->shopForOwner($owner), [
+            'rider_min_weight_kg' => $min === null ? null : round($min, 2),
+            'rider_max_weight_kg' => $max === null ? null : round($max, 2),
+        ]);
+    }
+
     /** How the driver app shows earnings: nothing, the delivery fee per run, or a flat daily rate. */
     public function updateDriverPay(User $owner, array $data): Shop
     {

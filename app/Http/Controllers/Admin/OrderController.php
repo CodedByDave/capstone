@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\ApproveOrderRequest;
 use App\Http\Requests\Admin\OrderFilterRequest;
-use App\Http\Requests\Admin\RejectOrderRequest;
 use App\Models\Order;
 use App\Services\BusinessAgreementService;
 use App\Services\KycReviewService;
@@ -101,40 +99,7 @@ class OrderController extends Controller
             'kycReview' => $this->kycReviewService->rows($order),
             'kycFlagOptions' => $this->kycReviewService->flagOptions(),
             'agreementAcceptance' => $this->businessAgreementService->acceptanceDataForOrder($order),
-            'platformSigner' => [
-                'name' => $request->user()->name,
-                'role' => 'Authorized Platform Representative',
-            ],
         ]);
-    }
-
-    public function approve(ApproveOrderRequest $request, Order $order)
-    {
-        $this->orderService->approveWithPlatformSignature(
-            $request->user(),
-            $order,
-            $request->validated(),
-            $request->ip(),
-            $request->userAgent(),
-        );
-
-        return redirect()->back()
-            ->with('toast', [
-                'type' => 'success',
-                'message' => "{$order->shop_name} has been approved. The agreement is fully executed and ready for download.",
-            ]);
-    }
-
-    public function reject(RejectOrderRequest $request, Order $order)
-    {
-        $this->orderService->reject(
-            $order,
-            $request->validated('rejection_reason'),
-            $request->validated('flags') ?? [],
-        );
-
-        return redirect()->back()
-            ->with('toast', ['type' => 'error', 'message' => "{$order->shop_name} rejected. No payment was collected."]);
     }
 
     public function serveKyc(Request $request): StreamedResponse

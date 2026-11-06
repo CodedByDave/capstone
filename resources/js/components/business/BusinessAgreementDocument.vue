@@ -13,14 +13,6 @@ interface Acceptance {
     signer_name: string;
     signer_role: string;
     accepted_at?: string;
-    signature_url?: string | null;
-    execution_status?: 'awaiting_platform_signature' | 'fully_executed';
-    platform_signature?: {
-        signer_name: string;
-        signer_role: string;
-        signed_at: string;
-        signature_url: string;
-    } | null;
 }
 
 const props = defineProps<{
@@ -102,6 +94,7 @@ function formatDate(value?: string) {
             </div>
         </section>
 
+        <!-- The owner accepts by name; no signature is collected. -->
         <section
             v-if="acceptance"
             class="mt-10 border-t-2 border-stone-900 pt-6"
@@ -109,71 +102,15 @@ function formatDate(value?: string) {
             <p
                 class="text-xs font-semibold tracking-widest text-stone-500 uppercase"
             >
-                Signatures
+                Acceptance
             </p>
-            <div class="mt-5 grid gap-10 sm:grid-cols-2">
-                <div>
-                    <div
-                        class="flex h-24 items-end border-b border-stone-800 pb-2"
-                    >
-                        <img
-                            v-if="acceptance.signature_url"
-                            :src="acceptance.signature_url"
-                            alt="Owner signature"
-                            class="max-h-20 max-w-full object-contain"
-                        />
-                    </div>
-                    <p class="mt-2 text-sm font-semibold">
-                        {{ acceptance.signer_name }}
-                    </p>
-                    <p class="text-xs text-stone-500">
-                        {{ acceptance.signer_role }}
-                    </p>
-                    <p class="mt-1 text-xs text-stone-500">
-                        For
-                        {{
-                            acceptance.business_name ||
-                            businessName ||
-                            'Business'
-                        }}
-                    </p>
-                </div>
-                <div>
-                    <div
-                        class="flex h-24 items-end border-b border-stone-800 pb-2"
-                    >
-                        <img
-                            v-if="acceptance.platform_signature?.signature_url"
-                            :src="acceptance.platform_signature.signature_url"
-                            alt="LaundryHub representative signature"
-                            class="max-h-20 max-w-full object-contain"
-                        />
-                        <span v-else class="pb-2 text-xs text-stone-400">
-                            Awaiting platform signature
-                        </span>
-                    </div>
-                    <template v-if="acceptance.platform_signature">
-                        <p class="mt-2 text-sm font-semibold">
-                            {{ acceptance.platform_signature.signer_name }}
-                        </p>
-                        <p class="text-xs text-stone-500">
-                            {{ acceptance.platform_signature.signer_role }}
-                        </p>
-                        <p class="mt-1 text-xs text-stone-500">
-                            For LaundryHub
-                        </p>
-                    </template>
-                </div>
-            </div>
-            <div
-                class="mt-6 grid gap-2 border-t border-stone-300 pt-4 text-xs text-stone-500 sm:grid-cols-2"
-            >
-                <p>Business signed: {{ formatDate(acceptance.accepted_at) }}</p>
-                <p v-if="acceptance.platform_signature">
-                    Platform signed:
-                    {{ formatDate(acceptance.platform_signature.signed_at) }}
-                </p>
-            </div>
+            <p class="mt-3 text-sm leading-6 text-stone-800">
+                Accepted electronically by
+                <strong>{{ acceptance.signer_name }}</strong>
+                ({{ acceptance.signer_role }}) for
+                {{ acceptance.business_name || businessName || 'the business' }}
+                on {{ formatDate(acceptance.accepted_at) }}.
+            </p>
         </section>
     </article>
 </template>

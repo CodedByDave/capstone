@@ -15,7 +15,7 @@ import {
     Info,
     ShoppingCart,
 } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
 interface Option {
     value: string;
@@ -71,6 +71,20 @@ const visiblePurchaseOptions = computed(() => {
           )
         : props.purchaseOptions;
 });
+
+// Bought in the same unit it is used in (e.g. pcs bought as pcs): one purchase unit holds exactly
+// one consumption unit, so the container size is fixed at 1 and stock and cost are not multiplied.
+const sameUnit = computed(
+    () => purchaseUnit.value !== '' && purchaseUnit.value === unit.value,
+);
+
+watch(
+    sameUnit,
+    (same) => {
+        if (same && Number(packageSize.value) !== 1) packageSize.value = 1;
+    },
+    { immediate: true },
+);
 
 const chip =
     'inline-block rounded-md bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/60 dark:text-blue-300';
@@ -194,7 +208,7 @@ const suffix =
                                 min="1"
                                 placeholder="5000"
                                 class="rounded-r-none"
-                                :disabled="!purchaseSelected"
+                                :disabled="!purchaseSelected || sameUnit"
                                 :class="{
                                     'border-red-500': errors.package_size,
                                 }"
@@ -202,7 +216,11 @@ const suffix =
                             <span :class="suffix">{{ unit }}</span>
                         </div>
                         <p class="text-xs text-muted-foreground">
-                            <template v-if="purchaseSelected"
+                            <template v-if="sameUnit"
+                                >Always 1 — it is bought and used in
+                                {{ unit }}.</template
+                            >
+                            <template v-else-if="purchaseSelected"
                                 >e.g. 5000 {{ unit }} per
                                 {{ packageUnit }}.</template
                             >
@@ -288,7 +306,7 @@ const suffix =
                     </div>
                 </div>
                 <p
-                    v-if="usesPackages"
+                    v-if="usesPackages && !sameUnit"
                     class="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
                 >
                     <Info class="h-3.5 w-3.5" aria-hidden="true" />

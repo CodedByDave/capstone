@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    patchSettingsForm,
+    useSettingsSection,
+} from '@/composables/useSettingsSaveBar';
 import { useForm } from '@inertiajs/vue3';
-import { Loader2, Zap } from 'lucide-vue-next';
-import { toast } from 'vue3-toastify';
+import { Zap } from 'lucide-vue-next';
 
 const props = defineProps<{
     rushFee: number;
@@ -14,14 +16,16 @@ const form = useForm({
     rush_fee: props.rushFee > 0 ? String(props.rushFee) : '',
 });
 
-function save() {
-    form.patch('/shop/settings/rush-fee', {
-        preserveScroll: true,
-        preserveState: (page) =>
-            Object.keys(page.props.errors ?? {}).length > 0,
-        onError: () => toast.error('The rush fee was not saved.'),
-    });
-}
+useSettingsSection({
+    key: 'rush',
+    label: 'Rush fee',
+    isDirty: () => form.isDirty,
+    save: () => patchSettingsForm(form, '/shop/settings/rush-fee'),
+    discard: () => {
+        form.reset();
+        form.clearErrors();
+    },
+});
 </script>
 
 <template>
@@ -55,10 +59,5 @@ function save() {
             />
             <InputError :message="form.errors.rush_fee" />
         </div>
-
-        <Button :disabled="form.processing" class="min-h-11" @click="save">
-            <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-            Save rush fee
-        </Button>
     </section>
 </template>

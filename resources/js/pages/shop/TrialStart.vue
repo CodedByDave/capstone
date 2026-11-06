@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AgreementSignatureInput from '@/components/business/AgreementSignatureInput.vue';
 import BusinessAgreementDocument from '@/components/business/BusinessAgreementDocument.vue';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,6 @@ const props = defineProps<{
             signer_name: string;
             signer_role: string;
             accepted_at: string;
-            signature_url?: string | null;
         } | null;
     };
 }>();
@@ -57,8 +55,6 @@ const form = useForm({
     signer_role: props.agreement.acceptance?.signer_role ?? 'Owner',
     signer_authority_confirmed: props.agreement.accepted,
     agreement_accepted: props.agreement.accepted,
-    signature_image: null as File | null,
-    signature_method: 'drawn' as 'drawn' | 'uploaded',
 });
 
 const TRIAL_MODULES = [
@@ -72,8 +68,7 @@ const canSubmit = computed(
     () =>
         form.signer_name.trim().length >= 2 &&
         form.signer_authority_confirmed &&
-        form.agreement_accepted &&
-        (props.agreement.accepted || form.signature_image !== null),
+        form.agreement_accepted,
 );
 
 const submit = () => {
@@ -291,10 +286,10 @@ const submit = () => {
                             class="border-y border-stone-300 bg-white px-6 py-6"
                         >
                             <h2 class="text-base font-semibold text-stone-950">
-                                Execute this agreement
+                                Accept this agreement
                             </h2>
                             <p class="mt-1 text-sm text-stone-500">
-                                The printed name and owner signature will become
+                                Your printed name, role and the date will become
                                 part of the agreement record.
                             </p>
 
@@ -310,7 +305,7 @@ const submit = () => {
                                     </p>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <Label>Signing capacity</Label>
+                                    <Label>Role</Label>
                                     <select
                                         v-model="form.signer_role"
                                         class="w-full rounded-md border bg-white px-3 py-2 text-sm"
@@ -322,12 +317,6 @@ const submit = () => {
                                     </select>
                                 </div>
                             </div>
-
-                            <AgreementSignatureInput
-                                v-model="form.signature_image"
-                                :error="form.errors.signature_image"
-                                @update:method="form.signature_method = $event"
-                            />
 
                             <div class="space-y-3">
                                 <label
@@ -354,7 +343,7 @@ const submit = () => {
                                         class="mt-1 accent-blue-600"
                                     />
                                     <span
-                                        >I have read, signed, and accept the
+                                        >I have read and accept the
                                         Platform–Business Services
                                         Agreement.</span
                                     >

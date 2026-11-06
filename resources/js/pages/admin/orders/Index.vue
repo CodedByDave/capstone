@@ -24,8 +24,6 @@ import {
     FileText,
     ListOrdered,
     RefreshCcw,
-    ShieldCheck,
-    ShieldX,
     Upload,
     X,
 } from 'lucide-vue-next';
@@ -362,101 +360,6 @@ function isImage(path: string) {
     return /\.(jpg|jpeg|png)$/i.test(path);
 }
 
-// ─── Approve / Reject ─────────────────────────────────────────────────────────
-
-const confirmModal = ref<{
-    open: boolean;
-    action: 'approve' | 'reject' | null;
-    orderPublicId: string | null;
-    shopName: string;
-    rejectionReason: string;
-    reasonError: string;
-}>({
-    open: false,
-    action: null,
-    orderPublicId: null,
-    shopName: '',
-    rejectionReason: '',
-    reasonError: '',
-});
-
-function openConfirm(action: 'approve' | 'reject', order: OrderItem) {
-    if (action === 'approve') {
-        router.visit(`/admin/orders/${order.public_id}`);
-        return;
-    }
-
-    confirmModal.value = {
-        open: true,
-        action,
-        orderPublicId: order.public_id,
-        shopName: order.shop_name,
-        rejectionReason: '',
-        reasonError: '',
-    };
-}
-
-function closeConfirm() {
-    confirmModal.value = {
-        open: false,
-        action: null,
-        orderPublicId: null,
-        shopName: '',
-        rejectionReason: '',
-        reasonError: '',
-    };
-}
-
-function submitAction() {
-    if (!confirmModal.value.orderPublicId || !confirmModal.value.action) return;
-
-    if (confirmModal.value.action === 'reject') {
-        if (!confirmModal.value.rejectionReason.trim()) {
-            confirmModal.value.reasonError =
-                'Please provide a reason for rejection.';
-            return;
-        }
-        confirmModal.value.reasonError = '';
-    }
-
-    const url = `/admin/orders/${confirmModal.value.orderPublicId}/${confirmModal.value.action}`;
-    const payload =
-        confirmModal.value.action === 'reject'
-            ? { rejection_reason: confirmModal.value.rejectionReason.trim() }
-            : {};
-
-    router.post(url, payload, {
-        onError: (errors) => {
-            // The application was already handled elsewhere: tell the admin and refresh the list.
-            if (errors.order) {
-                toast.error(errors.order);
-                closeConfirm();
-                router.reload();
-            } else if (errors.rejection_reason) {
-                confirmModal.value.reasonError = errors.rejection_reason;
-            }
-        },
-        onSuccess: () => {
-            closeConfirm();
-            const flash = page.props.toast as
-                | { type: string; message: string }
-                | undefined;
-            if (flash) {
-                switch (flash.type) {
-                    case 'success':
-                        toast.success(flash.message);
-                        break;
-                    case 'error':
-                        toast.error(flash.message);
-                        break;
-                    default:
-                        toast(flash.message);
-                }
-            }
-        },
-    });
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string | null) {
@@ -719,19 +622,6 @@ function isExpired(expiresAt: string | null) {
                                 icon: FileText,
                                 onSelect: () => openKyc(order),
                             },
-                            {
-                                label: 'Approve',
-                                icon: ShieldCheck,
-                                show: order.status === 'pending',
-                                onSelect: () => openConfirm('approve', order),
-                            },
-                            {
-                                label: 'Reject',
-                                icon: ShieldX,
-                                destructive: true,
-                                show: order.status === 'pending',
-                                onSelect: () => openConfirm('reject', order),
-                            },
                         ]"
                     />
                 </template>
@@ -829,109 +719,6 @@ function isExpired(expiresAt: string | null) {
                                 </template>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
-
-        <!-- ── Confirm Modal ──────────────────────────────────────────────────── -->
-        <Teleport to="body">
-            <div
-                v-if="confirmModal.open"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
-                @click.self="closeConfirm"
-            >
-                <div
-                    class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900"
-                >
-                    <div class="mb-4 flex items-center gap-3">
-                        <div
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-                            :class="
-                                confirmModal.action === 'approve'
-                                    ? 'bg-emerald-100'
-                                    : 'bg-red-100'
-                            "
-                        >
-                            <ShieldCheck
-                                v-if="confirmModal.action === 'approve'"
-                                class="h-5 w-5 text-emerald-600"
-                            />
-                            <ShieldX v-else class="h-5 w-5 text-red-600" />
-                        </div>
-                        <div>
-                            <h2 class="text-sm font-semibold capitalize">
-                                {{ confirmModal.action }} Order
-                            </h2>
-                            <p class="text-xs text-muted-foreground">
-                                {{ confirmModal.shopName }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <p class="mb-4 text-sm text-muted-foreground">
-                        <template v-if="confirmModal.action === 'approve'">
-                            This will activate the shop and make modules
-                            available to the owner.
-                        </template>
-                        <template v-else>
-                            This will reject the order. The shop will not be
-                            activated and the owner will be notified with your
-                            reason. A refund will be marked for processing.
-                        </template>
-                    </p>
-
-                    <!-- Rejection reason (only shown when rejecting) -->
-                    <div v-if="confirmModal.action === 'reject'" class="mb-5">
-                        <label
-                            class="mb-1.5 block text-xs font-medium text-foreground"
-                        >
-                            Reason for rejection
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <textarea
-                            v-model="confirmModal.rejectionReason"
-                            rows="4"
-                            placeholder="e.g. Incomplete or invalid KYC documents submitted. Please re-submit with valid BIR and DTI certificates."
-                            class="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-red-400 focus:outline-none"
-                            :class="
-                                confirmModal.reasonError ? 'border-red-400' : ''
-                            "
-                        />
-                        <p
-                            v-if="confirmModal.reasonError"
-                            class="mt-1 text-xs text-red-500"
-                        >
-                            {{ confirmModal.reasonError }}
-                        </p>
-                        <p class="mt-1.5 text-xs text-muted-foreground">
-                            This reason will be emailed to the shop owner along
-                            with a refund notice.
-                        </p>
-                    </div>
-
-                    <div class="flex justify-end gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            @click="closeConfirm"
-                            >Cancel</Button
-                        >
-                        <Button
-                            size="sm"
-                            :class="
-                                confirmModal.action === 'approve'
-                                    ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                                    : 'bg-red-600 text-white hover:bg-red-700'
-                            "
-                            @click="submitAction"
-                        >
-                            {{
-                                confirmModal.action === 'approve'
-                                    ? 'Approve'
-                                    : 'Reject'
-                            }}
-                        </Button>
                     </div>
                 </div>
             </div>

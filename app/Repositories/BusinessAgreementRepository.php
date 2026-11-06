@@ -4,14 +4,10 @@ namespace App\Repositories;
 
 use App\Models\BusinessAgreement;
 use App\Models\BusinessAgreementAcceptance;
-use App\Models\BusinessAgreementPlatformSignature;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 class BusinessAgreementRepository
 {
@@ -62,8 +58,9 @@ class BusinessAgreementRepository
                 'business_name' => $shop->shop_name,
                 'signer_name' => $data['signer_name'],
                 'signer_role' => $data['signer_role'],
-                'signature_method' => $data['signature_method'],
-                'signature_path' => $data['signature_path'],
+                // Signatures are no longer collected; the columns stay for agreements signed earlier.
+                'signature_method' => null,
+                'signature_path' => null,
                 'accepted_at' => now(),
                 'ip_address' => $data['ip_address'],
                 'user_agent' => $data['user_agent'],
@@ -80,7 +77,7 @@ class BusinessAgreementRepository
             $acceptance->update(['order_id' => $order->id]);
         }
 
-        return $acceptance->refresh()->load(['agreement', 'platformSignature']);
+        return $acceptance->refresh()->load('agreement');
     }
 
     public function reassignOrder(
@@ -89,13 +86,13 @@ class BusinessAgreementRepository
     ): BusinessAgreementAcceptance {
         $acceptance->update(['order_id' => $order->id]);
 
-        return $acceptance->refresh()->load(['agreement', 'platformSignature']);
+        return $acceptance->refresh()->load('agreement');
     }
 
     public function historyForShop(Shop $shop): Collection
     {
         return BusinessAgreementAcceptance::query()
-            ->with(['agreement', 'platformSignature'])
+            ->with('agreement')
             ->where('shop_id', $shop->id)
             ->latest('accepted_at')
             ->get();
@@ -104,7 +101,7 @@ class BusinessAgreementRepository
     public function acceptanceForOrder(Order $order): ?BusinessAgreementAcceptance
     {
         return BusinessAgreementAcceptance::query()
-            ->with(['agreement', 'platformSignature'])
+            ->with('agreement')
             ->where('order_id', $order->id)
             ->first();
     }
@@ -112,72 +109,8 @@ class BusinessAgreementRepository
     public function findAcceptanceByPublicId(string $publicId): ?BusinessAgreementAcceptance
     {
         return BusinessAgreementAcceptance::query()
-            ->with(['agreement', 'shop', 'platformSignature'])
+            ->with(['agreement', 'shop'])
             ->where('public_id', $publicId)
             ->first();
-    }
-
-    public function storeSignature(
-        UploadedFile $signature,
-        Shop $shop,
-        BusinessAgreement $agreement,
-    ): string {
-        return $signature->store(
-            "agreements/{$shop->id}/{$agreement->public_id}",
-            'private',
-        );
-    }
-
-    public function createPlatformSignature(
-        BusinessAgreementAcceptance $acceptance,
-        User $admin,
-        array $data,
-    ): BusinessAgreementPlatformSignature {
-        return BusinessAgreementPlatformSignature::query()->create([
-            'business_agreement_acceptance_id' => $acceptance->id,
-            'admin_user_id' => $admin->id,
-            'signer_name' => $data['signer_name'],
-            'signer_role' => $data['signer_role'],
-            'signature_method' => $data['signature_method'],
-            'signature_path' => $data['signature_path'],
-            'signed_at' => now(),
-            'ip_address' => $data['ip_address'],
-            'user_agent' => $data['user_agent'],
-        ]);
-    }
-
-    public function storePlatformSignature(
-        UploadedFile $signature,
-        BusinessAgreementAcceptance $acceptance,
-    ): string {
-        return $signature->store(
-            "agreements/{$acceptance->shop_id}/{$acceptance->agreement->public_id}/platform",
-            'private',
-        );
-    }
-
-    public function findPlatformSignatureByPublicId(string $publicId): ?BusinessAgreementPlatformSignature
-    {
-        return BusinessAgreementPlatformSignature::query()
-            ->with('acceptance.shop')
-            ->where('public_id', $publicId)
-            ->first();
-    }
-
-    public function refreshAcceptance(BusinessAgreementAcceptance $acceptance): BusinessAgreementAcceptance
-    {
-        return $acceptance->refresh()->load(['agreement', 'platformSignature']);
-    }
-
-    public function signatureContents(string $path): array
-    {
-        if (! Storage::disk('private')->exists($path)) {
-            throw (new ModelNotFoundException)->setModel(BusinessAgreementAcceptance::class);
-        }
-
-        return [
-            'contents' => Storage::disk('private')->get($path),
-            'mime_type' => Storage::disk('private')->mimeType($path) ?: 'image/png',
-        ];
     }
 }

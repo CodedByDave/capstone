@@ -420,10 +420,12 @@ const changeStatus = (
 
 // Only an order still in the queue can be rushed. Taking rush off is blocked once it has a payment.
 const inQueue = (order: Order) => order.queue_position !== null;
+// Rush is decided before the customer pays, so both actions are only offered on unpaid orders.
+const unpaid = (order: Order) => Number(order.amount_paid) === 0;
 const canRush = (order: Order) =>
-    inQueue(order) && !order.is_rush && props.rushFee > 0;
+    inQueue(order) && unpaid(order) && !order.is_rush && props.rushFee > 0;
 const canUnrush = (order: Order) =>
-    inQueue(order) && order.is_rush && Number(order.amount_paid) === 0;
+    inQueue(order) && unpaid(order) && order.is_rush;
 
 const orderToRush = ref<Order | null>(null);
 const rushMode = ref<'rush' | 'unrush'>('rush');
@@ -962,8 +964,8 @@ const handleDelete = () => {
                             <span class="font-semibold text-foreground">{{
                                 formatCurrency(rushFee)
                             }}</span>
-                            is added to the total. If the customer already paid,
-                            the order shows a balance due again.
+                            is added to the total. Collect it with the rest of
+                            the payment.
                         </template>
                         <template v-else>
                             Order

@@ -12,16 +12,9 @@
         .parties { margin: 14px 0; padding: 8px 0; border-top: 1px solid #d6d3d1; border-bottom: 1px solid #d6d3d1; }
         h3 { font-size: 10.5px; margin: 14px 0 2px; }
         p { margin: 0 0 4px; text-align: justify; }
-        .signatures { margin-top: 28px; border-top: 2px solid #1c1917; padding-top: 12px; page-break-inside: avoid; }
-        .signatures .label { font-size: 9px; letter-spacing: 2px; color: #78716c; text-transform: uppercase; }
-        table.sign { width: 100%; margin-top: 14px; border-collapse: collapse; }
-        table.sign td { width: 50%; vertical-align: bottom; padding-right: 24px; }
-        .line { height: 70px; border-bottom: 1px solid #1c1917; text-align: left; }
-        .line img { max-height: 64px; max-width: 220px; }
-        .line .pending { font-size: 9px; color: #a8a29e; line-height: 70px; }
-        .name { font-weight: bold; margin-top: 4px; }
-        .muted { color: #78716c; font-size: 9px; }
-        .stamp { margin-top: 12px; padding-top: 8px; border-top: 1px solid #d6d3d1; font-size: 9px; color: #78716c; }
+        .acceptance { margin-top: 28px; border-top: 2px solid #1c1917; padding-top: 12px; page-break-inside: avoid; }
+        .acceptance .label { font-size: 9px; letter-spacing: 2px; color: #78716c; text-transform: uppercase; }
+        .acceptance p { margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -42,5 +35,13 @@
         @endif
         <p>{!! nl2br(e($clause['body'])) !!}</p>
     @endforeach
+
+    {{-- The owner accepts by name; no signature is collected. --}}
+    @if ($acceptedAt)
+        <div class="acceptance">
+            <div class="label">Acceptance</div>
+            <p>Accepted electronically by <strong>{{ $signerName }}</strong> ({{ $signerRole }}) for {{ $businessName }} on {{ $acceptedAt }}.</p>
+        </div>
+    @endif
 </body>
 </html>

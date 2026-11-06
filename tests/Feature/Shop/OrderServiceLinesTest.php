@@ -352,3 +352,35 @@ it('blocks the revert once the rider has the laundry', function () {
 
     expect($order->fresh()->status)->toBe('completed');
 });
+
+it('records how the payment received at the counter was paid', function (string $method, ?float $tendered, ?float $expectedTendered) {
+    $ctx = linesShop();
+
+    $order = app(ShopOrderService::class)->createOrder(linesOrderData($ctx, [
+        'amount_paid' => 200,
+        'payment_method' => $method,
+        'amount_tendered' => $tendered,
+    ]), $ctx['owner']);
+
+    $payment = $order->payments()->first();
+
+    expect($payment->method)->toBe($method)
+        ->and($payment->amount_tendered === null ? null : (float) $payment->amount_tendered)->toBe($expectedTendered)
+        ->and($order->fresh()->payment_method)->toBe($method);
+})->with([
+    'cash keeps the cash received' => ['cash', 500.0, 500.0],
+    'gcash has no cash received' => ['gcash', 500.0, null],
+    'maya has no cash received' => ['maya', null, null],
+]);
+
+it('leaves the payment type empty when nothing is paid yet', function () {
+    $ctx = linesShop();
+
+    $order = app(ShopOrderService::class)->createOrder(linesOrderData($ctx, [
+        'amount_paid' => 0,
+        'payment_method' => 'gcash',
+    ]), $ctx['owner']);
+
+    expect($order->fresh()->payment_method)->toBeNull()
+        ->and($order->payments()->count())->toBe(0);
+});

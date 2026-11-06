@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import AgreementSignatureInput from '@/components/business/AgreementSignatureInput.vue';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useKycExpiryScan } from '@/composables/useKycExpiryScan';
 import { Label } from '@/components/ui/label';
+import { useKycExpiryScan } from '@/composables/useKycExpiryScan';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Check,
@@ -55,7 +54,6 @@ interface Agreement {
         signer_name: string;
         signer_role: string;
         accepted_at: string;
-        signature_url?: string | null;
     } | null;
 }
 
@@ -86,9 +84,6 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
-const signatureImageError = computed(
-    () => page.props.errors?.signature_image as string | undefined,
-);
 watch(
     () => (page.props.flash as any)?.checkout_url,
     (url) => {
@@ -315,8 +310,7 @@ onMounted(() => {
 });
 
 // ── KYC ───────────────────────────────────────────────────────────────────
-const { scanState, scanResults, scanDocument, resetScan } =
-    useKycExpiryScan();
+const { scanState, scanResults, scanDocument, resetScan } = useKycExpiryScan();
 // Documents kept from a rejected application (not re-uploaded).
 const reused = reactive<Record<string, boolean>>({});
 // Values the shop confirms in the review form after OCR has read the documents.
@@ -378,8 +372,6 @@ const signerName = ref(
 const signerRole = ref(props.agreement.acceptance?.signer_role ?? 'Owner');
 const signerAuthorityConfirmed = ref(props.agreement.accepted);
 const agreementAccepted = ref(props.agreement.accepted);
-const signatureImage = ref<File | null>(null);
-const signatureMethod = ref<'drawn' | 'uploaded'>('uploaded');
 const showAgreementPdf = ref(false);
 function formatBytes(b: number) {
     if (b < 1024) return b + ' B';
@@ -453,12 +445,17 @@ const registeredAddress = computed(() =>
         .filter(Boolean)
         .join(', '),
 );
-const reviewVisible = computed(() => !!(kycDocs.value.bir || kycDocs.value.dti));
-const reviewScanning = computed(
-    () =>
-        scanState.bir === 'scanning' || scanState.dti === 'scanning',
+const reviewVisible = computed(
+    () => !!(kycDocs.value.bir || kycDocs.value.dti),
 );
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const reviewScanning = computed(
+    () => scanState.bir === 'scanning' || scanState.dti === 'scanning',
+);
+const norm = (s: string) =>
+    s
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
 function looksLike(a: string, b: string) {
     const x = norm(a);
     const y = norm(b);
@@ -503,8 +500,7 @@ if (previous) {
 }
 
 // ── Agreement PDF preview ──────────────────────────────────────────────────
-// The agreement is shown as a PDF. Uploading the signature image re-renders
-// the PDF with the signature placed on the owner's signature line.
+// The agreement is shown as a PDF that follows the shop name and the person accepting it.
 const agreementPdfUrl = ref<string | null>(null);
 const agreementPdfLoading = ref(false);
 const agreementPdfError = ref('');
@@ -520,8 +516,6 @@ async function loadAgreementPdf() {
     body.append('business_name', shopForm.value.shop_name);
     body.append('signer_name', signerName.value);
     body.append('signer_role', signerRole.value);
-    if (signatureImage.value)
-        body.append('signature_image', signatureImage.value);
 
     try {
         const response = await fetch('/business-agreement/preview', {
@@ -555,7 +549,6 @@ function scheduleAgreementPdf(delay = 600) {
     previewTimer = setTimeout(loadAgreementPdf, delay);
 }
 
-watch(signatureImage, () => scheduleAgreementPdf(0));
 watch([() => shopForm.value.shop_name, signerName, signerRole], () =>
     scheduleAgreementPdf(),
 );
@@ -587,8 +580,7 @@ const agreementComplete = computed(
     () =>
         signerName.value.trim().length >= 2 &&
         signerAuthorityConfirmed.value &&
-        agreementAccepted.value &&
-        (props.agreement.accepted || signatureImage.value !== null),
+        agreementAccepted.value,
 );
 const canProceed = computed(
     () =>
@@ -598,14 +590,14 @@ const canProceed = computed(
 const checklist = computed(() => [
     { label: 'Shop information', done: shopInfoComplete.value },
     { label: 'Business verification', done: kycComplete.value },
-    { label: 'Agreement signed', done: agreementComplete.value },
+    { label: 'Agreement accepted', done: agreementComplete.value },
 ]);
 const proceedHint = computed(() => {
     if (!shopInfoComplete.value) return 'Complete your shop information.';
     if (!kycComplete.value)
         return 'Upload your permits, then confirm the details read from them.';
     if (!agreementComplete.value)
-        return 'Upload your signature and accept the agreement.';
+        return 'Enter your name and accept the agreement.';
     return '';
 });
 
@@ -647,10 +639,6 @@ function proceedToPayment() {
         signerAuthorityConfirmed.value ? '1' : '0',
     );
     formData.append('agreement_accepted', agreementAccepted.value ? '1' : '0');
-    if (signatureImage.value) {
-        formData.append('signature_image', signatureImage.value);
-        formData.append('signature_method', signatureMethod.value);
-    }
     router.post('/checkout/process', formData, {
         forceFormData: true,
         onError: () => {
@@ -1206,7 +1194,9 @@ function proceedToPayment() {
                                 with what you registered.
                             </p>
                             <div class="mt-3 grid gap-4 md:grid-cols-2">
-                                <div class="rounded-lg border border-border p-4">
+                                <div
+                                    class="rounded-lg border border-border p-4"
+                                >
                                     <p
                                         class="flex items-center gap-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
                                     >
@@ -1223,7 +1213,9 @@ function proceedToPayment() {
                                                 id="kyc-tin"
                                                 v-model="confirmed.tin"
                                                 placeholder="123-456-789-000"
-                                                @input="confirmedEdited.tin = true"
+                                                @input="
+                                                    confirmedEdited.tin = true
+                                                "
                                             />
                                         </div>
                                         <div>
@@ -1232,7 +1224,9 @@ function proceedToPayment() {
                                             >
                                             <Input
                                                 id="kyc-reg-name"
-                                                v-model="confirmed.registered_name"
+                                                v-model="
+                                                    confirmed.registered_name
+                                                "
                                                 @input="
                                                     confirmedEdited.registered_name = true
                                                 "
@@ -1244,7 +1238,9 @@ function proceedToPayment() {
                                             >
                                             <Input
                                                 id="kyc-reg-address"
-                                                v-model="confirmed.registered_address"
+                                                v-model="
+                                                    confirmed.registered_address
+                                                "
                                                 @input="
                                                     confirmedEdited.registered_address = true
                                                 "
@@ -1263,7 +1259,9 @@ function proceedToPayment() {
                                     </p>
                                     <dl class="mt-3 space-y-3 text-sm">
                                         <div>
-                                            <dt class="text-xs text-muted-foreground">
+                                            <dt
+                                                class="text-xs text-muted-foreground"
+                                            >
                                                 Business name
                                             </dt>
                                             <dd class="font-medium">
@@ -1272,13 +1270,23 @@ function proceedToPayment() {
                                             <p
                                                 v-if="nameMatch !== null"
                                                 class="mt-1 text-xs"
-                                                :class="nameMatch ? 'text-emerald-600' : 'text-amber-600'"
+                                                :class="
+                                                    nameMatch
+                                                        ? 'text-emerald-600'
+                                                        : 'text-amber-600'
+                                                "
                                             >
-                                                {{ nameMatch ? 'Matches the document' : 'Does not match the document' }}
+                                                {{
+                                                    nameMatch
+                                                        ? 'Matches the document'
+                                                        : 'Does not match the document'
+                                                }}
                                             </p>
                                         </div>
                                         <div>
-                                            <dt class="text-xs text-muted-foreground">
+                                            <dt
+                                                class="text-xs text-muted-foreground"
+                                            >
                                                 Business address
                                             </dt>
                                             <dd class="font-medium">
@@ -1287,9 +1295,17 @@ function proceedToPayment() {
                                             <p
                                                 v-if="addressMatch !== null"
                                                 class="mt-1 text-xs"
-                                                :class="addressMatch ? 'text-emerald-600' : 'text-amber-600'"
+                                                :class="
+                                                    addressMatch
+                                                        ? 'text-emerald-600'
+                                                        : 'text-amber-600'
+                                                "
                                             >
-                                                {{ addressMatch ? 'Matches the document' : 'Does not match the document' }}
+                                                {{
+                                                    addressMatch
+                                                        ? 'Matches the document'
+                                                        : 'Does not match the document'
+                                                }}
                                             </p>
                                         </div>
                                     </dl>
@@ -1408,7 +1424,7 @@ function proceedToPayment() {
                             class="mt-5 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400"
                         >
                             <Check class="h-4 w-4 shrink-0" />
-                            This agreement version has already been signed for
+                            This agreement version has already been accepted for
                             your business.
                         </div>
 
@@ -1416,11 +1432,11 @@ function proceedToPayment() {
                             <p
                                 class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                             >
-                                Execute this agreement
+                                Accept this agreement
                             </p>
                             <p class="mt-1 text-sm">
-                                Your printed name and signature are attached to
-                                the agreement record (Version
+                                Your printed name, role and the date are
+                                attached to the agreement record (Version
                                 {{ agreement.version }}).
                             </p>
 
@@ -1440,7 +1456,7 @@ function proceedToPayment() {
                                 </div>
                                 <div>
                                     <Label for="signer-role" class="mb-1.5"
-                                        >Signing capacity</Label
+                                        >Role</Label
                                     >
                                     <select
                                         id="signer-role"
@@ -1453,17 +1469,6 @@ function proceedToPayment() {
                                         </option>
                                     </select>
                                 </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <AgreementSignatureInput
-                                    v-model="signatureImage"
-                                    upload-only
-                                    label="Owner signature *"
-                                    description=""
-                                    :error="signatureImageError"
-                                    @update:method="signatureMethod = $event"
-                                />
                             </div>
 
                             <div class="mt-5 space-y-3">
@@ -1486,8 +1491,8 @@ function proceedToPayment() {
                                         type="checkbox"
                                         class="mt-0.5 h-4 w-4 accent-primary"
                                     />
-                                    I have read, signed, and accept the
-                                    Platform–Business Services Agreement.
+                                    I have read and accept the Platform–Business
+                                    Services Agreement.
                                 </label>
                             </div>
                             <p

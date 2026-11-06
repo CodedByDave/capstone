@@ -369,7 +369,7 @@ function enableShop() {
                         </span>
                     </div>
                     <div v-if="shop.business_agreement.acceptance">
-                        <p class="detail-label">Signature</p>
+                        <p class="detail-label">Accepted by</p>
                         <p class="font-medium">
                             {{ shop.business_agreement.acceptance.signer_name }}
                         </p>

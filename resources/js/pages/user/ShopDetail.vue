@@ -30,6 +30,7 @@ import {
     Package,
     Phone,
     Plus,
+    Weight,
 } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -87,6 +88,8 @@ interface ShopInfo {
     distance_km: number | null;
     offers_pickup: boolean;
     offers_delivery: boolean;
+    /** The weight range (kg) a rider collects; null means no limit on that side. */
+    rider_load_limit?: { min: number | null; max: number | null };
     is_open: boolean;
     is_open_24_7: boolean;
     opens_at: string | null;
@@ -288,6 +291,40 @@ const weightHelp = computed(() => {
     return 'Priced per kg. The shop confirms the real weight.';
 });
 
+// ─── Rider load limit ──────────────────────────────
+const kgText = (value: number) => `${parseFloat(value.toFixed(2))} kg`;
+const riderMin = computed(() => props.shop.rider_load_limit?.min ?? null);
+const riderMax = computed(() => props.shop.rider_load_limit?.max ?? null);
+
+// "Rider pickup: 3–15 kg" (both ends allowed), or null when the shop has no limit.
+const riderLimitText = computed(() => {
+    const min = riderMin.value;
+    const max = riderMax.value;
+    if (min !== null && max !== null) {
+        return `Rider pickup is for ${kgText(min)} to ${kgText(max)} of laundry.`;
+    }
+    if (max !== null)
+        return `Rider pickup is for up to ${kgText(max)} of laundry.`;
+    if (min !== null)
+        return `Rider pickup needs at least ${kgText(min)} of laundry.`;
+    return null;
+});
+
+// Why the estimated weight cannot be collected by a rider, or null when it can. The server checks the same.
+const pickupWeightProblem = computed(() => {
+    if (isPerPiece.value) return null;
+    const weight = parseFloat(form.value.estimated_weight_kg);
+    if (Number.isNaN(weight)) return null;
+
+    if (riderMax.value !== null && weight > riderMax.value) {
+        return `Over ${kgText(riderMax.value)}: a rider cannot carry this much. Please drop it off at the shop instead.`;
+    }
+    if (riderMin.value !== null && weight < riderMin.value) {
+        return `Rider pickup needs at least ${kgText(riderMin.value)} of laundry. Please drop it off at the shop instead.`;
+    }
+    return null;
+});
+
 const orderHint = computed(() => {
     const f = form.value;
     if (!props.shop.is_open) return 'This shop is closed right now.';
@@ -304,6 +341,9 @@ const orderHint = computed(() => {
         return isPerPiece.value
             ? 'Enter the number of pieces.'
             : 'Enter your estimated weight.';
+    }
+    if (f.pickup_type === 'pickup' && pickupWeightProblem.value) {
+        return pickupWeightProblem.value;
     }
     if (f.pickup_type === 'pickup' && f.customer_address.trim() === '') {
         return 'Enter your pickup address.';
@@ -420,15 +460,19 @@ async function submitOrder() {
     if (placing.value) return;
     placing.value = true;
     await resolvePickupPin();
-    router.post('/user/orders', { ...form.value, additional_items: additionalItems.value }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            closeOrder();
+    router.post(
+        '/user/orders',
+        { ...form.value, additional_items: additionalItems.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeOrder();
+            },
+            onFinish: () => {
+                placing.value = false;
+            },
         },
-        onFinish: () => {
-            placing.value = false;
-        },
-    });
+    );
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -546,13 +590,18 @@ function goBack() {
                     >
                         <span
                             class="h-1.5 w-1.5 rounded-full"
-                            :class="shop.is_open ? 'bg-emerald-600' : 'bg-red-600'"
+                            :class="
+                                shop.is_open ? 'bg-emerald-600' : 'bg-red-600'
+                            "
                             aria-hidden="true"
                         />
                         {{ shop.is_open ? 'Operating' : 'Closed' }}
                     </span>
                 </div>
-                <ul class="mt-2 ml-[30px] flex flex-wrap gap-1.5" aria-label="Days open">
+                <ul
+                    class="mt-2 ml-[30px] flex flex-wrap gap-1.5"
+                    aria-label="Days open"
+                >
                     <li
                         v-for="day in WEEK_ORDER"
                         :key="day"
@@ -565,13 +614,18 @@ function goBack() {
                     >
                         {{ DAY_NAMES[day] }}
                         <span class="sr-only">{{
-                            shop.operating_days.includes(day) ? 'open' : 'closed'
+                            shop.operating_days.includes(day)
+                                ? 'open'
+                                : 'closed'
                         }}</span>
                     </li>
                 </ul>
-                <p v-if="!shop.is_open" class="mt-2 ml-[30px] text-xs text-red-700">
-                    This shop is closed right now, so orders cannot be placed. Please
-                    come back on an open day during opening hours.
+                <p
+                    v-if="!shop.is_open"
+                    class="mt-2 ml-[30px] text-xs text-red-700"
+                >
+                    This shop is closed right now, so orders cannot be placed.
+                    Please come back on an open day during opening hours.
                 </p>
             </div>
             <div
@@ -702,7 +756,11 @@ function goBack() {
                             :disabled="!shop.is_open"
                             @click="openOrder(svc)"
                         >
-                            {{ shop.is_open ? 'Place an order' : 'Shop is closed' }}
+                            {{
+                                shop.is_open
+                                    ? 'Place an order'
+                                    : 'Shop is closed'
+                            }}
                         </button>
                     </li>
                 </ul>
@@ -726,7 +784,9 @@ function goBack() {
                         :key="item.id"
                         class="flex items-center justify-between gap-3 px-4 py-3"
                     >
-                        <span class="flex items-center gap-2 text-sm text-slate-900">
+                        <span
+                            class="flex items-center gap-2 text-sm text-slate-900"
+                        >
                             <Plus
                                 class="h-4 w-4 shrink-0 text-blue-600"
                                 aria-hidden="true"
@@ -952,7 +1012,9 @@ function goBack() {
                                                 class="flex size-11 items-center justify-center rounded-full border border-border disabled:opacity-40"
                                                 :aria-label="`Remove one ${item.name}`"
                                                 :disabled="!extras[item.id]"
-                                                @click="changeExtra(item.id, -1)"
+                                                @click="
+                                                    changeExtra(item.id, -1)
+                                                "
                                             >
                                                 <Minus
                                                     class="h-4 w-4"
@@ -962,7 +1024,9 @@ function goBack() {
                                             <span
                                                 class="w-6 text-center text-sm font-semibold tabular-nums"
                                                 aria-live="polite"
-                                                >{{ extras[item.id] ?? 0 }}</span
+                                                >{{
+                                                    extras[item.id] ?? 0
+                                                }}</span
                                             >
                                             <button
                                                 type="button"
@@ -1054,6 +1118,26 @@ function goBack() {
                                         ? 'We collect your laundry from your address.'
                                         : 'Bring your laundry to the shop.'
                                 }}
+                            </p>
+                            <p
+                                v-if="shop.offers_pickup && riderLimitText"
+                                class="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"
+                            >
+                                <Weight
+                                    class="h-4 w-4 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                {{ riderLimitText }}
+                            </p>
+                            <p
+                                v-if="
+                                    form.pickup_type === 'pickup' &&
+                                    (pickupWeightProblem || errors.pickup_type)
+                                "
+                                class="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+                                role="alert"
+                            >
+                                {{ pickupWeightProblem ?? errors.pickup_type }}
                             </p>
                         </div>
 

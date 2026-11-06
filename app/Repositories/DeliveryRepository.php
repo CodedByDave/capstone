@@ -67,6 +67,8 @@ class DeliveryRepository extends Repository
             ->where('status', 'pending')
             ->whereNull('rider_id')
             ->where('courier', Delivery::COURIER_OWN_RIDER)
+            // The order's weight decides whether the run is within the rider load limit.
+            ->with('order.serviceLines')
             ->oldest('id')
             ->lockForUpdate()
             ->get();
@@ -119,7 +121,13 @@ class DeliveryRepository extends Repository
     public function paginateForShop(int $shopId, ?string $status, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
     {
         $query = Delivery::query()
-            ->with(['rider', 'order:id,order_number', 'photos'])
+            ->with([
+                'rider',
+                // The weight columns let the board flag a run that is outside the rider load limit.
+                'order:id,order_number,pricing_model,actual_weight_kg,estimated_weight_kg',
+                'order.serviceLines:id,shop_order_id,pricing_model,weight_kg',
+                'photos',
+            ])
             ->where('shop_id', $shopId)
             ->when($status, fn ($query) => $query->where('status', $status));
 

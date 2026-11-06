@@ -141,18 +141,13 @@ class UpgradeController extends Controller
 
         $user = auth()->user();
         $shop = Shop::where('owner_id', $user->id)->first();
-        $currentOrder = Order::where('user_id', $user->id)
-            ->whereNotIn('status', ['rejected'])
-            ->latest()
-            ->first();
-        $isTrial = (bool) ($currentOrder?->is_trial ?? false);
 
         return Inertia::render('shop/UpgradeConfirm', [
             'planName' => $checkout['plan_name'],
             'billingMonths' => (int) $checkout['billing_months'],
             'vatPct' => 12,
             'checkoutUrl' => null,
-            'requiresKyc' => $isTrial,
+            'requiresKyc' => false,
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,
@@ -207,57 +202,10 @@ class UpgradeController extends Controller
 
             $shop = Shop::where('owner_id', $user->id)->firstOrFail();
 
-            if ($isTrial) {
-                // ── Trial → first paid plan: require KYC + admin review ────────
-                // Do NOT auto-approve or go to PayMongo yet.
-                $order = DB::transaction(function () use ($request, $user, $shop, $planName, $billingMonths, $grandTotal) {
-                    $order = $this->orderService->create([
-                        'shop_name' => $shop->shop_name,
-                        'phone' => $shop->phone ?? '',
-                        'block_street' => $shop->block_street ?? '',
-                        'municipality' => $shop->municipality ?? '',
-                        'barangay' => $shop->barangay ?? '',
-                        'postal_code' => $shop->postal_code ?? '',
-                        'owner_name' => $user->name,
-                        'email' => $user->email,
-                        'user_id' => $user->id,
-                        'plan_name' => $planName,
-                        'billing_months' => $billingMonths,
-                        'total_price' => $grandTotal,
-                        'bir_expiry_date' => $request->validated()['bir_expiry_date'],
-                        'dti_expiry_date' => $request->validated()['dti_expiry_date'],
-                        'mayors_expiry_date' => $request->validated()['mayors_expiry_date'],
-                        'sanitary_expiry_date' => $request->validated()['sanitary_expiry_date'] ?? null,
-                    ]);
-
-                    $this->agreementService->carryAcceptanceToOrder($user, $order);
-
-                    $kycPaths = [];
-                    foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $key) {
-                        if ($request->hasFile($key)) {
-                            $kycPaths[$key] = $request->file($key)->store("kyc/{$order->id}", 'private');
-                        }
-                    }
-                    if (! empty($kycPaths)) {
-                        Order::where('id', $order->id)->update($kycPaths);
-                    }
-
-                    return $order;
-                });
-
-                session()->forget('upgrade_checkout');
-
-                Log::info('Trial → paid plan submitted for admin review', [
-                    'user_id' => $user->id,
-                    'order_id' => $order->id,
-                    'plan' => $planName,
-                ]);
-
-                return Inertia::location(route('shop.dashboard'));
-            }
-
-            // ── Paid → upgrade: auto-approve after PayMongo payment ───────────
-            [$order, $payment] = DB::transaction(function () use ($request, $user, $shop, $planName, $billingMonths, $grandTotal) {
+            // ── Any plan purchase (from a trial or a paid plan): pay through PayMongo; the plan
+            // ── starts once the payment is verified. The owner's documents were already
+            // ── approved during KYC, so there is no second review.
+            [$order, $payment] = DB::transaction(function () use ($request, $user, $shop, $planName, $billingMonths, $grandTotal, $isTrial) {
                 $order = $this->orderService->create([
                     'shop_name' => $shop->shop_name,
                     'phone' => $shop->phone ?? '',
@@ -275,6 +223,11 @@ class UpgradeController extends Controller
                 ]);
 
                 $order->update(['is_upgrade' => true]);
+
+                // The agreement signed at KYC is kept with the order, for the order history.
+                if ($isTrial) {
+                    $this->agreementService->carryAcceptanceToOrder($user, $order);
+                }
 
                 $payment = $this->paymentService->createForOrder($order, [
                     'payment_method' => $request->validated()['payment_method'],

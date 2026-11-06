@@ -565,9 +565,6 @@ const submit = () => {
                             v-model:uses-supplies="form.uses_supplies"
                             v-model:supplies="form.supplies"
                             :options="supplyOptions"
-                            :per-label="
-                                isPerKg ? 'kg' : isPerPiece ? 'piece' : 'bundle'
-                            "
                             :errors="form.errors"
                         />
                     </section>

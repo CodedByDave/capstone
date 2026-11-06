@@ -34,6 +34,7 @@ class ShopOrderService
         private readonly CustomerAdditionalChargeService $additionalCharges,
         private readonly OrderTaxService $tax,
         private readonly ActivityLogService $activityLog,
+        private readonly RiderLoadLimitService $riderLoad,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -90,10 +91,16 @@ class ShopOrderService
         return $this->repository->rushFeeForShop($shopId);
     }
 
+    /** @return array{min: float|null, max: float|null} The weight range a rider run can carry for this shop. */
+    public function riderLoadLimitFor(int $shopId): array
+    {
+        return $this->riderLoad->limitsFor($this->repository->shopWithRiderLoadLimit($shopId));
+    }
+
     /**
      * Moves an order that is still in the queue to the front of the shop's queue for the shop's flat rush fee, or takes
-     * it back out of the rush lane. The fee is added to (or removed from) the order's total and the
-     * payment status follows, so a paid order becomes partial until the balance is collected.
+     * it back out of the rush lane. The fee is added to (or removed from) the order's total. Only an
+     * unpaid order can change, so a settled total is never reopened.
      */
     public function setRush(ShopOrder $order, bool $rush, User $actor): ShopOrder
     {
@@ -110,22 +117,21 @@ class ShopOrderService
                 ]);
             }
 
-            if ($rush) {
-                $fee = $this->repository->rushFeeForShop((int) $locked->shop_id);
+            // Rush is decided before the customer pays, so a paid total is never reopened for a rush fee.
+            if ((float) $locked->amount_paid > 0) {
+                throw ValidationException::withMessages([
+                    'rush' => $rush
+                        ? 'Only an unpaid order can be rushed. Choose rush before the customer pays.'
+                        : 'The rush fee cannot be removed once a payment has been recorded on the order.',
+                ]);
+            }
 
-                if ($fee <= 0) {
-                    throw ValidationException::withMessages([
-                        'rush' => 'Set a rush fee in Settings before rushing an order.',
-                    ]);
-                }
-            } else {
-                if ((float) $locked->amount_paid > 0) {
-                    throw ValidationException::withMessages([
-                        'rush' => 'The rush fee cannot be removed once a payment has been recorded on the order.',
-                    ]);
-                }
+            $fee = $rush ? $this->repository->rushFeeForShop((int) $locked->shop_id) : 0.0;
 
-                $fee = 0.0;
+            if ($rush && $fee <= 0) {
+                throw ValidationException::withMessages([
+                    'rush' => 'Set a rush fee in Settings before rushing an order.',
+                ]);
             }
 
             $delta = $rush ? $fee : -(float) $locked->rush_fee;
@@ -233,6 +239,9 @@ class ShopOrderService
 
             // Extra services are priced here from the shop's own rates, never from the browser.
             $serviceLines = $this->buildServiceLines($requestedLines, (int) $data['shop_id'], ($data['pickup_type'] ?? null) === 'pickup');
+
+            // A rider can only take laundry within the shop's load limit.
+            $this->ensureRiderCanCarry($data, $serviceLines);
             if ($serviceLines !== []) {
                 $data['total_amount'] = round(max(
                     0,
@@ -243,8 +252,24 @@ class ShopOrderService
                 ), 2);
             }
 
+            // A walk-in can ask for rush at the counter. The fee is the shop's own, never the browser's.
+            $isRush = (bool) ($data['is_rush'] ?? false);
+            unset($data['is_rush']);
+            $rushFee = 0.0;
+            if ($isRush) {
+                $rushFee = $this->repository->rushFeeForShop((int) $data['shop_id']);
+                if ($rushFee <= 0) {
+                    throw ValidationException::withMessages([
+                        'is_rush' => 'Set a rush fee in Settings before rushing an order.',
+                    ]);
+                }
+                $data['is_rush'] = true;
+                $data['rush_fee'] = $rushFee;
+                $data['rush_marked_at'] = now();
+            }
+
             // The form's total is the amount before tax; the shop's tax is added here, never in the browser.
-            $subtotal = round((float) $data['total_amount'], 2);
+            $subtotal = round((float) $data['total_amount'] + $rushFee, 2);
             $rate = $this->tax->rateForShop((int) $data['shop_id']);
             $tax = $this->tax->amountOn($subtotal, $rate);
             $data['tax_rate'] = $rate;
@@ -260,6 +285,12 @@ class ShopOrderService
             }
 
             // Cash handed over covers the payment; anything above it goes back to the customer as change.
+            // Only cash is handed over, so GCash and Maya payments have no cash received or change.
+            $method = $paidNow > 0 ? ($data['payment_method'] ?? 'cash') : null;
+            $data['payment_method'] = $method;
+            if ($method !== 'cash') {
+                $data['amount_tendered'] = null;
+            }
             $tendered = filled($data['amount_tendered'] ?? null) ? round((float) $data['amount_tendered'], 2) : null;
             if ($tendered !== null && $paidNow > 0 && $tendered < $paidNow) {
                 throw ValidationException::withMessages([
@@ -274,7 +305,7 @@ class ShopOrderService
                 $actor,
                 $order,
                 $paidNow,
-                $data['payment_method'] ?? null,
+                $method,
                 $paidNow > 0 ? $tendered : null,
             );
 
@@ -344,6 +375,19 @@ class ShopOrderService
                 }
             } elseif (blank($data['estimated_weight_kg'] ?? null)) {
                 throw ValidationException::withMessages(['estimated_weight_kg' => 'Enter the estimated weight of your laundry.']);
+            }
+
+            // A rider only collects laundry within the shop's load limit; heavier or lighter loads are dropped off.
+            if ($data['pickup_type'] === 'pickup' && ($tooHeavy = $this->riderLoad->violation(
+                $shop,
+                $this->riderLoad->weightFromParts(
+                    (string) $service->pricing_model,
+                    null,
+                    filled($data['estimated_weight_kg'] ?? null) ? (float) $data['estimated_weight_kg'] : null,
+                ),
+                RiderLoadLimitService::PURPOSE_PICKUP,
+            )) !== null) {
+                throw ValidationException::withMessages(['pickup_type' => $tooHeavy]);
             }
 
             // The additional charges the customer picked, priced from the shop's own add-on items.
@@ -720,6 +764,38 @@ class ShopOrderService
         }
 
         return $built;
+    }
+
+    /**
+     * A staff-created order with a rider leg (collected by a rider, or delivered back) must fit the
+     * shop's rider load limit. Only the weight known now is checked; a pickup weighed later is checked
+     * again when its delivery is dispatched.
+     *
+     * @param  array<int, array<string, mixed>>  $serviceLines
+     */
+    private function ensureRiderCanCarry(array $data, array $serviceLines): void
+    {
+        $pickup = ($data['pickup_type'] ?? null) === 'pickup';
+        if (! $pickup && empty($data['deliver_to_customer'])) {
+            return;
+        }
+
+        $weight = $this->riderLoad->weightFromParts(
+            (string) ($data['pricing_model'] ?? 'per_kg'),
+            filled($data['actual_weight_kg'] ?? null) ? (float) $data['actual_weight_kg'] : null,
+            filled($data['estimated_weight_kg'] ?? null) ? (float) $data['estimated_weight_kg'] : null,
+            $serviceLines,
+        );
+
+        $reason = $this->riderLoad->violation(
+            $this->repository->shopWithRiderLoadLimit((int) $data['shop_id']),
+            $weight,
+            $pickup ? RiderLoadLimitService::PURPOSE_PICKUP : RiderLoadLimitService::PURPOSE_DELIVERY,
+        );
+
+        if ($reason !== null) {
+            throw ValidationException::withMessages([$pickup ? 'pickup_type' : 'deliver_to_customer' => $reason]);
+        }
     }
 
     /** The order's main service amount from the rate and quantity fields of a new order. */

@@ -53,6 +53,8 @@ class StoreShopOrderRequest extends FormRequest
             'alternate_contact_phone' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:20', 'required_with:alternate_contact_name', new PhilippineMobileNumber],
             'customer_address' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:500', 'required_if_accepted:deliver_to_customer'],
             'deliver_to_customer' => ['nullable', 'boolean'],
+            // Rush at the counter; the fee itself comes from the shop's settings.
+            'is_rush' => ['nullable', 'boolean'],
             'service_id' => ['required', 'integer', Rule::exists('services_and_pricing', 'id')],
             'pickup_type' => ['required', Rule::in(ShopOrder::PICKUP_TYPES)],
 

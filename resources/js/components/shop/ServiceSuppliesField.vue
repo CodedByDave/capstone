@@ -21,7 +21,6 @@ const props = defineProps<{
     usesSupplies: boolean;
     supplies: SupplyLine[];
     options: SupplyOption[];
-    perLabel: 'kg' | 'bundle' | 'piece';
     errors: Record<string, string>;
 }>();
 
@@ -68,6 +67,12 @@ function pick(index: number, id: number | '') {
         inventory_id: id,
         unit: id === '' ? '' : (optionById.value.get(id)?.unit ?? ''),
     });
+}
+
+// The unit always follows the inventory item's consumption unit and cannot be edited here.
+function unitFor(line: SupplyLine): string {
+    if (line.inventory_id === '') return '';
+    return optionById.value.get(line.inventory_id)?.unit ?? line.unit;
 }
 
 function lineError(index: number, field: string): string | undefined {
@@ -159,10 +164,15 @@ function lineError(index: number, field: string): string | undefined {
                 </div>
 
                 <div class="col-span-6 space-y-1 sm:col-span-3">
-                    <label class="text-xs font-medium"
-                        >Qty per {{ perLabel }}</label
+                    <label
+                        :for="`supply-consumption-${index}`"
+                        class="text-xs font-medium"
+                        >Consumption{{
+                            unitFor(line) ? ` (${unitFor(line)})` : ''
+                        }}</label
                     >
                     <Input
+                        :id="`supply-consumption-${index}`"
                         :model-value="line.quantity"
                         type="number"
                         min="0.01"
@@ -183,22 +193,20 @@ function lineError(index: number, field: string): string | undefined {
                 </div>
 
                 <div class="col-span-6 space-y-1 sm:col-span-3">
-                    <label class="text-xs font-medium">Unit</label>
-                    <Input
-                        :model-value="line.unit"
-                        maxlength="50"
-                        placeholder="e.g. sachet"
-                        :class="{ 'border-red-500': lineError(index, 'unit') }"
-                        @update:model-value="
-                            update(index, { unit: $event as string })
-                        "
-                    />
-                    <p
-                        v-if="lineError(index, 'unit')"
-                        class="text-xs text-red-500"
+                    <label
+                        :for="`supply-unit-${index}`"
+                        class="text-xs font-medium"
+                        >Unit</label
                     >
-                        {{ lineError(index, 'unit') }}
-                    </p>
+                    <Input
+                        :id="`supply-unit-${index}`"
+                        :model-value="unitFor(line)"
+                        readonly
+                        tabindex="-1"
+                        placeholder="Select a supply"
+                        title="Set by the supply's consumption unit in Inventory"
+                        class="cursor-not-allowed bg-muted text-muted-foreground"
+                    />
                 </div>
 
                 <div class="col-span-12 flex justify-end sm:col-span-1 sm:pt-5">

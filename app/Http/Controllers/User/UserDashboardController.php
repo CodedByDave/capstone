@@ -9,6 +9,7 @@ use App\Services\CustomerAgreementService;
 use App\Services\CustomerShopCatalogService;
 use App\Services\OrderRatingService;
 use App\Services\PromotionService;
+use App\Services\RiderLoadLimitService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,6 +21,7 @@ class UserDashboardController extends Controller
         private readonly CustomerShopCatalogService $catalog,
         private readonly OrderRatingService $ratings,
         private readonly PromotionService $promotions,
+        private readonly RiderLoadLimitService $riderLoad,
     ) {}
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
@@ -125,6 +127,8 @@ class UserDashboardController extends Controller
                 'distance_km' => $distance,
                 'offers_pickup' => (bool) $shop->offers_pickup,
                 'offers_delivery' => $shop->canDeliver(),
+                // The weight range a rider collects, so the form can explain it before the order is sent.
+                'rider_load_limit' => $this->riderLoad->limitsFor($shop),
                 'is_open' => $shop->isOpenAt(),
                 'is_open_24_7' => (bool) $shop->is_open_24_7,
                 'opens_at' => $shop->opens_at ? substr($shop->opens_at, 0, 5) : null,

@@ -25,6 +25,7 @@ class DeliveryRequestService
         private readonly DeliveryRepository $deliveries,
         private readonly DistanceService $distance,
         private readonly DeliveryFeeService $fees,
+        private readonly RiderLoadLimitService $riderLoad,
     ) {}
 
     /**
@@ -37,6 +38,7 @@ class DeliveryRequestService
 
         try {
             $this->fees->assertShopCanQuote($order->shop);
+            $this->assertRiderCanCarry($order);
             $distanceKm = $this->distanceTo($order->shop, $lat, $lng);
             $breakdown = $this->fees->breakdown($order->shop, $distanceKm);
             $fee = $breakdown['fee'];
@@ -78,6 +80,7 @@ class DeliveryRequestService
 
         // The routing call happens before the transaction so no row lock is held during network I/O.
         $this->fees->assertShopCanQuote($order->shop);
+        $this->assertRiderCanCarry($order);
         $distanceKm = $this->distanceTo($order->shop, $lat, $lng);
         $fee = $this->fees->calculate($order->shop, $distanceKm);
 
@@ -109,6 +112,25 @@ class DeliveryRequestService
         $order->shop->owner?->notify(new DeliveryNotification($delivery));
 
         return $delivery;
+    }
+
+    /**
+     * A rider only takes laundry within the shop's load limit, so the customer is told before any
+     * delivery fee is added.
+     *
+     * @throws DeliveryNotAvailableException
+     */
+    private function assertRiderCanCarry(ShopOrder $order): void
+    {
+        $reason = $this->riderLoad->violation(
+            $order->shop,
+            $this->riderLoad->orderWeight($order),
+            RiderLoadLimitService::PURPOSE_DELIVERY,
+        );
+
+        if ($reason !== null) {
+            throw new DeliveryNotAvailableException($reason.' Please collect it at the shop.');
+        }
     }
 
     /**

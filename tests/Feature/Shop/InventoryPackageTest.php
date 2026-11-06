@@ -188,3 +188,20 @@ test('switching the sales options off clears the settings and the selling price'
         ->and($item->addon_price)->toBeNull()
         ->and($item->selling_price)->toBeNull();
 });
+
+test('an item bought in the unit it is used in always holds one unit per purchase unit', function () {
+    $owner = packageShopOwner();
+
+    $this->actingAs($owner)->post('/shop/inventory', packageItem([
+        'name' => 'Surf powder sachet',
+        'unit' => 'pcs',
+        'package_unit' => 'pcs',
+        'package_size' => 70,
+        'quantity' => 50,
+        'min_stock' => 5,
+    ]))->assertSessionHasNoErrors();
+
+    $item = Inventory::where('name', 'Surf powder sachet')->firstOrFail();
+    expect($item->package_size)->toBe(1)
+        ->and($item->quantity)->toBe(50);
+});

@@ -14,6 +14,14 @@ class UpdateInventoryRequest extends FormRequest
         return true;
     }
 
+    /** An item bought in the unit it is used in (e.g. pcs as pcs) holds exactly one unit per purchase unit. */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('package_unit') && $this->input('package_unit') === $this->input('unit')) {
+            $this->merge(['package_size' => 1]);
+        }
+    }
+
     public function rules(): array
     {
         $inventoryId = $this->route('inventory')?->id ?? $this->route('inventory');

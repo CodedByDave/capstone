@@ -244,21 +244,22 @@ test('rushing an order jumps it to the front of the queue', function () {
     expect(queuePositions($response))->toBe(['LATE' => 1, 'FIRST' => 2]);
 });
 
-test('rushing an order that is already paid leaves a balance to collect', function () {
+test('an order with a payment cannot be rushed', function (string $amount) {
     $shop = queueShop(rushFee: 50);
     $order = queueOrder($shop);
     $this->actingAs($shop->owner)->post("/shop/operations/orders/{$order->payment_public_id}/payments", [
-        'amount' => '180',
+        'amount' => $amount,
         'method' => 'cash',
     ])->assertSessionHasNoErrors();
-    expect($order->fresh()->payment_status)->toBe('paid');
+    $before = $order->fresh();
 
-    $this->actingAs($shop->owner)->patch(rushUrl($order), ['rush' => true])->assertSessionHasNoErrors();
+    $this->actingAs($shop->owner)->patch(rushUrl($order), ['rush' => true])->assertSessionHasErrors('rush');
 
     $order->refresh();
-    expect($order->payment_status)->toBe('partial')
-        ->and($order->balanceDue())->toBe(50.0);
-});
+    expect($order->is_rush)->toBeFalse()
+        ->and((float) $order->total_amount)->toBe((float) $before->total_amount)
+        ->and($order->payment_status)->toBe($before->payment_status);
+})->with(['fully paid' => '180', 'partly paid' => '50']);
 
 test('rushing again changes nothing', function () {
     $shop = queueShop(rushFee: 50);
@@ -459,4 +460,100 @@ test('the customer sees a rush badge but never a queue position', function () {
 
     $detail = $this->actingAs($customer)->get("/user/orders/{$order->payment_public_id}")->assertOk();
     expect($detail->viewData('page')['props']['order'])->not->toHaveKey('queue_position');
+});
+
+// ─── Rush on the New Order form (walk-ins) ─────────────────────────────────────
+
+/** A walk-in order of 3 kg at ₱60 (₱180 before tax), the way the New Order form posts it. */
+function rushWalkInPayload(Shop $shop, array $overrides = []): array
+{
+    $service = ShopService::firstOrCreate(
+        ['shop_id' => $shop->id, 'service_name' => 'Wash and Fold'],
+        ['is_active' => true, 'pricing_model' => 'per_kg', 'price_per_kg' => 60],
+    );
+
+    return array_merge([
+        'shop_id' => $shop->id,
+        'customer_name' => 'Walk-in Juan',
+        'service_id' => $service->id,
+        'pickup_type' => 'walk_in',
+        'pricing_model' => 'per_kg',
+        'price_per_kg' => 60,
+        'actual_weight_kg' => 3,
+        'total_amount' => 180,
+        'amount_paid' => 0,
+        'customer_agreement_version' => app(\App\Services\CustomerAgreementService::class)->agreementDataForShopId($shop->id)['version'],
+        'customer_agreement_accepted' => true,
+    ], $overrides);
+}
+
+test('the new order form offers rush with the shop fee', function () {
+    $shop = queueShop(rushFee: 75);
+
+    $this->actingAs($shop->owner)->get('/shop/operations/orders/create')
+        ->assertInertia(fn ($page) => $page->where('rushFee', 75));
+});
+
+test('a walk-in can be rushed when it is created, with the fee from the shop settings', function () {
+    $shop = queueShop(rushFee: 50);
+
+    // The browser cannot set its own fee; the server adds the shop's.
+    $this->actingAs($shop->owner)
+        ->post('/shop/operations/orders', rushWalkInPayload($shop, ['is_rush' => true, 'rush_fee' => 1]))
+        ->assertSessionHasNoErrors();
+
+    $order = ShopOrder::where('shop_id', $shop->id)->latest('id')->firstOrFail();
+    expect($order->is_rush)->toBeTrue()
+        ->and((float) $order->rush_fee)->toBe(50.0)
+        ->and($order->rush_marked_at)->not->toBeNull()
+        ->and((float) $order->total_amount)->toBe(230.0);
+});
+
+test('a walk-in rushed at creation can be paid in full straight away', function () {
+    $shop = queueShop(rushFee: 50);
+
+    $this->actingAs($shop->owner)
+        ->post('/shop/operations/orders', rushWalkInPayload($shop, [
+            'is_rush' => true,
+            'amount_paid' => 230,
+            'payment_method' => 'cash',
+            'amount_tendered' => 300,
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $order = ShopOrder::where('shop_id', $shop->id)->latest('id')->firstOrFail();
+    expect($order->payment_status)->toBe('paid')
+        ->and((float) $order->amount_paid)->toBe(230.0);
+});
+
+test('a walk-in rushed at creation goes to the front of the queue', function () {
+    $shop = queueShop(rushFee: 50);
+    queueOrder($shop, ['order_number' => 'EARLY', 'created_at' => now()->subHours(3)]);
+
+    $this->actingAs($shop->owner)->post('/shop/operations/orders', rushWalkInPayload($shop, ['is_rush' => true]));
+    $rushed = ShopOrder::where('shop_id', $shop->id)->latest('id')->firstOrFail();
+
+    $response = $this->actingAs($shop->owner)->get('/shop/operations/orders')->assertOk();
+    expect(queuePositions($response))->toBe([$rushed->order_number => 1, 'EARLY' => 2]);
+});
+
+test('a walk-in cannot be rushed when the shop has no rush fee', function () {
+    $shop = queueShop(rushFee: 0);
+
+    $this->actingAs($shop->owner)
+        ->post('/shop/operations/orders', rushWalkInPayload($shop, ['is_rush' => true]))
+        ->assertSessionHasErrors('is_rush');
+
+    expect(ShopOrder::where('shop_id', $shop->id)->count())->toBe(0);
+});
+
+test('a walk-in without rush has no rush fee', function () {
+    $shop = queueShop(rushFee: 50);
+
+    $this->actingAs($shop->owner)->post('/shop/operations/orders', rushWalkInPayload($shop))->assertSessionHasNoErrors();
+
+    $order = ShopOrder::where('shop_id', $shop->id)->latest('id')->firstOrFail();
+    expect($order->is_rush)->toBeFalse()
+        ->and((float) $order->rush_fee)->toBe(0.0)
+        ->and((float) $order->total_amount)->toBe(180.0);
 });

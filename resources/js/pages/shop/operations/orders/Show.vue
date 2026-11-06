@@ -280,6 +280,16 @@ const methodLabel = (method: string) =>
     ({ gcash: 'GCash', grabpay: 'GrabPay' })[method] ??
     method.charAt(0).toUpperCase() + method.slice(1);
 
+// The order's own method, or else how the latest payment received was made.
+const orderPaymentMethod = computed(
+    () =>
+        props.shopOrder.payment_method ??
+        [...props.payments]
+            .reverse()
+            .find((payment) => payment.status === 'confirmed')?.method ??
+        null,
+);
+
 const paymentBadge = (status: string): { label: string; tone: StatusTone } =>
     ({
         confirmed: { label: 'Received', tone: 'success' as StatusTone },
@@ -1228,9 +1238,9 @@ const statusIcon = (s: string) =>
                         </p>
                         <p class="mt-1 text-sm">
                             {{
-                                shopOrder.payment_method
-                                    ? methodLabel(shopOrder.payment_method)
-                                    : 'Not set'
+                                orderPaymentMethod
+                                    ? methodLabel(orderPaymentMethod)
+                                    : 'Not paid yet'
                             }}
                         </p>
                     </div>

@@ -54,6 +54,40 @@ class KycDocumentScanTest extends TestCase
             ->assertJson(['available' => true, 'expiry_date' => null]);
     }
 
+    public function test_a_failed_ocr_try_is_repeated_until_it_reads_the_date(): void
+    {
+        config(['services.ocr_space.key' => 'test-key']);
+        Http::fake([
+            'api.ocr.space/*' => Http::sequence()
+                ->push(['IsErroredOnProcessing' => true, 'ErrorMessage' => ['Error E502: Error during OCR']])
+                ->push('boom', 500)
+                ->push([
+                    'IsErroredOnProcessing' => false,
+                    'ParsedResults' => [['ParsedText' => 'Valid until December 31, 2099']],
+                ]),
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/kyc/scan-expiry', ['document' => UploadedFile::fake()->image('permit.jpg')])
+            ->assertOk()
+            ->assertJson(['available' => true, 'expiry_date' => '2099-12-31']);
+
+        Http::assertSentCount(3);
+    }
+
+    public function test_it_gives_up_after_three_failed_tries(): void
+    {
+        config(['services.ocr_space.key' => 'test-key']);
+        Http::fake(['api.ocr.space/*' => Http::response(['IsErroredOnProcessing' => true, 'ErrorMessage' => ['E502']])]);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/kyc/scan-expiry', ['document' => UploadedFile::fake()->image('permit.jpg')])
+            ->assertOk()
+            ->assertJson(['available' => true, 'expiry_date' => null]);
+
+        Http::assertSentCount(3);
+    }
+
     public function test_rejects_unsupported_file_types(): void
     {
         $this->actingAs(User::factory()->create())

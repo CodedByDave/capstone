@@ -1,23 +1,17 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { useKycExpiryScan } from '@/composables/useKycExpiryScan';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import {
-    AlertCircle,
     ArrowUp,
     Banknote,
     BarChart3,
     CheckCircle2,
     ClipboardList,
     CreditCard,
-    FileText,
     Loader2,
     Package,
-    ShieldCheck,
-    Upload,
     Users,
-    X,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -28,7 +22,6 @@ const props = defineProps<{
     billingMonths: number;
     vatPct: number;
     checkoutUrl: string | null;
-    requiresKyc: boolean;
     user?: { name: string; email: string };
     shop?: {
         shop_name?: string;
@@ -172,150 +165,31 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 
 const selectedPayment = ref('');
 
-// ─── KYC (trial → first paid plan only) ──────────────────────────────────────
-
-interface UploadedFile {
-    file: File;
-    name: string;
-    size: string;
-    preview?: string;
-}
-
-const { scanState, scanExpiry, resetScan } = useKycExpiryScan();
-
-const kycDocs = ref<Record<string, UploadedFile | null>>({
-    bir: null,
-    dti: null,
-    mayors: null,
-    sanitary: null,
-});
-const expiryDates = ref<Record<string, string>>({
-    bir: '',
-    dti: '',
-    mayors: '',
-    sanitary: '',
-});
-
-const kycMeta: Record<
-    string,
-    { label: string; description: string; required: boolean }
-> = {
-    bir: {
-        label: 'BIR Certificate of Registration',
-        description: 'Form 2303 — Bureau of Internal Revenue',
-        required: true,
-    },
-    dti: {
-        label: 'DTI Business Name Registration',
-        description: 'Business name certificate from DTI',
-        required: true,
-    },
-    mayors: {
-        label: "Mayor's Business Permit",
-        description: 'Valid business permit from your LGU',
-        required: true,
-    },
-    sanitary: {
-        label: 'Sanitary Permit',
-        description: 'Health / sanitary certificate',
-        required: false,
-    },
-};
-
-const requiredKycComplete = computed(() =>
-    Object.entries(kycMeta)
-        .filter(([, v]) => v.required)
-        .every(([k]) => kycDocs.value[k] !== null),
-);
-
-function formatBytes(b: number) {
-    if (b < 1024) return b + ' B';
-    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
-    return (b / 1048576).toFixed(1) + ' MB';
-}
-
-function handleFileUpload(e: Event, key: string) {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    kycDocs.value[key] = {
-        file,
-        name: file.name,
-        size: formatBytes(file.size),
-        preview: file.type.startsWith('image/')
-            ? URL.createObjectURL(file)
-            : undefined,
-    };
-    (e.target as HTMLInputElement).value = '';
-    expiryDates.value[key] = '';
-    scanExpiry(key, file).then((date) => {
-        // Ignore the result if the file was removed or replaced meanwhile.
-        if (date && kycDocs.value[key]?.file === file)
-            expiryDates.value[key] = date;
-    });
-}
-
-function removeFile(key: string) {
-    if (kycDocs.value[key]?.preview)
-        URL.revokeObjectURL(kycDocs.value[key]!.preview!);
-    kycDocs.value[key] = null;
-    expiryDates.value[key] = '';
-    resetScan(key);
-}
-
 // ─── Submit ───────────────────────────────────────────────────────────────────
 
 const submitting = ref(false);
 const submitError = ref('');
 
-const canSubmit = computed(() => {
-    if (props.requiresKyc)
-        return (
-            requiredKycComplete.value &&
-            ['bir', 'dti', 'mayors'].every((k) => !!expiryDates.value[k])
-        );
-    return !!selectedPayment.value;
-});
+const canSubmit = computed(() => !!selectedPayment.value);
 
 function submit() {
     if (!canSubmit.value || submitting.value) return;
     submitting.value = true;
     submitError.value = '';
 
-    if (props.requiresKyc) {
-        const formData = new FormData();
-        formData.append('plan_name', props.planName);
-        formData.append('billing_months', String(props.billingMonths));
-        Object.entries(kycDocs.value).forEach(([key, f]) => {
-            if (f?.file) formData.append(`kyc_${key}`, f.file);
-        });
-        Object.entries(expiryDates.value).forEach(([key, date]) => {
-            if (date) formData.append(`${key}_expiry_date`, date);
-        });
-        router.post('/shop/upgrade/process', formData, {
-            forceFormData: true,
-            onError: (errors) => {
-                submitError.value =
-                    Object.values(errors)[0] ?? 'Please check your details.';
-            },
+    router.post(
+        '/shop/upgrade/process',
+        {
+            plan_name: props.planName,
+            billing_months: props.billingMonths,
+            payment_method: selectedPayment.value,
+        },
+        {
             onFinish: () => {
                 submitting.value = false;
             },
-        });
-    } else {
-        router.post(
-            '/shop/upgrade/process',
-            {
-                plan_name: props.planName,
-                billing_months: props.billingMonths,
-                payment_method: selectedPayment.value,
-            },
-            {
-                onFinish: () => {
-                    submitting.value = false;
-                },
-            },
-        );
-    }
+        },
+    );
 }
 </script>
 
@@ -484,211 +358,8 @@ function submit() {
                 </div>
             </div>
 
-            <!-- KYC documents (trial → first paid plan only) -->
-            <template v-if="requiresKyc">
-                <div
-                    class="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4"
-                >
-                    <AlertCircle
-                        class="mt-0.5 h-5 w-5 shrink-0 text-amber-500"
-                    />
-                    <div>
-                        <p class="text-sm font-semibold text-amber-800">
-                            Business verification required
-                        </p>
-                        <p class="mt-0.5 text-xs text-amber-700">
-                            Since this is your first paid plan, we need to
-                            verify your business documents. Your application
-                            will be reviewed by our admin before you are
-                            charged.
-                        </p>
-                    </div>
-                </div>
-
-                <div
-                    class="space-y-3 rounded-2xl border bg-white p-5 shadow-sm"
-                >
-                    <div class="flex items-center justify-between">
-                        <p
-                            class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
-                        >
-                            Business Documents
-                        </p>
-                        <span
-                            class="rounded-full px-2 py-0.5 text-xs font-medium"
-                            :class="
-                                requiredKycComplete
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : 'bg-amber-100 text-amber-700'
-                            "
-                        >
-                            {{
-                                requiredKycComplete ? 'Complete' : 'Incomplete'
-                            }}
-                        </span>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div
-                            v-for="(meta, key) in kycMeta"
-                            :key="key"
-                            class="rounded-xl border transition-colors"
-                            :class="
-                                kycDocs[key]
-                                    ? 'border-emerald-200 bg-emerald-50/40'
-                                    : 'border-stone-200 bg-stone-50'
-                            "
-                        >
-                            <div
-                                v-if="kycDocs[key]"
-                                class="flex items-center gap-3 p-3.5"
-                            >
-                                <div
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-emerald-200 bg-white"
-                                >
-                                    <img
-                                        v-if="kycDocs[key]?.preview"
-                                        :src="kycDocs[key]?.preview"
-                                        class="h-full w-full object-cover"
-                                    />
-                                    <FileText
-                                        v-else
-                                        class="h-5 w-5 text-emerald-600"
-                                    />
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <p
-                                        class="truncate text-sm font-medium text-stone-800"
-                                    >
-                                        {{ kycDocs[key]?.name }}
-                                    </p>
-                                    <p class="text-xs text-stone-400">
-                                        {{ kycDocs[key]?.size }}
-                                    </p>
-                                </div>
-                                <CheckCircle2
-                                    class="h-4 w-4 shrink-0 text-emerald-500"
-                                />
-                                <button
-                                    type="button"
-                                    class="flex h-6 w-6 items-center justify-center rounded-full text-stone-400 hover:bg-stone-200 hover:text-stone-600"
-                                    @click="removeFile(key)"
-                                >
-                                    <X class="h-3.5 w-3.5" />
-                                </button>
-                            </div>
-                            <label
-                                v-else
-                                :for="`kyc-${key}`"
-                                class="flex cursor-pointer items-center gap-3 p-3.5"
-                            >
-                                <div
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-stone-300 bg-white"
-                                >
-                                    <Upload class="h-4 w-4 text-stone-400" />
-                                </div>
-                                <div class="flex-1">
-                                    <p
-                                        class="text-sm font-medium text-stone-700"
-                                    >
-                                        {{ meta.label
-                                        }}<span
-                                            v-if="meta.required"
-                                            class="ml-0.5 text-red-400"
-                                            >*</span
-                                        >
-                                    </p>
-                                    <p class="text-xs text-stone-400">
-                                        {{ meta.description }}
-                                    </p>
-                                    <p class="mt-0.5 text-xs text-blue-500">
-                                        Click to upload · PDF, JPG, PNG
-                                    </p>
-                                </div>
-                                <input
-                                    :id="`kyc-${key}`"
-                                    type="file"
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                    class="sr-only"
-                                    @change="handleFileUpload($event, key)"
-                                />
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Document expiry dates -->
-                    <div
-                        v-for="(meta, key) in kycMeta"
-                        :key="`expiry-${key}`"
-                        class="space-y-1.5 rounded-xl border border-stone-200 bg-stone-50 p-3.5"
-                    >
-                        <label
-                            :for="`expiry-${key}`"
-                            class="text-sm font-medium text-stone-700"
-                        >
-                            {{ meta.label }} Expiry Date
-                            <span v-if="meta.required" class="text-red-400"
-                                >*</span
-                            >
-                        </label>
-                        <input
-                            :id="`expiry-${key}`"
-                            type="date"
-                            v-model="expiryDates[key]"
-                            :min="
-                                new Date(Date.now() + 86400000)
-                                    .toISOString()
-                                    .split('T')[0]
-                            "
-                            class="w-full rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                        />
-                        <p
-                            v-if="scanState[key] && scanState[key] !== 'idle'"
-                            class="text-xs"
-                            :class="
-                                scanState[key] === 'found'
-                                    ? 'text-emerald-600'
-                                    : scanState[key] === 'scanning'
-                                      ? 'text-stone-500'
-                                      : 'text-amber-600'
-                            "
-                            role="status"
-                        >
-                            {{
-                                scanState[key] === 'scanning'
-                                    ? 'Reading document…'
-                                    : scanState[key] === 'found'
-                                      ? 'Detected from your document. Please verify.'
-                                      : scanState[key] === 'expired'
-                                        ? 'Detected date has already passed. Check or upload a valid document.'
-                                        : 'Could not read the date. Please enter it.'
-                            }}
-                        </p>
-                        <p v-else class="text-xs text-stone-400">
-                            Auto-filled from your upload, or enter the expiry
-                            date printed on this document.
-                        </p>
-                    </div>
-
-                    <div
-                        class="flex items-start gap-2 rounded-lg bg-blue-50 p-3"
-                    >
-                        <ShieldCheck
-                            class="mt-0.5 h-4 w-4 shrink-0 text-blue-500"
-                        />
-                        <p class="text-xs text-blue-700">
-                            Documents are encrypted and stored securely. Used
-                            only for business verification.
-                        </p>
-                    </div>
-                </div>
-            </template>
-
-            <!-- Payment method (paid → upgrade only) -->
-            <div
-                v-else
-                class="space-y-3 rounded-2xl border bg-white p-5 shadow-sm"
-            >
+            <!-- Payment method -->
+            <div class="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
                 <p
                     class="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase"
                 >
@@ -753,13 +424,7 @@ function submit() {
                 >
                     <Loader2 v-if="submitting" class="h-4 w-4 animate-spin" />
                     <CreditCard v-else class="h-4 w-4" />
-                    {{
-                        submitting
-                            ? 'Processing…'
-                            : requiresKyc
-                              ? 'Submit Application'
-                              : 'Pay ' + fmt(totalDue)
-                    }}
+                    {{ submitting ? 'Processing…' : 'Pay ' + fmt(totalDue) }}
                 </Button>
             </div>
         </div>

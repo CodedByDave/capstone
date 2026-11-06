@@ -32,6 +32,7 @@ class LogisticsService
         private readonly ShopRepository $shops,
         private readonly EmployeeRepository $employees,
         private readonly ShopOrderRepository $orders,
+        private readonly RiderLoadLimitService $riderLoad,
     ) {}
 
     /** The shop the user dispatches for: the owner's own shop or the staff member's shop. */
@@ -79,7 +80,12 @@ class LogisticsService
                     ->values()
                     ->all(),
             ],
-            'deliveries' => $this->deliveries->paginateForShop($shopId, $status, 15, $sort),
+            'deliveries' => $this->deliveries->paginateForShop($shopId, $status, 15, $sort)
+                ->through(fn (Delivery $delivery) => $delivery->setAttribute(
+                    'load_warning',
+                    $delivery->order ? $this->riderLoad->boardLabel($shop, $this->riderLoad->orderWeight($delivery->order)) : null,
+                )),
+            'riderLoadLimit' => $this->riderLoad->limitsFor($shop),
             'riders' => $this->riders->activeForShop($shopId),
             'stats' => collect(self::STATUSES)
                 ->mapWithKeys(fn ($key) => [$key => $counts[$key] ?? 0])
@@ -169,6 +175,15 @@ class LogisticsService
             throw ValidationException::withMessages(['delivery' => 'This order already has a delivery.']);
         }
 
+        $tooHeavy = $this->riderLoad->violation(
+            $order->shop,
+            $this->riderLoad->orderWeight($order),
+            RiderLoadLimitService::PURPOSE_DELIVERY,
+        );
+        if ($tooHeavy !== null) {
+            throw ValidationException::withMessages(['delivery' => $tooHeavy]);
+        }
+
         $address = trim((string) $address);
         if ($address === '' && blank($order->customer_address) && blank($order->delivery_address)) {
             throw ValidationException::withMessages(['delivery_address' => 'Enter the address to deliver to.']);
@@ -246,14 +261,23 @@ class LogisticsService
             return null;
         }
 
-        $delivery = DB::transaction(function () use ($order, $type, $note): ?Delivery {
+        // Laundry outside the shop's rider load limit is held on the board for staff to decide
+        // (another courier, splitting it, or the customer collecting), never handed to a rider.
+        $heldReason = $this->riderLoad->boardLabel($order->shop, $this->riderLoad->orderWeight($order));
+        if ($heldReason !== null) {
+            $note .= ' Held: '.$heldReason.'.';
+        }
+
+        $delivery = DB::transaction(function () use ($order, $type, $note, $heldReason): ?Delivery {
             // Re-check under the transaction so a double submit cannot create two runs.
             if ($this->deliveries->existsForOrder($order->id, $type)) {
                 return null;
             }
 
             // A closed shop gives no run to a rider; it waits until the shop is open again.
-            $rider = $order->shop->isOpenAt() ? $this->riders->findAvailableForShop($order->shop_id) : null;
+            $rider = $heldReason === null && $order->shop->isOpenAt()
+                ? $this->riders->findAvailableForShop($order->shop_id)
+                : null;
 
             return $this->deliveries->createDelivery([
                 'shop_id' => $order->shop_id,
@@ -268,7 +292,7 @@ class LogisticsService
                 'rider_id' => $rider?->id,
                 'status' => $rider ? 'assigned' : 'pending',
                 'assigned_at' => $rider ? now() : null,
-                'notes' => $rider ? $note : $note.' No rider was available.',
+                'notes' => $rider || $heldReason !== null ? $note : $note.' No rider was available.',
             ]);
         });
 
@@ -299,13 +323,19 @@ class LogisticsService
     {
         $assigned = 0;
 
-        if (! $this->shops->findShopById($shopId)?->isOpenAt()) {
+        $shop = $this->shops->findShopById($shopId);
+        if (! $shop?->isOpenAt()) {
             return 0;
         }
 
         while (true) {
-            $delivery = DB::transaction(function () use ($shopId): ?Delivery {
+            $delivery = DB::transaction(function () use ($shopId, $shop): ?Delivery {
                 foreach ($this->deliveries->waitingForShop($shopId) as $waiting) {
+                    // A run outside the rider load limit stays held for staff to decide.
+                    if ($waiting->order && ! $this->riderLoad->allows($shop, $this->riderLoad->orderWeight($waiting->order))) {
+                        continue;
+                    }
+
                     // A rider who turned this run down is not offered it again.
                     $rider = $this->riders->findAvailableForShop($shopId, $this->deliveries->rejectedRiderIds($waiting->id));
 

@@ -11,7 +11,6 @@ use App\Http\Controllers\Admin\PlatformRoleController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Api\MapController;
-use App\Http\Controllers\BusinessAgreementSignatureController;
 use App\Http\Controllers\Driver\DriverAppController;
 use App\Http\Controllers\Driver\DriverAttendanceController;
 use App\Http\Controllers\Driver\DriverJobController;
@@ -126,10 +125,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/shops/{shop}/optimize', [MapController::class, 'optimize'])->name('optimize');
     });
 
-    Route::get('/business-agreement-acceptances/{acceptancePublicId}/signature', [BusinessAgreementSignatureController::class, 'show'])
-        ->name('business-agreement.signature');
-    Route::get('/business-agreement-platform-signatures/{signaturePublicId}', [BusinessAgreementSignatureController::class, 'platformShow'])
-        ->name('business-agreement.platform-signature');
     Route::post('/business-agreement/preview', [BusinessAgreementPdfController::class, 'preview'])
         ->name('business-agreement.preview');
     Route::get('/business-agreement-acceptances/{acceptancePublicId}/pdf', [BusinessAgreementPdfController::class, 'show'])
@@ -222,8 +217,6 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
         Route::get('/export', [OrderController::class, 'exportCsv'])->name('export');
         Route::post('/import', [OrderController::class, 'importCsv'])->name('import');
         Route::get('/{order:public_id}', [OrderController::class, 'show'])->name('show');
-        Route::post('/{order:public_id}/approve', [OrderController::class, 'approve'])->name('approve');
-        Route::post('/{order:public_id}/reject', [OrderController::class, 'reject'])->name('reject');
     });
 
     Route::prefix('kyc-verifications')->name('admin.kyc.')->group(function () {
@@ -504,6 +497,9 @@ Route::prefix('shop')->middleware([
     Route::patch('/settings/rush-fee', [ShopSettingsController::class, 'updateRushFee'])
         ->middleware('throttle:20,1')
         ->name('shop.settings.rush-fee');
+    Route::patch('/settings/rider-load', [ShopSettingsController::class, 'updateRiderLoadLimit'])
+        ->middleware(['shop.capability:delivery', 'throttle:20,1'])
+        ->name('shop.settings.rider-load');
     Route::patch('/settings/delivery-pricing', [ShopSettingsController::class, 'updateDeliveryPricing'])
         ->middleware('shop.capability:delivery-setup')
         ->name('shop.settings.delivery-pricing');

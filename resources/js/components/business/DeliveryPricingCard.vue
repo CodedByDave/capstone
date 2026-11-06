@@ -2,19 +2,21 @@
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    patchSettingsForm,
+    useSettingsSection,
+} from '@/composables/useSettingsSaveBar';
 import { formatPeso } from '@/lib/maps';
 import { router, useForm } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     Banknote,
     Info,
-    Loader2,
     MapPin,
     Route,
     Truck,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
-import { toast } from 'vue3-toastify';
 
 export interface DeliveryPricing {
     offers_delivery: boolean;
@@ -99,20 +101,16 @@ const preview = computed(() =>
     [1, 3, 5, 10].map((km) => ({ km, fee: feeFor(km) })),
 );
 
-function save() {
-    form.patch('/shop/settings/delivery-pricing', {
-        preserveScroll: true,
-        // Keep typed values when validation fails; a successful save reloads the page,
-        // which shows the flash toast.
-        preserveState: (page) =>
-            Object.keys(page.props.errors ?? {}).length > 0,
-        onError: () => {
-            toast.error(
-                'Delivery pricing was not saved. Please check the highlighted fields.',
-            );
-        },
-    });
-}
+useSettingsSection({
+    key: 'delivery',
+    label: 'Delivery pricing',
+    isDirty: () => form.isDirty,
+    save: () => patchSettingsForm(form, '/shop/settings/delivery-pricing'),
+    discard: () => {
+        form.reset();
+        form.clearErrors();
+    },
+});
 </script>
 
 <template>
@@ -348,26 +346,6 @@ function save() {
                         </p>
                     </div>
                 </div>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-end gap-3">
-                <p class="text-xs text-muted-foreground" aria-live="polite">
-                    {{
-                        form.isDirty
-                            ? 'You have unsaved changes'
-                            : 'No changes yet'
-                    }}
-                </p>
-                <Button
-                    :disabled="form.processing || !form.isDirty"
-                    @click="save"
-                >
-                    <Loader2
-                        v-if="form.processing"
-                        class="mr-1.5 h-4 w-4 animate-spin"
-                    />
-                    {{ form.processing ? 'Saving…' : 'Save Delivery Pricing' }}
-                </Button>
             </div>
         </div>
     </section>

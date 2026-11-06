@@ -7,6 +7,7 @@ import ServiceLinesEditor, {
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Banknote, Smartphone, Zap } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 // ─── Types ─────────────────────────────────────────
@@ -45,6 +46,10 @@ const props = defineProps<{
     completionMinutes: number;
     /** The shop's tax from its BIR registration: 12% VAT, 3% percentage tax, or none. */
     tax: { rate: number; label: string | null };
+    /** The shop's flat rush fee; 0 means rush is not offered. */
+    rushFee: number;
+    /** The weight range (kg) a rider carries; null means no limit on that side. */
+    riderLoadLimit?: { min: number | null; max: number | null };
     pickupTypes: string[];
     paymentMethods: string[];
     services?: Service[];
@@ -76,6 +81,7 @@ const form = useForm({
     alternate_contact_phone: '',
     customer_address: '',
     deliver_to_customer: false,
+    is_rush: false,
     service_id: '' as string | number,
     pickup_type: 'walk_in',
     pricing_model: 'per_kg' as 'per_kg' | 'per_bundle' | 'per_piece',
@@ -91,6 +97,7 @@ const form = useForm({
     total_amount: 0,
     amount_paid: 0,
     amount_tendered: '' as string | number,
+    payment_method: 'cash',
     promotion_id: '' as string | number,
     service_lines: [] as ServiceLineInput[],
     supplies: [] as {
@@ -126,6 +133,60 @@ const handoff = computed({
     set: (value: string) => {
         form.deliver_to_customer = value === 'delivery';
     },
+});
+
+// ─── Rider load limit ──────────────────────────────
+const kgText = (value: number) => `${parseFloat(value.toFixed(2))} kg`;
+const riderMin = computed(() => props.riderLoadLimit?.min ?? null);
+const riderMax = computed(() => props.riderLoadLimit?.max ?? null);
+
+const riderLimitText = computed(() => {
+    const min = riderMin.value;
+    const max = riderMax.value;
+    if (min !== null && max !== null) {
+        return `A rider delivers ${kgText(min)} to ${kgText(max)} per order.`;
+    }
+    if (max !== null) return `A rider delivers up to ${kgText(max)} per order.`;
+    if (min !== null) return `Rider delivery needs at least ${kgText(min)}.`;
+    return null;
+});
+
+// The order's laundry weight: the main service plus any weighed extra services (per-piece has none).
+const orderWeight = computed(() => {
+    let total = 0;
+    let weighed = false;
+    const main = parseFloat(String(form.actual_weight_kg));
+    if (form.pricing_model !== 'per_piece' && !Number.isNaN(main)) {
+        total += main;
+        weighed = true;
+    }
+    for (const line of form.service_lines) {
+        // Per-piece extra services have no weight, the same as on the server.
+        const svc = props.services?.find(
+            (s) => s.id === Number(line.service_id),
+        );
+        if (svc?.pricing_model === 'per_piece') continue;
+        const kg = parseFloat(String(line.weight_kg ?? ''));
+        if (!Number.isNaN(kg)) {
+            total += kg;
+            weighed = true;
+        }
+    }
+    // Rounded to 2 decimals like the server, so 0.1 + 0.2 is never "over" a 0.3 kg limit.
+    return weighed ? Math.round(total * 100) / 100 : null;
+});
+
+// Why a rider cannot deliver this order, or null when they can. The server checks the same.
+const deliveryWeightProblem = computed(() => {
+    const weight = orderWeight.value;
+    if (weight === null) return null;
+    if (riderMax.value !== null && weight > riderMax.value) {
+        return `This laundry is ${kgText(weight)}, over the ${kgText(riderMax.value)} a rider can carry. Choose walk-in instead.`;
+    }
+    if (riderMin.value !== null && weight < riderMin.value) {
+        return `Rider delivery needs at least ${kgText(riderMin.value)}. This laundry is ${kgText(weight)}.`;
+    }
+    return null;
 });
 
 const formatCurrency = (v: string | number | null) =>
@@ -220,13 +281,21 @@ const onPromotionChange = () => {
     form.discount_amount = promoDiscount.value;
 };
 
-// The amount before tax.
+// Rush is only offered once the owner sets a rush fee in Settings.
+const rushOffered = computed(() => props.rushFee > 0);
+const rushAmount = computed(() =>
+    form.is_rush && rushOffered.value ? props.rushFee : 0,
+);
+
+// The amount before tax, rush fee included (the server adds the same fee from the shop's settings).
 const subtotal = computed(() => {
     const charges = parseFloat(String(form.additional_charges)) || 0;
     const discount = parseFloat(String(form.discount_amount)) || 0;
-    return Math.max(
-        0,
-        baseTotal.value + extraServicesTotal.value + charges - discount,
+    return (
+        Math.max(
+            0,
+            baseTotal.value + extraServicesTotal.value + charges - discount,
+        ) + rushAmount.value
     );
 });
 
@@ -308,10 +377,24 @@ const paymentOptions: { value: PaymentMode; label: string }[] = [
 ];
 const paymentMode = ref<PaymentMode>('unpaid');
 
+// How the money was received at the counter. Only cash can have change.
+const methodOptions = [
+    { value: 'cash', label: 'Cash', icon: Banknote },
+    { value: 'gcash', label: 'GCash', icon: Smartphone },
+    { value: 'maya', label: 'Maya', icon: Smartphone },
+];
+
 watch(paymentMode, (mode) => {
     form.amount_paid = mode === 'full' ? computedTotal.value : 0;
     form.amount_tendered = '';
 });
+
+watch(
+    () => form.payment_method,
+    () => {
+        form.amount_tendered = '';
+    },
+);
 
 // Cash handed over at the counter: the change is worked out here and again on the server.
 const tendered = computed(() =>
@@ -376,8 +459,9 @@ const blurOnWheel = (event: WheelEvent) =>
     (event.target as HTMLInputElement).blur();
 
 const submit = () => {
-    // The server adds the tax; it is sent the amount before tax.
-    form.total_amount = subtotal.value;
+    // The server adds the tax and the rush fee; it is sent the amount before both.
+    form.total_amount = subtotal.value - rushAmount.value;
+    form.is_rush = form.is_rush && rushOffered.value;
     form.post(base.value);
 };
 
@@ -545,6 +629,29 @@ watch(
                                         {{ option.label }}
                                     </label>
                                 </div>
+                                <p
+                                    v-if="offersDelivery && riderLimitText"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ riderLimitText }}
+                                </p>
+                                <p
+                                    v-if="
+                                        (form.deliver_to_customer &&
+                                            deliveryWeightProblem) ||
+                                        form.errors.deliver_to_customer ||
+                                        form.errors.pickup_type
+                                    "
+                                    class="rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-700"
+                                    role="alert"
+                                >
+                                    {{
+                                        (form.deliver_to_customer &&
+                                            deliveryWeightProblem) ||
+                                        form.errors.deliver_to_customer ||
+                                        form.errors.pickup_type
+                                    }}
+                                </p>
                             </div>
                             <div
                                 v-if="form.deliver_to_customer"
@@ -938,6 +1045,50 @@ watch(
                                     Auto-filled from promotion
                                 </p>
                             </div>
+                            <div v-if="rushOffered" class="col-span-12">
+                                <label
+                                    for="is_rush"
+                                    class="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition"
+                                    :class="
+                                        form.is_rush
+                                            ? 'border-orange-300 bg-orange-50'
+                                            : 'border-gray-300 hover:bg-gray-50'
+                                    "
+                                >
+                                    <input
+                                        id="is_rush"
+                                        v-model="form.is_rush"
+                                        type="checkbox"
+                                        class="mt-0.5 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                    />
+                                    <span class="text-sm">
+                                        <span
+                                            class="inline-flex items-center gap-1 font-medium"
+                                        >
+                                            <Zap
+                                                class="h-4 w-4 text-orange-500"
+                                                aria-hidden="true"
+                                            />
+                                            Rush order (+{{
+                                                formatCurrency(rushFee)
+                                            }})
+                                        </span>
+                                        <span
+                                            class="block text-xs text-muted-foreground"
+                                        >
+                                            Goes to the front of the queue. Set
+                                            it now: rush cannot be added once
+                                            the order is paid.
+                                        </span>
+                                    </span>
+                                </label>
+                                <p
+                                    v-if="form.errors.is_rush"
+                                    class="mt-1 text-xs text-red-600"
+                                >
+                                    {{ form.errors.is_rush }}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -981,6 +1132,57 @@ watch(
                                         {{ option.label }}
                                     </label>
                                 </div>
+                            </div>
+
+                            <div class="col-span-12 space-y-2">
+                                <p
+                                    id="payment-method-label"
+                                    class="text-sm font-medium"
+                                >
+                                    Payment type
+                                    <span
+                                        v-if="paymentMode === 'unpaid'"
+                                        class="font-normal text-muted-foreground"
+                                        >(saved once a payment is
+                                        received)</span
+                                    >
+                                </p>
+                                <div
+                                    class="flex flex-wrap gap-2"
+                                    role="radiogroup"
+                                    aria-labelledby="payment-method-label"
+                                >
+                                    <label
+                                        v-for="method in methodOptions"
+                                        :key="method.value"
+                                        class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                                        :class="
+                                            form.payment_method === method.value
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : 'border-gray-300 hover:border-gray-400'
+                                        "
+                                    >
+                                        <input
+                                            v-model="form.payment_method"
+                                            type="radio"
+                                            name="payment_method"
+                                            :value="method.value"
+                                            class="h-4 w-4 accent-blue-600"
+                                        />
+                                        <component
+                                            :is="method.icon"
+                                            class="h-4 w-4"
+                                            aria-hidden="true"
+                                        />
+                                        {{ method.label }}
+                                    </label>
+                                </div>
+                                <p
+                                    v-if="form.errors.payment_method"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.payment_method }}
+                                </p>
                             </div>
 
                             <div
@@ -1040,7 +1242,10 @@ watch(
                             </p>
 
                             <div
-                                v-if="paymentMode === 'full'"
+                                v-if="
+                                    paymentMode === 'full' &&
+                                    form.payment_method === 'cash'
+                                "
                                 class="col-span-12 space-y-1 sm:col-span-4"
                             >
                                 <label
@@ -1076,7 +1281,9 @@ watch(
                                     {{ form.errors.amount_tendered }}
                                 </p>
                                 <p
-                                    v-else-if="changeDue !== null && changeDue < 0"
+                                    v-else-if="
+                                        changeDue !== null && changeDue < 0
+                                    "
                                     class="text-xs text-red-600"
                                     role="alert"
                                 >
@@ -1394,6 +1601,15 @@ watch(
                                     }}
                                 </dd>
                             </div>
+                            <div
+                                v-if="rushAmount > 0"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">Rush fee</dt>
+                                <dd class="font-medium">
+                                    {{ formatCurrency(rushAmount) }}
+                                </dd>
+                            </div>
                             <div class="flex justify-between gap-3">
                                 <dt class="text-muted-foreground">Discount</dt>
                                 <dd class="font-medium">
@@ -1439,7 +1655,9 @@ watch(
                                 </dd>
                             </div>
                             <div
-                                v-if="paymentMode === 'full' && tendered !== null"
+                                v-if="
+                                    paymentMode === 'full' && tendered !== null
+                                "
                                 class="flex justify-between gap-3"
                             >
                                 <dt class="text-muted-foreground">
@@ -1451,8 +1669,7 @@ watch(
                             </div>
                             <div
                                 v-if="
-                                    paymentMode === 'full' &&
-                                    changeDue !== null
+                                    paymentMode === 'full' && changeDue !== null
                                 "
                                 class="flex justify-between gap-3"
                             >

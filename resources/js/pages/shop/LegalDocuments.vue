@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AgreementSignatureInput from '@/components/business/AgreementSignatureInput.vue';
 import BusinessAgreementDocument from '@/components/business/BusinessAgreementDocument.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,13 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import {
-    CheckCircle2,
-    Clock3,
-    Download,
-    Loader2,
-    ShieldCheck,
-} from 'lucide-vue-next';
+import { CheckCircle2, Download, Loader2, ShieldCheck } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 interface Acceptance {
@@ -23,17 +16,6 @@ interface Acceptance {
     signer_role: string;
     accepted_at: string;
     content_hash: string;
-    signature_method: 'drawn' | 'uploaded' | null;
-    signature_url: string | null;
-    execution_status: 'awaiting_platform_signature' | 'fully_executed';
-    platform_signature: {
-        public_id: string;
-        signer_name: string;
-        signer_role: string;
-        signed_at: string;
-        signature_method: 'drawn' | 'uploaded';
-        signature_url: string;
-    } | null;
     agreement: {
         title: string;
         version: string;
@@ -62,8 +44,6 @@ const form = useForm({
     agreement_public_id: props.currentAgreement.public_id,
     signer_name: '',
     signer_role: 'Owner',
-    signature_image: null as File | null,
-    signature_method: 'drawn' as 'drawn' | 'uploaded',
     signer_authority_confirmed: false,
     agreement_accepted: false,
 });
@@ -81,10 +61,7 @@ function formatDate(value: string) {
 }
 
 function acceptAgreement() {
-    form.post('/shop/agreement', {
-        preserveScroll: true,
-        forceFormData: true,
-    });
+    form.post('/shop/agreement', { preserveScroll: true });
 }
 
 async function downloadAgreement(acceptance: Acceptance) {
@@ -114,7 +91,7 @@ async function downloadAgreement(acceptance: Acceptance) {
                     Legal Documents
                 </h1>
                 <p class="mt-1 text-sm text-muted-foreground">
-                    Review, execute, and download the agreement between
+                    Review, accept, and download the agreement between
                     LaundryHub and your business.
                 </p>
             </header>
@@ -125,88 +102,36 @@ async function downloadAgreement(acceptance: Acceptance) {
                 :acceptance="currentAgreement.acceptance"
             />
 
+            <!-- An accepted agreement is complete: there is no signature or countersignature step. -->
             <section
                 v-if="currentAgreement.acceptance"
-                class="border-y px-5 py-5"
-                :class="
-                    currentAgreement.acceptance.execution_status ===
-                    'fully_executed'
-                        ? 'border-emerald-300 bg-emerald-50/70'
-                        : 'border-amber-300 bg-amber-50/70'
-                "
+                class="border-y border-emerald-300 bg-emerald-50/70 px-5 py-5"
             >
                 <div
                     class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                     <div class="flex items-start gap-3">
                         <CheckCircle2
-                            v-if="
-                                currentAgreement.acceptance.execution_status ===
-                                'fully_executed'
-                            "
                             class="mt-0.5 h-5 w-5 shrink-0 text-emerald-700"
                         />
-                        <Clock3
-                            v-else
-                            class="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
-                        />
                         <div>
-                            <p
-                                class="font-semibold"
-                                :class="
-                                    currentAgreement.acceptance
-                                        .execution_status === 'fully_executed'
-                                        ? 'text-emerald-950'
-                                        : 'text-amber-950'
-                                "
-                            >
-                                {{
-                                    currentAgreement.acceptance
-                                        .execution_status === 'fully_executed'
-                                        ? 'Agreement fully executed'
-                                        : 'Awaiting platform signature'
-                                }}
+                            <p class="font-semibold text-emerald-950">
+                                Agreement accepted
                             </p>
-                            <p
-                                class="mt-1 text-sm"
-                                :class="
-                                    currentAgreement.acceptance
-                                        .execution_status === 'fully_executed'
-                                        ? 'text-emerald-800'
-                                        : 'text-amber-800'
-                                "
-                            >
-                                <template
-                                    v-if="
-                                        currentAgreement.acceptance
-                                            .platform_signature
-                                    "
-                                >
-                                    LaundryHub countersigned through
-                                    {{
-                                        currentAgreement.acceptance
-                                            .platform_signature.signer_name
-                                    }}
-                                    on
-                                    {{
-                                        formatDate(
-                                            currentAgreement.acceptance
-                                                .platform_signature.signed_at,
-                                        )
-                                    }}.
-                                </template>
-                                <template v-else>
-                                    Your signature was recorded. LaundryHub will
-                                    countersign when the order is approved.
-                                </template>
+                            <p class="mt-1 text-sm text-emerald-800">
+                                Accepted by
+                                {{ currentAgreement.acceptance.signer_name }}
+                                ({{ currentAgreement.acceptance.signer_role }})
+                                on
+                                {{
+                                    formatDate(
+                                        currentAgreement.acceptance.accepted_at,
+                                    )
+                                }}.
                             </p>
                         </div>
                     </div>
                     <Button
-                        v-if="
-                            currentAgreement.acceptance.execution_status ===
-                            'fully_executed'
-                        "
                         variant="outline"
                         class="gap-2"
                         :disabled="downloadingId !== null"
@@ -220,7 +145,7 @@ async function downloadAgreement(acceptance: Acceptance) {
                             class="h-4 w-4 animate-spin"
                         />
                         <Download v-else class="h-4 w-4" />
-                        Download signed PDF
+                        Download PDF
                     </Button>
                 </div>
             </section>
@@ -232,10 +157,10 @@ async function downloadAgreement(acceptance: Acceptance) {
             >
                 <div>
                     <h2 class="text-base font-semibold text-stone-950">
-                        Execute this agreement
+                        Accept this agreement
                     </h2>
                     <p class="mt-1 text-sm text-stone-500">
-                        The printed name and owner signature become part of the
+                        Your printed name, role and the date become part of the
                         permanent agreement record.
                     </p>
                 </div>
@@ -243,7 +168,7 @@ async function downloadAgreement(acceptance: Acceptance) {
                 <div class="flex items-start gap-2 text-sm text-blue-800">
                     <ShieldCheck class="mt-0.5 h-4 w-4 shrink-0" />
                     Only the business owner or an authorized representative may
-                    sign this agreement.
+                    accept this agreement.
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -261,7 +186,7 @@ async function downloadAgreement(acceptance: Acceptance) {
                         </p>
                     </div>
                     <div>
-                        <Label class="mb-1.5">Signing capacity</Label>
+                        <Label class="mb-1.5">Role</Label>
                         <select
                             v-model="form.signer_role"
                             class="w-full rounded-md border bg-background px-3 py-2 text-sm"
@@ -271,13 +196,6 @@ async function downloadAgreement(acceptance: Acceptance) {
                         </select>
                     </div>
                 </div>
-
-                <AgreementSignatureInput
-                    v-model="form.signature_image"
-                    :disabled="form.processing"
-                    :error="form.errors.signature_image"
-                    @update:method="form.signature_method = $event"
-                />
 
                 <div class="space-y-3">
                     <label
@@ -302,8 +220,8 @@ async function downloadAgreement(acceptance: Acceptance) {
                             class="mt-1 accent-blue-600"
                         />
                         <span
-                            >I have read, signed, and accept this
-                            Platform–Business Services Agreement.</span
+                            >I have read and accept this Platform–Business
+                            Services Agreement.</span
                         >
                     </label>
                 </div>
@@ -318,7 +236,6 @@ async function downloadAgreement(acceptance: Acceptance) {
                     type="submit"
                     :disabled="
                         form.processing ||
-                        !form.signature_image ||
                         !form.signer_authority_confirmed ||
                         !form.agreement_accepted ||
                         form.signer_name.trim().length < 2
@@ -328,7 +245,7 @@ async function downloadAgreement(acceptance: Acceptance) {
                         v-if="form.processing"
                         class="mr-2 h-4 w-4 animate-spin"
                     />
-                    Sign and accept agreement
+                    Accept agreement
                 </Button>
             </form>
 
@@ -353,9 +270,6 @@ async function downloadAgreement(acceptance: Acceptance) {
                             </p>
                         </div>
                         <Button
-                            v-if="
-                                acceptance.execution_status === 'fully_executed'
-                            "
                             variant="outline"
                             size="sm"
                             class="gap-2"
@@ -368,13 +282,6 @@ async function downloadAgreement(acceptance: Acceptance) {
                             />
                             <Download v-else class="h-4 w-4" /> PDF
                         </Button>
-                        <span
-                            v-else
-                            class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700"
-                        >
-                            <Clock3 class="h-4 w-4" /> Awaiting platform
-                            signature
-                        </span>
                     </div>
                 </CardContent>
             </Card>
