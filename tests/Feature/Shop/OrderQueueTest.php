@@ -494,6 +494,27 @@ test('the new order form offers rush with the shop fee', function () {
         ->assertInertia(fn ($page) => $page->where('rushFee', 75));
 });
 
+test('the new order form receives the amount set for each additional charge', function () {
+    $shop = queueShop();
+    App\Models\Inventory::create([
+        'shop_id' => $shop->id,
+        'name' => 'Liquid Detergent',
+        'unit' => 'ml',
+        'quantity' => 1000,
+        'selling_price' => 0.30,
+        'addon_enabled' => true,
+        'addon_name' => 'Extra Detergent',
+        'addon_quantity' => 50,
+        'addon_price' => 15,
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($shop->owner)->get('/shop/operations/orders/create')
+        ->assertInertia(fn ($page) => $page
+            ->where('inventoryItems.0.name', 'Liquid Detergent')
+            ->where('inventoryItems.0.addon_quantity', 50));
+});
+
 test('a walk-in can be rushed when it is created, with the fee from the shop settings', function () {
     $shop = queueShop(rushFee: 50);
 

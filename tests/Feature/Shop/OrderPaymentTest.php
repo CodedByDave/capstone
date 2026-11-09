@@ -115,6 +115,33 @@ function payUrl(ShopOrder $order, string $suffix = ''): string
 
 // ─── Recording ────────────────────────────────────────────────────────────────
 
+test('the edit page hands over the payments of an unpaid and then a partly paid order', function () {
+    $shop = payShop();
+    $order = payOrder($shop);
+    $editUrl = "/shop/operations/orders/{$order->payment_public_id}/edit";
+
+    $this->actingAs($shop->owner)
+        ->get($editUrl)
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('shop/operations/orders/Edit')
+            ->where('shopOrder.payment_status', 'unpaid')
+            ->has('payments', 0));
+
+    $this->actingAs($shop->owner)
+        ->post(payUrl($order), ['amount' => '100', 'method' => 'cash'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($shop->owner)
+        ->get($editUrl)
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('shopOrder.payment_status', 'partial')
+            ->has('payments', 1)
+            ->where('payments.0.id', $order->payments()->first()->public_id)
+            ->where('payments.0.status', 'confirmed'));
+});
+
 test('the owner records a partial payment and then the rest', function () {
     $shop = payShop();
     $order = payOrder($shop);

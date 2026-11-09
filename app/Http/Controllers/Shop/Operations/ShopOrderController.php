@@ -98,7 +98,7 @@ class ShopOrderController extends Controller
                 ->where('status', 'active')
                 ->usableAsSupply()
                 ->orderBy('name')
-                ->get(['id', 'name', 'unit', 'quantity', 'selling_price']),
+                ->get(['id', 'name', 'unit', 'quantity', 'selling_price', 'addon_quantity']),
             'promotions' => Promotion::where('shop_id', $shopId)
                 ->active()
                 ->valid()
@@ -180,8 +180,8 @@ class ShopOrderController extends Controller
             'shopOrder' => $order,
             'shopId' => $shopId,
             'weighingBlockedReason' => $this->service->weighingBlockedReason($order),
+            'payments' => ShopOrderPaymentResource::collection($this->payments->history($order))->resolve(),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
-            'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'statuses' => ShopOrder::STATUSES,
             'services' => ShopService::where('shop_id', $shopId)
                 ->where('is_active', true)

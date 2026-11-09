@@ -999,7 +999,7 @@ const statusIcon = (s: string) =>
                         >
                             To record a payment, open
                             <Link
-                                :href="`${base}/${shopOrder.payment_public_id}/edit`"
+                                :href="`${base}/${shopOrder.payment_public_id}/edit#order-payments`"
                                 class="font-medium text-primary hover:underline"
                                 >Edit order</Link
                             >.

@@ -28,6 +28,8 @@ interface InventoryItem {
     unit: string;
     quantity: number;
     selling_price: string | null;
+    /** The amount one additional charge uses, set on the inventory item. */
+    addon_quantity: number | null;
 }
 
 interface Promotion {
@@ -339,7 +341,11 @@ const onSupplyItemChange = (supply: {
     const item = props.inventoryItems?.find(
         (i) => i.id === supply.inventory_id,
     );
-    if (item) supply.unit = item.unit;
+    if (item) {
+        supply.unit = item.unit;
+        // Start from the amount set on the item; staff can still change it for this order.
+        supply.quantity_used = item.addon_quantity ?? 0;
+    }
     recalcSupplyCharges();
 };
 
@@ -1383,11 +1389,7 @@ watch(
                                             :value="item.id"
                                         >
                                             {{ item.name }} ({{ item.quantity }}
-                                            {{ item.unit }} left{{
-                                                item.selling_price
-                                                    ? ` · ₱${parseFloat(item.selling_price).toFixed(2)}`
-                                                    : ''
-                                            }})
+                                            {{ item.unit }} left)
                                         </option>
                                     </select>
                                 </div>

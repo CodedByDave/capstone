@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import OrderPaymentsCard, {
+    type OrderPayment,
+} from '@/components/shop/OrderPaymentsCard.vue';
 import ServiceLinesEditor, {
     type ServiceLineInput,
 } from '@/components/shop/ServiceLinesEditor.vue';
@@ -92,10 +95,10 @@ const props = defineProps<{
     shopOrder: Order;
     shopId: number;
     pickupTypes: string[];
-    paymentMethods: string[];
     statuses: string[];
     /** Set while a pickup order's laundry has not yet reached the shop. */
     weighingBlockedReason?: string | null;
+    payments: OrderPayment[];
     services?: Service[];
     inventoryItems?: InventoryItem[];
     promotions?: Promotion[];
@@ -106,12 +109,16 @@ const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const base = computed(() =>
     isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
 );
-onMounted(() => {
+const showFlashToast = () => {
     const t = page.props.toast as any;
     if (!t) return;
     if (t.type === 'success') toast.success(t.message);
     if (t.type === 'error') toast.error(t.message);
-});
+    if (t.type === 'info') toast.info(t.message);
+};
+onMounted(showFlashToast);
+// Recording or voiding a payment reloads the props without remounting, so unsaved edits survive.
+watch(() => page.props.toast, showFlashToast);
 
 const form = useForm({
     customer_name: props.shopOrder.customer_name,
@@ -141,13 +148,6 @@ const form = useForm({
     additional_charges: props.shopOrder.additional_charges,
     discount_amount: props.shopOrder.discount_amount,
     total_amount: props.shopOrder.total_amount,
-    payment_method: props.shopOrder.payment_method,
-    // Not paid or Fully paid. A partly paid order starts with neither chosen.
-    payment_state: (props.shopOrder.payment_status === 'paid'
-        ? 'paid'
-        : props.shopOrder.payment_status === 'unpaid'
-          ? 'unpaid'
-          : '') as 'paid' | 'unpaid' | '',
     status: props.shopOrder.status,
     estimated_completion_at: props.shopOrder.estimated_completion_at
         ? toLocalInputValue(new Date(props.shopOrder.estimated_completion_at))
@@ -328,33 +328,6 @@ const supplyCost = computed(() =>
         return sum + price * qty;
     }, 0),
 );
-
-const paymentOptions = [
-    { value: 'unpaid', label: 'Not paid' },
-    { value: 'paid', label: 'Fully paid' },
-] as const;
-
-const methodLabel = (method: string) =>
-    ({ gcash: 'GCash', grabpay: 'GrabPay' })[method] ??
-    method.charAt(0).toUpperCase() + method.slice(1);
-
-const paymentNote = computed(() => {
-    const status = props.shopOrder.payment_status;
-
-    if (form.payment_state === 'paid' && status !== 'paid') {
-        return `Saving records ${formatCurrency(balanceDue.value)} as received (${methodLabel(form.payment_method ?? 'cash')}).`;
-    }
-    if (form.payment_state === 'unpaid' && paidSoFar.value > 0) {
-        return `Saving voids the ${formatCurrency(paidSoFar.value)} recorded as paid. Online payments cannot be undone here.`;
-    }
-    if (status === 'paid')
-        return `Fully paid · ${formatCurrency(paidSoFar.value)}`;
-    if (status === 'partial') {
-        return `${formatCurrency(paidSoFar.value)} paid so far. Choose Fully paid to record the remaining ${formatCurrency(balanceDue.value)}.`;
-    }
-
-    return 'Nothing has been paid yet.';
-});
 
 const saveStatus = computed(() => {
     if (form.isDirty) return 'You have unsaved changes';
@@ -552,8 +525,14 @@ const balanceDue = computed(() =>
                 <Lock class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <p>
                     Order details are locked once the order is placed. You can
-                    still update the rider's address and alternate contact, and
-                    record the weight the first time the laundry is weighed.
+                    still update the rider's address and alternate contact,
+                    record the weight the first time the laundry is weighed, and
+                    manage
+                    <a
+                        href="#order-payments"
+                        class="font-medium text-primary hover:underline"
+                        >payments</a
+                    >.
                 </p>
             </div>
 
@@ -1300,33 +1279,13 @@ const balanceDue = computed(() =>
                         </fieldset>
                     </div>
 
-                    <!-- Payment -->
+                    <!-- Schedule -->
                     <div class="border-t pt-8">
-                        <h3 class="mb-4 text-base font-semibold">
-                            Payment and schedule
-                        </h3>
+                        <h3 class="mb-4 text-base font-semibold">Schedule</h3>
                         <fieldset
                             disabled
                             class="grid grid-cols-12 gap-x-6 gap-y-5"
                         >
-                            <div class="col-span-12 space-y-1 sm:col-span-6">
-                                <label class="text-sm font-medium"
-                                    >Payment method</label
-                                >
-                                <select
-                                    v-model="form.payment_method"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                >
-                                    <option :value="null">Not paid yet</option>
-                                    <option
-                                        v-for="m in paymentMethods"
-                                        :key="m"
-                                        :value="m"
-                                    >
-                                        {{ methodLabel(m) }}
-                                    </option>
-                                </select>
-                            </div>
                             <div class="col-span-12 space-y-1 sm:col-span-6">
                                 <label class="text-sm font-medium"
                                     >Estimated completion</label
@@ -1337,48 +1296,6 @@ const balanceDue = computed(() =>
                                     disabled
                                     class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 />
-                            </div>
-                            <div class="col-span-12 space-y-2">
-                                <p
-                                    id="payment-state-label"
-                                    class="text-sm font-medium"
-                                >
-                                    Payment status
-                                </p>
-                                <div
-                                    class="flex gap-2 sm:max-w-sm"
-                                    role="radiogroup"
-                                    aria-labelledby="payment-state-label"
-                                >
-                                    <label
-                                        v-for="option in paymentOptions"
-                                        :key="option.value"
-                                        class="flex flex-1 cursor-pointer items-center justify-center rounded-lg border px-2 py-2.5 text-center text-sm leading-tight transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                                        :class="
-                                            form.payment_state === option.value
-                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                : 'border-gray-300 hover:border-gray-400'
-                                        "
-                                    >
-                                        <input
-                                            v-model="form.payment_state"
-                                            type="radio"
-                                            name="payment_state"
-                                            :value="option.value"
-                                            class="sr-only"
-                                        />
-                                        {{ option.label }}
-                                    </label>
-                                </div>
-                                <p class="text-xs text-muted-foreground">
-                                    {{ paymentNote }}
-                                </p>
-                                <p
-                                    v-if="form.errors.payment_state"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.payment_state }}
-                                </p>
                             </div>
                         </fieldset>
                     </div>
@@ -1647,6 +1564,11 @@ const balanceDue = computed(() =>
                                 </dd>
                             </div>
                         </dl>
+                        <a
+                            href="#order-payments"
+                            class="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+                            >Go to payments</a
+                        >
                     </section>
 
                     <section class="mt-4 border-t pt-4">
@@ -1684,6 +1606,15 @@ const balanceDue = computed(() =>
                     </section>
                 </aside>
             </form>
+
+            <!-- Outside the form: payments save on their own and their dialogs are forms too. -->
+            <div id="order-payments" class="scroll-mt-20">
+                <OrderPaymentsCard
+                    :order="shopOrder"
+                    :payments="payments"
+                    :base="base"
+                />
+            </div>
         </div>
     </ShopLayout>
 </template>
