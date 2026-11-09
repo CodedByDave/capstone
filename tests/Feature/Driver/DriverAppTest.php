@@ -27,6 +27,7 @@ function driverRun(Shop $shop, ?Rider $rider, string $status = 'assigned', array
         'status' => $status,
         'rider_id' => $rider?->id,
         'assigned_at' => $rider ? now() : null,
+        'accepted_at' => $rider ? now() : null,
     ], $overrides));
 }
 
@@ -109,6 +110,7 @@ test('a driver cannot reach a run of another shop', function () {
 // ── The same flow: assigned, picked up, delivered ─────────────────────────────
 
 test('a run moves forward through pickup to delivered and notifies nobody backwards', function () {
+    Storage::fake('private');
     $shop = driverShop();
     $rider = onlineRider($shop);
     $run = driverRun($shop, $rider);
@@ -117,7 +119,7 @@ test('a run moves forward through pickup to delivered and notifies nobody backwa
     $this->actingAs($driver)->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'picked_up'])->assertRedirect();
     expect($run->fresh()->status)->toBe('picked_up')->and($run->fresh()->picked_up_at)->not->toBeNull();
 
-    $this->actingAs($driver)->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered'])->assertRedirect();
+    $this->actingAs($driver)->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered', 'delivery_photo' => riderPhoto()])->assertRedirect();
     expect($run->fresh()->status)->toBe('delivered')->and($run->fresh()->delivered_at)->not->toBeNull();
 
     // A finished run cannot be pushed back.
@@ -150,13 +152,14 @@ test('the status must be one a driver may set', function () {
 });
 
 test('finishing a run puts the driver back in line and gives them the oldest waiting order', function () {
+    Storage::fake('private');
     $shop = driverShop();
     $rider = onlineRider($shop, freeSince: now()->subHour());
     $onRoad = driverRun($shop, $rider, 'picked_up');
     $waiting = driverRun($shop, null, 'pending');
 
     $this->actingAs($rider->employee->user)
-        ->patch("/driver/jobs/{$onRoad->public_id}/status", ['status' => 'delivered']);
+        ->patch("/driver/jobs/{$onRoad->public_id}/status", ['status' => 'delivered', 'delivery_photo' => riderPhoto()]);
 
     expect($waiting->fresh()->rider_id)->toBe($rider->id)
         ->and($waiting->fresh()->status)->toBe('assigned')
@@ -551,6 +554,7 @@ test('delivering with the cash collected records a cash payment by the driver an
             'status' => 'delivered',
             'collected_amount' => '350.00',
             'proof_photo' => cashPhoto(),
+            'delivery_photo' => riderPhoto(),
         ])
         ->assertSessionHas('toast.type', 'success');
 
@@ -585,10 +589,11 @@ test('the cash collected needs a photo of it, which is kept as cash proof on the
             'status' => 'delivered',
             'collected_amount' => '350',
             'proof_photo' => cashPhoto(),
+            'delivery_photo' => riderPhoto(),
         ])
         ->assertSessionHas('toast.type', 'success');
 
-    $photo = App\Models\DeliveryPhoto::where('delivery_id', $run->id)->sole();
+    $photo = App\Models\DeliveryPhoto::where('delivery_id', $run->id)->where('kind', 'cash')->sole();
 
     expect($photo->kind)->toBe('cash')
         ->and($photo->uploaded_by)->toBe($driver->id);
@@ -646,6 +651,7 @@ test('collecting less than the balance leaves the order partly paid', function (
             'status' => 'delivered',
             'collected_amount' => '200',
             'proof_photo' => cashPhoto(),
+            'delivery_photo' => riderPhoto(),
         ])
         ->assertSessionHas('toast.type', 'success');
 
@@ -654,13 +660,14 @@ test('collecting less than the balance leaves the order partly paid', function (
 });
 
 test('collecting nothing is allowed and records no payment', function () {
+    Storage::fake('private');
     $shop = driverShop();
     $rider = onlineRider($shop);
     $order = codOrder($shop);
     $run = driverRun($shop, $rider, 'picked_up', ['shop_order_id' => $order->id]);
 
     $this->actingAs($rider->employee->user)
-        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered', 'collected_amount' => '0'])
+        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered', 'collected_amount' => '0', 'delivery_photo' => riderPhoto()])
         ->assertSessionHas('toast.type', 'success');
 
     expect($run->fresh()->status)->toBe('delivered')
@@ -688,6 +695,7 @@ test('a delivery with a balance cannot be completed without saying what was coll
 });
 
 test('an order that is already paid asks the driver for no cash', function () {
+    Storage::fake('private');
     $shop = driverShop();
     $rider = onlineRider($shop);
     $order = codOrder($shop, ['payment_status' => 'paid', 'amount_paid' => 350]);
@@ -698,7 +706,7 @@ test('an order that is already paid asks the driver for no cash', function () {
         ->assertInertia(fn (Assert $page) => $page->where('job.collect_amount', null));
 
     $this->actingAs($rider->employee->user)
-        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered'])
+        ->patch("/driver/jobs/{$run->public_id}/status", ['status' => 'delivered', 'delivery_photo' => riderPhoto()])
         ->assertSessionHas('toast.type', 'success');
 
     expect($run->fresh()->status)->toBe('delivered');

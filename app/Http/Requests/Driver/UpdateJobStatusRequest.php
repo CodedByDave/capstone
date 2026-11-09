@@ -21,6 +21,8 @@ class UpdateJobStatusRequest extends FormRequest
             // Photo of the cash taken at the door, or of the laundry picked up from the customer;
             // the service requires it in both cases.
             'proof_photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            // Photo of the laundry handed over to the customer; the service requires it on a delivery.
+            'delivery_photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }
 
@@ -31,6 +33,9 @@ class UpdateJobStatusRequest extends FormRequest
             'proof_photo.image' => 'The proof must be a photo.',
             'proof_photo.mimes' => 'The proof photo must be a JPG, PNG, or WebP image.',
             'proof_photo.max' => 'The proof photo must be 5 MB or smaller.',
+            'delivery_photo.image' => 'The delivery proof must be a photo.',
+            'delivery_photo.mimes' => 'The delivery photo must be a JPG, PNG, or WebP image.',
+            'delivery_photo.max' => 'The delivery photo must be 5 MB or smaller.',
         ];
     }
 }

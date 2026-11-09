@@ -302,8 +302,8 @@ class LogisticsService
 
         $delivery->load('rider.employee.user');
 
+        // The customer hears about the rider only once the rider accepts.
         if ($delivery->rider_id) {
-            $order->customer?->notify(new DeliveryNotification($delivery));
             $this->notifyDriver($delivery);
         } else {
             $this->announceNoRider($delivery);
@@ -352,8 +352,8 @@ class LogisticsService
             }
 
             $assigned++;
+            // The customer hears about the rider only once the rider accepts.
             $delivery->load(['rider.employee.user', 'order.customer']);
-            $delivery->order?->customer?->notify(new DeliveryNotification($delivery));
             $this->notifyDriver($delivery);
         }
 
@@ -452,9 +452,9 @@ class LogisticsService
             $this->notifyDriver($delivery);
         }
 
-        // Notify the customer linked to the shop order, if any.
+        // Notify the customer linked to the shop order, if any; a rider who has not answered yet stays unmentioned.
         $customer = $delivery->order?->customer;
-        if ($customer) {
+        if ($customer && ! $delivery->awaitsAcceptance()) {
             $delivery->load('rider');
             $customer->notify(new DeliveryNotification($delivery));
         }
@@ -462,6 +462,41 @@ class LogisticsService
         $this->assignWaitingDeliveries($delivery->shop_id);
 
         return $delivery;
+    }
+
+    /**
+     * The customer brought the laundry in themselves while no rider could collect it. The pickup is
+     * closed as received, so the shop can weigh the order and no rider is sent for it later.
+     *
+     * @throws ValidationException when the run is not a pickup still waiting for a rider
+     */
+    public function markDroppedOff(User $user, Delivery $delivery): Delivery
+    {
+        $this->assertDeliveryInShop($user, $delivery);
+
+        $received = DB::transaction(function () use ($delivery) {
+            // Decided on the locked row, so this cannot cross with a rider being given the run.
+            $locked = $this->deliveries->lockForUpdate($delivery);
+
+            if (! $locked->isPickupRun() || $locked->status !== 'pending' || $locked->rider_id !== null || $locked->usesLalamove()) {
+                throw ValidationException::withMessages([
+                    'delivery' => 'Only a pickup still waiting for a rider can be marked as dropped off.',
+                ]);
+            }
+
+            $this->deliveries->update($locked, [
+                'status' => 'delivered',
+                'delivered_at' => now(),
+                'notes' => 'The customer dropped off the laundry at the shop.',
+            ]);
+
+            return $locked;
+        });
+
+        $received->load('order.customer');
+        $received->order?->customer?->notify(new DeliveryNotification($received));
+
+        return $received;
     }
 
     /**

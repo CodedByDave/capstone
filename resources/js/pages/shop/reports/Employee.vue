@@ -4,6 +4,7 @@ import {
     IdentityCell,
     type DataTableHeader,
 } from '@/components/data-table';
+import ReportNav from '@/components/shop/ReportNav.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -32,12 +33,10 @@ import {
 } from 'chart.js';
 import html2pdf from 'html2pdf.js';
 import {
-    BarChart3,
     Calendar,
     Download,
     FileDown,
     Loader2,
-    Package,
     TrendingUp,
     Users,
 } from 'lucide-vue-next';
@@ -256,25 +255,7 @@ const doughnutOptions = {
             </div>
 
             <!-- Report nav -->
-            <div class="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" @click="router.visit(base)">
-                    <BarChart3 class="mr-1.5 h-4 w-4" /> Overview
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    @click="router.visit(`${base}/inventory`)"
-                >
-                    <Package class="mr-1.5 h-4 w-4" /> Inventory
-                </Button>
-                <Button
-                    variant="default"
-                    size="sm"
-                    @click="router.visit(`${base}/employee`)"
-                >
-                    <Users class="mr-1.5 h-4 w-4" /> Employees
-                </Button>
-            </div>
+            <ReportNav active="employee" />
 
             <!-- Stats -->
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3">

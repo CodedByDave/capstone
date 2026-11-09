@@ -27,6 +27,7 @@ interface Leg {
     public_id: string;
     type: 'pickup' | 'delivery';
     status: 'pending' | 'assigned' | 'picked_up' | 'delivered' | 'failed';
+    no_rider_notice: string | null;
     delivery_address: string | null;
     rider_name: string | null;
     rider_phone: string | null;
@@ -120,10 +121,11 @@ const arrivingSoon = computed(
 const headline = computed(() => {
     const current = leg.value;
     if (!current) return 'No trip yet';
+    if (current.no_rider_notice) return 'No rider available';
 
     if (current.type === 'pickup') {
         return {
-            pending: 'Finding a rider',
+            pending: 'Finding your rider',
             assigned: arrivingSoon.value
                 ? 'Rider is almost there'
                 : 'Rider is on the way to you',
@@ -134,7 +136,7 @@ const headline = computed(() => {
     }
 
     return {
-        pending: 'Preparing your delivery',
+        pending: 'Finding your rider',
         assigned: 'Rider is heading to the shop',
         picked_up: arrivingSoon.value
             ? 'Arriving at dropoff'
@@ -150,8 +152,9 @@ const subtitle = computed(() => {
 
     const at = etaTime.value;
 
+    if (current.no_rider_notice) return current.no_rider_notice;
     if (current.status === 'pending') {
-        return 'A rider will be assigned shortly.';
+        return 'We will tell you as soon as a rider takes your order.';
     }
     if (current.status === 'delivered') {
         return current.type === 'pickup'

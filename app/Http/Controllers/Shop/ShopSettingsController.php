@@ -47,6 +47,7 @@ class ShopSettingsController extends Controller
             'operatingHours' => $operatingHours->pageData(auth()->user()),
             'rushFee' => (float) $shop->rush_fee,
             'riderLoadLimit' => $riderLoad->limitsFor($shop),
+            'riderVehicle' => $riderLoad->vehicleOptionsFor($shop),
             'shop' => [
                 'shop_name' => $shop->shop_name,
                 'phone' => $shop->phone,
@@ -116,11 +117,13 @@ class ShopSettingsController extends Controller
             $request->user(),
             $min === null ? null : (float) $min,
             $max === null ? null : (float) $max,
+            $request->validated('rider_vehicle_type'),
+            $request->validated('rider_vehicle_types'),
         );
 
         return back()->with('toast', [
             'type' => 'success',
-            'message' => 'Rider load limit saved.',
+            'message' => 'Rider settings saved.',
         ]);
     }
 

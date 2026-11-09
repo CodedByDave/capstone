@@ -49,6 +49,7 @@ const props = defineProps<{
     deliveryPricing: DeliveryPricing;
     rushFee: number;
     riderLoadLimit: { min: number | null; max: number | null };
+    riderVehicle: { selected: string; choices: string[] };
     operatingHours: {
         is_open_24_7: boolean;
         opens_at: string;
@@ -306,7 +307,10 @@ function clearGeo() {
                         id="rider-load"
                         class="scroll-mt-4 border-t pt-8"
                     >
-                        <RiderLoadLimitCard :limit="props.riderLoadLimit" />
+                        <RiderLoadLimitCard
+                            :limit="props.riderLoadLimit"
+                            :vehicle="props.riderVehicle"
+                        />
                     </div>
 
                     <!-- Rush Fee -->

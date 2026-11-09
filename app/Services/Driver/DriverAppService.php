@@ -181,6 +181,10 @@ class DriverAppService
 
         $this->deliveries->update($delivery, ['accepted_at' => now()]);
 
+        // Only now is someone really coming, so this is when the customer is told.
+        $delivery->load(['rider', 'order.customer']);
+        $delivery->order?->customer?->notify(new DeliveryNotification($delivery));
+
         return $delivery;
     }
 
@@ -266,7 +270,7 @@ class DriverAppService
      * @throws ModelNotFoundException when the run is not this driver's
      * @throws DriverJobException when the run cannot move to that status, or the cash collected is not valid
      */
-    public function updateStatus(Rider $rider, string $publicId, string $status, ?string $notes, ?float $collected = null, ?User $actor = null, ?UploadedFile $cashProof = null): Delivery
+    public function updateStatus(Rider $rider, string $publicId, string $status, ?string $notes, ?float $collected = null, ?User $actor = null, ?UploadedFile $cashProof = null, ?UploadedFile $deliveryProof = null): Delivery
     {
         $delivery = $this->findOwnJob($rider, $publicId);
 
@@ -274,6 +278,16 @@ class DriverAppService
         $next = array_search($status, self::FLOW, true);
 
         if ($current === false || $next === false || $next <= $current) {
+            throw new DriverJobException("Cannot change from '{$delivery->status}' to '{$status}'.");
+        }
+
+        // A run only counts as the rider's to start once they have said yes.
+        if ($delivery->awaitsAcceptance()) {
+            throw new DriverJobException('Accept this order first.');
+        }
+
+        // A run moves one step at a time, so laundry cannot be delivered before it was picked up.
+        if ($status !== 'failed' && $next !== $current + 1) {
             throw new DriverJobException("Cannot change from '{$delivery->status}' to '{$status}'.");
         }
 
@@ -300,11 +314,14 @@ class DriverAppService
             throw new DriverJobException('Take a photo of the laundry you picked up as proof.');
         }
 
-        $changes = ['status' => $status, 'notes' => $notes ?? $delivery->notes];
-        // Going ahead with a run counts as accepting it.
-        if (! $delivery->accepted_at) {
-            $changes['accepted_at'] = now();
+        // Handing the laundry to the customer needs a photo too, even when no cash changes hands.
+        $needsDeliveryProof = $status === 'delivered' && ! $delivery->isPickupRun();
+
+        if ($needsDeliveryProof && $deliveryProof === null) {
+            throw new DriverJobException('Take a photo of the laundry you handed over as proof.');
         }
+
+        $changes = ['status' => $status, 'notes' => $notes ?? $delivery->notes];
         if ($status === 'picked_up' && ! $delivery->picked_up_at) {
             $changes['picked_up_at'] = now();
         }
@@ -312,7 +329,7 @@ class DriverAppService
             $changes['delivered_at'] = now();
         }
 
-        DB::transaction(function () use ($delivery, $rider, $changes, $status, $toCollect, $collected, $actor, $cashProof, $needsPickupProof) {
+        DB::transaction(function () use ($delivery, $rider, $changes, $status, $toCollect, $collected, $actor, $cashProof, $deliveryProof, $needsPickupProof, $needsDeliveryProof) {
             $this->deliveries->update($delivery, $changes);
 
             if ($needsPickupProof && $actor !== null) {
@@ -328,6 +345,11 @@ class DriverAppService
                 ]);
 
                 $this->proofs->add($actor, $delivery, [$cashProof], DeliveryPhoto::KIND_CASH);
+            }
+
+            // Saved after the payment, so a payment that fails leaves no photo behind.
+            if ($needsDeliveryProof && $actor !== null) {
+                $this->proofs->add($actor, $delivery, [$deliveryProof], DeliveryPhoto::KIND_DELIVERY);
             }
 
             // A finished run puts the driver back in line for the next order.
@@ -354,6 +376,11 @@ class DriverAppService
 
         if (! $delivery->isTrackable()) {
             throw new RiderLocationException('Live location can be shared only while the delivery is assigned or picked up.');
+        }
+
+        // Nobody follows a rider who has not said yes yet.
+        if ($delivery->awaitsAcceptance()) {
+            throw new RiderLocationException('Accept this order before sharing your location.');
         }
 
         return $this->deliveries->updateRiderLocation($delivery, $lat, $lng);
@@ -492,6 +519,8 @@ class DriverAppService
             },
             // True when the rider must photograph the laundry before confirming the pickup.
             'requires_pickup_photo' => $run->status === 'assigned' && $run->isPickupRun(),
+            // True when the rider must photograph the laundry before confirming the delivery.
+            'requires_delivery_photo' => $run->status === 'picked_up' && ! $run->isPickupRun(),
             'action_label' => $this->actionLabel($run),
             'checklist' => $this->checklist($run, $number),
         ];

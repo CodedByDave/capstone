@@ -143,6 +143,11 @@ class RiderRepository extends Repository
         );
     }
 
+    public function setVehicleTypeForShop(int $shopId, string $vehicleType): void
+    {
+        Rider::query()->where('shop_id', $shopId)->update(['vehicle_type' => $vehicleType]);
+    }
+
     public function createForShop(int $shopId, array $data): Rider
     {
         return Rider::query()->create(array_merge($data, ['shop_id' => $shopId]));

@@ -16,6 +16,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     AlertTriangle,
     ArrowLeft,
+    Camera,
     CheckCircle2,
     Clock,
     CreditCard,
@@ -83,6 +84,10 @@ interface Order {
     shop: Shop | null;
     service_name: string;
     delivery: DeliveryTracking | null;
+    /** Taken by the rider when the laundry was collected from the customer. */
+    pickup_photos: { public_id: string; uploaded_at: string | null }[];
+    /** What to do while no rider can take the run: drop the laundry off, or collect it. */
+    no_rider_notice: string | null;
     can_track: boolean;
     rating: {
         can_rate: boolean;
@@ -928,6 +933,18 @@ const shopLocation = computed(() =>
 
             <!-- ── Delivery ───────────────────────────────────── -->
 
+            <div
+                v-if="order.no_rider_notice"
+                class="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
+                role="status"
+            >
+                <AlertTriangle
+                    class="mt-0.5 h-4 w-4 shrink-0"
+                    aria-hidden="true"
+                />
+                <p>{{ order.no_rider_notice }}</p>
+            </div>
+
             <!-- Full-screen live map of the rider (pickup and delivery) -->
             <Link
                 v-if="order.can_track"
@@ -937,6 +954,36 @@ const shopLocation = computed(() =>
                 <Navigation class="h-4 w-4" aria-hidden="true" />
                 Track live on the map
             </Link>
+
+            <!-- Proof of pickup, from the rider who collected the laundry -->
+            <div
+                v-if="order.pickup_photos.length > 0"
+                class="space-y-2 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900"
+            >
+                <p
+                    class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400"
+                >
+                    <Camera class="h-3.5 w-3.5" aria-hidden="true" />
+                    Photos of your laundry at pickup
+                </p>
+                <div class="grid grid-cols-3 gap-2">
+                    <a
+                        v-for="photo in order.pickup_photos"
+                        :key="photo.public_id"
+                        :href="`/user/orders/delivery-photos/${photo.public_id}`"
+                        target="_blank"
+                        rel="noopener"
+                        class="aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                    >
+                        <img
+                            :src="`/user/orders/delivery-photos/${photo.public_id}`"
+                            alt="Photo of your laundry at pickup"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                        />
+                    </a>
+                </div>
+            </div>
 
             <!-- Live tracking for an existing delivery -->
             <DeliveryTrackingCard

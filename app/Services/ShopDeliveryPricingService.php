@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\Shop;
 use App\Models\User;
+use App\Repositories\RiderRepository;
 use App\Repositories\ShopRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A shop owner's delivery pricing settings.
@@ -20,7 +22,10 @@ class ShopDeliveryPricingService
         'delivery_min_fee',
     ];
 
-    public function __construct(private readonly ShopRepository $shops) {}
+    public function __construct(
+        private readonly ShopRepository $shops,
+        private readonly RiderRepository $riders,
+    ) {}
 
     public function pageData(User $owner): array
     {
@@ -75,13 +80,33 @@ class ShopDeliveryPricingService
         ]);
     }
 
-    /** The weight range one rider run can carry. A null side means no limit on that side. */
-    public function updateRiderLoadLimit(User $owner, ?float $min, ?float $max): Shop
+    /**
+     * The weight range one rider run can carry, where a null side means no limit on that side, and
+     * the vehicle the shop's riders use. The vehicle is left alone when none is given.
+     *
+     * @param  list<string>|null  $vehicleTypes
+     */
+    public function updateRiderLoadLimit(User $owner, ?float $min, ?float $max, ?string $vehicleType = null, ?array $vehicleTypes = null): Shop
     {
-        return $this->shops->updateDeliveryPricing($this->shopForOwner($owner), [
+        $shop = $this->shopForOwner($owner);
+
+        $values = [
             'rider_min_weight_kg' => $min === null ? null : round($min, 2),
             'rider_max_weight_kg' => $max === null ? null : round($max, 2),
-        ]);
+        ];
+
+        if ($vehicleType === null) {
+            return $this->shops->updateDeliveryPricing($shop, $values);
+        }
+
+        return DB::transaction(function () use ($shop, $values, $vehicleType, $vehicleTypes): Shop {
+            $this->riders->setVehicleTypeForShop($shop->id, $vehicleType);
+
+            return $this->shops->updateDeliveryPricing($shop, $values + [
+                'rider_vehicle_type' => $vehicleType,
+                'rider_vehicle_types' => $vehicleTypes,
+            ]);
+        });
     }
 
     /** How the driver app shows earnings: nothing, the delivery fee per run, or a flat daily rate. */

@@ -48,6 +48,7 @@ class DriverJobController extends Controller
                 $request->filled('collected_amount') ? (float) $request->validated('collected_amount') : null,
                 $request->user(),
                 $request->file('proof_photo'),
+                $request->file('delivery_photo'),
             );
         } catch (DriverJobException $exception) {
             return back()->with('toast', ['type' => 'error', 'message' => $exception->getMessage()]);

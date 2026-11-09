@@ -11,8 +11,6 @@ class Expense extends Model
 {
     use HasPublicId, SoftDeletes;
 
-    public const SOURCE_ORDER_SUPPLIES = 'order_supplies';
-
     public const SOURCE_ORDER_REFUND = 'order_refund';
 
     public const SOURCE_PAYROLL = 'payroll';

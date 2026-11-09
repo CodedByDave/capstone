@@ -25,6 +25,15 @@ class RiderLoadLimitService
         ];
     }
 
+    /** @return array{selected: string, choices: list<string>} */
+    public function vehicleOptionsFor(Shop $shop): array
+    {
+        return [
+            'selected' => $shop->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE,
+            'choices' => $shop->rider_vehicle_types ?: [Shop::DEFAULT_RIDER_VEHICLE_TYPE],
+        ];
+    }
+
     /**
      * The order's laundry weight in kg: the actual weight once weighed, otherwise the estimate.
      * Null when nothing on the order is weighed (per-piece only).

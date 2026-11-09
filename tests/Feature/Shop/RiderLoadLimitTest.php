@@ -4,12 +4,15 @@ use App\Enums\AccountType;
 use App\Http\Middleware\EnforceOwnerPlatformPermissions;
 use App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted;
 use App\Models\Delivery;
+use App\Models\Employee;
 use App\Models\Order;
+use App\Models\Rider;
 use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Models\User;
 use App\Services\CustomerAgreementService;
+use App\Services\DriverRosterService;
 use App\Services\LogisticsService;
 use App\Services\RiderLoadLimitService;
 use App\Services\ShopOrderService;
@@ -230,6 +233,95 @@ test('the settings page shows the limit', function () {
         ->assertInertia(fn ($page) => $page
             ->where('riderLoadLimit.min', 3)
             ->where('riderLoadLimit.max', 15));
+});
+
+// ─── Rider vehicle type ────────────────────────────────────────────────────────
+
+test('a shop starts with motorcycle as its only vehicle type', function () {
+    $shop = loadShop();
+
+    $this->actingAs($shop->owner)->get('/shop/settings')
+        ->assertInertia(fn ($page) => $page
+            ->where('riderVehicle.selected', 'Motorcycle')
+            ->where('riderVehicle.choices', ['Motorcycle']));
+});
+
+test('the owner adds a vehicle type and it reaches the shop riders only', function () {
+    $mine = loadShop(null, null, 'Mine');
+    $other = loadShop(null, null, 'Other');
+    $myRider = Rider::create(['shop_id' => $mine->id, 'name' => 'Mine', 'vehicle_type' => 'Motorcycle']);
+    $otherRider = Rider::create(['shop_id' => $other->id, 'name' => 'Other', 'vehicle_type' => 'Motorcycle']);
+
+    $this->actingAs($mine->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_type' => 'Van',
+            'rider_vehicle_types' => ['Motorcycle', 'Van'],
+        ])
+        ->assertSessionHasNoErrors();
+
+    $mine->refresh();
+    expect($mine->rider_vehicle_type)->toBe('Van')
+        ->and($mine->rider_vehicle_types)->toBe(['Motorcycle', 'Van'])
+        ->and($myRider->fresh()->vehicle_type)->toBe('Van')
+        ->and($myRider->fresh()->vehicleKind())->toBe('car')
+        ->and($otherRider->fresh()->vehicle_type)->toBe('Motorcycle')
+        ->and($other->fresh()->rider_vehicle_type)->toBe('Motorcycle');
+});
+
+test('motorcycle always stays a choice and repeats are dropped', function () {
+    $shop = loadShop();
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_type' => 'Van',
+            'rider_vehicle_types' => ['  Van ', 'van', ''],
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($shop->fresh()->rider_vehicle_types)->toBe(['Motorcycle', 'Van']);
+});
+
+test('saving only the weights keeps the vehicle type', function () {
+    $shop = loadShop();
+    $shop->update(['rider_vehicle_type' => 'Van', 'rider_vehicle_types' => ['Motorcycle', 'Van']]);
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', ['rider_max_weight_kg' => '20'])
+        ->assertSessionHasNoErrors();
+
+    expect($shop->fresh()->rider_vehicle_type)->toBe('Van');
+});
+
+test('the vehicle type must be valid', function (array $input, string $field) {
+    $shop = loadShop();
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', $input)
+        ->assertSessionHasErrors($field);
+
+    expect($shop->fresh()->rider_vehicle_type)->toBe('Motorcycle');
+})->with([
+    'not in the list' => [['rider_vehicle_type' => 'Van', 'rider_vehicle_types' => ['Motorcycle']], 'rider_vehicle_type'],
+    'too long' => [['rider_vehicle_type' => 'Motorcycle', 'rider_vehicle_types' => [str_repeat('a', 41)]], 'rider_vehicle_types.1'],
+    'too many' => [['rider_vehicle_type' => 'Motorcycle', 'rider_vehicle_types' => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']], 'rider_vehicle_types'],
+    'list missing' => [['rider_vehicle_type' => 'Motorcycle'], 'rider_vehicle_types'],
+]);
+
+test('a new driver gets the shop vehicle type', function () {
+    $shop = loadShop();
+    $shop->update(['rider_vehicle_type' => 'Van', 'rider_vehicle_types' => ['Motorcycle', 'Van']]);
+
+    $employee = Employee::create([
+        'shop_id' => $shop->id,
+        'employee_id' => 'EMP-TEST-1',
+        'hire_date' => now()->toDateString(),
+        'first_name' => 'Ana',
+        'last_name' => 'Cruz',
+        'position' => 'Driver',
+        'status' => 'Active',
+    ]);
+
+    expect(app(DriverRosterService::class)->sync($employee)->vehicle_type)->toBe('Van');
 });
 
 // ─── Customer pickup booking ───────────────────────────────────────────────────

@@ -28,13 +28,15 @@ class DeliveryProofService
 
     /**
      * @param  list<UploadedFile>  $files
-     * @param  string  $kind  DeliveryPhoto::KIND_PROOF for the delivery itself, KIND_CASH for the cash collected
+     * @param  string  $kind  DeliveryPhoto::KIND_PROOF for what the shop adds; the other kinds are a rider's required photos
      */
     public function add(User $user, Delivery $delivery, array $files, string $kind = DeliveryPhoto::KIND_PROOF): void
     {
         $this->assertDeliveryInShop($user, $delivery);
 
-        if ($this->photos->countForDelivery($delivery) + count($files) > self::MAX_PHOTOS) {
+        // The limit is for what the shop adds: a rider's required photo must never hold up a run.
+        if ($kind === DeliveryPhoto::KIND_PROOF
+            && $this->photos->countForDelivery($delivery) + count($files) > self::MAX_PHOTOS) {
             throw ValidationException::withMessages([
                 'photos' => 'A delivery can have at most '.self::MAX_PHOTOS.' proof photos.',
             ]);

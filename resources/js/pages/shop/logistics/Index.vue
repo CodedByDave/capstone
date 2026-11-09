@@ -23,6 +23,7 @@ import { usePaginatorTable } from '@/composables/useDataTable';
 import {
     ArrowRight,
     Camera,
+    CameraOff,
     CheckCircle2,
     Clock,
     Loader2,
@@ -52,9 +53,15 @@ interface Rider {
 interface DeliveryPhoto {
     public_id: string;
     created_at: string;
-    /** "cash" is the rider's photo of the cash collected at the door; anything else is delivery proof. */
+    /** "pickup", "delivery" and "cash" are the rider's required photos; "proof" is added by the shop. */
     kind?: string;
 }
+
+const PHOTO_LABELS: Record<string, string> = {
+    pickup: 'Pickup',
+    delivery: 'Delivery',
+    cash: 'Cash',
+};
 
 interface Delivery {
     id: number;
@@ -353,6 +360,24 @@ async function copyAddress(address: string | null) {
     }
 }
 
+// The shop can move a run on the board without a photo (e.g. a rider's phone died), so the board
+// says when one is missing. Adding one from "Proof photos" clears it; a courier takes no photos.
+const missingProofPhoto = (d: Delivery) => {
+    if (d.courier === 'lalamove') return false;
+    // Received at the shop without a rider ever collecting it (the customer dropped it off).
+    if (d.type === 'pickup' && d.status === 'delivered' && !d.picked_up_at) {
+        return false;
+    }
+
+    const reachedProofStep =
+        d.status === 'delivered' ||
+        (d.type === 'pickup' && d.status === 'picked_up');
+
+    return (
+        reachedProofStep && !d.photos?.some((photo) => photo.kind !== 'cash')
+    );
+};
+
 // ─── Proof photos dialog ──────────────────────────────────────────────────────
 
 const photosModal = ref<{ open: boolean; delivery: Delivery | null }>({
@@ -417,6 +442,35 @@ function removePhoto(photo: DeliveryPhoto) {
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 const deleting = ref<number | null>(null);
+
+// A pickup no rider has taken: the customer may have been told to bring the laundry in themselves.
+const canMarkDroppedOff = (d: Delivery) =>
+    can('Logistics', 'update') &&
+    d.type === 'pickup' &&
+    d.status === 'pending' &&
+    d.rider_id === null &&
+    d.courier !== 'lalamove';
+
+function markDroppedOff(d: Delivery) {
+    if (
+        !confirm(
+            `Mark ${d.customer_name}'s laundry as received at the shop? No rider will be sent for it.`,
+        )
+    ) {
+        return;
+    }
+    router.post(
+        `${base}/${d.public_id}/dropped-off`,
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () =>
+                toast.success('Laundry marked as received at the shop.'),
+            onError: (errors) =>
+                toast.error(Object.values(errors)[0] ?? 'Could not update.'),
+        },
+    );
+}
 
 function deleteDelivery(id: number) {
     if (!confirm('Remove this delivery record?')) return;
@@ -653,6 +707,11 @@ function fmtTime(d: string) {
                     <StatusPill :tone="STATUS_TONE[d.status] ?? 'neutral'">
                         {{ statusLabel(d) }}
                     </StatusPill>
+                    <div v-if="missingProofPhoto(d)" class="mt-1">
+                        <StatusPill tone="warning" :icon="CameraOff">
+                            No photo
+                        </StatusPill>
+                    </div>
                     <div v-if="d.load_warning" class="mt-1">
                         <StatusPill tone="warning" :icon="Weight">
                             {{ d.load_warning }}
@@ -690,6 +749,12 @@ function fmtTime(d: string) {
                                 icon: Truck,
                                 show: canBook(d),
                                 onSelect: () => openBooking(d),
+                            },
+                            {
+                                label: 'Customer dropped off',
+                                icon: Package,
+                                show: canMarkDroppedOff(d),
+                                onSelect: () => markDroppedOff(d),
                             },
                             {
                                 label: 'Proof photos',
@@ -1057,16 +1122,21 @@ function fmtTime(d: string) {
                                             :alt="
                                                 photo.kind === 'cash'
                                                     ? 'Cash collected'
-                                                    : 'Delivery proof'
+                                                    : photo.kind === 'pickup'
+                                                      ? 'Pickup proof'
+                                                      : 'Delivery proof'
                                             "
                                             class="h-full w-full object-cover"
                                             loading="lazy"
                                         />
                                     </a>
                                     <span
-                                        v-if="photo.kind === 'cash'"
+                                        v-if="
+                                            photo.kind &&
+                                            PHOTO_LABELS[photo.kind]
+                                        "
                                         class="absolute bottom-1 left-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white"
-                                        >Cash</span
+                                        >{{ PHOTO_LABELS[photo.kind] }}</span
                                     >
                                     <button
                                         v-if="can('Logistics', 'archive')"

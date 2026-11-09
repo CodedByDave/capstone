@@ -94,6 +94,12 @@ class DeliveryRepository extends Repository
             ->all();
     }
 
+    /** Re-reads the run with its row locked; the caller owns the transaction. */
+    public function lockForUpdate(Delivery $delivery): Delivery
+    {
+        return Delivery::query()->whereKey($delivery->id)->lockForUpdate()->firstOrFail();
+    }
+
     public function createRejection(Delivery $delivery, int $riderId, array $data): \App\Models\DeliveryRejection
     {
         return $delivery->rejections()->create(['rider_id' => $riderId] + $data);

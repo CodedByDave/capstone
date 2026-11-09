@@ -2,8 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Models\Expense;
-use App\Models\ExpenseCategory;
 use App\Models\Inventory;
 use App\Models\ShopOrder;
 use App\Models\ShopService;
@@ -55,50 +53,5 @@ class ServiceSupplyUsageRepository
     public function detachServiceRows(ShopOrder $order): void
     {
         $order->serviceSupplies()->detach();
-    }
-
-    /** Creates, updates or removes the single expense that records the order's supply cost. */
-    public function syncExpense(ShopOrder $order, float $amount, string $description, ?int $userId): void
-    {
-        $expense = Expense::query()->where('shop_id', $order->shop_id)->where('shop_order_id', $order->id)
-            ->where('source', Expense::SOURCE_ORDER_SUPPLIES)->first();
-
-        if ($amount <= 0) {
-            $expense?->delete();
-
-            return;
-        }
-
-        $attributes = [
-            'category_id' => $this->suppliesCategory($order->shop_id)->id,
-            'title' => "Supplies for order {$order->order_number}",
-            'amount' => $amount,
-            'description' => $description,
-            'reference_number' => $order->order_number,
-            'updated_by' => $userId,
-        ];
-
-        if ($expense) {
-            $expense->update($attributes);
-
-            return;
-        }
-
-        Expense::create([
-            ...$attributes,
-            'shop_id' => $order->shop_id,
-            'shop_order_id' => $order->id,
-            'source' => Expense::SOURCE_ORDER_SUPPLIES,
-            'expense_date' => now()->toDateString(),
-            'created_by' => $userId,
-        ]);
-    }
-
-    private function suppliesCategory(int $shopId): ExpenseCategory
-    {
-        return ExpenseCategory::query()->firstOrCreate(
-            ['shop_id' => $shopId, 'name' => 'Supplies'],
-            ['description' => 'Inventory supplies used by services.'],
-        );
     }
 }

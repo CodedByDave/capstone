@@ -80,6 +80,8 @@ function trackLeg(ShopOrder $order, string $type, string $status, array $overrid
         'destination_lat' => $order->customer_lat,
         'destination_lng' => $order->customer_lng,
         'status' => $status,
+        // The rider has said yes; what the customer sees before that has its own tests.
+        'accepted_at' => now(),
     ], $overrides));
 }
 

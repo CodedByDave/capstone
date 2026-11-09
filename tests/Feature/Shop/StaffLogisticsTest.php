@@ -819,6 +819,90 @@ function pickupRunFor(ShopOrder $order, string $status): Delivery
     ]);
 }
 
+test('a customer drop-off closes the pickup, unlocks weighing and sends no rider later', function () {
+    Notification::fake();
+    $shop = dispatchShop();
+    $staff = dispatcher($shop, ['view', 'update']);
+    $order = autoOrder($shop, ['status' => 'pending']);
+    $run = pickupRunFor($order, 'pending');
+    $service = app(App\Services\LogisticsService::class);
+
+    expect($service->weighingBlockedReason($order))->not->toBeNull();
+
+    $this->actingAs($staff)
+        ->post("/staff/logistics/{$run->public_id}/dropped-off")
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('toast.type', 'success');
+
+    expect($run->fresh())
+        ->status->toBe('delivered')
+        ->delivered_at->not->toBeNull()
+        ->picked_up_at->toBeNull()
+        ->rider_id->toBeNull()
+        ->and($service->weighingBlockedReason($order))->toBeNull();
+
+    // A rider who comes free afterwards is not sent for laundry already at the shop.
+    onlineRider($shop, 'Free');
+    expect($service->assignWaitingDeliveries($shop->id))->toBe(0)
+        ->and($run->fresh()->rider_id)->toBeNull();
+
+    Notification::assertSentTo($order->customer, App\Notifications\DeliveryNotification::class, function ($notification) use ($order) {
+        return $notification->toDatabase($order->customer)['title'] === 'Laundry received at the shop';
+    });
+});
+
+test('after a drop-off the customer is no longer told to drop off', function () {
+    $shop = dispatchShop();
+    $order = autoOrder($shop, ['status' => 'pending']);
+    $run = pickupRunFor($order, 'pending');
+    $tracking = app(App\Services\DeliveryTrackingService::class);
+
+    expect($tracking->noRiderNotice($order))->toContain('Please drop off your laundry');
+
+    app(App\Services\LogisticsService::class)->markDroppedOff($shop->owner, $run);
+
+    expect($tracking->noRiderNotice($order->fresh()))->toBeNull();
+});
+
+test('only a pickup still waiting for a rider can be marked as dropped off', function (string $type, string $status, bool $hasRider, string $courier) {
+    $shop = dispatchShop();
+    $staff = dispatcher($shop, ['view', 'update']);
+    $order = autoOrder($shop, ['status' => 'pending']);
+    $rider = onlineRider($shop, 'Busy');
+    $run = Delivery::create([
+        'shop_id' => $shop->id, 'shop_order_id' => $order->id, 'type' => $type, 'customer_name' => 'Maria Cruz',
+        'status' => $status, 'rider_id' => $hasRider ? $rider->id : null, 'courier' => $courier,
+    ]);
+
+    $this->actingAs($staff)
+        ->post("/staff/logistics/{$run->public_id}/dropped-off")
+        ->assertSessionHasErrors('delivery');
+
+    expect($run->fresh()->status)->toBe($status)->and($run->fresh()->delivered_at)->toBeNull();
+})->with([
+    'a delivery run' => ['delivery', 'pending', false, 'own_rider'],
+    'a rider already has it' => ['pickup', 'assigned', true, 'own_rider'],
+    'already collected' => ['pickup', 'picked_up', true, 'own_rider'],
+    'already received' => ['pickup', 'delivered', false, 'own_rider'],
+    'a courier has it' => ['pickup', 'pending', false, 'lalamove'],
+]);
+
+test('marking a drop-off needs the update permission and the same shop', function () {
+    $shop = dispatchShop();
+    $run = pickupRunFor(autoOrder($shop, ['status' => 'pending']), 'pending');
+
+    $this->actingAs(dispatcher($shop, ['view'], 'viewer'))
+        ->post("/staff/logistics/{$run->public_id}/dropped-off")
+        ->assertRedirect(route('staff.dashboard'));
+    expect($run->fresh()->status)->toBe('pending');
+
+    $other = dispatchShop();
+    $this->actingAs(dispatcher($other, ['view', 'update'], 'outsider'))
+        ->post("/staff/logistics/{$run->public_id}/dropped-off")
+        ->assertForbidden();
+    expect($run->fresh()->status)->toBe('pending');
+});
+
 test('a pickup order that did not ask for delivery gets no return delivery when completed', function () {
     $shop = dispatchShop();
     onlineRider($shop, 'Free');

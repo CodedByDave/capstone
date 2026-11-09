@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Delivery;
 use App\Models\ShopOrder;
 use App\Models\User;
+use App\Repositories\DeliveryPhotoRepository;
 use App\Repositories\DeliveryRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -16,7 +17,36 @@ class DeliveryTrackingService
     /** A rider who has not shared a position for this long is probably not sharing any more. */
     public const STALE_LOCATION_SECONDS = 180;
 
-    public function __construct(private readonly DeliveryRepository $deliveries) {}
+    public function __construct(
+        private readonly DeliveryRepository $deliveries,
+        private readonly DeliveryPhotoRepository $photos,
+    ) {}
+
+    /** What the order page tells the customer to do when no rider can take the order's run. */
+    public function noRiderNotice(ShopOrder $order): ?string
+    {
+        $order->loadMissing(['shop', 'pickupRun', 'delivery']);
+
+        return $order->delivery?->noRiderNotice($order->shop?->shop_name)
+            ?? $order->pickupRun?->noRiderNotice($order->shop?->shop_name);
+    }
+
+    /**
+     * The photos taken when the laundry was collected from the customer, for the order page.
+     * The caller has already checked that this is the customer's own order.
+     *
+     * @return list<array{public_id: string, uploaded_at: ?string}>
+     */
+    public function pickupPhotos(ShopOrder $order): array
+    {
+        return $this->photos->forPickupRunOfOrder($order->id)
+            ->map(fn ($photo) => [
+                'public_id' => $photo->public_id,
+                'uploaded_at' => $photo->created_at?->toIso8601String(),
+            ])
+            ->values()
+            ->all();
+    }
 
     public function forCustomer(User $customer, string $paymentPublicId): array
     {
@@ -86,7 +116,10 @@ class DeliveryTrackingService
     public function payload(Delivery $delivery): array
     {
         $shop = $delivery->shop;
+        // Until the rider says yes, nobody is coming yet: to the customer the run is still waiting for one.
+        $awaitingRider = $delivery->awaitsAcceptance();
         $showRider = $delivery->isTrackable()
+            && ! $awaitingRider
             && $delivery->rider_lat !== null
             && $delivery->rider_lng !== null;
 
@@ -94,15 +127,16 @@ class DeliveryTrackingService
             'public_id' => $delivery->public_id,
             // Which trip this is: the rider collecting the laundry, or bringing it back.
             'type' => $delivery->type,
-            'status' => $delivery->status,
-            'is_active' => $delivery->isTrackable(),
+            'status' => $awaitingRider ? 'pending' : $delivery->status,
+            'no_rider_notice' => $delivery->noRiderNotice($shop?->shop_name),
+            'is_active' => $delivery->isTrackable() && ! $awaitingRider,
             'delivery_address' => $delivery->delivery_address,
             'distance_km' => $delivery->distance_km !== null ? (float) $delivery->distance_km : null,
             'delivery_fee' => (float) $delivery->delivery_fee,
-            'rider_name' => $delivery->rider?->name,
+            'rider_name' => $awaitingRider ? null : $delivery->rider?->name,
             // The customer of the order may call the rider; the vehicle picks the map icon.
-            'rider_phone' => $delivery->isTrackable() ? $delivery->rider?->phone : null,
-            'vehicle' => $delivery->rider?->vehicleKind(),
+            'rider_phone' => $delivery->isTrackable() && ! $awaitingRider ? $delivery->rider?->phone : null,
+            'vehicle' => $awaitingRider ? null : $delivery->rider?->vehicleKind(),
             'courier' => $delivery->courier,
             'courier_info' => $delivery->usesLalamove() ? [
                 'tracking_url' => $delivery->courier_tracking_url,
@@ -134,7 +168,7 @@ class DeliveryTrackingService
             ] : null,
             'timeline' => [
                 'requested_at' => $delivery->created_at?->toIso8601String(),
-                'assigned_at' => $delivery->assigned_at?->toIso8601String(),
+                'assigned_at' => $awaitingRider ? null : $delivery->assigned_at?->toIso8601String(),
                 'picked_up_at' => $delivery->picked_up_at?->toIso8601String(),
                 'delivered_at' => $delivery->delivered_at?->toIso8601String(),
                 'failed_at' => $delivery->status === 'failed'

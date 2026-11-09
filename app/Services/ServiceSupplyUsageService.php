@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Takes the supplies a service uses out of stock when an order is placed, logs every change as an
- * inventory movement, and keeps one expense per order in step so Finance sees what the order cost.
- * Stock moves in whole units, so a fractional need is rounded up.
+ * Takes the supplies a service uses out of stock when an order is placed and logs every change as
+ * an inventory movement. Stock moves in whole units, so a fractional need is rounded up.
+ *
+ * Using stock is not an expense: Finance already booked what it cost when it was bought or restocked.
  */
 class ServiceSupplyUsageService
 {
@@ -23,7 +24,7 @@ class ServiceSupplyUsageService
     ) {}
 
     /**
-     * Brings stock, movements and the expense in line with what the order's service needs now.
+     * Brings stock and movements in line with what the order's service needs now.
      * Call inside the transaction that saved the order. Nothing happens when the usage is unchanged.
      *
      * @throws ValidationException When a supply does not have enough stock.
@@ -48,9 +49,6 @@ class ServiceSupplyUsageService
 
         DB::transaction(function () use ($order, $desired, $userId) {
             $this->release($order, $userId);
-
-            $total = 0.0;
-            $names = [];
 
             foreach ($desired as $inventoryId => $line) {
                 $item = $this->repository->lockInventory($order->shop_id, $inventoryId);
@@ -77,12 +75,7 @@ class ServiceSupplyUsageService
                 $this->repository->changeStock($item, -$line['quantity']);
                 $this->repository->attachServiceRow($order, $item, $line['quantity'], $line['unit'], $movement->id);
                 $this->inventory->alertIfLowStock($item->refresh());
-
-                $total += $line['quantity'] * (float) $item->unit_price;
-                $names[] = "{$item->name} x{$line['quantity']}";
             }
-
-            $this->repository->syncExpense($order, round($total, 2), implode(', ', $names), $userId);
         });
     }
 
@@ -113,7 +106,6 @@ class ServiceSupplyUsageService
         }
 
         $this->repository->detachServiceRows($order);
-        $this->repository->syncExpense($order, 0, '', $userId);
     }
 
     /**

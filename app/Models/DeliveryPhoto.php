@@ -16,6 +16,9 @@ class DeliveryPhoto extends Model
     /** The laundry as the rider collected it from the customer. */
     public const KIND_PICKUP = 'pickup';
 
+    /** The laundry as the rider handed it over to the customer. */
+    public const KIND_DELIVERY = 'delivery';
+
     protected $fillable = ['delivery_id', 'uploaded_by', 'path', 'kind'];
 
     /** The shop board only needs the public id; the stored path and row ids stay server-side. */

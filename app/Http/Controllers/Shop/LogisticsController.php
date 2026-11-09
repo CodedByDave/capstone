@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\Logistics\MarkDroppedOffRequest;
 use App\Http\Requests\Shop\Logistics\UpdateDeliveryStatusRequest;
 use App\Http\Requests\TableSortRequest;
 use App\Models\Delivery;
@@ -35,6 +36,13 @@ class LogisticsController extends Controller
         $this->service->updateStatus($request->user(), $delivery, $request->validated());
 
         return back()->with('toast', ['type' => 'success', 'message' => 'Delivery status updated.']);
+    }
+
+    public function markDroppedOff(MarkDroppedOffRequest $request, Delivery $delivery): RedirectResponse
+    {
+        $this->service->markDroppedOff($request->user(), $delivery);
+
+        return back()->with('toast', ['type' => 'success', 'message' => 'Laundry marked as received at the shop.']);
     }
 
     public function destroy(Request $request, Delivery $delivery): RedirectResponse

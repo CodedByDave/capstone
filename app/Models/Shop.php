@@ -34,6 +34,8 @@ class Shop extends Model
 
     public const DELIVERY_FEE_MODES = [self::DELIVERY_FEE_FIXED, self::DELIVERY_FEE_PER_KM];
 
+    public const DEFAULT_RIDER_VEHICLE_TYPE = 'Motorcycle';
+
     protected static function booted(): void
     {
         static::creating(function (Shop $shop) {
@@ -62,6 +64,8 @@ class Shop extends Model
         'rush_fee',
         'rider_min_weight_kg',
         'rider_max_weight_kg',
+        'rider_vehicle_type',
+        'rider_vehicle_types',
         'is_open_24_7',
         'opens_at',
         'closes_at',
@@ -109,6 +113,7 @@ class Shop extends Model
         'rush_fee' => 'decimal:2',
         'rider_min_weight_kg' => 'decimal:2',
         'rider_max_weight_kg' => 'decimal:2',
+        'rider_vehicle_types' => 'array',
         'platform_rating_prompted_at' => 'datetime',
         'setup_completed_at' => 'datetime',
         'deduct_sss' => 'boolean',

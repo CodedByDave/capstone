@@ -32,10 +32,13 @@ function makeDelivery(Shop $shop, string $status, ?Rider $rider = null): Deliver
         'delivery_address' => 'Anabu, Imus',
         'status' => $status,
         'rider_id' => $rider?->id,
+        'assigned_at' => $rider ? now() : null,
+        'accepted_at' => $rider ? now() : null,
     ]);
 }
 
 test('a rider who finishes a run takes the oldest waiting delivery', function () {
+    Illuminate\Support\Facades\Storage::fake('private');
     $shop = waitingShop();
     $rider = onlineRider($shop, 'Rico');
     $onRoad = makeDelivery($shop, 'picked_up', $rider);
@@ -43,7 +46,7 @@ test('a rider who finishes a run takes the oldest waiting delivery', function ()
     $second = makeDelivery($shop, 'pending');
 
     $this->actingAs($rider->employee->user)
-        ->patch("/driver/jobs/{$onRoad->public_id}/status", ['status' => 'delivered'])
+        ->patch("/driver/jobs/{$onRoad->public_id}/status", ['status' => 'delivered', 'delivery_photo' => riderPhoto()])
         ->assertRedirect();
 
     expect($onRoad->fresh()->status)->toBe('delivered')

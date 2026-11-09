@@ -24,8 +24,12 @@ const props = defineProps<{
 }>();
 
 const jobId = computed(() => props.job?.public_id ?? null);
+// Nobody follows a rider who has not said yes yet.
 const sharing = computed(
-    () => props.job?.next_status != null && props.driver.is_online,
+    () =>
+        props.job?.next_status != null &&
+        props.driver.is_online &&
+        !props.job.awaiting_acceptance,
 );
 const { position, error, start } = useDriverLocation(jobId, sharing);
 onMounted(start);
@@ -48,7 +52,10 @@ const routeOrigin = computed(() => {
 // In-app turn-by-turn navigation to the current stop (pickup, back to the shop, or delivery).
 const navigating = ref(false);
 const canNavigate = computed(
-    () => props.job?.target.lat != null && props.job?.target.lng != null,
+    () =>
+        !props.job?.awaiting_acceptance &&
+        props.job?.target.lat != null &&
+        props.job?.target.lng != null,
 );
 
 function startNavigation() {

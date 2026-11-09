@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Employee;
 use App\Models\Rider;
+use App\Models\Shop;
 use App\Repositories\RiderRepository;
 
 /**
@@ -44,6 +45,7 @@ class DriverRosterService
         return $this->riders->saveForEmployee($employee->shop_id, $employee->id, [
             'name' => trim($employee->first_name.' '.$employee->last_name),
             'phone' => $employee->phone,
+            'vehicle_type' => $employee->shop?->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE,
             'status' => 'active',
         ]);
     }

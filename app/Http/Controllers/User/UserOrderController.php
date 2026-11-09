@@ -131,6 +131,8 @@ class UserOrderController extends Controller
                 ] : null,
                 'service_name' => $order->service->service_name ?? '—',
                 'delivery' => $delivery ? $this->deliveryTracking->payload($delivery) : null,
+                'pickup_photos' => $this->deliveryTracking->pickupPhotos($order),
+                'no_rider_notice' => $this->deliveryTracking->noRiderNotice($order),
                 'can_track' => $this->deliveryTracking->hasTrackableLeg($order),
                 'rating' => $this->ratings->orderState($order),
                 'complaints' => $this->complaints->orderState($order),
@@ -179,7 +181,7 @@ class UserOrderController extends Controller
         return redirect()->route('user.orders.index')->with('toast', [
             'type' => 'success',
             'message' => "Order {$result['order']->order_number} placed! The shop will confirm and process it shortly."
-                .($result['no_rider'] ? ' No rider is available right now, so your pickup will be assigned as soon as one is free.' : ''),
+                .($result['no_rider'] ? ' No rider is available right now, so please drop off your laundry at the shop.' : ''),
         ]);
     }
 

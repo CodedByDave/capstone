@@ -10,7 +10,7 @@ use App\Services\CustomerShopCatalogService;
 use App\Services\OrderBillingBreakdownService;
 use Illuminate\Validation\ValidationException;
 
-function promoShop(): array
+function customerPromoShop(): array
 {
     $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
     $shop = Shop::create([
@@ -46,7 +46,7 @@ function promo(Shop $shop, array $overrides = []): Promotion
 }
 
 it('applies a chosen promotion to the customer estimate', function () {
-    [$shop, $service] = promoShop();
+    [$shop, $service] = customerPromoShop();
     $promotion = promo($shop);
 
     $estimate = app(OrderBillingBreakdownService::class)->estimate($service, 5, null, $promotion->id);
@@ -56,8 +56,8 @@ it('applies a chosen promotion to the customer estimate', function () {
 });
 
 it('rejects a promotion below its minimum, from another shop, or switched off', function () {
-    [$shop, $service] = promoShop();
-    [$otherShop] = promoShop();
+    [$shop, $service] = customerPromoShop();
+    [$otherShop] = customerPromoShop();
     $billing = app(OrderBillingBreakdownService::class);
 
     $minimum = promo($shop, ['min_order_amount' => 500]);
@@ -71,7 +71,7 @@ it('rejects a promotion below its minimum, from another shop, or switched off', 
 });
 
 it('lists only enabled add-on items with their price for customers', function () {
-    [$shop] = promoShop();
+    [$shop] = customerPromoShop();
     $base = ['shop_id' => $shop->id, 'unit' => 'ml', 'quantity' => 1000, 'min_stock' => 1, 'unit_price' => 0.2, 'status' => 'active'];
     Inventory::create([...$base, 'name' => 'Softener', 'addon_enabled' => true, 'addon_name' => 'Extra softener', 'addon_quantity' => 30, 'addon_price' => 15]);
     Inventory::create([...$base, 'name' => 'Hidden', 'addon_enabled' => false]);
@@ -83,7 +83,7 @@ it('lists only enabled add-on items with their price for customers', function ()
 });
 
 it('prices the additional charges a customer picks into the estimate', function () {
-    [$shop, $service] = promoShop();
+    [$shop, $service] = customerPromoShop();
     $item = Inventory::create(['shop_id' => $shop->id, 'unit' => 'ml', 'quantity' => 1000, 'min_stock' => 1, 'unit_price' => 0.2, 'status' => 'active', 'name' => 'Softener', 'addon_enabled' => true, 'addon_name' => 'Extra softener', 'addon_quantity' => 30, 'addon_price' => 15]);
 
     $lines = app(\App\Services\CustomerAdditionalChargeService::class)->resolve($shop->id, [['id' => $item->id, 'count' => 2]]);
@@ -95,8 +95,8 @@ it('prices the additional charges a customer picks into the estimate', function 
 });
 
 it('rejects an additional charge the shop does not offer', function () {
-    [$shop] = promoShop();
-    [$otherShop] = promoShop();
+    [$shop] = customerPromoShop();
+    [$otherShop] = customerPromoShop();
     $foreign = Inventory::create(['shop_id' => $otherShop->id, 'unit' => 'ml', 'quantity' => 1000, 'min_stock' => 1, 'unit_price' => 0.2, 'status' => 'active', 'name' => 'Softener', 'addon_enabled' => true, 'addon_quantity' => 30, 'addon_price' => 15]);
 
     expect(fn () => app(\App\Services\CustomerAdditionalChargeService::class)->resolve($shop->id, [['id' => $foreign->id, 'count' => 1]]))

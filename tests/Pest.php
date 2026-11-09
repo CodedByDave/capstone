@@ -50,6 +50,15 @@ function something()
     // ..
 }
 
+/** A real 1x1 PNG for a rider's proof photo, so the tests do not depend on the GD extension. */
+function riderPhoto(string $name = 'laundry.png'): Illuminate\Http\UploadedFile
+{
+    return Illuminate\Http\UploadedFile::fake()->createWithContent(
+        $name,
+        base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
+    );
+}
+
 /**
  * A driver of the shop: an employee whose position is Driver, linked to a rider. Online and free
  * since the given time unless told otherwise, so the shop can give them waiting orders.

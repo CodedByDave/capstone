@@ -82,7 +82,7 @@ const statusConfig: Record<
     { label: string; classes: string; icon: typeof Truck }
 > = {
     pending: {
-        label: 'Pending',
+        label: 'Finding your rider',
         classes:
             'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
         icon: Clock,
@@ -496,7 +496,9 @@ onUnmounted(() => {
             >
                 <Camera class="h-3.5 w-3.5" />
                 {{
-                    tracking.photos.some((p) => p.kind === 'pickup')
+                    tracking.photos.some(
+                        (p) => p.kind === 'pickup' || p.kind === 'delivery',
+                    )
                         ? 'Photos of your laundry'
                         : 'Photos from the shop'
                 }}
@@ -515,7 +517,11 @@ onUnmounted(() => {
                         :alt="
                             photo.kind === 'pickup'
                                 ? 'Photo of your laundry at pickup'
-                                : 'Delivery photo from the shop'
+                                : photo.kind === 'delivery'
+                                  ? 'Photo of your laundry at delivery'
+                                  : photo.kind === 'cash'
+                                    ? 'Photo of the cash you paid'
+                                    : 'Delivery photo from the shop'
                         "
                         class="h-full w-full object-cover"
                         loading="lazy"

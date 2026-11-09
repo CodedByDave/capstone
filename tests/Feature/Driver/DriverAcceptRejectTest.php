@@ -10,17 +10,8 @@ use App\Notifications\DeliveryRejectedNotification;
 use App\Notifications\DriverAssignmentNotification;
 use App\Notifications\NoRiderAvailableNotification;
 use App\Services\LogisticsService;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
-
-function proofImage(): UploadedFile
-{
-    return UploadedFile::fake()->createWithContent(
-        'proof.png',
-        base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='),
-    );
-}
 
 function rejectOrder(App\Models\Shop $shop, array $overrides = []): ShopOrder
 {
@@ -112,9 +103,9 @@ test('rejecting needs a reason and a proof photo', function () {
 
     $this->actingAs($rider->employee->user)->post($url, ['reason' => 'emergency'])
         ->assertSessionHasErrors('proof_photo');
-    $this->actingAs($rider->employee->user)->post($url, ['reason' => 'other', 'proof_photo' => proofImage()])
+    $this->actingAs($rider->employee->user)->post($url, ['reason' => 'other', 'proof_photo' => riderPhoto('proof.png')])
         ->assertSessionHasErrors('note');
-    $this->actingAs($rider->employee->user)->post($url, ['proof_photo' => proofImage()])
+    $this->actingAs($rider->employee->user)->post($url, ['proof_photo' => riderPhoto('proof.png')])
         ->assertSessionHasErrors('reason');
 
     expect($run->fresh()->rider_id)->toBe($rider->id);
@@ -132,7 +123,7 @@ test('a rejected order goes to the next driver and the shop is told why', functi
         ->post("/driver/jobs/{$run->public_id}/reject", [
             'reason' => 'emergency',
             'note' => 'Family emergency',
-            'proof_photo' => proofImage(),
+            'proof_photo' => riderPhoto('proof.png'),
         ])
         ->assertSessionHasNoErrors()
         ->assertRedirect('/driver/jobs');
@@ -159,7 +150,7 @@ test('a driver who rejected an order is not offered it again', function () {
     $run = waitingRun($shop, ['status' => 'assigned', 'rider_id' => $only->id, 'assigned_at' => now()]);
 
     $this->actingAs($only->employee->user)
-        ->post("/driver/jobs/{$run->public_id}/reject", ['reason' => 'vehicle_problem', 'proof_photo' => proofImage()]);
+        ->post("/driver/jobs/{$run->public_id}/reject", ['reason' => 'vehicle_problem', 'proof_photo' => riderPhoto('proof.png')]);
 
     // The driver is back online (the problem is fixed) but still does not get the run they refused.
     $only->fresh()->update(['is_online' => true]);
@@ -178,7 +169,7 @@ test('an order already picked up cannot be rejected', function () {
     $run = waitingRun($shop, ['status' => 'picked_up', 'rider_id' => $rider->id, 'assigned_at' => now()]);
 
     $this->actingAs($rider->employee->user)
-        ->post("/driver/jobs/{$run->public_id}/reject", ['reason' => 'emergency', 'proof_photo' => proofImage()])
+        ->post("/driver/jobs/{$run->public_id}/reject", ['reason' => 'emergency', 'proof_photo' => riderPhoto('proof.png')])
         ->assertSessionHas('toast.type', 'error');
 
     expect($run->fresh()->rider_id)->toBe($rider->id);
@@ -205,7 +196,7 @@ test('only the shop can open a rejection proof photo', function () {
     $rider = onlineRider($shop);
     $run = waitingRun($shop, ['status' => 'assigned', 'rider_id' => $rider->id, 'assigned_at' => now()]);
     $this->actingAs($rider->employee->user)
-        ->post("/driver/jobs/{$run->public_id}/reject", ['reason' => 'emergency', 'proof_photo' => proofImage()]);
+        ->post("/driver/jobs/{$run->public_id}/reject", ['reason' => 'emergency', 'proof_photo' => riderPhoto('proof.png')]);
     $rejection = DeliveryRejection::firstOrFail();
 
     $gates = [App\Http\Middleware\EnforceOwnerPlatformPermissions::class, App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted::class];

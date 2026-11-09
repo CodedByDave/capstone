@@ -35,7 +35,7 @@ class NoRiderAvailableNotification extends Notification
             'type' => 'no_rider_available',
             'title' => 'No rider available',
             'body' => $forCustomer
-                ? "There is no rider available for {$ref} right now. The shop will assign one as soon as a rider is free."
+                ? $this->delivery->noRiderNotice($order?->shop?->shop_name)." ({$ref})"
                 : "No rider is available for {$ref}. It is waiting in Logistics until a rider is free, or you can assign one yourself.",
             'delivery_id' => $this->delivery->id,
             'order_id' => $order?->id,

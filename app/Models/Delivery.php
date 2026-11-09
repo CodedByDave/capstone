@@ -101,7 +101,27 @@ class Delivery extends Model
     /** The assigned rider has not yet said yes or no to this run. */
     public function awaitsAcceptance(): bool
     {
-        return $this->status === 'assigned' && $this->rider_id !== null && $this->accepted_at === null;
+        return $this->status === 'assigned'
+            && $this->rider_id !== null
+            && $this->accepted_at === null
+            && ! $this->usesLalamove();
+    }
+
+    /**
+     * What the customer should do while no rider can take this run; null when one has it. A pickup
+     * means bringing the laundry in, and a delivery means collecting it, since it is already at the shop.
+     */
+    public function noRiderNotice(?string $shopName): ?string
+    {
+        if ($this->status !== 'pending' || $this->rider_id !== null || $this->usesLalamove()) {
+            return null;
+        }
+
+        $shop = $shopName ?: 'the laundry shop';
+
+        return $this->isPickupRun()
+            ? "No rider is available right now. Please drop off your laundry at {$shop}."
+            : "No rider is available right now. Please collect your laundry at {$shop}.";
     }
 
     public function shop(): BelongsTo

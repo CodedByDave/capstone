@@ -82,7 +82,7 @@ function svcOrder(Shop $shop, ShopService $service, float $weight = 5, array $ov
     ], $overrides))->load('service');
 }
 
-it('deducts a per-kg service supplies, logs the movement and records an expense', function () {
+it('deducts a per-kg service supplies and logs the movement without recording an expense', function () {
     $shop = svcShop();
     $item = svcStockItem($shop, quantity: 100, cost: 5);
     $service = svcService($shop, [['inventory_id' => $item->id, 'quantity' => 0.5, 'unit' => 'sachet']]);
@@ -98,10 +98,7 @@ it('deducts a per-kg service supplies, logs the movement and records an expense'
         ->and($movement->quantity)->toBe(-3)
         ->and($movement->reference_number)->toBe($order->order_number);
 
-    $expense = Expense::where('shop_order_id', $order->id)->first();
-    expect((float) $expense->amount)->toBe(15.0)
-        ->and($expense->category->name)->toBe('Supplies')
-        ->and($expense->shop_id)->toBe($shop->id);
+    expect(Expense::where('shop_id', $shop->id)->exists())->toBeFalse();
 
     expect($order->serviceSupplies()->count())->toBe(1)
         ->and($order->supplies()->count())->toBe(0)
@@ -129,11 +126,10 @@ it('refuses an order when a supply is out of stock and changes nothing', functio
         ->toThrow(ValidationException::class);
 
     expect($item->fresh()->quantity)->toBe(1)
-        ->and(InventoryMovement::where('inventory_id', $item->id)->count())->toBe(0)
-        ->and(Expense::where('shop_order_id', $order->id)->exists())->toBeFalse();
+        ->and(InventoryMovement::where('inventory_id', $item->id)->count())->toBe(0);
 });
 
-it('puts supplies back and removes the expense when the order is cancelled, and takes them again if reopened', function () {
+it('puts supplies back when the order is cancelled, and takes them again if reopened', function () {
     $shop = svcShop();
     $item = svcStockItem($shop, quantity: 100);
     $service = svcService($shop, [['inventory_id' => $item->id, 'quantity' => 1, 'unit' => 'sachet']]);
@@ -147,7 +143,6 @@ it('puts supplies back and removes the expense when the order is cancelled, and 
     $usage->sync($order->fresh()->load('service'), null);
 
     expect($item->fresh()->quantity)->toBe(100)
-        ->and(Expense::where('shop_order_id', $order->id)->exists())->toBeFalse()
         ->and($order->serviceSupplies()->count())->toBe(0)
         ->and(InventoryMovement::where('inventory_id', $item->id)->where('type', 'return')->exists())->toBeTrue();
 
@@ -157,7 +152,7 @@ it('puts supplies back and removes the expense when the order is cancelled, and 
     expect($item->fresh()->quantity)->toBe(96);
 });
 
-it('adjusts stock and the expense when the weight changes, and does nothing when nothing changed', function () {
+it('adjusts stock when the weight changes, and does nothing when nothing changed', function () {
     $shop = svcShop();
     $item = svcStockItem($shop, quantity: 100, cost: 2);
     $service = svcService($shop, [['inventory_id' => $item->id, 'quantity' => 1, 'unit' => 'sachet']]);
@@ -172,8 +167,28 @@ it('adjusts stock and the expense when the weight changes, and does nothing when
     $usage->sync($order->fresh()->load('service'), null);
 
     expect($item->fresh()->quantity)->toBe(94)
-        ->and((float) Expense::where('shop_order_id', $order->id)->value('amount'))->toBe(12.0)
-        ->and(Expense::where('shop_order_id', $order->id)->count())->toBe(1);
+        ->and(Expense::where('shop_id', $shop->id)->exists())->toBeFalse();
+});
+
+it('removes the old order supplies expenses, archived ones too, and keeps every other expense', function () {
+    $shop = svcShop();
+    $order = svcOrder($shop, svcService($shop, []), 4);
+    $expense = fn (array $attributes) => Expense::create([
+        'shop_id' => $shop->id,
+        'title' => 'Expense',
+        'amount' => 28,
+        'expense_date' => today(),
+        ...$attributes,
+    ]);
+
+    $expense(['shop_order_id' => $order->id, 'source' => 'order_supplies']);
+    $expense(['shop_order_id' => $order->id, 'source' => 'order_supplies'])->delete();
+    $refund = $expense(['shop_order_id' => $order->id, 'source' => Expense::SOURCE_ORDER_REFUND]);
+    $restock = $expense(['title' => 'Restock: Detergent']);
+
+    (require database_path('migrations/2026_11_21_000001_remove_order_supplies_expenses.php'))->up();
+
+    expect(Expense::withTrashed()->pluck('id')->sort()->values()->all())->toBe([$refund->id, $restock->id]);
 });
 
 it('always stores a supply in the inventory items consumption unit', function () {

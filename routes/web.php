@@ -512,6 +512,7 @@ Route::prefix('shop')->middleware([
         Route::get('/logistics/rejections/{rejection}/photo', [DeliveryProofController::class, 'rejection'])->whereUlid('rejection')->name('shop.logistics.rejections.photo');
         Route::delete('/logistics/photos/{photo}', [DeliveryProofController::class, 'destroy'])->name('shop.logistics.photos.destroy');
         Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
+        Route::post('/logistics/{delivery}/dropped-off', [LogisticsController::class, 'markDroppedOff'])->name('shop.logistics.dropped-off');
         Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
     });
 });
@@ -736,6 +737,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::middleware('permission:Logistics,create')->group(function () {});
         Route::middleware('permission:Logistics,update')->group(function () {
             Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('staff.logistics.status');
+            Route::post('/logistics/{delivery}/dropped-off', [LogisticsController::class, 'markDroppedOff'])->name('staff.logistics.dropped-off');
             Route::post('/logistics/{delivery}/photos', [DeliveryProofController::class, 'store'])->name('staff.logistics.photos.store');
         });
         Route::middleware('permission:Logistics,archive')->group(function () {

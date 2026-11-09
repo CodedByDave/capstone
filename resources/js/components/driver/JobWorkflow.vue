@@ -9,10 +9,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { compressPhoto } from '@/lib/compressPhoto';
 import type { DriverJob } from '@/types/driver';
 import { router } from '@inertiajs/vue3';
 import { BellRing, Camera, Phone } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, type Ref } from 'vue';
 
 /**
  * Everything a driver does on a run: customer and payment details, progress, the checklist,
@@ -51,6 +52,25 @@ const checklistDone = computed(() => ticked.value.every(Boolean));
 
 const busy = ref(false);
 
+// Photos are shrunk on the phone first, so a large camera photo still fits the upload limit.
+const photoProcessing = ref(false);
+
+async function pickPhoto(event: Event, photo: Ref<File | null>) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    photoProcessing.value = true;
+    statusError.value = '';
+    try {
+        photo.value = await compressPhoto(file);
+    } finally {
+        photoProcessing.value = false;
+    }
+}
+
+// Why the server refused the step, shown in the dialog so the rider can fix it and try again.
+const statusError = ref('');
+
 // Handing a delivery over is when its balance is paid, so the rider confirms the cash they took first.
 const collectOpen = ref(false);
 const collected = ref('');
@@ -81,9 +101,7 @@ const proofError = computed(() =>
         : '',
 );
 
-function onProofPicked(event: Event) {
-    proofPhoto.value = (event.target as HTMLInputElement).files?.[0] ?? null;
-}
+const onProofPicked = (event: Event) => pickPhoto(event, proofPhoto);
 
 const methodLabel = (method: string) =>
     ({ gcash: 'GCash', grabpay: 'GrabPay' })[method] ??
@@ -93,15 +111,23 @@ function advance(extra: Record<string, unknown> = {}) {
     if (!props.job.next_status) return;
 
     busy.value = true;
+    statusError.value = '';
     const options = {
         preserveScroll: true,
+        onSuccess: () => {
+            collectOpen.value = false;
+            laundryPhotoOpen.value = false;
+        },
+        onError: (errors: Record<string, string>) => {
+            statusError.value =
+                Object.values(errors)[0] ?? 'Could not update this run.';
+        },
         onFinish: () => {
             busy.value = false;
-            collectOpen.value = false;
         },
     };
 
-    if (extra.proof_photo instanceof File) {
+    if (Object.values(extra).some((value) => value instanceof File)) {
         // A file cannot ride on a real PATCH, so it is sent as a POST that Laravel treats as PATCH.
         router.post(
             `/driver/jobs/${props.job.public_id}/status`,
@@ -118,37 +144,47 @@ function advance(extra: Record<string, unknown> = {}) {
     );
 }
 
-// Collecting the laundry from the customer needs a photo of it as proof.
-const pickupOpen = ref(false);
-const pickupPhoto = ref<File | null>(null);
-const pickupInput = ref<HTMLInputElement | null>(null);
+// Collecting the laundry from the customer, and handing it back, each need a photo of it as proof.
+const laundryPhotoOpen = ref(false);
+const laundryPhoto = ref<File | null>(null);
+const laundryInput = ref<HTMLInputElement | null>(null);
+const handoverInput = ref<HTMLInputElement | null>(null);
 
-function onPickupPicked(event: Event) {
-    pickupPhoto.value = (event.target as HTMLInputElement).files?.[0] ?? null;
-}
+const onLaundryPicked = (event: Event) => pickPhoto(event, laundryPhoto);
 
-function confirmPickup() {
-    if (!pickupPhoto.value) return;
+const handoverError = computed(() =>
+    props.job.requires_delivery_photo && !laundryPhoto.value
+        ? 'Take a photo of the laundry you handed over.'
+        : '',
+);
 
-    advance({ proof_photo: pickupPhoto.value });
-    pickupOpen.value = false;
+const laundryPhotoFields = computed(() =>
+    props.job.requires_pickup_photo
+        ? { proof_photo: laundryPhoto.value }
+        : { delivery_photo: laundryPhoto.value },
+);
+
+function confirmLaundryPhoto() {
+    if (!laundryPhoto.value) return;
+
+    advance(laundryPhotoFields.value);
 }
 
 function confirm() {
     if (!props.job.next_status || !checklistDone.value) return;
 
-    if (props.job.requires_pickup_photo) {
-        pickupPhoto.value = null;
-        if (pickupInput.value) pickupInput.value.value = '';
-        pickupOpen.value = true;
-        return;
-    }
+    statusError.value = '';
+    laundryPhoto.value = null;
 
     if (props.job.next_status === 'delivered' && collectDue.value > 0) {
         collected.value = collectDue.value.toFixed(2);
         proofPhoto.value = null;
-        if (proofInput.value) proofInput.value.value = '';
         collectOpen.value = true;
+        return;
+    }
+
+    if (props.job.requires_pickup_photo || props.job.requires_delivery_photo) {
+        laundryPhotoOpen.value = true;
         return;
     }
 
@@ -156,11 +192,12 @@ function confirm() {
 }
 
 function confirmCollection() {
-    if (collectError.value || proofError.value) return;
+    if (collectError.value || proofError.value || handoverError.value) return;
 
     advance({
         collected_amount: collected.value,
         ...(collectedNumber.value > 0 ? { proof_photo: proofPhoto.value } : {}),
+        ...(props.job.requires_delivery_photo ? laundryPhotoFields.value : {}),
     });
 }
 
@@ -209,9 +246,7 @@ function openReject() {
     rejectOpen.value = true;
 }
 
-function onRejectPhotoPicked(event: Event) {
-    rejectPhoto.value = (event.target as HTMLInputElement).files?.[0] ?? null;
-}
+const onRejectPhotoPicked = (event: Event) => pickPhoto(event, rejectPhoto);
 
 function reject() {
     if (rejectProblem.value) return;
@@ -533,7 +568,10 @@ const finishedLabel = computed(() =>
                     >
                         {{ rejectPhoto.name }}
                     </p>
-                    <p v-if="rejectErrors.proof_photo" class="text-xs text-red-600">
+                    <p
+                        v-if="rejectErrors.proof_photo"
+                        class="text-xs text-red-600"
+                    >
                         {{ rejectErrors.proof_photo }}
                     </p>
                 </div>
@@ -548,7 +586,7 @@ const finishedLabel = computed(() =>
                     </Button>
                     <Button
                         class="bg-red-600 hover:bg-red-700"
-                        :disabled="busy || !!rejectProblem"
+                        :disabled="busy || photoProcessing || !!rejectProblem"
                         @click="reject"
                     >
                         Reject order
@@ -609,6 +647,7 @@ const finishedLabel = computed(() =>
                         class="h-12 w-full rounded-xl"
                         @click="proofInput?.click()"
                     >
+                        <Camera class="mr-2 h-4 w-4" />
                         {{
                             proofPhoto
                                 ? 'Retake photo of the cash'
@@ -623,13 +662,55 @@ const finishedLabel = computed(() =>
                     </p>
                     <p v-else class="text-xs text-red-500">{{ proofError }}</p>
                 </div>
+                <div v-if="job.requires_delivery_photo" class="space-y-1.5">
+                    <p class="text-sm font-medium">Proof of the handover</p>
+                    <input
+                        ref="handoverInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        class="hidden"
+                        @change="onLaundryPicked"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="h-12 w-full rounded-xl"
+                        @click="handoverInput?.click()"
+                    >
+                        <Camera class="mr-2 h-4 w-4" />
+                        {{
+                            laundryPhoto
+                                ? 'Retake photo of the laundry'
+                                : 'Take photo of the laundry'
+                        }}
+                    </Button>
+                    <p
+                        v-if="laundryPhoto"
+                        class="truncate text-xs text-emerald-700"
+                    >
+                        {{ laundryPhoto.name }}
+                    </p>
+                    <p v-else class="text-xs text-red-500">
+                        {{ handoverError }}
+                    </p>
+                </div>
+                <p v-if="statusError" class="text-sm text-red-600" role="alert">
+                    {{ statusError }}
+                </p>
                 <DialogFooter>
                     <Button variant="outline" @click="collectOpen = false">
                         Cancel
                     </Button>
                     <Button
-                        class="bg-[#0a2dff] hover:bg-[#0822cc]"
-                        :disabled="busy || !!collectError || !!proofError"
+                        class="bg-[#0a2dff] text-white hover:bg-[#0822cc]"
+                        :disabled="
+                            busy ||
+                            photoProcessing ||
+                            !!collectError ||
+                            !!proofError ||
+                            !!handoverError
+                        "
                         @click="confirmCollection"
                     >
                         Confirm delivery
@@ -638,57 +719,76 @@ const finishedLabel = computed(() =>
             </DialogContent>
         </Dialog>
 
-        <Dialog v-model:open="pickupOpen">
+        <Dialog v-model:open="laundryPhotoOpen">
             <DialogContent class="max-w-sm">
                 <DialogHeader>
                     <DialogTitle>Photo of the laundry</DialogTitle>
                     <DialogDescription>
-                        Take a photo of the laundry you are picking up. The shop
-                        and the customer can see it as proof of pickup.
+                        {{
+                            job.requires_pickup_photo
+                                ? 'Take a photo of the laundry you are picking up.'
+                                : 'Take a photo of the laundry you are handing over.'
+                        }}
+                        The shop and the customer can see it as proof.
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-1.5">
                     <input
-                        ref="pickupInput"
+                        ref="laundryInput"
                         type="file"
                         accept="image/*"
                         capture="environment"
                         class="hidden"
-                        @change="onPickupPicked"
+                        @change="onLaundryPicked"
                     />
                     <Button
                         type="button"
                         variant="outline"
                         class="h-12 w-full rounded-xl"
-                        @click="pickupInput?.click()"
+                        @click="laundryInput?.click()"
                     >
                         <Camera class="mr-2 h-4 w-4" />
                         {{
-                            pickupPhoto
+                            laundryPhoto
                                 ? 'Retake photo of the laundry'
                                 : 'Take photo of the laundry'
                         }}
                     </Button>
                     <p
-                        v-if="pickupPhoto"
+                        v-if="laundryPhoto"
                         class="truncate text-xs text-emerald-700"
                     >
-                        {{ pickupPhoto.name }}
+                        {{ laundryPhoto.name }}
                     </p>
                     <p v-else class="text-xs text-red-500">
-                        A photo is required to confirm the pickup.
+                        {{
+                            job.requires_pickup_photo
+                                ? 'A photo is required to confirm the pickup.'
+                                : 'A photo is required to confirm the delivery.'
+                        }}
+                    </p>
+                    <p
+                        v-if="statusError"
+                        class="text-sm text-red-600"
+                        role="alert"
+                    >
+                        {{ statusError }}
                     </p>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="pickupOpen = false">
+                    <Button variant="outline" @click="laundryPhotoOpen = false">
                         Cancel
                     </Button>
                     <Button
-                        class="bg-[#0a2dff] hover:bg-[#0822cc]"
-                        :disabled="busy || !pickupPhoto"
-                        @click="confirmPickup"
+                        class="bg-[#0a2dff] text-white hover:bg-[#0822cc]"
+                        :disabled="busy || photoProcessing || !laundryPhoto"
+                        @click="confirmLaundryPhoto"
                     >
-                        Confirm pickup
+                        {{
+                            job.requires_pickup_photo
+                                ? 'Confirm pickup'
+                                : 'Confirm delivery'
+                        }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

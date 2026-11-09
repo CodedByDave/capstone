@@ -32,6 +32,8 @@ export interface DriverJob {
     collect_amount?: number | null;
     /** The rider must photograph the laundry before confirming a pickup from the customer. */
     requires_pickup_photo?: boolean;
+    /** The rider must photograph the laundry before confirming a delivery to the customer. */
+    requires_delivery_photo?: boolean;
     /** Payments already received on the order (online or at the shop), shown as proof it is settled. */
     paid_payments?: {
         method: string;
