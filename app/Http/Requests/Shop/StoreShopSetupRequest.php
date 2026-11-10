@@ -18,6 +18,7 @@ class StoreShopSetupRequest extends FormRequest
         $this->merge([
             'offers_pickup' => $this->boolean('offers_pickup'),
             'offers_delivery' => $this->boolean('offers_delivery'),
+            'has_suppliers' => $this->boolean('has_suppliers'),
             'ownership_type' => $this->input('ownership_type', Shop::OWNERSHIP_INDEPENDENT),
         ]);
     }
@@ -27,6 +28,7 @@ class StoreShopSetupRequest extends FormRequest
         return [
             'offers_pickup' => ['required', 'boolean'],
             'offers_delivery' => ['required', 'boolean'],
+            'has_suppliers' => ['required', 'boolean'],
             'ownership_type' => ['required', Rule::in([
                 Shop::OWNERSHIP_INDEPENDENT,
                 Shop::OWNERSHIP_COMPANY,

@@ -64,7 +64,7 @@ class ShopInsightService
             'clear', 'ok', self::MODULE_OPERATIONS,
             'Nothing needs attention',
             'No overdue orders, stock issues, spending spikes or attendance problems right now.',
-            'all decision support rules passed',
+            'We checked your orders, supplies, money and staff and found nothing to worry about.',
         )];
     }
 
@@ -79,7 +79,7 @@ class ShopInsightService
                 'overdue', 'urgent', self::MODULE_OPERATIONS,
                 "{$overdue} ".($overdue === 1 ? 'order is' : 'orders are').' overdue',
                 "{$overdue} of {$open} open orders are past their due time. Prioritise them or tell the customers.",
-                'open order past due time',
+                'We show this when an order is still not finished after the time you promised the customer.',
                 '/shop/operations/orders', 'View orders',
             );
         }
@@ -90,7 +90,7 @@ class ShopInsightService
                 'unpaid', 'heads_up', self::MODULE_FINANCE,
                 '₱'.number_format($unpaid['amount'], 2).' not yet collected',
                 "{$unpaid['orders']} ".($unpaid['orders'] === 1 ? 'order still has' : 'orders still have').' a balance. Follow up before releasing more orders on credit.',
-                'order with balance due',
+                'We show this when a customer has not yet paid the full amount for an order.',
                 '/shop/operations/orders?payment_status=unpaid', 'View unpaid',
             );
         }
@@ -104,7 +104,7 @@ class ShopInsightService
                 'cancellations', 'heads_up', self::MODULE_OPERATIONS,
                 "{$rate}% of recent orders were cancelled",
                 "{$cancelled} of {$total} orders in the last 30 days were cancelled. Check complaints and turnaround times for the cause.",
-                'cancelled orders ≥ '.self::CANCELLATION_RATE_THRESHOLD.'% of last 30 days',
+                'We show this when '.self::CANCELLATION_RATE_THRESHOLD.' or more out of every 100 orders in the past 30 days were cancelled.',
                 '/shop/operations/complaints', 'View complaints',
             );
         }
@@ -117,7 +117,7 @@ class ShopInsightService
                 'service-concentration', 'tip', self::MODULE_OPERATIONS,
                 "{$top['name']} brings in {$share}% of sales",
                 'Your income depends heavily on one service. Promote your other services to spread the risk.',
-                'one service ≥ '.self::SERVICE_CONCENTRATION_THRESHOLD.'% of last 30 days sales',
+                'We show this when one service makes up '.self::SERVICE_CONCENTRATION_THRESHOLD.'% or more of your sales in the past 30 days.',
                 '/shop/operations/promos', 'Create promotion',
             );
         }
@@ -131,7 +131,7 @@ class ShopInsightService
                 'priced-below-cost', 'urgent', self::MODULE_FINANCE,
                 $belowCost->count() === 1 ? "{$first['name']} is priced below its supply cost" : "{$belowCost->count()} services are priced below supply cost",
                 "{$first['name']} sells at ₱".number_format($first['price'], 2)." {$first['pricing_unit']} but its supplies cost ₱".number_format($first['supply_cost'], 2).'. A price of ₱'.number_format((float) $first['suggested_price'], 2).' would reach a '.ServicePricingService::TARGET_MARGIN_PERCENT.'% margin.',
-                'service price < supply cost per order',
+                'We show this when the price you charge is lower than what you spend on supplies (like detergent) for that service.',
                 '/shop/reports/pricing', 'Review pricing',
             );
         } elseif ($lowMargin->isNotEmpty()) {
@@ -140,7 +140,7 @@ class ShopInsightService
                 'low-margin', 'heads_up', self::MODULE_FINANCE,
                 $lowMargin->count() === 1 ? "{$first['name']} has a thin margin" : "{$lowMargin->count()} services have thin margins",
                 "{$first['name']} keeps only {$first['margin_percent']}% after supplies. A price of ₱".number_format((float) $first['suggested_price'], 2).' would reach '.ServicePricingService::TARGET_MARGIN_PERCENT.'%.',
-                'margin after supplies < '.ServicePricingService::LOW_MARGIN_PERCENT.'%',
+                'We show this when less than '.ServicePricingService::LOW_MARGIN_PERCENT.'% of the price is left for you after paying for supplies.',
                 '/shop/reports/pricing', 'Review pricing',
             );
         }
@@ -154,7 +154,7 @@ class ShopInsightService
                 'busiest', 'tip', self::MODULE_OPERATIONS,
                 self::WEEKDAYS[$dow].' are your busiest',
                 "{$share}% of orders in the last 8 weeks came on ".self::WEEKDAYS[$dow].'. Plan staff and supplies around it.',
-                'orders grouped by day of week',
+                'We counted your orders from the past 8 weeks and checked which day of the week had the most.',
                 '/shop/employee', 'View employees',
             );
         }
@@ -173,7 +173,7 @@ class ShopInsightService
                 'stock', $out > 0 ? 'urgent' : 'heads_up', self::MODULE_INVENTORY,
                 ($out + $low).' '.($out + $low === 1 ? 'supply needs' : 'supplies need').' restocking',
                 "{$out} out of stock and {$low} at or below the minimum level.",
-                'stock at or below minimum level',
+                'We show this when a supply has run out or is down to the minimum amount you set.',
                 '/shop/inventory', 'Reorder',
             );
         }
@@ -194,7 +194,7 @@ class ShopInsightService
                 'stock-runway', 'heads_up', self::MODULE_INVENTORY,
                 "{$first['name']} may run out in about {$left} {$dayWord}",
                 "At the last 30 days' usage, {$first['quantity']} {$first['unit']} lasts about {$left} {$dayWord} and the supplier takes {$first['lead_time_days']}.{$order}{$more}",
-                'stock ÷ daily use ≤ supplier lead time + '.StockReorderService::SAFETY_DAYS.' days',
+                'We show this when, at the rate you use it, a supply will run out before a new delivery from your supplier can arrive (with '.StockReorderService::SAFETY_DAYS.' extra days to be safe).',
                 '/shop/inventory', 'Plan restock',
             );
         }
@@ -215,7 +215,7 @@ class ShopInsightService
                 'loss', 'urgent', self::MODULE_FINANCE,
                 'Spending is above income this month',
                 "Expenses are ₱{$gap} more than collected sales so far this month. Review the largest expense categories.",
-                'month-to-date expenses > month-to-date sales',
+                'We show this when you have spent more money this month than you have received from customers.',
                 '/shop/finance', 'View finance',
             );
         }
@@ -231,7 +231,7 @@ class ShopInsightService
                 'expense-growth', 'heads_up', self::MODULE_FINANCE,
                 "Expenses are up {$growth}%",
                 'Spending this month is well above the same stretch of the previous period.',
-                'expenses ≥ +'.self::EXPENSE_GROWTH_THRESHOLD.'% vs previous equal period',
+                'We show this when you spent '.self::EXPENSE_GROWTH_THRESHOLD."% or more than in the {$elapsed} days just before this month.",
                 '/shop/finance/expenses', 'View expenses',
             );
         }
@@ -241,7 +241,7 @@ class ShopInsightService
                 'revenue-drop', 'heads_up', self::MODULE_FINANCE,
                 "Sales are down {$drop}%",
                 'Collected sales are well below the same stretch of the previous period. Consider a promotion or following up on unpaid orders.',
-                'sales ≤ −'.self::REVENUE_DROP_THRESHOLD.'% vs previous equal period',
+                'We show this when your sales are '.self::REVENUE_DROP_THRESHOLD."% or more lower than in the {$elapsed} days just before this month.",
                 '/shop/operations/promos', 'Create promotion',
             );
         }
@@ -264,7 +264,7 @@ class ShopInsightService
                     'attendance', 'heads_up', self::MODULE_HRM,
                     "{$rate}% of attendance records are late or absent",
                     "{$bad} of {$records} records in the last 30 days. Review schedules and talk to affected employees.",
-                    'late + absent ≥ '.self::ABSENCE_RATE_THRESHOLD.'% of last 30 days',
+                    'We show this when staff were late or absent '.self::ABSENCE_RATE_THRESHOLD.' or more times out of every 100 work days in the past 30 days.',
                     '/shop/attendance', 'View attendance',
                 );
             }
@@ -279,7 +279,7 @@ class ShopInsightService
                 'payroll-share', 'heads_up', self::MODULE_HRM,
                 "Payroll takes {$share}% of sales",
                 'Labor cost is high compared with income over the last 30 days. Check staffing against order volume.',
-                'payroll ≥ '.self::PAYROLL_SHARE_THRESHOLD.'% of last 30 days sales',
+                'We show this when staff salaries take up '.self::PAYROLL_SHARE_THRESHOLD.'% or more of your sales in the past 30 days.',
                 '/shop/payroll', 'View payroll',
             );
         }
@@ -294,12 +294,12 @@ class ShopInsightService
 
         $short = $forecast->where('status', StaffingForecastService::UNDERSTAFFED);
         if ($short->isNotEmpty()) {
-            $days = $short->map(fn (array $d) => "{$d['day']} ({$d['expected_orders']} orders, {$d['scheduled_staff']} of {$d['required_staff']} staff)")->implode('; ');
+            $days = $short->map(fn (array $d) => Carbon::parse($d['date'])->format('l').": about {$d['expected_orders']} ".($d['expected_orders'] === 1 ? 'order' : 'orders')." expected, needs {$d['required_staff']} staff but {$d['scheduled_staff']} scheduled")->implode('; ');
             $insights[] = $this->insight(
                 'understaffed', 'heads_up', self::MODULE_HRM,
-                'Understaffed on '.$short->pluck('day')->implode(', '),
-                "Expected orders for the next 7 days need more staff than are scheduled: {$days}. Add shifts or move days off.",
-                'forecast orders ÷ '.StaffingForecastService::ORDERS_PER_STAFF.' per employee > scheduled employees',
+                'Not enough staff on '.$this->dayNames($short),
+                "Coming up this week — {$days}. Add a shift or move a day off.",
+                'We guess each day\'s orders from the same day in the past '.StaffingForecastService::HISTORY_WEEKS.' weeks, and count one staff member for every '.StaffingForecastService::ORDERS_PER_STAFF.' orders. We show this when a day needs more staff than you have scheduled.',
                 '/shop/employee', 'Edit schedules',
             );
         }
@@ -308,14 +308,19 @@ class ShopInsightService
         if ($surplus->isNotEmpty()) {
             $insights[] = $this->insight(
                 'overstaffed', 'tip', self::MODULE_HRM,
-                'More staff than needed on '.$surplus->pluck('day')->implode(', '),
-                'Forecast demand is low for these days. Consider moving a shift to a busier day.',
-                'scheduled employees > forecast need + '.StaffingForecastService::SURPLUS_TOLERANCE,
+                'More staff than needed on '.$this->dayNames($surplus),
+                'Only a few orders are expected on these days. Think about moving a shift to a busier day.',
+                'We show this when you have scheduled more than '.StaffingForecastService::SURPLUS_TOLERANCE.' extra staff member beyond what the expected orders need.',
                 '/shop/employee', 'Edit schedules',
             );
         }
 
         return $insights;
+    }
+
+    private function dayNames($days): string
+    {
+        return $days->map(fn (array $d) => Carbon::parse($d['date'])->format('l'))->implode(', ');
     }
 
     private function insight(string $key, string $tone, string $module, string $title, string $message, string $rule, ?string $href = null, ?string $action = null): array

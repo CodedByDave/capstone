@@ -24,7 +24,7 @@ class BulkArchiveService
     private const RESOURCES = [
         'inventory' => ['model' => Inventory::class, 'key' => 'id'],
         'inventory-category' => ['model' => InventoryCategory::class, 'key' => 'id'],
-        'supplier' => ['model' => Supplier::class, 'key' => 'id'],
+        'supplier' => ['model' => Supplier::class, 'key' => 'public_id'],
         'expense' => ['model' => Expense::class, 'key' => 'public_id'],
         'service' => ['model' => ShopService::class, 'key' => 'id'],
         'promotion' => ['model' => Promotion::class, 'key' => 'id'],
@@ -68,7 +68,7 @@ class BulkArchiveService
             match ($resource) {
                 'inventory' => $this->inventory->restore($record->getKey(), $shop->id),
                 'inventory-category' => $this->categories->restore($record->getKey()),
-                'supplier' => $this->suppliers->restore($record->getKey()),
+                'supplier' => $this->suppliers->restore($record->public_id, $shop->id),
                 'expense' => $this->expenses->restore($record->public_id, $shop),
                 'service' => $this->services->restore($record),
                 'promotion' => $this->promotions->restore($record),

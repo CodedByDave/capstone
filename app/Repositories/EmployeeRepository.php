@@ -174,4 +174,12 @@ class EmployeeRepository extends Repository
             ->paginate((int) ($filters['per_page'] ?? 10))
             ->withQueryString();
     }
+
+    /** The shop a staff login works for, or null when the user is not an employee. */
+    public function shopIdForUser(int $userId): ?int
+    {
+        $shopId = $this->query()->where('user_id', $userId)->value('shop_id');
+
+        return $shopId === null ? null : (int) $shopId;
+    }
 }

@@ -8,6 +8,7 @@ enum AccountType: string
     case ShopOwner = 'owner';
     case Staff = 'staff';
     case SuperAdmin = 'super_admin';
+    case Supplier = 'supplier';
 
     public function dashboardRoute(): string
     {
@@ -16,6 +17,7 @@ enum AccountType: string
             self::ShopOwner => 'shop.dashboard',
             self::Staff => 'staff.dashboard',
             self::SuperAdmin => 'admin.dashboard',
+            self::Supplier => 'supplier-portal.dashboard',
         };
     }
 

@@ -1447,9 +1447,9 @@ function proceedToPay() {
                             </p>
                             <p
                                 v-if="card.rule"
-                                class="mt-3 flex-1 text-[11px] text-muted-foreground"
+                                class="mt-3 flex-1 text-xs leading-relaxed text-muted-foreground"
                             >
-                                Rule: {{ card.rule }}
+                                {{ card.rule }}
                             </p>
                             <div v-else class="flex-1" />
                             <div class="mt-4 flex items-center gap-3">

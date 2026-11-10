@@ -1,5 +1,6 @@
 import Auth from './Auth'
 import Driver from './Driver'
+import SupplierPortal from './SupplierPortal'
 import ProfilePhotoController from './ProfilePhotoController'
 import LandingController from './LandingController'
 import Shop from './Shop'
@@ -11,6 +12,7 @@ import Settings from './Settings'
 const Controllers = {
     Auth: Object.assign(Auth, Auth),
 Driver: Object.assign(Driver, Driver),
+SupplierPortal: Object.assign(SupplierPortal, SupplierPortal),
 ProfilePhotoController: Object.assign(ProfilePhotoController, ProfilePhotoController),
 LandingController: Object.assign(LandingController, LandingController),
 Shop: Object.assign(Shop, Shop),

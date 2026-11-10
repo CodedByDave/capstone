@@ -26,7 +26,7 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 interface Supplier {
-    id: number;
+    public_id: string;
     name: string;
     contact_person: string | null;
     email: string | null;
@@ -62,7 +62,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Archive', href: `${base.value}/archive` },
 ];
 
-const restoringId = ref<number | null>(null);
+const restoringId = ref<string | null>(null);
 const archivedList = ref([...props.archived.data]);
 
 watch(
@@ -98,11 +98,13 @@ function formatDate(dt: string) {
     });
 }
 
-async function restoreSupplier(id: number) {
+async function restoreSupplier(id: string) {
     restoringId.value = id;
     try {
         await axios.post(`${base.value}/${id}/restore`);
-        archivedList.value = archivedList.value.filter((s) => s.id !== id);
+        archivedList.value = archivedList.value.filter(
+            (s) => s.public_id !== id,
+        );
         toast.success('Supplier restored successfully.', { autoClose: 3000 });
     } catch {
         toast.error('Failed to restore supplier.', { autoClose: 4000 });
@@ -135,6 +137,7 @@ const selected = ref<Array<string | number>>([]);
                 v-model:selected="selected"
                 :headers="headers"
                 :items="archivedList"
+                item-key="public_id"
                 :total="total"
                 :loading="loading"
                 noun="archived suppliers"
@@ -220,11 +223,11 @@ const selected = ref<Array<string | number>>([]);
                             {
                                 label: 'Restore',
                                 icon:
-                                    restoringId === s.id
+                                    restoringId === s.public_id
                                         ? Loader2
                                         : ArchiveRestore,
-                                disabled: restoringId === s.id,
-                                onSelect: () => restoreSupplier(s.id),
+                                disabled: restoringId === s.public_id,
+                                onSelect: () => restoreSupplier(s.public_id),
                             },
                         ]"
                     />

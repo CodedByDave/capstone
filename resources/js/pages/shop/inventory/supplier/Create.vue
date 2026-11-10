@@ -184,13 +184,24 @@ function submit() {
                     </div>
 
                     <div class="col-span-12 space-y-1 sm:col-span-4">
-                        <label class="text-sm font-medium">Email</label>
+                        <label for="supplier-email" class="text-sm font-medium"
+                            >Email <span class="text-red-500">*</span></label
+                        >
                         <Input
+                            id="supplier-email"
                             v-model="form.email"
                             type="email"
+                            required
                             placeholder="supplier@email.com"
+                            aria-describedby="supplier-email-hint"
                             :class="{ 'border-red-500': form.errors.email }"
                         />
+                        <p
+                            id="supplier-email-hint"
+                            class="text-xs text-muted-foreground"
+                        >
+                            We email the supplier a link to set up their login.
+                        </p>
                         <p
                             v-if="form.errors.email"
                             class="text-xs text-red-500"

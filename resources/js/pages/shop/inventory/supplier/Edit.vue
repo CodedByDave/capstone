@@ -17,7 +17,8 @@ import { ArrowLeft, Loader2 } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Supplier {
-    id: number;
+    public_id: string;
+    user_id: number | null;
     name: string;
     contact_person: string | null;
     email: string | null;
@@ -37,7 +38,10 @@ const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Inventory', href: `${baseRoute.value}/inventory` },
     { title: 'Suppliers', href: `${baseRoute.value}/supplier` },
-    { title: 'Edit', href: `${baseRoute.value}/supplier/${supplier.id}/edit` },
+    {
+        title: 'Edit',
+        href: `${baseRoute.value}/supplier/${supplier.public_id}/edit`,
+    },
 ];
 
 const form = useForm({
@@ -52,7 +56,7 @@ const form = useForm({
 });
 
 function submit() {
-    form.put(`${baseRoute.value}/supplier/${supplier.id}`);
+    form.put(`${baseRoute.value}/supplier/${supplier.public_id}`);
 }
 </script>
 
@@ -108,12 +112,25 @@ function submit() {
                     </div>
 
                     <div class="col-span-12 space-y-1 sm:col-span-4">
-                        <label class="text-sm font-medium">Email</label>
+                        <label for="supplier-email" class="text-sm font-medium"
+                            >Email
+                            <span v-if="supplier.user_id" class="text-red-500"
+                                >*</span
+                            ></label
+                        >
                         <Input
+                            id="supplier-email"
                             v-model="form.email"
                             type="email"
+                            :required="!!supplier.user_id"
                             :class="{ 'border-red-500': form.errors.email }"
                         />
+                        <p
+                            v-if="supplier.user_id"
+                            class="text-xs text-muted-foreground"
+                        >
+                            The supplier signs in with this email.
+                        </p>
                         <p
                             v-if="form.errors.email"
                             class="text-xs text-red-500"

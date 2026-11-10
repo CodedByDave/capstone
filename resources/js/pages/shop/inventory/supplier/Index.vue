@@ -8,6 +8,9 @@ import {
     type DataTableHeader,
 } from '@/components/data-table';
 import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
+import PriceListStatusPill, {
+    type PriceListStatus,
+} from '@/components/supplier/PriceListStatusPill.vue';
 import { Button } from '@/components/ui/button';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
@@ -15,13 +18,22 @@ import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Loader2, Pencil, Plus, Trash2, Truck } from 'lucide-vue-next';
+import {
+    Eye,
+    Loader2,
+    Mail,
+    Pencil,
+    Plus,
+    Trash2,
+    Truck,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 interface Supplier {
-    id: number;
+    public_id: string;
+    user_id: number | null;
     name: string;
     contact_person: string | null;
     email: string | null;
@@ -30,6 +42,8 @@ interface Supplier {
     status: 'active' | 'inactive';
     notes: string | null;
     inventory_count?: number;
+    items_count?: number;
+    latest_price_list?: { status: PriceListStatus } | null;
 }
 
 interface Paginator {
@@ -57,7 +71,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const supplierList = ref([...props.suppliers.data]);
-const deletingId = ref<number | null>(null);
+const deletingId = ref<string | null>(null);
+const invitingId = ref<string | null>(null);
 
 watch(
     () => props.suppliers.data,
@@ -81,21 +96,45 @@ const headers: DataTableHeader[] = [
     { text: 'Contact person', value: 'contact_person', sortable: true },
     { text: 'Phone', value: 'phone', sortable: true },
     { text: 'Email address', value: 'email', sortable: true },
-    { text: 'Items', value: 'inventory_count', sortable: true },
+    { text: 'Supplies', value: 'items_count', sortable: true },
+    { text: 'Price list', value: 'price_list' },
+    { text: 'Login', value: 'account' },
     { text: 'Status', value: 'status', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 120 },
 ];
 
-async function deleteSupplier(id: number) {
+async function deleteSupplier(id: string) {
     deletingId.value = id;
     try {
         await axios.delete(`${base.value}/${id}`);
-        supplierList.value = supplierList.value.filter((s) => s.id !== id);
+        supplierList.value = supplierList.value.filter(
+            (s) => s.public_id !== id,
+        );
         toast.success('Supplier archived.', { autoClose: 3000 });
     } catch {
         toast.error('Failed to archive supplier.', { autoClose: 4000 });
     } finally {
         deletingId.value = null;
+    }
+}
+
+async function inviteSupplier(supplier: Supplier) {
+    invitingId.value = supplier.public_id;
+    try {
+        await axios.post(`${base.value}/${supplier.public_id}/invite`);
+        toast.success(`Login invitation sent to ${supplier.name}.`, {
+            autoClose: 3000,
+        });
+        if (!supplier.user_id) router.reload({ only: ['suppliers'] });
+    } catch (error) {
+        const message = axios.isAxiosError(error)
+            ? error.response?.data?.message
+            : null;
+        toast.error(message ?? 'Failed to send the invitation.', {
+            autoClose: 4000,
+        });
+    } finally {
+        invitingId.value = null;
     }
 }
 
@@ -111,13 +150,14 @@ const selected = ref<Array<string | number>>([]);
                 v-model:selected="selected"
                 :headers="headers"
                 :items="supplierList"
+                item-key="public_id"
                 :total="total"
                 :loading="loading"
                 noun="suppliers"
                 :empty-icon="Truck"
                 empty-message="No suppliers yet."
                 :resettable="false"
-                :min-width="900"
+                :min-width="1100"
                 hide-rows-per-page
             >
                 <template #bulk-actions>
@@ -168,7 +208,13 @@ const selected = ref<Array<string | number>>([]);
                 </template>
 
                 <template #item-name="s">
-                    <p class="font-medium">{{ s.name }}</p>
+                    <button
+                        type="button"
+                        class="text-left font-medium hover:underline focus-visible:underline focus-visible:outline-none"
+                        @click="router.visit(`${base}/${s.public_id}`)"
+                    >
+                        {{ s.name }}
+                    </button>
                 </template>
 
                 <template #item-contact_person="s">
@@ -191,10 +237,22 @@ const selected = ref<Array<string | number>>([]);
                     </span>
                 </template>
 
-                <template #item-inventory_count="s">
+                <template #item-items_count="s">
                     <span class="whitespace-nowrap text-muted-foreground">
-                        {{ s.inventory_count ?? 0 }} items
+                        {{ s.items_count ?? 0 }} listed
                     </span>
+                </template>
+
+                <template #item-price_list="s">
+                    <PriceListStatusPill
+                        :status="s.latest_price_list?.status"
+                    />
+                </template>
+
+                <template #item-account="s">
+                    <StatusPill :tone="s.user_id ? 'success' : 'neutral'">
+                        {{ s.user_id ? 'Has login' : 'No login' }}
+                    </StatusPill>
                 </template>
 
                 <template #item-status="s">
@@ -210,23 +268,44 @@ const selected = ref<Array<string | number>>([]);
                         :label="s.name"
                         :actions="[
                             {
+                                label: 'View',
+                                icon: Eye,
+                                onSelect: () =>
+                                    router.visit(`${base}/${s.public_id}`),
+                            },
+                            {
+                                label: s.user_id
+                                    ? 'Resend login invite'
+                                    : 'Send login invite',
+                                icon:
+                                    invitingId === s.public_id ? Loader2 : Mail,
+                                disabled: invitingId === s.public_id,
+                                show:
+                                    isOwner ||
+                                    can('Inventory Management', 'update'),
+                                onSelect: () => inviteSupplier(s),
+                            },
+                            {
                                 label: 'Edit',
                                 icon: Pencil,
                                 show:
                                     isOwner ||
                                     can('Inventory Management', 'update'),
                                 onSelect: () =>
-                                    router.visit(`${base}/${s.id}/edit`),
+                                    router.visit(`${base}/${s.public_id}/edit`),
                             },
                             {
                                 label: 'Archive',
-                                icon: deletingId === s.id ? Loader2 : Trash2,
+                                icon:
+                                    deletingId === s.public_id
+                                        ? Loader2
+                                        : Trash2,
                                 destructive: true,
-                                disabled: deletingId === s.id,
+                                disabled: deletingId === s.public_id,
                                 show:
                                     isOwner ||
                                     can('Inventory Management', 'archive'),
-                                onSelect: () => deleteSupplier(s.id),
+                                onSelect: () => deleteSupplier(s.public_id),
                             },
                         ]"
                     />

@@ -6,6 +6,7 @@ use App\Enums\AccountType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -52,6 +53,17 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->role === AccountType::SuperAdmin->value;
+    }
+
+    public function isSupplier(): bool
+    {
+        return $this->role === AccountType::Supplier->value;
+    }
+
+    /** The supplier record this login belongs to (supplier accounts only). */
+    public function supplierProfile(): HasOne
+    {
+        return $this->hasOne(Supplier::class);
     }
 
     public function isUser(): bool

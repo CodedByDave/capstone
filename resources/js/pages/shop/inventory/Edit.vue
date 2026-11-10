@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/composables/usePermissions';
+import { useShopCapabilities } from '@/composables/useShopCapabilities';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { formatQuantity, packageStock } from '@/lib/inventoryStock';
 import { usageUnitsFor } from '@/lib/inventoryUnits';
@@ -61,6 +62,7 @@ const { inventory, categories, suppliers } = defineProps<{
 }>();
 
 const { isOwner } = usePermissions();
+const { hasSuppliers } = useShopCapabilities();
 const base = computed(() =>
     isOwner.value ? '/shop/inventory' : '/staff/inventory',
 );
@@ -740,7 +742,10 @@ function submit() {
                                     {{ form.errors.max_stock }}
                                 </p>
                             </div>
-                            <div class="col-span-12 space-y-1.5 sm:col-span-4">
+                            <div
+                                v-if="hasSuppliers"
+                                class="col-span-12 space-y-1.5 sm:col-span-4"
+                            >
                                 <label class="text-sm font-medium"
                                     >Supplier</label
                                 >

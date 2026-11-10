@@ -24,7 +24,16 @@ class ProfileUpdateRequest extends FormRequest
                 'email',
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
+                // A supplier signs in with the email their shop keeps on file, so only the shop changes it.
+                ...($this->user()->isSupplier() ? [Rule::in([$this->user()->email])] : []),
             ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.in' => 'Your email is managed by the shop you supply. Ask them to change it.',
         ];
     }
 }

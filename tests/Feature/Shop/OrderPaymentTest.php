@@ -779,6 +779,7 @@ test('finance income counts each payment on the day it was received', function (
             ->has('income.data', 2)
             ->where('income.data.0.amount_paid', '200.00')
             ->where('income.data.0.payment_method', 'gcash')
+            ->where('income.data.0.payment_status', $order->fresh()->payment_status)
             ->where('income.data.0.order_number', $order->order_number));
 });
 

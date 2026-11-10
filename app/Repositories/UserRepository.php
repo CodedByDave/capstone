@@ -39,6 +39,30 @@ class UserRepository extends Repository
         $user->update(['password' => $password]);
     }
 
+    public function updateEmail(User $user, string $email): void
+    {
+        $user->update(['email' => $email]);
+    }
+
+    public function findWithTrashed(int $id): ?User
+    {
+        return User::withTrashed()->find($id);
+    }
+
+    public function restoreUser(User $user): void
+    {
+        $user->restore();
+    }
+
+    /** Whether another account (archived ones included) already uses this email. */
+    public function emailTaken(string $email, ?int $exceptUserId = null): bool
+    {
+        return User::withTrashed()
+            ->where('email', $email)
+            ->when($exceptUserId !== null, fn ($query) => $query->whereKeyNot($exceptUserId))
+            ->exists();
+    }
+
     public function lockForOrderSubmission(int $userId): User
     {
         return User::query()->lockForUpdate()->findOrFail($userId);

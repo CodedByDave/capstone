@@ -38,6 +38,7 @@ class ShopSetupService
                 ])->filter()->implode(', '),
                 'offers_pickup' => (bool) ($shop->offers_pickup ?? false),
                 'offers_delivery' => (bool) ($shop->offers_delivery ?? false),
+                'has_suppliers' => (bool) $shop->has_suppliers,
                 'ownership_type' => $shop->ownership_type ?? Shop::OWNERSHIP_INDEPENDENT,
                 'franchise_brand_name' => $shop->franchise_brand_name ?? '',
                 'franchisor_name' => $shop->franchisor_name ?? '',
@@ -63,6 +64,7 @@ class ShopSetupService
                 'franchisor_name' => $isFranchise ? $data['franchisor_name'] : null,
                 'offers_pickup' => (bool) $data['offers_pickup'],
                 'offers_delivery' => (bool) $data['offers_delivery'],
+                'has_suppliers' => (bool) $data['has_suppliers'],
                 'setup_completed_at' => $shop->setup_completed_at ?? now(),
                 'status' => 'active',
             ]);
@@ -121,6 +123,7 @@ class ShopSetupService
             'offers_pickup' => (bool) $shop->offers_pickup,
             'offers_delivery' => $shop->canDeliver(),
             'delivery_pricing_required' => $shop->needsDeliveryPricing(),
+            'has_suppliers' => (bool) $shop->has_suppliers,
             'advanced_reports' => $this->hasAdvancedReports((int) $shop->owner_id),
         ];
     }
@@ -139,6 +142,8 @@ class ShopSetupService
             'delivery' => $shop->canDeliver(),
             // Setting the pricing itself needs only the choice to deliver.
             'delivery-setup' => (bool) $shop->offers_delivery,
+            // The supplier list is shown only to shops that buy from suppliers.
+            'suppliers' => (bool) $shop->has_suppliers,
             // Order automation is a paid-plan feature; a free trial does not include it.
             'order-automation' => $this->orders->hasPaidSubscription((int) $shop->owner_id),
             // Finance, Pricing and Employee reports come with the Premium plan only.

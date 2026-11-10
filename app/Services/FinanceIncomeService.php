@@ -68,6 +68,7 @@ class FinanceIncomeService
             ] : null,
             'amount_paid' => number_format((float) $payment->amount, 2, '.', ''),
             'payment_method' => $payment->method,
+            'payment_status' => $payment->order->payment_status,
             'paid_at' => $payment->paid_at?->toIso8601String(),
         ];
     }

@@ -112,6 +112,7 @@ class DssDemoSeeder extends Seeder
             'postal_code' => '4103',
             'status' => 'active',
             'setup_completed_at' => now(),
+            'has_suppliers' => true,
         ]);
         if ($owner->shop_id === null) {
             $owner->update(['shop_id' => $this->shop->id]);

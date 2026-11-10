@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
+import { useShopCapabilities } from '@/composables/useShopCapabilities';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { formatQuantity, packageStock } from '@/lib/inventoryStock';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -113,6 +114,7 @@ const props = defineProps<{
 // ─── Permissions & base path ──────────────────────────────────────────────────
 
 const { isOwner, can } = usePermissions();
+const { hasSuppliers } = useShopCapabilities();
 const base = computed(() =>
     isOwner.value ? '/shop/inventory' : '/staff/inventory',
 );
@@ -199,15 +201,18 @@ const hasFilters = computed(
         isSorted.value,
 );
 
-const headers: DataTableHeader[] = [
+// The Supplier column shows only for shops that buy from suppliers (Operations Setup).
+const headers = computed<DataTableHeader[]>(() => [
     { text: 'Item', value: 'name', sortable: true },
     { text: 'Category', value: 'category', sortable: true },
-    { text: 'Supplier', value: 'supplier', sortable: true },
+    ...(hasSuppliers.value
+        ? [{ text: 'Supplier', value: 'supplier', sortable: true }]
+        : []),
     { text: 'On hand', value: 'quantity', sortable: true },
     { text: 'Cost price', value: 'unit_price', sortable: true, align: 'right' },
     { text: 'Status', value: 'status', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 96 },
-];
+]);
 
 watch(
     () => props.inventory,
@@ -363,11 +368,15 @@ const statCards = computed(() => [
         value: props.categories.length,
         icon: Layers,
     },
-    {
-        label: 'Suppliers',
-        value: props.suppliers.length,
-        icon: Truck,
-    },
+    ...(hasSuppliers.value
+        ? [
+              {
+                  label: 'Suppliers',
+                  value: props.suppliers.length,
+                  icon: Truck,
+              },
+          ]
+        : []),
 ]);
 
 // The stored price is per consumption unit (e.g. per ml); show it per purchase unit (e.g. per bottle).
@@ -461,6 +470,7 @@ const selected = ref<Array<string | number>>([]);
                                 Categories
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                                v-if="hasSuppliers"
                                 class="min-h-9 cursor-pointer"
                                 @select="router.visit(supplierBase)"
                             >
@@ -598,6 +608,7 @@ const selected = ref<Array<string | number>>([]);
                     </SelectContent>
                 </Select>
                 <Select
+                    v-if="hasSuppliers"
                     v-model="supplierId"
                     @update:model-value="() => applyFilters()"
                 >

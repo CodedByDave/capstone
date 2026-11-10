@@ -17,12 +17,20 @@ class StoreSupplierRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'contact_person' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
             'address' => ['nullable', 'string', 'max:1000'],
             'lead_time_days' => ['required', 'integer', 'min:0', 'max:365'],
             'status' => ['sometimes', 'in:active,inactive'],
             'notes' => ['nullable', 'string', 'max:2000'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.required' => "Enter the supplier's email address. It is used for their supplier login.",
+            'email.unique' => 'Another account already uses this email address.',
         ];
     }
 }

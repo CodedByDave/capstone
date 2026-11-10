@@ -28,6 +28,7 @@ function bulkShop(): array
         'postal_code' => '4103',
         'status' => 'active',
         'setup_completed_at' => now(),
+        'has_suppliers' => true,
     ]);
     Order::create([
         'user_id' => $owner->id,
@@ -54,13 +55,14 @@ it('archives every selected supplier and restores them again', function () {
     $suppliers = collect(['A', 'B', 'C'])->map(fn ($n) => Supplier::create([
         'shop_id' => $shop->id, 'name' => "Supplier {$n}", 'status' => 'active',
     ]));
-    $picked = $suppliers->take(2)->pluck('id')->all();
+    // Supplier rows are selected by their public id, never the sequential id.
+    $picked = $suppliers->take(2)->pluck('public_id')->all();
 
     $this->actingAs($owner)
         ->post('/shop/bulk/supplier/archive', ['ids' => $picked])
         ->assertRedirect();
 
-    expect(Supplier::onlyTrashed()->pluck('id')->sort()->values()->all())->toBe(collect($picked)->sort()->values()->all())
+    expect(Supplier::onlyTrashed()->pluck('public_id')->sort()->values()->all())->toBe(collect($picked)->sort()->values()->all())
         ->and(Supplier::count())->toBe(1);
 
     $this->actingAs($owner)
@@ -90,7 +92,7 @@ it('never touches another shop\'s records', function () {
     $foreign = Supplier::create(['shop_id' => $otherShop->id, 'name' => 'Foreign', 'status' => 'active']);
 
     $this->actingAs($owner)
-        ->post('/shop/bulk/supplier/archive', ['ids' => [$foreign->id]])
+        ->post('/shop/bulk/supplier/archive', ['ids' => [$foreign->public_id]])
         ->assertRedirect();
 
     expect(Supplier::find($foreign->id))->not->toBeNull();

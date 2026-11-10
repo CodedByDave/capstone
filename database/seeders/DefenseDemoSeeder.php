@@ -167,6 +167,7 @@ class DefenseDemoSeeder extends Seeder
             'paymongo_public_key' => config('services.paymongo.demo_public_key'),
             'status' => 'active',
             'setup_completed_at' => now(),
+            'has_suppliers' => true,
         ]);
 
         if ($owner->shop_id === null) {

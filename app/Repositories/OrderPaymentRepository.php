@@ -109,7 +109,7 @@ class OrderPaymentRepository
     public function paginateIncome(int $shopId, ?string $from, ?string $to, ?string $method, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
     {
         $query = $this->incomeQuery($shopId, $from, $to, $method)
-            ->with('order:id,order_number,customer_name,service_id', 'order.service:id,service_name');
+            ->with('order:id,order_number,customer_name,service_id,payment_status', 'order.service:id,service_name');
 
         $orderColumn = fn (string $column) => fn ($q, $dir) => $q->orderBy(
             ShopOrder::query()

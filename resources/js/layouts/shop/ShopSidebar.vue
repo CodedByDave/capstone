@@ -68,10 +68,12 @@ const shopCapabilities = computed(
             setup_completed: false,
             offers_pickup: false,
             offers_delivery: false,
+            has_suppliers: false,
         }) as {
             setup_completed: boolean;
             offers_pickup: boolean;
             offers_delivery: boolean;
+            has_suppliers: boolean;
         },
 );
 // Red-dot counts per sidebar item, e.g. orders placed today on "All Orders".
@@ -145,7 +147,10 @@ const allInventorySubActions = [
         title: 'Suppliers',
         icon: Truck,
         href: isOwner.value ? '/shop/supplier' : '/staff/supplier',
-        show: () => isOwner.value || can('Inventory Management', 'view'),
+        // Only shops that buy from suppliers (Operations Setup) see this list.
+        show: () =>
+            shopCapabilities.value.has_suppliers &&
+            (isOwner.value || can('Inventory Management', 'view')),
     },
     {
         title: 'Product List',

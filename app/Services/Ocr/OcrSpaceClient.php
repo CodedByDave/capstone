@@ -23,12 +23,15 @@ class OcrSpaceClient
 
     public function extractText(UploadedFile $file): ?string
     {
+        return $this->extractTextFromContents($file->get(), $file->getClientOriginalName());
+    }
+
+    /** Reads a file that is already stored, given its bytes and a file name with its extension. */
+    public function extractTextFromContents(string $contents, string $name): ?string
+    {
         if (! $this->isConfigured()) {
             return null;
         }
-
-        $contents = $file->get();
-        $name = $file->getClientOriginalName();
 
         for ($attempt = 1; $attempt <= self::ATTEMPTS; $attempt++) {
             // A second engine is tried on the last attempt in case the first one keeps failing.
@@ -77,8 +80,8 @@ class OcrSpaceClient
             $text = collect($payload['ParsedResults'])
                 ->pluck('ParsedText')
                 ->filter()
-                ->implode("
-");
+                ->implode('
+');
 
             return $text === '' ? null : $text;
         } catch (Throwable $e) {

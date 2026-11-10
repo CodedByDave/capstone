@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import {
+    Boxes,
     Check,
     ChevronLeft,
     ChevronRight,
@@ -27,6 +28,7 @@ const props = defineProps<{
         franchisor_name: string;
         offers_pickup: boolean;
         offers_delivery: boolean;
+        has_suppliers: boolean;
         setup_completed: boolean;
     };
     plan: {
@@ -37,7 +39,7 @@ const props = defineProps<{
 
 const steps = [
     { title: 'Confirm shop', caption: 'Registered location' },
-    { title: 'Fulfillment', caption: 'Pickup and delivery' },
+    { title: 'Operations', caption: 'Fulfillment and suppliers' },
     { title: 'Review', caption: 'Save your setup' },
 ];
 const step = ref(1);
@@ -48,6 +50,7 @@ const form = useForm({
     franchisor_name: props.shop.franchisor_name,
     offers_pickup: props.shop.offers_pickup,
     offers_delivery: props.shop.offers_delivery,
+    has_suppliers: props.shop.has_suppliers,
 });
 
 function next() {
@@ -93,8 +96,8 @@ function submit() {
                         Set up<br />your shop
                     </h1>
                     <p class="mt-4 max-w-sm text-sm text-muted-foreground">
-                        Three quick steps to configure pickup and delivery. You
-                        can change them later in Shop Settings.
+                        Three quick steps to configure pickup, delivery and
+                        suppliers. You can change them later in Shop Settings.
                     </p>
 
                     <ol class="mt-8" aria-label="Setup progress">
@@ -195,9 +198,7 @@ function submit() {
                                     <MapPin class="h-4 w-4" />Address
                                 </dt>
                                 <dd class="text-right text-sm font-semibold">
-                                    {{
-                                        shop.address || 'No address recorded'
-                                    }}
+                                    {{ shop.address || 'No address recorded' }}
                                 </dd>
                             </div>
                         </dl>
@@ -205,7 +206,7 @@ function submit() {
 
                     <div v-else-if="step === 2">
                         <h2 class="mt-2 text-2xl font-semibold tracking-tight">
-                            Choose customer fulfillment options
+                            Choose how your shop operates
                         </h2>
                         <p class="mt-1 text-sm text-muted-foreground">
                             Walk-in service remains available. Enable only the
@@ -264,6 +265,27 @@ function submit() {
                                     class="h-5 w-5 rounded border-border accent-primary"
                                 />
                             </label>
+                            <label
+                                class="flex cursor-pointer items-center gap-4 py-4"
+                            >
+                                <Boxes class="h-5 w-5 text-primary" />
+                                <span class="flex-1">
+                                    <span class="block text-sm font-semibold"
+                                        >We buy from suppliers</span
+                                    >
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >Show Suppliers under Inventory. Each
+                                        supplier you add gets a login to list
+                                        their stock and price list.</span
+                                    >
+                                </span>
+                                <input
+                                    v-model="form.has_suppliers"
+                                    type="checkbox"
+                                    class="h-5 w-5 rounded border-border accent-primary"
+                                />
+                            </label>
                         </div>
                     </div>
 
@@ -314,6 +336,20 @@ function submit() {
                                     }}
                                 </dd>
                             </div>
+                            <div
+                                class="flex items-center justify-between gap-6 py-4"
+                            >
+                                <dt class="text-sm text-muted-foreground">
+                                    Suppliers
+                                </dt>
+                                <dd class="text-sm font-semibold">
+                                    {{
+                                        form.has_suppliers
+                                            ? 'Enabled'
+                                            : 'Disabled'
+                                    }}
+                                </dd>
+                            </div>
                         </dl>
                     </div>
 
@@ -323,8 +359,7 @@ function submit() {
                             type="button"
                             variant="outline"
                             @click="back"
-                            ><ChevronLeft class="mr-2 h-4 w-4" />
-                            Back</Button
+                            ><ChevronLeft class="mr-2 h-4 w-4" /> Back</Button
                         >
                         <Button
                             v-if="step < totalSteps"

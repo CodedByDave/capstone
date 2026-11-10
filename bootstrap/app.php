@@ -49,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'shop.capability' => EnsureShopCapability::class,
             'driver' => \App\Http\Middleware\EnsureDriver::class,
             'driver.redirect' => \App\Http\Middleware\RedirectDriverToApp::class,
+            'supplier.active' => \App\Http\Middleware\EnsureActiveSupplier::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/shop/supplier'
  */
 const index6e9ba6528fc430e854109f2ba05c86df = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index6e9ba6528fc430e854109f2ba05c86df.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/shop/supplier'
  */
 index6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/shop/supplier'
  */
 index6e9ba6528fc430e854109f2ba05c86df.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index6e9ba6528fc430e854109f2ba05c86df.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/shop/supplier'
  */
 index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/shop/supplier'
  */
     const index6e9ba6528fc430e854109f2ba05c86dfForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/shop/supplier'
  */
         index6e9ba6528fc430e854109f2ba05c86dfForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/shop/supplier'
  */
         index6e9ba6528fc430e854109f2ba05c86dfForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index6e9ba6528fc430e854109f2ba05c86df.head = (options?: RouteQueryOptions): Rout
     index6e9ba6528fc430e854109f2ba05c86df.form = index6e9ba6528fc430e854109f2ba05c86dfForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/staff/supplier'
  */
 const index58c8d01005028baa95eea79080e74e73 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ index58c8d01005028baa95eea79080e74e73.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/staff/supplier'
  */
 index58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ index58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/staff/supplier'
  */
 index58c8d01005028baa95eea79080e74e73.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ index58c8d01005028baa95eea79080e74e73.get = (options?: RouteQueryOptions): Route
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/staff/supplier'
  */
 index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/staff/supplier'
  */
     const index58c8d01005028baa95eea79080e74e73Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/staff/supplier'
  */
         index58c8d01005028baa95eea79080e74e73Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ index58c8d01005028baa95eea79080e74e73.head = (options?: RouteQueryOptions): Rout
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::index
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:34
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:33
  * @route '/staff/supplier'
  */
         index58c8d01005028baa95eea79080e74e73Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/shop/supplier/create'
  */
 const create3c850cff1273649ac4d585a784308198 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -178,7 +178,7 @@ create3c850cff1273649ac4d585a784308198.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/shop/supplier/create'
  */
 create3c850cff1273649ac4d585a784308198.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ create3c850cff1273649ac4d585a784308198.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/shop/supplier/create'
  */
 create3c850cff1273649ac4d585a784308198.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ create3c850cff1273649ac4d585a784308198.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/shop/supplier/create'
  */
 create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/shop/supplier/create'
  */
     const create3c850cff1273649ac4d585a784308198Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/shop/supplier/create'
  */
         create3c850cff1273649ac4d585a784308198Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -225,7 +225,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/shop/supplier/create'
  */
         create3c850cff1273649ac4d585a784308198Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -241,7 +241,7 @@ create3c850cff1273649ac4d585a784308198.head = (options?: RouteQueryOptions): Rou
     create3c850cff1273649ac4d585a784308198.form = create3c850cff1273649ac4d585a784308198Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/staff/supplier/create'
  */
 const create00fe20f8daccb1efd9e3ffedcf0d39bc = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -256,7 +256,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/staff/supplier/create'
  */
 create00fe20f8daccb1efd9e3ffedcf0d39bc.url = (options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/staff/supplier/create'
  */
 create00fe20f8daccb1efd9e3ffedcf0d39bc.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.get = (options?: RouteQueryOptions): Rout
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/staff/supplier/create'
  */
 create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): Rou
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/staff/supplier/create'
  */
     const create00fe20f8daccb1efd9e3ffedcf0d39bcForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): Rou
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/staff/supplier/create'
  */
         create00fe20f8daccb1efd9e3ffedcf0d39bcForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ create00fe20f8daccb1efd9e3ffedcf0d39bc.head = (options?: RouteQueryOptions): Rou
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::create
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:43
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:40
  * @route '/staff/supplier/create'
  */
         create00fe20f8daccb1efd9e3ffedcf0d39bcForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -325,7 +325,7 @@ export const create = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/shop/supplier'
  */
 const store6e9ba6528fc430e854109f2ba05c86df = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +340,7 @@ store6e9ba6528fc430e854109f2ba05c86df.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/shop/supplier'
  */
 store6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
@@ -349,7 +349,7 @@ store6e9ba6528fc430e854109f2ba05c86df.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/shop/supplier'
  */
 store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +359,7 @@ store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/shop/supplier'
  */
     const store6e9ba6528fc430e854109f2ba05c86dfForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +369,7 @@ store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/shop/supplier'
  */
         store6e9ba6528fc430e854109f2ba05c86dfForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +380,7 @@ store6e9ba6528fc430e854109f2ba05c86df.post = (options?: RouteQueryOptions): Rout
     store6e9ba6528fc430e854109f2ba05c86df.form = store6e9ba6528fc430e854109f2ba05c86dfForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/staff/supplier'
  */
 const store58c8d01005028baa95eea79080e74e73 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +395,7 @@ store58c8d01005028baa95eea79080e74e73.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/staff/supplier'
  */
 store58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
@@ -404,7 +404,7 @@ store58c8d01005028baa95eea79080e74e73.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/staff/supplier'
  */
 store58c8d01005028baa95eea79080e74e73.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +414,7 @@ store58c8d01005028baa95eea79080e74e73.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/staff/supplier'
  */
     const store58c8d01005028baa95eea79080e74e73Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +424,7 @@ store58c8d01005028baa95eea79080e74e73.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::store
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:48
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:45
  * @route '/staff/supplier'
  */
         store58c8d01005028baa95eea79080e74e73Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -440,586 +440,8 @@ export const store = {
 }
 
 /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/shop/supplier/{supplier}/edit'
- */
-const edit0c6ab6d54107232d4e45828eeb7251a7 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
-    method: 'get',
-})
-
-edit0c6ab6d54107232d4e45828eeb7251a7.definition = {
-    methods: ["get","head"],
-    url: '/shop/supplier/{supplier}/edit',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/shop/supplier/{supplier}/edit'
- */
-edit0c6ab6d54107232d4e45828eeb7251a7.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { supplier: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { supplier: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    supplier: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        supplier: typeof args.supplier === 'object'
-                ? args.supplier.id
-                : args.supplier,
-                }
-
-    return edit0c6ab6d54107232d4e45828eeb7251a7.definition.url
-            .replace('{supplier}', parsedArgs.supplier.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/shop/supplier/{supplier}/edit'
- */
-edit0c6ab6d54107232d4e45828eeb7251a7.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
-    method: 'get',
-})
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/shop/supplier/{supplier}/edit'
- */
-edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
-    method: 'head',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/shop/supplier/{supplier}/edit'
- */
-    const edit0c6ab6d54107232d4e45828eeb7251a7Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/shop/supplier/{supplier}/edit'
- */
-        edit0c6ab6d54107232d4e45828eeb7251a7Form.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/shop/supplier/{supplier}/edit'
- */
-        edit0c6ab6d54107232d4e45828eeb7251a7Form.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    edit0c6ab6d54107232d4e45828eeb7251a7.form = edit0c6ab6d54107232d4e45828eeb7251a7Form
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/staff/supplier/{supplier}/edit'
- */
-const edita494b0a8c6a3075af8912048b200805f = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
-    method: 'get',
-})
-
-edita494b0a8c6a3075af8912048b200805f.definition = {
-    methods: ["get","head"],
-    url: '/staff/supplier/{supplier}/edit',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/staff/supplier/{supplier}/edit'
- */
-edita494b0a8c6a3075af8912048b200805f.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { supplier: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { supplier: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    supplier: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        supplier: typeof args.supplier === 'object'
-                ? args.supplier.id
-                : args.supplier,
-                }
-
-    return edita494b0a8c6a3075af8912048b200805f.definition.url
-            .replace('{supplier}', parsedArgs.supplier.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/staff/supplier/{supplier}/edit'
- */
-edita494b0a8c6a3075af8912048b200805f.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
-    method: 'get',
-})
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/staff/supplier/{supplier}/edit'
- */
-edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
-    method: 'head',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/staff/supplier/{supplier}/edit'
- */
-    const edita494b0a8c6a3075af8912048b200805fForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: edita494b0a8c6a3075af8912048b200805f.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/staff/supplier/{supplier}/edit'
- */
-        edita494b0a8c6a3075af8912048b200805fForm.get = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edita494b0a8c6a3075af8912048b200805f.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:58
- * @route '/staff/supplier/{supplier}/edit'
- */
-        edita494b0a8c6a3075af8912048b200805fForm.head = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edita494b0a8c6a3075af8912048b200805f.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    edita494b0a8c6a3075af8912048b200805f.form = edita494b0a8c6a3075af8912048b200805fForm
-
-export const edit = {
-    '/shop/supplier/{supplier}/edit': edit0c6ab6d54107232d4e45828eeb7251a7,
-    '/staff/supplier/{supplier}/edit': edita494b0a8c6a3075af8912048b200805f,
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/shop/supplier/{supplier}'
- */
-const updateee3c239cbef8c85b0573326c696b1053 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
-    url: updateee3c239cbef8c85b0573326c696b1053.url(args, options),
-    method: 'put',
-})
-
-updateee3c239cbef8c85b0573326c696b1053.definition = {
-    methods: ["put"],
-    url: '/shop/supplier/{supplier}',
-} satisfies RouteDefinition<["put"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/shop/supplier/{supplier}'
- */
-updateee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { supplier: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { supplier: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    supplier: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        supplier: typeof args.supplier === 'object'
-                ? args.supplier.id
-                : args.supplier,
-                }
-
-    return updateee3c239cbef8c85b0573326c696b1053.definition.url
-            .replace('{supplier}', parsedArgs.supplier.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/shop/supplier/{supplier}'
- */
-updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
-    url: updateee3c239cbef8c85b0573326c696b1053.url(args, options),
-    method: 'put',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/shop/supplier/{supplier}'
- */
-    const updateee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: updateee3c239cbef8c85b0573326c696b1053.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'PUT',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/shop/supplier/{supplier}'
- */
-        updateee3c239cbef8c85b0573326c696b1053Form.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: updateee3c239cbef8c85b0573326c696b1053.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PUT',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    updateee3c239cbef8c85b0573326c696b1053.form = updateee3c239cbef8c85b0573326c696b1053Form
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/staff/supplier/{supplier}'
- */
-const update543927b6848bff5be51ec716751c4ddf = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
-    url: update543927b6848bff5be51ec716751c4ddf.url(args, options),
-    method: 'put',
-})
-
-update543927b6848bff5be51ec716751c4ddf.definition = {
-    methods: ["put"],
-    url: '/staff/supplier/{supplier}',
-} satisfies RouteDefinition<["put"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/staff/supplier/{supplier}'
- */
-update543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { supplier: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { supplier: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    supplier: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        supplier: typeof args.supplier === 'object'
-                ? args.supplier.id
-                : args.supplier,
-                }
-
-    return update543927b6848bff5be51ec716751c4ddf.definition.url
-            .replace('{supplier}', parsedArgs.supplier.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/staff/supplier/{supplier}'
- */
-update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
-    url: update543927b6848bff5be51ec716751c4ddf.url(args, options),
-    method: 'put',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/staff/supplier/{supplier}'
- */
-    const update543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: update543927b6848bff5be51ec716751c4ddf.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'PUT',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:65
- * @route '/staff/supplier/{supplier}'
- */
-        update543927b6848bff5be51ec716751c4ddfForm.put = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: update543927b6848bff5be51ec716751c4ddf.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'PUT',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    update543927b6848bff5be51ec716751c4ddf.form = update543927b6848bff5be51ec716751c4ddfForm
-
-export const update = {
-    '/shop/supplier/{supplier}': updateee3c239cbef8c85b0573326c696b1053,
-    '/staff/supplier/{supplier}': update543927b6848bff5be51ec716751c4ddf,
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/shop/supplier/{supplier}'
- */
-const destroyee3c239cbef8c85b0573326c696b1053 = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: destroyee3c239cbef8c85b0573326c696b1053.url(args, options),
-    method: 'delete',
-})
-
-destroyee3c239cbef8c85b0573326c696b1053.definition = {
-    methods: ["delete"],
-    url: '/shop/supplier/{supplier}',
-} satisfies RouteDefinition<["delete"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/shop/supplier/{supplier}'
- */
-destroyee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { supplier: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { supplier: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    supplier: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        supplier: typeof args.supplier === 'object'
-                ? args.supplier.id
-                : args.supplier,
-                }
-
-    return destroyee3c239cbef8c85b0573326c696b1053.definition.url
-            .replace('{supplier}', parsedArgs.supplier.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/shop/supplier/{supplier}'
- */
-destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: destroyee3c239cbef8c85b0573326c696b1053.url(args, options),
-    method: 'delete',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/shop/supplier/{supplier}'
- */
-    const destroyee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: destroyee3c239cbef8c85b0573326c696b1053.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'DELETE',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/shop/supplier/{supplier}'
- */
-        destroyee3c239cbef8c85b0573326c696b1053Form.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: destroyee3c239cbef8c85b0573326c696b1053.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'DELETE',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    destroyee3c239cbef8c85b0573326c696b1053.form = destroyee3c239cbef8c85b0573326c696b1053Form
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/staff/supplier/{supplier}'
- */
-const destroy543927b6848bff5be51ec716751c4ddf = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: destroy543927b6848bff5be51ec716751c4ddf.url(args, options),
-    method: 'delete',
-})
-
-destroy543927b6848bff5be51ec716751c4ddf.definition = {
-    methods: ["delete"],
-    url: '/staff/supplier/{supplier}',
-} satisfies RouteDefinition<["delete"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/staff/supplier/{supplier}'
- */
-destroy543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { supplier: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { supplier: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    supplier: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        supplier: typeof args.supplier === 'object'
-                ? args.supplier.id
-                : args.supplier,
-                }
-
-    return destroy543927b6848bff5be51ec716751c4ddf.definition.url
-            .replace('{supplier}', parsedArgs.supplier.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/staff/supplier/{supplier}'
- */
-destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: destroy543927b6848bff5be51ec716751c4ddf.url(args, options),
-    method: 'delete',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/staff/supplier/{supplier}'
- */
-    const destroy543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: destroy543927b6848bff5be51ec716751c4ddf.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'DELETE',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:73
- * @route '/staff/supplier/{supplier}'
- */
-        destroy543927b6848bff5be51ec716751c4ddfForm.delete = (args: { supplier: number | { id: number } } | [supplier: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: destroy543927b6848bff5be51ec716751c4ddf.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'DELETE',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    destroy543927b6848bff5be51ec716751c4ddf.form = destroy543927b6848bff5be51ec716751c4ddfForm
-
-export const destroy = {
-    '/shop/supplier/{supplier}': destroyee3c239cbef8c85b0573326c696b1053,
-    '/staff/supplier/{supplier}': destroy543927b6848bff5be51ec716751c4ddf,
-}
-
-/**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/shop/supplier/archive'
  */
 const archiveef72c80cb61b4d4a66d71aee47dcc5db = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1034,7 +456,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/shop/supplier/archive'
  */
 archiveef72c80cb61b4d4a66d71aee47dcc5db.url = (options?: RouteQueryOptions) => {
@@ -1043,7 +465,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/shop/supplier/archive'
  */
 archiveef72c80cb61b4d4a66d71aee47dcc5db.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1052,7 +474,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/shop/supplier/archive'
  */
 archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -1062,7 +484,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/shop/supplier/archive'
  */
     const archiveef72c80cb61b4d4a66d71aee47dcc5dbForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1072,7 +494,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/shop/supplier/archive'
  */
         archiveef72c80cb61b4d4a66d71aee47dcc5dbForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1081,7 +503,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/shop/supplier/archive'
  */
         archiveef72c80cb61b4d4a66d71aee47dcc5dbForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1097,7 +519,7 @@ archiveef72c80cb61b4d4a66d71aee47dcc5db.head = (options?: RouteQueryOptions): Ro
     archiveef72c80cb61b4d4a66d71aee47dcc5db.form = archiveef72c80cb61b4d4a66d71aee47dcc5dbForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/staff/supplier/archive'
  */
 const archive5af740144f8b943698fcd31d2712e8df = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1112,7 +534,7 @@ archive5af740144f8b943698fcd31d2712e8df.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/staff/supplier/archive'
  */
 archive5af740144f8b943698fcd31d2712e8df.url = (options?: RouteQueryOptions) => {
@@ -1121,7 +543,7 @@ archive5af740144f8b943698fcd31d2712e8df.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/staff/supplier/archive'
  */
 archive5af740144f8b943698fcd31d2712e8df.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -1130,7 +552,7 @@ archive5af740144f8b943698fcd31d2712e8df.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/staff/supplier/archive'
  */
 archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -1140,7 +562,7 @@ archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/staff/supplier/archive'
  */
     const archive5af740144f8b943698fcd31d2712e8dfForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1150,7 +572,7 @@ archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/staff/supplier/archive'
  */
         archive5af740144f8b943698fcd31d2712e8dfForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1159,7 +581,7 @@ archive5af740144f8b943698fcd31d2712e8df.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::archive
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:85
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:125
  * @route '/staff/supplier/archive'
  */
         archive5af740144f8b943698fcd31d2712e8dfForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1180,8 +602,1106 @@ export const archive = {
 }
 
 /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/shop/supplier/{supplier}'
+ */
+const showee3c239cbef8c85b0573326c696b1053 = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: showee3c239cbef8c85b0573326c696b1053.url(args, options),
+    method: 'get',
+})
+
+showee3c239cbef8c85b0573326c696b1053.definition = {
+    methods: ["get","head"],
+    url: '/shop/supplier/{supplier}',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/shop/supplier/{supplier}'
+ */
+showee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return showee3c239cbef8c85b0573326c696b1053.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/shop/supplier/{supplier}'
+ */
+showee3c239cbef8c85b0573326c696b1053.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: showee3c239cbef8c85b0573326c696b1053.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/shop/supplier/{supplier}'
+ */
+showee3c239cbef8c85b0573326c696b1053.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: showee3c239cbef8c85b0573326c696b1053.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/shop/supplier/{supplier}'
+ */
+    const showee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: showee3c239cbef8c85b0573326c696b1053.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/shop/supplier/{supplier}'
+ */
+        showee3c239cbef8c85b0573326c696b1053Form.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: showee3c239cbef8c85b0573326c696b1053.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/shop/supplier/{supplier}'
+ */
+        showee3c239cbef8c85b0573326c696b1053Form.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: showee3c239cbef8c85b0573326c696b1053.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    showee3c239cbef8c85b0573326c696b1053.form = showee3c239cbef8c85b0573326c696b1053Form
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/staff/supplier/{supplier}'
+ */
+const show543927b6848bff5be51ec716751c4ddf = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show543927b6848bff5be51ec716751c4ddf.url(args, options),
+    method: 'get',
+})
+
+show543927b6848bff5be51ec716751c4ddf.definition = {
+    methods: ["get","head"],
+    url: '/staff/supplier/{supplier}',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/staff/supplier/{supplier}'
+ */
+show543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return show543927b6848bff5be51ec716751c4ddf.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/staff/supplier/{supplier}'
+ */
+show543927b6848bff5be51ec716751c4ddf.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: show543927b6848bff5be51ec716751c4ddf.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/staff/supplier/{supplier}'
+ */
+show543927b6848bff5be51ec716751c4ddf.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: show543927b6848bff5be51ec716751c4ddf.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/staff/supplier/{supplier}'
+ */
+    const show543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: show543927b6848bff5be51ec716751c4ddf.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/staff/supplier/{supplier}'
+ */
+        show543927b6848bff5be51ec716751c4ddfForm.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: show543927b6848bff5be51ec716751c4ddf.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::show
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:57
+ * @route '/staff/supplier/{supplier}'
+ */
+        show543927b6848bff5be51ec716751c4ddfForm.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: show543927b6848bff5be51ec716751c4ddf.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    show543927b6848bff5be51ec716751c4ddf.form = show543927b6848bff5be51ec716751c4ddfForm
+
+export const show = {
+    '/shop/supplier/{supplier}': showee3c239cbef8c85b0573326c696b1053,
+    '/staff/supplier/{supplier}': show543927b6848bff5be51ec716751c4ddf,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/shop/supplier/{supplier}/edit'
+ */
+const edit0c6ab6d54107232d4e45828eeb7251a7 = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
+    method: 'get',
+})
+
+edit0c6ab6d54107232d4e45828eeb7251a7.definition = {
+    methods: ["get","head"],
+    url: '/shop/supplier/{supplier}/edit',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/shop/supplier/{supplier}/edit'
+ */
+edit0c6ab6d54107232d4e45828eeb7251a7.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return edit0c6ab6d54107232d4e45828eeb7251a7.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/shop/supplier/{supplier}/edit'
+ */
+edit0c6ab6d54107232d4e45828eeb7251a7.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/shop/supplier/{supplier}/edit'
+ */
+edit0c6ab6d54107232d4e45828eeb7251a7.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/shop/supplier/{supplier}/edit'
+ */
+    const edit0c6ab6d54107232d4e45828eeb7251a7Form = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/shop/supplier/{supplier}/edit'
+ */
+        edit0c6ab6d54107232d4e45828eeb7251a7Form.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/shop/supplier/{supplier}/edit'
+ */
+        edit0c6ab6d54107232d4e45828eeb7251a7Form.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edit0c6ab6d54107232d4e45828eeb7251a7.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    edit0c6ab6d54107232d4e45828eeb7251a7.form = edit0c6ab6d54107232d4e45828eeb7251a7Form
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/staff/supplier/{supplier}/edit'
+ */
+const edita494b0a8c6a3075af8912048b200805f = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
+    method: 'get',
+})
+
+edita494b0a8c6a3075af8912048b200805f.definition = {
+    methods: ["get","head"],
+    url: '/staff/supplier/{supplier}/edit',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/staff/supplier/{supplier}/edit'
+ */
+edita494b0a8c6a3075af8912048b200805f.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return edita494b0a8c6a3075af8912048b200805f.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/staff/supplier/{supplier}/edit'
+ */
+edita494b0a8c6a3075af8912048b200805f.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/staff/supplier/{supplier}/edit'
+ */
+edita494b0a8c6a3075af8912048b200805f.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: edita494b0a8c6a3075af8912048b200805f.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/staff/supplier/{supplier}/edit'
+ */
+    const edita494b0a8c6a3075af8912048b200805fForm = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: edita494b0a8c6a3075af8912048b200805f.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/staff/supplier/{supplier}/edit'
+ */
+        edita494b0a8c6a3075af8912048b200805fForm.get = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edita494b0a8c6a3075af8912048b200805f.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::edit
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:68
+ * @route '/staff/supplier/{supplier}/edit'
+ */
+        edita494b0a8c6a3075af8912048b200805fForm.head = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: edita494b0a8c6a3075af8912048b200805f.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    edita494b0a8c6a3075af8912048b200805f.form = edita494b0a8c6a3075af8912048b200805fForm
+
+export const edit = {
+    '/shop/supplier/{supplier}/edit': edit0c6ab6d54107232d4e45828eeb7251a7,
+    '/staff/supplier/{supplier}/edit': edita494b0a8c6a3075af8912048b200805f,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/shop/supplier/{supplier}'
+ */
+const updateee3c239cbef8c85b0573326c696b1053 = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: updateee3c239cbef8c85b0573326c696b1053.url(args, options),
+    method: 'put',
+})
+
+updateee3c239cbef8c85b0573326c696b1053.definition = {
+    methods: ["put"],
+    url: '/shop/supplier/{supplier}',
+} satisfies RouteDefinition<["put"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/shop/supplier/{supplier}'
+ */
+updateee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return updateee3c239cbef8c85b0573326c696b1053.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/shop/supplier/{supplier}'
+ */
+updateee3c239cbef8c85b0573326c696b1053.put = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: updateee3c239cbef8c85b0573326c696b1053.url(args, options),
+    method: 'put',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/shop/supplier/{supplier}'
+ */
+    const updateee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: updateee3c239cbef8c85b0573326c696b1053.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PUT',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/shop/supplier/{supplier}'
+ */
+        updateee3c239cbef8c85b0573326c696b1053Form.put = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: updateee3c239cbef8c85b0573326c696b1053.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PUT',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    updateee3c239cbef8c85b0573326c696b1053.form = updateee3c239cbef8c85b0573326c696b1053Form
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/staff/supplier/{supplier}'
+ */
+const update543927b6848bff5be51ec716751c4ddf = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: update543927b6848bff5be51ec716751c4ddf.url(args, options),
+    method: 'put',
+})
+
+update543927b6848bff5be51ec716751c4ddf.definition = {
+    methods: ["put"],
+    url: '/staff/supplier/{supplier}',
+} satisfies RouteDefinition<["put"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/staff/supplier/{supplier}'
+ */
+update543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return update543927b6848bff5be51ec716751c4ddf.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/staff/supplier/{supplier}'
+ */
+update543927b6848bff5be51ec716751c4ddf.put = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+    url: update543927b6848bff5be51ec716751c4ddf.url(args, options),
+    method: 'put',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/staff/supplier/{supplier}'
+ */
+    const update543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: update543927b6848bff5be51ec716751c4ddf.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'PUT',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::update
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:75
+ * @route '/staff/supplier/{supplier}'
+ */
+        update543927b6848bff5be51ec716751c4ddfForm.put = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: update543927b6848bff5be51ec716751c4ddf.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'PUT',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    update543927b6848bff5be51ec716751c4ddf.form = update543927b6848bff5be51ec716751c4ddfForm
+
+export const update = {
+    '/shop/supplier/{supplier}': updateee3c239cbef8c85b0573326c696b1053,
+    '/staff/supplier/{supplier}': update543927b6848bff5be51ec716751c4ddf,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/shop/supplier/{supplier}/invite'
+ */
+const invite015c81815bb32b738bf0fac246e309e4 = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: invite015c81815bb32b738bf0fac246e309e4.url(args, options),
+    method: 'post',
+})
+
+invite015c81815bb32b738bf0fac246e309e4.definition = {
+    methods: ["post"],
+    url: '/shop/supplier/{supplier}/invite',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/shop/supplier/{supplier}/invite'
+ */
+invite015c81815bb32b738bf0fac246e309e4.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return invite015c81815bb32b738bf0fac246e309e4.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/shop/supplier/{supplier}/invite'
+ */
+invite015c81815bb32b738bf0fac246e309e4.post = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: invite015c81815bb32b738bf0fac246e309e4.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/shop/supplier/{supplier}/invite'
+ */
+    const invite015c81815bb32b738bf0fac246e309e4Form = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: invite015c81815bb32b738bf0fac246e309e4.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/shop/supplier/{supplier}/invite'
+ */
+        invite015c81815bb32b738bf0fac246e309e4Form.post = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: invite015c81815bb32b738bf0fac246e309e4.url(args, options),
+            method: 'post',
+        })
+    
+    invite015c81815bb32b738bf0fac246e309e4.form = invite015c81815bb32b738bf0fac246e309e4Form
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/staff/supplier/{supplier}/invite'
+ */
+const invite99106aa069dbeccffc5a92ab15d23cc8 = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: invite99106aa069dbeccffc5a92ab15d23cc8.url(args, options),
+    method: 'post',
+})
+
+invite99106aa069dbeccffc5a92ab15d23cc8.definition = {
+    methods: ["post"],
+    url: '/staff/supplier/{supplier}/invite',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/staff/supplier/{supplier}/invite'
+ */
+invite99106aa069dbeccffc5a92ab15d23cc8.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return invite99106aa069dbeccffc5a92ab15d23cc8.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/staff/supplier/{supplier}/invite'
+ */
+invite99106aa069dbeccffc5a92ab15d23cc8.post = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: invite99106aa069dbeccffc5a92ab15d23cc8.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/staff/supplier/{supplier}/invite'
+ */
+    const invite99106aa069dbeccffc5a92ab15d23cc8Form = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: invite99106aa069dbeccffc5a92ab15d23cc8.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::invite
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:89
+ * @route '/staff/supplier/{supplier}/invite'
+ */
+        invite99106aa069dbeccffc5a92ab15d23cc8Form.post = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: invite99106aa069dbeccffc5a92ab15d23cc8.url(args, options),
+            method: 'post',
+        })
+    
+    invite99106aa069dbeccffc5a92ab15d23cc8.form = invite99106aa069dbeccffc5a92ab15d23cc8Form
+
+export const invite = {
+    '/shop/supplier/{supplier}/invite': invite015c81815bb32b738bf0fac246e309e4,
+    '/staff/supplier/{supplier}/invite': invite99106aa069dbeccffc5a92ab15d23cc8,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/shop/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+const priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41 = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.url(args, options),
+    method: 'get',
+})
+
+priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.definition = {
+    methods: ["get","head"],
+    url: '/shop/supplier/{supplier}/price-lists/{priceList}/photo',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/shop/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.url = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions) => {
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                    priceList: args[1],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                                priceList: args.priceList,
+                }
+
+    return priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace('{priceList}', parsedArgs.priceList.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/shop/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.get = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/shop/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.head = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/shop/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+    const priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41Form = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/shop/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+        priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41Form.get = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/shop/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+        priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41Form.head = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41.form = priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41Form
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/staff/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+const priceListPhoto7a7b1c291d3c98769699d5b60e000763 = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: priceListPhoto7a7b1c291d3c98769699d5b60e000763.url(args, options),
+    method: 'get',
+})
+
+priceListPhoto7a7b1c291d3c98769699d5b60e000763.definition = {
+    methods: ["get","head"],
+    url: '/staff/supplier/{supplier}/price-lists/{priceList}/photo',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/staff/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+priceListPhoto7a7b1c291d3c98769699d5b60e000763.url = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions) => {
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                    priceList: args[1],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                                priceList: args.priceList,
+                }
+
+    return priceListPhoto7a7b1c291d3c98769699d5b60e000763.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace('{priceList}', parsedArgs.priceList.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/staff/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+priceListPhoto7a7b1c291d3c98769699d5b60e000763.get = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: priceListPhoto7a7b1c291d3c98769699d5b60e000763.url(args, options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/staff/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+priceListPhoto7a7b1c291d3c98769699d5b60e000763.head = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: priceListPhoto7a7b1c291d3c98769699d5b60e000763.url(args, options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/staff/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+    const priceListPhoto7a7b1c291d3c98769699d5b60e000763Form = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: priceListPhoto7a7b1c291d3c98769699d5b60e000763.url(args, options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/staff/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+        priceListPhoto7a7b1c291d3c98769699d5b60e000763Form.get = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: priceListPhoto7a7b1c291d3c98769699d5b60e000763.url(args, options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::priceListPhoto
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:106
+ * @route '/staff/supplier/{supplier}/price-lists/{priceList}/photo'
+ */
+        priceListPhoto7a7b1c291d3c98769699d5b60e000763Form.head = (args: { supplier: string | number, priceList: string | number } | [supplier: string | number, priceList: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: priceListPhoto7a7b1c291d3c98769699d5b60e000763.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    priceListPhoto7a7b1c291d3c98769699d5b60e000763.form = priceListPhoto7a7b1c291d3c98769699d5b60e000763Form
+
+export const priceListPhoto = {
+    '/shop/supplier/{supplier}/price-lists/{priceList}/photo': priceListPhotoc30682ce7ab9d9fe8203d7b84358bc41,
+    '/staff/supplier/{supplier}/price-lists/{priceList}/photo': priceListPhoto7a7b1c291d3c98769699d5b60e000763,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/shop/supplier/{supplier}'
+ */
+const destroyee3c239cbef8c85b0573326c696b1053 = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroyee3c239cbef8c85b0573326c696b1053.url(args, options),
+    method: 'delete',
+})
+
+destroyee3c239cbef8c85b0573326c696b1053.definition = {
+    methods: ["delete"],
+    url: '/shop/supplier/{supplier}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/shop/supplier/{supplier}'
+ */
+destroyee3c239cbef8c85b0573326c696b1053.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return destroyee3c239cbef8c85b0573326c696b1053.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/shop/supplier/{supplier}'
+ */
+destroyee3c239cbef8c85b0573326c696b1053.delete = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroyee3c239cbef8c85b0573326c696b1053.url(args, options),
+    method: 'delete',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/shop/supplier/{supplier}'
+ */
+    const destroyee3c239cbef8c85b0573326c696b1053Form = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: destroyee3c239cbef8c85b0573326c696b1053.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'DELETE',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/shop/supplier/{supplier}'
+ */
+        destroyee3c239cbef8c85b0573326c696b1053Form.delete = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: destroyee3c239cbef8c85b0573326c696b1053.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'DELETE',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    destroyee3c239cbef8c85b0573326c696b1053.form = destroyee3c239cbef8c85b0573326c696b1053Form
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/staff/supplier/{supplier}'
+ */
+const destroy543927b6848bff5be51ec716751c4ddf = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy543927b6848bff5be51ec716751c4ddf.url(args, options),
+    method: 'delete',
+})
+
+destroy543927b6848bff5be51ec716751c4ddf.definition = {
+    methods: ["delete"],
+    url: '/staff/supplier/{supplier}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/staff/supplier/{supplier}'
+ */
+destroy543927b6848bff5be51ec716751c4ddf.url = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { supplier: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    supplier: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        supplier: args.supplier,
+                }
+
+    return destroy543927b6848bff5be51ec716751c4ddf.definition.url
+            .replace('{supplier}', parsedArgs.supplier.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/staff/supplier/{supplier}'
+ */
+destroy543927b6848bff5be51ec716751c4ddf.delete = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy543927b6848bff5be51ec716751c4ddf.url(args, options),
+    method: 'delete',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/staff/supplier/{supplier}'
+ */
+    const destroy543927b6848bff5be51ec716751c4ddfForm = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: destroy543927b6848bff5be51ec716751c4ddf.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'DELETE',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Inventory\SupplierController::destroy
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:113
+ * @route '/staff/supplier/{supplier}'
+ */
+        destroy543927b6848bff5be51ec716751c4ddfForm.delete = (args: { supplier: string | number } | [supplier: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: destroy543927b6848bff5be51ec716751c4ddf.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'DELETE',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    destroy543927b6848bff5be51ec716751c4ddf.form = destroy543927b6848bff5be51ec716751c4ddfForm
+
+export const destroy = {
+    '/shop/supplier/{supplier}': destroyee3c239cbef8c85b0573326c696b1053,
+    '/staff/supplier/{supplier}': destroy543927b6848bff5be51ec716751c4ddf,
+}
+
+/**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/shop/supplier/{id}/restore'
  */
 const restore5aea0d71094787f36454f7fe0dd9ac9d = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1196,7 +1716,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/shop/supplier/{id}/restore'
  */
 restore5aea0d71094787f36454f7fe0dd9ac9d.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1224,7 +1744,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.url = (args: { id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/shop/supplier/{id}/restore'
  */
 restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1234,7 +1754,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/shop/supplier/{id}/restore'
  */
     const restore5aea0d71094787f36454f7fe0dd9ac9dForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1244,7 +1764,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/shop/supplier/{id}/restore'
  */
         restore5aea0d71094787f36454f7fe0dd9ac9dForm.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1255,7 +1775,7 @@ restore5aea0d71094787f36454f7fe0dd9ac9d.post = (args: { id: string | number } | 
     restore5aea0d71094787f36454f7fe0dd9ac9d.form = restore5aea0d71094787f36454f7fe0dd9ac9dForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/staff/supplier/{id}/restore'
  */
 const restore28f12e27e550867e6342123918c4d493 = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1270,7 +1790,7 @@ restore28f12e27e550867e6342123918c4d493.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/staff/supplier/{id}/restore'
  */
 restore28f12e27e550867e6342123918c4d493.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1298,7 +1818,7 @@ restore28f12e27e550867e6342123918c4d493.url = (args: { id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/staff/supplier/{id}/restore'
  */
 restore28f12e27e550867e6342123918c4d493.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1308,7 +1828,7 @@ restore28f12e27e550867e6342123918c4d493.post = (args: { id: string | number } | 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/staff/supplier/{id}/restore'
  */
     const restore28f12e27e550867e6342123918c4d493Form = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1318,7 +1838,7 @@ restore28f12e27e550867e6342123918c4d493.post = (args: { id: string | number } | 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\SupplierController::restore
- * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:94
+ * @see app/Http/Controllers/Shop/Inventory/SupplierController.php:132
  * @route '/staff/supplier/{id}/restore'
  */
         restore28f12e27e550867e6342123918c4d493Form.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1333,6 +1853,6 @@ export const restore = {
     '/staff/supplier/{id}/restore': restore28f12e27e550867e6342123918c4d493,
 }
 
-const SupplierController = { index, create, store, edit, update, destroy, archive, restore }
+const SupplierController = { index, create, store, archive, show, edit, update, invite, priceListPhoto, destroy, restore }
 
 export default SupplierController

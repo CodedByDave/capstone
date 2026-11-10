@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { useActiveUrl } from '@/composables/useActiveUrl';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import SupplierLayout from '@/layouts/supplier/SupplierLayout.vue';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editPassword } from '@/routes/user-password';
@@ -17,6 +18,7 @@ const role = computed(() => (page.props.auth as any)?.user?.role);
 
 const layout = computed(() => {
     if (role.value === 'owner' || role.value === 'staff') return ShopLayout;
+    if (role.value === 'supplier') return SupplierLayout;
     return AdminLayout;
 });
 

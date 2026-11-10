@@ -338,7 +338,11 @@ function methodLabel(val: string | null): string {
 
                 <template #item-payment_status="entry">
                     <StatusPill :tone="statusTone(entry.payment_status)">
-                        {{ statusLabel(entry.payment_status) }}
+                        {{
+                            entry.payment_status === 'partial'
+                                ? 'Partially paid'
+                                : statusLabel(entry.payment_status)
+                        }}
                     </StatusPill>
                 </template>
 

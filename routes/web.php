@@ -60,6 +60,9 @@ use App\Http\Controllers\Shop\TrialController;
 use App\Http\Controllers\Shop\UpgradeController;
 use App\Http\Controllers\Staff\SelfAttendanceController;
 use App\Http\Controllers\Staff\StaffDashboardController;
+use App\Http\Controllers\SupplierPortal\SupplierDashboardController;
+use App\Http\Controllers\SupplierPortal\SupplierItemController;
+use App\Http\Controllers\SupplierPortal\SupplierPriceListController;
 use App\Http\Controllers\User\OrderTrackingController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
@@ -74,6 +77,24 @@ use Inertia\Inertia;
 
 // ── Driver / Rider routes ─────────────────────────
 Route::get('/driver/manifest.webmanifest', [DriverAppController::class, 'manifest'])->name('driver.manifest');
+
+// ── Supplier portal (role: supplier) ──────────────────────────────────────────
+// A login a shop created for one of its suppliers; it works only while that supplier is active.
+Route::prefix('supplier-portal')
+    ->middleware(['auth', 'verified', 'role:supplier', 'supplier.active'])
+    ->name('supplier-portal.')
+    ->group(function () {
+        Route::get('/', SupplierDashboardController::class)->name('dashboard');
+        Route::post('/items', [SupplierItemController::class, 'store'])->name('items.store');
+        Route::put('/items/{item}', [SupplierItemController::class, 'update'])->whereUlid('item')->name('items.update');
+        Route::delete('/items/{item}', [SupplierItemController::class, 'destroy'])->whereUlid('item')->name('items.destroy');
+        Route::post('/price-lists', [SupplierPriceListController::class, 'store'])
+            ->middleware('throttle:10,1')->name('price-lists.store');
+        Route::post('/price-lists/{priceList}/recheck', [SupplierPriceListController::class, 'recheck'])
+            ->middleware('throttle:10,1')->whereUlid('priceList')->name('price-lists.recheck');
+        Route::get('/price-lists/{priceList}/photo', [SupplierPriceListController::class, 'photo'])
+            ->whereUlid('priceList')->name('price-lists.photo');
+    });
 
 Route::prefix('driver')->middleware(['auth', 'verified', 'role:staff', 'driver'])->group(function () {
     Route::get('/', [DriverAppController::class, 'home'])->name('driver.home');
@@ -287,8 +308,9 @@ Route::prefix('shop')->middleware([
 
     // ── Bulk archive / restore for table selections ──────────────────────────
     foreach (['inventory', 'inventory-category', 'supplier', 'expense', 'service', 'promotion'] as $resource) {
-        Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->defaults('resource', $resource)->name("shop.bulk.{$resource}.archive");
-        Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->defaults('resource', $resource)->name("shop.bulk.{$resource}.restore");
+        $gate = $resource === 'supplier' ? ['shop.capability:suppliers'] : [];
+        Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->middleware($gate)->defaults('resource', $resource)->name("shop.bulk.{$resource}.archive");
+        Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->middleware($gate)->defaults('resource', $resource)->name("shop.bulk.{$resource}.restore");
     }
 
     Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
@@ -354,14 +376,21 @@ Route::prefix('shop')->middleware([
     Route::post('/inventory/{inventory}/adjust', [InventoryController::class, 'adjustStock'])->name('inventory.adjust');
 
     // ── Suppliers ─────────────────────────────────────────────────────────────
-    Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
-    Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
-    Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
-    Route::get('/supplier/{supplier}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
-    Route::put('/supplier/{supplier}', [SupplierController::class, 'update'])->name('supplier.update');
-    Route::delete('/supplier/{supplier}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
-    Route::get('/supplier/archive', [SupplierController::class, 'archive'])->name('supplier.archive');
-    Route::post('/supplier/{id}/restore', [SupplierController::class, 'restore'])->name('supplier.restore');
+    // Shown only to shops that turned on "We buy from suppliers" in Operations Setup.
+    Route::middleware('shop.capability:suppliers')->group(function () {
+        Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
+        Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
+        Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
+        Route::get('/supplier/archive', [SupplierController::class, 'archive'])->name('supplier.archive');
+        Route::get('/supplier/{supplier}', [SupplierController::class, 'show'])->whereUlid('supplier')->name('supplier.show');
+        Route::get('/supplier/{supplier}/edit', [SupplierController::class, 'edit'])->whereUlid('supplier')->name('supplier.edit');
+        Route::put('/supplier/{supplier}', [SupplierController::class, 'update'])->whereUlid('supplier')->name('supplier.update');
+        Route::post('/supplier/{supplier}/invite', [SupplierController::class, 'invite'])->whereUlid('supplier')->name('supplier.invite');
+        Route::get('/supplier/{supplier}/price-lists/{priceList}/photo', [SupplierController::class, 'priceListPhoto'])
+            ->whereUlid(['supplier', 'priceList'])->name('supplier.price-lists.photo');
+        Route::delete('/supplier/{supplier}', [SupplierController::class, 'destroy'])->whereUlid('supplier')->name('supplier.destroy');
+        Route::post('/supplier/{id}/restore', [SupplierController::class, 'restore'])->whereUlid('id')->name('supplier.restore');
+    });
 
     // Operations Routes
     Route::get('operations/orders', [ShopOrderController::class, 'index'])->name('shop.orders.index');
@@ -541,8 +570,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     foreach ($staffBulk as $module => $resources) {
         Route::middleware('permission:'.$module.($module === 'Operations' ? ',manage' : ',archive'))->group(function () use ($resources) {
             foreach ($resources as $resource) {
-                Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->defaults('resource', $resource)->name("staff.bulk.{$resource}.archive");
-                Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->defaults('resource', $resource)->name("staff.bulk.{$resource}.restore");
+                $gate = $resource === 'supplier' ? ['shop.capability:suppliers'] : [];
+                Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->middleware($gate)->defaults('resource', $resource)->name("staff.bulk.{$resource}.archive");
+                Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->middleware($gate)->defaults('resource', $resource)->name("staff.bulk.{$resource}.restore");
             }
         });
     }
@@ -632,21 +662,27 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
 
     // ── Suppliers ─────────────────────────────────────────────────────────────
-    Route::middleware('permission:Inventory Management,view')->group(function () {
-        Route::get('/supplier', [SupplierController::class, 'index'])->name('staff.supplier.index');
-    });
-    Route::middleware('permission:Inventory Management,create')->group(function () {
-        Route::get('/supplier/create', [SupplierController::class, 'create'])->name('staff.supplier.create');
-        Route::post('/supplier', [SupplierController::class, 'store'])->name('staff.supplier.store');
-    });
-    Route::middleware('permission:Inventory Management,update')->group(function () {
-        Route::get('/supplier/{supplier}/edit', [SupplierController::class, 'edit'])->name('staff.supplier.edit');
-        Route::put('/supplier/{supplier}', [SupplierController::class, 'update'])->name('staff.supplier.update');
-    });
-    Route::middleware('permission:Inventory Management,archive')->group(function () {
-        Route::get('/supplier/archive', [SupplierController::class, 'archive'])->name('staff.supplier.archive');
-        Route::post('/supplier/{id}/restore', [SupplierController::class, 'restore'])->name('staff.supplier.restore');
-        Route::delete('/supplier/{supplier}', [SupplierController::class, 'destroy'])->name('staff.supplier.destroy');
+    Route::middleware('shop.capability:suppliers')->group(function () {
+        Route::middleware('permission:Inventory Management,view')->group(function () {
+            Route::get('/supplier', [SupplierController::class, 'index'])->name('staff.supplier.index');
+            Route::get('/supplier/{supplier}', [SupplierController::class, 'show'])->whereUlid('supplier')->name('staff.supplier.show');
+            Route::get('/supplier/{supplier}/price-lists/{priceList}/photo', [SupplierController::class, 'priceListPhoto'])
+                ->whereUlid(['supplier', 'priceList'])->name('staff.supplier.price-lists.photo');
+        });
+        Route::middleware('permission:Inventory Management,create')->group(function () {
+            Route::get('/supplier/create', [SupplierController::class, 'create'])->name('staff.supplier.create');
+            Route::post('/supplier', [SupplierController::class, 'store'])->name('staff.supplier.store');
+        });
+        Route::middleware('permission:Inventory Management,update')->group(function () {
+            Route::get('/supplier/{supplier}/edit', [SupplierController::class, 'edit'])->whereUlid('supplier')->name('staff.supplier.edit');
+            Route::put('/supplier/{supplier}', [SupplierController::class, 'update'])->whereUlid('supplier')->name('staff.supplier.update');
+            Route::post('/supplier/{supplier}/invite', [SupplierController::class, 'invite'])->whereUlid('supplier')->name('staff.supplier.invite');
+        });
+        Route::middleware('permission:Inventory Management,archive')->group(function () {
+            Route::get('/supplier/archive', [SupplierController::class, 'archive'])->name('staff.supplier.archive');
+            Route::post('/supplier/{id}/restore', [SupplierController::class, 'restore'])->whereUlid('id')->name('staff.supplier.restore');
+            Route::delete('/supplier/{supplier}', [SupplierController::class, 'destroy'])->whereUlid('supplier')->name('staff.supplier.destroy');
+        });
     });
 
     // ── Activity Logs ─────────────────────────────────────────────────────────
