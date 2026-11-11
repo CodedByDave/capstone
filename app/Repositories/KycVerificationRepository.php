@@ -84,6 +84,18 @@ class KycVerificationRepository extends Repository
         $verification->update($attributes);
     }
 
+    /** Points every verification that uses a KYC document at its new path. Returns how many columns changed. */
+    public function replaceDocumentPath(string $from, string $to): int
+    {
+        $changed = 0;
+
+        foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $column) {
+            $changed += KycVerification::query()->where($column, $from)->toBase()->update([$column => $to]);
+        }
+
+        return $changed;
+    }
+
     public function markApproved(KycVerification $verification, int $reviewerId): void
     {
         $verification->update([

@@ -14,7 +14,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -51,6 +50,7 @@ class OrderService
         protected BusinessAgreementService $businessAgreementService,
         protected KycDocumentScanService $kycScanner,
         protected KycVerificationRepository $kycVerifications,
+        protected KycDocumentVault $kycVault,
     ) {}
 
     public function isKycVerified(int $userId): bool
@@ -159,12 +159,12 @@ class OrderService
                 $upload = $data[$column] ?? null;
 
                 if ($upload) {
-                    $kycPaths[$column] = $upload->store("kyc/{$order->id}", 'private');
+                    // Encrypted at rest; only the Super Admin's document viewer decrypts it.
+                    $kycPaths[$column] = $this->kycVault->store($upload, "kyc/{$order->id}");
                     // What OCR really read for this exact file (recalled server-side, never taken from the browser).
                     $ocrData[$doc] = $this->kycScanner->recall($user->id, $upload);
                 } elseif (in_array($doc, $reuse, true) && $previous && $this->canReuseDocument($previous, $doc)) {
-                    $kycPaths[$column] = "kyc/{$order->id}/".basename($previous->{$column});
-                    Storage::disk('private')->copy($previous->{$column}, $kycPaths[$column]);
+                    $kycPaths[$column] = $this->kycVault->copy($previous->{$column}, "kyc/{$order->id}");
                     $ocrData[$doc] = $previous->kyc_ocr_data[$doc] ?? null;
                 }
             }
@@ -199,7 +199,7 @@ class OrderService
 
         return $path
             && ! in_array("kyc_{$doc}", $previous->kyc_flags ?? [], true)
-            && Storage::disk('private')->exists($path);
+            && $this->kycVault->exists($path);
     }
 
     private function confirmedKycData(array $confirmed): array

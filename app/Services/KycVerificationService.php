@@ -13,7 +13,6 @@ use App\Repositories\UserRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -33,6 +32,7 @@ class KycVerificationService
         private readonly KycDocumentScanService $scanner,
         private readonly BusinessAgreementService $agreements,
         private readonly TrialService $trials,
+        private readonly KycDocumentVault $vault,
     ) {}
 
     /** An owner is verified by an approved verification, or by an earlier admin-approved plan. */
@@ -120,12 +120,12 @@ class KycVerificationService
                 $upload = $data[$column] ?? null;
 
                 if ($upload) {
-                    $paths[$column] = $upload->store("kyc-verifications/{$verification->id}", 'private');
+                    // Encrypted at rest; only the Super Admin's document viewer decrypts it.
+                    $paths[$column] = $this->vault->store($upload, "kyc-verifications/{$verification->id}");
                     // What OCR really read for this exact file, recalled server-side.
                     $ocr[$doc] = $this->scanner->recall($user->id, $upload);
                 } elseif (in_array($doc, $reuse, true) && $previous && $this->canReuse($previous, $doc)) {
-                    $paths[$column] = "kyc-verifications/{$verification->id}/".basename($previous->{$column});
-                    Storage::disk('private')->copy($previous->{$column}, $paths[$column]);
+                    $paths[$column] = $this->vault->copy($previous->{$column}, "kyc-verifications/{$verification->id}");
                     $ocr[$doc] = $previous->kyc_ocr_data[$doc] ?? null;
                 }
             }
@@ -294,7 +294,7 @@ class KycVerificationService
 
         return $path
             && ! in_array("kyc_{$doc}", $previous->kyc_flags ?? [], true)
-            && Storage::disk('private')->exists($path);
+            && $this->vault->exists($path);
     }
 
     /**

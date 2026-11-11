@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrderFilterRequest;
+use App\Http\Requests\Admin\ViewKycDocumentRequest;
 use App\Models\Order;
 use App\Services\BusinessAgreementService;
+use App\Services\KycDocumentVault;
 use App\Services\KycReviewService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Response;
 use Inertia\Inertia;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
 class OrderController extends Controller
 {
@@ -19,6 +22,7 @@ class OrderController extends Controller
         private readonly OrderService $orderService,
         private readonly BusinessAgreementService $businessAgreementService,
         private readonly KycReviewService $kycReviewService,
+        private readonly KycDocumentVault $kycVault,
     ) {}
 
     public function index(OrderFilterRequest $request)
@@ -102,14 +106,26 @@ class OrderController extends Controller
         ]);
     }
 
-    public function serveKyc(Request $request): StreamedResponse
+    /** Opens a KYC document for the Super Admin, decrypted in memory; it is never cached. */
+    public function serveKyc(ViewKycDocumentRequest $request): Response
     {
-        $path = $request->query('path');
+        $path = $request->documentPath();
 
-        if (! $path || ! Storage::disk('private')->exists($path)) {
+        try {
+            $contents = $this->kycVault->contents($path);
+        } catch (RuntimeException $exception) {
+            // A missing file is just not found; a file that fails to decrypt is worth knowing about.
+            if ($this->kycVault->exists($path)) {
+                report($exception);
+            }
             abort(404);
         }
 
-        return Storage::disk('private')->response($path);
+        return response($contents, 200, [
+            'Content-Type' => $this->kycVault->mimeType($path),
+            'Content-Disposition' => HeaderUtils::makeDisposition('inline', $this->kycVault->displayName($path)),
+            'Cache-Control' => 'no-store, private',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 }

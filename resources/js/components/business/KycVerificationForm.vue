@@ -492,9 +492,10 @@ const scanNote = (key: DocKey) => {
                     class="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
                 >
                     <Lock class="h-3.5 w-3.5 shrink-0" />
-                    Documents are encrypted and used only for business
-                    verification. Uploaded files are sent to OCR.space only to
-                    read them, and are not shared with anyone else.
+                    Documents are stored encrypted, only the platform
+                    administrator can open them, and they are used only for
+                    business verification. Uploaded files are sent to OCR.space
+                    only to read them, and are not shared with anyone else.
                 </p>
             </section>
 

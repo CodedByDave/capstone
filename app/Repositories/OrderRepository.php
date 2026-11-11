@@ -128,6 +128,18 @@ class OrderRepository extends Repository
         $order->update($paths);
     }
 
+    /** Points every order that uses a KYC document at its new path. Returns how many columns changed. */
+    public function replaceKycDocumentPath(string $from, string $to): int
+    {
+        $changed = 0;
+
+        foreach (['kyc_bir', 'kyc_dti', 'kyc_mayors', 'kyc_sanitary'] as $column) {
+            $changed += Order::query()->where($column, $from)->toBase()->update([$column => $to]);
+        }
+
+        return $changed;
+    }
+
     public function findLatestApprovedPayableForUser(int $userId): Order
     {
         return Order::query()
