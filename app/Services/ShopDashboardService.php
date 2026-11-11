@@ -84,10 +84,12 @@ class ShopDashboardService
     {
         return $this->repository->dueSoon($shopId, $now->copy()->endOfDay())
             ->map(fn ($order) => [
+                'public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
                 'customer' => $order->customer_name,
                 'service' => $order->service?->service_name,
                 'due_at' => $order->estimated_completion_at->format('g:i A'),
+                'due_at_iso' => $order->estimated_completion_at->toIso8601String(),
                 'overdue' => $order->estimated_completion_at->lt($now),
             ])
             ->all();

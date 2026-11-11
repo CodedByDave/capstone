@@ -63,8 +63,8 @@ function downloadQr() {
             <div>
                 <h2 class="text-2xl font-bold tracking-tight">Customer QR</h2>
                 <p class="mt-1 text-sm text-muted-foreground">
-                    Show this code to your customers so they can create an
-                    account that is linked to {{ shopName }}.
+                    Show this code to your customers so they can go straight
+                    to {{ shopName }}'s services and place an order.
                 </p>
             </div>
 
@@ -93,12 +93,14 @@ function downloadQr() {
                                 phone's camera.
                             </li>
                             <li>
-                                They are taken to the sign-up page for
-                                {{ shopName }} and create an account.
+                                If they don't have an account yet, they sign up
+                                first. Customers who are already logged in skip
+                                this step.
                             </li>
                             <li>
-                                After logging in, they only see and order from
-                                your shop's services.
+                                They land on your shop's services and can order
+                                right away. Their account still works with any
+                                other shop.
                             </li>
                         </ol>
                     </section>

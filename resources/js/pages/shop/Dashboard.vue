@@ -6,6 +6,7 @@ import {
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
+import SortableHeader from '@/components/SortableHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -27,6 +28,7 @@ import {
     CheckCircle2,
     Clock,
     CreditCard,
+    Info,
     Lightbulb,
     Loader2,
     Mail,
@@ -103,10 +105,12 @@ interface DailySummary {
     unpaid_orders: number;
     daily_revenue: { label: string; revenue: number }[];
     due_today: {
+        public_id: string | null;
         order_number: string;
         customer: string;
         service: string | null;
         due_at: string;
+        due_at_iso: string;
         overdue: boolean;
     }[];
     busiest_day: { day: string; share: number } | null;
@@ -338,6 +342,51 @@ function loadDismissed(): string[] {
 }
 
 const dismissed = reactive(new Set<string>(loadDismissed()));
+
+// Due today: a short list, so it is sorted on the client. Soonest due first by default.
+type DueSortColumn = 'order' | 'customer' | 'due';
+const dueSortBy = ref<DueSortColumn>('due');
+const dueSortType = ref<'asc' | 'desc'>('asc');
+
+function toggleDueSort(column: DueSortColumn) {
+    if (dueSortBy.value === column) {
+        dueSortType.value = dueSortType.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        dueSortBy.value = column;
+        dueSortType.value = 'asc';
+    }
+}
+
+const sortedDueToday = computed(() => {
+    const rows = [...(props.daily?.due_today ?? [])];
+    const key = (row: (typeof rows)[number]) =>
+        dueSortBy.value === 'order'
+            ? row.order_number
+            : dueSortBy.value === 'customer'
+              ? row.customer
+              : row.due_at_iso;
+    const direction = dueSortType.value === 'asc' ? 1 : -1;
+
+    return rows.sort(
+        (a, b) =>
+            direction *
+            key(a).localeCompare(key(b), undefined, {
+                sensitivity: 'base',
+                numeric: true,
+            }),
+    );
+});
+
+// The "why am I seeing this" rule is collapsed by default to keep cards compact.
+const expandedRules = reactive(new Set<string>());
+
+function toggleRule(key: string) {
+    if (expandedRules.has(key)) {
+        expandedRules.delete(key);
+    } else {
+        expandedRules.add(key);
+    }
+}
 
 function dismissCard(key: string) {
     dismissed.add(key);
@@ -1437,7 +1486,7 @@ function proceedToPay() {
                             >
                                 {{ MODULE_LABELS[card.module] }}
                             </p>
-                            <p class="mt-3 text-sm font-semibold">
+                            <p class="mt-2 text-sm font-semibold">
                                 {{ card.title }}
                             </p>
                             <p
@@ -1446,13 +1495,14 @@ function proceedToPay() {
                                 {{ card.message }}
                             </p>
                             <p
-                                v-if="card.rule"
-                                class="mt-3 flex-1 text-xs leading-relaxed text-muted-foreground"
+                                v-if="card.rule && expandedRules.has(card.key)"
+                                :id="`attention-rule-${card.key}`"
+                                class="mt-2 rounded-md bg-muted/50 px-2.5 py-2 text-xs leading-relaxed text-muted-foreground"
                             >
                                 {{ card.rule }}
                             </p>
-                            <div v-else class="flex-1" />
-                            <div class="mt-4 flex items-center gap-3">
+                            <div class="flex-1" />
+                            <div class="mt-3 flex flex-wrap items-center gap-3">
                                 <Link
                                     v-if="card.href"
                                     :href="card.href"
@@ -1467,6 +1517,21 @@ function proceedToPay() {
                                     @click="dismissCard(card.key)"
                                 >
                                     Dismiss
+                                </button>
+                                <button
+                                    v-if="card.rule"
+                                    type="button"
+                                    class="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                    :aria-expanded="expandedRules.has(card.key)"
+                                    :aria-controls="`attention-rule-${card.key}`"
+                                    @click="toggleRule(card.key)"
+                                >
+                                    <Info class="h-3.5 w-3.5" />
+                                    {{
+                                        expandedRules.has(card.key)
+                                            ? 'Hide'
+                                            : 'Why?'
+                                    }}
                                 </button>
                             </div>
                         </div>
@@ -1591,36 +1656,97 @@ function proceedToPay() {
                             >
                                 Nothing is due today.
                             </div>
-                            <ul v-else class="divide-y">
-                                <li
-                                    v-for="order in props.daily?.due_today"
-                                    :key="order.order_number"
-                                    class="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                            <div v-else>
+                                <div
+                                    class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-3 border-b bg-muted/40 px-2 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase"
                                 >
-                                    <div class="min-w-0">
-                                        <p
-                                            class="truncate text-sm font-semibold"
-                                        >
-                                            #{{ order.order_number }}
-                                            {{ order.customer }}
-                                        </p>
-                                        <p
-                                            class="truncate text-xs text-muted-foreground"
-                                        >
-                                            {{ order.service ?? 'Laundry' }}
-                                        </p>
-                                    </div>
-                                    <span
-                                        class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                    <SortableHeader
+                                        v-for="column in [
+                                            {
+                                                key: 'order',
+                                                label: 'Order',
+                                            },
+                                            {
+                                                key: 'customer',
+                                                label: 'Customer',
+                                            },
+                                            { key: 'due', label: 'Due' },
+                                        ] as const"
+                                        :key="column.key"
+                                        :label="column.label"
+                                        :column="column.key"
+                                        :sort-by="dueSortBy"
+                                        :sort-type="dueSortType"
                                         :class="
-                                            order.overdue
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-blue-100 text-blue-700'
+                                            column.key === 'due'
+                                                ? 'justify-self-end'
+                                                : 'justify-self-start'
                                         "
-                                        >{{ order.due_at }}</span
+                                        @toggle="toggleDueSort(column.key)"
+                                    />
+                                </div>
+                                <ul
+                                    class="divide-y"
+                                    aria-label="Orders due today"
+                                >
+                                    <li
+                                        v-for="order in sortedDueToday"
+                                        :key="order.order_number"
                                     >
-                                </li>
-                            </ul>
+                                        <component
+                                            :is="order.public_id ? Link : 'div'"
+                                            :href="
+                                                order.public_id
+                                                    ? `/shop/operations/orders/${order.public_id}`
+                                                    : undefined
+                                            "
+                                            :aria-label="
+                                                order.public_id
+                                                    ? `Open order ${order.order_number} for ${order.customer}, due ${order.due_at}`
+                                                    : undefined
+                                            "
+                                            class="grid min-h-11 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-2 py-2.5 transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                            :class="
+                                                order.public_id
+                                                    ? 'hover:bg-muted/60'
+                                                    : ''
+                                            "
+                                        >
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="truncate text-sm font-semibold"
+                                                    :title="order.order_number"
+                                                >
+                                                    #{{ order.order_number }}
+                                                </p>
+                                                <p
+                                                    class="truncate text-xs text-muted-foreground"
+                                                >
+                                                    {{
+                                                        order.service ??
+                                                        'Laundry'
+                                                    }}
+                                                </p>
+                                            </div>
+                                            <p
+                                                class="truncate text-sm"
+                                                :title="order.customer"
+                                            >
+                                                {{ order.customer }}
+                                            </p>
+                                            <span
+                                                class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                                :class="
+                                                    order.overdue
+                                                        ? 'bg-red-100 text-red-700'
+                                                        : 'bg-blue-100 text-blue-700'
+                                                "
+                                                >{{ order.due_at }}</span
+                                            >
+                                        </component>
+                                    </li>
+                                </ul>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
