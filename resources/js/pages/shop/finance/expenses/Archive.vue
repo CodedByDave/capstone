@@ -142,7 +142,7 @@ const selected = ref<Array<string | number>>([]);
                     </p>
                 </div>
                 <Button
-                    variant="outline"
+                    variant="back"
                     @click="router.visit(`${base}/finance/expenses`)"
                 >
                     Back to Expenses

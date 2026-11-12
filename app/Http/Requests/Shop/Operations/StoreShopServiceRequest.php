@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Shop\Operations;
 
 use App\Http\Requests\Shop\Operations\Concerns\ValidatesServiceCatalogue;
+use App\Http\Requests\Shop\Operations\Concerns\ValidatesServicePhotos;
 use App\Models\ShopService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,6 +11,7 @@ use Illuminate\Validation\Rule;
 class StoreShopServiceRequest extends FormRequest
 {
     use ValidatesServiceCatalogue;
+    use ValidatesServicePhotos;
 
     public function authorize(): bool
     {
@@ -20,11 +22,11 @@ class StoreShopServiceRequest extends FormRequest
     {
         return [
             ...$this->catalogueRules(),
+            ...$this->photoRules(),
             'service_name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
             'pricing_model' => ['required', Rule::in(ShopService::PRICING_MODELS)],
-            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
 
             // per_kg
             'price_per_kg' => [
@@ -53,6 +55,7 @@ class StoreShopServiceRequest extends FormRequest
     {
         return [
             ...$this->catalogueMessages(),
+            ...$this->photoMessages(),
             'category.required' => 'Please select a service category.',
             'category.in' => 'Please select a valid service category.',
             'price_per_kg.required_if' => 'Price per kg is required for per-kg pricing.',
@@ -66,9 +69,6 @@ class StoreShopServiceRequest extends FormRequest
             'bundle_price.max' => 'Bundle price cannot exceed ₱99,999.',
             'bundle_weight_kg.required_if' => 'Bundle weight is required for bundle pricing.',
             'bundle_weight_kg.max' => 'Bundle weight cannot exceed 500 kg.',
-            'photo.image' => 'The service photo must be an image.',
-            'photo.mimes' => 'The service photo must be a JPG, PNG, or WebP image.',
-            'photo.max' => 'The service photo must be 5 MB or smaller.',
         ];
     }
 }

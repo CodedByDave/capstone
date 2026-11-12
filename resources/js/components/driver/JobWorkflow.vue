@@ -451,15 +451,16 @@ const finishedLabel = computed(() =>
             </div>
             <div class="flex gap-3">
                 <Button
-                    variant="outline"
-                    class="h-12 flex-1 rounded-lg border-red-300 font-semibold text-red-700 hover:bg-red-50"
+                    variant="destructive-outline"
+                    class="h-12 flex-1 rounded-lg font-semibold"
                     :disabled="busy"
                     @click="openReject"
                 >
                     Reject
                 </Button>
                 <Button
-                    class="h-12 flex-1 rounded-lg bg-[#0a2dff] font-semibold hover:bg-[#0822cc]"
+                    variant="success"
+                    class="h-12 flex-1 rounded-lg font-semibold"
                     :disabled="busy"
                     @click="accept"
                 >
@@ -585,7 +586,7 @@ const finishedLabel = computed(() =>
                         Cancel
                     </Button>
                     <Button
-                        class="bg-red-600 hover:bg-red-700"
+                        variant="destructive"
                         :disabled="busy || photoProcessing || !!rejectProblem"
                         @click="reject"
                     >

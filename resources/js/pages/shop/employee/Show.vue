@@ -305,7 +305,7 @@ const formatDateTime = (val: string) =>
                 <div class="flex items-center gap-2">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="back"
                         @click="router.visit(`${baseRoute}/employee`)"
                     >
                         <ArrowLeft class="mr-2 h-4 w-4" /> Back to employees

@@ -158,6 +158,11 @@ class DeliveryRequestService
 
     private function assertEligible(ShopOrder $order): void
     {
+        // Products bought on their own are collected at the shop.
+        if ($order->isProductOrder()) {
+            throw new DeliveryRequestException('Products orders are collected at the shop and cannot be delivered.');
+        }
+
         if ($order->status !== 'completed' || $order->payment_status !== 'paid') {
             throw new DeliveryRequestException('Delivery can be requested only after the order is completed and fully paid.');
         }

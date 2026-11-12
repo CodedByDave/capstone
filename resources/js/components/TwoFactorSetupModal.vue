@@ -279,7 +279,7 @@ watch(
                             <div class="flex w-full items-center space-x-5">
                                 <Button
                                     type="button"
-                                    variant="outline"
+                                    variant="back"
                                     class="w-auto flex-1"
                                     @click="showVerificationStep = false"
                                     :disabled="processing"

@@ -62,39 +62,41 @@ class ShopServiceService
         ])->all();
     }
 
-    public function create(array $data, ?UploadedFile $photo = null): ShopService
+    /** @param  list<UploadedFile>  $photos  up to three, the first becomes the cover */
+    public function create(array $data, array $photos = []): ShopService
     {
         $this->validatePricingFields($data);
+        $this->assertPhotoCount(count($photos));
         [$data, $supplies] = $this->splitSupplies($data, (int) $data['shop_id']);
 
-        if ($photo === null) {
-            return $this->createWithSupplies($data, $supplies);
-        }
-
-        $path = $this->storePhoto($photo, (int) $data['shop_id']);
+        $paths = $this->storePhotos($photos, (int) $data['shop_id']);
 
         try {
-            return $this->createWithSupplies([...$data, 'photo_path' => $path], $supplies);
+            return $this->createWithSupplies([...$data, ...$this->photoColumns($paths)], $supplies);
         } catch (\Throwable $exception) {
-            Storage::disk('public')->delete($path);
+            Storage::disk('public')->delete($paths);
 
             throw $exception;
         }
     }
 
-    public function update(ShopService $service, array $data, ?UploadedFile $photo = null, bool $removePhoto = false): ShopService
+    /**
+     * @param  list<UploadedFile>  $photos  new photos, added after the saved ones that are kept
+     * @param  list<int>  $removePhotos  positions of saved photos to take off (0 = cover)
+     */
+    public function update(ShopService $service, array $data, array $photos = [], array $removePhotos = []): ShopService
     {
         $this->validatePricingFields($data);
         [$data, $supplies] = $this->splitSupplies($data, (int) $service->shop_id);
 
-        $oldPath = $service->photo_path;
-        $newPath = null;
+        $current = $service->photoPaths();
+        $removed = array_values(array_intersect_key($current, array_flip($removePhotos)));
+        $kept = array_values(array_diff_key($current, array_flip($removePhotos)));
+        $this->assertPhotoCount(count($kept) + count($photos));
 
-        if ($photo !== null) {
-            $newPath = $this->storePhoto($photo, $service->shop_id);
-            $data['photo_path'] = $newPath;
-        } elseif ($removePhoto) {
-            $data['photo_path'] = null;
+        $newPaths = $this->storePhotos($photos, (int) $service->shop_id);
+        if ($newPaths !== [] || $removed !== []) {
+            $data = [...$data, ...$this->photoColumns([...$kept, ...$newPaths])];
         }
 
         try {
@@ -105,15 +107,13 @@ class ShopServiceService
                 return $updated;
             });
         } catch (\Throwable $exception) {
-            if ($newPath !== null) {
-                Storage::disk('public')->delete($newPath);
-            }
+            Storage::disk('public')->delete($newPaths);
 
             throw $exception;
         }
 
-        if ($oldPath && array_key_exists('photo_path', $data)) {
-            Storage::disk('public')->delete($oldPath);
+        if ($removed !== []) {
+            Storage::disk('public')->delete($removed);
         }
 
         return $updated;
@@ -176,9 +176,44 @@ class ShopServiceService
         });
     }
 
-    private function storePhoto(UploadedFile $photo, int $shopId): string
+    /**
+     * @param  list<UploadedFile>  $photos
+     * @return list<string>
+     */
+    private function storePhotos(array $photos, int $shopId): array
     {
-        return $photo->store("service-photos/{$shopId}", 'public');
+        $paths = [];
+
+        try {
+            foreach ($photos as $photo) {
+                $paths[] = $photo->store("service-photos/{$shopId}", 'public');
+            }
+        } catch (\Throwable $exception) {
+            Storage::disk('public')->delete($paths);
+
+            throw $exception;
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Both photo columns: every path, and the first again as the cover for places that show one.
+     *
+     * @param  list<string>  $paths
+     */
+    private function photoColumns(array $paths): array
+    {
+        return ['photo_paths' => $paths === [] ? null : $paths, 'photo_path' => $paths[0] ?? null];
+    }
+
+    private function assertPhotoCount(int $count): void
+    {
+        if ($count > ShopService::MAX_PHOTOS) {
+            throw ValidationException::withMessages([
+                'photos' => 'A service can have at most '.ShopService::MAX_PHOTOS.' photos. Remove one before adding another.',
+            ]);
+        }
     }
 
     private function validatePricingFields(array $data): void

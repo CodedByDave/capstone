@@ -42,6 +42,12 @@ class DeliveryRejection extends Model
         return $this->belongsTo(Delivery::class);
     }
 
+    /** The run even when the shop archived it, so the shop can still open the rejection proof. */
+    public function deliveryIncludingArchived(): BelongsTo
+    {
+        return $this->belongsTo(Delivery::class, 'delivery_id')->withTrashed();
+    }
+
     public function rider(): BelongsTo
     {
         return $this->belongsTo(Rider::class);

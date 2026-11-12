@@ -113,7 +113,7 @@ function addCategory() {
             </select>
             <Button
                 type="button"
-                variant="outline"
+                variant="primary-outline"
                 class="shrink-0"
                 @click="openAdd"
             >

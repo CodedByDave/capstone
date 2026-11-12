@@ -4,20 +4,29 @@ namespace App\Http\Requests\Shop\Employee;
 
 use App\Enums\EmploymentType;
 use App\Enums\PayBasis;
+use App\Http\Requests\Shop\Employee\Concerns\ValidatesRiderDetails;
 use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateEmployeeRequest extends FormRequest
 {
+    use ValidatesRiderDetails;
+
     public function authorize(): bool
     {
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->prepareRiderDetails();
+    }
+
     public function rules(): array
     {
         return [
+            ...$this->riderDetailRules(licenseOnFile: app(\App\Services\RiderProfileService::class)->hasLicense($this->route('employee'))),
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
@@ -35,6 +44,7 @@ class UpdateEmployeeRequest extends FormRequest
     public function messages(): array
     {
         return [
+            ...$this->riderDetailMessages(),
             'first_name.required' => 'First name is required.',
             'last_name.required' => 'Last name is required.',
             'position.required' => 'Position is required.',

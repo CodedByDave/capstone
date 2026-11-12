@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
+import LocationPin from '@/components/map/LocationPin.vue';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import ServiceLinesEditor, {
     type ServiceLineInput,
 } from '@/components/shop/ServiceLinesEditor.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { hasMapboxToken } from '@/lib/mapbox';
+import type { LatLng } from '@/lib/maps';
 import { type AppPageProps } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { Banknote, Smartphone, Zap } from 'lucide-vue-next';
+import axios from 'axios';
+import { MapPin, Truck, Zap } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 // ─── Types ─────────────────────────────────────────
@@ -52,6 +56,15 @@ const props = defineProps<{
     rushFee: number;
     /** The weight range (kg) a rider carries; null means no limit on that side. */
     riderLoadLimit?: { min: number | null; max: number | null };
+    /** How the shop charges delivery; per-km pricing needs the customer's location pinned. */
+    deliveryPricing: {
+        available: boolean;
+        mode: 'fixed' | 'per_km' | null;
+        fixed_fee: number;
+        needs_location: boolean;
+        shop_lat: number | null;
+        shop_lng: number | null;
+    };
     pickupTypes: string[];
     paymentMethods: string[];
     services?: Service[];
@@ -83,6 +96,8 @@ const form = useForm({
     alternate_contact_phone: '',
     customer_address: '',
     deliver_to_customer: false,
+    customer_lat: null as number | null,
+    customer_lng: null as number | null,
     is_rush: false,
     service_id: '' as string | number,
     pickup_type: 'walk_in',
@@ -97,9 +112,6 @@ const form = useForm({
     additional_charges: 0,
     discount_amount: 0,
     total_amount: 0,
-    amount_paid: 0,
-    amount_tendered: '' as string | number,
-    payment_method: 'cash',
     promotion_id: '' as string | number,
     service_lines: [] as ServiceLineInput[],
     supplies: [] as {
@@ -308,7 +320,88 @@ const taxAmount = computed(
         100,
 );
 
-const computedTotal = computed(() => subtotal.value + taxAmount.value);
+// ─── Delivery fee ──────────────────────────────────
+// Shown here so staff can tell the customer; the server works out the same fee from the
+// shop's delivery pricing. It is added after tax, as on orders placed in the app.
+
+const perKmDelivery = computed(() => props.deliveryPricing.needs_location);
+const customerPin = computed<LatLng | null>(() =>
+    form.customer_lat !== null && form.customer_lng !== null
+        ? { lat: form.customer_lat, lng: form.customer_lng }
+        : null,
+);
+// Until staff pin the customer, the map starts at the shop.
+const mapPoint = computed(
+    () =>
+        customerPin.value ??
+        (props.deliveryPricing.shop_lat !== null &&
+        props.deliveryPricing.shop_lng !== null
+            ? {
+                  lat: props.deliveryPricing.shop_lat,
+                  lng: props.deliveryPricing.shop_lng,
+              }
+            : null),
+);
+
+interface DeliveryQuote {
+    available: boolean;
+    fee?: number;
+    distance_km?: number | null;
+    message?: string;
+}
+const quote = ref<DeliveryQuote | null>(null);
+const quoting = ref(false);
+let quoteRequest = 0;
+
+async function fetchQuote(point: LatLng) {
+    const requestId = ++quoteRequest;
+    quoting.value = true;
+    try {
+        const { data } = await axios.post<DeliveryQuote>(
+            `${base.value}/delivery-quote`,
+            { lat: point.lat, lng: point.lng },
+        );
+        if (requestId === quoteRequest) quote.value = data;
+    } catch {
+        if (requestId === quoteRequest) {
+            quote.value = {
+                available: false,
+                message:
+                    'Could not work out the delivery fee. Move the pin to try again.',
+            };
+        }
+    } finally {
+        if (requestId === quoteRequest) quoting.value = false;
+    }
+}
+
+function pinCustomer(point: LatLng) {
+    form.customer_lat = Math.round(point.lat * 1e6) / 1e6;
+    form.customer_lng = Math.round(point.lng * 1e6) / 1e6;
+    void fetchQuote(point);
+}
+
+// A walk-in pickup has no delivery, so no pin and no fee.
+watch(
+    () => form.deliver_to_customer,
+    (delivering) => {
+        if (delivering) return;
+        form.customer_lat = null;
+        form.customer_lng = null;
+        quote.value = null;
+        quoteRequest++;
+    },
+);
+
+const deliveryFee = computed(() => {
+    if (!form.deliver_to_customer || !props.deliveryPricing.available) return 0;
+    if (!perKmDelivery.value) return props.deliveryPricing.fixed_fee;
+    return quote.value?.available ? Number(quote.value.fee ?? 0) : 0;
+});
+
+const computedTotal = computed(
+    () => subtotal.value + taxAmount.value + deliveryFee.value,
+);
 
 // ─── Supplies ──────────────────────────────────────
 
@@ -371,51 +464,6 @@ watch(() => form.supplies.map((s) => s.quantity_used), recalcSupplyCharges, {
 });
 
 // ─── Submit ────────────────────────────────────────
-
-// ─── Payment ───────────────────────────────────────
-
-type PaymentMode = 'unpaid' | 'partial' | 'full';
-
-const paymentOptions: { value: PaymentMode; label: string }[] = [
-    { value: 'unpaid', label: 'Not paid yet' },
-    { value: 'partial', label: 'Partial payment' },
-    { value: 'full', label: 'Paid in full' },
-];
-const paymentMode = ref<PaymentMode>('unpaid');
-
-// How the money was received at the counter. Only cash can have change.
-const methodOptions = [
-    { value: 'cash', label: 'Cash', icon: Banknote },
-    { value: 'gcash', label: 'GCash', icon: Smartphone },
-    { value: 'maya', label: 'Maya', icon: Smartphone },
-];
-
-watch(paymentMode, (mode) => {
-    form.amount_paid = mode === 'full' ? computedTotal.value : 0;
-    form.amount_tendered = '';
-});
-
-watch(
-    () => form.payment_method,
-    () => {
-        form.amount_tendered = '';
-    },
-);
-
-// Cash handed over at the counter: the change is worked out here and again on the server.
-const tendered = computed(() =>
-    form.amount_tendered === '' ? null : Number(form.amount_tendered) || 0,
-);
-const amountDue = computed(() => Number(form.amount_paid) || 0);
-const changeDue = computed(() =>
-    tendered.value === null
-        ? null
-        : Math.round((tendered.value - amountDue.value) * 100) / 100,
-);
-// A full payment follows the total while the order is still being filled in.
-watch(computedTotal, (total) => {
-    if (paymentMode.value === 'full') form.amount_paid = total;
-});
 
 // ─── Estimated completion ──────────────────────────
 
@@ -513,7 +561,7 @@ watch(
                 </div>
                 <button
                     @click="router.visit(base)"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:bg-transparent dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                     &larr; Back to Orders
                 </button>
@@ -678,6 +726,92 @@ watch(
                                     class="text-xs text-red-500"
                                 >
                                     {{ form.errors.customer_address }}
+                                </p>
+                            </div>
+                            <div
+                                v-if="form.deliver_to_customer"
+                                class="col-span-12 space-y-2"
+                            >
+                                <template v-if="perKmDelivery">
+                                    <p
+                                        class="flex items-center gap-1.5 text-sm font-medium"
+                                    >
+                                        <MapPin
+                                            class="h-4 w-4 text-muted-foreground"
+                                            aria-hidden="true"
+                                        />
+                                        Customer location
+                                        <span class="text-red-500">*</span>
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        Delivery is charged by distance. Click
+                                        the map or drag the pin to where the
+                                        customer is.
+                                    </p>
+                                    <LocationPin
+                                        v-if="hasMapboxToken && mapPoint"
+                                        :lat="mapPoint.lat"
+                                        :lng="mapPoint.lng"
+                                        label="Customer location"
+                                        pickable
+                                        height-class="h-56"
+                                        :zoom="15"
+                                        @pick="pinCustomer"
+                                    />
+                                    <p
+                                        v-else
+                                        class="rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground"
+                                    >
+                                        The map is unavailable. Set the shop
+                                        location in Settings to charge delivery
+                                        by distance.
+                                    </p>
+                                    <p
+                                        class="text-xs"
+                                        role="status"
+                                        aria-live="polite"
+                                        :class="
+                                            quote && !quote.available
+                                                ? 'text-red-500'
+                                                : 'text-muted-foreground'
+                                        "
+                                    >
+                                        <template v-if="quoting"
+                                            >Calculating the delivery
+                                            fee…</template
+                                        >
+                                        <template v-else-if="quote?.available"
+                                            >{{
+                                                quote.distance_km != null
+                                                    ? `${quote.distance_km.toFixed(1)} km away · `
+                                                    : ''
+                                            }}Delivery fee
+                                            {{
+                                                formatCurrency(deliveryFee)
+                                            }}</template
+                                        >
+                                        <template v-else-if="quote">{{
+                                            quote.message
+                                        }}</template>
+                                        <template v-else-if="!customerPin"
+                                            >No location pinned yet.</template
+                                        >
+                                    </p>
+                                </template>
+                                <p
+                                    v-else
+                                    class="flex items-center gap-1.5 text-xs text-muted-foreground"
+                                >
+                                    <Truck class="h-4 w-4" aria-hidden="true" />
+                                    A delivery fee of
+                                    {{ formatCurrency(deliveryFee) }} is added
+                                    to the total.
+                                </p>
+                                <p
+                                    v-if="form.errors.customer_lat"
+                                    class="text-xs text-red-500"
+                                >
+                                    {{ form.errors.customer_lat }}
                                 </p>
                             </div>
                             <template v-if="form.deliver_to_customer">
@@ -1098,235 +1232,30 @@ watch(
                         </div>
                     </div>
 
-                    <!-- ── Payment ───────────────────────────── -->
+                    <!-- ── Completion ──────────────────────────── -->
                     <div class="border-t pt-8">
                         <p
                             class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
                         >
-                            Payment
+                            Completion
                         </p>
-                        <div class="grid grid-cols-12 gap-x-6 gap-y-5">
-                            <div class="col-span-12 space-y-2">
-                                <p
-                                    id="payment-mode-label"
-                                    class="text-sm font-medium"
-                                >
-                                    Payment received
-                                </p>
-                                <div
-                                    class="flex flex-wrap gap-2"
-                                    role="radiogroup"
-                                    aria-labelledby="payment-mode-label"
-                                >
-                                    <label
-                                        v-for="option in paymentOptions"
-                                        :key="option.value"
-                                        class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                                        :class="
-                                            paymentMode === option.value
-                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                : 'border-gray-300 hover:border-gray-400'
-                                        "
-                                    >
-                                        <input
-                                            v-model="paymentMode"
-                                            type="radio"
-                                            name="payment_mode"
-                                            :value="option.value"
-                                            class="h-4 w-4 accent-blue-600"
-                                        />
-                                        {{ option.label }}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="col-span-12 space-y-2">
-                                <p
-                                    id="payment-method-label"
-                                    class="text-sm font-medium"
-                                >
-                                    Payment type
-                                    <span
-                                        v-if="paymentMode === 'unpaid'"
-                                        class="font-normal text-muted-foreground"
-                                        >(saved once a payment is
-                                        received)</span
-                                    >
-                                </p>
-                                <div
-                                    class="flex flex-wrap gap-2"
-                                    role="radiogroup"
-                                    aria-labelledby="payment-method-label"
-                                >
-                                    <label
-                                        v-for="method in methodOptions"
-                                        :key="method.value"
-                                        class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                                        :class="
-                                            form.payment_method === method.value
-                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                : 'border-gray-300 hover:border-gray-400'
-                                        "
-                                    >
-                                        <input
-                                            v-model="form.payment_method"
-                                            type="radio"
-                                            name="payment_method"
-                                            :value="method.value"
-                                            class="h-4 w-4 accent-blue-600"
-                                        />
-                                        <component
-                                            :is="method.icon"
-                                            class="h-4 w-4"
-                                            aria-hidden="true"
-                                        />
-                                        {{ method.label }}
-                                    </label>
-                                </div>
-                                <p
-                                    v-if="form.errors.payment_method"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.payment_method }}
-                                </p>
-                            </div>
-
-                            <div
-                                v-if="paymentMode === 'partial'"
-                                class="col-span-12 space-y-1 sm:col-span-4"
-                            >
-                                <label
-                                    class="text-sm font-medium"
-                                    for="amount-paid"
-                                    >Amount received
-                                    <span class="text-red-500">*</span></label
-                                >
-                                <input
-                                    id="amount-paid"
-                                    v-model="form.amount_paid"
-                                    type="number"
-                                    @wheel="blurOnWheel"
-                                    step="0.01"
-                                    min="0.01"
-                                    :max="Math.max(0.01, computedTotal - 0.01)"
-                                    required
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    :class="{
-                                        'border-red-500':
-                                            form.errors.amount_paid,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.amount_paid"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.amount_paid }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    Balance after this payment:
-                                    {{
-                                        formatCurrency(
-                                            Math.max(
-                                                0,
-                                                computedTotal -
-                                                    (Number(form.amount_paid) ||
-                                                        0),
-                                            ),
-                                        )
-                                    }}
-                                </p>
-                            </div>
-
-                            <p
-                                v-else-if="paymentMode === 'full'"
-                                class="col-span-12 text-sm text-muted-foreground"
-                            >
-                                Amount received:
-                                <span class="font-semibold text-foreground">{{
-                                    formatCurrency(computedTotal)
-                                }}</span>
+                        <div class="space-y-1">
+                            <p class="text-sm font-medium">
+                                Estimated completion
                             </p>
-
-                            <div
-                                v-if="
-                                    paymentMode === 'full' &&
-                                    form.payment_method === 'cash'
-                                "
-                                class="col-span-12 space-y-1 sm:col-span-4"
-                            >
-                                <label
-                                    class="text-sm font-medium"
-                                    for="amount-tendered"
-                                    >Cash received
-                                    <span
-                                        class="font-normal text-muted-foreground"
-                                        >(optional)</span
-                                    ></label
+                            <p class="text-sm">
+                                <span class="font-semibold">{{
+                                    completionLabel
+                                }}</span>
+                                <span class="text-muted-foreground">
+                                    · {{ completionWait }} from now</span
                                 >
-                                <input
-                                    id="amount-tendered"
-                                    v-model="form.amount_tendered"
-                                    type="number"
-                                    inputmode="decimal"
-                                    @wheel="blurOnWheel"
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="e.g. 500"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    :class="{
-                                        'border-red-500':
-                                            form.errors.amount_tendered ||
-                                            (changeDue !== null &&
-                                                changeDue < 0),
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.amount_tendered"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ form.errors.amount_tendered }}
-                                </p>
-                                <p
-                                    v-else-if="
-                                        changeDue !== null && changeDue < 0
-                                    "
-                                    class="text-xs text-red-600"
-                                    role="alert"
-                                >
-                                    Short by {{ formatCurrency(-changeDue) }}.
-                                    The cash must cover
-                                    {{ formatCurrency(amountDue) }}.
-                                </p>
-                                <p
-                                    v-else-if="changeDue !== null"
-                                    class="text-sm font-semibold text-green-700"
-                                    aria-live="polite"
-                                >
-                                    Change: {{ formatCurrency(changeDue) }}
-                                </p>
-                                <p v-else class="text-xs text-muted-foreground">
-                                    Enter the cash handed over to work out the
-                                    change.
-                                </p>
-                            </div>
-
-                            <div class="col-span-12 space-y-1">
-                                <p class="text-sm font-medium">
-                                    Estimated completion
-                                </p>
-                                <p class="text-sm">
-                                    <span class="font-semibold">{{
-                                        completionLabel
-                                    }}</span>
-                                    <span class="text-muted-foreground">
-                                        · {{ completionWait }} from now</span
-                                    >
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    Set automatically from your order automation
-                                    setting ({{ completionMinutes }} minutes).
-                                </p>
-                            </div>
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Set automatically from your order automation
+                                setting ({{ completionMinutes }} minutes).
+                                Payment is taken on the next step.
+                            </p>
                         </div>
                     </div>
 
@@ -1633,6 +1562,29 @@ watch(
                                     {{ formatCurrency(taxAmount) }}
                                 </dd>
                             </div>
+                            <div
+                                v-if="form.deliver_to_customer"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    Delivery fee
+                                </dt>
+                                <dd class="font-medium">
+                                    <template
+                                        v-if="
+                                            perKmDelivery && !quote?.available
+                                        "
+                                        >{{
+                                            quoting
+                                                ? 'Calculating…'
+                                                : 'Pin location'
+                                        }}</template
+                                    >
+                                    <template v-else>{{
+                                        formatCurrency(deliveryFee)
+                                    }}</template>
+                                </dd>
+                            </div>
                         </dl>
                         <div
                             class="mt-3 flex items-baseline justify-between border-t pt-3"
@@ -1642,70 +1594,6 @@ watch(
                                 formatCurrency(computedTotal)
                             }}</span>
                         </div>
-
-                        <dl
-                            v-if="paymentMode !== 'unpaid'"
-                            class="mt-3 space-y-1.5 border-t pt-3 text-xs"
-                            aria-live="polite"
-                        >
-                            <div class="flex justify-between gap-3">
-                                <dt class="text-muted-foreground">
-                                    Amount paid
-                                </dt>
-                                <dd class="font-medium tabular-nums">
-                                    {{ formatCurrency(amountDue) }}
-                                </dd>
-                            </div>
-                            <div
-                                v-if="
-                                    paymentMode === 'full' && tendered !== null
-                                "
-                                class="flex justify-between gap-3"
-                            >
-                                <dt class="text-muted-foreground">
-                                    Cash received
-                                </dt>
-                                <dd class="font-medium tabular-nums">
-                                    {{ formatCurrency(tendered) }}
-                                </dd>
-                            </div>
-                            <div
-                                v-if="
-                                    paymentMode === 'full' && changeDue !== null
-                                "
-                                class="flex justify-between gap-3"
-                            >
-                                <dt class="font-semibold">
-                                    {{ changeDue < 0 ? 'Short by' : 'Change' }}
-                                </dt>
-                                <dd
-                                    class="text-sm font-bold tabular-nums"
-                                    :class="
-                                        changeDue < 0
-                                            ? 'text-red-600'
-                                            : 'text-green-700'
-                                    "
-                                >
-                                    {{ formatCurrency(Math.abs(changeDue)) }}
-                                </dd>
-                            </div>
-                            <div
-                                v-if="paymentMode === 'partial'"
-                                class="flex justify-between gap-3"
-                            >
-                                <dt class="font-semibold">Balance</dt>
-                                <dd class="text-sm font-bold tabular-nums">
-                                    {{
-                                        formatCurrency(
-                                            Math.max(
-                                                0,
-                                                computedTotal - amountDue,
-                                            ),
-                                        )
-                                    }}
-                                </dd>
-                            </div>
-                        </dl>
                     </section>
 
                     <section class="mt-4 border-t pt-4">
@@ -1721,7 +1609,11 @@ watch(
                             :disabled="!form.isDirty || form.processing"
                             class="mt-3 w-full rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
                         >
-                            {{ form.processing ? 'Creating…' : 'Create Order' }}
+                            {{
+                                form.processing
+                                    ? 'Creating order…'
+                                    : 'Proceed to Payment'
+                            }}
                         </button>
                         <button
                             type="button"

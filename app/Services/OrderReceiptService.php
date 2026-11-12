@@ -38,13 +38,20 @@ class OrderReceiptService
         $cashPayment = $confirmed->last(fn ($payment) => $payment->amount_tendered !== null);
 
         $items = [];
-        foreach ([$billing['service'], ...$billing['extra_services']] as $line) {
+        // A products order has no laundry service: each product is its own line.
+        $isProducts = $billing['service'] === null;
+        $serviceLines = $isProducts ? $billing['extra_services'] : [$billing['service'], ...$billing['extra_services']];
+        foreach ($serviceLines as $line) {
             $items[] = [
                 'label' => $this->lineLabel($line),
                 'amount' => (float) $line['amount'],
             ];
         }
-        if ($billing['additional_charges'] > 0) {
+        if ($isProducts) {
+            foreach ($billing['supplies'] ?? [] as $supply) {
+                $items[] = ['label' => $supply['name'], 'amount' => (float) ($supply['amount'] ?? 0)];
+            }
+        } elseif ($billing['additional_charges'] > 0) {
             $items[] = ['label' => 'Additional charges', 'amount' => (float) $billing['additional_charges']];
         }
         if (($billing['rush_fee'] ?? 0) > 0) {
@@ -55,6 +62,9 @@ class OrderReceiptService
         }
         if ($billing['tax'] > 0 && $billing['tax_label']) {
             $items[] = ['label' => $billing['tax_label'], 'amount' => (float) $billing['tax']];
+        }
+        if (($billing['pickup_fee'] ?? 0) > 0) {
+            $items[] = ['label' => 'Pickup charges', 'amount' => (float) $billing['pickup_fee']];
         }
         if ($billing['delivery_fee'] > 0) {
             $items[] = ['label' => 'Delivery charges', 'amount' => (float) $billing['delivery_fee']];

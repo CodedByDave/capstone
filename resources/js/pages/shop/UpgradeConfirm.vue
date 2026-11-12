@@ -414,7 +414,7 @@ function submit() {
                 {{ submitError }}
             </p>
             <div class="flex justify-end gap-3 pb-8">
-                <Button variant="outline" @click="router.get('/shop/upgrade')">
+                <Button variant="back" @click="router.get('/shop/upgrade')">
                     Back
                 </Button>
                 <Button

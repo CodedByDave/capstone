@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ServiceCategoryField from '@/components/shop/ServiceCategoryField.vue';
-import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
+import ServicePhotosInput from '@/components/shop/ServicePhotosInput.vue';
 import ServiceSuppliesField, {
     type SupplyLine,
     type SupplyOption,
@@ -34,6 +34,7 @@ interface ShopService {
     bundle_weight_kg: string | null;
     bundle_price: string | null;
     photo_url: string | null;
+    photo_urls: string[];
 }
 
 const props = defineProps<{
@@ -65,8 +66,8 @@ const form = useForm({
     bundle_weight_kg: (props.service.bundle_weight_kg ?? '') as string | number,
     bundle_price: (props.service.bundle_price ?? '') as string | number,
     price_per_piece: (props.service.price_per_piece ?? '') as string | number,
-    photo: null as File | null,
-    remove_photo: false,
+    photos: [] as File[],
+    remove_photos: [] as number[],
     uses_supplies: props.service.supplies.length > 0,
     supplies: props.service.supplies.map((line) => ({ ...line })),
 });
@@ -134,13 +135,28 @@ const checklist = computed(() => [
 
 const ready = computed(() => checklist.value.every((item) => item.done));
 
-const photoPreview = computed(() =>
-    form.photo
-        ? URL.createObjectURL(form.photo)
-        : form.remove_photo
-          ? null
-          : props.service.photo_url,
-);
+const savedPhotoUrls = computed(() => props.service.photo_urls ?? []);
+
+// The cover: the first saved photo still kept, otherwise the first new one.
+const photoPreview = computed(() => {
+    const kept = savedPhotoUrls.value.find(
+        (_, i) => !form.remove_photos.includes(i),
+    );
+
+    return (
+        kept ?? (form.photos[0] ? URL.createObjectURL(form.photos[0]) : null)
+    );
+});
+
+// "photos" for the count, or "photos.N" for one bad file.
+const photoError = computed(() => {
+    const errors = form.errors as Record<string, string | undefined>;
+
+    return (
+        errors.photos ??
+        Object.entries(errors).find(([key]) => key.startsWith('photos.'))?.[1]
+    );
+});
 
 // Scrolling the page with a number box focused must not nudge its value (200 becoming 199.99).
 const blurOnWheel = (event: WheelEvent) =>
@@ -186,7 +202,7 @@ const submit = () => {
                 </div>
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="back"
                     class="shrink-0"
                     @click="router.visit(base)"
                 >
@@ -225,7 +241,7 @@ const submit = () => {
                         </p>
 
                         <div class="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-3">
-                            <div class="space-y-5 sm:col-span-2">
+                            <div class="space-y-5 sm:col-span-3">
                                 <div class="space-y-1.5">
                                     <label
                                         class="text-sm font-medium"
@@ -253,12 +269,12 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <ServicePhotoInput
-                                v-model="form.photo"
-                                v-model:removed="form.remove_photo"
-                                :current-url="service.photo_url"
-                                compact
-                                :error="form.errors.photo"
+                            <ServicePhotosInput
+                                v-model="form.photos"
+                                v-model:removed="form.remove_photos"
+                                :current-urls="savedPhotoUrls"
+                                class="sm:col-span-3"
+                                :error="photoError"
                             />
 
                             <div class="space-y-1.5 sm:col-span-3">

@@ -290,7 +290,7 @@ function enableShop() {
     <AdminLayout :breadcrumbs="breadcrumbs" title="Shop Details">
         <div class="space-y-6 px-6">
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <Button variant="outline" @click="router.visit('/admin/shop')">
+                <Button variant="back" @click="router.visit('/admin/shop')">
                     <ArrowLeft class="mr-2 h-4 w-4" />
                     Back to Shops
                 </Button>

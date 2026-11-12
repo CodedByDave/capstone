@@ -127,7 +127,7 @@ const selected = ref<Array<string | number>>([]);
                         Restore suppliers to make them available again.
                     </p>
                 </div>
-                <Button variant="outline" @click="router.visit(base)">
+                <Button variant="back" @click="router.visit(base)">
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back to Suppliers
                 </Button>
             </div>

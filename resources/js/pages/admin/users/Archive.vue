@@ -13,14 +13,6 @@ import {
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -30,7 +22,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { usePaginatorTable } from '@/composables/useDataTable';
-import { ArchiveRestore, ArrowLeft, Trash2, Users } from 'lucide-vue-next';
+import { ArchiveRestore, ArrowLeft, Users } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -169,38 +161,6 @@ function bulkRestore() {
     );
 }
 
-// ─── Force Delete ─────────────────────────────────────────────────────────────
-
-const deleteId = ref<number | null>(null);
-const deleteName = ref('');
-const deleteOpen = ref(false);
-
-function openDelete(u: UserItem) {
-    deleteId.value = u.id;
-    deleteName.value = u.name;
-    deleteOpen.value = true;
-}
-
-function cancelDelete() {
-    deleteOpen.value = false;
-    setTimeout(() => {
-        deleteId.value = null;
-        deleteName.value = '';
-    }, 200);
-}
-
-function confirmDelete() {
-    if (!deleteId.value) return;
-    router.delete(`/admin/users/archive/${deleteId.value}`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            toast.success('User permanently deleted.');
-            deleteOpen.value = false;
-        },
-        onError: () => toast.error('Failed to delete.'),
-    });
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string) {
@@ -258,7 +218,7 @@ const roleBadge: Record<string, string> = {
                             </h2>
                             <Button
                                 size="sm"
-                                variant="outline"
+                                variant="back"
                                 @click="router.visit('/admin/users')"
                             >
                                 <ArrowLeft class="mr-1.5 h-4 w-4" /> Back to
@@ -363,38 +323,10 @@ const roleBadge: Record<string, string> = {
                                 icon: ArchiveRestore,
                                 onSelect: () => restore(u.id),
                             },
-                            {
-                                label: 'Delete permanently',
-                                icon: Trash2,
-                                destructive: true,
-                                onSelect: () => openDelete(u),
-                            },
                         ]"
                     />
                 </template>
             </DataTable>
         </div>
-
-        <!-- Permanent delete confirm -->
-        <AlertDialog v-model:open="deleteOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Permanently Delete User</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Are you sure you want to permanently delete
-                        <strong>{{ deleteName }}</strong
-                        >? This cannot be undone.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="cancelDelete"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmDelete"
-                        >Delete Forever</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </AdminLayout>
 </template>

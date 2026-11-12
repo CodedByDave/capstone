@@ -108,14 +108,4 @@ class LoginLogController extends Controller
             'message' => count($entries).' log(s) restored.',
         ]);
     }
-
-    public function forceDelete(AuditLogEntryRequest $request, string $category, int $id): RedirectResponse
-    {
-        $this->auditLogService->forceDelete($category, $id);
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => 'Log permanently deleted.',
-        ]);
-    }
 }

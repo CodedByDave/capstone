@@ -8,6 +8,7 @@ use App\Models\SupplierItem;
 use App\Repositories\Concerns\AppliesTableSort;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class SupplierItemRepository extends Repository
 {
@@ -91,5 +92,30 @@ class SupplierItemRepository extends Repository
     public function createForSupplier(Supplier $supplier, array $data): SupplierItem
     {
         return $this->create([...$data, 'supplier_id' => $supplier->id]);
+    }
+
+    /**
+     * The supplier's supplies with any of these names, keyed by lower-case name.
+     *
+     * @param  list<string>  $names
+     * @return array<string, SupplierItem>
+     */
+    public function byLowerNameForSupplier(int $supplierId, array $names): array
+    {
+        $names = array_values(array_unique(array_filter(array_map(
+            fn ($name) => mb_strtolower(trim((string) $name)),
+            $names,
+        ))));
+
+        if ($names === []) {
+            return [];
+        }
+
+        return $this->query()
+            ->where('supplier_id', $supplierId)
+            ->whereIn(DB::raw('LOWER(name)'), $names)
+            ->get()
+            ->keyBy(fn (SupplierItem $item) => mb_strtolower(trim($item->name)))
+            ->all();
     }
 }

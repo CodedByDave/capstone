@@ -28,6 +28,7 @@ import {
     Phone,
     ReceiptText,
     RefreshCw,
+    ShoppingBag,
     Smartphone,
     Star,
     Truck,
@@ -55,6 +56,8 @@ interface Order {
     id: number;
     payment_public_id: string;
     order_number: string;
+    /** 'products': retail products only, collected at the shop. */
+    order_type?: 'laundry' | 'products';
     status: 'pending' | 'in_progress' | 'completed' | 'picked_up' | 'cancelled';
     weight_approval_status?: 'pending' | 'approved' | 'declined' | null;
     weight_proof_url?: string | null;
@@ -175,6 +178,19 @@ watch(
 
 const statusSteps = ['pending', 'in_progress', 'completed', 'picked_up'];
 const currentStep = computed(() => statusSteps.indexOf(props.order.status));
+const isProductOrder = computed(() => props.order.order_type === 'products');
+
+// A products order is put together and collected, so its steps read differently.
+const productStepLabels: Record<string, string> = {
+    pending: 'Placed',
+    in_progress: 'Preparing',
+    completed: 'Ready',
+    picked_up: 'Collected',
+};
+function stepLabel(step: string): string | undefined {
+    if (isProductOrder.value) return productStepLabels[step];
+    return statusConfig[step as keyof typeof statusConfig]?.label;
+}
 
 const statusConfig = {
     pending: {
@@ -255,6 +271,7 @@ function formatAddress(shop: Shop) {
 
 const canRequestDelivery = computed(
     () =>
+        !isProductOrder.value &&
         props.order.shop_offers_delivery &&
         props.order.status === 'completed' &&
         props.order.payment_status === 'paid' &&
@@ -474,11 +491,7 @@ const shopLocation = computed(() =>
                                         : 'text-gray-400'
                                 "
                             >
-                                {{
-                                    statusConfig[
-                                        step as keyof typeof statusConfig
-                                    ]?.label
-                                }}
+                                {{ stepLabel(step) }}
                             </span>
                         </div>
                         <div
@@ -513,7 +526,11 @@ const shopLocation = computed(() =>
                     <div
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100"
                     >
-                        <WashingMachine class="h-5 w-5 text-blue-600" />
+                        <ShoppingBag
+                            v-if="isProductOrder"
+                            class="h-5 w-5 text-blue-600"
+                        />
+                        <WashingMachine v-else class="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-gray-800">
@@ -527,7 +544,10 @@ const shopLocation = computed(() =>
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <div
-                        v-if="order.pricing_model === 'per_piece'"
+                        v-if="
+                            order.pricing_model === 'per_piece' &&
+                            !isProductOrder
+                        "
                         class="col-span-2 rounded-xl bg-gray-50 p-3"
                     >
                         <p class="mb-0.5 text-gray-400">Pieces</p>
@@ -723,7 +743,7 @@ const shopLocation = computed(() =>
                     <button
                         type="button"
                         :disabled="checkingPayment"
-                        class="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 font-semibold text-white transition hover:bg-amber-700 disabled:opacity-50"
+                        class="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 font-semibold text-amber-800 transition hover:bg-amber-100 disabled:opacity-50 dark:border-amber-800 dark:bg-transparent dark:text-amber-300"
                         @click="checkPayment"
                     >
                         <Loader
@@ -1148,7 +1168,7 @@ const shopLocation = computed(() =>
                 <button
                     v-if="order.complaints.can_report"
                     type="button"
-                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-white py-3 text-sm font-semibold text-amber-800 transition hover:bg-amber-50 dark:border-amber-800 dark:bg-transparent dark:text-amber-300"
                     @click="complaintOpen = true"
                 >
                     <AlertTriangle class="h-4 w-4" aria-hidden="true" />

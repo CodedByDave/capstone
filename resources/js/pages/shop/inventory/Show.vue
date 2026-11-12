@@ -69,7 +69,7 @@ function formatCost(item: {
 }) {
     if (!item.unit_price) return '—';
     const size = Number(item.package_size) || 0;
-    if (!item.package_unit || size <= 0) return formatCost(item);
+    if (!item.package_unit || size <= 0) return formatPrice(item.unit_price);
     const perPackage = (Number(item.unit_price) * size).toFixed(2);
     return `${formatPrice(perPackage)} / ${item.package_unit}`;
 }
@@ -137,7 +137,7 @@ const movementTypeOptions = computed(() => [
         <div class="space-y-6 px-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
-                <Button variant="outline" @click="router.visit(base)">
+                <Button variant="back" @click="router.visit(base)">
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back
                 </Button>
                 <div class="flex gap-2">

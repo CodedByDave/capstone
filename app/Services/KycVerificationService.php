@@ -33,6 +33,7 @@ class KycVerificationService
         private readonly BusinessAgreementService $agreements,
         private readonly TrialService $trials,
         private readonly KycDocumentVault $vault,
+        private readonly KycReviewService $review,
     ) {}
 
     /** An owner is verified by an approved verification, or by an earlier admin-approved plan. */
@@ -161,6 +162,7 @@ class KycVerificationService
         $approved = DB::transaction(function () use ($admin, $verification) {
             $locked = $this->verifications->findForReview($verification->id);
             $this->assertPending($locked);
+            $this->assertAllDetailsMatch($locked);
 
             $this->verifications->markApproved($locked, $admin->id);
             $this->shops->applyVerifiedPermits($locked->user_id, [
@@ -243,6 +245,20 @@ class KycVerificationService
     public function loadForAdmin(KycVerification $verification): KycVerification
     {
         return $verification->load(['user:id,name,email', 'reviewer:id,name']);
+    }
+
+    /** Approval needs every detail the owner confirmed to match what OCR read from the documents. */
+    private function assertAllDetailsMatch(KycVerification $verification): void
+    {
+        $blockers = $this->review->approvalBlockers($verification);
+
+        if ($blockers !== []) {
+            throw ValidationException::withMessages([
+                'verification' => 'This application cannot be approved until every detail matches. '
+                    .implode(' ', $blockers)
+                    .' Reject it and flag these so the owner can correct them.',
+            ]);
+        }
     }
 
     private function assertPending(KycVerification $verification): void

@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Mail;
 
 class EmployeeService
 {
+    /** Form fields that belong to the rider record, not the employee row. */
+    private const RIDER_FIELDS = ['vehicle_ownership', 'vehicle_type', 'plate_number', 'license_photo'];
+
     private const TRACKED_FIELDS = [
         'first_name',
         'last_name',
@@ -89,8 +92,9 @@ class EmployeeService
     {
         $schedules = $data['schedules'] ?? [];
         unset($data['schedules']);
+        [$data, $riderDetails] = $this->splitRiderDetails($data);
 
-        return DB::transaction(function () use ($shop, $data, $schedules) {
+        return DB::transaction(function () use ($shop, $data, $schedules, $riderDetails) {
 
             // Always create a login account for every employee.
             $defaultPassword = $data['last_name'];
@@ -139,7 +143,7 @@ class EmployeeService
                 $this->scheduleService->syncSchedules($employee, $schedules);
             }
 
-            $this->driverRoster->sync($employee);
+            $this->driverRoster->sync($employee, $riderDetails);
 
             $this->activityLogService->log(
                 subject: $employee,
@@ -153,6 +157,7 @@ class EmployeeService
 
     public function updateEmployee(Employee $employee, array $data): Employee
     {
+        [$data, $riderDetails] = $this->splitRiderDetails($data);
         $changes = $this->diffChanges($employee, $data);
 
         $updated = $this->employeeRepository->updateEmployee($employee, [
@@ -189,7 +194,8 @@ class EmployeeService
             }
         }
 
-        $this->driverRoster->sync($updated);
+        // The new license path and the removal of the old photo succeed together.
+        DB::transaction(fn () => $this->driverRoster->sync($updated, $riderDetails));
 
         if (! empty($changes)) {
             $action = isset($changes['status'])
@@ -242,6 +248,14 @@ class EmployeeService
     }
 
     /* ─── PRIVATE HELPERS ────────────────────────────── */
+
+    /** @return array{0: array, 1: array} the employee fields and the rider fields */
+    private function splitRiderDetails(array $data): array
+    {
+        $rider = array_intersect_key($data, array_flip(self::RIDER_FIELDS));
+
+        return [array_diff_key($data, $rider), $rider];
+    }
 
     private function diffChanges(Employee $employee, array $data): array
     {

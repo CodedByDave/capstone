@@ -121,11 +121,6 @@ class AuditLogService
         $this->auditLogRepository->bulkRestore($entries);
     }
 
-    public function forceDelete(string $category, int $id): void
-    {
-        $this->auditLogRepository->forceDelete($category, $id);
-    }
-
     private function persistImportedRows(Collection $rows): array
     {
         $created = 0;

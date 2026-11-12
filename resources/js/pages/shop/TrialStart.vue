@@ -371,7 +371,7 @@ const submit = () => {
                     <div class="flex gap-3 pt-2">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="back"
                             class="flex-1"
                             :disabled="form.processing"
                             @click="router.visit('/shop/dashboard')"

@@ -14,6 +14,7 @@ use DateTime;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PayrollService
 {
@@ -23,9 +24,47 @@ class PayrollService
         private readonly ExpenseService $expenseService,
     ) {}
 
-    public function paginate(Shop $shop, int $perPage = 10, ?TableSort $sort = null): LengthAwarePaginator
+    public function paginate(Shop $shop, int $perPage = 10, ?TableSort $sort = null, bool $archived = false): LengthAwarePaginator
     {
-        return $this->payrollRepository->paginate($shop, $perPage, $sort);
+        return $this->payrollRepository->paginate($shop, $perPage, $sort, $archived);
+    }
+
+    /**
+     * A period can hold one payroll. An archived payroll keeps its period, so the shop restores it
+     * instead of generating a second one.
+     *
+     * @throws ValidationException
+     */
+    public function assertPeriodAvailable(Shop $shop, string $periodStart, string $periodEnd): void
+    {
+        $state = $this->payrollRepository->periodState($shop->id, $periodStart, $periodEnd);
+
+        if ($state === 'active') {
+            throw ValidationException::withMessages(['period_start' => 'A payroll for this period already exists.']);
+        }
+
+        if ($state === 'archived') {
+            throw ValidationException::withMessages([
+                'period_start' => 'An archived payroll already covers this period. Restore it from the archive instead.',
+            ]);
+        }
+    }
+
+    /** Brings an archived payroll of the shop back, with its items. */
+    public function restore(string $publicId, Shop $shop): Payroll
+    {
+        $payroll = $this->payrollRepository->findArchivedForShop($publicId, $shop->id);
+
+        DB::transaction(fn () => $this->payrollRepository->restore($payroll));
+
+        $this->activityLogService->log(
+            subject: $payroll,
+            action: 'restored',
+            shopId: $payroll->shop_id,
+            module: 'Payroll',
+        );
+
+        return $payroll;
     }
 
     public function find(int $id, Shop $shop): Payroll

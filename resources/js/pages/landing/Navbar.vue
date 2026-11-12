@@ -11,10 +11,11 @@ const page = usePage();
 const { installApp } = usePWA();
 
 const navLinks = [
+    { href: '#about', label: 'About' },
     { href: '#modules', label: 'Modules' },
     { href: '#how-it-works', label: 'How It Works' },
-    { href: '#pricing', label: 'Pricing' },
     { href: '#testimonials', label: 'Testimonials' },
+    { href: '#faq', label: 'FAQ' },
 ];
 
 const isScrolled = ref(false);
@@ -59,7 +60,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
             </a>
 
             <!-- Desktop nav links -->
-            <div class="hidden items-center gap-8 md:flex">
+            <div class="hidden items-center gap-8 lg:flex">
                 <a
                     v-for="link in navLinks"
                     :key="link.href"
@@ -71,7 +72,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
             </div>
 
             <!-- Desktop buttons -->
-            <div class="hidden items-center gap-3 md:flex">
+            <div class="hidden items-center gap-3 lg:flex">
                 <!-- Install App button -->
                 <Button
                     size="sm"
@@ -128,7 +129,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 
             <!-- Mobile toggle -->
             <button
-                class="p-1 text-foreground md:hidden"
+                class="p-2 text-foreground lg:hidden"
                 @click="toggleMobileMenu"
                 :aria-label="isMobileOpen ? 'Close menu' : 'Open menu'"
             >
@@ -138,8 +139,10 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 
         <!-- Mobile menu -->
         <div
-            class="overflow-hidden transition-all duration-500 ease-out md:hidden"
-            :class="isMobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'"
+            class="overflow-hidden transition-all duration-500 ease-out lg:hidden"
+            :class="
+                isMobileOpen ? 'max-h-[40rem] opacity-100' : 'max-h-0 opacity-0'
+            "
         >
             <div
                 class="flex flex-col gap-4 border-t border-border bg-card/95 px-4 py-6 backdrop-blur-xl sm:px-6"

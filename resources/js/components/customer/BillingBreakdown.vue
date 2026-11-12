@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Info, ReceiptText, Truck } from 'lucide-vue-next';
+import { Bike, Info, ReceiptText, Truck } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 export interface BillingServiceLine {
@@ -14,9 +14,12 @@ export interface BillingServiceLine {
 
 export interface BillingBreakdown {
     is_estimate: boolean;
-    service: BillingServiceLine;
+    /** Null for a products-only order, which has no laundry service. */
+    service: BillingServiceLine | null;
     extra_services?: BillingServiceLine[];
     additional_charges: number;
+    /** What the item lines are called: "Additional charges", or "Products" on a products-only order. */
+    charges_label?: string;
     rush_fee?: number;
     supplies?: {
         name: string;
@@ -28,6 +31,10 @@ export interface BillingBreakdown {
     other_charges?: number | null;
     discount: number;
     delivery_fee?: number;
+    /** What the rider pickup costs, added after tax like the delivery fee. */
+    pickup_fee?: number;
+    /** Why an estimate has no pickup fee yet (e.g. the address is not on the map). */
+    pickup_fee_note?: string | null;
     /** Tax added on top of the services and add-ons, with its label (VAT 12% or percentage tax 3%). */
     tax?: number;
     tax_label?: string | null;
@@ -66,7 +73,9 @@ function lineDetail(service: BillingServiceLine) {
     return `${quantity} ${quantity === 1 ? 'bundle' : 'bundles'} × ${currency(service.rate)}${size}`;
 }
 
-const serviceDetail = computed(() => lineDetail(props.breakdown.service));
+const serviceDetail = computed(() =>
+    props.breakdown.service ? lineDetail(props.breakdown.service) : '',
+);
 </script>
 
 <template>
@@ -92,7 +101,10 @@ const serviceDetail = computed(() => lineDetail(props.breakdown.service));
             </span>
         </div>
 
-        <div class="flex items-start justify-between gap-3 px-4 py-3 text-sm">
+        <div
+            v-if="breakdown.service"
+            class="flex items-start justify-between gap-3 px-4 py-3 text-sm"
+        >
             <div>
                 <p class="font-medium text-gray-800">
                     {{ breakdown.service.name }}
@@ -124,7 +136,9 @@ const serviceDetail = computed(() => lineDetail(props.breakdown.service));
             v-if="breakdown.additional_charges > 0"
             class="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-sm"
         >
-            <span class="text-gray-500">Additional charges</span>
+            <span class="text-gray-500">{{
+                breakdown.charges_label ?? 'Additional charges'
+            }}</span>
             <span class="font-medium text-gray-700">{{
                 currency(breakdown.additional_charges)
             }}</span>
@@ -180,6 +194,29 @@ const serviceDetail = computed(() => lineDetail(props.breakdown.service));
             <span class="font-medium text-gray-700">{{
                 currency(breakdown.tax ?? 0)
             }}</span>
+        </div>
+
+        <div
+            v-if="(breakdown.pickup_fee ?? 0) > 0"
+            class="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-sm"
+        >
+            <span class="flex items-center gap-1.5 text-gray-500">
+                <Bike class="h-3.5 w-3.5" aria-hidden="true" />
+                Pickup fee
+            </span>
+            <span class="font-medium text-gray-700">{{
+                currency(breakdown.pickup_fee ?? 0)
+            }}</span>
+        </div>
+        <div
+            v-else-if="breakdown.pickup_fee_note"
+            class="flex items-start gap-1.5 border-t border-gray-100 px-4 py-2.5 text-xs text-gray-500"
+        >
+            <Bike class="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span
+                ><span class="font-medium text-gray-700">Pickup fee:</span>
+                {{ breakdown.pickup_fee_note }}</span
+            >
         </div>
 
         <div

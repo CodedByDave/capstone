@@ -16,7 +16,7 @@ const href = computed(
 </script>
 
 <template>
-    <Button as-child variant="outline" size="sm" class="gap-1.5">
+    <Button as-child variant="success-outline" size="sm" class="gap-1.5">
         <a :href="href" download>
             <Download class="h-4 w-4" aria-hidden="true" />
             {{ label }}

@@ -89,6 +89,31 @@ class KycReviewService
         return $rows;
     }
 
+    /**
+     * Why the application cannot be approved yet: every detail must match what the documents say.
+     * A detail OCR could not read is not a match, and neither is an application with nothing read.
+     * Empty when every detail matches.
+     *
+     * @param  Model  $order  an Order or KycVerification
+     * @return list<string>
+     */
+    public function approvalBlockers(Model $order): array
+    {
+        $rows = $this->rows($order);
+
+        if ($rows === []) {
+            return ['No details could be read from the documents, so nothing can be matched.'];
+        }
+
+        return collect($rows)
+            ->reject(fn (array $row) => $row['status'] === 'match')
+            ->map(fn (array $row) => $row['status'] === 'mismatch'
+                ? "{$row['label']} does not match the document."
+                : "{$row['label']} could not be read from the document.")
+            ->values()
+            ->all();
+    }
+
     private const TAX_TYPES = ['vat' => 'VAT', 'non_vat' => 'Non-VAT'];
 
     /** Shown only when the owner confirmed a tax type (older submissions did not). */

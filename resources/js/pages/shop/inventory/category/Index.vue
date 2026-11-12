@@ -15,11 +15,11 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
+    Archive,
     Check,
     Layers,
     Loader2,
     Pencil,
-    Plus,
     Trash2,
     X,
 } from 'lucide-vue-next';
@@ -48,20 +48,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const categories = ref<Category[]>([...initialCategories]);
-const showNewRow = ref(false);
 const saveError = ref<string | null>(null);
-
-// New row
-const newForm = ref({ name: '', description: '' });
-const savingNew = ref(false);
 
 // Edit row
 const editingId = ref<number | null>(null);
 const editForm = ref({ name: '', description: '' });
 const savingEdit = ref(false);
 const deletingId = ref<number | null>(null);
-
-const NEW_ROW = -1;
 
 const headers: DataTableHeader[] = [
     { text: 'Name', value: 'name', sortable: true, width: 260 },
@@ -76,40 +69,6 @@ const { search, options, pageItems, total, isFiltered, reset } = useDataTable(
         sortBy: 'name',
     },
 );
-
-// The inline "new category" row is shown above the current page.
-const tableItems = computed<Category[]>(() =>
-    showNewRow.value
-        ? [{ id: NEW_ROW, name: '', description: null }, ...pageItems.value]
-        : pageItems.value,
-);
-
-async function addCategory() {
-    if (!newForm.value.name.trim()) {
-        saveError.value = 'Name is required.';
-        return;
-    }
-
-    savingNew.value = true;
-    saveError.value = null;
-
-    try {
-        const res = await axios.post(`${base.value}/category`, newForm.value);
-        categories.value.push(res.data);
-        newForm.value = { name: '', description: '' };
-        showNewRow.value = false;
-        toast.success('Category added successfully.', { autoClose: 3000 });
-    } catch (err: any) {
-        const msg =
-            err.response?.data?.message ??
-            err.response?.data?.errors?.name?.[0] ??
-            'Failed to add category.';
-        saveError.value = msg;
-        toast.error(msg, { autoClose: 4000 });
-    } finally {
-        savingNew.value = false;
-    }
-}
 
 function startEdit(cat: Category) {
     editingId.value = cat.id;
@@ -188,14 +147,14 @@ const selected = ref<Array<string | number>>([]);
                 v-model:options="options"
                 v-model:selected="selected"
                 :headers="headers"
-                :items="tableItems"
+                :items="pageItems"
                 :total="total"
                 noun="categories"
                 :empty-icon="Layers"
                 :empty-message="
                     isFiltered
                         ? 'No categories match your search.'
-                        : 'No categories yet. Click “Add Category” to create one.'
+                        : 'No categories yet. Create one from the Product List.'
                 "
                 :resettable="isFiltered"
                 :min-width="640"
@@ -231,30 +190,12 @@ const selected = ref<Array<string | number>>([]);
                                     can('Inventory Management', 'archive')
                                 "
                                 size="sm"
-                                variant="outline"
-                                class="bg-red-500 text-white hover:bg-red-700 hover:text-white"
+                                variant="warning-outline"
                                 @click="
                                     router.visit(`${base}/category/archive`)
                                 "
                             >
-                                <Trash2 class="mr-1.5 h-4 w-4" /> Archive
-                            </Button>
-                            <Button
-                                v-if="
-                                    (isOwner ||
-                                        can(
-                                            'Inventory Management',
-                                            'create',
-                                        )) &&
-                                    !showNewRow
-                                "
-                                size="sm"
-                                @click="
-                                    showNewRow = true;
-                                    saveError = null;
-                                "
-                            >
-                                <Plus class="mr-1.5 h-4 w-4" /> Add Category
+                                <Archive class="mr-1.5 h-4 w-4" /> Archive
                             </Button>
                         </template>
                     </DataTableToolbar>
@@ -262,15 +203,7 @@ const selected = ref<Array<string | number>>([]);
 
                 <template #item-name="cat">
                     <Input
-                        v-if="cat.id === NEW_ROW"
-                        v-model="newForm.name"
-                        placeholder="Category name"
-                        aria-label="New category name"
-                        class="h-8 text-sm"
-                        @keyup.enter="addCategory"
-                    />
-                    <Input
-                        v-else-if="editingId === cat.id"
+                        v-if="editingId === cat.id"
                         v-model="editForm.name"
                         :aria-label="`Name for ${cat.name}`"
                         class="h-8 text-sm"
@@ -281,15 +214,7 @@ const selected = ref<Array<string | number>>([]);
 
                 <template #item-description="cat">
                     <Input
-                        v-if="cat.id === NEW_ROW"
-                        v-model="newForm.description"
-                        placeholder="Optional description"
-                        aria-label="New category description"
-                        class="h-8 text-sm"
-                        @keyup.enter="addCategory"
-                    />
-                    <Input
-                        v-else-if="editingId === cat.id"
+                        v-if="editingId === cat.id"
                         v-model="editForm.description"
                         :aria-label="`Description for ${cat.name}`"
                         class="h-8 text-sm"
@@ -302,46 +227,12 @@ const selected = ref<Array<string | number>>([]);
 
                 <template #item-actions="cat">
                     <div
-                        v-if="cat.id === NEW_ROW"
+                        v-if="editingId === cat.id"
                         class="flex items-center justify-center gap-1"
                     >
                         <Button
                             size="sm"
-                            class="h-8 w-8 bg-green-500 p-0 text-white hover:bg-green-600"
-                            aria-label="Save new category"
-                            :disabled="savingNew"
-                            @click="addCategory"
-                        >
-                            <Loader2
-                                v-if="savingNew"
-                                class="h-3 w-3 animate-spin"
-                            />
-                            <Check v-else class="h-3 w-3" />
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
                             class="h-8 w-8 p-0"
-                            aria-label="Cancel new category"
-                            @click="
-                                showNewRow = false;
-                                newForm = {
-                                    name: '',
-                                    description: '',
-                                };
-                                saveError = null;
-                            "
-                        >
-                            <X class="h-3 w-3" />
-                        </Button>
-                    </div>
-                    <div
-                        v-else-if="editingId === cat.id"
-                        class="flex items-center justify-center gap-1"
-                    >
-                        <Button
-                            size="sm"
-                            class="h-8 w-8 bg-green-500 p-0 text-white hover:bg-green-600"
                             :aria-label="`Save ${cat.name}`"
                             :disabled="savingEdit"
                             @click="saveEdit(cat.id)"

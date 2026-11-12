@@ -10,8 +10,8 @@ use App\Http\Requests\User\EstimateOrderBreakdownRequest;
 use App\Http\Requests\User\RequestDeliveryRequest;
 use App\Http\Requests\User\StoreUserOrderRequest;
 use App\Models\ShopOrder;
-use App\Notifications\OrderNotification;
 use App\Services\CustomerAgreementService;
+use App\Services\CustomerOrderCancellationService;
 use App\Services\CustomerOrderPlacementService;
 use App\Services\DeliveryRequestService;
 use App\Services\DeliveryTrackingService;
@@ -23,6 +23,7 @@ use App\Services\ShopOrderPaymentService;
 use App\Services\ShopPaymentSettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -58,7 +59,8 @@ class UserOrderController extends Controller
                 'payment_public_id' => $o->payment_public_id,
                 'order_number' => $o->order_number,
                 'shop' => $o->shop ? ['name' => $o->shop->shop_name, 'location' => "{$o->shop->barangay}, {$o->shop->municipality}"] : null,
-                'service_name' => $o->service->service_name ?? '—',
+                'service_name' => $o->isProductOrder() ? 'Products' : ($o->service->service_name ?? '—'),
+                'order_type' => $o->order_type,
                 'status' => $o->status,
                 'is_rush' => (bool) $o->is_rush,
                 'payment_status' => $o->payment_status,
@@ -89,6 +91,7 @@ class UserOrderController extends Controller
                 'id' => $order->id,
                 'payment_public_id' => $order->payment_public_id,
                 'order_number' => $order->order_number,
+                'order_type' => $order->order_type,
                 'status' => $order->status,
                 'is_rush' => (bool) $order->is_rush,
                 'rush_fee' => (float) $order->rush_fee,
@@ -129,7 +132,7 @@ class UserOrderController extends Controller
                     'latitude' => $order->shop->latitude,
                     'longitude' => $order->shop->longitude,
                 ] : null,
-                'service_name' => $order->service->service_name ?? '—',
+                'service_name' => $order->isProductOrder() ? 'Products' : ($order->service->service_name ?? '—'),
                 'delivery' => $delivery ? $this->deliveryTracking->payload($delivery) : null,
                 'pickup_photos' => $this->deliveryTracking->pickupPhotos($order),
                 'no_rider_notice' => $this->deliveryTracking->noRiderNotice($order),
@@ -153,6 +156,10 @@ class UserOrderController extends Controller
             isset($data['piece_count']) ? (int) $data['piece_count'] : null,
             isset($data['promotion_id']) ? (int) $data['promotion_id'] : null,
             $data['additional_items'] ?? [],
+            ($data['pickup_type'] ?? null) === 'pickup',
+            isset($data['customer_lat']) ? (float) $data['customer_lat'] : null,
+            isset($data['customer_lng']) ? (float) $data['customer_lng'] : null,
+            retailItems: $data['retail_items'] ?? [],
         ));
     }
 
@@ -220,26 +227,14 @@ class UserOrderController extends Controller
 
     // ─── Cancel order ─────────────────────────────────────────────────────────
 
-    public function cancel(ShopOrder $order): RedirectResponse
+    public function cancel(ShopOrder $order, CustomerOrderCancellationService $cancellations): RedirectResponse
     {
         abort_if($order->user_id !== auth()->id(), 404);
 
-        if ($order->status !== 'pending') {
-            return back()->with('toast', [
-                'type' => 'error',
-                'message' => 'Only pending orders can be cancelled.',
-            ]);
-        }
-
-        // Look at any open online checkout first so a payment already made is not lost.
-        $this->onlinePayments->cancelPending(auth()->user(), $order->payment_public_id);
-
-        $order->update(['status' => 'cancelled']);
-
-        // Notify shop owner
-        $shopOwner = $order->shop?->owner ?? null;
-        if ($shopOwner) {
-            $shopOwner->notify(new OrderNotification($order, 'cancelled'));
+        try {
+            $cancellations->cancel(auth()->user(), $order);
+        } catch (ValidationException $exception) {
+            return back()->with('toast', ['type' => 'error', 'message' => collect($exception->errors())->flatten()->first()]);
         }
 
         return redirect()->route('user.orders.index')->with('toast', [

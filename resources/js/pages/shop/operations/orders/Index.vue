@@ -20,7 +20,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
@@ -58,6 +58,8 @@ interface Order {
     id: number;
     payment_public_id: string;
     order_number: string;
+    /** 'products': retail products only, collected at the shop. */
+    order_type?: 'laundry' | 'products';
     customer_name: string;
     customer_phone: string | null;
     status: string;
@@ -284,7 +286,10 @@ const tableItems = computed(() =>
     props.orders.data.map((order) => ({
         ...order,
         customer: order.customer_name,
-        service: order.service?.service_name ?? '—',
+        service:
+            order.order_type === 'products'
+                ? 'Products'
+                : (order.service?.service_name ?? '—'),
         total: order.total_amount,
         queue: order.queue_position ?? 0,
         actions: '',
@@ -349,7 +354,10 @@ const canPickUp = (order: Order) =>
 
 // An order still being worked on can be completed by hand, e.g. when it is done early or the
 // automation has not caught up. It needs a final price, so an unweighed order goes to Edit first.
-const canComplete = (order: Order) => order.status === 'in_progress';
+// A products order only has to be put together, so it can be marked ready straight from pending.
+const canComplete = (order: Order) =>
+    order.status === 'in_progress' ||
+    (order.order_type === 'products' && order.status === 'pending');
 // A completion made by mistake can be taken back until the order is picked up.
 const canRevert = (order: Order) => order.status === 'completed';
 
@@ -423,7 +431,11 @@ const inQueue = (order: Order) => order.queue_position !== null;
 // Rush is decided before the customer pays, so both actions are only offered on unpaid orders.
 const unpaid = (order: Order) => Number(order.amount_paid) === 0;
 const canRush = (order: Order) =>
-    inQueue(order) && unpaid(order) && !order.is_rush && props.rushFee > 0;
+    order.order_type !== 'products' &&
+    inQueue(order) &&
+    unpaid(order) &&
+    !order.is_rush &&
+    props.rushFee > 0;
 const canUnrush = (order: Order) =>
     inQueue(order) && unpaid(order) && order.is_rush;
 
@@ -477,12 +489,20 @@ const toggleArchived = () => {
 
 // ─── Restore ───────────────────────────────────────
 
+// Restoring takes the order's supplies out of stock again, which fails when stock ran out.
+const onRestoreError = (errors: Record<string, string>) =>
+    toast.error(Object.values(errors)[0] ?? 'Could not restore the order.');
+
 const restoreOrder = (order: Order) => {
-    router.patch(`${base.value}/${order.payment_public_id}/restore`);
+    router.patch(
+        `${base.value}/${order.payment_public_id}/restore`,
+        {},
+        { onError: onRestoreError },
+    );
 };
 
 const restoreAll = () => {
-    router.post(`${base.value}/restore-all`);
+    router.post(`${base.value}/restore-all`, {}, { onError: onRestoreError });
 };
 
 // ─── Delete Dialog ─────────────────────────────────
@@ -653,8 +673,8 @@ const handleDelete = () => {
                 <Button
                     v-if="orders.data.length > 0 && canManage"
                     size="sm"
-                    variant="outline"
-                    class="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100"
+                    variant="success-outline"
+                    class="gap-1.5"
                     @click="restoreAll"
                 >
                     <RotateCcw class="h-3.5 w-3.5" /> Restore All
@@ -700,14 +720,13 @@ const handleDelete = () => {
                                 />
                                 <Button
                                     v-if="canManage"
-                                    variant="outline"
+                                    :variant="
+                                        showArchived
+                                            ? 'back'
+                                            : 'warning-outline'
+                                    "
                                     size="sm"
                                     class="gap-1.5"
-                                    :class="
-                                        showArchived
-                                            ? 'border-amber-400 bg-amber-50 text-amber-700'
-                                            : ''
-                                    "
                                     @click="toggleArchived"
                                 >
                                     <Archive class="h-4 w-4" />
@@ -907,7 +926,10 @@ const handleDelete = () => {
                             {
                                 label: 'Edit',
                                 icon: Pencil,
-                                show: !showArchived && canManage,
+                                show:
+                                    !showArchived &&
+                                    canManage &&
+                                    order.order_type !== 'products',
                                 onSelect: () =>
                                     router.visit(
                                         `${base}/${order.payment_public_id}/edit`,
@@ -1018,7 +1040,7 @@ const handleDelete = () => {
                         >Cancel</AlertDialogCancel
                     >
                     <AlertDialogAction
-                        class="bg-red-600 text-white hover:bg-red-700"
+                        :class="buttonVariants({ variant: 'warning' })"
                         @click="handleDelete"
                     >
                         Archive Order

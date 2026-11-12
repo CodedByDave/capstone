@@ -60,6 +60,27 @@ return [
         'engine' => (int) env('OCR_SPACE_ENGINE', 2),
         'timeout' => (int) env('OCR_SPACE_TIMEOUT', 30),
     ],
+    // Which service texts customers for every shop: "textbee" (free, an Android phone) or "philsms" (prepaid).
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'textbee'),
+    ],
+    // PhilSMS (philsms.com): Philippine SMS API, about P0.35 per text from prepaid credit.
+    'philsms' => [
+        'token' => env('PHILSMS_API_TOKEN'),
+        // Up to 11 characters; a custom name must be approved by PhilSMS first.
+        'sender_id' => env('PHILSMS_SENDER_ID', 'PhilSMS'),
+        'base_url' => env('PHILSMS_BASE_URL', 'https://app.philsms.com/api/v3'),
+        'timeout' => (int) env('PHILSMS_TIMEOUT', 15),
+    ],
+    // TextBee (textbee.dev) texts customers for every shop, from one Android phone the platform runs.
+    // Leave the key empty to turn platform texting off; staff can still text from their own phone.
+    'textbee' => [
+        'key' => env('TEXTBEE_API_KEY'),
+        'base_url' => env('TEXTBEE_BASE_URL', 'https://api.textbee.dev/api/v1'),
+        // Optional: which phone sends. Empty uses the account's default phone.
+        'device_id' => env('TEXTBEE_DEVICE_ID'),
+        'timeout' => (int) env('TEXTBEE_TIMEOUT', 15),
+    ],
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

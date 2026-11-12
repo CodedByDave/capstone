@@ -178,21 +178,6 @@ class UserController extends Controller
         ]);
     }
 
-    // ── Force delete ──────────────────────────────────────────────────────────
-
-    public function forceDelete(int $id)
-    {
-        $user = User::onlyTrashed()->findOrFail($id);
-
-        $this->logUserManagementAction($user, 'permanently_deleted');
-        $this->userManagementService->forceDelete($id);
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => 'User permanently deleted.',
-        ]);
-    }
-
     private function logUserManagementAction(User $user, string $action): void
     {
         $this->activityLogService->log(

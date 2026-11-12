@@ -7,6 +7,7 @@ import { toast } from 'vue-sonner';
 
 // shadcn components
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import RiderDetailsFields from '@/components/business/RiderDetailsFields.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -36,12 +37,14 @@ interface EmploymentTypeOption {
     label: string;
 }
 
-const { shop, roles, employment_types, pay_bases } = defineProps<{
-    roles: string[];
-    shop: Shop;
-    employment_types: EmploymentTypeOption[];
-    pay_bases: EmploymentTypeOption[];
-}>();
+const { shop, roles, employment_types, pay_bases, vehicle_types } =
+    defineProps<{
+        roles: string[];
+        shop: Shop;
+        employment_types: EmploymentTypeOption[];
+        pay_bases: EmploymentTypeOption[];
+        vehicle_types: string[];
+    }>();
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
@@ -154,6 +157,37 @@ const form = ref({
     pay_basis: 'monthly',
     status: 'Active' as 'Active' | 'Inactive',
 });
+
+// ─── Rider details (only for the Rider / Driver position) ────────────────────
+
+const RIDER_POSITIONS = ['rider', 'driver'];
+const isRider = computed(() =>
+    RIDER_POSITIONS.includes(form.value.position.trim().toLowerCase()),
+);
+
+const rider = ref({
+    vehicle_ownership: 'shop' as 'shop' | 'own',
+    vehicle_type: '',
+    plate_number: '',
+    license_photo: null as File | null,
+});
+
+watch(isRider, (on) => {
+    if (on && !rider.value.vehicle_type && vehicle_types.length === 1) {
+        rider.value.vehicle_type = vehicle_types[0];
+    }
+});
+
+/** Plate and license are sent only for the rider's own vehicle. */
+function riderPayload() {
+    if (!isRider.value) return {};
+    const { vehicle_ownership, vehicle_type, plate_number, license_photo } =
+        rider.value;
+
+    return vehicle_ownership === 'own'
+        ? { vehicle_ownership, vehicle_type, plate_number, license_photo }
+        : { vehicle_ownership, vehicle_type };
+}
 
 const payBasisHelp = computed(() => {
     const messages: Record<string, string> = {
@@ -276,7 +310,7 @@ function submit() {
         : [];
     router.post(
         `${baseRoute.value}/employee`,
-        { ...form.value, schedules },
+        { ...form.value, schedules, ...riderPayload() },
         {
             preserveScroll: true,
             onError: () => {
@@ -314,7 +348,7 @@ function submit() {
                 </div>
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="back"
                     class="shrink-0"
                     @click="cancel"
                 >
@@ -597,6 +631,16 @@ function submit() {
                             {{ payBasisHelp }}
                         </p>
                     </section>
+
+                    <RiderDetailsFields
+                        v-if="isRider"
+                        v-model:vehicle-ownership="rider.vehicle_ownership"
+                        v-model:vehicle-type="rider.vehicle_type"
+                        v-model:plate-number="rider.plate_number"
+                        v-model:license-photo="rider.license_photo"
+                        :vehicle-types="vehicle_types"
+                        :errors="errors"
+                    />
 
                     <!-- Address -->
                     <section class="border-t pt-8">

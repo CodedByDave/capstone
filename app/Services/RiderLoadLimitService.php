@@ -25,12 +25,71 @@ class RiderLoadLimitService
         ];
     }
 
-    /** @return array{selected: string, choices: list<string>} */
+    /**
+     * The vehicle in use, the choices, and the load capacity of each choice.
+     *
+     * @return array{selected: string, choices: list<string>, limits: list<array{type: string, min: float|null, max: float|null}>}
+     */
     public function vehicleOptionsFor(Shop $shop): array
     {
+        $selected = $shop->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE;
+        $choices = $shop->rider_vehicle_types ?: [Shop::DEFAULT_RIDER_VEHICLE_TYPE];
+        $stored = $shop->rider_vehicle_limits ?? [];
+
         return [
-            'selected' => $shop->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE,
-            'choices' => $shop->rider_vehicle_types ?: [Shop::DEFAULT_RIDER_VEHICLE_TYPE],
+            'selected' => $selected,
+            'choices' => $choices,
+            'limits' => array_map(function (string $type) use ($shop, $selected, $stored) {
+                // The vehicle in use always reports the limit that is enforced.
+                $limit = $type === $selected ? $this->limitsFor($shop) : $this->cleanLimit($stored[$type] ?? []);
+
+                return ['type' => $type] + $limit;
+            }, $choices),
+        ];
+    }
+
+    /**
+     * The capacity of every vehicle type after a save, keyed by type. Types no longer offered are
+     * dropped. Given capacities replace the stored ones; when none are given, the min/max apply to
+     * the vehicle in use, as a weights-only save always did.
+     *
+     * @param  list<string>  $types
+     * @param  list<array{type: string, min?: mixed, max?: mixed}>|null  $given
+     * @return array<string, array{min: float|null, max: float|null}>
+     */
+    public function vehicleLimitsAfterSave(Shop $shop, array $types, string $selected, ?array $given, ?float $min, ?float $max): array
+    {
+        $stored = $shop->rider_vehicle_limits ?? [];
+        $limits = [];
+
+        foreach ($types as $type) {
+            $limits[$type] = $this->cleanLimit($stored[$type] ?? []);
+        }
+
+        if ($given === null) {
+            $limits[$selected] = $this->cleanLimit(['min' => $min, 'max' => $max]);
+
+            return $limits;
+        }
+
+        foreach ($given as $entry) {
+            if (array_key_exists($entry['type'], $limits)) {
+                $limits[$entry['type']] = $this->cleanLimit($entry);
+            }
+        }
+
+        return $limits;
+    }
+
+    /**
+     * @param  array{min?: mixed, max?: mixed}  $limit
+     * @return array{min: float|null, max: float|null}
+     */
+    private function cleanLimit(array $limit): array
+    {
+        return [
+            'min' => is_numeric($limit['min'] ?? null) ? round((float) $limit['min'], 2) : null,
+            'max' => is_numeric($limit['max'] ?? null) ? round((float) $limit['max'], 2) : null,
         ];
     }
 

@@ -18,6 +18,7 @@ import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
     ArrowLeft,
+    ClipboardList,
     FileImage,
     Loader2,
     Mail,
@@ -232,7 +233,7 @@ async function invite() {
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <Button
-                        variant="outline"
+                        variant="back"
                         size="sm"
                         @click="router.visit(base)"
                     >
@@ -258,12 +259,27 @@ async function invite() {
                     </Button>
                     <Button
                         v-if="canUpdate"
+                        variant="primary-outline"
                         size="sm"
                         @click="
                             router.visit(`${base}/${supplier.public_id}/edit`)
                         "
                     >
                         <Pencil class="mr-1.5 h-4 w-4" /> Edit
+                    </Button>
+                    <Button
+                        v-if="
+                            supplier.status === 'active' &&
+                            (isOwner || can('Inventory Management', 'create'))
+                        "
+                        size="sm"
+                        @click="
+                            router.visit(
+                                `${isOwner ? '/shop' : '/staff'}/purchase-orders/create?supplier=${supplier.public_id}`,
+                            )
+                        "
+                    >
+                        <ClipboardList class="mr-1.5 h-4 w-4" /> New order
                     </Button>
                 </div>
             </div>

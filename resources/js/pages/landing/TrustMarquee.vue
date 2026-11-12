@@ -13,10 +13,7 @@ const trustSignals = computed(() => [
     'Real-Time Reports',
 ]);
 
-const doubled = computed(() => [
-    ...trustSignals.value,
-    ...trustSignals.value,
-]);
+const doubled = computed(() => [...trustSignals.value, ...trustSignals.value]);
 </script>
 
 <template>

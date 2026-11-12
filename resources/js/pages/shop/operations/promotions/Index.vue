@@ -264,7 +264,7 @@ const selected = ref<Array<string | number>>([]);
                 <div class="flex items-center gap-2">
                     <Button
                         v-if="canManage"
-                        variant="outline"
+                        :variant="archived ? 'back' : 'warning-outline'"
                         @click="router.visit(`${base}?archived=${!archived}`)"
                     >
                         <Archive class="mr-2 h-4 w-4" />

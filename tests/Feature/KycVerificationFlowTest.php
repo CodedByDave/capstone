@@ -103,6 +103,23 @@ class KycVerificationFlowTest extends TestCase
         return KycVerification::where('user_id', $this->owner->id)->latest('id')->firstOrFail();
     }
 
+    /**
+     * An application whose every detail matches: OCR reads each document, and the owner confirmed
+     * the same TIN, tax type, name, address and expiry dates. Only this can be approved.
+     */
+    private function matchingVerification(): KycVerification
+    {
+        $this->fakeOcr(now()->addYear()->toDateString());
+
+        foreach (['bir', 'dti', 'mayors'] as $doc) {
+            $this->actingAs($this->owner)
+                ->postJson('/kyc/scan-expiry', ['document' => $this->png("{$doc}.png", $doc)])
+                ->assertOk();
+        }
+
+        return $this->submitVerification();
+    }
+
     public function test_dashboard_offers_the_verification_form_to_unverified_owners(): void
     {
         $this->actingAs($this->owner)
@@ -152,7 +169,7 @@ class KycVerificationFlowTest extends TestCase
             ->get('/checkout/confirm')->assertRedirect(route('shop.dashboard'));
     }
 
-    public function test_admin_sees_mismatch_and_approval_auto_starts_the_free_trial(): void
+    public function test_a_mismatched_detail_blocks_approval(): void
     {
         $this->fakeOcr(now()->addMonths(6)->toDateString());
         $this->actingAs($this->owner)->postJson('/kyc/scan-expiry', ['document' => $this->png('bir.png', 'bir')]);
@@ -163,7 +180,50 @@ class KycVerificationFlowTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('admin/kyc/Show')
-                ->where('kycReview', fn ($rows) => collect($rows)->firstWhere('key', 'bir_expiry_date')['status'] === 'mismatch'));
+                ->where('kycReview', fn ($rows) => collect($rows)->firstWhere('key', 'bir_expiry_date')['status'] === 'mismatch')
+                ->where('approvalBlockers', fn ($blockers) => collect($blockers)->contains('BIR expiry date does not match the document.')));
+
+        $this->post("/admin/kyc-verifications/{$verification->public_id}/approve")
+            ->assertSessionHasErrors('verification');
+
+        $this->assertSame('pending', $verification->refresh()->status);
+        $this->assertSame(0, Order::where('user_id', $this->owner->id)->count(), 'No trial without approval.');
+    }
+
+    public function test_a_detail_ocr_could_not_read_blocks_approval(): void
+    {
+        // The DTI and Mayor's permits were never read, so their expiry dates are unconfirmed.
+        $this->fakeOcr(now()->addYear()->toDateString());
+        $this->actingAs($this->owner)->postJson('/kyc/scan-expiry', ['document' => $this->png('bir.png', 'bir')]);
+        $verification = $this->submitVerification();
+
+        $this->actingAs($this->admin)
+            ->post("/admin/kyc-verifications/{$verification->public_id}/approve")
+            ->assertSessionHasErrors('verification');
+
+        $this->assertSame('pending', $verification->refresh()->status);
+    }
+
+    public function test_an_application_with_nothing_read_cannot_be_approved(): void
+    {
+        $verification = $this->submitVerification();
+
+        $this->actingAs($this->admin)
+            ->post("/admin/kyc-verifications/{$verification->public_id}/approve")
+            ->assertSessionHasErrors('verification');
+
+        $this->assertSame('pending', $verification->refresh()->status);
+    }
+
+    public function test_a_fully_matching_application_is_approved_and_starts_the_free_trial(): void
+    {
+        $verification = $this->matchingVerification();
+
+        $this->actingAs($this->admin)
+            ->get("/admin/kyc-verifications/{$verification->public_id}")
+            ->assertInertia(fn ($page) => $page
+                ->where('approvalBlockers', [])
+                ->where('kycReview', fn ($rows) => collect($rows)->every(fn ($row) => $row['status'] === 'match')));
 
         $this->post("/admin/kyc-verifications/{$verification->public_id}/approve")->assertSessionHasNoErrors();
 
@@ -228,7 +288,7 @@ class KycVerificationFlowTest extends TestCase
 
     public function test_a_decided_verification_cannot_be_decided_again(): void
     {
-        $verification = $this->submitVerification();
+        $verification = $this->matchingVerification();
         $this->actingAs($this->admin)->post("/admin/kyc-verifications/{$verification->public_id}/approve");
 
         $this->post("/admin/kyc-verifications/{$verification->public_id}/reject", ['rejection_reason' => 'Late.'])
@@ -238,7 +298,7 @@ class KycVerificationFlowTest extends TestCase
 
     public function test_a_trial_owner_buys_a_plan_without_documents_or_admin_review(): void
     {
-        $verification = $this->submitVerification();
+        $verification = $this->matchingVerification();
         $this->actingAs($this->admin)->post("/admin/kyc-verifications/{$verification->public_id}/approve");
 
         // Approval started the free trial on its own.
@@ -330,7 +390,7 @@ class KycVerificationFlowTest extends TestCase
 
     public function test_only_admins_can_review_verifications(): void
     {
-        $verification = $this->submitVerification();
+        $verification = $this->matchingVerification();
 
         // The role middleware turns non-admins away (it redirects rather than returning 403).
         $response = $this->actingAs($this->owner)

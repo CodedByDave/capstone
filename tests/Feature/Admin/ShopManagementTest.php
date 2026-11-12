@@ -279,3 +279,17 @@ test('shop bulk actions and csv export work', function () {
         ->assertOk()
         ->assertHeader('content-type', 'text/csv; charset=UTF-8');
 });
+
+test('archived shops, users and logs can no longer be permanently deleted', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $shop = createManagedShop();
+    $shop->delete();
+    $user = User::factory()->create(['role' => AccountType::Customer->value]);
+    $user->delete();
+
+    $this->actingAs($admin)->delete("/admin/shop/archive/{$shop->public_id}")->assertNotFound();
+    $this->actingAs($admin)->delete("/admin/users/archive/{$user->id}")->assertNotFound();
+
+    expect(Shop::onlyTrashed()->find($shop->id))->not->toBeNull()
+        ->and(User::onlyTrashed()->find($user->id))->not->toBeNull();
+});

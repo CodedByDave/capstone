@@ -36,6 +36,10 @@ class StoreUserOrderRequest extends FormRequest
             'additional_items' => ['nullable', 'array', 'max:20'],
             'additional_items.*.id' => ['required', 'integer'],
             'additional_items.*.count' => ['required', 'integer', 'min:1', 'max:10'],
+            // Retail products bought with the order; the order service checks the shop really sells them.
+            'retail_items' => ['nullable', 'array', 'max:20'],
+            'retail_items.*.id' => ['required', 'integer'],
+            'retail_items.*.count' => ['required', 'integer', 'min:1', 'max:10'],
             'special_instructions' => ['nullable', 'string', 'max:500'],
             'customer_agreement_version' => ['required', 'string', 'max:30'],
             'customer_agreement_accepted' => ['required', 'accepted'],

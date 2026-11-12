@@ -406,7 +406,7 @@ function roleColor(role: string) {
                                     />
                                     <Button
                                         size="sm"
-                                        class="h-8 bg-blue-500 hover:bg-blue-700"
+                                        class="h-8"
                                         @click="createRole"
                                     >
                                         <Check class="h-3 w-3" />

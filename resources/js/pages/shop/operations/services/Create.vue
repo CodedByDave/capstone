@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ServiceCategoryField from '@/components/shop/ServiceCategoryField.vue';
-import ServicePhotoInput from '@/components/shop/ServicePhotoInput.vue';
+import ServicePhotosInput from '@/components/shop/ServicePhotosInput.vue';
 import ServiceSuppliesField, {
     type SupplyLine,
     type SupplyOption,
@@ -49,7 +49,7 @@ const form = useForm({
     bundle_weight_kg: '' as string | number,
     bundle_price: '' as string | number,
     price_per_piece: '' as string | number,
-    photo: null as File | null,
+    photos: [] as File[],
     uses_supplies: false,
     supplies: [] as SupplyLine[],
 });
@@ -172,8 +172,18 @@ const checklist = computed(() => [
 const ready = computed(() => checklist.value.every((item) => item.done));
 
 const photoPreview = computed(() =>
-    form.photo ? URL.createObjectURL(form.photo) : null,
+    form.photos[0] ? URL.createObjectURL(form.photos[0]) : null,
 );
+
+// "photos" for the count, or "photos.N" for one bad file.
+const photoError = computed(() => {
+    const errors = form.errors as Record<string, string | undefined>;
+
+    return (
+        errors.photos ??
+        Object.entries(errors).find(([key]) => key.startsWith('photos.'))?.[1]
+    );
+});
 
 // Scrolling the page with a number box focused must not nudge its value (200 becoming 199.99).
 const blurOnWheel = (event: WheelEvent) =>
@@ -217,7 +227,7 @@ const submit = () =>
                 </div>
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="back"
                     class="shrink-0"
                     @click="router.visit(base)"
                 >
@@ -274,7 +284,7 @@ const submit = () =>
                         </p>
 
                         <div class="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-3">
-                            <div class="space-y-5 sm:col-span-2">
+                            <div class="space-y-5 sm:col-span-3">
                                 <div class="space-y-1.5">
                                     <label
                                         class="text-sm font-medium"
@@ -302,10 +312,10 @@ const submit = () =>
                                 </div>
                             </div>
 
-                            <ServicePhotoInput
-                                v-model="form.photo"
-                                compact
-                                :error="form.errors.photo"
+                            <ServicePhotosInput
+                                v-model="form.photos"
+                                class="sm:col-span-3"
+                                :error="photoError"
                             />
 
                             <div class="space-y-1.5 sm:col-span-3">

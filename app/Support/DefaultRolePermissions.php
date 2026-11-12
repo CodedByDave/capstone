@@ -14,6 +14,12 @@ final class DefaultRolePermissions
     public const ROLES = ['owner', 'manager', 'cashier', 'washer', 'staff'];
 
     /**
+     * Created only once the shop turns on pickup or delivery. A rider works from the
+     * driver app, so the role carries no shop-panel permissions by default.
+     */
+    public const RIDER_ROLE = 'rider';
+
+    /**
      * @return array<string, array<string, list<string>>> role => module => actions
      */
     public static function presets(): array

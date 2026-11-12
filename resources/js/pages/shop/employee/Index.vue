@@ -514,7 +514,7 @@ const selected = ref<Array<string | number>>([]);
                 <div class="flex flex-wrap items-center gap-2">
                     <DropdownMenu v-if="can('HRM', 'view') || isOwner">
                         <DropdownMenuTrigger as-child>
-                            <Button variant="outline" class="h-11">
+                            <Button variant="success-outline" class="h-11">
                                 <ArrowUpDown
                                     class="mr-2 h-4 w-4"
                                     aria-hidden="true"

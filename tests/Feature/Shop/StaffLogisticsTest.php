@@ -474,13 +474,64 @@ test('only staff with the update permission upload and only with delete permissi
     Storage::disk('private')->assertMissing($photo->path);
 });
 
-test('removing a delivery removes its proof files', function () {
+test('archiving a delivery keeps the record and its proof, and the shop can restore it', function () {
     [$shop, , $delivery] = proofSetup();
     $staff = dispatcher($shop, ['view', 'update', 'archive']);
     $this->actingAs($staff)->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('a.png')]]);
-    $path = $delivery->photos()->first()->path;
+    $photo = $delivery->photos()->first();
 
     $this->actingAs($staff)->delete("/staff/logistics/{$delivery->public_id}")->assertSessionHasNoErrors();
+
+    expect(Delivery::find($delivery->id))->toBeNull()
+        ->and(Delivery::onlyTrashed()->find($delivery->id))->not->toBeNull();
+    Storage::disk('private')->assertExists($photo->path);
+
+    // The archive lists it, and its proof photo still opens for the shop.
+    $this->actingAs($staff)->get('/staff/logistics?archived=1')
+        ->assertInertia(fn ($page) => $page
+            ->where('showArchived', true)
+            ->where('deliveries.data.0.public_id', $delivery->public_id));
+    $this->actingAs($staff)->get("/staff/logistics/photos/{$photo->public_id}")->assertOk();
+    // An archived run is read-only.
+    $this->actingAs($staff)->delete("/staff/logistics/photos/{$photo->public_id}")->assertNotFound();
+
+    $this->actingAs($staff)->post("/staff/logistics/{$delivery->public_id}/restore")->assertSessionHasNoErrors();
+
+    expect(Delivery::find($delivery->id))->not->toBeNull();
+});
+
+test('a delivery is not restored while its order already has another active run of that kind', function () {
+    [$shop, , $delivery] = proofSetup();
+    $staff = dispatcher($shop, ['view', 'archive']);
+    $delivery->delete();
+    Delivery::create([
+        'shop_id' => $shop->id, 'shop_order_id' => $delivery->shop_order_id, 'customer_name' => 'Maria', 'status' => 'pending',
+    ]);
+
+    $this->actingAs($staff)->post("/staff/logistics/{$delivery->public_id}/restore")->assertSessionHasErrors('delivery');
+
+    expect(Delivery::find($delivery->id))->toBeNull();
+});
+
+test('staff cannot restore another shop\'s archived delivery', function () {
+    $shop = dispatchShop();
+    $other = dispatchShop(['shop_name' => 'Other Laundry']);
+    $staff = dispatcher($shop, ['view', 'archive']);
+    $foreign = Delivery::create(['shop_id' => $other->id, 'customer_name' => 'Zed', 'status' => 'pending']);
+    $foreign->delete();
+
+    $this->actingAs($staff)->post("/staff/logistics/{$foreign->public_id}/restore")->assertNotFound();
+
+    expect(Delivery::find($foreign->id))->toBeNull();
+});
+
+test('only a permanent delete removes the proof files', function () {
+    [$shop, , $delivery] = proofSetup();
+    $staff = dispatcher($shop, ['view', 'update']);
+    $this->actingAs($staff)->post("/staff/logistics/{$delivery->public_id}/photos", ['photos' => [proofImage('a.png')]]);
+    $path = $delivery->photos()->first()->path;
+
+    $delivery->forceDelete();
 
     Storage::disk('private')->assertMissing($path);
 });

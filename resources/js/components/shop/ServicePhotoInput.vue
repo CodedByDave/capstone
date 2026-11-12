@@ -120,7 +120,7 @@ const clear = () => {
                 <div class="flex flex-wrap gap-2">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="primary-outline"
                         size="sm"
                         @click="input?.click()"
                     >

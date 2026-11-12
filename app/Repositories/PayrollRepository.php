@@ -13,11 +13,12 @@ class PayrollRepository
 {
     use AppliesTableSort;
 
-    public function paginate(Shop $shop, int $perPage = 10, ?TableSort $sort = null): LengthAwarePaginator
+    public function paginate(Shop $shop, int $perPage = 10, ?TableSort $sort = null, bool $archived = false): LengthAwarePaginator
     {
         $query = Payroll::with(['creator:id,name'])
             ->withCount('items')
             ->withSum('items', 'net_pay')
+            ->when($archived, fn ($q) => $q->onlyTrashed())
             ->where('shop_id', $shop->id);
 
         $sorted = $this->applyTableSort($query, $sort, [
@@ -38,7 +39,42 @@ class PayrollRepository
             $query->latest('period_start');
         }
 
-        return $query->paginate($perPage);
+        return $query->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Whether the shop already has a payroll for the period. Archived ones count too, because the
+     * period stays reserved until the archived payroll is restored.
+     *
+     * @return 'active'|'archived'|null
+     */
+    public function periodState(int $shopId, string $periodStart, string $periodEnd): ?string
+    {
+        $payroll = Payroll::withTrashed()
+            ->where('shop_id', $shopId)
+            ->whereDate('period_start', $periodStart)
+            ->whereDate('period_end', $periodEnd)
+            ->first(['id', 'deleted_at']);
+
+        return match (true) {
+            $payroll === null => null,
+            $payroll->trashed() => 'archived',
+            default => 'active',
+        };
+    }
+
+    /** An archived payroll of the shop; another shop's payroll is reported as missing. */
+    public function findArchivedForShop(string $publicId, int $shopId): Payroll
+    {
+        return Payroll::onlyTrashed()
+            ->where('shop_id', $shopId)
+            ->where('public_id', $publicId)
+            ->firstOrFail();
+    }
+
+    public function restore(Payroll $payroll): void
+    {
+        $payroll->restore();
     }
 
     public function find(int $id, Shop $shop): Payroll

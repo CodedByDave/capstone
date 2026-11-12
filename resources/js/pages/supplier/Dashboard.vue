@@ -10,6 +10,9 @@ import InputError from '@/components/InputError.vue';
 import PriceListStatusPill, {
     type PriceListStatus,
 } from '@/components/supplier/PriceListStatusPill.vue';
+import SupplierPurchaseOrders, {
+    type PortalPurchaseOrder,
+} from '@/components/supplier/SupplierPurchaseOrders.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -25,8 +28,12 @@ import type { DataTableOptions } from '@/composables/useDataTable';
 import SupplierLayout from '@/layouts/supplier/SupplierLayout.vue';
 import { compressPhoto } from '@/lib/compressPhoto';
 import { router, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import {
+    Camera,
+    Download,
     FileImage,
+    FileSpreadsheet,
     Loader2,
     Package,
     Pencil,
@@ -35,6 +42,7 @@ import {
     ScanText,
     Trash2,
     Upload,
+    X,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -78,6 +86,7 @@ const props = defineProps<{
     priceLists: PriceList[];
     latestPriceList: PriceList | null;
     filters: { search: string; stock: string; per_page: number };
+    purchaseOrders: { orders: PortalPurchaseOrder[]; awaiting: number };
 }>();
 
 const BASE = '/supplier-portal';
@@ -264,6 +273,120 @@ function removeItem(item: SupplyItem) {
     });
 }
 
+/* ─── Import from a CSV or a scanned price list ─── */
+
+interface ImportRow {
+    name: string;
+    unit: string;
+    stock_quantity: number | string;
+    unit_price: number | string;
+    existing: boolean;
+    current_price: number | null;
+}
+
+const csvInput = ref<HTMLInputElement | null>(null);
+const scanInput = ref<HTMLInputElement | null>(null);
+const reading = ref<'csv' | 'photo' | null>(null);
+const importError = ref<string | null>(null);
+const reviewOpen = ref(false);
+const reviewSource = ref<'csv' | 'photo'>('csv');
+const reviewRows = ref<ImportRow[]>([]);
+const savingImport = ref(false);
+const importErrors = ref<Record<string, string>>({});
+
+const newCount = computed(
+    () => reviewRows.value.filter((row) => !row.existing).length,
+);
+const updateCount = computed(
+    () => reviewRows.value.filter((row) => row.existing).length,
+);
+
+/** Reads the file on the server into rows to review; nothing is saved yet. */
+async function readImport(kind: 'csv' | 'photo', event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    importError.value = null;
+    reading.value = kind;
+
+    try {
+        const body = new FormData();
+        if (kind === 'csv') {
+            body.append('csv_file', file);
+        } else {
+            // A smaller photo uploads faster and stays inside the OCR service's size limit.
+            body.append('photo', await compressPhoto(file));
+        }
+
+        const { data } = await axios.post<{ rows: ImportRow[] }>(
+            `${BASE}/items/import/preview`,
+            body,
+        );
+        // A blank cell comes back as null; the inputs show it empty.
+        reviewRows.value = data.rows.map((row) => ({
+            ...row,
+            stock_quantity: row.stock_quantity ?? '',
+            unit_price: row.unit_price ?? '',
+        }));
+        reviewSource.value = kind;
+        importErrors.value = {};
+        reviewOpen.value = true;
+    } catch (error) {
+        const response = axios.isAxiosError(error) ? error.response : undefined;
+        const errors = response?.data?.errors as
+            | Record<string, string[]>
+            | undefined;
+        importError.value =
+            (errors && Object.values(errors)[0]?.[0]) ||
+            (response?.status === 429
+                ? 'Too many uploads in a short time. Wait a minute and try again.'
+                : 'The file could not be read. Please try again.');
+    } finally {
+        reading.value = null;
+    }
+}
+
+function removeReviewRow(index: number) {
+    reviewRows.value.splice(index, 1);
+    // Row errors are keyed by position, so they no longer line up.
+    importErrors.value = {};
+    if (reviewRows.value.length === 0) reviewOpen.value = false;
+}
+
+function rowError(index: number, field: string) {
+    return importErrors.value[`items.${index}.${field}`];
+}
+
+function rowLabel(row: ImportRow, index: number) {
+    return row.name || `row ${index + 1}`;
+}
+
+function saveImport() {
+    router.post(
+        `${BASE}/items/import`,
+        {
+            items: reviewRows.value.map((row) => ({
+                name: row.name,
+                unit: row.unit,
+                stock_quantity: row.stock_quantity,
+                unit_price: row.unit_price,
+            })),
+        },
+        {
+            preserveScroll: true,
+            onStart: () => (savingImport.value = true),
+            onFinish: () => (savingImport.value = false),
+            onError: (errors) => (importErrors.value = errors),
+            onSuccess: () => {
+                reviewOpen.value = false;
+                reviewRows.value = [];
+            },
+        },
+    );
+}
+
 /* ─── Price-list upload and OCR result ─────── */
 
 const photoInput = ref<HTMLInputElement | null>(null);
@@ -335,10 +458,17 @@ function formatDate(value: string | null) {
         <div>
             <h1 class="text-xl font-semibold">Your supplies</h1>
             <p class="text-sm text-muted-foreground">
-                Keep your stock and prices current, then upload a photo of your
-                price list. We check that it matches what you entered.
+                Keep your stock and prices current. Add supplies one by one,
+                import a CSV, or scan your printed price list.
             </p>
         </div>
+
+        <!-- Orders the shop sent: answered first, before the supply list -->
+        <SupplierPurchaseOrders
+            :orders="purchaseOrders.orders"
+            :awaiting="purchaseOrders.awaiting"
+            :shop-name="supplier.shop_name"
+        />
 
         <!-- KPI cards -->
         <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -358,6 +488,56 @@ function formatDate(value: string | null) {
                     <PriceListStatusPill :status="latestPriceList?.status" />
                 </CardContent>
             </Card>
+        </div>
+
+        <!-- Import: hidden file pickers, a hint and any read error -->
+        <input
+            ref="csvInput"
+            type="file"
+            accept=".csv,text/csv"
+            class="sr-only"
+            tabindex="-1"
+            aria-label="Choose a CSV file of supplies"
+            @change="readImport('csv', $event)"
+        />
+        <input
+            ref="scanInput"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            class="sr-only"
+            tabindex="-1"
+            aria-label="Choose a photo of your price list"
+            @change="readImport('photo', $event)"
+        />
+        <div
+            class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm text-muted-foreground"
+        >
+            <p>
+                Add many supplies at once: import a CSV, or scan a photo of your
+                printed price list. You review every row before it is saved.
+            </p>
+            <a
+                :href="`${BASE}/items/import/template`"
+                class="inline-flex min-h-11 items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+                <Download class="h-4 w-4" aria-hidden="true" />
+                CSV template
+            </a>
+        </div>
+        <div
+            v-if="importError"
+            role="alert"
+            class="flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+        >
+            <span class="pt-1.5">{{ importError }}</span>
+            <button
+                type="button"
+                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none dark:hover:bg-red-900/40"
+                aria-label="Dismiss import error"
+                @click="importError = null"
+            >
+                <X class="h-4 w-4" aria-hidden="true" />
+            </button>
         </div>
 
         <!-- Supplies table -->
@@ -394,6 +574,40 @@ function formatDate(value: string | null) {
                             @click="resetFilters"
                         >
                             <RefreshCcw class="mr-1.5 h-4 w-4" /> Reset
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            :disabled="reading !== null"
+                            @click="csvInput?.click()"
+                        >
+                            <Loader2
+                                v-if="reading === 'csv'"
+                                class="mr-1.5 h-4 w-4 animate-spin"
+                            />
+                            <FileSpreadsheet v-else class="mr-1.5 h-4 w-4" />
+                            {{
+                                reading === 'csv'
+                                    ? 'Reading CSV...'
+                                    : 'Import CSV'
+                            }}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            :disabled="reading !== null"
+                            @click="scanInput?.click()"
+                        >
+                            <Loader2
+                                v-if="reading === 'photo'"
+                                class="mr-1.5 h-4 w-4 animate-spin"
+                            />
+                            <Camera v-else class="mr-1.5 h-4 w-4" />
+                            {{
+                                reading === 'photo'
+                                    ? 'Scanning photo...'
+                                    : 'Scan price list'
+                            }}
                         </Button>
                         <Button size="sm" @click="openCreate">
                             <Plus class="mr-1.5 h-4 w-4" /> Add supply
@@ -659,6 +873,202 @@ function formatDate(value: string | null) {
                 </ul>
             </div>
         </section>
+
+        <!-- Review imported supplies before they are saved -->
+        <Dialog v-model:open="reviewOpen">
+            <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
+                <DialogHeader>
+                    <DialogTitle>
+                        Review {{ reviewRows.length }}
+                        {{ reviewRows.length === 1 ? 'supply' : 'supplies' }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{
+                            reviewSource === 'photo'
+                                ? 'Read from your photo by OCR. Check each name and price against your list, fill in the stock, and remove any row that is not a product.'
+                                : 'Read from your CSV file. Correct anything that looks wrong.'
+                        }}
+                        Nothing is saved until you click Save.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <p class="text-sm">
+                    <span class="font-semibold">{{ newCount }}</span> new ·
+                    <span class="font-semibold">{{ updateCount }}</span>
+                    already listed (their unit, stock and price will be updated)
+                </p>
+
+                <form @submit.prevent="saveImport">
+                    <div class="overflow-x-auto rounded-lg border">
+                        <table class="w-full min-w-[680px] text-sm">
+                            <caption class="sr-only">
+                                Supplies to import
+                            </caption>
+                            <thead class="bg-muted/50">
+                                <tr
+                                    class="text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                >
+                                    <th scope="col" class="px-3 py-2">
+                                        Supply
+                                    </th>
+                                    <th scope="col" class="w-36 px-3 py-2">
+                                        Unit
+                                    </th>
+                                    <th scope="col" class="w-28 px-3 py-2">
+                                        In stock
+                                    </th>
+                                    <th scope="col" class="w-32 px-3 py-2">
+                                        Unit price (₱)
+                                    </th>
+                                    <th scope="col" class="w-28 px-3 py-2">
+                                        Status
+                                    </th>
+                                    <th scope="col" class="w-12 px-2 py-2">
+                                        <span class="sr-only">Remove</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr
+                                    v-for="(row, index) in reviewRows"
+                                    :key="index"
+                                    class="align-top"
+                                >
+                                    <td class="px-3 py-2">
+                                        <Input
+                                            v-model="row.name"
+                                            :aria-label="`Name of row ${index + 1}`"
+                                            :class="{
+                                                'border-red-500': rowError(
+                                                    index,
+                                                    'name',
+                                                ),
+                                            }"
+                                        />
+                                        <InputError
+                                            :message="rowError(index, 'name')"
+                                        />
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <Input
+                                            v-model="row.unit"
+                                            :aria-label="`Unit of ${rowLabel(row, index)}`"
+                                            placeholder="e.g. gallon"
+                                        />
+                                        <InputError
+                                            :message="rowError(index, 'unit')"
+                                        />
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <Input
+                                            v-model="row.stock_quantity"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            :aria-label="`Stock of ${rowLabel(row, index)}`"
+                                            :class="{
+                                                'border-red-500': rowError(
+                                                    index,
+                                                    'stock_quantity',
+                                                ),
+                                            }"
+                                        />
+                                        <InputError
+                                            :message="
+                                                rowError(
+                                                    index,
+                                                    'stock_quantity',
+                                                )
+                                            "
+                                        />
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <Input
+                                            v-model="row.unit_price"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            :aria-label="`Price of ${rowLabel(row, index)}`"
+                                            :class="{
+                                                'border-red-500': rowError(
+                                                    index,
+                                                    'unit_price',
+                                                ),
+                                            }"
+                                        />
+                                        <InputError
+                                            :message="
+                                                rowError(index, 'unit_price')
+                                            "
+                                        />
+                                    </td>
+                                    <td class="px-3 py-2 pt-4">
+                                        <StatusPill
+                                            :tone="
+                                                row.existing
+                                                    ? 'warning'
+                                                    : 'success'
+                                            "
+                                        >
+                                            {{
+                                                row.existing ? 'Updates' : 'New'
+                                            }}
+                                        </StatusPill>
+                                        <p
+                                            v-if="
+                                                row.existing &&
+                                                row.current_price !== null
+                                            "
+                                            class="mt-1 text-xs text-muted-foreground tabular-nums"
+                                        >
+                                            Now
+                                            {{ peso.format(row.current_price) }}
+                                        </p>
+                                    </td>
+                                    <td class="px-2 py-2">
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-md text-red-600 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                            :aria-label="`Remove ${rowLabel(row, index)} from the import`"
+                                            @click="removeReviewRow(index)"
+                                        >
+                                            <Trash2
+                                                class="h-4 w-4"
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <InputError class="mt-2" :message="importErrors.items" />
+
+                    <DialogFooter class="mt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="reviewOpen = false"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            :disabled="savingImport || reviewRows.length === 0"
+                        >
+                            <Loader2
+                                v-if="savingImport"
+                                class="mr-1.5 h-4 w-4 animate-spin"
+                            />
+                            Save {{ reviewRows.length }}
+                            {{
+                                reviewRows.length === 1 ? 'supply' : 'supplies'
+                            }}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
 
         <!-- Add / edit supply dialog -->
         <Dialog v-model:open="dialogOpen">

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Inventory extends Model
 {
@@ -58,6 +59,31 @@ class Inventory extends Model
         'min_stock' => 'integer',
         'max_stock' => 'integer',
     ];
+
+    /**
+     * A stock amount in the packages the item is bought in, e.g. 30,000 ml at 3,000 ml per bottle
+     * is "10 bottles", and 31,500 ml is "10 bottles + 1,500 ml". Items without a package keep
+     * their stock unit ("30,000 ml").
+     */
+    public function describeQuantity(int $quantity): string
+    {
+        $size = (int) $this->package_size;
+        $name = trim((string) $this->package_unit);
+
+        $full = $name !== '' && $size > 0 ? intdiv($quantity, $size) : 0;
+
+        // Less than one full package (or no package at all) reads best in the stock unit.
+        if ($full === 0) {
+            return number_format($quantity)." {$this->unit}";
+        }
+
+        $remainder = $quantity - $full * $size;
+        $packages = number_format($full).' '.($full === 1 ? $name : Str::plural($name));
+
+        return $remainder > 0
+            ? "{$packages} + ".number_format($remainder)." {$this->unit}"
+            : $packages;
+    }
 
     // Relationships
 

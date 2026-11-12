@@ -99,7 +99,7 @@ const selected = ref<Array<string | number>>([]);
                     </p>
                 </div>
                 <Button
-                    variant="outline"
+                    variant="back"
                     @click="router.visit(`${base}/category`)"
                 >
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back to Categories

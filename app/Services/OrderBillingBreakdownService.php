@@ -19,6 +19,7 @@ class OrderBillingBreakdownService
         private readonly PromotionService $promotions,
         private readonly CustomerAdditionalChargeService $additionalCharges,
         private readonly OrderTaxService $tax,
+        private readonly PickupFeeService $pickupFees,
     ) {}
 
     public function forOrder(ShopOrder $order): array
@@ -44,6 +45,28 @@ class OrderBillingBreakdownService
 
         $total = (float) $order->total_amount;
         $amountPaid = (float) $order->amount_paid;
+
+        // A products order has no laundry service: only its products, tax and payments.
+        if ($order->isProductOrder()) {
+            return [
+                'is_estimate' => false,
+                'service' => null,
+                'extra_services' => [],
+                'additional_charges' => (float) $order->additional_charges,
+                'charges_label' => 'Products',
+                'rush_fee' => 0.0,
+                ...$this->additionalChargeDetail($order),
+                'discount' => (float) $order->discount_amount,
+                'delivery_fee' => 0.0,
+                'pickup_fee' => 0.0,
+                'tax' => (float) $order->tax_amount,
+                'tax_rate' => (float) $order->tax_rate,
+                'tax_label' => $this->tax->labelFor((float) $order->tax_rate),
+                'total' => $total,
+                'amount_paid' => $amountPaid,
+                'balance_due' => round(max(0, $total - $amountPaid), 2),
+            ];
+        }
 
         return [
             'is_estimate' => ! $isWeighed,
@@ -74,6 +97,7 @@ class OrderBillingBreakdownService
             ...$this->additionalChargeDetail($order),
             'discount' => (float) $order->discount_amount,
             'delivery_fee' => (float) $order->delivery_fee,
+            'pickup_fee' => (float) $order->pickup_fee,
             'tax' => (float) $order->tax_amount,
             'tax_rate' => (float) $order->tax_rate,
             'tax_label' => $this->tax->labelFor((float) $order->tax_rate),
@@ -98,7 +122,8 @@ class OrderBillingBreakdownService
             $price = $supply->pivot->unit_price !== null ? (float) $supply->pivot->unit_price : null;
 
             return [
-                'name' => $supply->name,
+                // The name the customer bought it under (e.g. "Softener 1L bottle × 2"), else the stock name.
+                'name' => $supply->pivot->label ?: $supply->name,
                 'quantity' => $quantity,
                 'unit' => $supply->pivot->unit ?: $supply->unit,
                 'unit_price' => $price,
@@ -120,7 +145,7 @@ class OrderBillingBreakdownService
     /**
      * Estimate for a service at an estimated weight, using the same rounding the order uses at placement.
      */
-    public function estimate(ShopService $service, float $weightKg, ?int $pieces = null, ?int $promotionId = null, array $additionalLines = []): array
+    public function estimate(ShopService $service, float $weightKg, ?int $pieces = null, ?int $promotionId = null, array $additionalLines = [], float $pickupFee = 0.0, ?string $pickupFeeNote = null): array
     {
         $additional = $this->additionalCharges->total($additionalLines);
 
@@ -146,7 +171,8 @@ class OrderBillingBreakdownService
         $rate = $this->tax->rateForShop((int) $service->shop_id);
         $subtotal = $line['amount'] + $additional - $discount;
         $tax = $this->tax->amountOn($subtotal, $rate);
-        $total = round($subtotal + $tax, 2);
+        // A rider pickup is added after tax, the same as on the placed order.
+        $total = round($subtotal + $tax + $pickupFee, 2);
 
         return [
             'is_estimate' => ! $service->isPerPiece(),
@@ -156,6 +182,8 @@ class OrderBillingBreakdownService
             'other_charges' => 0.0,
             'discount' => $discount,
             'delivery_fee' => 0.0,
+            'pickup_fee' => $pickupFee,
+            'pickup_fee_note' => $pickupFeeNote,
             'tax' => $tax,
             'tax_rate' => $rate,
             'tax_label' => $this->tax->labelFor($rate),
@@ -167,8 +195,9 @@ class OrderBillingBreakdownService
 
     /**
      * Estimate for an active service of an active shop; anything else is treated as not found.
+     * A rider pickup adds the pickup fee for the customer's pinned address.
      */
-    public function estimateFor(int $shopId, int $serviceId, float $weightKg, ?int $pieces = null, ?int $promotionId = null, array $additionalItems = []): array
+    public function estimateFor(int $shopId, int $serviceId, float $weightKg, ?int $pieces = null, ?int $promotionId = null, array $additionalItems = [], bool $pickup = false, ?float $lat = null, ?float $lng = null, array $retailItems = []): array
     {
         $shop = $this->repository->findActiveShop($shopId);
         $service = $shop ? $this->repository->findActiveServiceForShop($serviceId, $shop->id) : null;
@@ -186,13 +215,54 @@ class OrderBillingBreakdownService
             throw ValidationException::withMessages(['estimated_weight_kg' => 'Enter the estimated weight of your laundry.']);
         }
 
+        $pickupFee = $pickup ? $this->pickupFees->estimateFor($shop->id, $lat, $lng) : ['fee' => 0.0, 'note' => null];
+
         return $this->estimate(
             $service,
             $weightKg,
             $pieces,
             $promotionId,
-            $this->additionalCharges->resolve($shop->id, $additionalItems),
+            [
+                ...$this->additionalCharges->resolve($shop->id, $additionalItems),
+                ...$this->additionalCharges->resolveRetail($shop->id, $retailItems),
+            ],
+            $pickupFee['fee'],
+            $pickupFee['note'],
         );
+    }
+
+    /**
+     * What a products-only order costs: the picked products plus the shop's tax. There is no laundry
+     * service, promotion, pickup or delivery fee, and the price is final when the order is placed.
+     *
+     * @param  list<array<string, mixed>>  $lines  From CustomerAdditionalChargeService::resolveRetail().
+     */
+    public function productsEstimate(int $shopId, array $lines): array
+    {
+        $subtotal = $this->additionalCharges->total($lines);
+        $rate = $this->tax->rateForShop($shopId);
+        $tax = $this->tax->amountOn($subtotal, $rate);
+        $total = round($subtotal + $tax, 2);
+
+        return [
+            'is_estimate' => false,
+            'service' => null,
+            'extra_services' => [],
+            'additional_charges' => $subtotal,
+            'charges_label' => 'Products',
+            'supplies' => $this->additionalCharges->breakdownLines($lines),
+            'other_charges' => 0.0,
+            'discount' => 0.0,
+            'delivery_fee' => 0.0,
+            'pickup_fee' => 0.0,
+            'pickup_fee_note' => null,
+            'tax' => $tax,
+            'tax_rate' => $rate,
+            'tax_label' => $this->tax->labelFor($rate),
+            'total' => $total,
+            'amount_paid' => 0.0,
+            'balance_due' => $total,
+        ];
     }
 
     private function serviceLine(string $name, string $pricingModel, float $quantity, float $rate, float $bundleWeight): array

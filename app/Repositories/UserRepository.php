@@ -212,9 +212,4 @@ class UserRepository extends Repository
     {
         User::onlyTrashed()->whereIn('id', $ids)->restore();
     }
-
-    public function forceDelete(int $id): void
-    {
-        User::onlyTrashed()->findOrFail($id)->forceDelete();
-    }
 }

@@ -183,8 +183,9 @@ class InventoryService
         int $quantity,
         ?string $referenceNumber = null,
         ?string $notes = null,
+        bool $recordExpense = true,
     ): Inventory {
-        return DB::transaction(function () use ($inventory, $type, $quantity, $referenceNumber, $notes) {
+        return DB::transaction(function () use ($inventory, $type, $quantity, $referenceNumber, $notes, $recordExpense) {
             $newQuantity = $inventory->quantity + $quantity;
 
             // Prevent stock going negative
@@ -208,8 +209,9 @@ class InventoryService
             $this->inventoryRepository->update($inventory, ['quantity' => $newQuantity]);
             $inventory->refresh();
 
-            // A restock is money spent, so it belongs in Finance expenses.
-            if ($type === 'restock') {
+            // A restock is money spent, so it belongs in Finance expenses. A received purchase order
+            // records one expense for the whole order at the supplier's price instead.
+            if ($type === 'restock' && $recordExpense) {
                 $this->expenseService->recordInventoryRestock($inventory, $quantity, $referenceNumber);
             }
 

@@ -40,6 +40,7 @@ class KycVerificationController extends Controller
         return Inertia::render('admin/kyc/Show', [
             'verification' => KycVerificationResource::make($verification)->resolve(),
             'kycReview' => $this->review->rows($verification),
+            'approvalBlockers' => $this->review->approvalBlockers($verification),
             'kycFlagOptions' => $this->review->flagOptions(),
         ]);
     }

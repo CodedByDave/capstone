@@ -43,6 +43,12 @@ class Shop extends Model
         });
     }
 
+    /**
+     * Secrets never leave the server, even when a page loads a whole shop (an order's details
+     * page loads its shop). They are still readable in PHP; only serialization skips them.
+     */
+    protected $hidden = ['paymongo_secret_key', 'sms_gateway_username', 'sms_gateway_password'];
+
     protected $fillable = [
         'public_id',
         'owner_id',
@@ -67,6 +73,7 @@ class Shop extends Model
         'rider_max_weight_kg',
         'rider_vehicle_type',
         'rider_vehicle_types',
+        'rider_vehicle_limits',
         'is_open_24_7',
         'opens_at',
         'closes_at',
@@ -83,6 +90,12 @@ class Shop extends Model
         'longitude',
         'cover_photo',
         'paymongo_secret_key',
+        'sms_gateway_enabled',
+        'sms_gateway_mode',
+        'sms_gateway_url',
+        'sms_gateway_username',
+        'sms_gateway_password',
+        'sms_notify_ready',
         'paymongo_public_key',
         'status',
         'bir_expiry_date',
@@ -116,6 +129,7 @@ class Shop extends Model
         'rider_min_weight_kg' => 'decimal:2',
         'rider_max_weight_kg' => 'decimal:2',
         'rider_vehicle_types' => 'array',
+        'rider_vehicle_limits' => 'array',
         'platform_rating_prompted_at' => 'datetime',
         'setup_completed_at' => 'datetime',
         'deduct_sss' => 'boolean',
@@ -130,6 +144,9 @@ class Shop extends Model
         'sanitary_expiry_date' => 'date',
         'last_activity_at' => 'datetime',
         'paymongo_secret_key' => 'encrypted',
+        'sms_gateway_password' => 'encrypted',
+        'sms_gateway_enabled' => 'boolean',
+        'sms_notify_ready' => 'boolean',
     ];
 
     public function hasCoordinates(): bool

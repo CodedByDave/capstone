@@ -132,7 +132,7 @@ async function downloadAgreement(acceptance: Acceptance) {
                         </div>
                     </div>
                     <Button
-                        variant="outline"
+                        variant="success-outline"
                         class="gap-2"
                         :disabled="downloadingId !== null"
                         @click="downloadAgreement(currentAgreement.acceptance)"
@@ -270,7 +270,7 @@ async function downloadAgreement(acceptance: Acceptance) {
                             </p>
                         </div>
                         <Button
-                            variant="outline"
+                            variant="success-outline"
                             size="sm"
                             class="gap-2"
                             :disabled="downloadingId !== null"

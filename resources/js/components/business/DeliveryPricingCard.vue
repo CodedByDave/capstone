@@ -137,7 +137,7 @@ useSettingsSection({
                 </p>
             </div>
             <Button
-                variant="outline"
+                variant="primary-outline"
                 size="sm"
                 @click="router.visit('/shop/setup')"
             >

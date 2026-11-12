@@ -27,6 +27,7 @@ class ShopOrder extends Model
         'shop_id',
         'user_id',
         'order_source',
+        'order_type',
         'service_id',
         'order_number',
         'customer_name',
@@ -53,6 +54,7 @@ class ShopOrder extends Model
         'promotion_id',
         'discount_amount',
         'delivery_fee',
+        'pickup_fee',
         'tax_rate',
         'tax_amount',
         'total_amount',
@@ -70,6 +72,7 @@ class ShopOrder extends Model
         'in_progress_at',
         'overdue_notified_at',
         'completed_at',
+        'supplies_returned_at',
         'picked_up_at',
         'weight_proof_path',
         'weight_approval_status',
@@ -102,6 +105,7 @@ class ShopOrder extends Model
         'rush_marked_at' => 'datetime',
         'discount_amount' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
+        'pickup_fee' => 'decimal:2',
         'tax_rate' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
@@ -111,6 +115,7 @@ class ShopOrder extends Model
         'in_progress_at' => 'datetime',
         'overdue_notified_at' => 'datetime',
         'completed_at' => 'datetime',
+        'supplies_returned_at' => 'datetime',
         'picked_up_at' => 'datetime',
         'weight_proof_uploaded_at' => 'datetime',
         'weight_decided_at' => 'datetime',
@@ -119,6 +124,9 @@ class ShopOrder extends Model
     // ─── Enums ────────────────────────────────────────────────────────────────
 
     const PICKUP_TYPES = ['walk_in', 'pickup'];
+
+    /** 'laundry': a laundry service (with optional add-ons and products); 'products': retail products only. */
+    const ORDER_TYPES = ['laundry', 'products'];
 
     const PAYMENT_METHODS = ['cash', 'gcash', 'maya', 'card', 'grabpay', 'online'];
 
@@ -232,7 +240,7 @@ class ShopOrder extends Model
             'inventory_id'
         )
             ->wherePivot('source', $source)
-            ->withPivot(['quantity_used', 'unit', 'source', 'unit_price', 'unit_cost', 'inventory_movement_id'])
+            ->withPivot(['quantity_used', 'unit', 'label', 'source', 'unit_price', 'unit_cost', 'inventory_movement_id'])
             ->withTimestamps();
     }
 
@@ -248,6 +256,7 @@ class ShopOrder extends Model
             ($this->actual_weight_kg * $this->price_per_kg)
             + $this->additional_charges
             + $this->delivery_fee
+            + $this->pickup_fee
             - $this->discount_amount;
 
         return $this;
@@ -296,6 +305,11 @@ class ShopOrder extends Model
      */
     public function priceIsConfirmed(): bool
     {
+        // Products are priced when the order is placed; nothing is weighed.
+        if ($this->isProductOrder()) {
+            return true;
+        }
+
         // An online customer has to accept the shop's weight before the price is final.
         if ($this->awaitingWeightApproval()) {
             return false;
@@ -315,6 +329,12 @@ class ShopOrder extends Model
     }
 
     /** An online order whose shop-entered weight the customer has not approved yet. */
+    /** A retail-products-only order: no laundry service, collected at the shop. */
+    public function isProductOrder(): bool
+    {
+        return $this->order_type === 'products';
+    }
+
     public function awaitingWeightApproval(): bool
     {
         return $this->order_source === 'online'

@@ -7,9 +7,22 @@ import {
 } from '@/components/data-table';
 import CompleteOrderDialog from '@/components/shop/CompleteOrderDialog.vue';
 import { type OrderPayment } from '@/components/shop/OrderPaymentsCard.vue';
+import OrderReadyNotice, {
+    type SmsNotice,
+} from '@/components/shop/OrderReadyNotice.vue';
 import OrderReceiptDialog, {
     type OrderReceipt,
 } from '@/components/shop/OrderReceiptDialog.vue';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePermissions } from '@/composables/usePermissions';
@@ -32,6 +45,7 @@ import {
     ReceiptText,
     Truck,
     Undo2,
+    XCircle,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -43,6 +57,8 @@ interface Supply {
     pivot: {
         quantity_used: number;
         unit: string;
+        /** The name the customer bought it under, e.g. "Softener 1L bottle × 2". */
+        label?: string | null;
     };
 }
 
@@ -50,6 +66,8 @@ interface Order {
     id: number;
     payment_public_id: string;
     order_number: string;
+    /** 'products': retail products only, collected at the shop. */
+    order_type?: 'laundry' | 'products';
     customer_name: string;
     customer_phone: string | null;
     alternate_contact_name?: string | null;
@@ -99,6 +117,8 @@ const props = defineProps<{
     payments: OrderPayment[];
     receipt: OrderReceipt;
     openReceipt?: boolean;
+    smsNotice: SmsNotice;
+    readyPrompt?: boolean;
     deliveryOption: {
         offers_delivery: boolean;
         can_send: boolean;
@@ -203,9 +223,51 @@ const statusSteps = [
 ];
 // Completing by hand: the order must be in progress, and its price final. An unweighed order is
 // sent to Edit to enter the actual weight first.
-const canComplete = computed(
-    () => canManage.value && props.shopOrder.status === 'in_progress',
+const isProductOrder = computed(
+    () => props.shopOrder.order_type === 'products',
 );
+// A products order only has to be put together, so it can be marked ready straight from pending.
+const canComplete = computed(
+    () =>
+        canManage.value &&
+        (props.shopOrder.status === 'in_progress' ||
+            (isProductOrder.value && props.shopOrder.status === 'pending')),
+);
+
+// ─── Products order: hand over or cancel ───────────
+
+const canHandOver = computed(
+    () =>
+        canManage.value &&
+        isProductOrder.value &&
+        props.shopOrder.status === 'completed',
+);
+const canCancelProducts = computed(
+    () =>
+        canManage.value &&
+        isProductOrder.value &&
+        !['cancelled', 'picked_up'].includes(props.shopOrder.status),
+);
+const confirmingCancel = ref(false);
+
+function setProductOrderStatus(status: 'picked_up' | 'cancelled') {
+    router.patch(
+        `${base.value}/${props.shopOrder.payment_public_id}/status`,
+        { status },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                confirmingCancel.value = false;
+            },
+            onError: (errors) =>
+                toast.error(
+                    errors.status ??
+                        errors.supplies ??
+                        'The order status could not be changed.',
+                ),
+        },
+    );
+}
 const showCompleteDialog = ref(false);
 const completeDialogMode = ref<'complete' | 'revert'>('complete');
 
@@ -412,7 +474,7 @@ const statusIcon = (s: string) =>
                     </div>
                 </div>
                 <div class="flex shrink-0 flex-wrap justify-end gap-2">
-                    <Button variant="outline" @click="router.visit(base)">
+                    <Button variant="back" @click="router.visit(base)">
                         <ArrowLeft class="mr-2 h-4 w-4" /> Back to orders
                     </Button>
                     <Button variant="outline" @click="receiptOpen = true">
@@ -426,10 +488,29 @@ const statusIcon = (s: string) =>
                         <Undo2 class="mr-2 h-4 w-4" /> Revert to in progress
                     </Button>
                     <Button v-if="canComplete" @click="startComplete">
-                        <CheckCheck class="mr-2 h-4 w-4" /> Mark as completed
+                        <CheckCheck class="mr-2 h-4 w-4" />
+                        {{
+                            isProductOrder
+                                ? 'Mark ready for pickup'
+                                : 'Mark as completed'
+                        }}
                     </Button>
                     <Button
-                        v-if="canManage"
+                        v-if="canHandOver"
+                        @click="setProductOrderStatus('picked_up')"
+                    >
+                        <PackageCheck class="mr-2 h-4 w-4" /> Mark as picked up
+                    </Button>
+                    <Button
+                        v-if="canCancelProducts"
+                        variant="outline"
+                        class="text-red-600 hover:text-red-700"
+                        @click="confirmingCancel = true"
+                    >
+                        <XCircle class="mr-2 h-4 w-4" /> Cancel order
+                    </Button>
+                    <Button
+                        v-if="canManage && !isProductOrder"
                         @click="
                             router.visit(
                                 `${base}/${shopOrder.payment_public_id}/edit`,
@@ -597,6 +678,17 @@ const statusIcon = (s: string) =>
                     </div>
                 </div>
             </div>
+            <!-- Laundry done: tell the customer (pickup at the shop or delivery) -->
+            <OrderReadyNotice
+                v-if="shopOrder.status === 'completed'"
+                :notice="smsNotice"
+                :customer-name="shopOrder.customer_name"
+                :url="`${base}/${shopOrder.payment_public_id}/notify-ready`"
+                :can-manage="canManage"
+                :prompt="readyPrompt"
+                :delivery="!!shopOrder.deliver_to_customer"
+            />
+
             <div
                 v-if="isAwaitingWeight"
                 class="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -725,8 +817,8 @@ const statusIcon = (s: string) =>
                         </dl>
                     </section>
 
-                    <!-- Service and weight -->
-                    <section class="border-t pt-8">
+                    <!-- Service and weight (a products order has neither) -->
+                    <section v-if="!isProductOrder" class="border-t pt-8">
                         <h3 class="text-base font-semibold">
                             Service and weight
                         </h3>
@@ -1051,7 +1143,9 @@ const statusIcon = (s: string) =>
 
                     <!-- Supplies -->
                     <section class="border-t pt-8">
-                        <h3 class="text-base font-semibold">Supplies used</h3>
+                        <h3 class="text-base font-semibold">
+                            {{ isProductOrder ? 'Products' : 'Supplies used' }}
+                        </h3>
                         <div class="mt-4">
                             <DataTable
                                 :headers="supplyHeaders"
@@ -1065,7 +1159,7 @@ const statusIcon = (s: string) =>
                             >
                                 <template #item-name="supply">
                                     <span class="font-medium">{{
-                                        supply.name
+                                        supply.pivot.label || supply.name
                                     }}</span>
                                 </template>
                                 <template #item-quantity_used="supply">
@@ -1230,18 +1324,20 @@ const statusIcon = (s: string) =>
                             >
                         </div>
                     </div>
-                    <div class="mt-4 border-t pt-4">
+                    <div
+                        v-if="
+                            shopOrder.payment_status !== 'unpaid' &&
+                            orderPaymentMethod
+                        "
+                        class="mt-4 border-t pt-4"
+                    >
                         <p
                             class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                         >
                             Payment method
                         </p>
                         <p class="mt-1 text-sm">
-                            {{
-                                orderPaymentMethod
-                                    ? methodLabel(orderPaymentMethod)
-                                    : 'Not paid yet'
-                            }}
+                            {{ methodLabel(orderPaymentMethod) }}
                         </p>
                     </div>
                     <div class="mt-4 space-y-3 border-t pt-4 text-sm">
@@ -1283,6 +1379,31 @@ const statusIcon = (s: string) =>
                 </aside>
             </div>
         </div>
+        <AlertDialog
+            :open="confirmingCancel"
+            @update:open="confirmingCancel = $event"
+        >
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Order {{ shopOrder.order_number }} is cancelled and its
+                        products go back into stock. Any payment already
+                        received is recorded as a refund.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Keep order</AlertDialogCancel>
+                    <AlertDialogAction
+                        class="bg-red-600 hover:bg-red-700"
+                        @click="setProductOrderStatus('cancelled')"
+                    >
+                        Cancel order
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
         <CompleteOrderDialog
             v-model:open="showCompleteDialog"
             :mode="completeDialogMode"

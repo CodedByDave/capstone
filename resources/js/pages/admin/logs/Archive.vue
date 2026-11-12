@@ -14,22 +14,9 @@ import {
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { usePaginatorTable } from '@/composables/useDataTable';
-import {
-    ArchiveRestore,
-    ArrowLeft,
-    ShieldCheck,
-    Trash2,
-} from 'lucide-vue-next';
+import { ArchiveRestore, ArrowLeft, ShieldCheck } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -189,37 +176,6 @@ function bulkRestore() {
     );
 }
 
-// ─── Force Delete ─────────────────────────────────────────────────────────────
-
-const deleteLog = ref<AuditLog | null>(null);
-const deleteOpen = ref(false);
-
-function openDelete(log: AuditLog) {
-    deleteLog.value = log;
-    deleteOpen.value = true;
-}
-function cancelDelete() {
-    deleteOpen.value = false;
-    setTimeout(() => {
-        deleteLog.value = null;
-    }, 200);
-}
-
-function confirmDelete() {
-    if (!deleteLog.value) return;
-    router.delete(
-        `/admin/audit-logs/archive/${deleteLog.value.category}/${deleteLog.value.record_id}`,
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Log permanently deleted.');
-                deleteOpen.value = false;
-            },
-            onError: () => toast.error('Failed to delete.'),
-        },
-    );
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string) {
@@ -287,7 +243,7 @@ const roleBadge: Record<string, string> = {
                             </h2>
                             <Button
                                 size="sm"
-                                variant="outline"
+                                variant="back"
                                 @click="router.visit('/admin/audit-logs')"
                             >
                                 <ArrowLeft class="mr-1.5 h-4 w-4" /> Back to
@@ -389,37 +345,10 @@ const roleBadge: Record<string, string> = {
                                 icon: ArchiveRestore,
                                 onSelect: () => restore(log),
                             },
-                            {
-                                label: 'Delete permanently',
-                                icon: Trash2,
-                                destructive: true,
-                                onSelect: () => openDelete(log),
-                            },
                         ]"
                     />
                 </template>
             </DataTable>
         </div>
-
-        <!-- Permanent delete confirm -->
-        <AlertDialog v-model:open="deleteOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Permanently Delete Log</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This log will be permanently removed and cannot be
-                        recovered.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="cancelDelete"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmDelete"
-                        >Delete Forever</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </AdminLayout>
 </template>

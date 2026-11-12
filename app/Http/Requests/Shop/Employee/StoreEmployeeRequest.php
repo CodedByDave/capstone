@@ -4,20 +4,29 @@ namespace App\Http\Requests\Shop\Employee;
 
 use App\Enums\EmploymentType;
 use App\Enums\PayBasis;
+use App\Http\Requests\Shop\Employee\Concerns\ValidatesRiderDetails;
 use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreEmployeeRequest extends FormRequest
 {
+    use ValidatesRiderDetails;
+
     public function authorize(): bool
     {
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->prepareRiderDetails();
+    }
+
     public function rules(): array
     {
         return [
+            ...$this->riderDetailRules(),
             'employee_id' => 'required|string|max:50|unique:employees,employee_id',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -42,6 +51,7 @@ class StoreEmployeeRequest extends FormRequest
     public function messages(): array
     {
         return [
+            ...$this->riderDetailMessages(),
             'employee_id.required' => 'Employee ID is required.',
             'employee_id.unique' => 'This Employee ID is already taken.',
             'first_name.required' => 'First name is required.',

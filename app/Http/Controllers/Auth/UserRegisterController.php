@@ -36,14 +36,9 @@ class UserRegisterController extends Controller
      */
     public function store(RegisterUserRequest $request)
     {
-        // Customers can only sign up through a shop's QR code.
+        // Anyone can sign up and order from any shop. A shop QR code, when scanned, only makes
+        // that shop the customer's home shop.
         $shop = $this->referrals->findJoinableShopById(session('referral_shop_id'));
-
-        if (! $shop) {
-            return back()->withInput()->withErrors([
-                'email' => "Scan a laundry shop's QR code to create your account.",
-            ]);
-        }
 
         try {
             Log::info('User registration started', ['email' => $request->email]);
@@ -58,7 +53,7 @@ class UserRegisterController extends Controller
                         'google_id' => $request->google_id,
                         'otp_verified' => true,
                         'registration_type' => 'user',
-                        'referred_shop_id' => $shop->id,
+                        'referred_shop_id' => $shop?->id,
                     ],
                 ]);
 
@@ -83,7 +78,7 @@ class UserRegisterController extends Controller
                     'otp_code' => $otp,
                     'otp_expires_at' => now()->addMinutes(10)->toDateTimeString(),
                     'registration_type' => 'user',
-                    'referred_shop_id' => $shop->id,
+                    'referred_shop_id' => $shop?->id,
                 ],
             ]);
 

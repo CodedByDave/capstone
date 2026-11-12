@@ -20,6 +20,17 @@ class DefaultRoleProvisioner
     }
 
     /**
+     * Create the rider role for a shop that offers pickup or delivery, so the owner can
+     * hire riders right away. Turning logistics off later keeps the role and its riders.
+     */
+    public function provisionLogisticsRoles(int $shopId, bool $offersPickup, bool $offersDelivery): void
+    {
+        if ($offersPickup || $offersDelivery) {
+            $this->provisionRole($shopId, DefaultRolePermissions::RIDER_ROLE);
+        }
+    }
+
+    /**
      * Ensure a role exists and, when it has no permissions yet, apply its preset.
      * Roles that already have permissions are left alone so owner customisations survive.
      */

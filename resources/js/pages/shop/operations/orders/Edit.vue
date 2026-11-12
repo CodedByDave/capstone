@@ -70,6 +70,7 @@ interface Order {
     additional_charges: string;
     discount_amount: string;
     delivery_fee?: string | null;
+    pickup_fee?: string | null;
     total_amount: string;
     payment_method: string | null;
     payment_status: string;
@@ -258,6 +259,11 @@ const deliveryFee = computed(
     () => parseFloat(String(props.shopOrder.delivery_fee ?? 0)) || 0,
 );
 
+// Charged when the customer booked a rider pickup online; the server keeps it in the total too.
+const pickupFee = computed(
+    () => parseFloat(String(props.shopOrder.pickup_fee ?? 0)) || 0,
+);
+
 // The order keeps the tax rate it was placed with (0 for orders from before tax was added).
 const taxRate = computed(
     () =>
@@ -289,7 +295,8 @@ const taxAmount = computed(
 );
 
 const computedTotal = computed(
-    () => subtotal.value + taxAmount.value + deliveryFee.value,
+    () =>
+        subtotal.value + taxAmount.value + deliveryFee.value + pickupFee.value,
 );
 
 const formatServiceLabel = (svc: Service) => {
@@ -513,7 +520,7 @@ const balanceDue = computed(() =>
                         {{ shopOrder.customer_name }}
                     </p>
                 </div>
-                <Button variant="outline" @click="router.visit(base)">
+                <Button variant="back" @click="router.visit(base)">
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back to orders
                 </Button>
             </div>
@@ -1524,6 +1531,17 @@ const balanceDue = computed(() =>
                                 </dt>
                                 <dd class="font-medium">
                                     {{ formatCurrency(taxAmount) }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="pickupFee > 0"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    Pickup fee
+                                </dt>
+                                <dd class="font-medium">
+                                    {{ formatCurrency(pickupFee) }}
                                 </dd>
                             </div>
                             <div

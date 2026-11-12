@@ -363,16 +363,14 @@ const categoryClass = (value: string) =>
                             >
                             <Button
                                 size="sm"
-                                variant="outline"
-                                class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                                variant="success-outline"
                                 @click="exportCsv"
                             >
                                 <Download class="mr-1.5 h-4 w-4" />Export CSV
                             </Button>
                             <Button
                                 size="sm"
-                                variant="outline"
-                                class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                                variant="primary-outline"
                                 :disabled="importing"
                                 @click="importInput?.click()"
                             >

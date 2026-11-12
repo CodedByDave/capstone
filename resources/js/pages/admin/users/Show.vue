@@ -69,7 +69,7 @@ function initials(name: string) {
 
     <AdminLayout title="User Details">
         <div class="mx-auto max-w-5xl space-y-6">
-            <Button variant="outline" @click="router.visit('/admin/users')">
+            <Button variant="back" @click="router.visit('/admin/users')">
                 <ArrowLeft class="mr-2 h-4 w-4" />
                 Back to Users
             </Button>

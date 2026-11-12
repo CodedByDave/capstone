@@ -50,7 +50,6 @@ test('audit log mutations are delegated to the repository', function () {
         $mock->shouldReceive('bulkArchive')->once()->with($entries);
         $mock->shouldReceive('restore')->once()->with('authentication', 10);
         $mock->shouldReceive('bulkRestore')->once()->with($entries);
-        $mock->shouldReceive('forceDelete')->once()->with('activity', 20);
     });
     $service = new AuditLogService($repository);
 
@@ -58,5 +57,4 @@ test('audit log mutations are delegated to the repository', function () {
     $service->bulkArchive($entries);
     $service->restore('authentication', 10);
     $service->bulkRestore($entries);
-    $service->forceDelete('activity', 20);
 });

@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/shop/logistics/{delivery}/status'
  */
 const updateStatus1ffca2da8efc04d587dcae171408480e = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -178,7 +178,7 @@ updateStatus1ffca2da8efc04d587dcae171408480e.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/shop/logistics/{delivery}/status'
  */
 updateStatus1ffca2da8efc04d587dcae171408480e.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -211,7 +211,7 @@ updateStatus1ffca2da8efc04d587dcae171408480e.url = (args: { delivery: string | {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/shop/logistics/{delivery}/status'
  */
 updateStatus1ffca2da8efc04d587dcae171408480e.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -221,7 +221,7 @@ updateStatus1ffca2da8efc04d587dcae171408480e.patch = (args: { delivery: string |
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/shop/logistics/{delivery}/status'
  */
     const updateStatus1ffca2da8efc04d587dcae171408480eForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -236,7 +236,7 @@ updateStatus1ffca2da8efc04d587dcae171408480e.patch = (args: { delivery: string |
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/shop/logistics/{delivery}/status'
  */
         updateStatus1ffca2da8efc04d587dcae171408480eForm.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -252,7 +252,7 @@ updateStatus1ffca2da8efc04d587dcae171408480e.patch = (args: { delivery: string |
     updateStatus1ffca2da8efc04d587dcae171408480e.form = updateStatus1ffca2da8efc04d587dcae171408480eForm
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/staff/logistics/{delivery}/status'
  */
 const updateStatusa79980c9d3025ea33828fbc3a3b8686f = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -267,7 +267,7 @@ updateStatusa79980c9d3025ea33828fbc3a3b8686f.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/staff/logistics/{delivery}/status'
  */
 updateStatusa79980c9d3025ea33828fbc3a3b8686f.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -300,7 +300,7 @@ updateStatusa79980c9d3025ea33828fbc3a3b8686f.url = (args: { delivery: string | {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/staff/logistics/{delivery}/status'
  */
 updateStatusa79980c9d3025ea33828fbc3a3b8686f.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -310,7 +310,7 @@ updateStatusa79980c9d3025ea33828fbc3a3b8686f.patch = (args: { delivery: string |
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/staff/logistics/{delivery}/status'
  */
     const updateStatusa79980c9d3025ea33828fbc3a3b8686fForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -325,7 +325,7 @@ updateStatusa79980c9d3025ea33828fbc3a3b8686f.patch = (args: { delivery: string |
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::updateStatus
- * @see app/Http/Controllers/Shop/LogisticsController.php:34
+ * @see app/Http/Controllers/Shop/LogisticsController.php:37
  * @route '/staff/logistics/{delivery}/status'
  */
         updateStatusa79980c9d3025ea33828fbc3a3b8686fForm.patch = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -347,7 +347,7 @@ export const updateStatus = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/shop/logistics/{delivery}/dropped-off'
  */
 const markDroppedOffc32f48a098c2d2d8c04b7be8095f902d = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -362,7 +362,7 @@ markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/shop/logistics/{delivery}/dropped-off'
  */
 markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -395,7 +395,7 @@ markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.url = (args: { delivery: string |
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/shop/logistics/{delivery}/dropped-off'
  */
 markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.post = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -405,7 +405,7 @@ markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.post = (args: { delivery: string 
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/shop/logistics/{delivery}/dropped-off'
  */
     const markDroppedOffc32f48a098c2d2d8c04b7be8095f902dForm = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -415,7 +415,7 @@ markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.post = (args: { delivery: string 
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/shop/logistics/{delivery}/dropped-off'
  */
         markDroppedOffc32f48a098c2d2d8c04b7be8095f902dForm.post = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -426,7 +426,7 @@ markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.post = (args: { delivery: string 
     markDroppedOffc32f48a098c2d2d8c04b7be8095f902d.form = markDroppedOffc32f48a098c2d2d8c04b7be8095f902dForm
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/staff/logistics/{delivery}/dropped-off'
  */
 const markDroppedOffd41b2282daed7cf7ed7e799d74cbc456 = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -441,7 +441,7 @@ markDroppedOffd41b2282daed7cf7ed7e799d74cbc456.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/staff/logistics/{delivery}/dropped-off'
  */
 markDroppedOffd41b2282daed7cf7ed7e799d74cbc456.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -474,7 +474,7 @@ markDroppedOffd41b2282daed7cf7ed7e799d74cbc456.url = (args: { delivery: string |
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/staff/logistics/{delivery}/dropped-off'
  */
 markDroppedOffd41b2282daed7cf7ed7e799d74cbc456.post = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -484,7 +484,7 @@ markDroppedOffd41b2282daed7cf7ed7e799d74cbc456.post = (args: { delivery: string 
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/staff/logistics/{delivery}/dropped-off'
  */
     const markDroppedOffd41b2282daed7cf7ed7e799d74cbc456Form = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -494,7 +494,7 @@ markDroppedOffd41b2282daed7cf7ed7e799d74cbc456.post = (args: { delivery: string 
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::markDroppedOff
- * @see app/Http/Controllers/Shop/LogisticsController.php:41
+ * @see app/Http/Controllers/Shop/LogisticsController.php:44
  * @route '/staff/logistics/{delivery}/dropped-off'
  */
         markDroppedOffd41b2282daed7cf7ed7e799d74cbc456Form.post = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -511,7 +511,7 @@ export const markDroppedOff = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/shop/logistics/{delivery}'
  */
 const destroy355db6d2b756353d8258e69819b2d863 = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -526,7 +526,7 @@ destroy355db6d2b756353d8258e69819b2d863.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/shop/logistics/{delivery}'
  */
 destroy355db6d2b756353d8258e69819b2d863.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -559,7 +559,7 @@ destroy355db6d2b756353d8258e69819b2d863.url = (args: { delivery: string | { publ
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/shop/logistics/{delivery}'
  */
 destroy355db6d2b756353d8258e69819b2d863.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -569,7 +569,7 @@ destroy355db6d2b756353d8258e69819b2d863.delete = (args: { delivery: string | { p
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/shop/logistics/{delivery}'
  */
     const destroy355db6d2b756353d8258e69819b2d863Form = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -584,7 +584,7 @@ destroy355db6d2b756353d8258e69819b2d863.delete = (args: { delivery: string | { p
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/shop/logistics/{delivery}'
  */
         destroy355db6d2b756353d8258e69819b2d863Form.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -600,7 +600,7 @@ destroy355db6d2b756353d8258e69819b2d863.delete = (args: { delivery: string | { p
     destroy355db6d2b756353d8258e69819b2d863.form = destroy355db6d2b756353d8258e69819b2d863Form
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/staff/logistics/{delivery}'
  */
 const destroy6121edffe76da4e7750d19627da92246 = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -615,7 +615,7 @@ destroy6121edffe76da4e7750d19627da92246.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/staff/logistics/{delivery}'
  */
 destroy6121edffe76da4e7750d19627da92246.url = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -648,7 +648,7 @@ destroy6121edffe76da4e7750d19627da92246.url = (args: { delivery: string | { publ
 
 /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/staff/logistics/{delivery}'
  */
 destroy6121edffe76da4e7750d19627da92246.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -658,7 +658,7 @@ destroy6121edffe76da4e7750d19627da92246.delete = (args: { delivery: string | { p
 
     /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/staff/logistics/{delivery}'
  */
     const destroy6121edffe76da4e7750d19627da92246Form = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -673,7 +673,7 @@ destroy6121edffe76da4e7750d19627da92246.delete = (args: { delivery: string | { p
 
             /**
 * @see \App\Http\Controllers\Shop\LogisticsController::destroy
- * @see app/Http/Controllers/Shop/LogisticsController.php:48
+ * @see app/Http/Controllers/Shop/LogisticsController.php:51
  * @route '/staff/logistics/{delivery}'
  */
         destroy6121edffe76da4e7750d19627da92246Form.delete = (args: { delivery: string | { public_id: string } } | [delivery: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -693,6 +693,160 @@ export const destroy = {
     '/staff/logistics/{delivery}': destroy6121edffe76da4e7750d19627da92246,
 }
 
-const LogisticsController = { index, updateStatus, markDroppedOff, destroy }
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/shop/logistics/{publicId}/restore'
+ */
+const restored1b2fb9831e330c228cf77300773ecec = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restored1b2fb9831e330c228cf77300773ecec.url(args, options),
+    method: 'post',
+})
+
+restored1b2fb9831e330c228cf77300773ecec.definition = {
+    methods: ["post"],
+    url: '/shop/logistics/{publicId}/restore',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/shop/logistics/{publicId}/restore'
+ */
+restored1b2fb9831e330c228cf77300773ecec.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { publicId: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    publicId: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        publicId: args.publicId,
+                }
+
+    return restored1b2fb9831e330c228cf77300773ecec.definition.url
+            .replace('{publicId}', parsedArgs.publicId.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/shop/logistics/{publicId}/restore'
+ */
+restored1b2fb9831e330c228cf77300773ecec.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restored1b2fb9831e330c228cf77300773ecec.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/shop/logistics/{publicId}/restore'
+ */
+    const restored1b2fb9831e330c228cf77300773ececForm = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restored1b2fb9831e330c228cf77300773ecec.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/shop/logistics/{publicId}/restore'
+ */
+        restored1b2fb9831e330c228cf77300773ececForm.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restored1b2fb9831e330c228cf77300773ecec.url(args, options),
+            method: 'post',
+        })
+    
+    restored1b2fb9831e330c228cf77300773ecec.form = restored1b2fb9831e330c228cf77300773ececForm
+    /**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/staff/logistics/{publicId}/restore'
+ */
+const restorea83e261fe88b824e2fda823e72f2291e = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restorea83e261fe88b824e2fda823e72f2291e.url(args, options),
+    method: 'post',
+})
+
+restorea83e261fe88b824e2fda823e72f2291e.definition = {
+    methods: ["post"],
+    url: '/staff/logistics/{publicId}/restore',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/staff/logistics/{publicId}/restore'
+ */
+restorea83e261fe88b824e2fda823e72f2291e.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { publicId: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    publicId: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        publicId: args.publicId,
+                }
+
+    return restorea83e261fe88b824e2fda823e72f2291e.definition.url
+            .replace('{publicId}', parsedArgs.publicId.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/staff/logistics/{publicId}/restore'
+ */
+restorea83e261fe88b824e2fda823e72f2291e.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restorea83e261fe88b824e2fda823e72f2291e.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/staff/logistics/{publicId}/restore'
+ */
+    const restorea83e261fe88b824e2fda823e72f2291eForm = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restorea83e261fe88b824e2fda823e72f2291e.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\LogisticsController::restore
+ * @see app/Http/Controllers/Shop/LogisticsController.php:58
+ * @route '/staff/logistics/{publicId}/restore'
+ */
+        restorea83e261fe88b824e2fda823e72f2291eForm.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restorea83e261fe88b824e2fda823e72f2291e.url(args, options),
+            method: 'post',
+        })
+    
+    restorea83e261fe88b824e2fda823e72f2291e.form = restorea83e261fe88b824e2fda823e72f2291eForm
+
+export const restore = {
+    '/shop/logistics/{publicId}/restore': restored1b2fb9831e330c228cf77300773ecec,
+    '/staff/logistics/{publicId}/restore': restorea83e261fe88b824e2fda823e72f2291e,
+}
+
+const LogisticsController = { index, updateStatus, markDroppedOff, destroy, restore }
 
 export default LogisticsController

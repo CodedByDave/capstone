@@ -25,6 +25,7 @@ class ShopDeliveryPricingService
     public function __construct(
         private readonly ShopRepository $shops,
         private readonly RiderRepository $riders,
+        private readonly RiderLoadLimitService $riderLoad,
     ) {}
 
     public function pageData(User $owner): array
@@ -81,21 +82,29 @@ class ShopDeliveryPricingService
     }
 
     /**
-     * The weight range one rider run can carry, where a null side means no limit on that side, and
-     * the vehicle the shop's riders use. The vehicle is left alone when none is given.
+     * The load capacity of each rider vehicle type and the vehicle the shop's riders use. The
+     * vehicle in use decides the enforced range (rider_min/max_weight_kg); a null side means no
+     * limit on that side. Without a vehicle, the min/max apply to the vehicle already in use.
      *
      * @param  list<string>|null  $vehicleTypes
+     * @param  list<array{type: string, min?: mixed, max?: mixed}>|null  $vehicleLimits
      */
-    public function updateRiderLoadLimit(User $owner, ?float $min, ?float $max, ?string $vehicleType = null, ?array $vehicleTypes = null): Shop
+    public function updateRiderLoadLimit(User $owner, ?float $min, ?float $max, ?string $vehicleType = null, ?array $vehicleTypes = null, ?array $vehicleLimits = null): Shop
     {
         $shop = $this->shopForOwner($owner);
+        $changesVehicle = $vehicleType !== null;
+        $vehicleType ??= $shop->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE;
+        $vehicleTypes = $changesVehicle ? $vehicleTypes : ($shop->rider_vehicle_types ?: [Shop::DEFAULT_RIDER_VEHICLE_TYPE]);
+
+        $limits = $this->riderLoad->vehicleLimitsAfterSave($shop, $vehicleTypes, $vehicleType, $vehicleLimits, $min, $max);
 
         $values = [
-            'rider_min_weight_kg' => $min === null ? null : round($min, 2),
-            'rider_max_weight_kg' => $max === null ? null : round($max, 2),
+            'rider_vehicle_limits' => $limits,
+            'rider_min_weight_kg' => $limits[$vehicleType]['min'],
+            'rider_max_weight_kg' => $limits[$vehicleType]['max'],
         ];
 
-        if ($vehicleType === null) {
+        if (! $changesVehicle) {
             return $this->shops->updateDeliveryPricing($shop, $values);
         }
 

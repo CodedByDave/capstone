@@ -62,12 +62,7 @@ function submit() {
     <Button
         type="button"
         size="sm"
-        variant="outline"
-        :class="
-            isArchive
-                ? 'border-red-300 text-red-600 hover:bg-red-50'
-                : 'border-green-300 text-green-600 hover:bg-green-50'
-        "
+        :variant="isArchive ? 'warning-outline' : 'success-outline'"
         @click="open = true"
     >
         <component
@@ -98,7 +93,7 @@ function submit() {
                     Cancel
                 </Button>
                 <Button
-                    :variant="isArchive ? 'destructive' : 'default'"
+                    :variant="isArchive ? 'warning' : 'success'"
                     :disabled="processing"
                     @click="submit"
                 >

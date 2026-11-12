@@ -6,11 +6,14 @@ use App\Casts\PhilippinePhoneCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Delivery extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'shop_id', 'shop_order_id', 'type', 'rider_id',
         'customer_name', 'customer_phone', 'customer_email', 'delivery_address',
@@ -34,8 +37,9 @@ class Delivery extends Model
             $delivery->driver_token = Str::random(48);
         });
 
-        // The proof photo rows cascade with the delivery; their files must go too.
-        static::deleting(function (self $delivery) {
+        // Archiving keeps the proof photos. Only a permanent delete cascades the photo rows,
+        // and then their files must go too.
+        static::forceDeleting(function (self $delivery) {
             $delivery->photos->each(fn (DeliveryPhoto $photo) => Storage::disk('private')->delete($photo->path));
         });
     }

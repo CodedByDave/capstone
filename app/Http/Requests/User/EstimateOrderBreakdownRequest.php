@@ -22,7 +22,15 @@ class EstimateOrderBreakdownRequest extends FormRequest
             'additional_items' => ['nullable', 'array', 'max:20'],
             'additional_items.*.id' => ['required', 'integer'],
             'additional_items.*.count' => ['required', 'integer', 'min:1', 'max:10'],
+            // Retail products bought with the order; the order service checks the shop really sells them.
+            'retail_items' => ['nullable', 'array', 'max:20'],
+            'retail_items.*.id' => ['required', 'integer'],
+            'retail_items.*.count' => ['required', 'integer', 'min:1', 'max:10'],
             'promotion_id' => ['nullable', 'integer', Rule::exists('promotions', 'id')->where('shop_id', $this->input('shop_id'))],
+            // A rider pickup adds the pickup fee, priced from the pinned address when it is per kilometer.
+            'pickup_type' => ['nullable', 'in:walk_in,pickup'],
+            'customer_lat' => ['nullable', 'required_with:customer_lng', 'numeric', 'between:-90,90'],
+            'customer_lng' => ['nullable', 'required_with:customer_lat', 'numeric', 'between:-180,180'],
         ];
     }
 }

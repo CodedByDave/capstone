@@ -144,11 +144,6 @@ class AuditLogRepository
         });
     }
 
-    public function forceDelete(string $category, int $id): void
-    {
-        $this->modelFor($category)->onlyTrashed()->findOrFail($id)->forceDelete();
-    }
-
     private function filteredQuery(array $filters, bool $archived = false): Builder
     {
         $query = DB::query()->fromSub($this->unionQuery($archived), 'audit_entries');

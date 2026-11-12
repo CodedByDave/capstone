@@ -210,9 +210,4 @@ class UserManagementService
     {
         $this->userRepository->bulkRestore($ids);
     }
-
-    public function forceDelete(int $id): void
-    {
-        $this->userRepository->forceDelete($id);
-    }
 }

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
+import type { VisitOptions } from '@inertiajs/core';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import RiderDetailsFields from '@/components/business/RiderDetailsFields.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -39,6 +41,13 @@ interface Employee {
     status: 'Active' | 'Inactive';
 }
 
+interface RiderProfile {
+    vehicle_ownership: 'shop' | 'own';
+    vehicle_type: string | null;
+    plate_number: string | null;
+    has_license: boolean;
+}
+
 interface Schedule {
     id: number;
     day: string;
@@ -58,12 +67,19 @@ interface EmploymentTypeOption {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-const { employee, schedules: initialSchedules } = defineProps<{
+const {
+    employee,
+    schedules: initialSchedules,
+    rider: riderProfile,
+    vehicle_types,
+} = defineProps<{
     employee: Employee;
     schedules: Schedule[];
     roles: string[];
     employment_types: EmploymentTypeOption[];
     pay_bases: EmploymentTypeOption[];
+    rider: RiderProfile;
+    vehicle_types: string[];
 }>();
 
 // ─── RBAC ─────────────────────────────────────────────────────────────────────
@@ -208,6 +224,33 @@ const form = ref({
     status: employee.status,
 });
 
+// ─── Rider details (only for the Rider / Driver position) ────────────────────
+
+const RIDER_POSITIONS = ['rider', 'driver'];
+const isRider = computed(() =>
+    RIDER_POSITIONS.includes((form.value.position ?? '').trim().toLowerCase()),
+);
+
+const rider = ref({
+    vehicle_ownership: riderProfile.vehicle_ownership ?? 'shop',
+    vehicle_type:
+        riderProfile.vehicle_type ??
+        (vehicle_types.length === 1 ? vehicle_types[0] : ''),
+    plate_number: riderProfile.plate_number ?? '',
+    license_photo: null as File | null,
+});
+
+/** Plate and license are sent only for the rider's own vehicle. */
+function riderPayload() {
+    if (!isRider.value) return {};
+    const { vehicle_ownership, vehicle_type, plate_number, license_photo } =
+        rider.value;
+
+    return vehicle_ownership === 'own'
+        ? { vehicle_ownership, vehicle_type, plate_number, license_photo }
+        : { vehicle_ownership, vehicle_type };
+}
+
 const isSubmitting = ref(false);
 
 // ─── Change tracking (drives the Save button and status text) ────────────────
@@ -215,6 +258,14 @@ const isSubmitting = ref(false);
 const snapshot = () =>
     JSON.stringify({
         form: { ...form.value, address: '' },
+        rider: isRider.value
+            ? {
+                  vehicle_ownership: rider.value.vehicle_ownership,
+                  vehicle_type: rider.value.vehicle_type,
+                  plate_number: rider.value.plate_number,
+                  license: rider.value.license_photo?.name ?? null,
+              }
+            : null,
         createAccount: createAccount.value,
         street: streetInput.value,
         province: selectedProvince.value,
@@ -247,23 +298,31 @@ const initials = computed(
 function submit() {
     form.value.address = fullAddress.value;
     isSubmitting.value = true;
-    router.put(
-        `${baseRoute.value}/employee/${employee.public_id}`,
-        {
-            ...form.value,
-            create_account: createAccount.value ? 1 : 0,
+    const payload = {
+        ...form.value,
+        create_account: createAccount.value ? 1 : 0,
+        ...riderPayload(),
+    };
+    const url = `${baseRoute.value}/employee/${employee.public_id}`;
+    // PHP reads uploaded files only from POST, so a new license photo is sent
+    // as POST with the method overridden to PUT.
+    const send = (data: typeof payload, options: VisitOptions) =>
+        isRider.value &&
+        rider.value.vehicle_ownership === 'own' &&
+        rider.value.license_photo
+            ? router.post(url, { ...data, _method: 'put' }, options)
+            : router.put(url, data, options);
+
+    send(payload, {
+        preserveScroll: true,
+        onSuccess: () => {
+            baseline.value = snapshot();
+            justSaved.value = true;
         },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                baseline.value = snapshot();
-                justSaved.value = true;
-            },
-            onFinish: () => {
-                isSubmitting.value = false;
-            },
+        onFinish: () => {
+            isSubmitting.value = false;
         },
-    );
+    });
 }
 
 // ─── Schedule ─────────────────────────────────────────────────────────────────
@@ -357,7 +416,7 @@ async function saveSchedule() {
                 </div>
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="back"
                     class="shrink-0"
                     @click="router.visit(`${baseRoute}/employee`)"
                 >
@@ -702,6 +761,18 @@ async function saveSchedule() {
                             </div>
                         </div>
                     </section>
+
+                    <RiderDetailsFields
+                        v-if="isRider"
+                        v-model:vehicle-ownership="rider.vehicle_ownership"
+                        v-model:vehicle-type="rider.vehicle_type"
+                        v-model:plate-number="rider.plate_number"
+                        v-model:license-photo="rider.license_photo"
+                        :vehicle-types="vehicle_types"
+                        :errors="errors"
+                        :has-license="riderProfile.has_license"
+                        :license-url="`${baseRoute}/employee/${employee.public_id}/license`"
+                    />
 
                     <!-- Address -->
                     <section class="border-t pt-8">

@@ -252,7 +252,7 @@ const paymentStatusLabel: Record<string, string> = {
                         {{ order.status }}
                     </span>
                     <Button
-                        variant="outline"
+                        variant="back"
                         size="sm"
                         @click="router.visit('/admin/orders')"
                     >
@@ -661,9 +661,8 @@ const paymentStatusLabel: Record<string, string> = {
                                 </p>
                             </div>
                             <Button
-                                variant="outline"
                                 size="sm"
-                                class="w-full gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
+                                class="w-full gap-2"
                                 :disabled="downloadingAgreement"
                                 @click="downloadAgreement"
                             >

@@ -171,7 +171,7 @@ function executeBulkRestore() {
             <div>
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="back"
                     @click="router.visit(`${baseRoute}/employee`)"
                 >
                     <ArrowLeft class="mr-2 h-4 w-4" />
@@ -306,7 +306,9 @@ function executeBulkRestore() {
                     <Button variant="outline" @click="showBulkConfirm = false"
                         >Cancel</Button
                     >
-                    <Button @click="executeBulkRestore">Restore</Button>
+                    <Button variant="success" @click="executeBulkRestore"
+                        >Restore</Button
+                    >
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

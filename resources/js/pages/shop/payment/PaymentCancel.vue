@@ -36,7 +36,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </p>
                     <div class="flex flex-col gap-3 pt-4 sm:flex-row">
                         <Link :href="'/shop/dashboard'" class="flex-1">
-                            <Button variant="outline" class="w-full">
+                            <Button variant="back" class="w-full">
                                 <Home class="mr-2 h-4 w-4" />
                                 Return to Dashboard
                             </Button>

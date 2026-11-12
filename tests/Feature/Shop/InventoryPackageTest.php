@@ -98,7 +98,29 @@ test('starting stock with a cost is always booked as an expense', function () {
 
     $expense = App\Models\Expense::where('title', 'Restock: Liquid detergent')->firstOrFail();
     expect((float) $expense->amount)->toBe(100.0)
-        ->and($expense->description)->toBe('2000 ml at ₱0.05 per ml');
+        ->and($expense->description)->toBe('2,000 ml');
+});
+
+test('a restock expense counts the packages bought, not the stock unit', function () {
+    $owner = packageShopOwner();
+
+    $this->actingAs($owner)->post('/shop/inventory', packageItem([
+        'quantity' => 50000,
+        'unit_price' => 0.05,
+    ]))->assertSessionHasNoErrors();
+
+    expect(App\Models\Expense::where('title', 'Restock: Liquid detergent')->value('description'))
+        ->toBe('10 bottles');
+});
+
+test('a stock amount shows whole packages plus what is left of an opened one', function () {
+    $item = new Inventory(['unit' => 'ml', 'package_unit' => 'bottle', 'package_size' => 3000]);
+
+    expect($item->describeQuantity(30000))->toBe('10 bottles')
+        ->and($item->describeQuantity(3000))->toBe('1 bottle')
+        ->and($item->describeQuantity(31500))->toBe('10 bottles + 1,500 ml')
+        ->and($item->describeQuantity(1500))->toBe('1,500 ml')
+        ->and((new Inventory(['unit' => 'pcs']))->describeQuantity(3))->toBe('3 pcs');
 });
 
 test('starting stock without a cost books no expense', function () {

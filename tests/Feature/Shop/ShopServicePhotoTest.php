@@ -75,7 +75,7 @@ test('an owner can upload a photo when creating a service', function () {
     $owner = photoShopOwner();
 
     $this->actingAs($owner)
-        ->post(route('shop.services.store'), photoServicePayload(['photo' => photoFile('wash.png')]))
+        ->post(route('shop.services.store'), photoServicePayload(['photos' => [photoFile('wash.png')]]))
         ->assertRedirect('/shop/operations/services')
         ->assertSessionHasNoErrors();
 
@@ -100,7 +100,7 @@ test('a staff member can upload a photo when creating a service', function () {
     ]);
 
     $this->withoutMiddleware()->actingAs($staff)
-        ->post(route('staff.services.store'), photoServicePayload(['photo' => photoFile('wash.png')]))
+        ->post(route('staff.services.store'), photoServicePayload(['photos' => [photoFile('wash.png')]]))
         ->assertRedirect('/staff/operations/services');
 
     $path = ShopService::firstWhere('service_name', 'Wash & Fold')->photo_path;
@@ -123,8 +123,8 @@ test('the service photo must be an image within the size limit', function (Uploa
     $owner = photoShopOwner();
 
     $this->actingAs($owner)
-        ->post(route('shop.services.store'), photoServicePayload(['photo' => $file]))
-        ->assertSessionHasErrors('photo');
+        ->post(route('shop.services.store'), photoServicePayload(['photos' => [$file]]))
+        ->assertSessionHasErrors('photos.0');
 
     expect(ShopService::count())->toBe(0);
 })->with([
@@ -133,27 +133,101 @@ test('the service photo must be an image within the size limit', function (Uploa
     'too large' => fn () => photoFile('big.png', 6 * 1024 * 1024),
 ]);
 
-test('replacing the photo deletes the old file and removing it clears the column', function () {
+test('an owner can upload up to three photos, the first becoming the cover', function () {
+    $owner = photoShopOwner();
+
+    $this->actingAs($owner)
+        ->post(route('shop.services.store'), photoServicePayload([
+            'photos' => [photoFile('a.png', 1), photoFile('b.png', 2), photoFile('c.png', 3)],
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $service = ShopService::firstWhere('service_name', 'Wash & Fold');
+    expect($service->photo_paths)->toHaveCount(3)
+        ->and($service->photo_path)->toBe($service->photo_paths[0])
+        ->and($service->photo_urls)->toHaveCount(3);
+    foreach ($service->photo_paths as $path) {
+        Storage::disk('public')->assertExists($path);
+    }
+});
+
+test('a service cannot have more than three photos', function () {
+    $owner = photoShopOwner();
+
+    $this->actingAs($owner)
+        ->post(route('shop.services.store'), photoServicePayload([
+            'photos' => [photoFile('a.png'), photoFile('b.png'), photoFile('c.png'), photoFile('d.png')],
+        ]))
+        ->assertSessionHasErrors('photos');
+
+    expect(ShopService::count())->toBe(0)
+        ->and(Storage::disk('public')->allFiles())->toBe([]);
+});
+
+test('adding photos on edit cannot go past three in total', function () {
     $owner = photoShopOwner();
     $shop = $owner->shop;
-    $old = photoFile('old.png', 1)->store("service-photos/{$shop->id}", 'public');
-    $service = photoService($shop, ['photo_path' => $old]);
+    $saved = [
+        photoFile('a.png', 1)->store("service-photos/{$shop->id}", 'public'),
+        photoFile('b.png', 2)->store("service-photos/{$shop->id}", 'public'),
+    ];
+    $service = photoService($shop, ['photo_path' => $saved[0], 'photo_paths' => $saved]);
 
     $this->actingAs($owner)
-        ->put(route('shop.services.update', $service), photoServicePayload(['photo' => photoFile('new.png')]))
-        ->assertRedirect('/shop/operations/services');
+        ->put(route('shop.services.update', $service), photoServicePayload([
+            'photos' => [photoFile('c.png', 3), photoFile('d.png', 4)],
+        ]))
+        ->assertSessionHasErrors('photos');
 
-    $new = $service->fresh()->photo_path;
-    expect($new)->not->toBe($old);
-    Storage::disk('public')->assertMissing($old);
-    Storage::disk('public')->assertExists($new);
+    expect($service->fresh()->photo_paths)->toBe($saved)
+        ->and(Storage::disk('public')->allFiles("service-photos/{$shop->id}"))->toHaveCount(2);
+});
+
+test('removing a saved photo deletes its file and the next one becomes the cover', function () {
+    $owner = photoShopOwner();
+    $shop = $owner->shop;
+    $saved = [
+        photoFile('a.png', 1)->store("service-photos/{$shop->id}", 'public'),
+        photoFile('b.png', 2)->store("service-photos/{$shop->id}", 'public'),
+    ];
+    $service = photoService($shop, ['photo_path' => $saved[0], 'photo_paths' => $saved]);
 
     $this->actingAs($owner)
-        ->put(route('shop.services.update', $service), photoServicePayload(['remove_photo' => true]))
-        ->assertRedirect('/shop/operations/services');
+        ->put(route('shop.services.update', $service), photoServicePayload([
+            'remove_photos' => [0],
+            'photos' => [photoFile('c.png', 3)],
+        ]))
+        ->assertSessionHasNoErrors();
 
-    expect($service->fresh()->photo_path)->toBeNull();
-    Storage::disk('public')->assertMissing($new);
+    $fresh = $service->fresh();
+    expect($fresh->photo_paths)->toHaveCount(2)
+        ->and($fresh->photo_paths[0])->toBe($saved[1])
+        ->and($fresh->photo_path)->toBe($saved[1]);
+    Storage::disk('public')->assertMissing($saved[0]);
+    Storage::disk('public')->assertExists($fresh->photo_paths[1]);
+
+    $this->actingAs($owner)
+        ->put(route('shop.services.update', $service), photoServicePayload(['remove_photos' => [0, 1]]))
+        ->assertSessionHasNoErrors();
+
+    $fresh = $service->fresh();
+    expect($fresh->photo_path)->toBeNull()->and($fresh->photo_paths)->toBeNull()
+        ->and(Storage::disk('public')->allFiles("service-photos/{$shop->id}"))->toBe([]);
+});
+
+test('a service saved before multiple photos keeps its one photo', function () {
+    $owner = photoShopOwner();
+    $path = photoFile('old.png')->store("service-photos/{$owner->shop->id}", 'public');
+    $service = photoService($owner->shop, ['photo_path' => $path]);
+
+    expect($service->fresh()->photo_urls)->toHaveCount(1);
+
+    $this->actingAs($owner)
+        ->put(route('shop.services.update', $service), photoServicePayload(['photos' => [photoFile('new.png', 1)]]))
+        ->assertSessionHasNoErrors();
+
+    expect($service->fresh()->photo_paths)->toHaveCount(2)
+        ->and($service->fresh()->photo_path)->toBe($path);
 });
 
 test('an update without a photo field keeps the current photo', function () {

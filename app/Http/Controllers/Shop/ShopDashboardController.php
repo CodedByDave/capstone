@@ -331,7 +331,8 @@ class ShopDashboardController extends Controller
             ->limit(6)
             ->get()
             ->map(fn ($r) => [
-                'name' => $r->service?->service_name ?? 'Unknown',
+                // Orders without a laundry service are retail products bought on their own.
+                'name' => $r->service_id === null ? 'Retail products' : ($r->service?->service_name ?? 'Unknown'),
                 'order_count' => (int) $r->order_count,
                 'revenue' => (float) $r->revenue,
             ])

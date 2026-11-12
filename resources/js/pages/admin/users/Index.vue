@@ -440,8 +440,7 @@ const tableItems = computed(() =>
                         <template #actions>
                             <Button
                                 size="sm"
-                                variant="outline"
-                                class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                                variant="warning-outline"
                                 @click="router.visit('/admin/users/archive')"
                             >
                                 <ArchiveRestore class="mr-1.5 h-4 w-4" />
@@ -460,8 +459,7 @@ const tableItems = computed(() =>
 
                             <Button
                                 size="sm"
-                                variant="outline"
-                                class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                                variant="success-outline"
                                 @click="exportCsv"
                             >
                                 <Download class="mr-1.5 h-4 w-4" />
@@ -470,8 +468,7 @@ const tableItems = computed(() =>
 
                             <Button
                                 size="sm"
-                                variant="outline"
-                                class="border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                                variant="primary-outline"
                                 :disabled="importing"
                                 @click="chooseCsvFile"
                             >
@@ -492,8 +489,7 @@ const tableItems = computed(() =>
                 <template #bulk-actions>
                     <Button
                         size="sm"
-                        variant="outline"
-                        class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40"
+                        variant="warning-outline"
                         @click="bulkArchive"
                     >
                         <Archive class="mr-1.5 h-4 w-4" />

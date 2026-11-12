@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import AboutSection from './AboutSection.vue';
 import CTASection from './CTASection.vue';
+import FaqSection from './FaqSection.vue';
 import FooterSection from './Footer.vue';
 import HeroSection from './HeroSection.vue';
 import HowItWorksSection from './HowItWorks.vue';
@@ -18,9 +20,11 @@ defineProps<{ shopCount?: number }>();
             <Navbar />
             <HeroSection :shop-count="shopCount" />
             <TrustMarquee :shop-count="shopCount" />
+            <AboutSection />
             <ModulesSection />
             <HowItWorksSection />
             <TestimonialsSection />
+            <FaqSection />
             <CTASection />
             <FooterSection />
         </div>

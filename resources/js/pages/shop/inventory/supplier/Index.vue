@@ -19,6 +19,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
+    Archive,
     Eye,
     Loader2,
     Mail,
@@ -187,11 +188,10 @@ const selected = ref<Array<string | number>>([]);
                                     can('Inventory Management', 'archive')
                                 "
                                 size="sm"
-                                variant="outline"
-                                class="bg-red-500 text-white hover:bg-red-700 hover:text-white"
+                                variant="warning-outline"
                                 @click="router.visit(`${base}/archive`)"
                             >
-                                <Trash2 class="mr-1.5 h-4 w-4" /> Archive
+                                <Archive class="mr-1.5 h-4 w-4" /> Archive
                             </Button>
                             <Button
                                 v-if="

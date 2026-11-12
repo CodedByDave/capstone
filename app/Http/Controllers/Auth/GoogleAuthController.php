@@ -115,15 +115,9 @@ class GoogleAuthController extends Controller
 
         // Customer registration — skip the form entirely, create account directly
         if ($registerAs === 'user') {
+            // A scanned shop QR becomes the home shop; without one the customer can still sign up.
             $referralShop = app(CustomerReferralService::class)
                 ->findJoinableShopById(session('referral_shop_id'));
-
-            if (! $referralShop) {
-                return redirect()->route('login')->with('toast', [
-                    'type' => 'error',
-                    'message' => "Scan a laundry shop's QR code to create your account.",
-                ]);
-            }
 
             session([
                 'pending_registration' => [
@@ -133,7 +127,7 @@ class GoogleAuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'otp_verified' => true,
                     'registration_type' => 'user',
-                    'referred_shop_id' => $referralShop->id,
+                    'referred_shop_id' => $referralShop?->id,
                 ],
             ]);
 

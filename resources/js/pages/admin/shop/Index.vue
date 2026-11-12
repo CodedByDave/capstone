@@ -114,7 +114,7 @@ const disableReason = ref('');
 const disableTarget = ref<ShopItem | null>(null);
 const confirmDialog = ref(false);
 const confirmTarget = ref<ShopItem | null>(null);
-const confirmAction = ref<'archive' | 'restore' | 'delete'>('archive');
+const confirmAction = ref<'archive' | 'restore'>('archive');
 
 type ShopSortColumn =
     | 'shop_name'
@@ -353,7 +353,7 @@ function enableShop(shop: ShopItem) {
     router.post(`/admin/shop/${shop.public_id}/enable`, {}, actionOptions());
 }
 
-function openConfirm(shop: ShopItem, action: 'archive' | 'restore' | 'delete') {
+function openConfirm(shop: ShopItem, action: 'archive' | 'restore') {
     confirmTarget.value = shop;
     confirmAction.value = action;
     confirmDialog.value = true;
@@ -374,12 +374,8 @@ function runConfirmedAction() {
         return;
     }
 
-    const url =
-        confirmAction.value === 'delete'
-            ? `/admin/shop/archive/${shop.public_id}`
-            : `/admin/shop/${shop.public_id}`;
     router.delete(
-        url,
+        `/admin/shop/${shop.public_id}`,
         actionOptions(() => {
             confirmDialog.value = false;
         }),
@@ -520,8 +516,7 @@ function badgeClass(type: string) {
                             </Button>
                             <Button
                                 size="sm"
-                                variant="outline"
-                                class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
+                                variant="warning-outline"
                                 @click="bulkAction('archive')"
                             >
                                 <Archive class="mr-1.5 h-4 w-4" />
@@ -532,8 +527,7 @@ function badgeClass(type: string) {
 
                     <Button
                         size="sm"
-                        variant="outline"
-                        class="border-red-300 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                        :variant="archived ? 'back' : 'warning-outline'"
                         @click="toggleArchiveView"
                     >
                         <ArchiveRestore class="mr-1.5 h-4 w-4" />
@@ -552,8 +546,7 @@ function badgeClass(type: string) {
 
                     <Button
                         size="sm"
-                        variant="outline"
-                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                        variant="success-outline"
                         @click="exportCsv"
                     >
                         <Download class="mr-1.5 h-4 w-4" />
@@ -975,14 +968,6 @@ function badgeClass(type: string) {
                                             class="h-4 w-4 text-emerald-600"
                                         />
                                     </Button>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="Delete shop permanently"
-                                        @click="openConfirm(shop, 'delete')"
-                                    >
-                                        <Trash2 class="h-4 w-4 text-red-600" />
-                                    </Button>
                                 </template>
                             </div>
                         </template>
@@ -1046,9 +1031,9 @@ function badgeClass(type: string) {
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                         {{
-                            confirmAction === 'delete'
-                                ? 'This permanently removes the archived shop and cannot be undone.'
-                                : `Are you sure you want to ${confirmAction} ${confirmTarget?.shop_name}?`
+                            confirmAction === 'archive'
+                                ? `Archive ${confirmTarget?.shop_name}? It moves to the archive with all its data, and you can restore it at any time.`
+                                : `Are you sure you want to restore ${confirmTarget?.shop_name}?`
                         }}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -1056,7 +1041,6 @@ function badgeClass(type: string) {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         :class="
-                            confirmAction === 'delete' ||
                             confirmAction === 'archive'
                                 ? 'bg-red-600 hover:bg-red-700'
                                 : ''

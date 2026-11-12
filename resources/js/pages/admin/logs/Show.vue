@@ -136,10 +136,7 @@ function parseAgent(userAgent: string | null) {
 
     <AdminLayout title="Audit Event Details">
         <div class="mx-auto max-w-5xl space-y-6 px-6">
-            <Button
-                variant="outline"
-                @click="router.visit('/admin/audit-logs')"
-            >
+            <Button variant="back" @click="router.visit('/admin/audit-logs')">
                 <ArrowLeft class="mr-2 h-4 w-4" />
                 Back to Audit & Logs
             </Button>

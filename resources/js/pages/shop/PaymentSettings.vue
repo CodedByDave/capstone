@@ -243,7 +243,8 @@ function disconnect() {
                         </div>
                     </div>
                     <Button
-                        class="w-full bg-violet-600 text-white hover:bg-violet-700"
+                        variant="outline"
+                        class="w-full"
                         @click="useDemoKeys"
                     >
                         <FlaskConical class="mr-2 h-4 w-4" />
@@ -436,7 +437,8 @@ function disconnect() {
                             </div>
                         </div>
                         <Button
-                            class="w-full bg-violet-600 text-white hover:bg-violet-700"
+                            variant="outline"
+                            class="w-full"
                             @click="useDemoKeys"
                         >
                             <FlaskConical class="mr-2 h-4 w-4" />

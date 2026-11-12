@@ -140,7 +140,7 @@ const chartOptions = {
                     </Select>
                     <Button
                         size="sm"
-                        variant="outline"
+                        variant="success-outline"
                         class="gap-1.5"
                         :disabled="downloading"
                         @click="downloadPdf"

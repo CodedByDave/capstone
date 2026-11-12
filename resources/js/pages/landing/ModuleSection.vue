@@ -117,7 +117,9 @@ onMounted(() => {
             </div>
 
             <!-- Plan cards -->
-            <div class="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
+            <div
+                class="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3"
+            >
                 <div
                     v-for="(plan, index) in plans"
                     :key="plan.name"
@@ -142,7 +144,14 @@ onMounted(() => {
                 >
                     <!-- Plan name & price -->
                     <div class="flex items-center justify-between">
-                        <p :class="['text-lg', plan.featured ? 'text-white/80' : 'text-neutral-700']">
+                        <p
+                            :class="[
+                                'text-lg',
+                                plan.featured
+                                    ? 'text-white/80'
+                                    : 'text-neutral-700',
+                            ]"
+                        >
                             {{ plan.name }}
                         </p>
                         <span
@@ -156,7 +165,9 @@ onMounted(() => {
                         <span
                             :class="[
                                 'text-5xl font-semibold tracking-tight',
-                                plan.featured ? 'text-white' : 'text-neutral-900',
+                                plan.featured
+                                    ? 'text-white'
+                                    : 'text-neutral-900',
                             ]"
                         >
                             ₱{{ formatPHP(plan.price) }}
@@ -164,7 +175,9 @@ onMounted(() => {
                         <span
                             :class="[
                                 'text-xs',
-                                plan.featured ? 'text-white/60' : 'text-neutral-500',
+                                plan.featured
+                                    ? 'text-white/60'
+                                    : 'text-neutral-500',
                             ]"
                             >/ month</span
                         >
@@ -172,7 +185,9 @@ onMounted(() => {
                     <p
                         :class="[
                             'mt-4 text-sm leading-relaxed',
-                            plan.featured ? 'text-white/70' : 'text-neutral-500',
+                            plan.featured
+                                ? 'text-white/70'
+                                : 'text-neutral-500',
                         ]"
                     >
                         {{ plan.description }}
@@ -193,7 +208,9 @@ onMounted(() => {
                     <p
                         :class="[
                             'mt-3 text-center text-xs',
-                            plan.featured ? 'text-white/60' : 'text-neutral-500',
+                            plan.featured
+                                ? 'text-white/60'
+                                : 'text-neutral-500',
                         ]"
                     >
                         Billed monthly
@@ -203,7 +220,9 @@ onMounted(() => {
                     <hr
                         :class="[
                             'my-6',
-                            plan.featured ? 'border-white/15' : 'border-neutral-200',
+                            plan.featured
+                                ? 'border-white/15'
+                                : 'border-neutral-200',
                         ]"
                     />
 
@@ -230,18 +249,20 @@ onMounted(() => {
                         >
                             <Check
                                 v-if="mod.included"
-
                                 :class="[
                                     'h-4 w-4 shrink-0',
-                                    plan.featured ? 'text-white' : 'text-emerald-600',
+                                    plan.featured
+                                        ? 'text-white'
+                                        : 'text-emerald-600',
                                 ]"
                             />
                             <Minus
                                 v-else
-
                                 :class="[
                                     'h-4 w-4 shrink-0',
-                                    plan.featured ? 'text-white/30' : 'text-neutral-300',
+                                    plan.featured
+                                        ? 'text-white/30'
+                                        : 'text-neutral-300',
                                 ]"
                             />
                             <span

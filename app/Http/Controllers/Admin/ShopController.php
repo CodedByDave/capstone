@@ -242,15 +242,6 @@ class ShopController extends Controller
         return back()->with('toast', ['type' => 'success', 'message' => 'Shop restored.']);
     }
 
-    public function forceDelete(string $publicId)
-    {
-        $shop = Shop::onlyTrashed()->where('public_id', $publicId)->firstOrFail();
-        $this->logAction($shop, 'permanently_deleted');
-        $shop->forceDelete();
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Shop permanently deleted.']);
-    }
-
     public function bulkAction(Request $request)
     {
         $validated = $request->validate([

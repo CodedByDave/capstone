@@ -45,8 +45,11 @@ class PayrollController extends Controller
     {
         $shop = $this->getShop();
 
+        $showArchived = $request->boolean('archived');
+
         return Inertia::render('shop/employee/payroll/Index', [
-            'payrolls' => $this->payrollService->paginate($shop, 10, $request->sort()),
+            'payrolls' => $this->payrollService->paginate($shop, 10, $request->sort(), $showArchived),
+            'showArchived' => $showArchived,
             'stats' => $this->payrollService->getStats($shop),
             'settings' => [
                 'deduct_sss' => (bool) $shop->deduct_sss,
@@ -107,14 +110,7 @@ class PayrollController extends Controller
     {
         $shop = $this->getShop();
 
-        $existing = Payroll::where('shop_id', $shop->id)
-            ->where('period_start', $request->period_start)
-            ->where('period_end', $request->period_end)
-            ->exists();
-
-        if ($existing) {
-            return back()->withErrors(['period_start' => 'A payroll for this period already exists.']);
-        }
+        $this->payrollService->assertPeriodAvailable($shop, $request->period_start, $request->period_end);
 
         $this->payrollService->generate($shop, $request->validated());
 
@@ -159,11 +155,19 @@ class PayrollController extends Controller
     {
         $shop = $this->getShop();
         abort_if($payroll->shop_id !== $shop->id, 403);
-        abort_if($payroll->status === 'finalized', 403, 'Cannot delete a finalized payroll.');
+        abort_if($payroll->status === 'finalized', 403, 'Cannot archive a finalized payroll.');
 
         $this->payrollService->delete($payroll);
 
         return redirect("{$this->base()}/payroll")
-            ->with('toast', ['type' => 'success', 'message' => 'Payroll deleted.']);
+            ->with('toast', ['type' => 'success', 'message' => 'Payroll archived. You can restore it from the archive.']);
+    }
+
+    public function restore(string $publicId)
+    {
+        $payroll = $this->payrollService->restore($publicId, $this->getShop());
+
+        return redirect("{$this->base()}/payroll?archived=1")
+            ->with('toast', ['type' => 'success', 'message' => "Payroll {$payroll->period_label} restored."]);
     }
 }

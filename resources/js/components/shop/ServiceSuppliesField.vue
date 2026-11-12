@@ -214,6 +214,7 @@ function lineError(index: number, field: string): string | undefined {
                         type="button"
                         variant="ghost"
                         size="icon"
+                        class="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
                         :aria-label="`Remove supply ${index + 1}`"
                         @click="removeLine(index)"
                     >
@@ -229,7 +230,7 @@ function lineError(index: number, field: string): string | undefined {
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="primary-outline"
                     size="sm"
                     :disabled="options.length === 0"
                     @click="addLine"

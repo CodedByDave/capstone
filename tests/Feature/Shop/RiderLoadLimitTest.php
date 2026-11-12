@@ -612,3 +612,111 @@ test('auto-assign loads every waiting order in a fixed number of queries', funct
     // One query for the orders of all five held runs, not one per run.
     expect($orderQueries)->toBe(1);
 });
+
+// ─── Load capacity per vehicle type ────────────────────────────────────────────
+
+test('each vehicle type keeps its own load capacity and the one in use is enforced', function () {
+    $shop = loadShop(null, null);
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_type' => 'Motorcycle',
+            'rider_vehicle_types' => ['Motorcycle', 'Car'],
+            'rider_vehicle_limits' => [
+                ['type' => 'Motorcycle', 'min' => '3', 'max' => '15'],
+                ['type' => 'Car', 'min' => '', 'max' => '40'],
+            ],
+        ])
+        ->assertSessionHasNoErrors();
+
+    $shop->refresh();
+    expect((float) $shop->rider_min_weight_kg)->toBe(3.0)
+        ->and((float) $shop->rider_max_weight_kg)->toBe(15.0)
+        ->and($shop->rider_vehicle_limits)->toBe([
+            'Motorcycle' => ['min' => 3, 'max' => 15],
+            'Car' => ['min' => null, 'max' => 40],
+        ]);
+
+    // Switching to the car brings its capacity into force, and the motorcycle keeps its own.
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_type' => 'Car',
+            'rider_vehicle_types' => ['Motorcycle', 'Car'],
+            'rider_vehicle_limits' => [
+                ['type' => 'Motorcycle', 'min' => '3', 'max' => '15'],
+                ['type' => 'Car', 'min' => '', 'max' => '40'],
+            ],
+        ])
+        ->assertSessionHasNoErrors();
+
+    $shop->refresh();
+    expect($shop->rider_min_weight_kg)->toBeNull()
+        ->and((float) $shop->rider_max_weight_kg)->toBe(40.0)
+        ->and(loadCustomerPickup($shop, 30)->pickup_type)->toBe('pickup');
+});
+
+test('the settings page lists the capacity of each vehicle type', function () {
+    $shop = loadShop(3, 15);
+    $shop->update([
+        'rider_vehicle_types' => ['Motorcycle', 'Car'],
+        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
+    ]);
+
+    $this->actingAs($shop->owner)->get('/shop/settings')
+        ->assertInertia(fn ($page) => $page
+            ->where('riderVehicle.limits.0', ['type' => 'Motorcycle', 'min' => 3, 'max' => 15])
+            ->where('riderVehicle.limits.1', ['type' => 'Car', 'min' => 5, 'max' => 40]));
+});
+
+test('a removed vehicle type loses its capacity', function () {
+    $shop = loadShop(3, 15);
+    $shop->update([
+        'rider_vehicle_types' => ['Motorcycle', 'Car'],
+        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
+    ]);
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_type' => 'Motorcycle',
+            'rider_vehicle_types' => ['Motorcycle'],
+            'rider_vehicle_limits' => [['type' => 'Motorcycle', 'min' => '3', 'max' => '15']],
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($shop->fresh()->rider_vehicle_limits)->toBe(['Motorcycle' => ['min' => 3, 'max' => 15]]);
+});
+
+test('saving only the weights updates the vehicle in use and keeps the others', function () {
+    $shop = loadShop(3, 15);
+    $shop->update([
+        'rider_vehicle_type' => 'Car',
+        'rider_vehicle_types' => ['Motorcycle', 'Car'],
+        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
+    ]);
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', ['rider_min_weight_kg' => '', 'rider_max_weight_kg' => '50'])
+        ->assertSessionHasNoErrors();
+
+    $shop->refresh();
+    expect((float) $shop->rider_max_weight_kg)->toBe(50.0)
+        ->and($shop->rider_vehicle_limits['Car'])->toBe(['min' => null, 'max' => 50])
+        ->and($shop->rider_vehicle_limits['Motorcycle'])->toBe(['min' => 3, 'max' => 15]);
+});
+
+test('each vehicle capacity must be sensible', function () {
+    $shop = loadShop(null, null);
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_type' => 'Motorcycle',
+            'rider_vehicle_types' => ['Motorcycle', 'Car'],
+            'rider_vehicle_limits' => [
+                ['type' => 'Motorcycle', 'min' => '3', 'max' => '15'],
+                ['type' => 'Car', 'min' => '20', 'max' => '10'],
+            ],
+        ])
+        ->assertSessionHasErrors('rider_vehicle_limits.1.max');
+
+    expect($shop->fresh()->rider_vehicle_limits)->toBeNull();
+});

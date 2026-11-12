@@ -119,6 +119,33 @@ class InventoryRepository extends Repository
         return $lock ? $query->lockForUpdate()->get() : $query->get();
     }
 
+    /** Active items the shop sells as retail products, for the customer-facing product list. */
+    public function retailItemsForShop(int $shopId): Collection
+    {
+        return $this->query()
+            ->where('shop_id', $shopId)
+            ->where('status', 'active')
+            ->where('retail_enabled', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'unit', 'quantity', 'photo_path', 'retail_name', 'retail_pack_size', 'retail_price']);
+    }
+
+    /**
+     * Retail products of a shop by id; an item that is archived or no longer sold as retail is left out.
+     *
+     * @param  list<int>  $ids
+     */
+    public function retailItemsByIds(int $shopId, array $ids, bool $lock = false): Collection
+    {
+        $query = $this->query()
+            ->where('shop_id', $shopId)
+            ->where('status', 'active')
+            ->where('retail_enabled', true)
+            ->whereIn('id', $ids);
+
+        return $lock ? $query->lockForUpdate()->get() : $query->get();
+    }
+
     public function decrementQuantity(Inventory $inventory, float $quantity): void
     {
         $inventory->decrement('quantity', $quantity);

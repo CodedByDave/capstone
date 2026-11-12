@@ -27,10 +27,10 @@ import {
     CalendarClock,
     ChevronRight,
     ClipboardCheck,
+    ClipboardList,
     Clock,
     CreditCard,
     FileText,
-    Layers,
     LayoutGrid,
     List,
     Package,
@@ -136,18 +136,20 @@ const allHrmSubActions = [
 ───────────────────────────────────────── */
 const allInventorySubActions = [
     {
-        title: 'Categories',
-        icon: Layers,
-        href: isOwner.value
-            ? '/shop/inventory/category'
-            : '/staff/inventory/category',
-        show: () => isOwner.value || can('Inventory Management', 'view'),
-    },
-    {
         title: 'Suppliers',
         icon: Truck,
         href: isOwner.value ? '/shop/supplier' : '/staff/supplier',
         // Only shops that buy from suppliers (Operations Setup) see this list.
+        show: () =>
+            shopCapabilities.value.has_suppliers &&
+            (isOwner.value || can('Inventory Management', 'view')),
+    },
+    {
+        title: 'Purchase Orders',
+        icon: ClipboardList,
+        href: isOwner.value
+            ? '/shop/purchase-orders'
+            : '/staff/purchase-orders',
         show: () =>
             shopCapabilities.value.has_suppliers &&
             (isOwner.value || can('Inventory Management', 'view')),
@@ -418,7 +420,9 @@ const areaChecks: Record<string, (url: string) => boolean> = {
         url.startsWith('/shop/inventory') ||
         url.startsWith('/staff/inventory') ||
         url.startsWith('/shop/supplier') ||
-        url.startsWith('/staff/supplier'),
+        url.startsWith('/staff/supplier') ||
+        url.startsWith('/shop/purchase-orders') ||
+        url.startsWith('/staff/purchase-orders'),
 
     Operations: (url) =>
         url.startsWith('/shop/operations') ||
@@ -472,12 +476,12 @@ const exactRoutes = [
     '/staff/logs',
     '/shop/inventory',
     '/staff/inventory',
-    '/shop/inventory/category',
-    '/staff/inventory/category',
     '/shop/inventory/alerts',
     '/staff/inventory/alerts',
     '/shop/supplier',
     '/staff/supplier',
+    '/shop/purchase-orders',
+    '/staff/purchase-orders',
     '/shop/operations/orders',
     '/staff/operations/orders',
     '/shop/operations/services',

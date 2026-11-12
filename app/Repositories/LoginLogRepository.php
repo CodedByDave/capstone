@@ -98,9 +98,4 @@ class LoginLogRepository extends Repository
     {
         LoginLog::onlyTrashed()->whereIn('id', $ids)->restore();
     }
-
-    public function forceDelete(int $id): void
-    {
-        LoginLog::onlyTrashed()->findOrFail($id)->forceDelete();
-    }
 }

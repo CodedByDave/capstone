@@ -20,11 +20,21 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -32,6 +42,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import { useShopCapabilities } from '@/composables/useShopCapabilities';
@@ -39,6 +50,7 @@ import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { formatQuantity, packageStock } from '@/lib/inventoryStock';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 import {
     AlertTriangle,
     Archive,
@@ -46,6 +58,7 @@ import {
     Download,
     Eye,
     Layers,
+    Loader2,
     Package,
     Pencil,
     Plus,
@@ -312,6 +325,59 @@ function confirmDelete() {
     isDeleteOpen.value = false;
 }
 
+// ─── Create category ──────────────────────────────────────────────────────────
+
+const isCategoryOpen = ref(false);
+const categoryForm = ref({ name: '', description: '' });
+const categoryErrors = ref<{ name?: string; description?: string }>({});
+const savingCategory = ref(false);
+
+function openCategoryDialog() {
+    categoryForm.value = { name: '', description: '' };
+    categoryErrors.value = {};
+    isCategoryOpen.value = true;
+}
+
+function viewAllCategories() {
+    isCategoryOpen.value = false;
+    router.visit(categoryBase.value);
+}
+
+async function createCategory() {
+    if (!categoryForm.value.name.trim()) {
+        categoryErrors.value = { name: 'Name is required.' };
+        return;
+    }
+
+    savingCategory.value = true;
+    categoryErrors.value = {};
+
+    try {
+        await axios.post(categoryBase.value, {
+            name: categoryForm.value.name.trim(),
+            description: categoryForm.value.description.trim() || null,
+        });
+        isCategoryOpen.value = false;
+        toast.success('Category created.', { autoClose: 3000 });
+        // Refresh the category filter and the Categories KPI without leaving the page.
+        router.reload({ only: ['categories'] });
+    } catch (err: any) {
+        const errors = err.response?.data?.errors ?? {};
+        categoryErrors.value = {
+            name: errors.name?.[0],
+            description: errors.description?.[0],
+        };
+        if (!errors.name && !errors.description) {
+            toast.error(
+                err.response?.data?.message ?? 'Failed to create category.',
+                { autoClose: 4000 },
+            );
+        }
+    } finally {
+        savingCategory.value = false;
+    }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isLowStock(item: InventoryItem) {
@@ -387,7 +453,7 @@ function formatCost(item: {
 }) {
     if (!item.unit_price) return '—';
     const size = Number(item.package_size) || 0;
-    if (!item.package_unit || size <= 0) return formatCost(item);
+    if (!item.package_unit || size <= 0) return formatPrice(item.unit_price);
     const perPackage = (Number(item.unit_price) * size).toFixed(2);
     return `${formatPrice(perPackage)} / ${item.package_unit}`;
 }
@@ -417,7 +483,10 @@ const selected = ref<Array<string | number>>([]);
                 <div class="flex flex-wrap items-center gap-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
-                            <Button variant="outline" class="h-10 gap-2">
+                            <Button
+                                variant="success-outline"
+                                class="h-10 gap-2"
+                            >
                                 <Download class="h-4 w-4" aria-hidden="true" />
                                 Export
                                 <ChevronDown
@@ -453,7 +522,10 @@ const selected = ref<Array<string | number>>([]);
 
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
-                            <Button variant="outline" class="h-10 gap-2">
+                            <Button
+                                variant="primary-outline"
+                                class="h-10 gap-2"
+                            >
                                 Manage
                                 <ChevronDown
                                     class="h-4 w-4 text-muted-foreground"
@@ -467,7 +539,7 @@ const selected = ref<Array<string | number>>([]);
                                 @select="router.visit(categoryBase)"
                             >
                                 <Layers class="h-4 w-4" aria-hidden="true" />
-                                Categories
+                                View categories
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 v-if="hasSuppliers"
@@ -490,6 +562,16 @@ const selected = ref<Array<string | number>>([]);
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+
+                    <Button
+                        v-if="isOwner || can('Inventory Management', 'create')"
+                        variant="primary-outline"
+                        class="h-10 gap-2"
+                        @click="openCategoryDialog"
+                    >
+                        <Layers class="h-4 w-4" aria-hidden="true" />
+                        Create category
+                    </Button>
 
                     <Button
                         v-if="isOwner || can('Inventory Management', 'create')"
@@ -828,6 +910,100 @@ const selected = ref<Array<string | number>>([]);
                 </template>
             </DataTable>
         </div>
+
+        <!-- Create Category Dialog -->
+        <Dialog v-model:open="isCategoryOpen">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <Layers
+                            class="h-4 w-4 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                        Create category
+                    </DialogTitle>
+                    <DialogDescription>
+                        Group your products so they are easier to filter and
+                        report on.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form
+                    id="create-category-form"
+                    class="space-y-4"
+                    @submit.prevent="createCategory"
+                >
+                    <div class="space-y-1.5">
+                        <Label for="category-name">Name</Label>
+                        <Input
+                            id="category-name"
+                            v-model="categoryForm.name"
+                            placeholder="e.g. Detergents"
+                            maxlength="255"
+                            :aria-invalid="!!categoryErrors.name"
+                        />
+                        <p
+                            v-if="categoryErrors.name"
+                            class="text-xs text-red-600"
+                        >
+                            {{ categoryErrors.name }}
+                        </p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <Label for="category-description">
+                            Description
+                            <span class="font-normal text-muted-foreground"
+                                >(optional)</span
+                            >
+                        </Label>
+                        <Textarea
+                            id="category-description"
+                            v-model="categoryForm.description"
+                            rows="3"
+                            maxlength="1000"
+                            :aria-invalid="!!categoryErrors.description"
+                        />
+                        <p
+                            v-if="categoryErrors.description"
+                            class="text-xs text-red-600"
+                        >
+                            {{ categoryErrors.description }}
+                        </p>
+                    </div>
+                </form>
+
+                <DialogFooter class="gap-2 sm:justify-between">
+                    <Button
+                        variant="ghost"
+                        type="button"
+                        @click="viewAllCategories"
+                    >
+                        View all categories
+                    </Button>
+                    <div class="flex gap-2">
+                        <Button
+                            variant="outline"
+                            type="button"
+                            @click="isCategoryOpen = false"
+                            >Cancel</Button
+                        >
+                        <Button
+                            type="submit"
+                            form="create-category-form"
+                            class="bg-blue-600 text-white hover:bg-blue-700"
+                            :disabled="savingCategory"
+                        >
+                            <Loader2
+                                v-if="savingCategory"
+                                class="mr-1.5 h-4 w-4 animate-spin"
+                                aria-hidden="true"
+                            />
+                            Create
+                        </Button>
+                    </div>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
         <!-- Archive Confirm Dialog -->
         <AlertDialog v-model:open="isDeleteOpen">

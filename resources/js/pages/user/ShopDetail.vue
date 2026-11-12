@@ -30,6 +30,7 @@ import {
     Package,
     Phone,
     Plus,
+    ShoppingBag,
     Weight,
 } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -56,6 +57,7 @@ interface ShopService {
     bundle_weight_kg: string | null;
     bundle_price: string | null;
     photo_url: string | null;
+    photo_urls?: string[];
 }
 
 interface AdditionalChargeOption {
@@ -64,6 +66,18 @@ interface AdditionalChargeOption {
     quantity: number;
     unit: string;
     price: number;
+}
+
+interface RetailProduct {
+    id: number;
+    name: string;
+    pack_size: number;
+    unit: string;
+    price: number;
+    photo_url: string | null;
+    in_stock: boolean;
+    /** How many packs one order can take: the per-order limit, or fewer when stock is low. */
+    max_count: number;
 }
 
 interface CustomerPromotion {
@@ -109,6 +123,7 @@ const props = defineProps<{
     shop: ShopInfo;
     services: ShopService[];
     additionalCharges: AdditionalChargeOption[];
+    retailProducts: RetailProduct[];
     promotions: CustomerPromotion[];
     userLat: number | null;
     userLng: number | null;
@@ -174,6 +189,127 @@ function changeExtra(id: number, change: number) {
         Math.max(0, (extras.value[id] ?? 0) + change),
     );
     extras.value = { ...extras.value, [id]: next };
+}
+
+// Retail products in the cart: bought with a laundry order, or on their own and collected at the shop.
+const cart = ref<Record<number, number>>({});
+const retailItems = computed(() =>
+    Object.entries(cart.value)
+        .filter(([, count]) => count > 0)
+        .map(([id, count]) => ({ id: Number(id), count })),
+);
+const inStockProducts = computed(() =>
+    props.retailProducts.filter((product) => product.in_stock),
+);
+const cartCount = computed(() =>
+    retailItems.value.reduce((sum, item) => sum + item.count, 0),
+);
+const cartSubtotal = computed(() =>
+    retailItems.value.reduce((sum, item) => {
+        const product = props.retailProducts.find((p) => p.id === item.id);
+        return sum + (product ? product.price * item.count : 0);
+    }, 0),
+);
+
+function changeCart(product: RetailProduct, change: number) {
+    const next = Math.min(
+        product.max_count,
+        Math.max(0, (cart.value[product.id] ?? 0) + change),
+    );
+    cart.value = { ...cart.value, [product.id]: next };
+}
+
+// ─── Buying products on their own ─────────────────────────────────────────────
+
+const isProductCheckoutOpen = ref(false);
+const placingProducts = ref(false);
+const productForm = ref({
+    customer_name: user.value.name,
+    customer_phone: '',
+    special_instructions: '',
+});
+const productEstimate = ref<BillingBreakdownData | null>(null);
+let productEstimateTimer: ReturnType<typeof setTimeout> | undefined;
+let productEstimateRequest: AbortController | null = null;
+
+async function loadProductEstimate() {
+    productEstimateRequest?.abort();
+    const request = new AbortController();
+    productEstimateRequest = request;
+
+    const query = new URLSearchParams({ shop_id: String(props.shop.id) });
+    retailItems.value.forEach((item, index) => {
+        query.set(`retail_items[${index}][id]`, String(item.id));
+        query.set(`retail_items[${index}][count]`, String(item.count));
+    });
+
+    try {
+        const response = await fetch(
+            `/user/orders/products/estimate?${query}`,
+            {
+                signal: request.signal,
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            },
+        );
+        productEstimate.value = response.ok ? await response.json() : null;
+    } catch {
+        if (!request.signal.aborted) productEstimate.value = null;
+    }
+}
+
+watch(
+    () => [isProductCheckoutOpen.value, JSON.stringify(retailItems.value)],
+    () => {
+        clearTimeout(productEstimateTimer);
+        if (!isProductCheckoutOpen.value || retailItems.value.length === 0) {
+            productEstimateRequest?.abort();
+            productEstimate.value = null;
+            return;
+        }
+        productEstimateTimer = setTimeout(loadProductEstimate, 200);
+    },
+);
+
+const productCheckoutHint = computed(() => {
+    if (!props.shop.is_open) return 'The shop is closed right now.';
+    if (retailItems.value.length === 0) return 'Add at least one product.';
+    if (productForm.value.customer_name.trim() === '')
+        return 'Enter your name.';
+    if (!PH_MOBILE.test(productForm.value.customer_phone))
+        return 'Enter your mobile number.';
+    return '';
+});
+
+function openProductCheckout() {
+    if (!props.shop.is_open || retailItems.value.length === 0) return;
+    isProductCheckoutOpen.value = true;
+}
+
+function placeProductOrder() {
+    if (placingProducts.value || productCheckoutHint.value !== '') return;
+    placingProducts.value = true;
+    router.post(
+        '/user/orders/products',
+        {
+            shop_id: props.shop.id,
+            retail_items: retailItems.value,
+            ...productForm.value,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                cart.value = {};
+                isProductCheckoutOpen.value = false;
+            },
+            onFinish: () => {
+                placingProducts.value = false;
+            },
+        },
+    );
 }
 
 // Pre-fill the pickup address from the device location; the customer can still edit it.
@@ -398,9 +534,24 @@ async function loadEstimate() {
     if (form.value.promotion_id !== '') {
         query.set('promotion_id', String(form.value.promotion_id));
     }
+    // A rider pickup adds the pickup fee; a per-km fee needs the pinned address.
+    if (form.value.pickup_type === 'pickup') {
+        query.set('pickup_type', 'pickup');
+        if (
+            form.value.customer_lat !== null &&
+            form.value.customer_lng !== null
+        ) {
+            query.set('customer_lat', String(form.value.customer_lat));
+            query.set('customer_lng', String(form.value.customer_lng));
+        }
+    }
     additionalItems.value.forEach((item, index) => {
         query.set(`additional_items[${index}][id]`, String(item.id));
         query.set(`additional_items[${index}][count]`, String(item.count));
+    });
+    retailItems.value.forEach((item, index) => {
+        query.set(`retail_items[${index}][id]`, String(item.id));
+        query.set(`retail_items[${index}][count]`, String(item.count));
     });
 
     try {
@@ -429,6 +580,10 @@ watch(
         form.value.piece_count,
         form.value.promotion_id,
         JSON.stringify(additionalItems.value),
+        JSON.stringify(retailItems.value),
+        form.value.pickup_type,
+        form.value.customer_lat,
+        form.value.customer_lng,
     ],
     () => {
         clearTimeout(estimateTimer);
@@ -454,6 +609,8 @@ watch(
 onBeforeUnmount(() => {
     clearTimeout(estimateTimer);
     estimateRequest?.abort();
+    clearTimeout(productEstimateTimer);
+    productEstimateRequest?.abort();
 });
 
 async function submitOrder() {
@@ -462,10 +619,15 @@ async function submitOrder() {
     await resolvePickupPin();
     router.post(
         '/user/orders',
-        { ...form.value, additional_items: additionalItems.value },
+        {
+            ...form.value,
+            additional_items: additionalItems.value,
+            retail_items: retailItems.value,
+        },
         {
             preserveScroll: true,
             onSuccess: () => {
+                cart.value = {};
                 closeOrder();
             },
             onFinish: () => {
@@ -679,8 +841,22 @@ function goBack() {
 
                 <ul v-else class="divide-y divide-slate-100">
                     <li v-for="svc in services" :key="svc.id" class="py-6">
+                        <div
+                            v-if="(svc.photo_urls?.length ?? 0) > 1"
+                            class="mb-3 flex snap-x snap-mandatory gap-2 overflow-x-auto"
+                            :aria-label="`${svc.service_name} photos`"
+                        >
+                            <img
+                                v-for="(url, i) in svc.photo_urls"
+                                :key="url"
+                                :src="url"
+                                :alt="`${svc.service_name} photo ${i + 1}`"
+                                loading="lazy"
+                                class="h-36 w-[85%] shrink-0 snap-start rounded-xl object-cover"
+                            />
+                        </div>
                         <img
-                            v-if="svc.photo_url"
+                            v-else-if="svc.photo_url"
                             :src="svc.photo_url"
                             :alt="svc.service_name"
                             loading="lazy"
@@ -803,6 +979,158 @@ function goBack() {
                     </li>
                 </ul>
             </section>
+
+            <!-- ── Products for sale ──────────────────────────── -->
+            <section
+                v-if="retailProducts.length"
+                class="mt-8"
+                :class="cartCount > 0 && 'pb-20'"
+                aria-labelledby="products-heading"
+            >
+                <h2
+                    id="products-heading"
+                    class="text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
+                >
+                    Products for sale
+                </h2>
+                <p class="mt-1 text-xs text-slate-500">
+                    Add them to a laundry order, or buy them on their own and
+                    collect them at the shop.
+                </p>
+                <ul class="mt-3 grid grid-cols-2 gap-3">
+                    <li
+                        v-for="product in retailProducts"
+                        :key="product.id"
+                        class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                    >
+                        <div
+                            class="flex aspect-square items-center justify-center bg-slate-50"
+                        >
+                            <img
+                                v-if="product.photo_url"
+                                :src="product.photo_url"
+                                :alt="product.name"
+                                class="h-full w-full object-cover"
+                                loading="lazy"
+                            />
+                            <Package
+                                v-else
+                                class="h-10 w-10 text-slate-300"
+                                aria-hidden="true"
+                            />
+                        </div>
+                        <div class="flex flex-1 flex-col gap-1 p-3">
+                            <p
+                                class="text-sm leading-snug font-semibold text-slate-900"
+                            >
+                                {{ product.name }}
+                            </p>
+                            <p class="text-xs text-slate-500">
+                                {{ product.pack_size }} {{ product.unit }}
+                            </p>
+                            <p
+                                class="text-sm font-semibold text-slate-900 tabular-nums"
+                            >
+                                {{ money(product.price) }}
+                            </p>
+                            <div class="mt-auto pt-2">
+                                <span
+                                    v-if="!product.in_stock"
+                                    class="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-slate-100 text-xs font-semibold text-slate-600"
+                                >
+                                    <span
+                                        class="h-1.5 w-1.5 rounded-full bg-slate-400"
+                                        aria-hidden="true"
+                                    />
+                                    Out of stock
+                                </span>
+                                <button
+                                    v-else-if="!cart[product.id]"
+                                    type="button"
+                                    class="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-blue-600 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 active:bg-blue-100"
+                                    :aria-label="`Add ${product.name} to cart`"
+                                    @click="changeCart(product, 1)"
+                                >
+                                    <Plus class="h-4 w-4" aria-hidden="true" />
+                                    Add
+                                </button>
+                                <div
+                                    v-else
+                                    class="flex items-center justify-between"
+                                >
+                                    <button
+                                        type="button"
+                                        class="flex size-11 items-center justify-center rounded-full border border-slate-200"
+                                        :aria-label="`Remove one ${product.name}`"
+                                        @click="changeCart(product, -1)"
+                                    >
+                                        <Minus
+                                            class="h-4 w-4"
+                                            aria-hidden="true"
+                                        />
+                                    </button>
+                                    <span
+                                        class="text-sm font-semibold tabular-nums"
+                                        aria-live="polite"
+                                        >{{ cart[product.id] }}</span
+                                    >
+                                    <button
+                                        type="button"
+                                        class="flex size-11 items-center justify-center rounded-full border border-blue-600 text-blue-600 disabled:opacity-40"
+                                        :aria-label="`Add one ${product.name}`"
+                                        :disabled="
+                                            cart[product.id] >=
+                                            product.max_count
+                                        "
+                                        @click="changeCart(product, 1)"
+                                    >
+                                        <Plus
+                                            class="h-4 w-4"
+                                            aria-hidden="true"
+                                        />
+                                    </button>
+                                </div>
+                                <p
+                                    v-if="
+                                        product.in_stock &&
+                                        product.max_count < 10
+                                    "
+                                    class="mt-1 text-center text-[11px] text-amber-700"
+                                >
+                                    Only {{ product.max_count }} left
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- ── Cart bar: buy the products on their own ─────────── -->
+        <div
+            v-if="cartCount > 0 && !isOrderOpen && !isProductCheckoutOpen"
+            class="fixed inset-x-0 bottom-16 z-30 px-4 pb-2"
+        >
+            <div
+                class="mx-auto flex max-w-lg items-center justify-between gap-3 rounded-2xl bg-slate-900 px-4 py-3 text-white shadow-lg"
+            >
+                <span class="flex items-center gap-2 text-sm">
+                    <ShoppingBag class="h-4 w-4" aria-hidden="true" />
+                    {{ cartCount }}
+                    {{ cartCount === 1 ? 'product' : 'products' }} ·
+                    <span class="font-semibold tabular-nums">{{
+                        money(cartSubtotal)
+                    }}</span>
+                </span>
+                <button
+                    type="button"
+                    class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-600"
+                    :disabled="!shop.is_open"
+                    @click="openProductCheckout"
+                >
+                    {{ shop.is_open ? 'Buy products only' : 'Shop is closed' }}
+                </button>
+            </div>
         </div>
 
         <!-- ── Order sheet ─────────────────────────────────────── -->
@@ -1053,6 +1381,81 @@ function goBack() {
                                     {{ errors.additional_items }}
                                 </p>
                             </div>
+                            <div v-if="inStockProducts.length" class="mt-4">
+                                <p
+                                    class="text-sm font-medium text-muted-foreground"
+                                >
+                                    Products to buy (optional)
+                                </p>
+                                <ul
+                                    class="mt-1 divide-y divide-border rounded-xl border border-border"
+                                >
+                                    <li
+                                        v-for="product in inStockProducts"
+                                        :key="product.id"
+                                        class="flex items-center justify-between gap-3 px-3 py-2"
+                                    >
+                                        <span class="min-w-0 text-sm">
+                                            <span class="block font-medium">{{
+                                                product.name
+                                            }}</span>
+                                            <span
+                                                class="block text-xs text-muted-foreground"
+                                                >{{ product.pack_size }}
+                                                {{ product.unit }} ·
+                                                {{ money(product.price) }}</span
+                                            >
+                                        </span>
+                                        <span
+                                            class="flex shrink-0 items-center gap-1"
+                                        >
+                                            <button
+                                                type="button"
+                                                class="flex size-11 items-center justify-center rounded-full border border-border disabled:opacity-40"
+                                                :aria-label="`Remove one ${product.name}`"
+                                                :disabled="!cart[product.id]"
+                                                @click="changeCart(product, -1)"
+                                            >
+                                                <Minus
+                                                    class="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                            <span
+                                                class="w-6 text-center text-sm font-semibold tabular-nums"
+                                                aria-live="polite"
+                                                >{{
+                                                    cart[product.id] ?? 0
+                                                }}</span
+                                            >
+                                            <button
+                                                type="button"
+                                                class="flex size-11 items-center justify-center rounded-full border border-blue-600 text-blue-600 disabled:opacity-40"
+                                                :aria-label="`Add one ${product.name}`"
+                                                :disabled="
+                                                    (cart[product.id] ?? 0) >=
+                                                    product.max_count
+                                                "
+                                                @click="changeCart(product, 1)"
+                                            >
+                                                <Plus
+                                                    class="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                        </span>
+                                    </li>
+                                </ul>
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    Handed over with your laundry.
+                                </p>
+                                <p
+                                    v-if="errors.retail_items"
+                                    class="mt-1 text-xs text-red-500"
+                                >
+                                    {{ errors.retail_items }}
+                                </p>
+                            </div>
                             <BillingBreakdown
                                 v-if="estimate"
                                 class="mt-3"
@@ -1079,7 +1482,6 @@ function goBack() {
                                 aria-label="How will you drop off?"
                             >
                                 <button
-                                    v-if="shop.offers_pickup"
                                     type="button"
                                     role="radio"
                                     :aria-checked="
@@ -1096,6 +1498,7 @@ function goBack() {
                                     Walk-in
                                 </button>
                                 <button
+                                    v-if="shop.offers_pickup"
                                     type="button"
                                     role="radio"
                                     :aria-checked="
@@ -1152,6 +1555,7 @@ function goBack() {
                                 id="order-address"
                                 v-model="form.customer_address"
                                 autocomplete="street-address"
+                                @blur="resolvePickupPin"
                                 placeholder="Your complete address"
                                 :class="[
                                     fieldClass,
@@ -1334,6 +1738,196 @@ function goBack() {
                         {{ orderHint }}
                     </p>
                 </div>
+            </SheetContent>
+        </Sheet>
+
+        <!-- ── Products checkout sheet ─────────────────────────── -->
+        <Sheet v-model:open="isProductCheckoutOpen">
+            <SheetContent
+                side="bottom"
+                class="mx-auto max-h-[92dvh] max-w-lg gap-0 overflow-y-auto rounded-t-[28px] border-t-0 p-0"
+            >
+                <div class="px-6 pt-6 pb-4">
+                    <SheetTitle class="text-xl font-bold"
+                        >Buy products</SheetTitle
+                    >
+                    <SheetDescription class="mt-1 text-sm">
+                        Collect them at {{ shop.shop_name }} once the shop marks
+                        them ready.
+                    </SheetDescription>
+                </div>
+                <form
+                    class="space-y-5 px-6 pb-8"
+                    @submit.prevent="placeProductOrder"
+                >
+                    <ul
+                        class="divide-y divide-border rounded-xl border border-border"
+                    >
+                        <template
+                            v-for="product in retailProducts"
+                            :key="product.id"
+                        >
+                            <li
+                                v-if="cart[product.id]"
+                                class="flex items-center justify-between gap-3 px-3 py-2"
+                            >
+                                <span class="min-w-0 text-sm">
+                                    <span class="block font-medium">{{
+                                        product.name
+                                    }}</span>
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >{{ product.pack_size }}
+                                        {{ product.unit }} ·
+                                        {{ money(product.price) }}</span
+                                    >
+                                </span>
+                                <span class="flex shrink-0 items-center gap-1">
+                                    <button
+                                        type="button"
+                                        class="flex size-11 items-center justify-center rounded-full border border-border"
+                                        :aria-label="`Remove one ${product.name}`"
+                                        @click="changeCart(product, -1)"
+                                    >
+                                        <Minus
+                                            class="h-4 w-4"
+                                            aria-hidden="true"
+                                        />
+                                    </button>
+                                    <span
+                                        class="w-6 text-center text-sm font-semibold tabular-nums"
+                                        aria-live="polite"
+                                        >{{ cart[product.id] }}</span
+                                    >
+                                    <button
+                                        type="button"
+                                        class="flex size-11 items-center justify-center rounded-full border border-blue-600 text-blue-600 disabled:opacity-40"
+                                        :aria-label="`Add one ${product.name}`"
+                                        :disabled="
+                                            cart[product.id] >=
+                                            product.max_count
+                                        "
+                                        @click="changeCart(product, 1)"
+                                    >
+                                        <Plus
+                                            class="h-4 w-4"
+                                            aria-hidden="true"
+                                        />
+                                    </button>
+                                </span>
+                            </li>
+                        </template>
+                    </ul>
+                    <p v-if="errors.retail_items" class="text-xs text-red-500">
+                        {{ errors.retail_items }}
+                    </p>
+
+                    <div>
+                        <label
+                            for="product-name"
+                            class="text-sm font-medium text-muted-foreground"
+                            >Your name</label
+                        >
+                        <Input
+                            id="product-name"
+                            v-model="productForm.customer_name"
+                            autocomplete="name"
+                            :class="[
+                                fieldClass,
+                                errors.customer_name && 'border-red-400',
+                            ]"
+                        />
+                        <p
+                            v-if="errors.customer_name"
+                            class="mt-1 text-xs text-red-500"
+                        >
+                            {{ errors.customer_name }}
+                        </p>
+                    </div>
+                    <div>
+                        <label
+                            for="product-phone"
+                            class="text-sm font-medium text-muted-foreground"
+                            >Mobile number</label
+                        >
+                        <PhilippinePhoneInput
+                            id="product-phone"
+                            v-model="productForm.customer_phone"
+                            :class="[
+                                fieldClass,
+                                errors.customer_phone && 'border-red-400',
+                            ]"
+                        />
+                        <p
+                            v-if="errors.customer_phone"
+                            class="mt-1 text-xs text-red-500"
+                        >
+                            {{ errors.customer_phone }}
+                        </p>
+                    </div>
+                    <div>
+                        <label
+                            for="product-notes"
+                            class="text-sm font-medium text-muted-foreground"
+                            >Note for the shop (optional)</label
+                        >
+                        <Input
+                            id="product-notes"
+                            v-model="productForm.special_instructions"
+                            maxlength="500"
+                            :class="fieldClass"
+                        />
+                    </div>
+
+                    <BillingBreakdown
+                        v-if="productEstimate"
+                        :breakdown="productEstimate"
+                        :show-payment="false"
+                    />
+
+                    <p class="flex items-start gap-2 text-xs text-slate-500">
+                        <MapPin
+                            class="mt-0.5 h-3.5 w-3.5 shrink-0"
+                            aria-hidden="true"
+                        />
+                        <span>
+                            Pickup at {{ formatAddress(shop) }}.
+                            {{
+                                shop.payment_options.gcash === 'online'
+                                    ? 'Pay in cash at the shop, or online with GCash or Maya from your order page.'
+                                    : 'Pay in cash when you collect them.'
+                            }}
+                        </span>
+                    </p>
+                    <p
+                        v-if="errors.shop_id"
+                        class="text-xs text-red-500"
+                        role="alert"
+                    >
+                        {{ errors.shop_id }}
+                    </p>
+
+                    <button
+                        type="submit"
+                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                        :disabled="
+                            placingProducts || productCheckoutHint !== ''
+                        "
+                    >
+                        <Loader2
+                            v-if="placingProducts"
+                            class="h-4 w-4 animate-spin"
+                            aria-hidden="true"
+                        />
+                        Place order
+                    </button>
+                    <p
+                        class="min-h-5 text-center text-sm text-muted-foreground"
+                        role="status"
+                    >
+                        {{ productCheckoutHint }}
+                    </p>
+                </form>
             </SheetContent>
         </Sheet>
     </UserLayout>

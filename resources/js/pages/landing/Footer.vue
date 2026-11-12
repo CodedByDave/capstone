@@ -8,6 +8,13 @@ const footerLinks = {
     Legal: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'],
 };
 
+// Footer links that have a section on this page.
+const sectionLinks: Record<string, string> = {
+    Modules: '#modules',
+    'About Us': '#about',
+    FAQ: '#faq',
+};
+
 const year = new Date().getFullYear();
 </script>
 
@@ -44,7 +51,7 @@ const year = new Date().getFullYear();
                     <ul class="mt-4 flex flex-col gap-2.5">
                         <li v-for="link in links" :key="link">
                             <a
-                                href="#"
+                                :href="sectionLinks[link] ?? '#'"
                                 class="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
                             >
                                 {{ link }}

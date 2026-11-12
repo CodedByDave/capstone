@@ -346,7 +346,7 @@ function toggleRow(id: number) {
                         Track every change across all system modules.
                     </p>
                 </div>
-                <Button variant="outline" class="shrink-0" as-child>
+                <Button variant="back" class="shrink-0" as-child>
                     <Link :href="`${baseRoute}/employee`">
                         <ArrowLeft class="mr-2 h-4 w-4" /> Back to employees
                     </Link>

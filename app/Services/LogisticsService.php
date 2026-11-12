@@ -51,7 +51,7 @@ class LogisticsService
 
     // ── Deliveries ────────────────────────────────────────────────────────────
 
-    public function board(User $user, ?string $status, ?TableSort $sort = null): array
+    public function board(User $user, ?string $status, ?TableSort $sort = null, bool $archived = false): array
     {
         $shopId = $this->shopIdFor($user);
 
@@ -80,7 +80,7 @@ class LogisticsService
                     ->values()
                     ->all(),
             ],
-            'deliveries' => $this->deliveries->paginateForShop($shopId, $status, 15, $sort)
+            'deliveries' => $this->deliveries->paginateForShop($shopId, $status, 15, $sort, $archived)
                 ->through(fn (Delivery $delivery) => $delivery->setAttribute(
                     'load_warning',
                     $delivery->order ? $this->riderLoad->boardLabel($shop, $this->riderLoad->orderWeight($delivery->order)) : null,
@@ -159,6 +159,11 @@ class LogisticsService
 
         $order->loadMissing('shop');
 
+        // Products bought on their own are collected at the shop.
+        if ($order->isProductOrder()) {
+            throw ValidationException::withMessages(['delivery' => 'A products order is collected at the shop and cannot be delivered.']);
+        }
+
         if (! $order->shop?->offers_delivery) {
             throw ValidationException::withMessages(['delivery' => 'This shop does not offer delivery.']);
         }
@@ -236,6 +241,7 @@ class LogisticsService
         return [
             'offers_delivery' => (bool) $order->shop?->canDeliver(),
             'can_send' => $order->shop?->canDeliver()
+                && ! $order->isProductOrder()
                 && $order->status === 'completed'
                 && $order->delivery === null,
             'delivery_status' => $order->delivery?->status,
@@ -522,11 +528,34 @@ class LogisticsService
         $this->deliveries->delete($delivery);
     }
 
+    /** Archives the run. Its record and proof photos stay, so the shop can restore it later. */
     public function deleteDelivery(User $user, Delivery $delivery): void
     {
         $this->assertDeliveryInShop($user, $delivery);
 
         $this->deliveries->delete($delivery);
+    }
+
+    /**
+     * Brings an archived run back onto the board. A run is not restored while its order already
+     * has another active run of the same kind, so the order never gets two riders for one trip.
+     *
+     * @throws ModelNotFoundException for a run that is not archived or belongs to another shop
+     * @throws ValidationException
+     */
+    public function restoreDelivery(User $user, string $publicId): Delivery
+    {
+        $delivery = $this->deliveries->findArchivedForShop($publicId, $this->shopIdFor($user));
+
+        if ($delivery->shop_order_id !== null && $this->deliveries->existsForOrder($delivery->shop_order_id, $delivery->type)) {
+            throw ValidationException::withMessages([
+                'delivery' => 'This order already has an active '.($delivery->isPickupRun() ? 'pickup' : 'delivery').' run, so this one cannot be restored.',
+            ]);
+        }
+
+        DB::transaction(fn () => $this->deliveries->restore($delivery));
+
+        return $delivery;
     }
 
     // A record from another shop is reported exactly like a missing one.

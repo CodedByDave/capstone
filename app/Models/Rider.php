@@ -9,9 +9,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Rider extends Model
 {
+    /** The rider drives one of the shop's vehicles. */
+    public const VEHICLE_SHOP = 'shop';
+
+    /** The rider drives their own vehicle, so its plate and their license are kept on file. */
+    public const VEHICLE_OWN = 'own';
+
+    public const VEHICLE_OWNERSHIPS = [self::VEHICLE_SHOP, self::VEHICLE_OWN];
+
     protected $fillable = [
-        'shop_id', 'employee_id', 'name', 'phone', 'vehicle_type', 'status', 'is_online', 'available_since',
+        'shop_id', 'employee_id', 'name', 'phone', 'vehicle_type', 'vehicle_ownership', 'plate_number', 'license_photo_path',
+        'status', 'is_online', 'available_since',
     ];
+
+    /** The license is a private document: it is opened only through the shop's employee page. */
+    protected $hidden = ['license_photo_path'];
 
     protected $casts = [
         'phone' => PhilippinePhoneCast::class,

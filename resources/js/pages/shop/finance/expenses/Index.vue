@@ -345,7 +345,6 @@ const headers: DataTableHeader[] = [
     { text: 'Title', value: 'title', sortable: true },
     { text: 'Category', value: 'category', sortable: true },
     { text: 'Date', value: 'expense_date', sortable: true, width: 140 },
-    { text: 'Reference', value: 'reference_number', sortable: true },
     { text: 'Recorded by', value: 'creator', sortable: true },
     {
         text: 'Amount',
@@ -397,7 +396,7 @@ const selected = ref<Array<string | number>>([]);
                     </Button>
                     <Button
                         v-if="can('Finance Management', 'archive') || isOwner"
-                        variant="outline"
+                        variant="warning-outline"
                         size="sm"
                         @click="
                             router.visit(`${base}/finance/expenses/archive`)
@@ -505,7 +504,7 @@ const selected = ref<Array<string | number>>([]);
                 <template #toolbar>
                     <DataTableToolbar
                         v-model:search="search"
-                        search-placeholder="Search title..."
+                        search-placeholder="Search title or reference..."
                         search-label="Search expenses"
                         @submit="applyFilters"
                     >
@@ -556,6 +555,12 @@ const selected = ref<Array<string | number>>([]);
                     >
                         {{ exp.description }}
                     </p>
+                    <p
+                        v-if="exp.reference_number"
+                        class="text-xs text-muted-foreground tabular-nums"
+                    >
+                        Ref: {{ exp.reference_number }}
+                    </p>
                 </template>
 
                 <template #item-category="exp">
@@ -567,12 +572,6 @@ const selected = ref<Array<string | number>>([]);
                 <template #item-expense_date="exp">
                     <span class="whitespace-nowrap text-muted-foreground">
                         {{ formatDate(exp.expense_date) }}
-                    </span>
-                </template>
-
-                <template #item-reference_number="exp">
-                    <span class="text-muted-foreground">
-                        {{ exp.reference_number ?? '—' }}
                     </span>
                 </template>
 

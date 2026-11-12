@@ -92,9 +92,9 @@ class ShopServiceController extends Controller
     public function store(StoreShopServiceRequest $request): RedirectResponse
     {
         $this->service->create([
-            ...$request->safe()->except('photo'),
+            ...$request->safe()->except('photos'),
             'shop_id' => $this->getShopId(),
-        ], $request->file('photo'));
+        ], $request->file('photos', []));
 
         return redirect("{$this->base()}/operations/services")
             ->with('toast', [
@@ -121,9 +121,9 @@ class ShopServiceController extends Controller
 
         $this->service->update(
             $service,
-            $request->safe()->except(['photo', 'remove_photo']),
-            $request->file('photo'),
-            $request->boolean('remove_photo'),
+            $request->safe()->except(['photos', 'remove_photos']),
+            $request->file('photos', []),
+            array_map('intval', $request->validated('remove_photos') ?? []),
         );
 
         return redirect("{$this->base()}/operations/services")

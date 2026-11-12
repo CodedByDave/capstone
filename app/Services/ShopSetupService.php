@@ -19,6 +19,7 @@ class ShopSetupService
         private readonly ShopRepository $shops,
         private readonly OrderRepository $orders,
         private readonly EmployeeRepository $employees,
+        private readonly DefaultRoleProvisioner $roleProvisioner,
     ) {}
 
     public function pageData(User $owner): array
@@ -68,6 +69,12 @@ class ShopSetupService
                 'setup_completed_at' => $shop->setup_completed_at ?? now(),
                 'status' => 'active',
             ]);
+
+            $this->roleProvisioner->provisionLogisticsRoles(
+                $updatedShop->id,
+                (bool) $data['offers_pickup'],
+                (bool) $data['offers_delivery'],
+            );
 
             return $updatedShop;
         });

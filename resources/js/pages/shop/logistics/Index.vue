@@ -16,11 +16,20 @@ import {
 } from '@/components/data-table';
 import DispatchMapPanel from '@/components/logistics/DispatchMapPanel.vue';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import {
+    Archive,
     ArrowRight,
     Camera,
     CameraOff,
@@ -31,6 +40,7 @@ import {
     Package,
     Phone,
     Plus,
+    RotateCcw,
     Trash2,
     Truck,
     User,
@@ -131,6 +141,7 @@ const props = defineProps<{
         }[];
     };
     filters: { status?: string };
+    showArchived: boolean;
 }>();
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
@@ -138,6 +149,10 @@ const props = defineProps<{
 const page = usePage();
 const { can, isOwner } = usePermissions();
 const base = isOwner.value ? '/shop/logistics' : '/staff/logistics';
+
+// An archived run is read-only: it can be viewed and restored, nothing else.
+const canChange = (action: string) =>
+    !props.showArchived && can('Logistics', action);
 onMounted(() => {
     const flash = (page.props as any).toast as
         | { type: string; message: string }
@@ -234,7 +249,8 @@ const activeFilter = ref(props.filters.status ?? 'all');
 
 function setFilter(f: string) {
     activeFilter.value = f;
-    router.get(base, f === 'all' ? {} : { status: f }, {
+    const archived = props.showArchived ? { archived: 1 } : {};
+    router.get(base, f === 'all' ? archived : { ...archived, status: f }, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -267,7 +283,7 @@ const bookingErrors = ref<Record<string, string>>({});
 /** A run with no shop rider can be booked with Lalamove; a booked run's details can still be completed. */
 function canBook(d: Delivery): boolean {
     return (
-        can('Logistics', 'update') &&
+        canChange('update') &&
         (d.status === 'pending' ||
             (d.courier === 'lalamove' &&
                 ['assigned', 'picked_up'].includes(d.status)))
@@ -441,11 +457,11 @@ function removePhoto(photo: DeliveryPhoto) {
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
-const deleting = ref<number | null>(null);
+const deleting = ref<string | null>(null);
 
 // A pickup no rider has taken: the customer may have been told to bring the laundry in themselves.
 const canMarkDroppedOff = (d: Delivery) =>
-    can('Logistics', 'update') &&
+    canChange('update') &&
     d.type === 'pickup' &&
     d.status === 'pending' &&
     d.rider_id === null &&
@@ -472,14 +488,58 @@ function markDroppedOff(d: Delivery) {
     );
 }
 
-function deleteDelivery(id: number) {
-    if (!confirm('Remove this delivery record?')) return;
-    deleting.value = id;
-    router.delete(`${base}/${id}`, {
+const deliveryToArchive = ref<Delivery | null>(null);
+const isArchiveOpen = ref(false);
+
+/** "pickup" or "delivery", for the dialog wording. */
+const archiveKind = computed(() =>
+    deliveryToArchive.value?.type === 'pickup' ? 'pickup' : 'delivery',
+);
+
+function archiveDelivery(d: Delivery) {
+    deliveryToArchive.value = d;
+    isArchiveOpen.value = true;
+}
+
+function cancelArchive() {
+    isArchiveOpen.value = false;
+    setTimeout(() => {
+        deliveryToArchive.value = null;
+    }, 200);
+}
+
+function confirmArchive() {
+    const d = deliveryToArchive.value;
+    if (!d) return;
+    isArchiveOpen.value = false;
+    deleting.value = d.public_id;
+    router.delete(`${base}/${d.public_id}`, {
         preserveScroll: true,
+        onError: (errors) =>
+            toast.error(Object.values(errors)[0] ?? 'Could not archive.'),
         onFinish: () => {
             deleting.value = null;
+            deliveryToArchive.value = null;
         },
+    });
+}
+
+function restoreDelivery(d: Delivery) {
+    router.post(
+        `${base}/${d.public_id}/restore`,
+        {},
+        {
+            preserveScroll: true,
+            onError: (errors) =>
+                toast.error(Object.values(errors)[0] ?? 'Could not restore.'),
+        },
+    );
+}
+
+function toggleArchived() {
+    router.get(base, props.showArchived ? {} : { archived: 1 }, {
+        preserveState: false,
+        replace: true,
     });
 }
 
@@ -541,23 +601,58 @@ function fmtTime(d: string) {
 </script>
 
 <template>
-    <Head title="Logistics" />
+    <Head :title="showArchived ? 'Archived Deliveries' : 'Logistics'" />
 
-    <ShopLayout title="Logistics">
+    <ShopLayout :title="showArchived ? 'Archived Deliveries' : 'Logistics'">
         <div class="space-y-6 px-6">
             <!-- ── Header ── -->
-            <div class="flex items-center justify-between">
+            <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            >
                 <div>
-                    <h2 class="text-lg font-semibold">Deliveries</h2>
+                    <h2 class="text-lg font-semibold">
+                        {{
+                            showArchived ? 'Archived Deliveries' : 'Deliveries'
+                        }}
+                    </h2>
                     <p class="text-sm text-muted-foreground">
                         Track and manage laundry deliveries. Drivers are
                         employees whose position is Driver.
                     </p>
                 </div>
+                <Button
+                    v-if="can('Logistics', 'archive')"
+                    :variant="showArchived ? 'back' : 'warning-outline'"
+                    class="gap-1.5"
+                    @click="toggleArchived"
+                >
+                    <Archive class="h-4 w-4" />
+                    {{ showArchived ? 'Back to Active' : 'View Archives' }}
+                </Button>
+            </div>
+
+            <!-- ── Archived Banner ── -->
+            <div
+                v-if="showArchived"
+                class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
+            >
+                <Archive class="h-5 w-5 shrink-0 text-amber-600" />
+                <div>
+                    <p class="text-sm font-semibold text-amber-800">
+                        Viewing Archived Deliveries
+                    </p>
+                    <p class="text-xs text-amber-700">
+                        Archived runs keep their details and proof photos.
+                        Restore one to put it back on the board.
+                    </p>
+                </div>
             </div>
 
             <!-- ── Stats ── -->
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div
+                v-if="!showArchived"
+                class="grid grid-cols-2 gap-3 sm:grid-cols-5"
+            >
                 <Card
                     v-for="(cfg, key) in STATUS"
                     :key="key"
@@ -583,7 +678,11 @@ function fmtTime(d: string) {
             </div>
 
             <!-- ── Dispatch map ── -->
-            <DispatchMapPanel :shop="props.map.shop" :stops="props.map.stops" />
+            <DispatchMapPanel
+                v-if="!showArchived"
+                :shop="props.map.shop"
+                :stops="props.map.stops"
+            />
 
             <!-- ── Deliveries Table ── -->
             <DataTable
@@ -593,8 +692,12 @@ function fmtTime(d: string) {
                 :total="props.deliveries.total"
                 :loading="loading"
                 noun="deliveries"
-                :empty-icon="Truck"
-                empty-message="No deliveries found."
+                :empty-icon="showArchived ? Archive : Truck"
+                :empty-message="
+                    showArchived
+                        ? 'No archived deliveries.'
+                        : 'No deliveries found.'
+                "
                 :resettable="activeFilter !== 'all'"
                 :min-width="960"
                 hide-rows-per-page
@@ -760,17 +863,27 @@ function fmtTime(d: string) {
                                 label: 'Proof photos',
                                 icon: Camera,
                                 show:
-                                    can('Logistics', 'update') ||
+                                    canChange('update') ||
                                     (d.photos?.length ?? 0) > 0,
                                 onSelect: () => openPhotos(d),
                             },
                             {
-                                label: 'Remove delivery',
-                                icon: deleting === d.id ? Loader2 : Trash2,
+                                label: 'Archive delivery',
+                                icon:
+                                    deleting === d.public_id
+                                        ? Loader2
+                                        : Archive,
                                 destructive: true,
-                                disabled: deleting === d.id,
-                                show: can('Logistics', 'archive'),
-                                onSelect: () => deleteDelivery(d.id),
+                                disabled: deleting === d.public_id,
+                                show: canChange('archive'),
+                                onSelect: () => archiveDelivery(d),
+                            },
+                            {
+                                label: 'Restore delivery',
+                                icon: RotateCcw,
+                                show:
+                                    showArchived && can('Logistics', 'archive'),
+                                onSelect: () => restoreDelivery(d),
                             },
                         ]"
                     >
@@ -780,7 +893,7 @@ function fmtTime(d: string) {
                                 d.courier === 'lalamove' &&
                                 d.status !== 'pending' &&
                                 NEXT_STATUS[d.status] &&
-                                can('Logistics', 'update')
+                                canChange('update')
                             "
                             type="button"
                             class="flex h-9 items-center gap-1 rounded-lg bg-primary px-2.5 text-xs whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
@@ -798,6 +911,33 @@ function fmtTime(d: string) {
                 </template>
             </DataTable>
         </div>
+
+        <!-- Archive Confirm Dialog -->
+        <AlertDialog v-model:open="isArchiveOpen">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle class="capitalize"
+                        >Archive {{ archiveKind }}</AlertDialogTitle
+                    >
+                    <AlertDialogDescription>
+                        Are you sure you want to archive this {{ archiveKind }}?
+                        The {{ archiveKind }} for
+                        <strong>{{ deliveryToArchive?.customer_name }}</strong>
+                        will be hidden from the board. Its details and proof
+                        photos are kept, and you can restore it later from the
+                        archive.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <Button variant="outline" @click="cancelArchive"
+                        >Cancel</Button
+                    >
+                    <Button variant="destructive" @click="confirmArchive"
+                        >Archive</Button
+                    >
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </ShopLayout>
 
     <!-- ── Book a Lalamove ───────────────────────────────────────────────────── -->
@@ -1075,7 +1215,7 @@ function fmtTime(d: string) {
                                     >
                                 </label>
                                 <label
-                                    v-if="can('Logistics', 'update')"
+                                    v-if="canChange('update')"
                                     class="inline-flex cursor-pointer items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-muted"
                                     :class="
                                         uploadingPhotos
@@ -1139,7 +1279,7 @@ function fmtTime(d: string) {
                                         >{{ PHOTO_LABELS[photo.kind] }}</span
                                     >
                                     <button
-                                        v-if="can('Logistics', 'archive')"
+                                        v-if="canChange('archive')"
                                         type="button"
                                         class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
                                         title="Remove photo"

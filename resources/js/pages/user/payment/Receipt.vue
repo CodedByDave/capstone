@@ -39,6 +39,7 @@ defineProps<{
         other_charges: number | null;
         discount_amount: number;
         delivery_fee?: number;
+        pickup_fee?: number;
         total_amount: number;
         amount_paid: number;
         balance_due: number;
@@ -87,7 +88,11 @@ function printReceipt() {
                     <ArrowLeft class="h-4 w-4" />
                     Back to Order
                 </Link>
-                <Button variant="outline" size="sm" @click="printReceipt">
+                <Button
+                    variant="success-outline"
+                    size="sm"
+                    @click="printReceipt"
+                >
                     <Download class="mr-2 h-4 w-4" />
                     Print / Save PDF
                 </Button>
@@ -196,7 +201,8 @@ function printReceipt() {
                                     receipt.total_amount -
                                         receipt.additional_charges -
                                         (receipt.rush_fee ?? 0) -
-                                        (receipt.delivery_fee ?? 0) +
+                                        (receipt.delivery_fee ?? 0) -
+                                        (receipt.pickup_fee ?? 0) +
                                         receipt.discount_amount,
                                 )
                             }}</span>
@@ -252,6 +258,13 @@ function printReceipt() {
                                     : 'Adjustment'
                             }}</span>
                             <span>{{ peso(receipt.other_charges) }}</span>
+                        </div>
+                        <div
+                            v-if="(receipt.pickup_fee ?? 0) > 0"
+                            class="flex justify-between border-t border-gray-100 px-4 py-2 text-sm"
+                        >
+                            <span class="text-gray-500">Pickup fee</span>
+                            <span>{{ peso(receipt.pickup_fee ?? 0) }}</span>
                         </div>
                         <div
                             v-if="(receipt.delivery_fee ?? 0) > 0"

@@ -122,7 +122,8 @@ class ShopAnalyticsRepository extends Repository
             ->limit($limit)
             ->get()
             ->map(fn ($row) => [
-                'name' => $row->service?->service_name ?? 'Unknown',
+                // Orders without a laundry service are retail products bought on their own.
+                'name' => $row->service_id === null ? 'Retail products' : ($row->service?->service_name ?? 'Unknown'),
                 'orders' => (int) $row->orders,
                 'revenue' => (float) $row->revenue,
             ]);

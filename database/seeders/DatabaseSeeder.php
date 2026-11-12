@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             TestLocationSeeder::class,
             IssueReportSeeder::class,
             DssDemoSeeder::class,
-            DefenseDemoSeeder::class,
+            PreOralDefenseSeeder::class, // builds DefenseDemoSeeder, then the admin and supplier logins
         ]);
     }
 }

@@ -42,7 +42,7 @@ class OrderNotification extends Notification
                 'url' => ($notifiable->role === 'owner' ? '/shop' : '/staff').'/operations/orders/'.$order->payment_public_id,
             ],
             'status_changed' => [
-                'title' => $this->statusTitle($order->status),
+                'title' => $this->statusTitle($order),
                 'body' => $this->statusBody($order),
                 'order_id' => $order->id,
                 'payment_public_id' => $order->payment_public_id,
@@ -140,9 +140,18 @@ class OrderNotification extends Notification
         };
     }
 
-    private function statusTitle(string $status): string
+    private function statusTitle(ShopOrder $order): string
     {
-        return match ($status) {
+        if ($order->isProductOrder()) {
+            return match ($order->status) {
+                'in_progress' => 'Preparing your products',
+                'completed' => 'Products ready for pickup',
+                'picked_up' => 'Products collected',
+                default => 'Order updated',
+            };
+        }
+
+        return match ($order->status) {
             'in_progress' => 'Laundry in progress 🧺',
             'completed' => 'Order completed ✅',
             'picked_up' => 'Order picked up 📦',
@@ -152,6 +161,15 @@ class OrderNotification extends Notification
 
     private function statusBody(ShopOrder $order): string
     {
+        if ($order->isProductOrder()) {
+            return match ($order->status) {
+                'in_progress' => "{$order->shop->shop_name} is preparing your products. Order #{$order->order_number}.",
+                'completed' => "Your products are ready for pickup at {$order->shop->shop_name}. Order #{$order->order_number}.",
+                'picked_up' => "You collected order #{$order->order_number} from {$order->shop->shop_name}. Thank you!",
+                default => "Order #{$order->order_number} status updated to {$order->status}.",
+            };
+        }
+
         return match ($order->status) {
             'in_progress' => "Your laundry at {$order->shop->shop_name} is now being washed. Order #{$order->order_number}.",
             'completed' => "Your laundry is ready for pickup! Order #{$order->order_number} at {$order->shop->shop_name}.".($order->pickup_type === 'pickup' || $order->deliver_to_customer ? '' : ' How did we do? Rate your order.'),

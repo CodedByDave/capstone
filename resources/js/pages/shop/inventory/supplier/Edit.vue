@@ -76,7 +76,7 @@ function submit() {
                     </p>
                 </div>
                 <Button
-                    variant="outline"
+                    variant="back"
                     @click="router.visit(`${baseRoute}/supplier`)"
                 >
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back

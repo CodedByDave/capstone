@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Employee;
+use App\Models\Inventory;
 use App\Models\RolePermission;
 use App\Models\Shop;
 use App\Models\ShopOrder;
@@ -297,11 +298,12 @@ class ShopOrderRepository
     }
 
     /** Records a shop item used on the order, at the price per unit it was charged. */
-    public function attachSupply(ShopOrder $order, int $inventoryId, float $quantity, string $unit, ?float $unitPrice): void
+    public function attachSupply(ShopOrder $order, int $inventoryId, float $quantity, string $unit, ?float $unitPrice, ?string $label = null): void
     {
         $order->supplies()->attach($inventoryId, [
             'quantity_used' => $quantity,
             'unit' => $unit,
+            'label' => $label,
             'unit_price' => $unitPrice,
         ]);
     }
@@ -316,6 +318,32 @@ class ShopOrderRepository
     public function delete(ShopOrder $order): bool
     {
         return $order->delete();
+    }
+
+    /** An archived order of the shop; another shop's order is reported as missing. */
+    public function findArchivedForShop(string $paymentPublicId, int $shopId): ShopOrder
+    {
+        return ShopOrder::onlyTrashed()
+            ->where('shop_id', $shopId)
+            ->where('payment_public_id', $paymentPublicId)
+            ->firstOrFail();
+    }
+
+    /** @return Collection<int, ShopOrder> every archived order of the shop, oldest first */
+    public function archivedForShop(int $shopId): Collection
+    {
+        return ShopOrder::onlyTrashed()->where('shop_id', $shopId)->oldest('id')->get();
+    }
+
+    public function restore(ShopOrder $order): void
+    {
+        $order->restore();
+    }
+
+    /** @return Collection<int, Inventory> supplies added to the order by hand, with their pivot rows */
+    public function manualSupplies(ShopOrder $order): Collection
+    {
+        return $order->supplies()->get();
     }
 
     public function syncSupplies(ShopOrder $order, array $supplies): void

@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\SendTestSmsRequest;
 use App\Http\Requests\Shop\UpdateDeliveryPricingRequest;
 use App\Http\Requests\Shop\UpdateDriverPayRequest;
 use App\Http\Requests\Shop\UpdateOperatingHoursRequest;
 use App\Http\Requests\Shop\UpdatePaymongoSettingsRequest;
 use App\Http\Requests\Shop\UpdateRiderLoadLimitRequest;
 use App\Http\Requests\Shop\UpdateRushFeeRequest;
+use App\Http\Requests\Shop\UpdateSmsGatewayRequest;
 use App\Models\Shop;
 use App\Services\RiderLoadLimitService;
 use App\Services\ShopDeliveryPricingService;
 use App\Services\ShopOperatingHoursService;
 use App\Services\ShopPaymentSettingsService;
+use App\Services\Sms\ShopSmsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -39,6 +42,7 @@ class ShopSettingsController extends Controller
         ShopDeliveryPricingService $deliveryPricing,
         ShopOperatingHoursService $operatingHours,
         RiderLoadLimitService $riderLoad,
+        ShopSmsService $sms,
     ) {
         $shop = $this->getShop();
 
@@ -48,6 +52,7 @@ class ShopSettingsController extends Controller
             'rushFee' => (float) $shop->rush_fee,
             'riderLoadLimit' => $riderLoad->limitsFor($shop),
             'riderVehicle' => $riderLoad->vehicleOptionsFor($shop),
+            'smsGateway' => $sms->settingsData(auth()->user()),
             'shop' => [
                 'shop_name' => $shop->shop_name,
                 'phone' => $shop->phone,
@@ -106,6 +111,26 @@ class ShopSettingsController extends Controller
         ]);
     }
 
+    public function updateSmsGateway(UpdateSmsGatewayRequest $request, ShopSmsService $sms): RedirectResponse
+    {
+        $sms->updateSettings($request->user(), $request->validated());
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'SMS settings saved.',
+        ]);
+    }
+
+    public function sendTestSms(SendTestSmsRequest $request, ShopSmsService $sms): RedirectResponse
+    {
+        $message = $sms->sendTest($request->user(), $request->validated('phone'));
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "Test text sent to {$message->phone}. Check that phone.",
+        ]);
+    }
+
     public function updateRiderLoadLimit(
         UpdateRiderLoadLimitRequest $request,
         ShopDeliveryPricingService $deliveryPricing,
@@ -119,6 +144,7 @@ class ShopSettingsController extends Controller
             $max === null ? null : (float) $max,
             $request->validated('rider_vehicle_type'),
             $request->validated('rider_vehicle_types'),
+            $request->validated('rider_vehicle_limits'),
         );
 
         return back()->with('toast', [

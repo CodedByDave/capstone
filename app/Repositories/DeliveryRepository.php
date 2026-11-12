@@ -124,9 +124,10 @@ class DeliveryRepository extends Repository
             ->get();
     }
 
-    public function paginateForShop(int $shopId, ?string $status, int $perPage = 15, ?TableSort $sort = null): LengthAwarePaginator
+    public function paginateForShop(int $shopId, ?string $status, int $perPage = 15, ?TableSort $sort = null, bool $archived = false): LengthAwarePaginator
     {
         $query = Delivery::query()
+            ->when($archived, fn ($q) => $q->onlyTrashed())
             ->with([
                 'rider',
                 // The weight columns let the board flag a run that is outside the rider load limit.
@@ -160,6 +161,20 @@ class DeliveryRepository extends Repository
         }
 
         return $query->paginate($perPage)->withQueryString();
+    }
+
+    /** An archived delivery of the shop; another shop's delivery is reported as missing. */
+    public function findArchivedForShop(string $publicId, int $shopId): Delivery
+    {
+        return Delivery::onlyTrashed()
+            ->where('shop_id', $shopId)
+            ->where('public_id', $publicId)
+            ->firstOrFail();
+    }
+
+    public function restore(Delivery $delivery): void
+    {
+        $delivery->restore();
     }
 
     /** @return array<string, int> delivery counts keyed by status, for the shop */

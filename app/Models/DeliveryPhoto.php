@@ -41,6 +41,12 @@ class DeliveryPhoto extends Model
         return $this->belongsTo(Delivery::class);
     }
 
+    /** The run even when the shop archived it, so the shop can still open its proof. */
+    public function deliveryIncludingArchived(): BelongsTo
+    {
+        return $this->belongsTo(Delivery::class, 'delivery_id')->withTrashed();
+    }
+
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');

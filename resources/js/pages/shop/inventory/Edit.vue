@@ -333,7 +333,7 @@ function submit() {
                 </div>
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="back"
                     class="shrink-0"
                     @click="router.visit(base)"
                 >

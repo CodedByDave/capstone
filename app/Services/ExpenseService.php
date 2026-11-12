@@ -76,8 +76,35 @@ class ExpenseService
             'title' => "Restock: {$inventory->name}",
             'amount' => $amount,
             'expense_date' => now()->toDateString(),
-            'description' => "{$quantity} {$inventory->unit} at ₱".rtrim(rtrim(number_format((float) $inventory->unit_price, 4), '0'), '.')." per {$inventory->unit}",
+            'description' => $inventory->describeQuantity($quantity),
             'reference_number' => $referenceNumber,
+        ]);
+    }
+
+    /** One expense for a received purchase order, at the prices the supplier charged. */
+    public function recordPurchaseOrder(\App\Models\PurchaseOrder $order, float $amount): ?Expense
+    {
+        $amount = round($amount, 2);
+
+        if ($amount <= 0) {
+            return null;
+        }
+
+        $order->loadMissing(['shop', 'supplier']);
+
+        $category = $this->expenseRepository->firstOrCreateCategory(
+            $order->shop,
+            'Inventory Restock',
+            'Stock purchased to replenish inventory.',
+        );
+
+        return $this->create($order->shop, [
+            'category_id' => $category->id,
+            'title' => "Purchase order {$order->po_number}: {$order->supplier?->name}",
+            'amount' => $amount,
+            'expense_date' => now()->toDateString(),
+            'description' => 'Supplies received from '.$order->supplier?->name.'.',
+            'reference_number' => $order->po_number,
         ]);
     }
 

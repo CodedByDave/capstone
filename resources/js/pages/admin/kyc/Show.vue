@@ -45,6 +45,8 @@ const props = defineProps<{
     };
     kycReview: KycReviewRow[];
     kycFlagOptions: { key: string; label: string }[];
+    /** Why approval is blocked: every detail must match the documents. Empty when it can be approved. */
+    approvalBlockers: string[];
 }>();
 
 const page = usePage();
@@ -75,8 +77,10 @@ const docLabels: Record<string, string> = {
 };
 
 const isPending = computed(() => props.verification.status === 'pending');
+const canApprove = computed(() => props.approvalBlockers.length === 0);
+// Everything that does not match (including details OCR could not read) is pre-flagged.
 const mismatchedKeys = computed(() =>
-    props.kycReview.filter((r) => r.status === 'mismatch').map((r) => r.key),
+    props.kycReview.filter((r) => r.status !== 'match').map((r) => r.key),
 );
 
 const showReject = ref(false);
@@ -92,11 +96,20 @@ function openReject() {
 }
 
 function approve() {
+    if (!canApprove.value) return;
     busy.value = true;
     router.post(
         `/admin/kyc-verifications/${props.verification.public_id}/approve`,
         {},
-        { preserveScroll: true, onFinish: () => (busy.value = false) },
+        {
+            preserveScroll: true,
+            onError: (errors) =>
+                toast.error(
+                    errors.verification ??
+                        'This application could not be approved.',
+                ),
+            onFinish: () => (busy.value = false),
+        },
     );
 }
 
@@ -135,7 +148,7 @@ const address = computed(() =>
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="flex items-start gap-3">
                     <Button
-                        variant="outline"
+                        variant="back"
                         size="icon"
                         aria-label="Back to KYC verifications"
                         @click="router.visit('/admin/kyc-verifications')"
@@ -159,18 +172,54 @@ const address = computed(() =>
                     </StatusPill>
                     <template v-if="isPending">
                         <Button
-                            variant="outline"
+                            variant="destructive-outline"
                             size="sm"
-                            class="border-red-300 text-red-600 hover:bg-red-50"
                             :disabled="busy"
                             @click="openReject"
                         >
                             <X class="mr-1.5 h-4 w-4" /> Reject
                         </Button>
-                        <Button size="sm" :disabled="busy" @click="approve">
+                        <Button
+                            variant="success"
+                            size="sm"
+                            :disabled="busy || !canApprove"
+                            :title="
+                                canApprove
+                                    ? undefined
+                                    : 'Every detail must match the documents before approval'
+                            "
+                            aria-describedby="kyc-approval-blockers"
+                            @click="approve"
+                        >
                             <Check class="mr-1.5 h-4 w-4" /> Approve
                         </Button>
                     </template>
+                </div>
+            </div>
+
+            <div
+                v-if="isPending && !canApprove"
+                id="kyc-approval-blockers"
+                class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4"
+                role="status"
+            >
+                <AlertTriangle
+                    class="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
+                    aria-hidden="true"
+                />
+                <div class="text-sm">
+                    <p class="font-semibold text-amber-800">
+                        Approval is locked until every detail matches
+                    </p>
+                    <ul class="mt-1 list-disc space-y-0.5 pl-5 text-amber-800">
+                        <li v-for="reason in approvalBlockers" :key="reason">
+                            {{ reason }}
+                        </li>
+                    </ul>
+                    <p class="mt-2 text-xs text-amber-700">
+                        Reject the application and flag these so the owner can
+                        correct the details or upload clearer documents.
+                    </p>
                 </div>
             </div>
 

@@ -62,7 +62,7 @@ class DeliveryProofService
     /** The file path a shop user may open, or a not-found error. */
     public function pathForShop(User $user, DeliveryPhoto $photo): string
     {
-        $this->assertPhotoInShop($user, $photo);
+        $this->assertPhotoInShop($user, $photo, includeArchived: true);
 
         return $this->existingPath($photo);
     }
@@ -70,8 +70,8 @@ class DeliveryProofService
     /** The proof photo of a driver's rejection, for the shop the run belongs to only. */
     public function pathForRejection(User $user, \App\Models\DeliveryRejection $rejection): string
     {
-        $rejection->loadMissing('delivery');
-        $this->assertDeliveryInShop($user, $rejection->delivery);
+        $rejection->loadMissing('deliveryIncludingArchived');
+        $this->assertDeliveryInShop($user, $rejection->deliveryIncludingArchived);
 
         if (! Storage::disk(self::DISK)->exists($rejection->photo_path)) {
             throw (new ModelNotFoundException)->setModel(\App\Models\DeliveryRejection::class);
@@ -103,16 +103,19 @@ class DeliveryProofService
 
     // A record from another shop is reported exactly like a missing one.
 
-    private function assertDeliveryInShop(User $user, Delivery $delivery): void
+    private function assertDeliveryInShop(User $user, ?Delivery $delivery): void
     {
-        if ($delivery->shop_id !== $this->logistics->shopIdFor($user)) {
+        if ($delivery === null || $delivery->shop_id !== $this->logistics->shopIdFor($user)) {
             throw (new ModelNotFoundException)->setModel(Delivery::class);
         }
     }
 
-    private function assertPhotoInShop(User $user, DeliveryPhoto $photo): void
+    /** An archived run's photos can still be viewed, but not changed. */
+    private function assertPhotoInShop(User $user, DeliveryPhoto $photo, bool $includeArchived = false): void
     {
-        $photo->loadMissing('delivery');
-        $this->assertDeliveryInShop($user, $photo->delivery);
+        $relation = $includeArchived ? 'deliveryIncludingArchived' : 'delivery';
+
+        $photo->loadMissing($relation);
+        $this->assertDeliveryInShop($user, $photo->{$relation});
     }
 }

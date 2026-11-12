@@ -22,6 +22,7 @@ class ShopService extends Model
         'category',
         'description',
         'photo_path',
+        'photo_paths',
         'is_active',
         'pricing_model',
         'price_per_kg',
@@ -33,13 +34,17 @@ class ShopService extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'photo_paths' => 'array',
         'price_per_kg' => 'decimal:2',
         'bundle_weight_kg' => 'decimal:2',
         'bundle_price' => 'decimal:2',
         'price_per_piece' => 'decimal:2',
     ];
 
-    protected $appends = ['photo_url'];
+    protected $appends = ['photo_url', 'photo_urls'];
+
+    /** The most photos a service can show. */
+    public const MAX_PHOTOS = 3;
 
     const PRICING_MODELS = ['per_kg', 'per_bundle', 'per_piece'];
 
@@ -81,6 +86,30 @@ class ShopService extends Model
             $path = $this->attributes['photo_path'] ?? null;
 
             return $path ? Storage::disk('public')->url($path) : null;
+        });
+    }
+
+    /** @return list<string> Paths of every photo, the cover first. Older rows have only `photo_path`. */
+    public function photoPaths(): array
+    {
+        $paths = $this->photo_paths;
+        if (is_array($paths) && $paths !== []) {
+            return array_values($paths);
+        }
+        $cover = $this->attributes['photo_path'] ?? null;
+
+        return $cover ? [$cover] : [];
+    }
+
+    /** Public URLs of every photo, the cover first (empty when the columns were not selected). */
+    protected function photoUrls(): Attribute
+    {
+        return Attribute::get(function () {
+            if (! array_key_exists('photo_paths', $this->attributes) && ! array_key_exists('photo_path', $this->attributes)) {
+                return [];
+            }
+
+            return array_map(fn (string $path) => Storage::disk('public')->url($path), $this->photoPaths());
         });
     }
 

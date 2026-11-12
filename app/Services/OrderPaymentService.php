@@ -87,6 +87,40 @@ class OrderPaymentService
         return $payment;
     }
 
+    /**
+     * Money taken at the counter on the payment step after an order is created. Cash handed over
+     * must cover the payment; anything above it goes back to the customer as change.
+     */
+    public function recordCounterPayment(User $actor, ShopOrder $order, float $amount, string $method, ?float $tendered = null): ShopOrderPayment
+    {
+        $this->assertOrderBelongsToActorShop($actor, $order);
+
+        if ($tendered !== null && $tendered < $amount) {
+            throw ValidationException::withMessages([
+                'amount_tendered' => 'The cash received is less than the payment of ₱'.number_format($amount, 2).'.',
+            ]);
+        }
+
+        [$payment, $locked] = DB::transaction(function () use ($actor, $order, $amount, $method, $tendered) {
+            $locked = $this->orders->lockForUpdate($order);
+
+            $payment = $this->addConfirmed($locked, [
+                'amount' => $amount,
+                'amount_tendered' => $tendered,
+                'change_given' => $tendered === null ? null : round(max(0, $tendered - $amount), 2),
+                'method' => $method,
+                'source' => ShopOrderPayment::SOURCE_SHOP,
+                'recorded_by' => $actor->id,
+            ]);
+
+            return [$payment, $locked];
+        });
+
+        $this->notifyCustomer($locked, (float) $payment->amount);
+
+        return $payment;
+    }
+
     /** Take back a wrongly recorded payment; it stays in the history with the reason. */
     public function voidPayment(User $actor, ShopOrder $order, string $paymentPublicId, string $reason): ShopOrderPayment
     {

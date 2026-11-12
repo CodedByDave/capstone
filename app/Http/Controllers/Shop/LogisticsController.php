@@ -25,9 +25,12 @@ class LogisticsController extends Controller
 
     public function index(TableSortRequest $request): Response
     {
+        $showArchived = $request->boolean('archived');
+
         return Inertia::render('shop/logistics/Index', [
-            ...$this->service->board($request->user(), $request->get('status'), $request->sort()),
+            ...$this->service->board($request->user(), $request->get('status'), $request->sort(), $showArchived),
             'filters' => $request->only('status'),
+            'showArchived' => $showArchived,
         ]);
     }
 
@@ -49,6 +52,13 @@ class LogisticsController extends Controller
     {
         $this->service->deleteDelivery($request->user(), $delivery);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Delivery removed.']);
+        return back()->with('toast', ['type' => 'success', 'message' => 'Delivery archived. You can restore it from the archive.']);
+    }
+
+    public function restore(Request $request, string $publicId): RedirectResponse
+    {
+        $this->service->restoreDelivery($request->user(), $publicId);
+
+        return back()->with('toast', ['type' => 'success', 'message' => 'Delivery restored.']);
     }
 }

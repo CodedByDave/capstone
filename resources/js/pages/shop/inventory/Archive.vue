@@ -137,7 +137,7 @@ const selected = ref<Array<string | number>>([]);
                         Restore products to make them available again.
                     </p>
                 </div>
-                <Button variant="outline" @click="router.visit(base)">
+                <Button variant="back" @click="router.visit(base)">
                     <ArrowLeft class="mr-2 h-4 w-4" /> Back to Inventory
                 </Button>
             </div>
@@ -244,7 +244,9 @@ const selected = ref<Array<string | number>>([]);
                     <Button variant="outline" @click="isRestoreOpen = false"
                         >Cancel</Button
                     >
-                    <Button @click="confirmRestore">Restore</Button>
+                    <Button variant="success" @click="confirmRestore"
+                        >Restore</Button
+                    >
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

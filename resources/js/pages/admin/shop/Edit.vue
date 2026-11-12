@@ -83,7 +83,7 @@ function submit() {
                 </p>
             </div>
             <Button
-                variant="outline"
+                variant="back"
                 @click="router.visit(`/admin/shop/${shop.public_id}`)"
             >
                 <ArrowLeft class="mr-2 h-4 w-4" />

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\OrderWeightConfirmed;
+use App\Exceptions\DeliveryNotAvailableException;
 use App\Models\Inventory;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderAutomationSetting;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Notifications\OrderNotification;
 use App\Repositories\ShopOrderAutomationSettingRepository;
 use App\Repositories\ShopOrderRepository;
+use App\Services\Sms\ShopSmsService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +37,10 @@ class ShopOrderService
         private readonly OrderTaxService $tax,
         private readonly ActivityLogService $activityLog,
         private readonly RiderLoadLimitService $riderLoad,
+        private readonly CounterDeliveryFeeService $counterDelivery,
+        private readonly ShopSmsService $sms,
+        private readonly PickupFeeService $pickupFees,
+        private readonly OrderSupplyStockService $supplyStock,
     ) {}
 
     // ─── Queries ──────────────────────────────────────────────────────────────
@@ -135,7 +141,8 @@ class ShopOrderService
             }
 
             $delta = $rush ? $fee : -(float) $locked->rush_fee;
-            $delivery = (float) $locked->delivery_fee;
+            // Rider fees sit outside tax, so they are taken out and added back unchanged.
+            $delivery = (float) $locked->delivery_fee + (float) $locked->pickup_fee;
             $subtotal = round(max(0, (float) $locked->total_amount - (float) $locked->tax_amount - $delivery + $delta), 2);
             $taxAmount = $this->tax->amountOn($subtotal, (float) $locked->tax_rate);
 
@@ -215,6 +222,9 @@ class ShopOrderService
 
     public function createOrder(array $data, User $actor, ?string $ipAddress = null, ?string $userAgent = null): ShopOrder
     {
+        // Worked out before the transaction: per-km pricing measures the route, a network call.
+        $data = $this->withCounterDeliveryFee($data);
+
         $order = DB::transaction(function () use ($data, $actor, $ipAddress, $userAgent) {
             $supplies = $data['supplies'] ?? [];
             $agreementVersion = $data['customer_agreement_version'];
@@ -274,7 +284,8 @@ class ShopOrderService
             $tax = $this->tax->amountOn($subtotal, $rate);
             $data['tax_rate'] = $rate;
             $data['tax_amount'] = $tax;
-            $data['total_amount'] = round($subtotal + $tax, 2);
+            // The delivery fee is added after tax, the same as on orders placed in the app.
+            $data['total_amount'] = round($subtotal + $tax + (float) $data['delivery_fee'], 2);
 
             // Money received now is recorded as a payment; the order's totals follow from it.
             $paidNow = round((float) ($data['amount_paid'] ?? 0), 2);
@@ -356,7 +367,22 @@ class ShopOrderService
 
     public function createCustomerOrder(User $customer, array $data, ?string $ipAddress, ?string $userAgent): ShopOrder
     {
-        $order = DB::transaction(function () use ($customer, $data, $ipAddress, $userAgent) {
+        // A rider pickup is charged with the shop's delivery pricing. It is worked out before the
+        // transaction because a per-kilometer fee measures the road distance first.
+        $pickupFee = 0.0;
+        if ($data['pickup_type'] === 'pickup') {
+            try {
+                $pickupFee = $this->pickupFees->feeFor(
+                    (int) $data['shop_id'],
+                    isset($data['customer_lat']) ? (float) $data['customer_lat'] : null,
+                    isset($data['customer_lng']) ? (float) $data['customer_lng'] : null,
+                );
+            } catch (DeliveryNotAvailableException $exception) {
+                throw ValidationException::withMessages(['customer_address' => $exception->getMessage()]);
+            }
+        }
+
+        $order = DB::transaction(function () use ($customer, $data, $ipAddress, $userAgent, $pickupFee) {
             $shop = $this->repository->findActiveShop((int) $data['shop_id']);
             if (! $shop) {
                 throw ValidationException::withMessages(['shop_id' => 'The selected shop is unavailable.']);
@@ -390,8 +416,11 @@ class ShopOrderService
                 throw ValidationException::withMessages(['pickup_type' => $tooHeavy]);
             }
 
-            // The additional charges the customer picked, priced from the shop's own add-on items.
-            $additionalLines = $this->additionalCharges->resolve($shop->id, $data['additional_items'] ?? [], lock: true);
+            // The add-ons and retail products the customer picked, priced from the shop's own items.
+            $additionalLines = [
+                ...$this->additionalCharges->resolve($shop->id, $data['additional_items'] ?? [], lock: true),
+                ...$this->additionalCharges->resolveRetail($shop->id, $data['retail_items'] ?? [], lock: true),
+            ];
 
             $estimate = $this->billing->estimate(
                 $service,
@@ -403,7 +432,8 @@ class ShopOrderService
             $estimatedBundles = $service->pricing_model === 'per_bundle'
                 ? (int) $estimate['service']['quantity']
                 : null;
-            $estimatedTotal = $estimate['total'];
+            // The pickup fee is added after tax, the same as a delivery fee.
+            $estimatedTotal = round($estimate['total'] + $pickupFee, 2);
 
             $order = $this->repository->create([
                 'shop_id' => $shop->id,
@@ -433,6 +463,7 @@ class ShopOrderService
                 'discount_amount' => $estimate['discount'],
                 'tax_rate' => $estimate['tax_rate'],
                 'tax_amount' => $estimate['tax'],
+                'pickup_fee' => $pickupFee,
                 'total_amount' => $estimatedTotal,
                 // Customers choose how to pay once the actual weight is confirmed; until then it stays cash.
                 'payment_method' => $data['payment_method'] ?? 'cash',
@@ -442,16 +473,7 @@ class ShopOrderService
             ]);
 
             // The picked items are put aside from stock now, as they are when the shop adds them to an order.
-            foreach ($additionalLines as $line) {
-                if ((float) $line['item']->quantity < $line['quantity']) {
-                    throw ValidationException::withMessages([
-                        'additional_items' => "Not enough {$line['name']} in stock right now.",
-                    ]);
-                }
-
-                $this->repository->attachSupply($order, $line['item']->id, $line['quantity'], $line['unit'], $line['unit_price']);
-                $this->inventory->deductStock($line['item'], $line['quantity']);
-            }
+            $this->additionalCharges->attachToOrder($order, $additionalLines);
 
             $order->setRelation('shop', $shop);
             $order->setRelation('service', $service);
@@ -503,6 +525,11 @@ class ShopOrderService
      */
     public function updateOrder(ShopOrder $order, array $data): ShopOrder
     {
+        // A products order is priced when placed and has nothing to weigh or deliver.
+        if ($order->isProductOrder()) {
+            throw ValidationException::withMessages(['order' => 'A products order cannot be edited. Use the actions on the order page.']);
+        }
+
         $updated = DB::transaction(function () use ($order, $data) {
             $order = $this->repository->lockForUpdate($order);
             $changes = [];
@@ -592,7 +619,10 @@ class ShopOrderService
                         - (float) $order->discount_amount,
                 ), 2);
                 $changes['tax_amount'] = $this->tax->amountOn($subtotal, (float) $order->tax_rate);
-                $changes['total_amount'] = round($subtotal + $changes['tax_amount'] + (float) $order->delivery_fee, 2);
+                $changes['total_amount'] = round(
+                    $subtotal + $changes['tax_amount'] + (float) $order->delivery_fee + (float) $order->pickup_fee,
+                    2,
+                );
             }
 
             if ($changes !== []) {
@@ -809,6 +839,35 @@ class ShopOrderService
     }
 
     /** The alternate contact only matters when a rider collects or delivers the laundry, so other orders keep none. */
+    /**
+     * Sets the delivery fee of an order taken at the counter. Only an order a rider brings back to
+     * the customer has one; its pinned location is kept so the rider can find the customer.
+     */
+    private function withCounterDeliveryFee(array $data): array
+    {
+        $lat = isset($data['customer_lat']) ? (float) $data['customer_lat'] : null;
+        $lng = isset($data['customer_lng']) ? (float) $data['customer_lng'] : null;
+        unset($data['customer_lat'], $data['customer_lng']);
+        $data['delivery_fee'] = 0;
+
+        if (empty($data['deliver_to_customer'])) {
+            return $data;
+        }
+
+        try {
+            $quote = $this->counterDelivery->quote((int) $data['shop_id'], $lat, $lng);
+        } catch (DeliveryNotAvailableException $exception) {
+            throw ValidationException::withMessages(['customer_lat' => $exception->getMessage()]);
+        }
+
+        return [
+            ...$data,
+            'delivery_fee' => $quote['fee'],
+            'customer_lat' => $lat,
+            'customer_lng' => $lng,
+        ];
+    }
+
     private function withoutAlternateContactUnlessRiderInvolved(array $data): array
     {
         $riderInvolved = ($data['pickup_type'] ?? null) === 'pickup' || ! empty($data['deliver_to_customer']);
@@ -878,7 +937,11 @@ class ShopOrderService
     public function changeStatusByStaff(ShopOrder $order, string $status): ShopOrder
     {
         if ($status === 'completed' && $order->status !== 'completed') {
-            if ($order->status !== 'in_progress') {
+            // Products only need to be put together, so a products order can be marked ready straight away.
+            $readyToComplete = $order->status === 'in_progress'
+                || ($order->isProductOrder() && $order->status === 'pending');
+
+            if (! $readyToComplete) {
                 throw ValidationException::withMessages([
                     'status' => 'Only an order that is in progress can be marked as completed.',
                 ]);
@@ -956,7 +1019,46 @@ class ShopOrderService
         }
 
         $previousStatus = $order->status;
-        $updated = $this->repository->update($order, $data);
+
+        $updated = DB::transaction(function () use ($order, $data, $status, $previousStatus): ShopOrder {
+            // Cancelling and reopening move stock, so two requests at once (the customer and staff
+            // cancelling together) must not both move it.
+            if ($status === 'cancelled' || $previousStatus === 'cancelled') {
+                $order = $this->repository->lockForUpdate($order);
+
+                if ($order->status !== $previousStatus) {
+                    throw ValidationException::withMessages([
+                        'status' => 'This order was just updated by someone else. Refresh the page and try again.',
+                    ]);
+                }
+            }
+
+            // Reopening a cancelled order takes its add-ons and products from stock again, before
+            // anything changes. An order cancelled before stock was returned on cancel never gave
+            // them back, so it has nothing to take.
+            if ($previousStatus === 'cancelled' && $order->supplies_returned_at !== null) {
+                $this->supplyStock->takeFromStock(
+                    $order,
+                    auth()->id(),
+                    "Taken again by reopened order {$order->order_number}",
+                    "Order {$order->order_number} cannot be reopened: ",
+                );
+                $data['supplies_returned_at'] = null;
+            }
+
+            // A cancelled order puts its add-ons and products back on the shelf.
+            if ($status === 'cancelled') {
+                $data['supplies_returned_at'] = now();
+            }
+
+            $updated = $this->repository->update($order, $data);
+
+            if ($status === 'cancelled') {
+                $this->supplyStock->returnToStock($updated, auth()->id(), "Returned from cancelled order {$updated->order_number}");
+            }
+
+            return $updated;
+        });
 
         // Cancelling puts the service's supplies back; reopening a cancelled order takes them again.
         if ($status === 'cancelled' || $previousStatus === 'cancelled') {
@@ -975,31 +1077,17 @@ class ShopOrderService
         // A pickup order goes back to the customer, so it joins the delivery board.
         if ($status === 'completed') {
             $this->logistics->dispatchCompletedOrder($updated);
+
+            // A customer collecting at the shop is texted from the shop's phone, linked account or not.
+            if ($this->sms->shouldAutoNotifyReady($updated)) {
+                $this->sms->queueReadyNotice($updated);
+            }
         }
 
         return $updated;
     }
 
-    // ─── Delete ───────────────────────────────────────────────────────────────
-
-    public function deleteOrder(ShopOrder $order): void
-    {
-        DB::transaction(function () use ($order) {
-            // Restore inventory quantities
-            foreach ($order->supplies as $supply) {
-                Inventory::where('id', $supply->pivot->inventory_id)
-                    ->where('shop_id', $order->shop_id)
-                    ->increment('quantity', (float) $supply->pivot->quantity_used);
-            }
-
-            // Detach supplies from pivot
-            $order->supplies()->detach();
-            $this->serviceSupplies->release($order, auth()->id());
-
-            // Soft delete the order
-            $order->delete();
-        });
-    }
+    // Archiving and restoring orders lives in OrderArchiveService.
 
     // ─── Private Helpers ──────────────────────────────────────────────────────
 

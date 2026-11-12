@@ -414,19 +414,14 @@ const selected = ref<Array<string | number>>([]);
                 <Button
                     v-if="canManage"
                     size="sm"
-                    variant="outline"
-                    :class="
-                        showArchived
-                            ? 'border-blue-300 bg-blue-50 text-blue-700'
-                            : 'border-amber-300 bg-amber-50 text-amber-700'
-                    "
+                    :variant="showArchived ? 'back' : 'warning-outline'"
                     @click="toggleArchived"
                 >
                     <Archive class="mr-1.5 h-4 w-4" />
                     {{ showArchived ? 'Active Services' : 'Archive' }}
                 </Button>
                 <template v-if="!showArchived">
-                    <Button size="sm" variant="outline" as-child>
+                    <Button size="sm" variant="success-outline" as-child>
                         <a :href="`${base}/export`">
                             <Download class="mr-1.5 h-4 w-4" /> Export CSV
                         </a>
@@ -434,7 +429,7 @@ const selected = ref<Array<string | number>>([]);
                     <Button
                         v-if="canCreate"
                         size="sm"
-                        variant="outline"
+                        variant="primary-outline"
                         @click="openImport"
                     >
                         <Upload class="mr-1.5 h-4 w-4" /> Import CSV
@@ -481,8 +476,7 @@ const selected = ref<Array<string | number>>([]);
                 <Button
                     v-if="services.length && canManage"
                     size="sm"
-                    variant="outline"
-                    class="border-amber-300 text-amber-700 hover:bg-amber-100"
+                    variant="success-outline"
                     @click="restoreAll"
                 >
                     <RotateCcw class="mr-1.5 h-4 w-4" /> Restore All

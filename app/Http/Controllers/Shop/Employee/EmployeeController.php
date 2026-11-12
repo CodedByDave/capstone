@@ -15,15 +15,19 @@ use App\Models\Shop;
 use App\Models\ShopRole;
 use App\Services\ActivityLogService;
 use App\Services\EmployeeService;
+use App\Services\RiderProfileService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
 class EmployeeController extends Controller
 {
     public function __construct(
         private readonly EmployeeService $employeeService,
         private readonly ActivityLogService $activityLogService,
+        private readonly RiderProfileService $riderProfiles,
     ) {}
 
     /* ─── PRIVATE HELPERS ────────────────────────────────────── */
@@ -97,6 +101,22 @@ class EmployeeController extends Controller
             'shop' => $shop,
             'employment_types' => EmploymentType::options(),
             'pay_bases' => PayBasis::options(),
+            'vehicle_types' => $this->riderProfiles->vehicleChoices($shop),
+        ]);
+    }
+
+    /** The rider's driver's license photo, decrypted for the shop that employs them. */
+    public function license(Employee $employee): Response
+    {
+        Gate::authorize('view', $employee);
+
+        $file = $this->riderProfiles->licenseFile($employee, $this->getShop());
+
+        return response($file['contents'], 200, [
+            'Content-Type' => $file['mime'],
+            'Content-Disposition' => HeaderUtils::makeDisposition('inline', $file['name']),
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
@@ -135,6 +155,8 @@ class EmployeeController extends Controller
             'employment_types' => EmploymentType::options(),
             'pay_bases' => PayBasis::options(),
             'schedules' => $employee->schedules()->get(),
+            'rider' => $this->riderProfiles->formData($employee),
+            'vehicle_types' => $this->riderProfiles->vehicleChoices($shop),
         ]);
     }
 

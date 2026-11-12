@@ -18,15 +18,24 @@ class DriverRosterService
     /** Position titles that make an employee a delivery rider. */
     private const DRIVER_POSITIONS = [self::DRIVER_POSITION, 'rider'];
 
-    public function __construct(private readonly RiderRepository $riders) {}
+    public function __construct(
+        private readonly RiderRepository $riders,
+        private readonly RiderProfileService $profiles,
+    ) {}
 
     public static function isDriverPosition(?string $position): bool
     {
         return in_array(mb_strtolower(trim((string) $position)), self::DRIVER_POSITIONS, true);
     }
 
-    /** Creates, updates or deactivates the rider that mirrors the employee. */
-    public function sync(Employee $employee): ?Rider
+    /**
+     * Creates, updates or deactivates the rider that mirrors the employee. The rider details from
+     * the employee form (vehicle, plate number, license photo) are saved when given; otherwise the
+     * rider keeps the ones already on record.
+     *
+     * @param  array{vehicle_type?: string|null, plate_number?: string|null, license_photo?: \Illuminate\Http\UploadedFile|null}  $details
+     */
+    public function sync(Employee $employee, array $details = []): ?Rider
     {
         $rider = $this->riders->findByEmployeeId($employee->id);
 
@@ -45,8 +54,9 @@ class DriverRosterService
         return $this->riders->saveForEmployee($employee->shop_id, $employee->id, [
             'name' => trim($employee->first_name.' '.$employee->last_name),
             'phone' => $employee->phone,
-            'vehicle_type' => $employee->shop?->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE,
+            'vehicle_type' => $rider?->vehicle_type ?: ($employee->shop?->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE),
             'status' => 'active',
+            ...$this->profiles->attributesFrom($employee, $details),
         ]);
     }
 }

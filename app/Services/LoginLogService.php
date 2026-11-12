@@ -118,9 +118,4 @@ class LoginLogService
     {
         $this->loginLogRepository->bulkRestore($ids);
     }
-
-    public function forceDelete(int $id): void
-    {
-        $this->loginLogRepository->forceDelete($id);
-    }
 }

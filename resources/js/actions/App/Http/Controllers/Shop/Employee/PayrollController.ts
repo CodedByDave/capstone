@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/shop/payroll'
  */
 const storeddd525b71526ca67fe471a34585f4768 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -178,7 +178,7 @@ storeddd525b71526ca67fe471a34585f4768.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/shop/payroll'
  */
 storeddd525b71526ca67fe471a34585f4768.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ storeddd525b71526ca67fe471a34585f4768.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/shop/payroll'
  */
 storeddd525b71526ca67fe471a34585f4768.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -197,7 +197,7 @@ storeddd525b71526ca67fe471a34585f4768.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/shop/payroll'
  */
     const storeddd525b71526ca67fe471a34585f4768Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -207,7 +207,7 @@ storeddd525b71526ca67fe471a34585f4768.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/shop/payroll'
  */
         storeddd525b71526ca67fe471a34585f4768Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -218,7 +218,7 @@ storeddd525b71526ca67fe471a34585f4768.post = (options?: RouteQueryOptions): Rout
     storeddd525b71526ca67fe471a34585f4768.form = storeddd525b71526ca67fe471a34585f4768Form
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/staff/payroll'
  */
 const storef2aa4538e4801c2f4f9d89889e13c966 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -233,7 +233,7 @@ storef2aa4538e4801c2f4f9d89889e13c966.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/staff/payroll'
  */
 storef2aa4538e4801c2f4f9d89889e13c966.url = (options?: RouteQueryOptions) => {
@@ -242,7 +242,7 @@ storef2aa4538e4801c2f4f9d89889e13c966.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/staff/payroll'
  */
 storef2aa4538e4801c2f4f9d89889e13c966.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -252,7 +252,7 @@ storef2aa4538e4801c2f4f9d89889e13c966.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/staff/payroll'
  */
     const storef2aa4538e4801c2f4f9d89889e13c966Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -262,7 +262,7 @@ storef2aa4538e4801c2f4f9d89889e13c966.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::store
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:106
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:109
  * @route '/staff/payroll'
  */
         storef2aa4538e4801c2f4f9d89889e13c966Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -279,7 +279,7 @@ export const store = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/shop/payroll/settings'
  */
 const updateSettings924c520ec3c706584158d10e538955ef = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -294,7 +294,7 @@ updateSettings924c520ec3c706584158d10e538955ef.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/shop/payroll/settings'
  */
 updateSettings924c520ec3c706584158d10e538955ef.url = (options?: RouteQueryOptions) => {
@@ -303,7 +303,7 @@ updateSettings924c520ec3c706584158d10e538955ef.url = (options?: RouteQueryOption
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/shop/payroll/settings'
  */
 updateSettings924c520ec3c706584158d10e538955ef.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -313,7 +313,7 @@ updateSettings924c520ec3c706584158d10e538955ef.put = (options?: RouteQueryOption
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/shop/payroll/settings'
  */
     const updateSettings924c520ec3c706584158d10e538955efForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -328,7 +328,7 @@ updateSettings924c520ec3c706584158d10e538955ef.put = (options?: RouteQueryOption
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/shop/payroll/settings'
  */
         updateSettings924c520ec3c706584158d10e538955efForm.put = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -344,7 +344,7 @@ updateSettings924c520ec3c706584158d10e538955ef.put = (options?: RouteQueryOption
     updateSettings924c520ec3c706584158d10e538955ef.form = updateSettings924c520ec3c706584158d10e538955efForm
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/staff/payroll/settings'
  */
 const updateSettings910c31f6bbc3160588b38e37259924c6 = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -359,7 +359,7 @@ updateSettings910c31f6bbc3160588b38e37259924c6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/staff/payroll/settings'
  */
 updateSettings910c31f6bbc3160588b38e37259924c6.url = (options?: RouteQueryOptions) => {
@@ -368,7 +368,7 @@ updateSettings910c31f6bbc3160588b38e37259924c6.url = (options?: RouteQueryOption
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/staff/payroll/settings'
  */
 updateSettings910c31f6bbc3160588b38e37259924c6.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -378,7 +378,7 @@ updateSettings910c31f6bbc3160588b38e37259924c6.put = (options?: RouteQueryOption
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/staff/payroll/settings'
  */
     const updateSettings910c31f6bbc3160588b38e37259924c6Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -393,7 +393,7 @@ updateSettings910c31f6bbc3160588b38e37259924c6.put = (options?: RouteQueryOption
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateSettings
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:60
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:63
  * @route '/staff/payroll/settings'
  */
         updateSettings910c31f6bbc3160588b38e37259924c6Form.put = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -415,7 +415,7 @@ export const updateSettings = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/shop/payroll/{payroll}'
  */
 const show8461ea432174a5551c07a77ffc6e2b3d = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -430,7 +430,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/shop/payroll/{payroll}'
  */
 show8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -463,7 +463,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | { public_i
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/shop/payroll/{payroll}'
  */
 show8461ea432174a5551c07a77ffc6e2b3d.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -472,7 +472,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.get = (args: { payroll: string | { public_i
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/shop/payroll/{payroll}'
  */
 show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -482,7 +482,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | { public_
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/shop/payroll/{payroll}'
  */
     const show8461ea432174a5551c07a77ffc6e2b3dForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -492,7 +492,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | { public_
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/shop/payroll/{payroll}'
  */
         show8461ea432174a5551c07a77ffc6e2b3dForm.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -501,7 +501,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | { public_
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/shop/payroll/{payroll}'
  */
         show8461ea432174a5551c07a77ffc6e2b3dForm.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -517,7 +517,7 @@ show8461ea432174a5551c07a77ffc6e2b3d.head = (args: { payroll: string | { public_
     show8461ea432174a5551c07a77ffc6e2b3d.form = show8461ea432174a5551c07a77ffc6e2b3dForm
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/staff/payroll/{payroll}'
  */
 const showaebd371d6c35e9295977e81fc40c7e2e = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -532,7 +532,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/staff/payroll/{payroll}'
  */
 showaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -565,7 +565,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | { public_i
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/staff/payroll/{payroll}'
  */
 showaebd371d6c35e9295977e81fc40c7e2e.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -574,7 +574,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.get = (args: { payroll: string | { public_i
 })
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/staff/payroll/{payroll}'
  */
 showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -584,7 +584,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | { public_
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/staff/payroll/{payroll}'
  */
     const showaebd371d6c35e9295977e81fc40c7e2eForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -594,7 +594,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | { public_
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/staff/payroll/{payroll}'
  */
         showaebd371d6c35e9295977e81fc40c7e2eForm.get = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -603,7 +603,7 @@ showaebd371d6c35e9295977e81fc40c7e2e.head = (args: { payroll: string | { public_
         })
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::show
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:83
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:86
  * @route '/staff/payroll/{payroll}'
  */
         showaebd371d6c35e9295977e81fc40c7e2eForm.head = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -625,7 +625,7 @@ export const show = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/shop/payroll/{payrollItem}/item'
  */
 const updateItem587bebdd237de786e34e68acd2c3887f = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -640,7 +640,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/shop/payroll/{payrollItem}/item'
  */
 updateItem587bebdd237de786e34e68acd2c3887f.url = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -673,7 +673,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.url = (args: { payrollItem: string | 
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/shop/payroll/{payrollItem}/item'
  */
 updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -683,7 +683,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | 
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/shop/payroll/{payrollItem}/item'
  */
     const updateItem587bebdd237de786e34e68acd2c3887fForm = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -698,7 +698,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | 
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/shop/payroll/{payrollItem}/item'
  */
         updateItem587bebdd237de786e34e68acd2c3887fForm.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -714,7 +714,7 @@ updateItem587bebdd237de786e34e68acd2c3887f.put = (args: { payrollItem: string | 
     updateItem587bebdd237de786e34e68acd2c3887f.form = updateItem587bebdd237de786e34e68acd2c3887fForm
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/staff/payroll/{payrollItem}/item'
  */
 const updateItemcfd10266ea987ef8465ead699f9fc1da = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -729,7 +729,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/staff/payroll/{payrollItem}/item'
  */
 updateItemcfd10266ea987ef8465ead699f9fc1da.url = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -762,7 +762,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.url = (args: { payrollItem: string | 
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/staff/payroll/{payrollItem}/item'
  */
 updateItemcfd10266ea987ef8465ead699f9fc1da.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -772,7 +772,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.put = (args: { payrollItem: string | 
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/staff/payroll/{payrollItem}/item'
  */
     const updateItemcfd10266ea987ef8465ead699f9fc1daForm = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -787,7 +787,7 @@ updateItemcfd10266ea987ef8465ead699f9fc1da.put = (args: { payrollItem: string | 
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::updateItem
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:125
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:121
  * @route '/staff/payroll/{payrollItem}/item'
  */
         updateItemcfd10266ea987ef8465ead699f9fc1daForm.put = (args: { payrollItem: string | { public_id: string } } | [payrollItem: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -809,7 +809,7 @@ export const updateItem = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/shop/payroll/{payroll}/recalculate'
  */
 const recalculate747e84e8b22598afdc6f2429086ba963 = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -824,7 +824,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/shop/payroll/{payroll}/recalculate'
  */
 recalculate747e84e8b22598afdc6f2429086ba963.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -857,7 +857,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.url = (args: { payroll: string | { p
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/shop/payroll/{payroll}/recalculate'
  */
 recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -867,7 +867,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/shop/payroll/{payroll}/recalculate'
  */
     const recalculate747e84e8b22598afdc6f2429086ba963Form = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -877,7 +877,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/shop/payroll/{payroll}/recalculate'
  */
         recalculate747e84e8b22598afdc6f2429086ba963Form.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -888,7 +888,7 @@ recalculate747e84e8b22598afdc6f2429086ba963.post = (args: { payroll: string | { 
     recalculate747e84e8b22598afdc6f2429086ba963.form = recalculate747e84e8b22598afdc6f2429086ba963Form
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/staff/payroll/{payroll}/recalculate'
  */
 const recalculatefd51c045274b219f4218e7f9cb8e4c2a = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -903,7 +903,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/staff/payroll/{payroll}/recalculate'
  */
 recalculatefd51c045274b219f4218e7f9cb8e4c2a.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -936,7 +936,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.url = (args: { payroll: string | { p
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/staff/payroll/{payroll}/recalculate'
  */
 recalculatefd51c045274b219f4218e7f9cb8e4c2a.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -946,7 +946,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.post = (args: { payroll: string | { 
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/staff/payroll/{payroll}/recalculate'
  */
     const recalculatefd51c045274b219f4218e7f9cb8e4c2aForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -956,7 +956,7 @@ recalculatefd51c045274b219f4218e7f9cb8e4c2a.post = (args: { payroll: string | { 
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::recalculate
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:136
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:132
  * @route '/staff/payroll/{payroll}/recalculate'
  */
         recalculatefd51c045274b219f4218e7f9cb8e4c2aForm.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -973,7 +973,7 @@ export const recalculate = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/shop/payroll/{payroll}/finalize'
  */
 const finalize3dae19da9221437178f207cd20ebbe34 = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -988,7 +988,7 @@ finalize3dae19da9221437178f207cd20ebbe34.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/shop/payroll/{payroll}/finalize'
  */
 finalize3dae19da9221437178f207cd20ebbe34.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -1021,7 +1021,7 @@ finalize3dae19da9221437178f207cd20ebbe34.url = (args: { payroll: string | { publ
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/shop/payroll/{payroll}/finalize'
  */
 finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1031,7 +1031,7 @@ finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | { pub
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/shop/payroll/{payroll}/finalize'
  */
     const finalize3dae19da9221437178f207cd20ebbe34Form = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1041,7 +1041,7 @@ finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | { pub
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/shop/payroll/{payroll}/finalize'
  */
         finalize3dae19da9221437178f207cd20ebbe34Form.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1052,7 +1052,7 @@ finalize3dae19da9221437178f207cd20ebbe34.post = (args: { payroll: string | { pub
     finalize3dae19da9221437178f207cd20ebbe34.form = finalize3dae19da9221437178f207cd20ebbe34Form
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/staff/payroll/{payroll}/finalize'
  */
 const finalize5fc387858a315086365f60c5e6cb18b3 = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1067,7 +1067,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/staff/payroll/{payroll}/finalize'
  */
 finalize5fc387858a315086365f60c5e6cb18b3.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -1100,7 +1100,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.url = (args: { payroll: string | { publ
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/staff/payroll/{payroll}/finalize'
  */
 finalize5fc387858a315086365f60c5e6cb18b3.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1110,7 +1110,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.post = (args: { payroll: string | { pub
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/staff/payroll/{payroll}/finalize'
  */
     const finalize5fc387858a315086365f60c5e6cb18b3Form = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1120,7 +1120,7 @@ finalize5fc387858a315086365f60c5e6cb18b3.post = (args: { payroll: string | { pub
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::finalize
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:147
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:143
  * @route '/staff/payroll/{payroll}/finalize'
  */
         finalize5fc387858a315086365f60c5e6cb18b3Form.post = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1137,7 +1137,7 @@ export const finalize = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/shop/payroll/{payroll}'
  */
 const destroy8461ea432174a5551c07a77ffc6e2b3d = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1152,7 +1152,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/shop/payroll/{payroll}'
  */
 destroy8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -1185,7 +1185,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.url = (args: { payroll: string | { publi
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/shop/payroll/{payroll}'
  */
 destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1195,7 +1195,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | { pu
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/shop/payroll/{payroll}'
  */
     const destroy8461ea432174a5551c07a77ffc6e2b3dForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1210,7 +1210,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | { pu
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/shop/payroll/{payroll}'
  */
         destroy8461ea432174a5551c07a77ffc6e2b3dForm.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1226,7 +1226,7 @@ destroy8461ea432174a5551c07a77ffc6e2b3d.delete = (args: { payroll: string | { pu
     destroy8461ea432174a5551c07a77ffc6e2b3d.form = destroy8461ea432174a5551c07a77ffc6e2b3dForm
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/staff/payroll/{payroll}'
  */
 const destroyaebd371d6c35e9295977e81fc40c7e2e = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1241,7 +1241,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/staff/payroll/{payroll}'
  */
 destroyaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions) => {
@@ -1274,7 +1274,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.url = (args: { payroll: string | { publi
 
 /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/staff/payroll/{payroll}'
  */
 destroyaebd371d6c35e9295977e81fc40c7e2e.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -1284,7 +1284,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.delete = (args: { payroll: string | { pu
 
     /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/staff/payroll/{payroll}'
  */
     const destroyaebd371d6c35e9295977e81fc40c7e2eForm = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1299,7 +1299,7 @@ destroyaebd371d6c35e9295977e81fc40c7e2e.delete = (args: { payroll: string | { pu
 
             /**
 * @see \App\Http\Controllers\Shop\Employee\PayrollController::destroy
- * @see app/Http/Controllers/Shop/Employee/PayrollController.php:158
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:154
  * @route '/staff/payroll/{payroll}'
  */
         destroyaebd371d6c35e9295977e81fc40c7e2eForm.delete = (args: { payroll: string | { public_id: string } } | [payroll: string | { public_id: string } ] | string | { public_id: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1319,6 +1319,160 @@ export const destroy = {
     '/staff/payroll/{payroll}': destroyaebd371d6c35e9295977e81fc40c7e2e,
 }
 
-const PayrollController = { index, store, updateSettings, show, updateItem, recalculate, finalize, destroy }
+/**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/shop/payroll/{publicId}/restore'
+ */
+const restorea5bd9644f8f92d5ae7c6591bdc178342 = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restorea5bd9644f8f92d5ae7c6591bdc178342.url(args, options),
+    method: 'post',
+})
+
+restorea5bd9644f8f92d5ae7c6591bdc178342.definition = {
+    methods: ["post"],
+    url: '/shop/payroll/{publicId}/restore',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/shop/payroll/{publicId}/restore'
+ */
+restorea5bd9644f8f92d5ae7c6591bdc178342.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { publicId: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    publicId: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        publicId: args.publicId,
+                }
+
+    return restorea5bd9644f8f92d5ae7c6591bdc178342.definition.url
+            .replace('{publicId}', parsedArgs.publicId.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/shop/payroll/{publicId}/restore'
+ */
+restorea5bd9644f8f92d5ae7c6591bdc178342.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restorea5bd9644f8f92d5ae7c6591bdc178342.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/shop/payroll/{publicId}/restore'
+ */
+    const restorea5bd9644f8f92d5ae7c6591bdc178342Form = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restorea5bd9644f8f92d5ae7c6591bdc178342.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/shop/payroll/{publicId}/restore'
+ */
+        restorea5bd9644f8f92d5ae7c6591bdc178342Form.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restorea5bd9644f8f92d5ae7c6591bdc178342.url(args, options),
+            method: 'post',
+        })
+    
+    restorea5bd9644f8f92d5ae7c6591bdc178342.form = restorea5bd9644f8f92d5ae7c6591bdc178342Form
+    /**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/staff/payroll/{publicId}/restore'
+ */
+const restorec9dd2a3c94cde9c74e2c31cd9b83eae2 = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restorec9dd2a3c94cde9c74e2c31cd9b83eae2.url(args, options),
+    method: 'post',
+})
+
+restorec9dd2a3c94cde9c74e2c31cd9b83eae2.definition = {
+    methods: ["post"],
+    url: '/staff/payroll/{publicId}/restore',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/staff/payroll/{publicId}/restore'
+ */
+restorec9dd2a3c94cde9c74e2c31cd9b83eae2.url = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { publicId: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    publicId: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        publicId: args.publicId,
+                }
+
+    return restorec9dd2a3c94cde9c74e2c31cd9b83eae2.definition.url
+            .replace('{publicId}', parsedArgs.publicId.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/staff/payroll/{publicId}/restore'
+ */
+restorec9dd2a3c94cde9c74e2c31cd9b83eae2.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: restorec9dd2a3c94cde9c74e2c31cd9b83eae2.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/staff/payroll/{publicId}/restore'
+ */
+    const restorec9dd2a3c94cde9c74e2c31cd9b83eae2Form = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: restorec9dd2a3c94cde9c74e2c31cd9b83eae2.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\Employee\PayrollController::restore
+ * @see app/Http/Controllers/Shop/Employee/PayrollController.php:166
+ * @route '/staff/payroll/{publicId}/restore'
+ */
+        restorec9dd2a3c94cde9c74e2c31cd9b83eae2Form.post = (args: { publicId: string | number } | [publicId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: restorec9dd2a3c94cde9c74e2c31cd9b83eae2.url(args, options),
+            method: 'post',
+        })
+    
+    restorec9dd2a3c94cde9c74e2c31cd9b83eae2.form = restorec9dd2a3c94cde9c74e2c31cd9b83eae2Form
+
+export const restore = {
+    '/shop/payroll/{publicId}/restore': restorea5bd9644f8f92d5ae7c6591bdc178342,
+    '/staff/payroll/{publicId}/restore': restorec9dd2a3c94cde9c74e2c31cd9b83eae2,
+}
+
+const PayrollController = { index, store, updateSettings, show, updateItem, recalculate, finalize, destroy, restore }
 
 export default PayrollController

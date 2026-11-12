@@ -473,90 +473,6 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     
     bulkRestore.form = bulkRestoreForm
 /**
-* @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:183
- * @route '/admin/users/archive/{id}'
- */
-export const forceDelete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: forceDelete.url(args, options),
-    method: 'delete',
-})
-
-forceDelete.definition = {
-    methods: ["delete"],
-    url: '/admin/users/archive/{id}',
-} satisfies RouteDefinition<["delete"]>
-
-/**
-* @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:183
- * @route '/admin/users/archive/{id}'
- */
-forceDelete.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { id: args }
-    }
-
-    
-    if (Array.isArray(args)) {
-        args = {
-                    id: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        id: args.id,
-                }
-
-    return forceDelete.definition.url
-            .replace('{id}', parsedArgs.id.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:183
- * @route '/admin/users/archive/{id}'
- */
-forceDelete.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: forceDelete.url(args, options),
-    method: 'delete',
-})
-
-    /**
-* @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:183
- * @route '/admin/users/archive/{id}'
- */
-    const forceDeleteForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: forceDelete.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'DELETE',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Admin\UserController::forceDelete
- * @see app/Http/Controllers/Admin/UserController.php:183
- * @route '/admin/users/archive/{id}'
- */
-        forceDeleteForm.delete = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: forceDelete.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'DELETE',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    forceDelete.form = forceDeleteForm
-/**
 * @see \App\Http\Controllers\Admin\UserController::show
  * @see app/Http/Controllers/Admin/UserController.php:96
  * @route '/admin/users/{user}'
@@ -747,6 +663,6 @@ destroy.delete = (args: { user: number | { id: number } } | [user: number | { id
         })
     
     destroy.form = destroyForm
-const UserController = { index, exportCsv, importCsv, bulkArchive, archiveIndex, restore, bulkRestore, forceDelete, show, destroy }
+const UserController = { index, exportCsv, importCsv, bulkArchive, archiveIndex, restore, bulkRestore, show, destroy }
 
 export default UserController

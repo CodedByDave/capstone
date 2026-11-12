@@ -283,7 +283,7 @@ const doughnutOptions = {
                     </Select>
                     <Button
                         size="sm"
-                        variant="outline"
+                        variant="success-outline"
                         @click="exportCSV"
                         class="gap-1.5"
                     >
@@ -291,7 +291,7 @@ const doughnutOptions = {
                     </Button>
                     <Button
                         size="sm"
-                        variant="outline"
+                        variant="success-outline"
                         :disabled="downloading"
                         @click="downloadPDF"
                         class="gap-1.5"

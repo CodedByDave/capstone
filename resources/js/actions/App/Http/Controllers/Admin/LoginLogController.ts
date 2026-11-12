@@ -471,88 +471,6 @@ bulkRestore.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     
     bulkRestore.form = bulkRestoreForm
 /**
-* @see \App\Http\Controllers\Admin\LoginLogController::forceDelete
- * @see app/Http/Controllers/Admin/LoginLogController.php:112
- * @route '/admin/audit-logs/archive/{category}/{id}'
- */
-export const forceDelete = (args: { category: string | number, id: string | number } | [category: string | number, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: forceDelete.url(args, options),
-    method: 'delete',
-})
-
-forceDelete.definition = {
-    methods: ["delete"],
-    url: '/admin/audit-logs/archive/{category}/{id}',
-} satisfies RouteDefinition<["delete"]>
-
-/**
-* @see \App\Http\Controllers\Admin\LoginLogController::forceDelete
- * @see app/Http/Controllers/Admin/LoginLogController.php:112
- * @route '/admin/audit-logs/archive/{category}/{id}'
- */
-forceDelete.url = (args: { category: string | number, id: string | number } | [category: string | number, id: string | number ], options?: RouteQueryOptions) => {
-    if (Array.isArray(args)) {
-        args = {
-                    category: args[0],
-                    id: args[1],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        category: args.category,
-                                id: args.id,
-                }
-
-    return forceDelete.definition.url
-            .replace('{category}', parsedArgs.category.toString())
-            .replace('{id}', parsedArgs.id.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Admin\LoginLogController::forceDelete
- * @see app/Http/Controllers/Admin/LoginLogController.php:112
- * @route '/admin/audit-logs/archive/{category}/{id}'
- */
-forceDelete.delete = (args: { category: string | number, id: string | number } | [category: string | number, id: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: forceDelete.url(args, options),
-    method: 'delete',
-})
-
-    /**
-* @see \App\Http\Controllers\Admin\LoginLogController::forceDelete
- * @see app/Http/Controllers/Admin/LoginLogController.php:112
- * @route '/admin/audit-logs/archive/{category}/{id}'
- */
-    const forceDeleteForm = (args: { category: string | number, id: string | number } | [category: string | number, id: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: forceDelete.url(args, {
-                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                        _method: 'DELETE',
-                        ...(options?.query ?? options?.mergeQuery ?? {}),
-                    }
-                }),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\Admin\LoginLogController::forceDelete
- * @see app/Http/Controllers/Admin/LoginLogController.php:112
- * @route '/admin/audit-logs/archive/{category}/{id}'
- */
-        forceDeleteForm.delete = (args: { category: string | number, id: string | number } | [category: string | number, id: string | number ], options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: forceDelete.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'DELETE',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'post',
-        })
-    
-    forceDelete.form = forceDeleteForm
-/**
 * @see \App\Http\Controllers\Admin\LoginLogController::show
  * @see app/Http/Controllers/Admin/LoginLogController.php:55
  * @route '/admin/audit-logs/{category}/{id}'
@@ -729,6 +647,6 @@ destroy.delete = (args: { category: string | number, id: string | number } | [ca
         })
     
     destroy.form = destroyForm
-const LoginLogController = { index, exportCsv, importCsv, bulkArchive, archiveIndex, restore, bulkRestore, forceDelete, show, destroy }
+const LoginLogController = { index, exportCsv, importCsv, bulkArchive, archiveIndex, restore, bulkRestore, show, destroy }
 
 export default LoginLogController

@@ -32,6 +32,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import {
+    Archive,
     Banknote,
     CheckCircle2,
     Clock,
@@ -39,8 +40,8 @@ import {
     FileText,
     Loader2,
     Plus,
+    RotateCcw,
     Settings2,
-    Trash2,
 } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -86,6 +87,7 @@ interface PayrollSettings {
 
 const props = defineProps<{
     payrolls: PaginatedPayrolls;
+    showArchived: boolean;
     stats: Stats;
     settings: PayrollSettings;
 }>();
@@ -191,7 +193,25 @@ function submitGenerate() {
     });
 }
 
-// ─── Delete Dialog ────────────────────────────────────────────────────────────
+// ─── Archive ──────────────────────────────────────────────────────────────────
+
+const canArchive = computed(() => hasPermission('HRM', 'archive'));
+
+function toggleArchived() {
+    router.get(
+        `${baseRoute.value}/payroll`,
+        { archived: props.showArchived ? undefined : 1 },
+        { preserveState: false, replace: true },
+    );
+}
+
+function restorePayroll(p: Payroll) {
+    router.post(
+        `${baseRoute.value}/payroll/${p.public_id}/restore`,
+        {},
+        { preserveScroll: true },
+    );
+}
 
 const payrollToDelete = ref<Payroll | null>(null);
 const isDeleteOpen = ref(false);
@@ -274,9 +294,12 @@ const headers: DataTableHeader[] = [
 </script>
 
 <template>
-    <Head title="Payroll" />
+    <Head :title="showArchived ? 'Archived Payroll' : 'Payroll'" />
 
-    <ShopLayout :breadcrumbs="breadcrumbs" title="Payroll">
+    <ShopLayout
+        :breadcrumbs="breadcrumbs"
+        :title="showArchived ? 'Archived Payroll' : 'Payroll'"
+    >
         <div class="space-y-6 px-6">
             <!-- ── Header ──────────────────────────────────────── -->
             <div
@@ -291,13 +314,21 @@ const headers: DataTableHeader[] = [
                 </div>
                 <div class="flex items-center gap-2">
                     <Button
-                        v-if="hasPermission('HRM', 'update')"
-                        variant="outline"
+                        v-if="canArchive"
+                        :variant="showArchived ? 'back' : 'warning-outline'"
+                        @click="toggleArchived"
+                    >
+                        <Archive class="mr-2 h-4 w-4" />
+                        {{ showArchived ? 'Back to Active' : 'View Archives' }}
+                    </Button>
+                    <Button
+                        v-if="!showArchived && hasPermission('HRM', 'update')"
+                        variant="primary-outline"
                         @click="openSettings"
                     >
                         <Settings2 class="mr-2 h-4 w-4" /> Settings
                     </Button>
-                    <Button @click="openGenerate">
+                    <Button v-if="!showArchived" @click="openGenerate">
                         <Plus class="mr-2 h-4 w-4" />
                         Generate Payroll
                     </Button>
@@ -370,6 +401,23 @@ const headers: DataTableHeader[] = [
                 </Card>
             </div>
 
+            <!-- ── Archived Banner ─────────────────────────────── -->
+            <div
+                v-if="showArchived"
+                class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
+            >
+                <Archive class="h-5 w-5 shrink-0 text-amber-600" />
+                <div>
+                    <p class="text-sm font-semibold text-amber-800">
+                        Viewing Archived Payroll
+                    </p>
+                    <p class="text-xs text-amber-700">
+                        Archived payroll records are kept with their employee
+                        pay lines. Restore one to view or edit it again.
+                    </p>
+                </div>
+            </div>
+
             <!-- ── Table ───────────────────────────────────────── -->
             <DataTable
                 v-model:options="options"
@@ -378,8 +426,12 @@ const headers: DataTableHeader[] = [
                 :total="payrolls.total"
                 :loading="loading"
                 noun="payroll records"
-                :empty-icon="Banknote"
-                empty-message="No payroll records yet. Click “Generate Payroll” to create one."
+                :empty-icon="showArchived ? Archive : Banknote"
+                :empty-message="
+                    showArchived
+                        ? 'No archived payroll records.'
+                        : 'No payroll records yet. Click “Generate Payroll” to create one.'
+                "
                 :resettable="false"
                 :min-width="900"
                 hide-rows-per-page
@@ -424,17 +476,27 @@ const headers: DataTableHeader[] = [
                             {
                                 label: 'View',
                                 icon: Eye,
+                                show: !showArchived,
                                 onSelect: () =>
                                     router.visit(
                                         `${baseRoute}/payroll/${p.public_id}`,
                                     ),
                             },
                             {
-                                label: 'Delete',
-                                icon: Trash2,
+                                label: 'Archive',
+                                icon: Archive,
                                 destructive: true,
-                                show: p.status === 'draft',
+                                show:
+                                    !showArchived &&
+                                    canArchive &&
+                                    p.status === 'draft',
                                 onSelect: () => openDelete(p),
+                            },
+                            {
+                                label: 'Restore',
+                                icon: RotateCcw,
+                                show: showArchived && canArchive,
+                                onSelect: () => restorePayroll(p),
                             },
                         ]"
                     />
@@ -615,11 +677,12 @@ const headers: DataTableHeader[] = [
         <AlertDialog v-model:open="isDeleteOpen">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Payroll</AlertDialogTitle>
+                    <AlertDialogTitle>Archive Payroll</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to delete the payroll for
+                        Archive the payroll for
                         <strong>{{ payrollToDelete?.period_label }}</strong
-                        >? This action cannot be undone.
+                        >? It moves to the archive with its pay lines, and you
+                        can restore it at any time.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -627,7 +690,7 @@ const headers: DataTableHeader[] = [
                         >Cancel</Button
                     >
                     <Button variant="destructive" @click="confirmDelete"
-                        >Delete</Button
+                        >Archive</Button
                     >
                 </AlertDialogFooter>
             </AlertDialogContent>

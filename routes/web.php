@@ -34,6 +34,7 @@ use App\Http\Controllers\Shop\Finance\FinanceDashboardController;
 use App\Http\Controllers\Shop\Inventory\InventoryCategoryController;
 use App\Http\Controllers\Shop\Inventory\InventoryController;
 use App\Http\Controllers\Shop\Inventory\LowStockAlertController;
+use App\Http\Controllers\Shop\Inventory\PurchaseOrderController;
 use App\Http\Controllers\Shop\Inventory\SupplierController;
 use App\Http\Controllers\Shop\KycDocumentScanController;
 use App\Http\Controllers\Shop\KycVerificationController;
@@ -62,7 +63,9 @@ use App\Http\Controllers\Staff\SelfAttendanceController;
 use App\Http\Controllers\Staff\StaffDashboardController;
 use App\Http\Controllers\SupplierPortal\SupplierDashboardController;
 use App\Http\Controllers\SupplierPortal\SupplierItemController;
+use App\Http\Controllers\SupplierPortal\SupplierItemImportController;
 use App\Http\Controllers\SupplierPortal\SupplierPriceListController;
+use App\Http\Controllers\SupplierPortal\SupplierPurchaseOrderController;
 use App\Http\Controllers\User\OrderTrackingController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
@@ -71,6 +74,7 @@ use App\Http\Controllers\User\UserOrderController;
 use App\Http\Controllers\User\UserOrderRatingController;
 use App\Http\Controllers\User\UserOrderWeightController;
 use App\Http\Controllers\User\UserPaymentController;
+use App\Http\Controllers\User\UserProductOrderController;
 use App\Services\ShopDataExportService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -86,6 +90,10 @@ Route::prefix('supplier-portal')
     ->group(function () {
         Route::get('/', SupplierDashboardController::class)->name('dashboard');
         Route::post('/items', [SupplierItemController::class, 'store'])->name('items.store');
+        Route::get('/items/import/template', [SupplierItemImportController::class, 'template'])->name('items.import.template');
+        Route::post('/items/import/preview', [SupplierItemImportController::class, 'preview'])
+            ->middleware('throttle:10,1')->name('items.import.preview');
+        Route::post('/items/import', [SupplierItemImportController::class, 'store'])->name('items.import.store');
         Route::put('/items/{item}', [SupplierItemController::class, 'update'])->whereUlid('item')->name('items.update');
         Route::delete('/items/{item}', [SupplierItemController::class, 'destroy'])->whereUlid('item')->name('items.destroy');
         Route::post('/price-lists', [SupplierPriceListController::class, 'store'])
@@ -94,6 +102,8 @@ Route::prefix('supplier-portal')
             ->middleware('throttle:10,1')->whereUlid('priceList')->name('price-lists.recheck');
         Route::get('/price-lists/{priceList}/photo', [SupplierPriceListController::class, 'photo'])
             ->whereUlid('priceList')->name('price-lists.photo');
+        Route::post('/purchase-orders/{purchaseOrder}/answer', [SupplierPurchaseOrderController::class, 'answer'])
+            ->middleware('throttle:30,1')->whereUlid('purchaseOrder')->name('purchase-orders.answer');
     });
 
 Route::prefix('driver')->middleware(['auth', 'verified', 'role:staff', 'driver'])->group(function () {
@@ -182,7 +192,6 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
     Route::get('/shop/export', [ShopController::class, 'exportCsv'])->name('shop.export');
     Route::post('/shop/bulk-action', [ShopController::class, 'bulkAction'])->name('shop.bulk-action');
     Route::post('/shop/archive/{publicId}/restore', [ShopController::class, 'restore'])->name('shop.restore');
-    Route::delete('/shop/archive/{publicId}', [ShopController::class, 'forceDelete'])->name('shop.force-delete');
     Route::get('/shop/{shop:public_id}', [ShopController::class, 'show'])->name('shop.show');
     Route::get('/shop/{shop:public_id}/edit', [ShopController::class, 'edit'])->name('shop.edit');
     Route::put('/shop/{shop:public_id}', [ShopController::class, 'update'])->name('shop.update');
@@ -201,7 +210,6 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
             Route::get('/', [UserController::class, 'archiveIndex'])->name('index');
             Route::post('/{id}/restore', [UserController::class, 'restore'])->name('restore');
             Route::post('/bulk-restore', [UserController::class, 'bulkRestore'])->name('bulk-restore');
-            Route::delete('/{id}', [UserController::class, 'forceDelete'])->name('force-delete');
         });
 
         Route::get('/{user:public_id}', [UserController::class, 'show'])->name('show');
@@ -218,7 +226,6 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
             Route::get('/', [LoginLogController::class, 'archiveIndex'])->name('index');
             Route::post('/{category}/{id}/restore', [LoginLogController::class, 'restore'])->name('restore');
             Route::post('/bulk-restore', [LoginLogController::class, 'bulkRestore'])->name('bulk-restore');
-            Route::delete('/{category}/{id}', [LoginLogController::class, 'forceDelete'])->name('force-delete');
         });
 
         Route::get('/{category}/{id}', [LoginLogController::class, 'show'])
@@ -317,6 +324,7 @@ Route::prefix('shop')->middleware([
     Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
     Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('employee.show');
     Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
+    Route::get('/employee/{employee}/license', [EmployeeController::class, 'license'])->name('employee.license');
     Route::put('/employee/{employee}', [EmployeeController::class, 'update'])->name('employee.update');
     Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
     Route::post('/employee/{publicId}/restore', [EmployeeController::class, 'restore'])->name('employee.restore');
@@ -341,6 +349,7 @@ Route::prefix('shop')->middleware([
     Route::post('/payroll/{payroll}/recalculate', [PayrollController::class, 'recalculate'])->name('payroll.recalculate');
     Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
     Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
+    Route::post('/payroll/{publicId}/restore', [PayrollController::class, 'restore'])->whereUlid('publicId')->name('payroll.restore');
 
     // ── Roles & Permissions ───────────────────────────────────────────────────
     Route::get('/permission', [PermissionController::class, 'index'])->name('shop.permission');
@@ -390,6 +399,15 @@ Route::prefix('shop')->middleware([
             ->whereUlid(['supplier', 'priceList'])->name('supplier.price-lists.photo');
         Route::delete('/supplier/{supplier}', [SupplierController::class, 'destroy'])->whereUlid('supplier')->name('supplier.destroy');
         Route::post('/supplier/{id}/restore', [SupplierController::class, 'restore'])->whereUlid('id')->name('supplier.restore');
+
+        // Purchase orders: the shop orders supplies from one of its own suppliers.
+        Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('shop.purchase-orders.index');
+        Route::get('/purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('shop.purchase-orders.create');
+        Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->middleware('throttle:30,1')->name('shop.purchase-orders.store');
+        Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.show');
+        Route::post('/purchase-orders/{purchaseOrder}/send', [PurchaseOrderController::class, 'send'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.send');
+        Route::post('/purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.cancel');
+        Route::post('/purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.receive');
     });
 
     // Operations Routes
@@ -398,13 +416,19 @@ Route::prefix('shop')->middleware([
     Route::post('operations/orders', [ShopOrderController::class, 'store'])
         ->middleware('shop.capability:pickup')
         ->name('shop.orders.store');
+    Route::post('operations/orders/delivery-quote', [ShopOrderController::class, 'deliveryQuote'])
+        ->middleware('throttle:30,1')
+        ->name('shop.orders.delivery-quote');
     Route::get('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('shop.orders.show');
+    Route::get('operations/orders/{order:payment_public_id}/checkout', [ShopOrderController::class, 'checkout'])->name('shop.orders.checkout');
+    Route::post('operations/orders/{order:payment_public_id}/checkout', [ShopOrderController::class, 'confirmCheckout'])->middleware('throttle:30,1')->name('shop.orders.checkout.store');
     Route::get('operations/orders/{order:payment_public_id}/receipt', [ShopOrderController::class, 'receiptPdf'])->middleware('throttle:30,1')->name('shop.orders.receipt');
     Route::get('operations/orders/{order:payment_public_id}/weight-proof', [OrderWeightProofController::class, 'show'])->middleware('throttle:60,1')->name('shop.orders.weight-proof');
     Route::get('operations/orders/{order:payment_public_id}/edit', [ShopOrderController::class, 'edit'])->name('shop.orders.edit');
     Route::put('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
     Route::delete('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
     Route::post('operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('shop.orders.payments.store');
+    Route::post('operations/orders/{order:payment_public_id}/notify-ready', [ShopOrderController::class, 'notifyReady'])->middleware('throttle:10,1')->name('shop.orders.notify-ready');
     Route::post('operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('shop.orders.payments.check');
     Route::post('operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('shop.orders.payments.void');
     Route::post('operations/orders/{order:payment_public_id}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
@@ -459,7 +483,7 @@ Route::prefix('shop')->middleware([
     Route::patch('operations/promos/{promotion}/restore', [PromotionController::class, 'restore'])->name('promotions.restore');
 
     Route::post('operations/orders/restore-all', [ShopOrderController::class, 'restoreAll'])->name('shop.orders.restore-all');
-    Route::patch('operations/orders/{order:payment_public_id}/restore', [ShopOrderController::class, 'restore'])->withTrashed()->name('shop.orders.restore');
+    Route::patch('operations/orders/{publicId}/restore', [ShopOrderController::class, 'restore'])->whereUlid('publicId')->name('shop.orders.restore');
 
     // Dedicated status & payment update endpoints
     Route::patch('operations/orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('status');
@@ -526,6 +550,8 @@ Route::prefix('shop')->middleware([
     Route::patch('/settings/rush-fee', [ShopSettingsController::class, 'updateRushFee'])
         ->middleware('throttle:20,1')
         ->name('shop.settings.rush-fee');
+    Route::patch('/settings/sms', [ShopSettingsController::class, 'updateSmsGateway'])->name('shop.settings.sms');
+    Route::post('/settings/sms/test', [ShopSettingsController::class, 'sendTestSms'])->middleware('throttle:5,1')->name('shop.settings.sms.test');
     Route::patch('/settings/rider-load', [ShopSettingsController::class, 'updateRiderLoadLimit'])
         ->middleware(['shop.capability:delivery', 'throttle:20,1'])
         ->name('shop.settings.rider-load');
@@ -543,6 +569,7 @@ Route::prefix('shop')->middleware([
         Route::patch('/logistics/{delivery}/status', [LogisticsController::class, 'updateStatus'])->name('shop.logistics.status');
         Route::post('/logistics/{delivery}/dropped-off', [LogisticsController::class, 'markDroppedOff'])->name('shop.logistics.dropped-off');
         Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('shop.logistics.destroy');
+        Route::post('/logistics/{publicId}/restore', [LogisticsController::class, 'restore'])->whereUlid('publicId')->name('shop.logistics.restore');
     });
 });
 
@@ -593,6 +620,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::middleware('permission:HRM,view')->group(function () {
         Route::get('/employee', [EmployeeController::class, 'index'])->name('staff.employee.index');
         Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
+        Route::get('/employee/{employee}/license', [EmployeeController::class, 'license'])->name('staff.employee.license');
     });
     Route::middleware('permission:HRM,update')->group(function () {
         Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('staff.employee.edit');
@@ -663,6 +691,20 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
 
     // ── Suppliers ─────────────────────────────────────────────────────────────
     Route::middleware('shop.capability:suppliers')->group(function () {
+        // Purchase orders, by the staff member's Inventory Management permissions.
+        Route::middleware('permission:Inventory Management,create')->group(function () {
+            Route::get('/purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('staff.purchase-orders.create');
+            Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->middleware('throttle:30,1')->name('staff.purchase-orders.store');
+            Route::post('/purchase-orders/{purchaseOrder}/send', [PurchaseOrderController::class, 'send'])->whereUlid('purchaseOrder')->name('staff.purchase-orders.send');
+        });
+        Route::middleware('permission:Inventory Management,view')->group(function () {
+            Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('staff.purchase-orders.index');
+            Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->whereUlid('purchaseOrder')->name('staff.purchase-orders.show');
+        });
+        Route::middleware('permission:Inventory Management,update')->group(function () {
+            Route::post('/purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->whereUlid('purchaseOrder')->name('staff.purchase-orders.cancel');
+            Route::post('/purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->whereUlid('purchaseOrder')->name('staff.purchase-orders.receive');
+        });
         Route::middleware('permission:Inventory Management,view')->group(function () {
             Route::get('/supplier', [SupplierController::class, 'index'])->name('staff.supplier.index');
             Route::get('/supplier/{supplier}', [SupplierController::class, 'show'])->whereUlid('supplier')->name('staff.supplier.show');
@@ -706,6 +748,11 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::post('/operations/orders', [ShopOrderController::class, 'store'])
             ->middleware('shop.capability:pickup')
             ->name('staff.orders.store');
+        Route::post('/operations/orders/delivery-quote', [ShopOrderController::class, 'deliveryQuote'])
+            ->middleware('throttle:30,1')
+            ->name('staff.orders.delivery-quote');
+        Route::get('/operations/orders/{order:payment_public_id}/checkout', [ShopOrderController::class, 'checkout'])->name('staff.orders.checkout');
+        Route::post('/operations/orders/{order:payment_public_id}/checkout', [ShopOrderController::class, 'confirmCheckout'])->middleware('throttle:30,1')->name('staff.orders.checkout.store');
         Route::get('/operations/services/create', [ShopServiceController::class, 'create'])->name('staff.services.create');
         Route::post('/operations/services', [ShopServiceController::class, 'store'])->name('staff.services.store');
         Route::post('/operations/services/import', [ShopServiceController::class, 'import'])->name('staff.services.import');
@@ -733,7 +780,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     Route::middleware('permission:Operations,manage')->group(function () {
         Route::get('/operations/orders/{order:payment_public_id}/edit', [ShopOrderController::class, 'edit'])->name('staff.orders.edit');
         Route::put('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'update'])->name('staff.orders.update');
-        Route::patch('/operations/orders/{order:payment_public_id}/restore', [ShopOrderController::class, 'restore'])->withTrashed()->name('staff.orders.restore');
+        Route::patch('/operations/orders/{publicId}/restore', [ShopOrderController::class, 'restore'])->whereUlid('publicId')->name('staff.orders.restore');
         Route::post('/operations/orders/restore-all', [ShopOrderController::class, 'restoreAll'])->name('staff.orders.restore-all');
         Route::delete('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('staff.orders.destroy');
         Route::patch('/operations/orders/{order:payment_public_id}/status', [ShopOrderController::class, 'updateStatus'])->name('staff.orders.status');
@@ -745,6 +792,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
             ->middleware('throttle:30,1')
             ->name('staff.complaints.respond');
         Route::post('/operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('staff.orders.payments.store');
+        Route::post('/operations/orders/{order:payment_public_id}/notify-ready', [ShopOrderController::class, 'notifyReady'])->middleware('throttle:10,1')->name('staff.orders.notify-ready');
         Route::post('/operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('staff.orders.payments.check');
         Route::post('/operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('staff.orders.payments.void');
         Route::post('/operations/orders/{order:payment_public_id}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
@@ -778,6 +826,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         });
         Route::middleware('permission:Logistics,archive')->group(function () {
             Route::delete('/logistics/{delivery}', [LogisticsController::class, 'destroy'])->name('staff.logistics.destroy');
+            Route::post('/logistics/{publicId}/restore', [LogisticsController::class, 'restore'])->whereUlid('publicId')->name('staff.logistics.restore');
             Route::delete('/logistics/photos/{photo}', [DeliveryProofController::class, 'destroy'])->name('staff.logistics.photos.destroy');
         });
     });
@@ -798,6 +847,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
     Route::middleware('permission:HRM,archive')->group(function () {
         Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('staff.payroll.destroy');
+        Route::post('/payroll/{publicId}/restore', [PayrollController::class, 'restore'])->whereUlid('publicId')->name('staff.payroll.restore');
     });
 
     Route::prefix('reports')->name('staff.reports.')->group(function () {
@@ -849,6 +899,8 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::get('/shops/{shop}', [UserDashboardController::class, 'showShop'])->name('shops.show');
     Route::get('/orders', [UserOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/estimate', [UserOrderController::class, 'estimate'])->middleware('throttle:60,1')->name('orders.estimate');
+    Route::get('/orders/products/estimate', [UserProductOrderController::class, 'estimate'])->middleware('throttle:60,1')->name('orders.products.estimate');
+    Route::post('/orders/products', [UserProductOrderController::class, 'store'])->middleware('throttle:10,1')->name('orders.products.store');
     Route::get('/orders/{order:payment_public_id}', [UserOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders', [UserOrderController::class, 'store'])
         ->middleware('shop.capability:pickup')

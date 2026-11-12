@@ -23,7 +23,9 @@ class ExpenseRepository
             ->when($filters['category_id'] ?? null, fn ($q, $v) => $q->where('category_id', $v))
             ->when($filters['date_from'] ?? null, fn ($q, $v) => $q->where('expense_date', '>=', $v))
             ->when($filters['date_to'] ?? null, fn ($q, $v) => $q->where('expense_date', '<=', $v))
-            ->when($filters['search'] ?? null, fn ($q, $v) => $q->where('title', 'like', "%{$v}%"));
+            ->when($filters['search'] ?? null, fn ($q, $v) => $q->where(fn ($s) => $s
+                ->where('title', 'like', "%{$v}%")
+                ->orWhere('reference_number', 'like', "%{$v}%")));
 
         $this->sortExpenses($query, $sort);
 

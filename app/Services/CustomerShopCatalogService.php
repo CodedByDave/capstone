@@ -38,6 +38,36 @@ class CustomerShopCatalogService
     }
 
     /**
+     * The retail products a shop sells (e.g. a 1,000 ml softener bottle for ₱150). Stock levels and
+     * costs stay in the shop: the customer only learns whether a pack is available and, when fewer
+     * than the per-order limit are left, how many can still be bought.
+     *
+     * @return list<array{id: int, name: string, pack_size: int, unit: string, price: float, photo_url: string|null, in_stock: bool, max_count: int}>
+     */
+    public function retailProductOptions(int $shopId): array
+    {
+        return $this->inventory->retailItemsForShop($shopId)
+            ->filter(fn ($item) => (float) $item->retail_price > 0 && (int) $item->retail_pack_size > 0)
+            ->map(function ($item) {
+                $packs = (int) floor((float) $item->quantity / (int) $item->retail_pack_size);
+                $max = max(0, min(CustomerAdditionalChargeService::MAX_PER_ITEM, $packs));
+
+                return [
+                    'id' => $item->id,
+                    'name' => $item->retail_name ?: $item->name,
+                    'pack_size' => (int) $item->retail_pack_size,
+                    'unit' => (string) $item->unit,
+                    'price' => (float) $item->retail_price,
+                    'photo_url' => $item->photo_url,
+                    'in_stock' => $max > 0,
+                    'max_count' => $max,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
      * Services as the customer sees them: the supplies each one uses (name, quantity, unit only, so
      * no costs or stock levels leave the shop) and the display name of a shop-made category.
      *

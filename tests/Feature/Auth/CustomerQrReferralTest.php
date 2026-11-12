@@ -59,19 +59,22 @@ test('an unknown or inactive shop QR is rejected', function () {
         ->assertRedirect(route('login'));
 });
 
-test('customers cannot register without scanning a shop QR', function () {
+test('customers can register without scanning a shop QR', function () {
     Mail::fake();
+
+    $this->get(route('register.user'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('referralShop', null));
 
     $this->post(route('register.user.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
-    ])->assertSessionHasErrors('email');
+        'password' => 'Password1!',
+        'password_confirmation' => 'Password1!',
+    ])->assertSessionHasNoErrors()->assertRedirect(route('otp.verify.page'));
 
-    Mail::assertNothingSent();
-    $this->get(route('register.user'))
-        ->assertInertia(fn (Assert $page) => $page->where('referralShop', null));
+    expect(session('pending_registration.email'))->toBe('test@example.com')
+        ->and(session('pending_registration.referred_shop_id'))->toBeNull();
 });
 
 test('a registered customer is linked to the shop that referred them', function () {

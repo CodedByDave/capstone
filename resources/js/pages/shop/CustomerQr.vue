@@ -63,8 +63,8 @@ function downloadQr() {
             <div>
                 <h2 class="text-2xl font-bold tracking-tight">Customer QR</h2>
                 <p class="mt-1 text-sm text-muted-foreground">
-                    Show this code to your customers so they can go straight
-                    to {{ shopName }}'s services and place an order.
+                    Show this code to your customers so they can go straight to
+                    {{ shopName }}'s services and place an order.
                 </p>
             </div>
 
@@ -167,7 +167,7 @@ function downloadQr() {
                         </Button>
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="success-outline"
                             class="mt-2 w-full"
                             @click="printPage"
                         >
