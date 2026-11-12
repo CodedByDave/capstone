@@ -43,7 +43,7 @@ trait ValidatesServiceCatalogue
             'supplies.max' => 'A service can use at most 20 supplies.',
             'supplies.*.inventory_id.required' => 'Select a supply for this row, or remove the row.',
             'supplies.*.inventory_id.integer' => 'Select a supply from the list.',
-            'supplies.*.quantity.required' => 'Enter how much of this supply the service consumes.',
+            'supplies.*.quantity.required' => 'Enter how much of this supply the service uses.',
             'supplies.*.quantity.numeric' => 'The quantity must be a number.',
             'supplies.*.quantity.max' => 'The quantity cannot be more than 9,999.',
             'supplies.*.inventory_id.exists' => 'One of the selected supplies is not in your inventory.',

@@ -194,7 +194,7 @@ test('super admin can import an order csv backup', function () {
     ]);
 
     $order = Order::where('transaction_reference', 'TXN-CSV-IMPORT')->firstOrFail();
-    expect($order->modules)->toHaveCount(2);
+    expect($order->modules)->toHaveCount(3);
 });
 
 /** @param  array<string, mixed>  $columns  columns that are not mass assignable, set directly */

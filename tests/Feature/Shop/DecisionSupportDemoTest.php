@@ -21,7 +21,7 @@ function demoShop(): Shop
 
 it('suggests a reorder quantity from daily use, lead time and cover days', function () {
     $shop = demoShop();
-    $detergent = Inventory::where('shop_id', $shop->id)->where('sku', 'DSS-DETERGENT')->firstOrFail();
+    $detergent = Inventory::where('shop_id', $shop->id)->where('name', 'Detergent Powder')->firstOrFail();
 
     $row = app(StockReorderService::class)->forShop($shop->id)[$detergent->id];
 
@@ -35,7 +35,7 @@ it('suggests a reorder quantity from daily use, lead time and cover days', funct
 
 it('does not flag items whose stock outlasts the supplier lead time', function () {
     $shop = demoShop();
-    $bags = Inventory::where('shop_id', $shop->id)->where('sku', 'DSS-BAGS')->firstOrFail();
+    $bags = Inventory::where('shop_id', $shop->id)->where('name', 'Plastic Bags')->firstOrFail();
 
     $row = app(StockReorderService::class)->forShop($shop->id)[$bags->id];
 

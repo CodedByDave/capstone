@@ -394,7 +394,7 @@ test('a reassigned rider starts without the previous riders position', function 
     $shop = trackShop();
     $order = trackOrder($shop, trackCustomer());
     $first = trackRider($shop);
-    $second = trackRider($shop, 'Car');
+    $second = onlineRider($shop, 'Second Rider');
     $leg = trackLeg($order, 'delivery', 'assigned', [
         'rider_id' => $first->id,
         'rider_lat' => 14.43,

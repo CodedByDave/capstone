@@ -17,7 +17,7 @@ test('two factor settings page can be rendered', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
+        ->withSession(['auth.password_confirmed_at' => now()->unix()])
         ->get(route('two-factor.show'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/TwoFactor')
@@ -73,7 +73,7 @@ test('two factor settings page returns forbidden response when two factor is dis
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
+        ->withSession(['auth.password_confirmed_at' => now()->unix()])
         ->get(route('two-factor.show'))
         ->assertForbidden();
 });

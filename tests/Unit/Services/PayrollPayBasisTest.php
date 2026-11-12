@@ -16,6 +16,7 @@ it('calculates payroll using the selected pay basis', function (
     $service = new PayrollService(
         Mockery::mock(PayrollRepository::class),
         Mockery::mock(ActivityLogService::class),
+        Mockery::mock(\App\Services\ExpenseService::class),
     );
 
     $employee = new Employee([

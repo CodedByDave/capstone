@@ -51,7 +51,7 @@ it('refuses a customer order on a day the shop is closed', function () {
     [$shop, $service, $customer] = closedShopFixture(['operating_days' => array_values(array_diff(range(0, 6), [$today]))]);
 
     expect(fn () => placeWalkInOrder($shop, $service, $customer))->toThrow(ValidationException::class);
-    expect(\App\Models\ShopOrder::where("shop_id", $shop->id)->count())->toBe(0);
+    expect(\App\Models\ShopOrder::where('shop_id', $shop->id)->count())->toBe(0);
 });
 
 it('refuses a customer order outside the opening hours', function () {
@@ -65,5 +65,5 @@ it('accepts a customer order while the shop is open', function () {
 
     placeWalkInOrder($shop, $service, $customer);
 
-    expect(\App\Models\ShopOrder::where("shop_id", $shop->id)->count())->toBe(1);
+    expect(\App\Models\ShopOrder::where('shop_id', $shop->id)->count())->toBe(1);
 });

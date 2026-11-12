@@ -1,7 +1,6 @@
 <?php
 
 use App\Notifications\DriverAssignmentNotification;
-use Illuminate\Support\Facades\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
 
 function pushPayload(array $overrides = []): array

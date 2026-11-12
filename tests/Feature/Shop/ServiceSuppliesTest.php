@@ -261,7 +261,8 @@ it('shows customers the supplies of a service without costs or stock levels', fu
         ShopService::where('shop_id', $shop->id)->with('supplies:id,name,unit')->get(),
     );
 
-    expect($cards[0]['supplies'])->toBe([['name' => 'Fabric Softener', 'quantity' => 1.0, 'unit' => 'cap', 'per' => 'kg']])
+    // The unit is the stock item's own (sachet), whatever the form sent.
+    expect($cards[0]['supplies'])->toBe([['name' => 'Fabric Softener', 'quantity' => 1.0, 'unit' => 'sachet', 'per' => 'kg']])
         ->and(json_encode($cards))->not->toContain('unit_price')->not->toContain('selling_price');
 });
 
@@ -280,5 +281,6 @@ it('explains an empty supply row in plain words', function () {
 
     expect($errors->first('supplies.0.inventory_id'))->toBe('Select a supply for this row, or remove the row.')
         ->and($errors->first('supplies.0.quantity'))->toBe('Enter how much of this supply the service uses.')
-        ->and($errors->first('supplies.0.unit'))->toBe('Enter the unit, for example sachet or ml.');
+        // The unit is taken from the stock item, so the form is never asked for one.
+        ->and($errors->has('supplies.0.unit'))->toBeFalse();
 });

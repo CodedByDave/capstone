@@ -38,6 +38,13 @@ return [
         'shop/payroll*' => 'shop.staff',
         'shop/permission*' => 'shop.staff',
         'shop/inventory*' => 'shop.inventory',
+        'shop/purchase-orders*' => 'shop.inventory',
+        // Bulk archive and restore, by the module the records belong to.
+        'shop/bulk/inventory*' => 'shop.inventory',
+        'shop/bulk/supplier*' => 'shop.inventory',
+        'shop/bulk/expense*' => 'shop.finance',
+        'shop/bulk/service*' => 'shop.operations',
+        'shop/bulk/promotion*' => 'shop.operations',
         'shop/supplier*' => 'shop.inventory',
         'shop/operations*' => 'shop.operations',
         'shop/orders*' => 'shop.operations',
