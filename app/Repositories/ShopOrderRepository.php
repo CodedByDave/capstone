@@ -315,6 +315,22 @@ class ShopOrderRepository
         return $order->fresh(['service', 'supplies']);
     }
 
+    /**
+     * Map pins of the customers a shop served in the last days, for judging a delivery radius.
+     *
+     * @return SupportCollection<int, array{lat: float, lng: float}>
+     */
+    public function recentCustomerPins(int $shopId, int $days = 30): SupportCollection
+    {
+        return ShopOrder::query()
+            ->forShop($shopId)
+            ->where('created_at', '>=', now()->subDays($days))
+            ->whereNotNull('customer_lat')
+            ->whereNotNull('customer_lng')
+            ->get(['customer_lat', 'customer_lng'])
+            ->map(fn (ShopOrder $order) => ['lat' => (float) $order->customer_lat, 'lng' => (float) $order->customer_lng]);
+    }
+
     public function delete(ShopOrder $order): bool
     {
         return $order->delete();

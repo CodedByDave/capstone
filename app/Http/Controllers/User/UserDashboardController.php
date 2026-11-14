@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CustomerAddressResource;
 use App\Models\Shop;
 use App\Models\ShopOrder;
+use App\Services\CustomerAddressService;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerShopCatalogService;
 use App\Services\OrderRatingService;
@@ -17,6 +19,7 @@ use Inertia\Response;
 class UserDashboardController extends Controller
 {
     public function __construct(
+        private readonly CustomerAddressService $customerAddresses,
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly CustomerShopCatalogService $catalog,
         private readonly OrderRatingService $ratings,
@@ -143,6 +146,7 @@ class UserDashboardController extends Controller
             'retailProducts' => $this->catalog->retailProductOptions($shop->id),
             'promotions' => $this->promotions->forCustomer($shop->id),
             'customerAgreement' => $this->customerAgreementService->agreementData($shop),
+            'savedAddresses' => CustomerAddressResource::collection($this->customerAddresses->listFor($request->user()))->resolve(),
             'userLat' => $lat ?: null,
             'userLng' => $lng ?: null,
         ]);

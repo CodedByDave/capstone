@@ -8,6 +8,7 @@ import {
     type LatLng,
     type PlaceResult,
 } from '@/lib/maps';
+import { ADDRESS_LABELS, type SavedAddress } from '@/types/saved-address';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
@@ -48,6 +49,7 @@ const props = defineProps<{
     initialAddress: string | null;
     shopName: string | null;
     shopLocation: LatLng | null;
+    savedAddresses?: SavedAddress[];
 }>();
 
 const emit = defineEmits<{ cancel: [] }>();
@@ -86,6 +88,23 @@ async function runSearch(query: string) {
         );
     } finally {
         searching.value = false;
+    }
+}
+
+/** Fills the delivery address and pin from one of the customer's saved addresses. */
+function useSavedAddress(saved: SavedAddress) {
+    suggestions.value = [];
+    searchQuery.value = '';
+    address.value = saved.address;
+
+    if (saved.latitude !== null && saved.longitude !== null) {
+        const point = { lat: saved.latitude, lng: saved.longitude };
+        setPin(point, false);
+        map?.easeTo({ center: toLngLat(point), zoom: 17 });
+    } else {
+        toast.info(
+            'This saved address has no map pin. Tap the map to drop one.',
+        );
     }
 }
 
@@ -285,6 +304,35 @@ function submit() {
                 This shop has not set its map location yet, so delivery fees
                 cannot be quoted. Please contact the shop.
             </span>
+        </div>
+
+        <!-- Saved addresses -->
+        <div v-if="savedAddresses?.length" class="space-y-1.5">
+            <p class="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                Deliver to a saved address
+            </p>
+            <div class="flex flex-wrap gap-2">
+                <button
+                    v-for="saved in savedAddresses"
+                    :key="saved.id"
+                    type="button"
+                    class="flex min-h-11 max-w-full items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left text-xs text-gray-700 hover:border-blue-500 hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                    @click="useSavedAddress(saved)"
+                >
+                    <MapPin
+                        class="h-3.5 w-3.5 shrink-0 text-blue-600"
+                        aria-hidden="true"
+                    />
+                    <span class="min-w-0">
+                        <span class="block font-semibold">
+                            {{ ADDRESS_LABELS[saved.label] }}
+                        </span>
+                        <span class="block truncate text-gray-500">
+                            {{ saved.address }}
+                        </span>
+                    </span>
+                </button>
+            </div>
         </div>
 
         <!-- Search -->

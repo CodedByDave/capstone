@@ -9,7 +9,9 @@ use App\Http\Requests\User\DeliveryQuoteRequest;
 use App\Http\Requests\User\EstimateOrderBreakdownRequest;
 use App\Http\Requests\User\RequestDeliveryRequest;
 use App\Http\Requests\User\StoreUserOrderRequest;
+use App\Http\Resources\CustomerAddressResource;
 use App\Models\ShopOrder;
+use App\Services\CustomerAddressService;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerOrderCancellationService;
 use App\Services\CustomerOrderPlacementService;
@@ -32,6 +34,7 @@ class UserOrderController extends Controller
 {
     public function __construct(
         private readonly CustomerOrderPlacementService $orderPlacement,
+        private readonly CustomerAddressService $customerAddresses,
         private readonly CustomerAgreementService $customerAgreementService,
         private readonly ShopPaymentSettingsService $paymentSettings,
         private readonly OrderBillingBreakdownService $billing,
@@ -87,6 +90,7 @@ class UserOrderController extends Controller
 
         return Inertia::render('user/OrderDetail', [
             'customerAgreement' => $this->customerAgreementService->acceptanceData($order),
+            'savedAddresses' => CustomerAddressResource::collection($this->customerAddresses->listFor(auth()->user()))->resolve(),
             'order' => [
                 'id' => $order->id,
                 'payment_public_id' => $order->payment_public_id,

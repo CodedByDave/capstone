@@ -4,6 +4,7 @@ import BillingBreakdown, {
     type BillingBreakdown as BillingBreakdownData,
 } from '@/components/customer/BillingBreakdown.vue';
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
+import SavedAddressPicker from '@/components/customer/SavedAddressPicker.vue';
 import { Input } from '@/components/ui/input';
 import {
     Sheet,
@@ -19,6 +20,7 @@ import {
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { searchPlaces } from '@/lib/maps';
 import type { AppPageProps } from '@/types';
+import type { SavedAddress } from '@/types/saved-address';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
@@ -127,6 +129,7 @@ const props = defineProps<{
     promotions: CustomerPromotion[];
     userLat: number | null;
     userLng: number | null;
+    savedAddresses: SavedAddress[];
     customerAgreement: {
         title: string;
         version: string;
@@ -319,6 +322,42 @@ const { locating, failed, detectLocation } = usePickupAddressAutofill();
 let pinnedAddress = '';
 const PIN_LOOKUP_TIMEOUT_MS = 4_000;
 
+// Saved addresses: the customer picks one for this order, or types a different one.
+const selectedAddressId = ref<string | null>(null);
+// Once the customer has chosen (including "a different address") we stop choosing for them.
+let addressChosen = false;
+
+/** Copies the chosen saved address onto the order; the order keeps its own copy. */
+function applySavedAddress(address: SavedAddress | null) {
+    addressChosen = true;
+
+    if (!address) {
+        form.value.customer_address = '';
+        form.value.customer_lat = form.value.customer_lng = null;
+        pinnedAddress = '';
+        return;
+    }
+
+    form.value.customer_address = address.address;
+    form.value.customer_lat = address.latitude;
+    form.value.customer_lng = address.longitude;
+    pinnedAddress = address.latitude === null ? '' : address.address;
+    if (form.value.customer_phone.trim() === '') {
+        form.value.customer_phone = address.phone;
+    }
+}
+
+function preselectSavedAddress(): boolean {
+    if (addressChosen || props.savedAddresses.length === 0) return false;
+
+    const address =
+        props.savedAddresses.find((a) => a.is_default) ??
+        props.savedAddresses[0];
+    selectedAddressId.value = address.id;
+    applySavedAddress(address);
+    return true;
+}
+
 async function autofillAddress(force = false) {
     if (!force && form.value.customer_address.trim() !== '') return;
 
@@ -374,7 +413,7 @@ async function resolvePickupPin() {
 watch(
     () => form.value.pickup_type,
     (type) => {
-        if (type === 'pickup') autofillAddress();
+        if (type === 'pickup' && !preselectSavedAddress()) autofillAddress();
     },
 );
 
@@ -1546,53 +1585,88 @@ function goBack() {
 
                         <!-- Address (pickup only) -->
                         <div v-if="form.pickup_type === 'pickup'">
-                            <label
-                                for="order-address"
-                                class="text-sm font-semibold text-muted-foreground"
-                                >Pickup address</label
-                            >
-                            <Input
-                                id="order-address"
-                                v-model="form.customer_address"
-                                autocomplete="street-address"
-                                @blur="resolvePickupPin"
-                                placeholder="Your complete address"
-                                :class="[
-                                    fieldClass,
-                                    errors.customer_address && 'border-red-400',
-                                ]"
-                            />
-                            <div class="mt-2 flex items-center gap-2 text-sm">
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center gap-1.5 font-semibold text-primary disabled:opacity-60"
-                                    :disabled="locating"
-                                    @click="autofillAddress(true)"
-                                >
-                                    <Loader2
-                                        v-if="locating"
-                                        class="h-4 w-4 animate-spin"
-                                    />
-                                    <MapPin v-else class="h-4 w-4" />
-                                    {{
-                                        locating
-                                            ? 'Finding your address…'
-                                            : 'Use my current location'
-                                    }}
-                                </button>
-                                <span
-                                    v-if="failed"
-                                    class="text-muted-foreground"
-                                    >Could not detect it. Please type your
-                                    address.</span
-                                >
-                            </div>
                             <p
-                                v-if="errors.customer_address"
-                                class="mt-1 text-xs text-red-500"
+                                v-if="savedAddresses.length"
+                                class="mb-2 text-sm font-semibold text-muted-foreground"
                             >
-                                {{ errors.customer_address }}
+                                Pickup address
                             </p>
+                            <SavedAddressPicker
+                                v-if="savedAddresses.length"
+                                v-model="selectedAddressId"
+                                name="pickup-address"
+                                :addresses="savedAddresses"
+                                @select="applySavedAddress"
+                            />
+                            <p
+                                v-else
+                                class="mb-2 text-xs text-muted-foreground"
+                            >
+                                <Link
+                                    href="/user/addresses"
+                                    class="font-semibold text-primary"
+                                    >Save an address</Link
+                                >
+                                to pick it in one tap next time.
+                            </p>
+                            <div
+                                v-if="
+                                    !savedAddresses.length ||
+                                    selectedAddressId === null
+                                "
+                                :class="savedAddresses.length ? 'mt-3' : ''"
+                            >
+                                <label
+                                    for="order-address"
+                                    class="text-sm font-semibold text-muted-foreground"
+                                    >Pickup address</label
+                                >
+                                <Input
+                                    id="order-address"
+                                    v-model="form.customer_address"
+                                    autocomplete="street-address"
+                                    @blur="resolvePickupPin"
+                                    placeholder="Your complete address"
+                                    :class="[
+                                        fieldClass,
+                                        errors.customer_address &&
+                                            'border-red-400',
+                                    ]"
+                                />
+                                <div
+                                    class="mt-2 flex items-center gap-2 text-sm"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1.5 font-semibold text-primary disabled:opacity-60"
+                                        :disabled="locating"
+                                        @click="autofillAddress(true)"
+                                    >
+                                        <Loader2
+                                            v-if="locating"
+                                            class="h-4 w-4 animate-spin"
+                                        />
+                                        <MapPin v-else class="h-4 w-4" />
+                                        {{
+                                            locating
+                                                ? 'Finding your address…'
+                                                : 'Use my current location'
+                                        }}
+                                    </button>
+                                    <span
+                                        v-if="failed"
+                                        class="text-muted-foreground"
+                                        >Could not detect it. Please type your
+                                        address.</span
+                                    >
+                                </div>
+                                <p
+                                    v-if="errors.customer_address"
+                                    class="mt-1 text-xs text-red-500"
+                                >
+                                    {{ errors.customer_address }}
+                                </p>
+                            </div>
                         </div>
 
                         <!-- Alternate contact (pickup only) -->

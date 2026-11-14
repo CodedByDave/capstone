@@ -12,6 +12,7 @@ import OrderComplaintDialog from '@/components/customer/OrderComplaintDialog.vue
 import OrderRatingDialog from '@/components/customer/OrderRatingDialog.vue';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import { isPostponed } from '@/lib/ratingPrompt';
+import type { SavedAddress } from '@/types/saved-address';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     AlertTriangle,
@@ -121,6 +122,7 @@ interface Order {
 
 const props = defineProps<{
     order: Order;
+    savedAddresses: SavedAddress[];
     customerAgreement: {
         title: string;
         version: string;
@@ -1042,6 +1044,7 @@ const shopLocation = computed(() =>
                     :initial-address="order.customer_address"
                     :shop-name="order.shop?.name ?? null"
                     :shop-location="shopLocation"
+                    :saved-addresses="savedAddresses"
                     @cancel="showDeliveryForm = false"
                 />
             </div>

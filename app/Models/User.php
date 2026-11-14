@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->hasOne(Supplier::class);
     }
 
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(CustomerAddress::class);
+    }
+
     public function isUser(): bool
     {
         return $this->role === AccountType::Customer->value;

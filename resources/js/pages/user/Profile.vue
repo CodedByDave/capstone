@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import UserLayout from '@/layouts/user/UserLayout.vue';
 import type { AppPageProps } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
-import { Loader2, LogOut } from 'lucide-vue-next';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ChevronRight, Loader2, LogOut, MapPin } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -202,6 +202,31 @@ function logout() {
                     <Loader2 v-if="saving" class="h-4 w-4 animate-spin" />
                     Save changes
                 </button>
+            </section>
+
+            <!-- ── Addresses ──────────────────────────────────── -->
+            <section class="mt-10">
+                <h2
+                    class="mb-2 text-[11px] font-medium tracking-[0.12em] text-slate-500 uppercase"
+                >
+                    Addresses
+                </h2>
+                <Link
+                    href="/user/addresses"
+                    class="flex min-h-14 items-center gap-3 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
+                >
+                    <MapPin class="size-5 text-blue-600" aria-hidden="true" />
+                    <span class="flex-1">
+                        My addresses
+                        <span class="block text-xs font-normal text-slate-500">
+                            Save where we pick up and deliver your laundry.
+                        </span>
+                    </span>
+                    <ChevronRight
+                        class="size-4 text-slate-400"
+                        aria-hidden="true"
+                    />
+                </Link>
             </section>
 
             <!-- ── Password ───────────────────────────────────── -->

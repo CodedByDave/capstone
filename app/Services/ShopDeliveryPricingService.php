@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Shop;
 use App\Models\User;
 use App\Repositories\RiderRepository;
+use App\Repositories\ShopOrderRepository;
 use App\Repositories\ShopRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,8 @@ class ShopDeliveryPricingService
         private readonly ShopRepository $shops,
         private readonly RiderRepository $riders,
         private readonly RiderLoadLimitService $riderLoad,
+        private readonly ShopOrderRepository $orders,
+        private readonly DistanceService $distances,
     ) {}
 
     public function pageData(User $owner): array
@@ -44,9 +47,28 @@ class ShopDeliveryPricingService
             'delivery_free_km' => (float) $shop->delivery_free_km,
             'delivery_min_fee' => (float) $shop->delivery_min_fee,
             'delivery_max_km' => $shop->delivery_max_km !== null ? (float) $shop->delivery_max_km : null,
+            'recent_distances_km' => $this->recentDistancesKm($shop),
             'driver_pay_mode' => $shop->driver_pay_mode ?: Shop::DRIVER_PAY_NONE,
             'driver_daily_rate' => (float) $shop->driver_daily_rate,
         ];
+    }
+
+    /**
+     * Straight-line distance from the shop to each customer served in the last 30 days, so the
+     * settings page can warn how many of them a new radius would leave out.
+     *
+     * @return list<float>
+     */
+    private function recentDistancesKm(Shop $shop): array
+    {
+        if (! $shop->hasCoordinates()) {
+            return [];
+        }
+
+        return $this->orders->recentCustomerPins($shop->id)
+            ->map(fn (array $pin) => round($this->distances->haversineKm((float) $shop->latitude, (float) $shop->longitude, $pin['lat'], $pin['lng']), 1))
+            ->values()
+            ->all();
     }
 
     /**

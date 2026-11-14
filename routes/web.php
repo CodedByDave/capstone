@@ -66,6 +66,7 @@ use App\Http\Controllers\SupplierPortal\SupplierItemController;
 use App\Http\Controllers\SupplierPortal\SupplierItemImportController;
 use App\Http\Controllers\SupplierPortal\SupplierPriceListController;
 use App\Http\Controllers\SupplierPortal\SupplierPurchaseOrderController;
+use App\Http\Controllers\User\CustomerAddressController;
 use App\Http\Controllers\User\OrderTrackingController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserNotificationController;
@@ -955,6 +956,12 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->name('user.')->group(f
     Route::post('/notifications/{id}/read', [UserNotificationController::class, 'markRead'])->whereUuid('id')->name('notifications.read');
 
     Route::get('/profile', fn () => inertia('user/Profile'))->name('profile');
+
+    Route::get('/addresses', [CustomerAddressController::class, 'index'])->name('addresses.index');
+    Route::post('/addresses', [CustomerAddressController::class, 'store'])->middleware('throttle:30,1')->name('addresses.store');
+    Route::put('/addresses/{publicId}', [CustomerAddressController::class, 'update'])->whereUlid('publicId')->middleware('throttle:30,1')->name('addresses.update');
+    Route::post('/addresses/{publicId}/default', [CustomerAddressController::class, 'makeDefault'])->whereUlid('publicId')->middleware('throttle:30,1')->name('addresses.default');
+    Route::delete('/addresses/{publicId}', [CustomerAddressController::class, 'destroy'])->whereUlid('publicId')->middleware('throttle:30,1')->name('addresses.destroy');
 });
 
 require __DIR__.'/settings.php';

@@ -6,6 +6,7 @@ use App\DTOs\TableSort;
 use App\Models\Delivery;
 use App\Models\ShopOrder;
 use App\Models\User;
+use App\Notifications\DeliveryHeldNotification;
 use App\Notifications\DeliveryNotification;
 use App\Notifications\DriverAssignmentNotification;
 use App\Notifications\NoRiderAvailableNotification;
@@ -33,6 +34,7 @@ class LogisticsService
         private readonly EmployeeRepository $employees,
         private readonly ShopOrderRepository $orders,
         private readonly RiderLoadLimitService $riderLoad,
+        private readonly DeliveryRadiusService $radius,
     ) {}
 
     /** The shop the user dispatches for: the owner's own shop or the staff member's shop. */
@@ -269,7 +271,10 @@ class LogisticsService
 
         // Laundry outside the shop's rider load limit is held on the board for staff to decide
         // (another courier, splitting it, or the customer collecting), never handed to a rider.
-        $heldReason = $this->riderLoad->boardLabel($order->shop, $this->riderLoad->orderWeight($order));
+        $weightHold = $this->riderLoad->boardLabel($order->shop, $this->riderLoad->orderWeight($order));
+        // An address beyond the shop's delivery radius is held the same way, and the shop is told.
+        $radiusHold = $this->radiusHold($order);
+        $heldReason = $weightHold ?? $radiusHold;
         if ($heldReason !== null) {
             $note .= ' Held: '.$heldReason.'.';
         }
@@ -311,11 +316,39 @@ class LogisticsService
         // The customer hears about the rider only once the rider accepts.
         if ($delivery->rider_id) {
             $this->notifyDriver($delivery);
+        } elseif ($weightHold === null && $radiusHold !== null) {
+            $order->shop->owner?->notify(new DeliveryHeldNotification($delivery, $radiusHold));
         } else {
             $this->announceNoRider($delivery);
         }
 
         return $delivery;
+    }
+
+    /**
+     * Why this order's run is outside the shop's delivery radius, or null. A typed address with no
+     * pin is looked up on the map first, and the pin is kept on the order.
+     */
+    private function radiusHold(ShopOrder $order): ?string
+    {
+        if (! $this->radius->hasLimit($order->shop)) {
+            return null;
+        }
+
+        $address = $order->customer_address ?? $order->delivery_address;
+
+        if (($order->customer_lat === null || $order->customer_lng === null) && filled($address)) {
+            $point = $this->radius->locate($order->shop, (string) $address);
+            if ($point) {
+                $order = $this->orders->update($order, ['customer_lat' => $point['lat'], 'customer_lng' => $point['lng']]);
+            }
+        }
+
+        return $this->radius->heldReason(
+            $order->shop,
+            $order->customer_lat !== null ? (float) $order->customer_lat : null,
+            $order->customer_lng !== null ? (float) $order->customer_lng : null,
+        );
     }
 
     /**
@@ -339,6 +372,15 @@ class LogisticsService
                 foreach ($this->deliveries->waitingForShop($shopId) as $waiting) {
                     // A run outside the rider load limit stays held for staff to decide.
                     if ($waiting->order && ! $this->riderLoad->allows($shop, $this->riderLoad->orderWeight($waiting->order))) {
+                        continue;
+                    }
+
+                    // Nor is a run beyond the shop's delivery radius handed out automatically.
+                    if ($this->radius->heldReason(
+                        $shop,
+                        $waiting->destination_lat !== null ? (float) $waiting->destination_lat : null,
+                        $waiting->destination_lng !== null ? (float) $waiting->destination_lng : null,
+                    ) !== null) {
                         continue;
                     }
 

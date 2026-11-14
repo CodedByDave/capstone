@@ -1,5 +1,13 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,6 +38,8 @@ export interface DeliveryPricing {
     delivery_free_km: number;
     delivery_min_fee: number;
     delivery_max_km: number | null;
+    /** Straight-line km to each customer served in the last 30 days. */
+    recent_distances_km: number[];
     driver_pay_mode: 'none' | 'delivery_fee' | 'daily_rate';
     driver_daily_rate: number;
 }
@@ -97,6 +107,54 @@ function feeFor(km: number): number | null {
     return Math.round(Math.max(num(form.delivery_min_fee), fee) * 100) / 100;
 }
 
+// The radius is a deliberate choice: off means no limit. Turning it on starts from a sensible 10 km.
+const limitOn = ref(props.pricing.delivery_max_km !== null);
+
+function toggleLimit(on: boolean) {
+    limitOn.value = on;
+    form.delivery_max_km = on ? form.delivery_max_km || '10' : '';
+}
+
+const SMALL_RADIUS_KM = 3;
+const radiusKm = computed(() =>
+    form.delivery_max_km === '' ? null : num(form.delivery_max_km),
+);
+const radiusChanged = computed(
+    () => radiusKm.value !== props.pricing.delivery_max_km,
+);
+const leftOut = computed(() =>
+    radiusKm.value === null
+        ? 0
+        : props.pricing.recent_distances_km.filter((km) => km > radiusKm.value!)
+              .length,
+);
+const needsConfirm = computed(
+    () =>
+        radiusChanged.value &&
+        radiusKm.value !== null &&
+        (radiusKm.value < SMALL_RADIUS_KM || leftOut.value > 0),
+);
+
+// The owner confirms a risky radius before it is saved; the save bar waits for the answer.
+const confirmOpen = ref(false);
+let answer: ((ok: boolean) => void) | null = null;
+
+function askConfirm(): Promise<boolean> {
+    confirmOpen.value = true;
+    return new Promise((resolve) => (answer = resolve));
+}
+
+function settle(ok: boolean) {
+    confirmOpen.value = false;
+    answer?.(ok);
+    answer = null;
+}
+
+async function save(): Promise<boolean> {
+    if (needsConfirm.value && !(await askConfirm())) return false;
+    return patchSettingsForm(form, '/shop/settings/delivery-pricing');
+}
+
 const preview = computed(() =>
     [1, 3, 5, 10].map((km) => ({ km, fee: feeFor(km) })),
 );
@@ -105,9 +163,10 @@ useSettingsSection({
     key: 'delivery',
     label: 'Delivery pricing',
     isDirty: () => form.isDirty,
-    save: () => patchSettingsForm(form, '/shop/settings/delivery-pricing'),
+    save,
     discard: () => {
         form.reset();
+        limitOn.value = props.pricing.delivery_max_km !== null;
         form.clearErrors();
     },
 });
@@ -296,24 +355,56 @@ useSettingsSection({
                 </div>
             </div>
 
-            <div class="space-y-1.5 sm:w-1/2 sm:pr-1.5">
-                <label for="delivery_max_km" class="text-sm font-medium"
-                    >Maximum delivery radius (km)</label
+            <div class="space-y-2 rounded-xl border p-3">
+                <label
+                    class="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-medium"
                 >
-                <Input
-                    id="delivery_max_km"
-                    v-model="form.delivery_max_km"
-                    type="number"
-                    min="0.5"
-                    step="0.5"
-                    inputmode="decimal"
-                    placeholder="No limit"
-                    class="h-9"
-                />
-                <p class="text-xs text-muted-foreground">
-                    Measured by road distance. Leave empty for no limit.
+                    <input
+                        type="checkbox"
+                        class="h-5 w-5 rounded border-input accent-primary"
+                        :checked="limitOn"
+                        @change="
+                            toggleLimit(
+                                ($event.target as HTMLInputElement).checked,
+                            )
+                        "
+                    />
+                    <MapPin class="h-4 w-4 text-muted-foreground" />
+                    Limit how far riders deliver
+                </label>
+                <p v-if="!limitOn" class="text-xs text-muted-foreground">
+                    No limit. Riders can deliver to any address.
                 </p>
-                <InputError :message="form.errors.delivery_max_km" />
+                <div v-else class="space-y-1.5 sm:w-1/2">
+                    <label for="delivery_max_km" class="text-sm font-medium"
+                        >Maximum delivery radius (km)</label
+                    >
+                    <Input
+                        id="delivery_max_km"
+                        v-model="form.delivery_max_km"
+                        type="number"
+                        min="0.5"
+                        step="0.5"
+                        inputmode="decimal"
+                        class="h-9"
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        Customers farther than
+                        {{ form.delivery_max_km || '…' }} km can't get a rider.
+                        They can still drop off at the shop. Uncheck the box
+                        above to remove the limit.
+                    </p>
+                    <p
+                        v-if="leftOut > 0"
+                        class="flex items-start gap-1.5 text-xs text-amber-700"
+                    >
+                        <AlertTriangle class="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        {{ leftOut }} of
+                        {{ pricing.recent_distances_km.length }}
+                        customers from the last 30 days live farther than this.
+                    </p>
+                    <InputError :message="form.errors.delivery_max_km" />
+                </div>
             </div>
 
             <!-- Preview -->
@@ -348,5 +439,37 @@ useSettingsSection({
                 </div>
             </div>
         </div>
+
+        <AlertDialog
+            :open="confirmOpen"
+            @update:open="(o) => !o && settle(false)"
+        >
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle
+                        >Save this delivery radius?</AlertDialogTitle
+                    >
+                    <AlertDialogDescription>
+                        <template v-if="leftOut > 0">
+                            {{ leftOut }} of your
+                            {{ pricing.recent_distances_km.length }} customers
+                            from the last 30 days live farther than
+                            {{ radiusKm }} km. They would no longer get a rider.
+                        </template>
+                        <template v-else>
+                            {{ radiusKm }} km is a small radius. Customers
+                            farther than that would no longer get a rider.
+                        </template>
+                        They can still drop off at the shop.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <Button variant="outline" @click="settle(false)"
+                        >Go back</Button
+                    >
+                    <Button @click="settle(true)">Save radius</Button>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </section>
 </template>
