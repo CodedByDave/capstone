@@ -46,15 +46,16 @@ const props = defineProps<{
 
 /* ---------------- STEP ---------------- */
 const step = ref(1);
-// The form body lags `step` so it only swaps while the form is faded out and the
-// blue panel is moving, instead of showing the next page where the panel is going.
-const shownStep = ref(1);
-let swapTimer: ReturnType<typeof setTimeout> | undefined;
-watch(step, (value) => {
-    clearTimeout(swapTimer);
-    swapTimer = setTimeout(() => (shownStep.value = value), 180);
-});
-onUnmounted(() => clearTimeout(swapTimer));
+const formEl = ref<HTMLFormElement | null>(null);
+
+/** Moves focus to the first field of a freshly shown step (keyboard and screen readers). */
+function focusFirstField() {
+    formEl.value
+        ?.querySelector<HTMLElement>(
+            'input:not([type="checkbox"]):not([readonly]), select',
+        )
+        ?.focus({ preventScroll: true });
+}
 // Three form steps, then the email code on the verify page.
 const PROGRESS_STEPS = 4;
 
@@ -514,7 +515,6 @@ const goToGoogle = () => {
 
     <AuthPanelShell
         screen="shop"
-        :step="step"
         title="Register Laundry Shop"
         description="Create your shop account"
     >
@@ -523,7 +523,7 @@ const goToGoogle = () => {
             class="mt-4 flex items-center justify-center gap-1.5"
             role="progressbar"
             aria-label="Registration progress"
-            :aria-valuenow="shownStep"
+            :aria-valuenow="step"
             aria-valuemin="1"
             :aria-valuemax="PROGRESS_STEPS"
         >
@@ -532,394 +532,122 @@ const goToGoogle = () => {
                 :key="s"
                 :class="[
                     'h-1.5 rounded-full transition-all duration-300',
-                    s === shownStep
+                    s === step
                         ? 'w-10 bg-blue-600'
-                        : s < shownStep
+                        : s < step
                           ? 'w-5 bg-blue-300'
                           : 'w-5 bg-slate-200',
                 ]"
             />
         </div>
 
-        <form @submit.prevent="submit" class="mt-5 flex flex-col gap-5">
-            <!-- STEP 1: Owner Info -->
-            <div v-if="shownStep === 1" class="grid gap-4">
-                <h2 class="text-center text-base font-semibold">
-                    Step 1 — Owner Info
-                </h2>
-
-                <div
-                    v-if="isFromGoogle"
-                    class="flex items-center gap-3 rounded-xl bg-blue-50 px-3 py-2.5 text-sm text-blue-800"
-                >
-                    <img
-                        v-if="props.googleUser?.avatar"
-                        :src="props.googleUser.avatar"
-                        alt=""
-                        class="size-7 shrink-0 rounded-full object-cover"
-                    />
-                    <span>
-                        Signed in with Google as
-                        <span class="font-semibold">{{
-                            props.googleUser!.email
-                        }}</span
-                        >. Complete your shop details below.
-                    </span>
-                </div>
-
-                <div class="space-y-2">
-                    <label for="shop-owner-name" :class="labelClass"
-                        >Owner Name</label
-                    >
-                    <input
-                        id="shop-owner-name"
-                        v-model="form.name"
-                        autocomplete="name"
-                        placeholder="John Doe"
-                        :class="[
-                            inputClass,
-                            errors.name ? inputErrorClass : '',
-                        ]"
-                        :data-error="errors.name ? '' : undefined"
-                    />
-                    <p v-if="errors.name" class="text-sm text-red-600">
-                        {{ errors.name }}
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <label for="shop-email" :class="labelClass">Email</label>
-                    <input
-                        id="shop-email"
-                        v-model="form.email"
-                        type="email"
-                        autocomplete="email"
-                        placeholder="shop@email.com"
-                        :readonly="isFromGoogle"
-                        :class="[
-                            inputClass,
-                            errors.email || form.errors.email
-                                ? inputErrorClass
-                                : '',
-                            isFromGoogle
-                                ? 'cursor-not-allowed text-slate-500'
-                                : '',
-                        ]"
-                        :data-error="errors.email ? '' : undefined"
-                    />
-                    <p v-if="isFromGoogle" class="text-xs text-slate-500">
-                        Email is locked to your Google account.
-                    </p>
-                    <p v-if="errors.email" class="text-sm text-red-600">
-                        {{ errors.email }}
-                    </p>
-                    <InputError :message="form.errors.email" />
-                </div>
-
-                <div class="space-y-2">
-                    <label for="shop-phone" :class="labelClass">Phone</label>
-                    <PhilippinePhoneInput
-                        id="shop-phone"
-                        v-model="form.phone"
-                        :class="[
-                            inputClass,
-                            errors.phone ? inputErrorClass : '',
-                        ]"
-                        :data-error="errors.phone ? '' : undefined"
-                    />
-                    <p v-if="errors.phone" class="text-sm text-red-600">
-                        {{ errors.phone }}
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    :class="primaryButtonClass"
-                    @click="nextStep"
-                >
-                    Next
-                </button>
-
-                <!-- Google OAuth button — only show if NOT already from Google -->
-                <template v-if="!isFromGoogle">
-                    <div class="flex items-center gap-4" aria-hidden="true">
-                        <span class="h-px flex-1 bg-slate-200" />
-                        <span class="text-sm text-slate-500">or</span>
-                        <span class="h-px flex-1 bg-slate-200" />
-                    </div>
-
-                    <button
-                        type="button"
-                        :class="googleButtonClass"
-                        @click="goToGoogle"
-                    >
-                        <GoogleIcon />
-                        Continue with Google
-                    </button>
-                </template>
-            </div>
-
-            <!-- STEP 2: Shop Info -->
-            <div v-if="shownStep === 2" class="grid gap-4">
-                <h2 class="text-center text-base font-semibold">
-                    Step 2 — Shop Info
-                </h2>
-
-                <div class="space-y-2">
-                    <label for="shop-name" :class="labelClass"
-                        >Business Name</label
-                    >
-                    <input
-                        id="shop-name"
-                        v-model="form.shop_name"
-                        placeholder="Laundry Hub"
-                        :class="[
-                            inputClass,
-                            errors.shop_name ? inputErrorClass : '',
-                        ]"
-                        :data-error="errors.shop_name ? '' : undefined"
-                    />
-                    <p v-if="errors.shop_name" class="text-sm text-red-600">
-                        {{ errors.shop_name }}
-                    </p>
-                </div>
-
-                <!-- Map Pin -->
-                <div class="space-y-1.5">
-                    <span :class="[labelClass, 'flex items-center gap-1.5']">
-                        <MapPin
-                            class="size-4 text-blue-600"
-                            aria-hidden="true"
-                        />
-                        Pin Your Shop Location
-                    </span>
-                    <p class="text-xs text-slate-500">
-                        Search for your shop address or click on the map to drop
-                        a pin. You can drag the pin to adjust.
-                    </p>
+        <form
+            ref="formEl"
+            @submit.prevent="submit"
+            class="mt-5 flex flex-col gap-5"
+        >
+            <Transition
+                mode="out-in"
+                enter-active-class="transition-opacity duration-150 motion-reduce:transition-none"
+                leave-active-class="transition-opacity duration-100 motion-reduce:transition-none"
+                enter-from-class="opacity-0"
+                leave-to-class="opacity-0"
+                @after-enter="focusFirstField"
+            >
+                <!-- STEP 1: Owner Info -->
+                <div v-if="step === 1" key="owner" class="grid gap-4">
+                    <h2 class="text-center text-base font-semibold">
+                        Step 1 — Owner Info
+                    </h2>
 
                     <div
-                        :class="[
-                            'relative w-full overflow-hidden rounded-xl border',
-                            errors.pin ? 'border-red-500' : 'border-slate-200',
-                        ]"
+                        v-if="isFromGoogle"
+                        class="flex items-center gap-3 rounded-xl bg-blue-50 px-3 py-2.5 text-sm text-blue-800"
                     >
-                        <div
-                            id="map-search-wrapper"
-                            class="absolute top-2 right-2 left-2 z-[1000]"
-                        >
-                            <div class="relative">
-                                <div
-                                    class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur-sm"
-                                >
-                                    <Search
-                                        v-if="!searchLoading"
-                                        class="size-4 shrink-0 text-slate-500"
-                                        aria-hidden="true"
-                                    />
-                                    <span
-                                        v-else
-                                        class="inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-                                    />
-                                    <input
-                                        v-model="searchQuery"
-                                        type="text"
-                                        aria-label="Search for your shop location"
-                                        placeholder="Search for your shop location…"
-                                        class="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-500"
-                                        @input="onSearchInput"
-                                        @focus="
-                                            showSuggestions =
-                                                searchResults.length > 0
-                                        "
-                                        autocomplete="off"
-                                    />
-                                    <button
-                                        v-if="searchQuery"
-                                        type="button"
-                                        aria-label="Clear search"
-                                        class="rounded text-slate-500 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
-                                        @click="
-                                            searchQuery = '';
-                                            searchResults = [];
-                                            showSuggestions = false;
-                                        "
-                                    >
-                                        <XCircle class="size-4" />
-                                    </button>
-                                </div>
-
-                                <ul
-                                    v-if="showSuggestions"
-                                    class="absolute top-full mt-1 max-h-52 w-full overflow-hidden overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg"
-                                >
-                                    <li
-                                        v-for="result in searchResults"
-                                        :key="`${result.lat},${result.lng}`"
-                                        @click="selectSuggestion(result)"
-                                        class="flex cursor-pointer items-start gap-2 px-3 py-2 text-xs transition-colors hover:bg-slate-100"
-                                    >
-                                        <MapPin
-                                            class="mt-0.5 size-3.5 shrink-0 text-blue-600"
-                                            aria-hidden="true"
-                                        />
-                                        <span class="line-clamp-2">{{
-                                            result.label
-                                        }}</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <MapView
-                            height-class="h-72 w-full"
-                            :center="MAP_CENTER"
-                            :zoom="12"
-                            :pitch="0"
-                            :bearing="0"
-                            @ready="onMapReady"
+                        <img
+                            v-if="props.googleUser?.avatar"
+                            :src="props.googleUser.avatar"
+                            alt=""
+                            class="size-7 shrink-0 rounded-full object-cover"
                         />
+                        <span>
+                            Signed in with Google as
+                            <span class="font-semibold">{{
+                                props.googleUser!.email
+                            }}</span
+                            >. Complete your shop details below.
+                        </span>
                     </div>
 
-                    <div
-                        v-if="geocoding"
-                        class="flex items-center gap-1.5 text-xs text-slate-500"
-                    >
-                        <span
-                            class="inline-block size-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-                        />
-                        Getting address from pin…
-                    </div>
-                    <div
-                        v-else-if="pinned && !pinError"
-                        class="flex items-center gap-1.5 text-xs text-green-700"
-                    >
-                        <CheckCircle2 class="size-3.5" aria-hidden="true" />
-                        Location pinned — address filled below.
-                    </div>
-                    <p v-if="pinError" class="text-xs text-red-600">
-                        {{ pinError }}
-                    </p>
-                    <p v-if="errors.pin" class="text-xs text-red-600">
-                        {{ errors.pin }}
-                    </p>
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
-                        <label for="shop-street" :class="labelClass"
-                            >Block / Street</label
+                        <label for="shop-owner-name" :class="labelClass"
+                            >Owner Name</label
                         >
                         <input
-                            id="shop-street"
-                            v-model="form.block_street"
-                            placeholder="e.g. Block 5, St. 12"
+                            id="shop-owner-name"
+                            v-model="form.name"
+                            autocomplete="name"
+                            placeholder="John Doe"
                             :class="[
                                 inputClass,
-                                errors.block_street ? inputErrorClass : '',
+                                errors.name ? inputErrorClass : '',
                             ]"
-                            :data-error="errors.block_street ? '' : undefined"
+                            :data-error="errors.name ? '' : undefined"
                         />
-                        <p
-                            v-if="errors.block_street"
-                            class="text-sm text-red-600"
-                        >
-                            {{ errors.block_street }}
+                        <p v-if="errors.name" class="text-sm text-red-600">
+                            {{ errors.name }}
                         </p>
                     </div>
 
                     <div class="space-y-2">
-                        <label for="shop-municipality" :class="labelClass"
-                            >Municipality</label
+                        <label for="shop-email" :class="labelClass"
+                            >Email</label
                         >
-                        <select
-                            id="shop-municipality"
-                            v-model="form.municipality"
+                        <input
+                            id="shop-email"
+                            v-model="form.email"
+                            type="email"
+                            autocomplete="email"
+                            placeholder="shop@email.com"
+                            :readonly="isFromGoogle"
                             :class="[
                                 inputClass,
-                                errors.municipality ? inputErrorClass : '',
+                                errors.email || form.errors.email
+                                    ? inputErrorClass
+                                    : '',
+                                isFromGoogle
+                                    ? 'cursor-not-allowed text-slate-500'
+                                    : '',
                             ]"
-                            :data-error="errors.municipality ? '' : undefined"
-                        >
-                            <option value="">Select municipality</option>
-                            <option
-                                v-for="mun in municipalities"
-                                :key="mun"
-                                :value="mun"
-                            >
-                                {{ mun }}
-                            </option>
-                        </select>
-                        <p
-                            v-if="errors.municipality"
-                            class="text-sm text-red-600"
-                        >
-                            {{ errors.municipality }}
+                            :data-error="errors.email ? '' : undefined"
+                        />
+                        <p v-if="isFromGoogle" class="text-xs text-slate-500">
+                            Email is locked to your Google account.
                         </p>
+                        <p v-if="errors.email" class="text-sm text-red-600">
+                            {{ errors.email }}
+                        </p>
+                        <InputError :message="form.errors.email" />
                     </div>
 
                     <div class="space-y-2">
-                        <label for="shop-barangay" :class="labelClass"
-                            >Barangay</label
+                        <label for="shop-phone" :class="labelClass"
+                            >Phone</label
                         >
-                        <input
-                            v-if="form.municipality && !hasBarangayList"
-                            id="shop-barangay"
-                            v-model="form.barangay"
-                            placeholder="Enter barangay"
+                        <PhilippinePhoneInput
+                            id="shop-phone"
+                            v-model="form.phone"
                             :class="[
                                 inputClass,
-                                errors.barangay ? inputErrorClass : '',
+                                errors.phone ? inputErrorClass : '',
                             ]"
-                            :data-error="errors.barangay ? '' : undefined"
+                            :data-error="errors.phone ? '' : undefined"
                         />
-                        <select
-                            v-else
-                            id="shop-barangay"
-                            v-model="form.barangay"
-                            :class="[
-                                inputClass,
-                                errors.barangay ? inputErrorClass : '',
-                            ]"
-                            :disabled="!form.municipality"
-                            :data-error="errors.barangay ? '' : undefined"
-                        >
-                            <option value="">Select barangay</option>
-                            <option
-                                v-for="b in selectedBarangays"
-                                :key="b.name"
-                                :value="b.name"
-                            >
-                                {{ b.name }}
-                            </option>
-                        </select>
-                        <p v-if="errors.barangay" class="text-sm text-red-600">
-                            {{ errors.barangay }}
+                        <p v-if="errors.phone" class="text-sm text-red-600">
+                            {{ errors.phone }}
                         </p>
                     </div>
 
-                    <div class="space-y-2">
-                        <label for="shop-postal" :class="labelClass"
-                            >Postal Code</label
-                        >
-                        <input
-                            id="shop-postal"
-                            :value="autoPostalCode"
-                            placeholder="Auto-filled"
-                            readonly
-                            :class="[inputClass, 'cursor-not-allowed']"
-                        />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <button
-                        type="button"
-                        :class="secondaryButtonClass"
-                        @click="prevStep"
-                    >
-                        Back
-                    </button>
                     <button
                         type="button"
                         :class="primaryButtonClass"
@@ -927,223 +655,546 @@ const goToGoogle = () => {
                     >
                         Next
                     </button>
-                </div>
-            </div>
 
-            <!-- STEP 3: Password + Terms -->
-            <div v-if="shownStep === 3" class="grid gap-4">
-                <h2 class="text-center text-base font-semibold">
-                    Step 3 — Set Password
-                </h2>
+                    <!-- Google OAuth button — only show if NOT already from Google -->
+                    <template v-if="!isFromGoogle">
+                        <div class="flex items-center gap-4" aria-hidden="true">
+                            <span class="h-px flex-1 bg-slate-200" />
+                            <span class="text-sm text-slate-500">or</span>
+                            <span class="h-px flex-1 bg-slate-200" />
+                        </div>
 
-                <div class="space-y-2">
-                    <label for="shop-password" :class="labelClass"
-                        >Password</label
-                    >
-                    <div class="relative">
-                        <input
-                            id="shop-password"
-                            v-model="form.password"
-                            :type="showPassword ? 'text' : 'password'"
-                            autocomplete="new-password"
-                            placeholder="Create a strong password"
-                            :class="[
-                                inputClass,
-                                'pr-12',
-                                errors.password ? inputErrorClass : '',
-                            ]"
-                            :data-error="errors.password ? '' : undefined"
-                        />
                         <button
                             type="button"
-                            :class="eyeButtonClass"
-                            :aria-label="
-                                showPassword ? 'Hide password' : 'Show password'
-                            "
-                            :aria-pressed="showPassword"
-                            @click="showPassword = !showPassword"
+                            :class="googleButtonClass"
+                            @click="goToGoogle"
                         >
-                            <EyeOff v-if="showPassword" class="size-5" />
-                            <Eye v-else class="size-5" />
+                            <GoogleIcon />
+                            Continue with Google
                         </button>
+                    </template>
+                </div>
+
+                <!-- STEP 2: Shop Info -->
+                <div v-else-if="step === 2" key="shop" class="grid gap-4">
+                    <h2 class="text-center text-base font-semibold">
+                        Step 2 — Shop Info
+                    </h2>
+
+                    <div class="space-y-2">
+                        <label for="shop-name" :class="labelClass"
+                            >Business Name</label
+                        >
+                        <input
+                            id="shop-name"
+                            v-model="form.shop_name"
+                            placeholder="Laundry Hub"
+                            :class="[
+                                inputClass,
+                                errors.shop_name ? inputErrorClass : '',
+                            ]"
+                            :data-error="errors.shop_name ? '' : undefined"
+                        />
+                        <p v-if="errors.shop_name" class="text-sm text-red-600">
+                            {{ errors.shop_name }}
+                        </p>
                     </div>
 
-                    <div v-if="form.password.length > 0" class="pt-1">
-                        <div class="mb-1 flex items-center justify-between">
-                            <span class="text-xs text-slate-500"
-                                >Password strength</span
-                            >
-                            <span
-                                class="text-xs font-semibold"
-                                :class="passwordStrength.text"
-                                >{{ passwordStrength.label }}</span
-                            >
-                        </div>
+                    <!-- Map Pin -->
+                    <div class="space-y-1.5">
+                        <span
+                            :class="[labelClass, 'flex items-center gap-1.5']"
+                        >
+                            <MapPin
+                                class="size-4 text-blue-600"
+                                aria-hidden="true"
+                            />
+                            Pin Your Shop Location
+                        </span>
+                        <p class="text-xs text-slate-500">
+                            Search for your shop address or click on the map to
+                            drop a pin. You can drag the pin to adjust.
+                        </p>
+
                         <div
-                            class="h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+                            :class="[
+                                'relative w-full overflow-hidden rounded-xl border',
+                                errors.pin
+                                    ? 'border-red-500'
+                                    : 'border-slate-200',
+                            ]"
                         >
                             <div
+                                id="map-search-wrapper"
+                                class="absolute top-2 right-2 left-2 z-[1000]"
+                            >
+                                <div class="relative">
+                                    <div
+                                        class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur-sm"
+                                    >
+                                        <Search
+                                            v-if="!searchLoading"
+                                            class="size-4 shrink-0 text-slate-500"
+                                            aria-hidden="true"
+                                        />
+                                        <span
+                                            v-else
+                                            class="inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+                                        />
+                                        <input
+                                            v-model="searchQuery"
+                                            type="text"
+                                            aria-label="Search for your shop location"
+                                            placeholder="Search for your shop location…"
+                                            class="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-500"
+                                            @input="onSearchInput"
+                                            @focus="
+                                                showSuggestions =
+                                                    searchResults.length > 0
+                                            "
+                                            autocomplete="off"
+                                        />
+                                        <button
+                                            v-if="searchQuery"
+                                            type="button"
+                                            aria-label="Clear search"
+                                            class="rounded text-slate-500 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
+                                            @click="
+                                                searchQuery = '';
+                                                searchResults = [];
+                                                showSuggestions = false;
+                                            "
+                                        >
+                                            <XCircle class="size-4" />
+                                        </button>
+                                    </div>
+
+                                    <ul
+                                        v-if="showSuggestions"
+                                        class="absolute top-full mt-1 max-h-52 w-full overflow-hidden overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg"
+                                    >
+                                        <li
+                                            v-for="result in searchResults"
+                                            :key="`${result.lat},${result.lng}`"
+                                            @click="selectSuggestion(result)"
+                                            class="flex cursor-pointer items-start gap-2 px-3 py-2 text-xs transition-colors hover:bg-slate-100"
+                                        >
+                                            <MapPin
+                                                class="mt-0.5 size-3.5 shrink-0 text-blue-600"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="line-clamp-2">{{
+                                                result.label
+                                            }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <MapView
+                                height-class="h-72 w-full"
+                                :center="MAP_CENTER"
+                                :zoom="12"
+                                :pitch="0"
+                                :bearing="0"
+                                @ready="onMapReady"
+                            />
+                        </div>
+
+                        <div
+                            v-if="geocoding"
+                            class="flex items-center gap-1.5 text-xs text-slate-500"
+                        >
+                            <span
+                                class="inline-block size-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+                            />
+                            Getting address from pin…
+                        </div>
+                        <div
+                            v-else-if="pinned && !pinError"
+                            class="flex items-center gap-1.5 text-xs text-green-700"
+                        >
+                            <CheckCircle2 class="size-3.5" aria-hidden="true" />
+                            Location pinned — address filled below.
+                        </div>
+                        <p v-if="pinError" class="text-xs text-red-600">
+                            {{ pinError }}
+                        </p>
+                        <p v-if="errors.pin" class="text-xs text-red-600">
+                            {{ errors.pin }}
+                        </p>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="space-y-2">
+                            <label for="shop-street" :class="labelClass"
+                                >Block / Street</label
+                            >
+                            <input
+                                id="shop-street"
+                                v-model="form.block_street"
+                                placeholder="e.g. Block 5, St. 12"
                                 :class="[
-                                    'h-full rounded-full transition-all duration-300',
-                                    passwordStrength.color,
-                                    passwordStrength.width,
+                                    inputClass,
+                                    errors.block_street ? inputErrorClass : '',
                                 ]"
+                                :data-error="
+                                    errors.block_street ? '' : undefined
+                                "
+                            />
+                            <p
+                                v-if="errors.block_street"
+                                class="text-sm text-red-600"
+                            >
+                                {{ errors.block_street }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="shop-municipality" :class="labelClass"
+                                >Municipality</label
+                            >
+                            <select
+                                id="shop-municipality"
+                                v-model="form.municipality"
+                                :class="[
+                                    inputClass,
+                                    errors.municipality ? inputErrorClass : '',
+                                ]"
+                                :data-error="
+                                    errors.municipality ? '' : undefined
+                                "
+                            >
+                                <option value="">Select municipality</option>
+                                <option
+                                    v-for="mun in municipalities"
+                                    :key="mun"
+                                    :value="mun"
+                                >
+                                    {{ mun }}
+                                </option>
+                            </select>
+                            <p
+                                v-if="errors.municipality"
+                                class="text-sm text-red-600"
+                            >
+                                {{ errors.municipality }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="shop-barangay" :class="labelClass"
+                                >Barangay</label
+                            >
+                            <input
+                                v-if="form.municipality && !hasBarangayList"
+                                id="shop-barangay"
+                                v-model="form.barangay"
+                                placeholder="Enter barangay"
+                                :class="[
+                                    inputClass,
+                                    errors.barangay ? inputErrorClass : '',
+                                ]"
+                                :data-error="errors.barangay ? '' : undefined"
+                            />
+                            <select
+                                v-else
+                                id="shop-barangay"
+                                v-model="form.barangay"
+                                :class="[
+                                    inputClass,
+                                    errors.barangay ? inputErrorClass : '',
+                                ]"
+                                :disabled="!form.municipality"
+                                :data-error="errors.barangay ? '' : undefined"
+                            >
+                                <option value="">Select barangay</option>
+                                <option
+                                    v-for="b in selectedBarangays"
+                                    :key="b.name"
+                                    :value="b.name"
+                                >
+                                    {{ b.name }}
+                                </option>
+                            </select>
+                            <p
+                                v-if="errors.barangay"
+                                class="text-sm text-red-600"
+                            >
+                                {{ errors.barangay }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="shop-postal" :class="labelClass"
+                                >Postal Code</label
+                            >
+                            <input
+                                id="shop-postal"
+                                :value="autoPostalCode"
+                                placeholder="Auto-filled"
+                                readonly
+                                :class="[inputClass, 'cursor-not-allowed']"
                             />
                         </div>
                     </div>
 
-                    <ul class="space-y-1 pt-1">
-                        <li
-                            v-for="rule in passwordRules"
-                            :key="rule.label"
-                            class="flex items-center gap-1.5 text-xs"
+                    <div class="grid grid-cols-2 gap-4">
+                        <button
+                            type="button"
+                            :class="secondaryButtonClass"
+                            @click="prevStep"
+                        >
+                            Back
+                        </button>
+                        <button
+                            type="button"
+                            :class="primaryButtonClass"
+                            @click="nextStep"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Password + Terms -->
+                <div v-else-if="step === 3" key="password" class="grid gap-4">
+                    <h2 class="text-center text-base font-semibold">
+                        Step 3 — Set Password
+                    </h2>
+
+                    <div class="space-y-2">
+                        <label for="shop-password" :class="labelClass"
+                            >Password</label
+                        >
+                        <div class="relative">
+                            <input
+                                id="shop-password"
+                                v-model="form.password"
+                                :type="showPassword ? 'text' : 'password'"
+                                autocomplete="new-password"
+                                placeholder="Create a strong password"
+                                :class="[
+                                    inputClass,
+                                    'pr-12',
+                                    errors.password ? inputErrorClass : '',
+                                ]"
+                                :data-error="errors.password ? '' : undefined"
+                            />
+                            <button
+                                type="button"
+                                :class="eyeButtonClass"
+                                :aria-label="
+                                    showPassword
+                                        ? 'Hide password'
+                                        : 'Show password'
+                                "
+                                :aria-pressed="showPassword"
+                                @click="showPassword = !showPassword"
+                            >
+                                <EyeOff v-if="showPassword" class="size-5" />
+                                <Eye v-else class="size-5" />
+                            </button>
+                        </div>
+
+                        <div v-if="form.password.length > 0" class="pt-1">
+                            <div class="mb-1 flex items-center justify-between">
+                                <span class="text-xs text-slate-500"
+                                    >Password strength</span
+                                >
+                                <span
+                                    class="text-xs font-semibold"
+                                    :class="passwordStrength.text"
+                                    >{{ passwordStrength.label }}</span
+                                >
+                            </div>
+                            <div
+                                class="h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+                            >
+                                <div
+                                    :class="[
+                                        'h-full rounded-full transition-all duration-300',
+                                        passwordStrength.color,
+                                        passwordStrength.width,
+                                    ]"
+                                />
+                            </div>
+                        </div>
+
+                        <ul class="space-y-1 pt-1">
+                            <li
+                                v-for="rule in passwordRules"
+                                :key="rule.label"
+                                class="flex items-center gap-1.5 text-xs"
+                                :class="
+                                    rule.pass
+                                        ? 'text-green-700'
+                                        : 'text-slate-500'
+                                "
+                            >
+                                <CheckCircle2
+                                    v-if="rule.pass"
+                                    class="size-3.5 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                <XCircle
+                                    v-else
+                                    class="size-3.5 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                {{ rule.label }}
+                            </li>
+                        </ul>
+
+                        <p v-if="errors.password" class="text-sm text-red-600">
+                            {{ errors.password }}
+                        </p>
+                        <InputError :message="form.errors.password" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="shop-password-confirm" :class="labelClass"
+                            >Confirm Password</label
+                        >
+                        <div class="relative">
+                            <input
+                                id="shop-password-confirm"
+                                v-model="form.password_confirmation"
+                                :type="
+                                    showConfirmPassword ? 'text' : 'password'
+                                "
+                                autocomplete="new-password"
+                                placeholder="Re-enter your password"
+                                :class="[
+                                    inputClass,
+                                    'pr-12',
+                                    errors.password_confirmation
+                                        ? inputErrorClass
+                                        : '',
+                                ]"
+                                :data-error="
+                                    errors.password_confirmation
+                                        ? ''
+                                        : undefined
+                                "
+                            />
+                            <button
+                                type="button"
+                                :class="eyeButtonClass"
+                                :aria-label="
+                                    showConfirmPassword
+                                        ? 'Hide password'
+                                        : 'Show password'
+                                "
+                                :aria-pressed="showConfirmPassword"
+                                @click="
+                                    showConfirmPassword = !showConfirmPassword
+                                "
+                            >
+                                <EyeOff
+                                    v-if="showConfirmPassword"
+                                    class="size-5"
+                                />
+                                <Eye v-else class="size-5" />
+                            </button>
+                        </div>
+
+                        <p
+                            v-if="form.password_confirmation.length > 0"
+                            class="flex items-center gap-1 text-xs"
                             :class="
-                                rule.pass ? 'text-green-700' : 'text-slate-500'
+                                passwordsMatch
+                                    ? 'text-green-700'
+                                    : 'text-red-600'
                             "
                         >
                             <CheckCircle2
-                                v-if="rule.pass"
-                                class="size-3.5 shrink-0"
+                                v-if="passwordsMatch"
+                                class="size-3.5"
                                 aria-hidden="true"
                             />
                             <XCircle
                                 v-else
-                                class="size-3.5 shrink-0"
+                                class="size-3.5"
                                 aria-hidden="true"
                             />
-                            {{ rule.label }}
-                        </li>
-                    </ul>
-
-                    <p v-if="errors.password" class="text-sm text-red-600">
-                        {{ errors.password }}
-                    </p>
-                    <InputError :message="form.errors.password" />
-                </div>
-
-                <div class="space-y-2">
-                    <label for="shop-password-confirm" :class="labelClass"
-                        >Confirm Password</label
-                    >
-                    <div class="relative">
-                        <input
-                            id="shop-password-confirm"
-                            v-model="form.password_confirmation"
-                            :type="showConfirmPassword ? 'text' : 'password'"
-                            autocomplete="new-password"
-                            placeholder="Re-enter your password"
-                            :class="[
-                                inputClass,
-                                'pr-12',
-                                errors.password_confirmation
-                                    ? inputErrorClass
-                                    : '',
-                            ]"
-                            :data-error="
-                                errors.password_confirmation ? '' : undefined
-                            "
-                        />
-                        <button
-                            type="button"
-                            :class="eyeButtonClass"
-                            :aria-label="
-                                showConfirmPassword
-                                    ? 'Hide password'
-                                    : 'Show password'
-                            "
-                            :aria-pressed="showConfirmPassword"
-                            @click="showConfirmPassword = !showConfirmPassword"
+                            {{
+                                passwordsMatch
+                                    ? 'Passwords match'
+                                    : 'Passwords do not match'
+                            }}
+                        </p>
+                        <p
+                            v-if="errors.password_confirmation"
+                            class="text-sm text-red-600"
                         >
-                            <EyeOff v-if="showConfirmPassword" class="size-5" />
-                            <Eye v-else class="size-5" />
-                        </button>
+                            {{ errors.password_confirmation }}
+                        </p>
                     </div>
 
-                    <p
-                        v-if="form.password_confirmation.length > 0"
-                        class="flex items-center gap-1 text-xs"
+                    <div
+                        class="rounded-xl border p-3 transition-colors"
                         :class="
-                            passwordsMatch ? 'text-green-700' : 'text-red-600'
+                            errors.agree
+                                ? 'border-red-400 bg-red-50'
+                                : 'border-slate-200'
                         "
+                        :data-error="errors.agree ? '' : undefined"
                     >
-                        <CheckCircle2
-                            v-if="passwordsMatch"
-                            class="size-3.5"
-                            aria-hidden="true"
-                        />
-                        <XCircle v-else class="size-3.5" aria-hidden="true" />
-                        {{
-                            passwordsMatch
-                                ? 'Passwords match'
-                                : 'Passwords do not match'
-                        }}
-                    </p>
-                    <p
-                        v-if="errors.password_confirmation"
-                        class="text-sm text-red-600"
+                        <label
+                            class="flex cursor-pointer items-start gap-2.5 text-sm"
+                        >
+                            <input
+                                type="checkbox"
+                                :checked="form.agree"
+                                @change="
+                                    form.agree = (
+                                        $event.target as HTMLInputElement
+                                    ).checked
+                                "
+                                class="mt-0.5 size-4 shrink-0 accent-blue-600"
+                            />
+                            <span>
+                                I have read and agree to the
+                                <a
+                                    href="#"
+                                    :class="[textLinkClass, 'underline']"
+                                    >Terms &amp; Conditions</a
+                                >
+                                and
+                                <a
+                                    href="#"
+                                    :class="[textLinkClass, 'underline']"
+                                    >Privacy Policy</a
+                                >.
+                            </span>
+                        </label>
+                        <p
+                            v-if="errors.agree"
+                            class="mt-1.5 ml-6 text-xs text-red-600"
+                        >
+                            {{ errors.agree }}
+                        </p>
+                    </div>
+
+                    <button
+                        type="submit"
+                        :disabled="form.processing"
+                        :class="primaryButtonClass"
                     >
-                        {{ errors.password_confirmation }}
-                    </p>
+                        <Spinner v-if="form.processing" />
+                        Create Account
+                    </button>
+
+                    <button
+                        type="button"
+                        :class="secondaryButtonClass"
+                        @click="prevStep"
+                    >
+                        Back
+                    </button>
                 </div>
-
-                <div
-                    class="rounded-xl border p-3 transition-colors"
-                    :class="
-                        errors.agree
-                            ? 'border-red-400 bg-red-50'
-                            : 'border-slate-200'
-                    "
-                    :data-error="errors.agree ? '' : undefined"
-                >
-                    <label
-                        class="flex cursor-pointer items-start gap-2.5 text-sm"
-                    >
-                        <input
-                            type="checkbox"
-                            :checked="form.agree"
-                            @change="
-                                form.agree = (
-                                    $event.target as HTMLInputElement
-                                ).checked
-                            "
-                            class="mt-0.5 size-4 shrink-0 accent-blue-600"
-                        />
-                        <span>
-                            I have read and agree to the
-                            <a href="#" :class="[textLinkClass, 'underline']"
-                                >Terms &amp; Conditions</a
-                            >
-                            and
-                            <a href="#" :class="[textLinkClass, 'underline']"
-                                >Privacy Policy</a
-                            >.
-                        </span>
-                    </label>
-                    <p
-                        v-if="errors.agree"
-                        class="mt-1.5 ml-6 text-xs text-red-600"
-                    >
-                        {{ errors.agree }}
-                    </p>
-                </div>
-
-                <button
-                    type="submit"
-                    :disabled="form.processing"
-                    :class="primaryButtonClass"
-                >
-                    <Spinner v-if="form.processing" />
-                    Create Account
-                </button>
-
-                <button
-                    type="button"
-                    :class="secondaryButtonClass"
-                    @click="prevStep"
-                >
-                    Back
-                </button>
-            </div>
+            </Transition>
 
             <p class="text-center text-sm text-slate-500">
                 Already have an account?

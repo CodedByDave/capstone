@@ -8,10 +8,10 @@ import {
     type AuthScreen,
     type PanelSide,
 } from '@/components/auth/authPanelMemory';
-import { paneClass, SLIDE_MS } from '@/components/auth/authStyles';
+import { paneClass } from '@/components/auth/authStyles';
 import { useFlashToast } from '@/composables/useFlashToast';
 import { Link } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 /**
  * Split screen for the single-form auth pages (shop registration, OTP): form beside
@@ -22,28 +22,15 @@ const props = defineProps<{
     screen: AuthScreen;
     title: string;
     description?: string;
-    /** Multi-step forms: the panel switches sides each time this changes. */
-    step?: number;
 }>();
 
 useFlashToast();
 
 const previous = takePreviousScreen();
-// Shop registration sits on the opposite side from the page it was opened from,
-// so the panel always has somewhere to slide to.
-const ownSide: PanelSide =
-    props.screen === 'shop'
-        ? previous?.side === 'left'
-            ? 'right'
-            : 'left'
-        : panelSideOf[props.screen];
+const ownSide: PanelSide = panelSideOf[props.screen];
 const panelSide = ref<PanelSide>(previous?.side ?? ownSide);
 const shouldSlide = panelSide.value !== ownSide;
 const formVisible = ref(!shouldSlide);
-// The form sits on the half the panel is not covering; it only changes halves
-// while hidden, so it never visibly jumps.
-const formAtRight = ref(ownSide === 'left');
-let stepTimer: number | undefined;
 
 onMounted(() => {
     if (!shouldSlide) return;
@@ -56,23 +43,7 @@ onMounted(() => {
     );
 });
 
-watch(
-    () => props.step,
-    () => {
-        window.clearTimeout(stepTimer);
-        formVisible.value = false;
-        panelSide.value = panelSide.value === 'left' ? 'right' : 'left';
-        stepTimer = window.setTimeout(() => {
-            formAtRight.value = panelSide.value === 'left';
-            formVisible.value = true;
-        }, SLIDE_MS / 2);
-    },
-);
-
-onBeforeUnmount(() => {
-    window.clearTimeout(stepTimer);
-    rememberScreen(props.screen, panelSide.value);
-});
+onBeforeUnmount(() => rememberScreen(props.screen, panelSide.value));
 </script>
 
 <template>
@@ -83,7 +54,7 @@ onBeforeUnmount(() => {
             :aria-label="title"
             :class="[
                 paneClass,
-                formAtRight ? 'lg:col-start-2' : '',
+                ownSide === 'left' ? 'lg:col-start-2' : '',
                 formVisible ? 'opacity-100' : 'opacity-0',
             ]"
             :style="

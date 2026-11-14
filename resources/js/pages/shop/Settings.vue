@@ -30,12 +30,26 @@ import {
     MapPin,
     MessageSquareText,
     Navigation,
+    Search,
+    ShieldCheck,
     SlidersHorizontal,
     Trash2,
     Truck,
     Upload,
 } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, ref, type Component } from 'vue';
+import {
+    reverseGeocode,
+    searchPlaces,
+    type PlaceResult,
+} from '@/lib/maps';
+import {
+    computed,
+    nextTick,
+    onMounted,
+    onBeforeUnmount,
+    ref,
+    type Component,
+} from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -53,6 +67,11 @@ const props = defineProps<{
         longitude: number | null;
         status: string;
         cover_photo: string | null;
+    };
+    locationVerification: {
+        verified: boolean;
+        permit_address: string | null;
+        matched: boolean;
     };
     deliveryPricing: DeliveryPricing;
     rushFee: number;
@@ -281,10 +300,107 @@ const pinLng = computed(() => {
     return Number.isFinite(value) ? value : null;
 });
 
+// The location is shown as an address, never as raw coordinates. When OCR read the same address
+// from the owner's business permits, that permit address is the one displayed.
+const permitMatched = computed(
+    () =>
+        props.locationVerification.matched &&
+        !!props.locationVerification.permit_address,
+);
+const pinAddress = ref<string | null>(null);
+const locationLabel = computed(
+    () =>
+        (permitMatched.value
+            ? props.locationVerification.permit_address
+            : pinAddress.value) ||
+        (addressLine.value !== '—' ? addressLine.value : null),
+);
+
+async function describePin() {
+    if (pinLat.value === null || pinLng.value === null) {
+        pinAddress.value = null;
+        return;
+    }
+    try {
+        pinAddress.value = await reverseGeocode(pinLat.value, pinLng.value);
+    } catch {
+        pinAddress.value = null;
+    }
+}
+
 function pickOnMap(point: { lat: number; lng: number }) {
     lat.value = point.lat.toFixed(6);
     lng.value = point.lng.toFixed(6);
+    describePin();
 }
+
+// Search bar: type an address, pick a result, and the pin moves there.
+const query = ref('');
+const results = ref<PlaceResult[]>([]);
+const searching = ref(false);
+const searched = ref(false);
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
+
+function onQueryInput() {
+    clearTimeout(searchTimer);
+    searched.value = false;
+    if (query.value.trim().length < 3) {
+        results.value = [];
+        return;
+    }
+    searchTimer = setTimeout(runSearch, 350);
+}
+
+async function runSearch() {
+    searching.value = true;
+    try {
+        const near =
+            pinLat.value !== null && pinLng.value !== null
+                ? { lat: pinLat.value, lng: pinLng.value }
+                : null;
+        results.value = await searchPlaces(query.value.trim(), near);
+    } catch {
+        results.value = [];
+        toast.error('Address search is unavailable right now.');
+    } finally {
+        searching.value = false;
+        searched.value = true;
+    }
+}
+
+function choosePlace(place: PlaceResult) {
+    lat.value = place.lat.toFixed(6);
+    lng.value = place.lng.toFixed(6);
+    pinAddress.value = place.label;
+    query.value = place.label;
+    results.value = [];
+    searched.value = false;
+}
+
+onBeforeUnmount(() => clearTimeout(searchTimer));
+
+// No pin yet but the permit address is verified: start the map from it so the owner only confirms.
+onMounted(async () => {
+    if (pinLat.value !== null) {
+        describePin();
+        return;
+    }
+    const seed = permitMatched.value
+        ? props.locationVerification.permit_address
+        : addressLine.value !== '—'
+          ? addressLine.value
+          : null;
+    if (!seed) return;
+    try {
+        const [first] = await searchPlaces(seed);
+        if (first) {
+            lat.value = first.lat.toFixed(6);
+            lng.value = first.lng.toFixed(6);
+        }
+    } catch {
+        // The owner can still search by hand.
+    }
+});
 
 function useMyLocation() {
     if (!navigator.geolocation) {
@@ -297,6 +413,7 @@ function useMyLocation() {
             lat.value = pos.coords.latitude.toFixed(7);
             lng.value = pos.coords.longitude.toFixed(7);
             locating.value = false;
+            describePin();
             toast.success('Location detected. Save your changes to confirm.');
         },
         () => {
@@ -635,15 +752,8 @@ function clearGeo() {
                                         >
                                             Location is set
                                         </p>
-                                        <p
-                                            class="font-mono text-xs text-emerald-700"
-                                        >
-                                            {{
-                                                props.shop.latitude?.toFixed(6)
-                                            }},
-                                            {{
-                                                props.shop.longitude?.toFixed(6)
-                                            }}
+                                        <p class="text-xs text-emerald-700">
+                                            {{ locationLabel }}
                                         </p>
                                     </div>
                                 </div>
@@ -678,33 +788,89 @@ function clearGeo() {
                                 </p>
                             </div>
 
-                            <div class="grid gap-x-4 gap-y-5 sm:grid-cols-2">
-                                <div class="space-y-1.5">
-                                    <label
-                                        for="shop-latitude"
-                                        class="text-sm font-medium"
-                                        >Latitude</label
+                            <div
+                                v-if="permitMatched"
+                                class="flex items-start gap-2 rounded-xl bg-emerald-50 px-4 py-3"
+                            >
+                                <ShieldCheck
+                                    class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+                                />
+                                <div>
+                                    <p
+                                        class="text-xs font-semibold text-emerald-700"
                                     >
+                                        Matches your business permit
+                                    </p>
+                                    <p class="text-xs text-emerald-700">
+                                        {{
+                                            props.locationVerification
+                                                .permit_address
+                                        }}
+                                    </p>
+                                </div>
+                            </div>
+                            <p
+                                v-else-if="locationLabel"
+                                class="text-xs text-muted-foreground"
+                            >
+                                Registered address: {{ locationLabel }}
+                            </p>
+
+                            <div class="relative space-y-1.5">
+                                <label
+                                    for="shop-location-search"
+                                    class="text-sm font-medium"
+                                    >Search your shop's address</label
+                                >
+                                <div class="relative">
+                                    <Search
+                                        class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                                    />
                                     <Input
-                                        id="shop-latitude"
-                                        v-model="lat"
-                                        placeholder="e.g. 14.5995"
-                                        class="font-mono text-sm"
+                                        id="shop-location-search"
+                                        v-model="query"
+                                        type="search"
+                                        autocomplete="off"
+                                        placeholder="Street, barangay, city…"
+                                        class="pl-9"
+                                        @input="onQueryInput"
+                                    />
+                                    <Loader2
+                                        v-if="searching"
+                                        class="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground"
                                     />
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label
-                                        for="shop-longitude"
-                                        class="text-sm font-medium"
-                                        >Longitude</label
+                                <ul
+                                    v-if="results.length"
+                                    class="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border bg-popover shadow-md"
+                                    role="listbox"
+                                >
+                                    <li
+                                        v-for="place in results"
+                                        :key="`${place.lat},${place.lng}`"
+                                        role="option"
                                     >
-                                    <Input
-                                        id="shop-longitude"
-                                        v-model="lng"
-                                        placeholder="e.g. 120.9842"
-                                        class="font-mono text-sm"
-                                    />
-                                </div>
+                                        <button
+                                            type="button"
+                                            class="flex min-h-11 w-full items-start gap-2 px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                                            @click="choosePlace(place)"
+                                        >
+                                            <MapPin
+                                                class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                                            />
+                                            <span>{{ place.label }}</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <p
+                                    v-else-if="
+                                        searched && !searching && query.trim()
+                                    "
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    No matching address found. Try a nearby
+                                    landmark or the barangay and city.
+                                </p>
                             </div>
 
                             <LocationPin
@@ -717,8 +883,8 @@ function clearGeo() {
                                 @pick="pickOnMap"
                             />
                             <p class="text-xs text-muted-foreground">
-                                Click the map or drag the pin to your shop's
-                                exact spot, type the coordinates, or use the
+                                Search for your address, click the map or drag
+                                the pin to your shop's exact spot, or use the
                                 button below to auto-detect your current
                                 location.
                             </p>

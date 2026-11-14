@@ -13,6 +13,7 @@ use App\Http\Requests\Shop\UpdateRushFeeRequest;
 use App\Http\Requests\Shop\UpdateSmsGatewayRequest;
 use App\Models\Shop;
 use App\Services\RiderLoadLimitService;
+use App\Services\ShopLocationService;
 use App\Services\ShopDeliveryPricingService;
 use App\Services\ShopOperatingHoursService;
 use App\Services\ShopPaymentSettingsService;
@@ -43,10 +44,12 @@ class ShopSettingsController extends Controller
         ShopOperatingHoursService $operatingHours,
         RiderLoadLimitService $riderLoad,
         ShopSmsService $sms,
+        ShopLocationService $location,
     ) {
         $shop = $this->getShop();
 
         return Inertia::render('shop/Settings', [
+            'locationVerification' => $location->verificationFor(auth()->user()),
             'deliveryPricing' => $deliveryPricing->pageData(auth()->user()),
             'operatingHours' => $operatingHours->pageData(auth()->user()),
             'rushFee' => (float) $shop->rush_fee,
