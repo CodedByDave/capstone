@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\CustomerHomeRequest;
+use App\Http\Requests\User\CustomerShopsRequest;
 use App\Http\Resources\CustomerAddressResource;
 use App\Models\Shop;
 use App\Models\ShopOrder;
@@ -29,7 +31,7 @@ class UserDashboardController extends Controller
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
 
-    public function index(Request $request): Response
+    public function index(CustomerHomeRequest $request): Response
     {
         $user = auth()->user();
         $recentOrders = ShopOrder::where('user_id', $user->id)
@@ -52,9 +54,10 @@ class UserDashboardController extends Controller
         $lat = $request->float('lat') ?: null;
         $lng = $request->float('lng') ?: null;
 
-        // Every active shop is open to the customer: the nearest ones when their location is known,
-        // with the shop whose QR they scanned always listed first.
-        $nearbyShops = $this->shopCards($lat, $lng, $user->referred_shop_id);
+        // Recommendations are shops that are operating right now: the nearest ones when their location
+        // is known, with the customer's own shop (from a QR code) first when it is open. Every shop,
+        // open or not, is on the Shops page.
+        $nearbyShops = $this->shopCards($lat, $lng, $user->referred_shop_id, openOnly: true);
 
         return Inertia::render('Dashboard', [
             'recentOrders' => $recentOrders,
@@ -69,17 +72,20 @@ class UserDashboardController extends Controller
 
     // ─── Shops list ───────────────────────────────────────────────────────────
 
-    public function shops(Request $request): Response
+    public function shops(CustomerShopsRequest $request): Response
     {
         $lat = $request->float('lat') ?: null;
         $lng = $request->float('lng') ?: null;
         $search = $request->string('search')->trim()->toString();
+        $sort = $request->sortBy();
+        $openOnly = $request->openOnly();
 
         return Inertia::render('user/Shops', [
-            'shops' => $this->shopCards($lat, $lng, $request->user()->referred_shop_id, $search, limit: null),
+            'shops' => $this->shopCards($lat, $lng, $request->user()->referred_shop_id, $search, limit: null, openOnly: $openOnly, sort: $sort),
             'userLat' => $lat,
             'userLng' => $lng,
             'search' => $search,
+            'filters' => ['sort' => $sort, 'open' => $openOnly],
         ]);
     }
 
@@ -160,12 +166,12 @@ class UserDashboardController extends Controller
      *
      * @return array<int, array<string, mixed>>
      */
-    private function shopCards(?float $lat, ?float $lng, ?int $homeShopId, string $search = '', ?int $limit = 5): array
+    private function shopCards(?float $lat, ?float $lng, ?int $homeShopId, string $search = '', ?int $limit = 5, bool $openOnly = false, ?string $sort = null): array
     {
         $query = Shop::where('status', 'active')
             ->with(['services' => fn ($q) => $q->where('is_active', true)
                 ->select('id', 'shop_id', 'service_name', 'pricing_model', 'price_per_kg', 'bundle_price', 'bundle_weight_kg', 'price_per_piece')])
-            ->select('id', 'shop_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo');
+            ->select('id', 'shop_name', 'phone', 'block_street', 'municipality', 'barangay', 'latitude', 'longitude', 'cover_photo', 'is_open_24_7', 'opens_at', 'closes_at', 'operating_days');
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -191,6 +197,7 @@ class UserDashboardController extends Controller
                 'latitude' => $shop->latitude,
                 'longitude' => $shop->longitude,
                 'cover_photo' => $this->coverUrl($shop->cover_photo),
+                'is_open' => $shop->isOpenAt(),
                 'distance_km' => ($lat && $lng && $shop->latitude && $shop->longitude)
                     ? $this->haversine($lat, $lng, $shop->latitude, $shop->longitude)
                     : null,
@@ -202,18 +209,24 @@ class UserDashboardController extends Controller
             ];
         });
 
-        $cards = ($lat && $lng)
-            ? $cards->sortBy(fn ($card) => $card['distance_km'] ?? 9999)
-            : $cards->sortBy('shop_name');
+        // Applied before the nearest-few cut, so "open now" still lists as many shops as it can.
+        if ($openOnly) {
+            $cards = $cards->filter(fn ($card) => $card['is_open']);
+        }
 
-        $cards = $cards->values();
-        $home = $homeShopId ? $cards->firstWhere('id', $homeShopId) : null;
+        // No explicit choice: nearest first when the location is known, otherwise A to Z.
+        $cards = $this->catalog->sortCards($cards, $sort ?? ($lat && $lng ? 'nearest' : 'name'));
+
+        // The customer's own shop leads the default list only; an explicit sort is respected as chosen.
+        $home = ($homeShopId && $sort === null) ? $cards->firstWhere('id', $homeShopId) : null;
+
+        // The leading own shop is taken out of the list and put back in front.
+        $leadId = $home['id'] ?? null;
+        $cards = $cards->reject(fn ($card) => $card['id'] === $leadId)->values();
 
         if ($limit !== null) {
             // The nearest few, but never at the cost of the customer's own shop.
-            $cards = $cards->reject(fn ($card) => $card['id'] === $homeShopId)->take($home ? $limit - 1 : $limit)->values();
-        } else {
-            $cards = $cards->reject(fn ($card) => $card['id'] === $homeShopId)->values();
+            $cards = $cards->take($home ? $limit - 1 : $limit)->values();
         }
 
         if ($home) {

@@ -10,9 +10,12 @@ import {
     Navigation,
     Phone,
     Search,
+    Star,
+    Tag,
     WashingMachine,
 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { toast } from 'vue3-toastify';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +44,7 @@ interface Shop {
     services_count: number;
     rating_avg: number | null;
     rating_count: number;
+    is_open: boolean;
     services: ShopService[];
 }
 
@@ -51,50 +55,103 @@ const props = defineProps<{
     userLat: number | null;
     userLng: number | null;
     search: string;
+    filters: { sort: string | null; open: boolean };
 }>();
 
 // ─── Search ───────────────────────────────────────────────────────────────────
 
 const searchQuery = ref(props.search ?? '');
 
-function applySearch() {
+/** Loads the shop list with the current search, sort and filters, plus any change. */
+function load(
+    change: {
+        sort?: string | null;
+        open?: boolean;
+        lat?: number;
+        lng?: number;
+    } = {},
+) {
+    const sort = 'sort' in change ? change.sort : props.filters.sort;
+    const open = change.open ?? props.filters.open;
+    const lat = change.lat ?? props.userLat ?? undefined;
+    const lng = change.lng ?? props.userLng ?? undefined;
+
     router.get(
         '/user/shops',
         {
-            search: searchQuery.value || undefined,
-            lat: props.userLat ?? undefined,
-            lng: props.userLng ?? undefined,
+            search: searchQuery.value.trim() || undefined,
+            sort: sort || undefined,
+            open: open ? 1 : undefined,
+            lat,
+            lng,
         },
-        { preserveState: true, replace: true },
+        { preserveState: true, preserveScroll: true, replace: true },
     );
 }
 
-// ─── Re-locate ────────────────────────────────────────────────────────────────
+function applySearch() {
+    load();
+}
+
+// ─── Sort and filter ──────────────────────────────────────────────────────────
 
 const locating = ref(false);
 
-function locateMe() {
-    if (!navigator.geolocation) return;
+// The sort in effect: the customer's choice, or nearest when their location is known.
+const activeSort = computed(
+    () => props.filters.sort ?? (props.userLat ? 'nearest' : 'name'),
+);
+
+const sortOptions = [
+    { key: 'nearest', label: 'Nearby me', icon: Navigation },
+    { key: 'lowest_rate', label: 'Lowest rate', icon: Tag },
+    { key: 'top_rated', label: 'Top rated', icon: Star },
+    { key: 'name', label: 'A to Z', icon: null },
+] as const;
+
+/** Nearby needs the customer's location, so ask for it first. */
+function chooseSort(key: string) {
+    if (key !== 'nearest' || props.userLat) {
+        load({ sort: key });
+        return;
+    }
+    locateMe('nearest');
+}
+
+function locateMe(sort?: string) {
+    if (!navigator.geolocation) {
+        toast.info('Location is not available on this device.');
+        return;
+    }
     locating.value = true;
     navigator.geolocation.getCurrentPosition(
         (pos) => {
             locating.value = false;
-            router.get(
-                '/user/shops',
-                {
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                    search: searchQuery.value || undefined,
-                },
-                { replace: true },
-            );
+            load({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                ...(sort ? { sort } : {}),
+            });
         },
         () => {
             locating.value = false;
+            toast.info(
+                'We could not get your location. Allow location access to sort by distance.',
+            );
         },
         { timeout: 8000 },
     );
 }
+
+function resetFilters() {
+    router.get('/user/shops', {}, { replace: true });
+}
+
+const sortLabel = computed(
+    () =>
+        sortOptions.find((option) => option.key === activeSort.value)?.label ??
+        'A to Z',
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -150,24 +207,82 @@ function shopGradient(id: number) {
                         class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 active:scale-95 disabled:opacity-60"
                         :disabled="locating"
                         title="Use my location"
-                        @click="locateMe"
+                        @click="locateMe()"
                     >
                         <Loader2 v-if="locating" class="h-5 w-5 animate-spin" />
                         <Navigation v-else class="h-5 w-5" />
                     </button>
                 </div>
 
-                <!-- Location / count row -->
+                <!-- Sort and filter chips -->
+                <div
+                    class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    role="group"
+                    aria-label="Sort and filter shops"
+                >
+                    <button
+                        v-for="option in sortOptions"
+                        :key="option.key"
+                        type="button"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none disabled:opacity-60"
+                        :class="
+                            activeSort === option.key
+                                ? 'border-blue-600 bg-blue-600 text-white'
+                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        "
+                        :aria-pressed="activeSort === option.key"
+                        :disabled="locating && option.key === 'nearest'"
+                        @click="chooseSort(option.key)"
+                    >
+                        <Loader2
+                            v-if="locating && option.key === 'nearest'"
+                            class="h-4 w-4 animate-spin"
+                        />
+                        <component
+                            :is="option.icon"
+                            v-else-if="option.icon"
+                            class="h-4 w-4"
+                            aria-hidden="true"
+                        />
+                        {{ option.label }}
+                    </button>
+                    <button
+                        type="button"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
+                        :class="
+                            filters.open
+                                ? 'border-emerald-600 bg-emerald-600 text-white'
+                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        "
+                        :aria-pressed="filters.open"
+                        @click="load({ open: !filters.open })"
+                    >
+                        <span
+                            class="h-2 w-2 rounded-full"
+                            :class="
+                                filters.open ? 'bg-white' : 'bg-emerald-500'
+                            "
+                            aria-hidden="true"
+                        />
+                        Open now
+                    </button>
+                </div>
+
+                <!-- Count row -->
                 <div class="flex items-center justify-between">
                     <div
-                        v-if="userLat && userLng"
                         class="flex items-center gap-1.5 text-xs text-blue-600"
                     >
-                        <MapPin class="h-3 w-3 shrink-0" />
-                        <span>Sorted by distance</span>
+                        <MapPin
+                            v-if="activeSort === 'nearest'"
+                            class="h-3 w-3 shrink-0"
+                        />
+                        <span>Sorted by: {{ sortLabel }}</span>
                     </div>
-                    <div v-else class="text-xs text-gray-400">All shops</div>
-                    <span class="text-xs font-medium text-gray-500">
+                    <span
+                        class="text-xs font-medium text-gray-500"
+                        aria-live="polite"
+                    >
                         {{ shops.length }} shop{{
                             shops.length !== 1 ? 's' : ''
                         }}
@@ -190,7 +305,7 @@ function shopGradient(id: number) {
                 </p>
                 <button
                     class="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-95"
-                    @click="router.get('/user/shops')"
+                    @click="resetFilters"
                 >
                     Clear filters
                 </button>
@@ -227,6 +342,22 @@ function shopGradient(id: number) {
                         <div
                             class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"
                         />
+
+                        <!-- Open / closed badge -->
+                        <div
+                            class="absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold backdrop-blur-sm"
+                            :class="
+                                shop.is_open
+                                    ? 'bg-emerald-600/90 text-white'
+                                    : 'bg-slate-800/80 text-white'
+                            "
+                        >
+                            <span
+                                class="h-1.5 w-1.5 rounded-full bg-white"
+                                aria-hidden="true"
+                            />
+                            {{ shop.is_open ? 'Open' : 'Closed' }}
+                        </div>
 
                         <!-- Distance badge -->
                         <div

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AddressPinPicker from '@/components/customer/AddressPinPicker.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -16,9 +17,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { usePickupAddressAutofill } from '@/composables/usePickupAddressAutofill';
+import { useFlashToast } from '@/composables/useFlashToast';
 import UserLayout from '@/layouts/user/UserLayout.vue';
-import { searchPlaces, type PlaceResult } from '@/lib/maps';
 import { ADDRESS_LABELS, type SavedAddress } from '@/types/saved-address';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
@@ -29,15 +29,18 @@ import {
     MapPin,
     Pencil,
     Plus,
-    Search,
     Trash2,
 } from 'lucide-vue-next';
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, ref } from 'vue';
+import 'vue3-toastify/dist/index.css';
 
 const props = defineProps<{
     addresses: SavedAddress[];
     limit: number;
 }>();
+
+// The server confirms each save, edit, default change and delete with a toast message.
+useFlashToast();
 
 const atLimit = computed(() => props.addresses.length >= props.limit);
 const icons = { home: Home, work: Briefcase, other: MapPin };
@@ -62,7 +65,7 @@ function openCreate() {
     form.reset();
     form.clearErrors();
     form.is_default = props.addresses.length === 0;
-    pinnedAddress = '';
+    autoAddress = '';
     dialogOpen.value = true;
 }
 
@@ -76,87 +79,41 @@ function openEdit(address: SavedAddress) {
     form.latitude = address.latitude;
     form.longitude = address.longitude;
     form.is_default = address.is_default;
-    pinnedAddress = address.latitude === null ? '' : address.address;
+    autoAddress = '';
     dialogOpen.value = true;
 }
 
-// ─── Address search and pin ───────────────────────────────────────────────────
+// ─── Pin ──────────────────────────────────────────────────────────────────────
 
-// The address the pin belongs to; once the text changes the pin is out of date.
-let pinnedAddress = '';
-const suggestions = ref<PlaceResult[]>([]);
-const searching = ref(false);
-let searchTimer: ReturnType<typeof setTimeout> | null = null;
-const PIN_LOOKUP_TIMEOUT_MS = 4_000;
+// The pinned point, shared with the map picker.
+const pin = computed({
+    get: () =>
+        form.latitude === null || form.longitude === null
+            ? null
+            : { lat: form.latitude, lng: form.longitude },
+    set: (point) => {
+        form.latitude = point?.lat ?? null;
+        form.longitude = point?.lng ?? null;
+        if (point) form.clearErrors('latitude', 'longitude');
+    },
+});
 
-function onAddressInput() {
-    if (searchTimer) clearTimeout(searchTimer);
-    const query = form.address.trim();
+// The address text the map filled in last. Moving the pin only replaces the text while the
+// customer has not edited it, so a typed house number is never overwritten.
+let autoAddress = '';
 
-    if (query !== pinnedAddress.trim()) {
-        form.latitude = form.longitude = null;
+function onAddressFound(text: string) {
+    if (form.address.trim() === '' || form.address === autoAddress) {
+        form.address = text;
+        autoAddress = text;
     }
-    if (query.length < 4) {
-        suggestions.value = [];
+}
+
+function save() {
+    if (!pin.value) {
+        form.setError('latitude', 'Pin your exact location on the map.');
         return;
     }
-    searchTimer = setTimeout(async () => {
-        searching.value = true;
-        try {
-            suggestions.value = await searchPlaces(query);
-        } catch {
-            suggestions.value = [];
-        } finally {
-            searching.value = false;
-        }
-    }, 450);
-}
-
-function choose(place: PlaceResult) {
-    suggestions.value = [];
-    form.address = place.label;
-    form.latitude = Number(place.lat);
-    form.longitude = Number(place.lng);
-    pinnedAddress = place.label;
-}
-
-const { locating, failed, detectLocation } = usePickupAddressAutofill();
-
-async function useCurrentLocation() {
-    const found = await detectLocation();
-    if (found?.address) {
-        suggestions.value = [];
-        form.address = found.address;
-        form.latitude = found.lat;
-        form.longitude = found.lng;
-        pinnedAddress = found.address;
-    }
-}
-
-/** A typed address with no chosen suggestion still gets a pin when the lookup finds one. */
-async function ensurePin() {
-    const address = form.address.trim();
-    if (form.latitude !== null || address === '') return;
-
-    try {
-        const [match] = await Promise.race([
-            searchPlaces(address),
-            new Promise<PlaceResult[]>((resolve) =>
-                setTimeout(() => resolve([]), PIN_LOOKUP_TIMEOUT_MS),
-            ),
-        ]);
-        if (match) {
-            form.latitude = Number(match.lat);
-            form.longitude = Number(match.lng);
-            pinnedAddress = address;
-        }
-    } catch {
-        // Saving without a pin is allowed; the pickup fee then falls back to the shop's flat rate.
-    }
-}
-
-async function save() {
-    await ensurePin();
 
     const options = {
         preserveScroll: true,
@@ -171,10 +128,6 @@ async function save() {
         form.post('/user/addresses', options);
     }
 }
-
-onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-});
 
 // ─── Row actions ──────────────────────────────────────────────────────────────
 
@@ -421,80 +374,42 @@ const inputClass =
                         </p>
                     </div>
 
-                    <div class="relative">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">
+                            Pin your exact location
+                        </p>
+                        <div class="mt-1">
+                            <AddressPinPicker
+                                v-model="pin"
+                                @address="onAddressFound"
+                            />
+                        </div>
+                        <p
+                            v-if="form.errors.latitude"
+                            class="mt-1 text-xs text-red-600"
+                            role="alert"
+                        >
+                            {{ form.errors.latitude }}
+                        </p>
+                    </div>
+
+                    <div>
                         <label
                             for="addr-address"
                             class="text-xs font-medium text-slate-500"
                             >Complete address</label
                         >
-                        <div class="relative">
-                            <Search
-                                class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
-                                aria-hidden="true"
-                            />
-                            <input
-                                id="addr-address"
-                                v-model="form.address"
-                                type="text"
-                                autocomplete="off"
-                                placeholder="House no., street, barangay, city"
-                                :class="[inputClass, 'pr-9 pl-9']"
-                                @input="onAddressInput"
-                            />
-                            <Loader2
-                                v-if="searching"
-                                class="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-slate-400"
-                            />
-                        </div>
-                        <ul
-                            v-if="suggestions.length"
-                            class="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg"
-                        >
-                            <li
-                                v-for="place in suggestions"
-                                :key="`${place.lat},${place.lng}`"
-                            >
-                                <button
-                                    type="button"
-                                    class="flex min-h-11 w-full items-start gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-blue-50"
-                                    @click="choose(place)"
-                                >
-                                    <MapPin
-                                        class="mt-0.5 size-3.5 shrink-0 text-slate-400"
-                                        aria-hidden="true"
-                                    />
-                                    {{ place.label }}
-                                </button>
-                            </li>
-                        </ul>
-
-                        <div class="mt-1 flex flex-wrap items-center gap-2">
-                            <button
-                                type="button"
-                                class="inline-flex min-h-11 items-center gap-1.5 rounded text-sm font-semibold text-blue-600 hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none disabled:opacity-60"
-                                :disabled="locating"
-                                @click="useCurrentLocation"
-                            >
-                                <Loader2
-                                    v-if="locating"
-                                    class="size-4 animate-spin"
-                                />
-                                <MapPin v-else class="size-4" />
-                                {{
-                                    locating
-                                        ? 'Finding your address…'
-                                        : 'Use my current location'
-                                }}
-                            </button>
-                            <span v-if="failed" class="text-xs text-slate-500">
-                                Could not detect it. Please type your address.
-                            </span>
-                        </div>
-                        <p
-                            v-if="form.latitude !== null"
-                            class="text-xs text-green-700"
-                        >
-                            Location pinned for the rider.
+                        <input
+                            id="addr-address"
+                            v-model="form.address"
+                            type="text"
+                            autocomplete="street-address"
+                            placeholder="House no., street, barangay, city"
+                            :class="inputClass"
+                        />
+                        <p class="mt-1 text-xs text-slate-500">
+                            Add your house or unit number so the rider can find
+                            you.
                         </p>
                         <p
                             v-if="form.errors.address"

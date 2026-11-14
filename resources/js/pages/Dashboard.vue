@@ -144,7 +144,10 @@ function locateMe() {
         (pos) => {
             router.get(
                 '/user/dashboard',
-                { lat: pos.coords.latitude, lng: pos.coords.longitude },
+                {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                },
                 {
                     replace: true,
                     preserveScroll: true,
@@ -296,7 +299,9 @@ function promoDetail(promo: Promotion) {
                         class="text-sm font-semibold text-slate-800"
                     >
                         {{
-                            userLat ? 'Laundry shops near you' : 'Laundry shops'
+                            userLat
+                                ? 'Open shops near you'
+                                : 'Open shops for you'
                         }}
                     </h2>
                     <div class="flex items-center gap-3 text-xs">
@@ -314,7 +319,7 @@ function promoDetail(promo: Promotion) {
                             class="font-medium text-blue-600 hover:underline"
                             @click="router.visit('/user/shops')"
                         >
-                            See all
+                            All shops
                         </button>
                     </div>
                 </div>
@@ -347,9 +352,21 @@ function promoDetail(promo: Promotion) {
                                 </span>
                             </span>
                             <span
-                                class="shrink-0 text-xs font-medium text-blue-600"
-                                >View</span
+                                class="flex shrink-0 flex-col items-end gap-1"
                             >
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"
+                                >
+                                    <span
+                                        class="h-1.5 w-1.5 rounded-full bg-current"
+                                        aria-hidden="true"
+                                    />
+                                    Open
+                                </span>
+                                <span class="text-xs font-medium text-blue-600"
+                                    >View</span
+                                >
+                            </span>
                         </button>
                     </li>
                 </ul>
@@ -363,12 +380,19 @@ function promoDetail(promo: Promotion) {
                         aria-hidden="true"
                     />
                     <p class="text-sm font-semibold text-slate-800">
-                        No laundry shops found yet
+                        No shops are open right now
                     </p>
                     <p class="mt-1 text-xs text-slate-500">
-                        Allow location access to find shops near you, or scan a
-                        shop's QR code.
+                        Check back later, or browse every shop and order for
+                        when they open.
                     </p>
+                    <button
+                        type="button"
+                        class="mt-3 min-h-11 rounded-xl border border-blue-600 px-5 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
+                        @click="router.visit('/user/shops')"
+                    >
+                        Browse all shops
+                    </button>
                 </div>
             </section>
 
@@ -377,7 +401,6 @@ function promoDetail(promo: Promotion) {
                 <button
                     type="button"
                     class="flex min-h-12 w-full items-center justify-center rounded-xl bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-                    :disabled="nearbyShops.length === 0"
                     @click="router.visit('/user/shops')"
                 >
                     Place an order

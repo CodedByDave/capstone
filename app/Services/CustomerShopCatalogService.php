@@ -101,6 +101,43 @@ class CustomerShopCatalogService
      * @param  Collection<int, \App\Models\ShopService>  $services  Active services of one shop.
      * @return array{amount: float|null, unit: string|null}
      */
+    /** The orderings of the customer's shop list. */
+    public const SORTS = ['nearest', 'lowest_rate', 'top_rated', 'name'];
+
+    /**
+     * Puts shop cards in the order the customer asked for. Shops missing the value being sorted
+     * on (no location, no price, no ratings yet) go last.
+     *
+     * "Lowest rate" compares the headline price: per-kg prices first, then bundles, then pieces,
+     * because those are not the same measure and cannot be ranked against each other.
+     *
+     * @param  Collection<int, array<string, mixed>>  $cards
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function sortCards(Collection $cards, string $sort): Collection
+    {
+        $unitRank = ['kg' => 0, 'bundle' => 1, 'piece' => 2];
+
+        $sorted = match ($sort) {
+            'nearest' => $cards->sortBy(fn ($card) => [$card['distance_km'] === null ? 1 : 0, $card['distance_km'] ?? 0, $card['shop_name']]),
+            'lowest_rate' => $cards->sortBy(fn ($card) => [
+                $card['starting_price'] === null ? 1 : 0,
+                $unitRank[$card['starting_price_unit']] ?? 3,
+                $card['starting_price'] ?? 0,
+                $card['shop_name'],
+            ]),
+            'top_rated' => $cards->sortBy(fn ($card) => [
+                $card['rating_avg'] === null ? 1 : 0,
+                -($card['rating_avg'] ?? 0),
+                -$card['rating_count'],
+                $card['shop_name'],
+            ]),
+            default => $cards->sortBy('shop_name', SORT_NATURAL | SORT_FLAG_CASE),
+        };
+
+        return $sorted->values();
+    }
+
     public function startingPrice(Collection $services): array
     {
         $perKg = $services->where('pricing_model', 'per_kg')->whereNotNull('price_per_kg')->min('price_per_kg');

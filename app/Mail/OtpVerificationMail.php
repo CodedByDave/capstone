@@ -26,7 +26,8 @@ class OtpVerificationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Verify Your {$this->name} Account",
+            // The code is in the subject too, so it is readable in an inbox list or a viewer that hides the body.
+            subject: "{$this->otp} is your ".config('app.name').' verification code',
         );
     }
 
@@ -37,6 +38,8 @@ class OtpVerificationMail extends Mailable
     {
         return new Content(
             view: 'emails.otp',
+            // Plain-text copy so the code still shows in inboxes that cannot render HTML.
+            text: 'emails.otp-text',
             with: [
                 'otp' => $this->otp,
                 'shopName' => $this->name,

@@ -139,14 +139,14 @@ test('addresses are validated', function () {
     expect($me->addresses()->count())->toBe(0);
 });
 
-test('a pin is optional', function () {
+test('the exact pin is required', function () {
     $me = addrCustomer();
 
     $this->actingAs($me)
         ->post(route('user.addresses.store'), addrPayload(['latitude' => null, 'longitude' => null]))
-        ->assertSessionHasNoErrors();
+        ->assertSessionHasErrors(['latitude', 'longitude']);
 
-    expect($me->addresses()->first()->latitude)->toBeNull();
+    expect($me->addresses()->count())->toBe(0);
 });
 
 test('shop owners cannot use the customer address book', function () {

@@ -7,6 +7,7 @@ use App\Exceptions\DeliveryRequestException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\DeliveryQuoteRequest;
 use App\Http\Requests\User\EstimateOrderBreakdownRequest;
+use App\Http\Requests\User\IndexCustomerOrdersRequest;
 use App\Http\Requests\User\RequestDeliveryRequest;
 use App\Http\Requests\User\StoreUserOrderRequest;
 use App\Http\Resources\CustomerAddressResource;
@@ -14,6 +15,7 @@ use App\Models\ShopOrder;
 use App\Services\CustomerAddressService;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerOrderCancellationService;
+use App\Services\CustomerOrderListService;
 use App\Services\CustomerOrderPlacementService;
 use App\Services\DeliveryRequestService;
 use App\Services\DeliveryTrackingService;
@@ -48,33 +50,13 @@ class UserOrderController extends Controller
 
     // ─── List orders ──────────────────────────────────────────────────────────
 
-    public function index(): Response
+    public function index(IndexCustomerOrdersRequest $request, CustomerOrderListService $list): Response
     {
-        $orders = ShopOrder::where('user_id', auth()->id())
-            ->with([
-                'shop:id,shop_name,municipality,barangay,phone',
-                'service:id,service_name',
-            ])
-            ->latest()
-            ->paginate(15)
-            ->through(fn ($o) => [
-                'id' => $o->id,
-                'payment_public_id' => $o->payment_public_id,
-                'order_number' => $o->order_number,
-                'shop' => $o->shop ? ['name' => $o->shop->shop_name, 'location' => "{$o->shop->barangay}, {$o->shop->municipality}"] : null,
-                'service_name' => $o->isProductOrder() ? 'Products' : ($o->service->service_name ?? '—'),
-                'order_type' => $o->order_type,
-                'status' => $o->status,
-                'is_rush' => (bool) $o->is_rush,
-                'payment_status' => $o->payment_status,
-                'total_amount' => (float) $o->total_amount,
-                'order_source' => $o->order_source,
-                'pickup_type' => $o->pickup_type,
-                'created_at' => $o->created_at->toDateString(),
-            ]);
+        $filters = $request->filters();
 
         return Inertia::render('user/Orders', [
-            'orders' => $orders,
+            ...$list->listFor($request->user(), $filters),
+            'filters' => $filters,
         ]);
     }
 

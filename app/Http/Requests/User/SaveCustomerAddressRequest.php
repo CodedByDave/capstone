@@ -30,9 +30,9 @@ class SaveCustomerAddressRequest extends FormRequest
             'recipient_name' => ['required', 'string', 'max:150'],
             'phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
             'address' => ['required', 'string', 'min:5', 'max:500'],
-            // The map pin, so the pickup fee and rider tracking work. Both or neither.
-            'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
-            'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
+            // The exact pinned spot, so the pickup fee and rider tracking work.
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
             'is_default' => ['sometimes', 'boolean'],
         ];
     }
@@ -42,6 +42,8 @@ class SaveCustomerAddressRequest extends FormRequest
         return [
             'recipient_name.required' => 'Enter the name of the person receiving the rider.',
             'address.required' => 'Enter the complete address.',
+            'latitude.required' => 'Pin your exact location on the map.',
+            'longitude.required' => 'Pin your exact location on the map.',
             'address.min' => 'The address is too short. Include the street and barangay.',
         ];
     }

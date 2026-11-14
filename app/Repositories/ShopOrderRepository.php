@@ -224,6 +224,62 @@ class ShopOrderRepository
             ->all();
     }
 
+    /**
+     * A customer's own orders, newest first, narrowed by the list filters.
+     *
+     * @param  array{status?: ?string, payment?: ?string, search?: ?string}  $filters
+     */
+    public function paginateForCustomer(int $userId, array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->model->newQuery()
+            ->where('user_id', $userId)
+            ->with([
+                'shop:id,shop_name,municipality,barangay,phone',
+                'service:id,service_name',
+            ])
+            ->when($filters['status'] ?? null, function ($query, string $status) {
+                // "Completed" covers everything that is finished, including picked up.
+                $status === 'completed'
+                    ? $query->whereIn('status', ShopOrder::FINISHED_STATUSES)
+                    : $query->where('status', $status);
+            })
+            ->when($filters['payment'] ?? null, fn ($query, string $payment) => $query->where('payment_status', $payment))
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $like = '%'.addcslashes($search, '%_\\').'%';
+
+                $query->where(function ($inner) use ($like) {
+                    $inner->where('order_number', 'like', $like)
+                        ->orWhereHas('shop', fn ($shop) => $shop->where('shop_name', 'like', $like));
+                });
+            })
+            ->latest()
+            ->latest('id')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    /**
+     * How many orders the customer has per list tab, ignoring the other filters.
+     *
+     * @return array{all: int, pending: int, in_progress: int, completed: int, cancelled: int}
+     */
+    public function statusCountsForCustomer(int $userId): array
+    {
+        $byStatus = $this->model->newQuery()
+            ->where('user_id', $userId)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return [
+            'all' => (int) $byStatus->sum(),
+            'pending' => (int) ($byStatus['pending'] ?? 0),
+            'in_progress' => (int) ($byStatus['in_progress'] ?? 0),
+            'completed' => (int) collect(ShopOrder::FINISHED_STATUSES)->sum(fn ($status) => $byStatus[$status] ?? 0),
+            'cancelled' => (int) ($byStatus['cancelled'] ?? 0),
+        ];
+    }
+
     public function lockForUpdate(ShopOrder $order): ShopOrder
     {
         return $this->model->newQuery()->whereKey($order->getKey())->lockForUpdate()->firstOrFail();

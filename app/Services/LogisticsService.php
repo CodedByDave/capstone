@@ -95,35 +95,6 @@ class LogisticsService
         ];
     }
 
-    private function usesOwnRider(array $data, Delivery $delivery): bool
-    {
-        return ($data['courier'] ?? $delivery->courier ?? Delivery::COURIER_OWN_RIDER) !== Delivery::COURIER_LALAMOVE;
-    }
-
-    /**
-     * The courier columns for a delivery. A Lalamove run has no shop rider; an own-rider
-     * delivery carries no courier details.
-     */
-    private function courierAttributes(array $data, ?Delivery $current): array
-    {
-        $courier = $data['courier'] ?? $current?->courier ?? Delivery::COURIER_OWN_RIDER;
-        $fields = [
-            'courier_reference', 'courier_tracking_url', 'courier_driver_name',
-            'courier_driver_phone', 'courier_vehicle_plate', 'courier_cost',
-        ];
-
-        if ($courier !== Delivery::COURIER_LALAMOVE) {
-            return ['courier' => Delivery::COURIER_OWN_RIDER] + array_fill_keys($fields, null);
-        }
-
-        $attributes = ['courier' => $courier, 'rider_id' => null];
-        foreach ($fields as $field) {
-            $attributes[$field] = array_key_exists($field, $data) ? $data[$field] : $current?->{$field};
-        }
-
-        return $attributes;
-    }
-
     /**
      * A completed order the shop must bring back to the customer's address becomes a
      * delivery on the board with the customer's details already filled in. A rider is
@@ -473,12 +444,10 @@ class LogisticsService
             $timestamps['delivered_at'] = now();
         }
 
-        $courier = $this->courierAttributes($data, $delivery);
-
         $riderId = $data['rider_id'] ?? $delivery->rider_id;
         $riderChanged = $riderId !== $delivery->rider_id;
 
-        if ($riderChanged && $riderId !== null && $this->usesOwnRider($data, $delivery)) {
+        if ($riderChanged && $riderId !== null) {
             $rider = $this->riders->find($riderId);
 
             if (! $rider || ! $this->riders->isOnDuty($rider)) {
@@ -492,7 +461,7 @@ class LogisticsService
             'status' => $data['status'],
             'rider_id' => $riderId,
             'notes' => $data['notes'] ?? $delivery->notes,
-        ], $riderChanged ? ['rider_lat' => null, 'rider_lng' => null, 'rider_located_at' => null, 'accepted_at' => null] : [], $courier, $timestamps)));
+        ], $riderChanged ? ['rider_lat' => null, 'rider_lng' => null, 'rider_located_at' => null, 'accepted_at' => null] : [], $timestamps)));
 
         // A rider handed a run by the shop is told straight away so they can accept or reject it.
         if ($riderChanged && $riderId !== null && $data['status'] === 'assigned') {
