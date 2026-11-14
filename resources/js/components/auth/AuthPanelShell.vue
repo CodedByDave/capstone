@@ -84,9 +84,13 @@ onBeforeUnmount(() => {
             :class="[
                 paneClass,
                 formAtRight ? 'lg:col-start-2' : '',
-                'transition-opacity delay-300',
                 formVisible ? 'opacity-100' : 'opacity-0',
             ]"
+            :style="
+                formVisible
+                    ? { transitionDelay: '300ms', transitionDuration: '500ms' }
+                    : { transitionDelay: '0ms', transitionDuration: '150ms' }
+            "
         >
             <div class="m-auto w-full max-w-[420px]">
                 <div class="flex flex-col items-center text-center">

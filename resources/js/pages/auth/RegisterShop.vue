@@ -46,6 +46,15 @@ const props = defineProps<{
 
 /* ---------------- STEP ---------------- */
 const step = ref(1);
+// The form body lags `step` so it only swaps while the form is faded out and the
+// blue panel is moving, instead of showing the next page where the panel is going.
+const shownStep = ref(1);
+let swapTimer: ReturnType<typeof setTimeout> | undefined;
+watch(step, (value) => {
+    clearTimeout(swapTimer);
+    swapTimer = setTimeout(() => (shownStep.value = value), 180);
+});
+onUnmounted(() => clearTimeout(swapTimer));
 // Three form steps, then the email code on the verify page.
 const PROGRESS_STEPS = 4;
 
@@ -514,7 +523,7 @@ const goToGoogle = () => {
             class="mt-4 flex items-center justify-center gap-1.5"
             role="progressbar"
             aria-label="Registration progress"
-            :aria-valuenow="step"
+            :aria-valuenow="shownStep"
             aria-valuemin="1"
             :aria-valuemax="PROGRESS_STEPS"
         >
@@ -523,9 +532,9 @@ const goToGoogle = () => {
                 :key="s"
                 :class="[
                     'h-1.5 rounded-full transition-all duration-300',
-                    s === step
+                    s === shownStep
                         ? 'w-10 bg-blue-600'
-                        : s < step
+                        : s < shownStep
                           ? 'w-5 bg-blue-300'
                           : 'w-5 bg-slate-200',
                 ]"
@@ -534,7 +543,7 @@ const goToGoogle = () => {
 
         <form @submit.prevent="submit" class="mt-5 flex flex-col gap-5">
             <!-- STEP 1: Owner Info -->
-            <div v-if="step === 1" class="grid gap-4">
+            <div v-if="shownStep === 1" class="grid gap-4">
                 <h2 class="text-center text-base font-semibold">
                     Step 1 — Owner Info
                 </h2>
@@ -651,7 +660,7 @@ const goToGoogle = () => {
             </div>
 
             <!-- STEP 2: Shop Info -->
-            <div v-if="step === 2" class="grid gap-4">
+            <div v-if="shownStep === 2" class="grid gap-4">
                 <h2 class="text-center text-base font-semibold">
                     Step 2 — Shop Info
                 </h2>
@@ -922,7 +931,7 @@ const goToGoogle = () => {
             </div>
 
             <!-- STEP 3: Password + Terms -->
-            <div v-if="step === 3" class="grid gap-4">
+            <div v-if="shownStep === 3" class="grid gap-4">
                 <h2 class="text-center text-base font-semibold">
                     Step 3 — Set Password
                 </h2>
