@@ -195,7 +195,7 @@ class ShopOrderService
         return $this->repository->countCreatedSince($shopId, now()->startOfDay());
     }
 
-    /** @return array{operations_orders: int}|null Sidebar badge counts for a shop owner or staff member. */
+    /** @return array{operations_orders: int, operations_retail: int}|null Sidebar badge counts for a shop owner or staff member. */
     public function sidebarBadgesFor(User $user): ?array
     {
         if (! in_array($user->role, ['owner', 'staff'], true)) {
@@ -204,7 +204,10 @@ class ShopOrderService
 
         $shopId = $this->repository->shopIdForUser($user);
 
-        return $shopId ? ['operations_orders' => $this->newOrdersToday($shopId)] : null;
+        return $shopId ? [
+            'operations_orders' => $this->newOrdersToday($shopId),
+            'operations_retail' => $this->repository->countOnlineProductsSince($shopId, now()->startOfDay()),
+        ] : null;
     }
 
     public function getStatusSummary(int $shopId): array
@@ -242,6 +245,16 @@ class ShopOrderService
             unset($data['supplies'], $data['service_lines']);
             $data = $this->withoutAlternateContactUnlessRiderInvolved($data);
             unset($data['customer_agreement_version'], $data['customer_agreement_accepted']);
+
+            // Retail products bought with the laundry are priced from the shop's own prices, never the
+            // browser's, and are added to the order's additional charges before the tax is worked out.
+            $retailLines = $this->additionalCharges->resolveRetail((int) $data['shop_id'], $data['retail_items'] ?? [], lock: true);
+            $retailTotal = $this->additionalCharges->total($retailLines);
+            unset($data['retail_items']);
+            if ($retailTotal > 0) {
+                $data['additional_charges'] = round((float) ($data['additional_charges'] ?? 0) + $retailTotal, 2);
+                $data['total_amount'] = round((float) $data['total_amount'] + $retailTotal, 2);
+            }
 
             // A pickup order is weighed only once the rider has brought the laundry to the shop.
             if (($data['pickup_type'] ?? null) === 'pickup'
@@ -330,6 +343,9 @@ class ShopOrderService
                 $paidNow > 0 ? $tendered : null,
             );
 
+            // The products leave stock with the order, and each shows as its own line on the bill.
+            $this->additionalCharges->attachToOrder($order, $retailLines);
+
             foreach ($supplies as $supply) {
                 if (empty($supply['inventory_id'])) {
                     continue;
@@ -349,12 +365,29 @@ class ShopOrderService
                     ]);
                 }
 
-                // ← use attach() not create()
-                $order->supplies()->attach($supply['inventory_id'], [
-                    'quantity_used' => $supply['quantity_used'],
-                    'unit' => $supply['unit'],
-                    'unit_price' => $item->selling_price,
-                ]);
+                $retailRow = $order->supplies()->where('inventory_id', $item->id)->first();
+
+                if ($retailRow) {
+                    // The same item is also on the order as a retail product: one row per item, so the
+                    // quantities and amounts are combined and the row still adds up.
+                    $extra = (float) $supply['quantity_used'];
+                    $quantity = (float) $retailRow->pivot->quantity_used + $extra;
+                    $amount = (float) $retailRow->pivot->quantity_used * (float) $retailRow->pivot->unit_price
+                        + $extra * (float) $item->selling_price;
+
+                    $order->supplies()->updateExistingPivot($item->id, [
+                        'quantity_used' => $quantity,
+                        'unit_price' => round($amount / $quantity, 8),
+                        'label' => trim(($retailRow->pivot->label ?: $item->name).' + '.($item->addon_name ?: $item->name)),
+                    ]);
+                } else {
+                    // ← use attach() not create()
+                    $order->supplies()->attach($supply['inventory_id'], [
+                        'quantity_used' => $supply['quantity_used'],
+                        'unit' => $supply['unit'],
+                        'unit_price' => $item->selling_price,
+                    ]);
+                }
 
                 $item->decrement('quantity', (float) $supply['quantity_used']);
                 $this->inventory->alertIfLowStock($item->refresh());

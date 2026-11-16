@@ -190,6 +190,8 @@ const open = (row: VerificationRow) =>
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="!!(search || status)"
+                        @reset="resetFilters"
                         v-model:search="search"
                         :status="status"
                         :statuses="statusOptions"

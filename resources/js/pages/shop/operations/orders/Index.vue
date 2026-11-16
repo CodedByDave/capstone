@@ -4,6 +4,7 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     RowActions,
     StatusPill,
     statusTone,
@@ -20,8 +21,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
+import { useUndoToast } from '@/composables/useUndoToast';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -514,19 +515,21 @@ const restoreAll = () => {
 
 // ─── Delete Dialog ─────────────────────────────────
 
-const orderToDelete = ref<Order | null>(null);
-const showDeleteDialog = ref(false);
+const { undoable } = useUndoToast();
 
-const confirmDelete = (order: Order) => {
-    orderToDelete.value = order;
-    showDeleteDialog.value = true;
-};
-
-const handleDelete = () => {
-    if (!orderToDelete.value) return;
-    router.delete(`${base.value}/${orderToDelete.value.payment_public_id}`);
-    showDeleteDialog.value = false;
-    orderToDelete.value = null;
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
+const archiveOrder = (order: Order) => {
+    router.delete(`${base.value}/${order.payment_public_id}`, {
+        preserveScroll: true,
+        onSuccess: () =>
+            undoable(`Order ${order.order_number} archived.`, () =>
+                router.patch(
+                    `${base.value}/${order.payment_public_id}/restore`,
+                    {},
+                    { preserveScroll: true },
+                ),
+            ),
+    });
 };
 </script>
 
@@ -599,131 +602,48 @@ const handleDelete = () => {
             </div>
 
             <!-- ── KPI Cards (active view only) ──────────── -->
-            <div
+            <KpiTiles
                 v-if="!showArchived"
-                class="grid grid-cols-2 gap-4 lg:grid-cols-5"
-            >
-                <Card
-                    class="cursor-pointer transition hover:ring-2 hover:ring-blue-200"
-                    :class="{ 'ring-2 ring-blue-400': status === 'queue' }"
-                    @click="status = status === 'queue' ? '' : 'queue'"
-                >
-                    <CardContent class="pt-5 pb-4">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                            >
-                                In Queue
-                            </p>
-                            <ListOrdered class="h-4 w-4 text-blue-500" />
-                        </div>
-                        <p class="text-2xl font-bold">
-                            {{ queueSummary.waiting }}
-                        </p>
-                        <p class="mt-1 text-xs text-muted-foreground">
-                            {{ queueSummary.rush }} rush · Click to filter
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                            >
-                                Total Orders
-                            </p>
-                            <Package class="h-4 w-4 text-blue-500" />
-                        </div>
-                        <p class="text-2xl font-bold">{{ totalOrders }}</p>
-                        <p class="mt-1 text-xs text-muted-foreground">
-                            All statuses
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                            >
-                                Collected
-                            </p>
-                            <CheckCircle class="h-4 w-4 text-green-500" />
-                        </div>
-                        <p class="text-2xl font-bold">
-                            {{ formatCurrency(totalCollected) }}
-                        </p>
-                        <p class="mt-1 text-xs text-muted-foreground">
-                            {{
-                                totalRevenue
-                                    ? (
-                                          (totalCollected / totalRevenue) *
-                                          100
-                                      ).toFixed(0)
-                                    : 0
-                            }}% of revenue
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent class="pt-5 pb-4">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                            >
-                                Outstanding
-                            </p>
-                            <AlertCircle class="h-4 w-4 text-orange-500" />
-                        </div>
-                        <p
-                            class="text-2xl font-bold"
-                            :class="
-                                outstandingBalance > 0 ? 'text-orange-600' : ''
-                            "
-                        >
-                            {{ formatCurrency(outstandingBalance) }}
-                        </p>
-                        <p class="mt-1 text-xs text-muted-foreground">
-                            Uncollected balance
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card
-                    class="cursor-pointer transition hover:ring-2 hover:ring-red-200"
-                    :class="{
-                        'ring-2 ring-red-400': paymentStatus === 'unpaid',
-                    }"
-                    @click="
-                        paymentStatus =
-                            paymentStatus === 'unpaid' ? '' : 'unpaid'
-                    "
-                >
-                    <CardContent class="pt-5 pb-4">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                            >
-                                Unpaid Orders
-                            </p>
-                            <CreditCard class="h-4 w-4 text-red-500" />
-                        </div>
-                        <p
-                            class="text-2xl font-bold"
-                            :class="unpaidCount > 0 ? 'text-red-600' : ''"
-                        >
-                            {{ unpaidCount }}
-                        </p>
-                        <p class="mt-1 text-xs text-muted-foreground">
-                            Click to filter
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+                :tiles="[
+                    {
+                        label: 'In Queue',
+                        value: queueSummary.waiting,
+                        detail: `${queueSummary.rush} rush · Click to filter`,
+                        icon: ListOrdered,
+                        active: status === 'queue',
+                        onSelect: () =>
+                            (status = status === 'queue' ? '' : 'queue'),
+                    },
+                    {
+                        label: 'Total Orders',
+                        value: totalOrders,
+                        detail: 'All statuses',
+                        icon: Package,
+                    },
+                    {
+                        label: 'Collected',
+                        value: formatCurrency(totalCollected),
+                        detail: `${totalRevenue ? ((totalCollected / totalRevenue) * 100).toFixed(0) : 0}% of revenue`,
+                        icon: CheckCircle,
+                    },
+                    {
+                        label: 'Outstanding',
+                        value: formatCurrency(outstandingBalance),
+                        detail: 'Uncollected balance',
+                        icon: AlertCircle,
+                    },
+                    {
+                        label: 'Unpaid Orders',
+                        value: unpaidCount,
+                        detail: 'Click to filter',
+                        icon: CreditCard,
+                        active: paymentStatus === 'unpaid',
+                        onSelect: () =>
+                            (paymentStatus =
+                                paymentStatus === 'unpaid' ? '' : 'unpaid'),
+                    },
+                ]"
+            />
 
             <!-- ── Archived Banner ───────────────────────── -->
             <div
@@ -987,7 +907,7 @@ const handleDelete = () => {
                                 icon: Trash2,
                                 destructive: true,
                                 show: !showArchived && canManage,
-                                onSelect: () => confirmDelete(order),
+                                onSelect: () => archiveOrder(order),
                             },
                             {
                                 label: 'Restore',
@@ -1056,41 +976,6 @@ const handleDelete = () => {
                     >
                     <AlertDialogAction @click="confirmRush">
                         {{ rushMode === 'rush' ? 'Rush order' : 'Remove rush' }}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
-        <!-- ── Delete Alert Dialog ────────────────────── -->
-        <AlertDialog
-            :open="showDeleteDialog"
-            @update:open="showDeleteDialog = $event"
-        >
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Archive Order</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Are you sure you want to archive order
-                        <span class="font-semibold text-foreground">{{
-                            orderToDelete?.order_number
-                        }}</span>
-                        for
-                        <span class="font-semibold text-foreground">{{
-                            orderToDelete?.customer_name
-                        }}</span
-                        >? This will restore any deducted inventory and the
-                        order will be moved to archive.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel @click="showDeleteDialog = false"
-                        >Cancel</AlertDialogCancel
-                    >
-                    <AlertDialogAction
-                        :class="buttonVariants({ variant: 'warning' })"
-                        @click="handleDelete"
-                    >
-                        Archive Order
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

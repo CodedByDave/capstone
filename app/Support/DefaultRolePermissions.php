@@ -14,12 +14,6 @@ final class DefaultRolePermissions
     public const ROLES = ['owner', 'manager', 'cashier', 'washer', 'staff'];
 
     /**
-     * Created only once the shop turns on pickup or delivery. A rider works from the
-     * driver app, so the role carries no shop-panel permissions by default.
-     */
-    public const RIDER_ROLE = 'rider';
-
-    /**
      * @return array<string, array<string, list<string>>> role => module => actions
      */
     public static function presets(): array
@@ -27,7 +21,7 @@ final class DefaultRolePermissions
         return [
             // Runs the shop day to day, but cannot archive staff or finance records.
             'manager' => [
-                'HRM' => ['view', 'create', 'update', 'import'],
+                'Staff Management' => ['view', 'create', 'update', 'import'],
                 'Operations' => ['view', 'create', 'manage'],
                 'Inventory Management' => ['view', 'create', 'update', 'archive'],
                 'Finance Management' => ['view', 'create', 'update'],

@@ -3,24 +3,14 @@ import {
     BulkActionButton,
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -30,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
+import { useUndoToast } from '@/composables/useUndoToast';
 import {
     serviceCategories,
     serviceCategoryLabel,
@@ -100,8 +91,6 @@ const base = computed(() =>
 const categoryFilter = ref('');
 const pricingFilter = ref('');
 const tableLoading = ref(false);
-const serviceToDelete = ref<ShopService | null>(null);
-const showDeleteDialog = ref(false);
 
 const headers = computed<DataTableHeader[]>(() => [
     { text: 'Service', value: 'service_name', width: 230, sortable: true },
@@ -347,21 +336,21 @@ function toggleArchived() {
     );
 }
 
-function confirmDelete(service: ShopService) {
-    serviceToDelete.value = service;
-    showDeleteDialog.value = true;
-}
+const { undoable } = useUndoToast();
 
-function handleDelete() {
-    if (!serviceToDelete.value) return;
-
-    router.delete(`${base.value}/${serviceToDelete.value.id}`, {
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
+function archiveService(service: ShopService) {
+    router.delete(`${base.value}/${service.id}`, {
         preserveScroll: true,
         onStart: () => (tableLoading.value = true),
-        onSuccess: () => {
-            showDeleteDialog.value = false;
-            serviceToDelete.value = null;
-        },
+        onSuccess: () =>
+            undoable(`${service.service_name} archived.`, () =>
+                router.patch(
+                    `${base.value}/${service.id}/restore`,
+                    {},
+                    { preserveScroll: true },
+                ),
+            ),
         onFinish: () => (tableLoading.value = false),
     });
 }
@@ -413,7 +402,9 @@ const selected = ref<Array<string | number>>([]);
     >
         <div class="space-y-6 px-6">
             <PageHeader
-                :title="showArchived ? 'Archived Services' : 'Services & Pricing'"
+                :title="
+                    showArchived ? 'Archived Services' : 'Services & Pricing'
+                "
                 description="Manage the services you offer and their prices."
             >
                 <Button
@@ -457,21 +448,7 @@ const selected = ref<Array<string | number>>([]);
                 </Button>
             </PageHeader>
 
-            <div
-                v-if="!showArchived"
-                class="grid grid-cols-2 gap-3 md:grid-cols-5"
-            >
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="text-2xl font-bold">{{ item.value }}</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles v-if="!showArchived" :tiles="statCards" />
 
             <div
                 v-if="showArchived"
@@ -526,6 +503,15 @@ const selected = ref<Array<string | number>>([]);
 
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="
+                            !!(
+                                search ||
+                                statusFilter ||
+                                categoryFilter ||
+                                pricingFilter
+                            )
+                        "
+                        @reset="resetFilters"
                         v-model:search="search"
                         v-model:status="statusFilter"
                         :statuses="showArchived ? [] : statusOptions"
@@ -678,7 +664,7 @@ const selected = ref<Array<string | number>>([]);
                                 icon: Trash2,
                                 destructive: true,
                                 show: !showArchived && canManage,
-                                onSelect: () => confirmDelete(service),
+                                onSelect: () => archiveService(service),
                             },
                             {
                                 label: 'Restore',
@@ -691,35 +677,6 @@ const selected = ref<Array<string | number>>([]);
                 </template>
             </DataTable>
         </div>
-
-        <AlertDialog
-            :open="showDeleteDialog"
-            @update:open="showDeleteDialog = $event"
-        >
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Archive Service</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Are you sure you want to archive
-                        <span class="font-semibold text-foreground">{{
-                            serviceToDelete?.service_name
-                        }}</span
-                        >? It can be restored later.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel @click="showDeleteDialog = false"
-                        >Cancel</AlertDialogCancel
-                    >
-                    <AlertDialogAction
-                        class="bg-red-600 text-white hover:bg-red-700"
-                        @click="handleDelete"
-                        >Archive Service</AlertDialogAction
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
         <!-- Import Dialog -->
         <Dialog v-model:open="isImportOpen">
             <DialogContent class="max-w-lg">

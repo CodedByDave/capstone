@@ -70,12 +70,6 @@ class ShopSetupService
                 'status' => 'active',
             ]);
 
-            $this->roleProvisioner->provisionLogisticsRoles(
-                $updatedShop->id,
-                (bool) $data['offers_pickup'],
-                (bool) $data['offers_delivery'],
-            );
-
             return $updatedShop;
         });
     }

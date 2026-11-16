@@ -31,7 +31,7 @@ class ShopCsvImportService
         'expenses' => 'Finance Management',
         'suppliers' => 'Inventory Management',
         'inventory' => 'Inventory Management',
-        'attendance' => 'HRM',
+        'attendance' => 'Staff Management',
     ];
 
     private const COLUMNS = [

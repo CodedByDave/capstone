@@ -14,13 +14,13 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -40,9 +40,9 @@ import {
     Loader2,
     MapPin,
     Pencil,
+    Upload,
     UserCheck,
     Users,
-    Upload,
     UserX,
     X,
 } from 'lucide-vue-next';
@@ -499,66 +499,18 @@ function saveModal() {
             </PageHeader>
 
             <!-- ── Stats Cards ─────────────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100"
-                        >
-                            <UserCheck class="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ stats.present }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">Present</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100"
-                        >
-                            <UserX class="h-5 w-5 text-red-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ stats.absent }}</p>
-                            <p class="text-xs text-muted-foreground">Absent</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100"
-                        >
-                            <Clock class="h-5 w-5 text-amber-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ stats.late }}</p>
-                            <p class="text-xs text-muted-foreground">Late</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100"
-                        >
-                            <AlertCircle class="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ stats.half_day }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Half Day
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles
+                :tiles="[
+                    { label: 'Present', value: stats.present, icon: UserCheck },
+                    { label: 'Absent', value: stats.absent, icon: UserX },
+                    { label: 'Late', value: stats.late, icon: Clock },
+                    {
+                        label: 'Half Day',
+                        value: stats.half_day,
+                        icon: AlertCircle,
+                    },
+                ]"
+            />
 
             <!-- ── Toolbar ─────────────────────────────────────────── -->
             <div
@@ -622,6 +574,8 @@ function saveModal() {
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="isFiltered"
+                        @reset="reset"
                         v-model:search="search"
                         v-model:status="dayStatusFilter"
                         :statuses="dayStatusOptions"

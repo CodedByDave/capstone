@@ -36,7 +36,7 @@ interface Plan {
 }
 
 const MODULE_ICONS: Record<string, any> = {
-    HRM: Users,
+    'Staff Management': Users,
     Operations: ClipboardList,
     'Inventory Management': Package,
     'Finance Management': Banknote,
@@ -54,14 +54,14 @@ const ALL_PLANS: Plan[] = [
     {
         name: 'Basic',
         price: 999,
-        moduleNames: ['HRM', 'Operations', 'Reports & Analytics'],
+        moduleNames: ['Staff Management', 'Operations', 'Reports & Analytics'],
     },
     {
         name: 'Standard',
         price: 1499,
         badge: 'Most popular',
         moduleNames: [
-            'HRM',
+            'Staff Management',
             'Operations',
             'Inventory Management',
             'Finance Management',
@@ -72,7 +72,7 @@ const ALL_PLANS: Plan[] = [
         name: 'Premium',
         price: 1999,
         moduleNames: [
-            'HRM',
+            'Staff Management',
             'Operations',
             'Inventory Management',
             'Finance Management',

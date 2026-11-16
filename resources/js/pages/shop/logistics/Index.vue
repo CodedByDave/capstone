@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePermissions } from '@/composables/usePermissions';
+import { useUndoToast } from '@/composables/useUndoToast';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
@@ -10,32 +11,24 @@ import {
     BulkActionButton,
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
 import DispatchMapPanel from '@/components/logistics/DispatchMapPanel.vue';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import {
     Archive,
-    Download,
     Camera,
     CameraOff,
     CheckCircle2,
     Clock,
+    Download,
     Loader2,
     MapPin,
     Package,
@@ -329,38 +322,27 @@ function markDroppedOff(d: Delivery) {
     );
 }
 
-const deliveryToArchive = ref<Delivery | null>(null);
-const isArchiveOpen = ref(false);
+const { undoable } = useUndoToast();
 
-/** "pickup" or "delivery", for the dialog wording. */
-const archiveKind = computed(() =>
-    deliveryToArchive.value?.type === 'pickup' ? 'pickup' : 'delivery',
-);
-
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
 function archiveDelivery(d: Delivery) {
-    deliveryToArchive.value = d;
-    isArchiveOpen.value = true;
-}
-
-function cancelArchive() {
-    isArchiveOpen.value = false;
-    setTimeout(() => {
-        deliveryToArchive.value = null;
-    }, 200);
-}
-
-function confirmArchive() {
-    const d = deliveryToArchive.value;
-    if (!d) return;
-    isArchiveOpen.value = false;
     deleting.value = d.public_id;
     router.delete(`${base}/${d.public_id}`, {
         preserveScroll: true,
+        onSuccess: () =>
+            undoable(
+                `${d.type === 'pickup' ? 'Pickup' : 'Delivery'} for ${d.customer_name} archived.`,
+                () =>
+                    router.post(
+                        `${base}/${d.public_id}/restore`,
+                        {},
+                        { preserveScroll: true },
+                    ),
+            ),
         onError: (errors) =>
             toast.error(Object.values(errors)[0] ?? 'Could not archive.'),
         onFinish: () => {
             deleting.value = null;
-            deliveryToArchive.value = null;
         },
     });
 }
@@ -497,33 +479,17 @@ function fmtTime(d: string) {
             </div>
 
             <!-- ── Stats ── -->
-            <div
+            <KpiTiles
                 v-if="!showArchived"
-                class="grid grid-cols-2 gap-3 sm:grid-cols-5"
-            >
-                <Card
-                    v-for="(cfg, key) in STATUS"
-                    :key="key"
-                    class="cursor-pointer transition-all"
-                    :class="activeFilter === key ? 'ring-2 ring-primary' : ''"
-                    @click="setFilter(key)"
-                >
-                    <CardContent class="flex items-center gap-2.5 pt-3 pb-3">
-                        <span
-                            class="h-2.5 w-2.5 shrink-0 rounded-full"
-                            :class="cfg.dot"
-                        />
-                        <div>
-                            <p class="text-xl leading-none font-bold">
-                                {{ props.stats[key as keyof Stats] }}
-                            </p>
-                            <p class="mt-0.5 text-xs text-muted-foreground">
-                                {{ cfg.label }}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                :tiles="
+                    Object.entries(STATUS).map(([key, cfg]) => ({
+                        label: cfg.label,
+                        value: props.stats[key as keyof Stats],
+                        active: activeFilter === key,
+                        onSelect: () => setFilter(key),
+                    }))
+                "
+            />
 
             <!-- ── Dispatch map ── -->
             <DispatchMapPanel
@@ -566,6 +532,8 @@ function fmtTime(d: string) {
 
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="activeFilter !== 'all'"
+                        @reset="setFilter('all')"
                         :status="activeFilter"
                         :statuses="statusFilterOptions"
                         status-label="Filter by delivery status"
@@ -715,33 +683,6 @@ function fmtTime(d: string) {
                 </template>
             </DataTable>
         </div>
-
-        <!-- Archive Confirm Dialog -->
-        <AlertDialog v-model:open="isArchiveOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle class="capitalize"
-                        >Archive {{ archiveKind }}</AlertDialogTitle
-                    >
-                    <AlertDialogDescription>
-                        Are you sure you want to archive this {{ archiveKind }}?
-                        The {{ archiveKind }} for
-                        <strong>{{ deliveryToArchive?.customer_name }}</strong>
-                        will be hidden from the board. Its details and proof
-                        photos are kept, and you can restore it later from the
-                        archive.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="cancelArchive"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmArchive"
-                        >Archive</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </ShopLayout>
 
     <!-- ── Proof photos ──────────────────────────────────────────────────────── -->

@@ -171,7 +171,8 @@ const selected = ref<Array<string | number>>([]);
                                 router.visit(`${base}/category/archive`),
                             separator: true,
                             hidden: !(
-                                isOwner || can('Inventory Management', 'archive')
+                                isOwner ||
+                                can('Inventory Management', 'archive')
                             ),
                         },
                     ]"
@@ -232,6 +233,8 @@ const selected = ref<Array<string | number>>([]);
 
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="isFiltered"
+                        @reset="reset"
                         v-model:search="search"
                         search-placeholder="Search name or description..."
                         search-label="Search categories"

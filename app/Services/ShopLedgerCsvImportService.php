@@ -33,7 +33,7 @@ class ShopLedgerCsvImportService
         'transactions' => 'Finance Management',
         'stock-movements' => 'Inventory Management',
         'purchase-orders' => 'Inventory Management',
-        'permissions' => 'HRM',
+        'permissions' => 'Staff Management',
     ];
 
     /** Datasets only the shop owner may import. */

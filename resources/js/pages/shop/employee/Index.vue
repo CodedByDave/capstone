@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUndoToast } from '@/composables/useUndoToast';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -11,20 +12,12 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -293,32 +286,22 @@ watch(
 
 // ─── Archive ──────────────────────────────────────────────────────────────────
 
-const employeeToArchive = ref<Employee | null>(null);
-const isArchiveOpen = ref(false);
+const { undoable } = useUndoToast();
 
-function openArchiveDialog(emp: Employee) {
-    employeeToArchive.value = emp;
-    isArchiveOpen.value = true;
-}
-
-function cancelArchive() {
-    isArchiveOpen.value = false;
-    setTimeout(() => {
-        employeeToArchive.value = null;
-    }, 200);
-}
-
-function confirmArchive() {
-    if (!employeeToArchive.value) return;
-    router.delete(employeeUrl(employeeToArchive.value.public_id), {
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
+function archiveEmployee(emp: Employee) {
+    router.delete(employeeUrl(emp.public_id), {
         preserveScroll: true,
-        onSuccess: () => {
-            employeeToArchive.value = null;
-            toast.success('Employee archived successfully.');
-        },
+        onSuccess: () =>
+            undoable(`${emp.first_name} ${emp.last_name} archived.`, () =>
+                router.post(
+                    employeeUrl(emp.public_id, '/restore'),
+                    {},
+                    { preserveScroll: true },
+                ),
+            ),
         onError: () => toast.error('Failed to archive employee.'),
     });
-    isArchiveOpen.value = false;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -512,7 +495,7 @@ const selected = ref<Array<string | number>>([]);
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <DropdownMenu v-if="can('HRM', 'view') || isOwner">
+                    <DropdownMenu v-if="can('Staff Management', 'view') || isOwner">
                         <DropdownMenuTrigger as-child>
                             <Button variant="success-outline" class="h-11">
                                 <ArrowUpDown
@@ -528,7 +511,7 @@ const selected = ref<Array<string | number>>([]);
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                                v-if="can('HRM', 'view')"
+                                v-if="can('Staff Management', 'view')"
                                 @select="exportCSV"
                             >
                                 <Download class="mr-2 h-4 w-4" />
@@ -543,7 +526,7 @@ const selected = ref<Array<string | number>>([]);
                             </DropdownMenuItem>
                             <template #bulk-actions>
                                 <BulkActionButton
-                                    v-if="can('HRM', 'archive')"
+                                    v-if="can('Staff Management', 'archive')"
                                     resource="employee"
                                     action="archive"
                                     :ids="selected"
@@ -567,7 +550,7 @@ const selected = ref<Array<string | number>>([]);
                     </DropdownMenu>
 
                     <Button
-                        v-if="can('HRM', 'create')"
+                        v-if="can('Staff Management', 'create')"
                         class="h-11"
                         @click="router.visit(`${baseRoute}/employee/create`)"
                     >
@@ -578,20 +561,7 @@ const selected = ref<Array<string | number>>([]);
             </div>
 
             <!-- Compact KPIs -->
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-5">
-                        <p
-                            class="mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="font-mono text-3xl font-bold">
-                            {{ item.value }}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <!-- Employee table -->
             <DataTable
@@ -610,6 +580,12 @@ const selected = ref<Array<string | number>>([]);
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="
+                            !!searchQuery ||
+                            statusFilter !== 'all' ||
+                            employmentTypeFilter !== 'all'
+                        "
+                        @reset="resetFilters"
                         v-model:search="searchQuery"
                         :status="statusFilter"
                         :statuses="statusOptions"
@@ -691,7 +667,7 @@ const selected = ref<Array<string | number>>([]);
                             {
                                 label: 'View',
                                 icon: Eye,
-                                show: can('HRM', 'view'),
+                                show: can('Staff Management', 'view'),
                                 onSelect: () =>
                                     router.visit(
                                         employeeUrl(employee.public_id),
@@ -700,7 +676,7 @@ const selected = ref<Array<string | number>>([]);
                             {
                                 label: 'Edit',
                                 icon: Pencil,
-                                show: can('HRM', 'update'),
+                                show: can('Staff Management', 'update'),
                                 onSelect: () =>
                                     router.visit(
                                         employeeUrl(
@@ -713,8 +689,8 @@ const selected = ref<Array<string | number>>([]);
                                 label: 'Archive',
                                 icon: Trash2,
                                 destructive: true,
-                                show: can('HRM', 'archive'),
-                                onSelect: () => openArchiveDialog(employee),
+                                show: can('Staff Management', 'archive'),
+                                onSelect: () => archiveEmployee(employee),
                             },
                         ]"
                     />
@@ -855,29 +831,5 @@ const selected = ref<Array<string | number>>([]);
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-
-        <!-- Archive Confirm Dialog -->
-        <AlertDialog v-model:open="isArchiveOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Remove Employee</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Are you sure you want to remove
-                        <strong
-                            >{{ employeeToArchive?.first_name }}
-                            {{ employeeToArchive?.last_name }}</strong
-                        >? This will move them to the archive.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="cancelArchive"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmArchive"
-                        >Remove</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </ShopLayout>
 </template>

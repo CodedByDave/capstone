@@ -12,7 +12,7 @@ import { type AppPageProps } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { MapPin, Truck, Zap } from 'lucide-vue-next';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 // ─── Types ─────────────────────────────────────────
 
@@ -42,6 +42,17 @@ interface Promotion {
     type: 'percentage' | 'fixed';
     value: string;
     min_order_amount: string | null;
+}
+
+interface RetailProduct {
+    id: number;
+    name: string;
+    pack_size: number;
+    unit: string;
+    price: number;
+    in_stock: boolean;
+    /** How many packs can still be sold (stock, capped at the per-order limit). */
+    max_count: number;
 }
 
 const props = defineProps<{
@@ -76,6 +87,8 @@ const props = defineProps<{
     paymentMethods: string[];
     services?: Service[];
     inventoryItems?: InventoryItem[];
+    /** Products the shop sells to take home (a bottle of softener), priced by the pack. */
+    retailProducts?: RetailProduct[];
     promotions?: Promotion[];
     customerAgreement: {
         title: string;
@@ -118,6 +131,8 @@ const form = useForm({
     price_per_piece: 0,
     piece_count: '' as string | number,
     additional_charges: 0,
+    // Filled from the picked retail products when the order is sent; the server prices them.
+    retail_items: [] as { id: number; count: number }[],
     discount_amount: 0,
     total_amount: 0,
     promotion_id: '' as string | number,
@@ -352,7 +367,11 @@ const subtotal = computed(() => {
     return (
         Math.max(
             0,
-            baseTotal.value + extraServicesTotal.value + charges - discount,
+            baseTotal.value +
+                extraServicesTotal.value +
+                charges +
+                retailCost.value -
+                discount,
         ) + rushAmount.value
     );
 });
@@ -507,6 +526,35 @@ watch(() => form.supplies.map((s) => s.quantity_used), recalcSupplyCharges, {
     deep: true,
 });
 
+// ─── Retail products ───────────────────────────────
+
+// Packs picked per retail product id. The server prices them again from the shop's own prices.
+const retailCounts = reactive<Record<number, number>>({});
+
+const retailCountOf = (product: RetailProduct) => retailCounts[product.id] ?? 0;
+
+function setRetailCount(product: RetailProduct, next: number) {
+    const value = Math.max(0, Math.min(product.max_count, next));
+
+    if (value === 0) delete retailCounts[product.id];
+    else retailCounts[product.id] = value;
+}
+
+const retailPicked = computed(() =>
+    (props.retailProducts ?? [])
+        .filter((product) => retailCountOf(product) > 0)
+        .map((product) => ({
+            product,
+            count: retailCountOf(product),
+            amount:
+                Math.round(product.price * retailCountOf(product) * 100) / 100,
+        })),
+);
+
+const retailCost = computed(() =>
+    retailPicked.value.reduce((sum, line) => sum + line.amount, 0),
+);
+
 // ─── Submit ────────────────────────────────────────
 
 // ─── Estimated completion ──────────────────────────
@@ -558,7 +606,12 @@ const blurOnWheel = (event: WheelEvent) =>
 
 const submit = () => {
     // The server adds the tax and the rush fee; it is sent the amount before both.
-    form.total_amount = subtotal.value - rushAmount.value;
+    // Retail products are priced and added by the server, so they are not in the amount sent.
+    form.total_amount = subtotal.value - rushAmount.value - retailCost.value;
+    form.retail_items = retailPicked.value.map((line) => ({
+        id: line.product.id,
+        count: line.count,
+    }));
     form.is_rush = form.is_rush && rushOffered.value;
     form.post(base.value);
 };
@@ -1540,6 +1593,112 @@ watch(
                         </p>
                     </div>
 
+                    <!-- ── Retail products ───────────────────── -->
+                    <div v-if="retailProducts?.length" class="border-t pt-8">
+                        <div class="mb-4 flex flex-col">
+                            <p
+                                class="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+                            >
+                                Retail Products
+                            </p>
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                Products the customer takes home with this
+                                order. Priced and taken from stock when the
+                                order is saved.
+                            </p>
+                        </div>
+
+                        <ul class="divide-y rounded-lg border">
+                            <li
+                                v-for="product in retailProducts"
+                                :key="product.id"
+                                class="flex flex-wrap items-center gap-3 p-3"
+                                :class="{ 'opacity-60': !product.in_stock }"
+                            >
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-medium">
+                                        {{ product.name }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ formatCurrency(product.price) }} per
+                                        {{ product.pack_size }}
+                                        {{ product.unit }} pack ·
+                                        <span v-if="product.in_stock"
+                                            >{{ product.max_count }} in
+                                            stock</span
+                                        >
+                                        <span v-else class="text-red-600"
+                                            >Out of stock</span
+                                        >
+                                    </p>
+                                </div>
+                                <div
+                                    class="flex items-center gap-1"
+                                    role="group"
+                                    :aria-label="`Packs of ${product.name}`"
+                                >
+                                    <button
+                                        type="button"
+                                        class="flex h-11 w-11 items-center justify-center rounded-lg border text-lg transition hover:bg-slate-100 disabled:opacity-40"
+                                        :disabled="retailCountOf(product) === 0"
+                                        :aria-label="`Remove one ${product.name}`"
+                                        @click="
+                                            setRetailCount(
+                                                product,
+                                                retailCountOf(product) - 1,
+                                            )
+                                        "
+                                    >
+                                        −
+                                    </button>
+                                    <span
+                                        class="w-10 text-center text-sm font-semibold tabular-nums"
+                                        aria-live="polite"
+                                        >{{ retailCountOf(product) }}</span
+                                    >
+                                    <button
+                                        type="button"
+                                        class="flex h-11 w-11 items-center justify-center rounded-lg border text-lg transition hover:bg-slate-100 disabled:opacity-40"
+                                        :disabled="
+                                            !product.in_stock ||
+                                            retailCountOf(product) >=
+                                                product.max_count
+                                        "
+                                        :aria-label="`Add one ${product.name}`"
+                                        @click="
+                                            setRetailCount(
+                                                product,
+                                                retailCountOf(product) + 1,
+                                            )
+                                        "
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+
+                        <div
+                            v-if="retailCost > 0"
+                            class="mt-3 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5"
+                        >
+                            <span class="text-sm text-amber-700"
+                                >Retail products added to the order</span
+                            >
+                            <span class="text-base font-bold text-amber-800">{{
+                                formatCurrency(retailCost)
+                            }}</span>
+                        </div>
+
+                        <p
+                            v-if="form.errors.retail_items"
+                            class="mt-2 text-xs text-red-500"
+                            role="alert"
+                        >
+                            {{ form.errors.retail_items }}
+                        </p>
+                    </div>
+
                     <!-- ── Agreement ─────────────────────────── -->
                     <div class="border-t pt-8">
                         <CustomerServiceAgreement
@@ -1612,6 +1771,17 @@ watch(
                                                 0,
                                         )
                                     }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="retailCost > 0"
+                                class="flex justify-between gap-3"
+                            >
+                                <dt class="text-muted-foreground">
+                                    Retail products
+                                </dt>
+                                <dd class="font-medium">
+                                    {{ formatCurrency(retailCost) }}
                                 </dd>
                             </div>
                             <div

@@ -3,22 +3,16 @@ import {
     BulkActionButton,
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     RowActions,
     StatusPill,
     statusLabel,
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -37,12 +31,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useCsvImport } from '@/composables/useCsvImport';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import { useShopCapabilities } from '@/composables/useShopCapabilities';
-import ActionsMenu from '@/components/shop/ActionsMenu.vue';
-import PageHeader from '@/components/shop/PageHeader.vue';
-import { useCsvImport } from '@/composables/useCsvImport';
+import { useUndoToast } from '@/composables/useUndoToast';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { formatQuantity, packageStock } from '@/lib/inventoryStock';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -312,32 +305,22 @@ function resetFilters() {
 
 // ─── Archive ───────────────────────────────────────────────────────────────────
 
-const itemToDelete = ref<InventoryItem | null>(null);
-const isDeleteOpen = ref(false);
+const { undoable } = useUndoToast();
 
-function openDeleteDialog(item: InventoryItem) {
-    itemToDelete.value = item;
-    isDeleteOpen.value = true;
-}
-
-function cancelDelete() {
-    isDeleteOpen.value = false;
-    setTimeout(() => {
-        itemToDelete.value = null;
-    }, 200);
-}
-
-function confirmDelete() {
-    if (!itemToDelete.value) return;
-    router.delete(`${base.value}/${itemToDelete.value.id}`, {
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
+function archiveItem(item: InventoryItem) {
+    router.delete(`${base.value}/${item.id}`, {
         preserveScroll: true,
-        onSuccess: () => {
-            itemToDelete.value = null;
-            toast.success('Product archived successfully.');
-        },
+        onSuccess: () =>
+            undoable(`${item.name} archived.`, () =>
+                router.post(
+                    `${base.value}/${item.id}/restore`,
+                    {},
+                    { preserveScroll: true },
+                ),
+            ),
         onError: () => toast.error('Failed to archive product.'),
     });
-    isDeleteOpen.value = false;
 }
 
 // ─── Create category ──────────────────────────────────────────────────────────
@@ -504,7 +487,9 @@ const selected = ref<Array<string | number>>([]);
                             href: `${exportBase}/stock-movements`,
                         },
                         {
-                            label: importing ? 'Importing...' : 'Import items (CSV)',
+                            label: importing
+                                ? 'Importing...'
+                                : 'Import items (CSV)',
                             icon: Upload,
                             onSelect: chooseCsv,
                             disabled: importing,
@@ -578,40 +563,7 @@ const selected = ref<Array<string | number>>([]);
             </PageHeader>
 
             <!-- Stats row -->
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <Card
-                    v-for="card in statCards"
-                    :key="card.label"
-                    class="gap-0 py-0"
-                >
-                    <CardContent class="p-5">
-                        <div class="flex items-center justify-between gap-2">
-                            <p
-                                class="flex items-center gap-2 text-[11px] font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                {{ card.label }}
-                                <span
-                                    v-if="card.dot"
-                                    class="h-1.5 w-1.5 rounded-full"
-                                    :class="card.dot"
-                                    aria-hidden="true"
-                                />
-                            </p>
-                            <component
-                                :is="card.icon"
-                                class="h-4 w-4 shrink-0 text-muted-foreground"
-                                aria-hidden="true"
-                            />
-                        </div>
-                        <p
-                            class="mt-3 text-3xl font-bold tabular-nums"
-                            :class="card.valueClass"
-                        >
-                            {{ card.value }}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <!-- Low stock banner -->
             <div
@@ -655,6 +607,8 @@ const selected = ref<Array<string | number>>([]);
 
             <!-- Filters -->
             <DataTableToolbar
+                :resettable="hasFilters"
+                @reset="resetFilters"
                 v-model:search="search"
                 v-model:status="status"
                 :statuses="statusOptions"
@@ -896,7 +850,7 @@ const selected = ref<Array<string | number>>([]);
                                 show:
                                     isOwner ||
                                     can('Inventory Management', 'archive'),
-                                onSelect: () => openDeleteDialog(item),
+                                onSelect: () => archiveItem(item),
                             },
                         ]"
                     />
@@ -997,28 +951,5 @@ const selected = ref<Array<string | number>>([]);
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-
-        <!-- Archive Confirm Dialog -->
-        <AlertDialog v-model:open="isDeleteOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Archive Product</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Are you sure you want to archive this product?
-                        <strong>{{ itemToDelete?.name }}</strong>
-                        will be hidden from the inventory list. You can restore
-                        it later from the Archive page.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="cancelDelete"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmDelete"
-                        >Archive</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </ShopLayout>
 </template>

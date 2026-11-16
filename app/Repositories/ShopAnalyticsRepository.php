@@ -220,7 +220,7 @@ class ShopAnalyticsRepository extends Repository
             ->values();
     }
 
-    // ── HRM ──────────────────────────────────────────────────────────────────
+    // ── Staff Management ──────────────────────────────────────────────────────────────────
 
     /** @return Collection<string, int> Active employees on the weekly schedule, keyed by day name (e.g. "Monday"). */
     public function scheduledStaffByDay(int $shopId): Collection

@@ -4,10 +4,10 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     type DataTableHeader,
 } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import type { BreadcrumbItem } from '@/types';
@@ -187,18 +187,7 @@ function formatDate(iso: string) {
     <Head title="Platform Ratings" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="Platform Ratings">
         <div class="space-y-6 px-6">
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="text-2xl font-bold">{{ item.value }}</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <DataTable
                 v-model:options="serverOptions"
@@ -220,6 +209,8 @@ function formatDate(iso: string) {
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="hasFilters"
+                        @reset="resetFilters"
                         v-model:search="search"
                         :status="stars"
                         :statuses="starOptions"

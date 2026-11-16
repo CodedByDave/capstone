@@ -2,13 +2,13 @@
 import {
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -372,16 +372,7 @@ function saveImport() {
         </div>
 
         <!-- KPI cards -->
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Card v-for="item in statCards" :key="item.label">
-                <CardContent class="p-4">
-                    <p class="mb-3 text-xs font-medium text-muted-foreground">
-                        {{ item.label }}
-                    </p>
-                    <p class="text-2xl font-bold">{{ item.value }}</p>
-                </CardContent>
-            </Card>
-        </div>
+        <KpiTiles :tiles="statCards" />
 
         <!-- Import: hidden file pickers, a hint and any read error -->
         <input
@@ -451,6 +442,8 @@ function saveImport() {
         >
             <template #toolbar>
                 <DataTableToolbar
+                    :resettable="!!(search || stock)"
+                    @reset="resetFilters"
                     v-model:search="search"
                     :status="stock"
                     :statuses="stockOptions"

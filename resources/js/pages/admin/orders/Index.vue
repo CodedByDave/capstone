@@ -9,6 +9,7 @@ import 'vue3-toastify/dist/index.css';
 import {
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     RowActions,
     StatusPill,
     statusLabel,
@@ -18,7 +19,6 @@ import {
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import {
     Download,
@@ -411,68 +411,27 @@ function isExpired(expiresAt: string | null) {
             </PageHeader>
 
             <!-- Stats -->
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
-                <Card>
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            Total orders
-                        </p>
-                        <p class="text-2xl font-bold">
-                            {{ stats.total.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            Paid orders
-                        </p>
-                        <p class="text-2xl font-bold">
-                            {{ stats.paid.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            Pending orders
-                        </p>
-                        <p class="text-2xl font-bold">
-                            {{ stats.pending.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            Rejected orders
-                        </p>
-                        <p class="text-2xl font-bold">
-                            {{ stats.rejected.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            Revenue
-                        </p>
-                        <p class="text-2xl font-bold">
-                            {{ formatPrice(stats.revenue) }}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles
+                :tiles="[
+                    {
+                        label: 'Total orders',
+                        value: stats.total.toLocaleString(),
+                    },
+                    {
+                        label: 'Paid orders',
+                        value: stats.paid.toLocaleString(),
+                    },
+                    {
+                        label: 'Pending orders',
+                        value: stats.pending.toLocaleString(),
+                    },
+                    {
+                        label: 'Rejected orders',
+                        value: stats.rejected.toLocaleString(),
+                    },
+                    { label: 'Revenue', value: formatPrice(stats.revenue) },
+                ]"
+            />
 
             <!-- Orders table -->
             <DataTable
@@ -490,6 +449,8 @@ function isExpired(expiresAt: string | null) {
                 <template #toolbar>
                     <div class="space-y-3">
                         <DataTableToolbar
+                            :resettable="!!(search || status || plan || date)"
+                            @reset="resetFilters"
                             v-model:search="search"
                             :status="status"
                             :statuses="statusOptions"

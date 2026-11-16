@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
     IdentityCell,
+    KpiTiles,
     StatusPill,
     type StatusTone,
 } from '@/components/data-table';
@@ -521,24 +522,7 @@ function formatDate(date: string | null) {
 
             <!-- Stats -->
             <div class="space-y-3">
-                <div
-                    class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5"
-                >
-                    <div
-                        v-for="item in statCards"
-                        :key="item.label"
-                        class="rounded-2xl border bg-card p-5"
-                    >
-                        <p
-                            class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="mt-3 text-4xl font-bold tabular-nums">
-                            {{ item.value.toLocaleString() }}
-                        </p>
-                    </div>
-                </div>
+                <KpiTiles :tiles="statCards" />
 
                 <div class="flex justify-end">
                     <Button
@@ -553,23 +537,7 @@ function formatDate(date: string | null) {
                         }}
                     </Button>
                 </div>
-                <div
-                    v-if="showMoreStats"
-                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
-                >
-                    <div
-                        v-for="item in secondaryStats"
-                        :key="item.label"
-                        class="rounded-xl border bg-card px-4 py-3"
-                    >
-                        <p class="text-xs text-muted-foreground">
-                            {{ item.label }}
-                        </p>
-                        <p class="mt-1 text-lg font-semibold tabular-nums">
-                            {{ item.value.toLocaleString() }}
-                        </p>
-                    </div>
-                </div>
+                <KpiTiles v-if="showMoreStats" :tiles="secondaryStats" />
             </div>
 
             <!-- Toolbar -->

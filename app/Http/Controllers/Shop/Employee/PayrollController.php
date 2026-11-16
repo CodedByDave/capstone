@@ -70,7 +70,7 @@ class PayrollController extends Controller
             $roles = $employee?->roles->pluck('role')->toArray() ?? [];
             $permitted = ! empty($roles) && RolePermission::where('shop_id', $shop->id)
                 ->whereIn('role', $roles)
-                ->where('module', 'HRM')
+                ->where('module', 'Staff Management')
                 ->where('action', 'update')
                 ->exists();
             abort_unless($permitted, 403);

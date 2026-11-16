@@ -4,13 +4,13 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -306,18 +306,7 @@ function submitResponse() {
                 />
             </PageHeader>
 
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="text-2xl font-bold">{{ item.value }}</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <DataTable
                 v-model:options="serverOptions"
@@ -339,6 +328,8 @@ function submitResponse() {
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="hasFilters"
+                        @reset="resetFilters"
                         v-model:search="search"
                         :status="status"
                         :statuses="statusOptions"

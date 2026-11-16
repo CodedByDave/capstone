@@ -129,6 +129,10 @@ class StoreShopOrderRequest extends FormRequest
             'additional_charges' => ['nullable', 'numeric', 'min:0'],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'total_amount' => ['required', 'numeric', 'min:0'],
+            // Retail products the customer buys with the laundry; priced and taken from stock by the server.
+            'retail_items' => ['nullable', 'array', 'max:50'],
+            'retail_items.*.id' => ['required', 'integer'],
+            'retail_items.*.count' => ['required', 'integer', 'min:1', 'max:999'],
             'payment_method' => ['nullable', Rule::in(ShopOrder::PAYMENT_METHODS)],
             'amount_paid' => ['nullable', 'numeric', 'min:0'],
             // Cash the customer handed over; the change is worked out from it, never typed in.

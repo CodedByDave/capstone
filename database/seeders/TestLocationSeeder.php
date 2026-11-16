@@ -239,7 +239,7 @@ class TestLocationSeeder extends Seeder
             'expires_at' => now()->addYear(),
         ]);
 
-        foreach (['HRM', 'Operations', 'Inventory Management', 'Finance Management', 'Reports & Analytics'] as $module) {
+        foreach (['Staff Management', 'Operations', 'Inventory Management', 'Finance Management', 'Reports & Analytics'] as $module) {
             $order->modules()->create(['name' => $module, 'price' => 0]);
         }
     }

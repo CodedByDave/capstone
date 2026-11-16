@@ -797,3 +797,35 @@ test('the driver home page has no online switch, only a status', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('driver.is_online', true));
 });
+
+it('ends rider access when a shop role such as manager is assigned', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    $employee = $rider->employee;
+    $roster = app(App\Services\DriverRosterService::class);
+
+    App\Models\EmployeeRole::create(['employee_id' => $employee->id, 'role' => 'manager']);
+    $roster->sync($employee->fresh());
+
+    expect($rider->fresh()->status)->toBe('inactive')
+        ->and($rider->fresh()->is_online)->toBeFalse();
+
+    // Without a shop role they are a rider again.
+    App\Models\EmployeeRole::where('employee_id', $employee->id)->delete();
+    $roster->sync($employee->fresh());
+
+    expect($rider->fresh()->status)->toBe('active');
+});
+
+it('does not give a rider a shop role', function () {
+    $shop = driverShop();
+    $this->actingAs(User::find($shop->owner_id));
+    $employee = app(App\Services\EmployeeService::class)->createEmployee($shop, [
+        'first_name' => 'Marco', 'last_name' => 'Reyes', 'email' => 'marco.rider@example.test',
+        'phone' => '09171230000', 'position' => 'Driver', 'employment_type' => 'full_time',
+        'hire_date' => today()->toDateString(), 'employee_id' => 'EMP-DRV-9', 'status' => 'Active',
+    ]);
+
+    expect($employee->roles()->count())->toBe(0)
+        ->and(App\Models\Rider::where('employee_id', $employee->id)->value('status'))->toBe('active');
+});

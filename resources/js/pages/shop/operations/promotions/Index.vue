@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
+import { useUndoToast } from '@/composables/useUndoToast';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -11,34 +12,26 @@ import 'vue3-toastify/dist/index.css';
 import {
     BulkActionButton,
     DataTable,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useCsvImport } from '@/composables/useCsvImport';
 import {
     useDataTable,
     usePaginatorTable,
     type DataTableOptions,
 } from '@/composables/useDataTable';
-import { useCsvImport } from '@/composables/useCsvImport';
 import { usePermissions } from '@/composables/usePermissions';
 import {
     Archive,
     BadgeDollarSign,
     CheckCircle2,
+    Download,
     Pencil,
     Percent,
-    Download,
     Plus,
     RotateCcw,
     Tag,
@@ -226,17 +219,20 @@ const headers: DataTableHeader[] = [
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
-const toDelete = ref<Promotion | null>(null);
-const isDeleteOpen = ref(false);
+const { undoable } = useUndoToast();
 
-function confirmDelete() {
-    if (!toDelete.value) return;
-    router.delete(`${base.value}/${toDelete.value.id}`, {
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
+function archivePromotion(promo: Promotion) {
+    router.delete(`${base.value}/${promo.id}`, {
         preserveScroll: true,
-        onSuccess: () => {
-            isDeleteOpen.value = false;
-            toDelete.value = null;
-        },
+        onSuccess: () =>
+            undoable(`${promo.name} archived.`, () =>
+                router.patch(
+                    `${base.value}/${promo.id}/restore`,
+                    {},
+                    { preserveScroll: true },
+                ),
+            ),
     });
 }
 
@@ -321,79 +317,23 @@ const selected = ref<Array<string | number>>([]);
             </PageHeader>
 
             <!-- Stats -->
-            <div v-if="!archived" class="grid grid-cols-2 gap-4 sm:grid-cols-5">
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100"
-                        >
-                            <Tag class="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ stats.total }}</p>
-                            <p class="text-xs text-muted-foreground">Total</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100"
-                        >
-                            <CheckCircle2 class="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ stats.active }}</p>
-                            <p class="text-xs text-muted-foreground">Active</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100"
-                        >
-                            <XCircle class="h-5 w-5 text-red-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ stats.inactive }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Inactive
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100"
-                        >
-                            <Percent class="h-5 w-5 text-violet-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ stats.percentage }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">% Off</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100"
-                        >
-                            <BadgeDollarSign class="h-5 w-5 text-amber-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ stats.fixed }}</p>
-                            <p class="text-xs text-muted-foreground">Fixed ₱</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles
+                :tiles="[
+                    { label: 'Total', value: stats.total, icon: Tag },
+                    {
+                        label: 'Active',
+                        value: stats.active,
+                        icon: CheckCircle2,
+                    },
+                    { label: 'Inactive', value: stats.inactive, icon: XCircle },
+                    { label: '% Off', value: stats.percentage, icon: Percent },
+                    {
+                        label: 'Fixed ₱',
+                        value: stats.fixed,
+                        icon: BadgeDollarSign,
+                    },
+                ]"
+            />
 
             <!-- Table -->
             <DataTable
@@ -534,10 +474,7 @@ const selected = ref<Array<string | number>>([]);
                                 icon: Trash2,
                                 destructive: true,
                                 show: !archived && canManage,
-                                onSelect: () => {
-                                    toDelete = promo;
-                                    isDeleteOpen = true;
-                                },
+                                onSelect: () => archivePromotion(promo),
                             },
                             {
                                 label: 'Restore',
@@ -551,26 +488,5 @@ const selected = ref<Array<string | number>>([]);
                 </template>
             </DataTable>
         </div>
-
-        <!-- Delete confirm -->
-        <AlertDialog v-model:open="isDeleteOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Archive Promotion</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Archive <strong>{{ toDelete?.name }}</strong
-                        >? It will no longer be available for new orders.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="isDeleteOpen = false"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmDelete"
-                        >Archive</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </ShopLayout>
 </template>

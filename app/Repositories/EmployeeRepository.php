@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Employee;
+use App\Models\EmployeeRole;
 use App\Models\Shop;
 use App\Models\User;
 use Carbon\Carbon;
@@ -83,6 +84,21 @@ class EmployeeRepository extends Repository
         });
 
         return $employee->fresh();
+    }
+
+    public function hasRoles(int $employeeId): bool
+    {
+        return EmployeeRole::query()->where('employee_id', $employeeId)->exists();
+    }
+
+    public function clearRoles(int $employeeId): void
+    {
+        EmployeeRole::query()->where('employee_id', $employeeId)->delete();
+    }
+
+    public function addRole(int $employeeId, string $role): void
+    {
+        EmployeeRole::firstOrCreate(['employee_id' => $employeeId, 'role' => $role]);
     }
 
     // Soft delete employee

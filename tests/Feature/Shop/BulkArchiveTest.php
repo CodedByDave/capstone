@@ -174,3 +174,21 @@ it('bulk archives draft payrolls and leaves finalized ones alone', function () {
 
     expect(App\Models\Payroll::onlyTrashed()->pluck('id')->all())->toBe([$draft->id]);
 });
+
+it('flashes its own message unless the page asks for a quiet response to show an Undo toast', function () {
+    [$owner, $shop] = bulkShop();
+    $supplier = Supplier::create(['shop_id' => $shop->id, 'name' => 'Quiet Supplier', 'status' => 'active']);
+
+    $this->actingAs($owner)->post('/shop/bulk/supplier/archive', ['ids' => [$supplier->public_id]])
+        ->assertSessionHas('toast.message');
+
+    $this->actingAs($owner)->post('/shop/bulk/supplier/restore', ['ids' => [$supplier->public_id], 'quiet' => true])
+        ->assertSessionMissing('toast');
+
+    expect($supplier->fresh()->trashed())->toBeFalse();
+
+    $this->actingAs($owner)->post('/shop/bulk/supplier/archive', ['ids' => [$supplier->public_id], 'quiet' => true])
+        ->assertSessionMissing('toast');
+
+    expect($supplier->fresh()->trashed())->toBeTrue();
+});

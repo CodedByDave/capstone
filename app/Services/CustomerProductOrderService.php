@@ -113,7 +113,7 @@ class CustomerProductOrderService
         return $order;
     }
 
-    private function orderNumber(): string
+    public function orderNumber(): string
     {
         do {
             $number = 'PRD-'.now()->format('Ymd').'-'.strtoupper(Str::random(5));

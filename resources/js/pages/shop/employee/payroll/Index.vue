@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
+import { useUndoToast } from '@/composables/useUndoToast';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -11,20 +12,12 @@ import 'vue3-toastify/dist/index.css';
 import {
     BulkActionButton,
     DataTable,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -201,7 +194,7 @@ function submitGenerate() {
 
 const selected = ref<Array<string | number>>([]);
 
-const canArchive = computed(() => hasPermission('HRM', 'archive'));
+const canArchive = computed(() => hasPermission('Staff Management', 'archive'));
 
 function toggleArchived() {
     router.get(
@@ -219,26 +212,21 @@ function restorePayroll(p: Payroll) {
     );
 }
 
-const payrollToDelete = ref<Payroll | null>(null);
-const isDeleteOpen = ref(false);
+const { undoable } = useUndoToast();
 
-function openDelete(p: Payroll) {
-    payrollToDelete.value = p;
-    isDeleteOpen.value = true;
-}
-
-function confirmDelete() {
-    if (!payrollToDelete.value) return;
-    router.delete(
-        `${baseRoute.value}/payroll/${payrollToDelete.value.public_id}`,
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                isDeleteOpen.value = false;
-                payrollToDelete.value = null;
-            },
-        },
-    );
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
+function archivePayroll(p: Payroll) {
+    router.delete(`${baseRoute.value}/payroll/${p.public_id}`, {
+        preserveScroll: true,
+        onSuccess: () =>
+            undoable(`Payroll ${p.period_label} archived.`, () =>
+                router.post(
+                    `${baseRoute.value}/payroll/${p.public_id}/restore`,
+                    {},
+                    { preserveScroll: true },
+                ),
+            ),
+    });
 }
 
 // ─── Settings Dialog ──────────────────────────────────────────────────────────
@@ -333,7 +321,7 @@ const headers: DataTableHeader[] = [
                             label: 'Payroll settings',
                             icon: Settings2,
                             onSelect: openSettings,
-                            hidden: !hasPermission('HRM', 'update'),
+                            hidden: !hasPermission('Staff Management', 'update'),
                         },
                         {
                             label: 'Archived payrolls',
@@ -351,70 +339,26 @@ const headers: DataTableHeader[] = [
             </PageHeader>
 
             <!-- ── Stats ───────────────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100"
-                        >
-                            <FileText class="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ stats.total_payrolls }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">Total</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100"
-                        >
-                            <Clock class="h-5 w-5 text-amber-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">{{ stats.draft }}</p>
-                            <p class="text-xs text-muted-foreground">Draft</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100"
-                        >
-                            <CheckCircle2 class="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ stats.finalized }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Finalized
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100"
-                        >
-                            <Banknote class="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold">
-                                {{ formatCurrency(stats.latest_total) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Latest Total
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles
+                :tiles="[
+                    {
+                        label: 'Total',
+                        value: stats.total_payrolls,
+                        icon: FileText,
+                    },
+                    { label: 'Draft', value: stats.draft, icon: Clock },
+                    {
+                        label: 'Finalized',
+                        value: stats.finalized,
+                        icon: CheckCircle2,
+                    },
+                    {
+                        label: 'Latest Total',
+                        value: formatCurrency(stats.latest_total),
+                        icon: Banknote,
+                    },
+                ]"
+            />
 
             <!-- ── Archived Banner ─────────────────────────────── -->
             <div
@@ -518,7 +462,7 @@ const headers: DataTableHeader[] = [
                                     !showArchived &&
                                     canArchive &&
                                     p.status === 'draft',
-                                onSelect: () => openDelete(p),
+                                onSelect: () => archivePayroll(p),
                             },
                             {
                                 label: 'Restore',
@@ -700,28 +644,5 @@ const headers: DataTableHeader[] = [
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-
-        <!-- ── Delete Dialog ───────────────────────────────────── -->
-        <AlertDialog v-model:open="isDeleteOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Archive Payroll</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Archive the payroll for
-                        <strong>{{ payrollToDelete?.period_label }}</strong
-                        >? It moves to the archive with its pay lines, and you
-                        can restore it at any time.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="isDeleteOpen = false"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmDelete"
-                        >Archive</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </ShopLayout>
 </template>

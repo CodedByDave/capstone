@@ -53,16 +53,16 @@ const PLAN_PRICES: Record<string, number> = {
     Premium: 1999,
 };
 const PLAN_MODULES: Record<string, string[]> = {
-    Basic: ['HRM', 'Operations', 'Reports & Analytics'],
+    Basic: ['Staff Management', 'Operations', 'Reports & Analytics'],
     Standard: [
-        'HRM',
+        'Staff Management',
         'Operations',
         'Inventory Management',
         'Finance Management',
         'Reports & Analytics',
     ],
     Premium: [
-        'HRM',
+        'Staff Management',
         'Operations',
         'Inventory Management',
         'Finance Management',
@@ -77,7 +77,7 @@ const modLabel = (mod: string, plan: string) =>
         : mod;
 
 const MODULE_ICONS: Record<string, any> = {
-    HRM: Users,
+    'Staff Management': Users,
     Operations: ClipboardList,
     'Inventory Management': Package,
     'Finance Management': Banknote,

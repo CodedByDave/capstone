@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { useUndoToast } from '@/composables/useUndoToast';
 import { router, usePage } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { toast } from 'vue3-toastify';
 
 /**
- * "Archive selected" / "Restore selected" button for a DataTable's `#bulk-actions` slot. It asks
- * for confirmation, posts the selected row keys to the shop's bulk endpoint for `resource`, and
- * clears the selection once the request succeeds.
+ * "Archive selected" / "Restore selected" button for a DataTable's `#bulk-actions` slot. It posts
+ * the selected row keys to the shop's bulk endpoint for `resource` straight away (these actions are
+ * reversible, so there is no confirm dialog), clears the selection, and shows a toast with Undo that
+ * runs the opposite action on the same rows for about 4.5 seconds.
  */
 const props = defineProps<{
     /** Bulk resource name, e.g. `supplier` or `inventory-category`. */
@@ -23,32 +18,48 @@ const props = defineProps<{
     action: 'archive' | 'restore';
     /** The selected row keys (the table's `v-model:selected`). */
     ids: Array<string | number>;
-    /** Plural noun for the confirmation text, e.g. `suppliers`. */
+    /** Plural noun for the toast text, e.g. `suppliers`. */
     noun: string;
 }>();
 
 const emit = defineEmits<{ done: [] }>();
 
 const page = usePage();
+const { undoable } = useUndoToast();
 const base = computed(() =>
     page.props.auth.user.role === 'owner' ? '/shop' : '/staff',
 );
 const isArchive = computed(() => props.action === 'archive');
 const verb = computed(() => (isArchive.value ? 'Archive' : 'Restore'));
 
-const open = ref(false);
 const processing = ref(false);
 
+// `quiet` stops the server from flashing its own message: the Undo toast is the message here.
+function undo(action: 'archive' | 'restore', ids: Array<string | number>) {
+    router.post(
+        `${base.value}/bulk/${props.resource}/${action}`,
+        { ids, quiet: true },
+        { preserveScroll: true, onSuccess: () => toast.success('Undone.') },
+    );
+}
+
 function submit() {
+    // Undo must act on the rows as they were selected, even after the selection is cleared.
+    const ids = [...props.ids];
+    const opposite = isArchive.value ? 'restore' : 'archive';
     processing.value = true;
+
     router.post(
         `${base.value}/bulk/${props.resource}/${props.action}`,
-        { ids: props.ids },
+        { ids, quiet: true },
         {
             preserveScroll: true,
             onSuccess: () => {
-                open.value = false;
                 emit('done');
+                undoable(
+                    `${ids.length} ${props.noun} ${isArchive.value ? 'archived' : 'restored'}.`,
+                    () => undo(opposite, ids),
+                );
             },
             onFinish: () => {
                 processing.value = false;
@@ -63,43 +74,14 @@ function submit() {
         type="button"
         size="sm"
         :variant="isArchive ? 'warning-outline' : 'success-outline'"
-        @click="open = true"
+        :disabled="processing"
+        @click="submit"
     >
         <component
             :is="isArchive ? Archive : ArchiveRestore"
             class="mr-1.5 h-4 w-4"
+            aria-hidden="true"
         />
         {{ verb }} selected
     </Button>
-
-    <AlertDialog v-model:open="open">
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>{{ verb }} {{ noun }}?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    {{
-                        isArchive
-                            ? `Move the ${ids.length} selected ${noun} to the archive? You can restore them later.`
-                            : `Restore the ${ids.length} selected ${noun}? They will return to the active list.`
-                    }}
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <Button
-                    variant="outline"
-                    :disabled="processing"
-                    @click="open = false"
-                >
-                    Cancel
-                </Button>
-                <Button
-                    :variant="isArchive ? 'warning' : 'success'"
-                    :disabled="processing"
-                    @click="submit"
-                >
-                    {{ verb }}
-                </Button>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
 </template>

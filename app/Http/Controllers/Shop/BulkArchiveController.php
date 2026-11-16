@@ -33,6 +33,11 @@ class BulkArchiveController extends Controller
     {
         $count = $this->bulk->archive($resource, $request->ids(), $this->getShop(), $request->user());
 
+        // The page shows its own Undo toast when it asks for a quiet response.
+        if ($request->boolean('quiet')) {
+            return back();
+        }
+
         return back()->with('toast', [
             'type' => 'success',
             'message' => "{$count} record(s) archived.",
@@ -42,6 +47,11 @@ class BulkArchiveController extends Controller
     public function restore(BulkIdsRequest $request, string $resource)
     {
         $count = $this->bulk->restore($resource, $request->ids(), $this->getShop(), $request->user());
+
+        // The page shows its own Undo toast when it asks for a quiet response.
+        if ($request->boolean('quiet')) {
+            return back();
+        }
 
         return back()->with('toast', [
             'type' => 'success',

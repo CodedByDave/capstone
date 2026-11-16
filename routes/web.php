@@ -46,6 +46,7 @@ use App\Http\Controllers\Shop\Operations\OrderWeightProofController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
 use App\Http\Controllers\Shop\Operations\ServiceCategoryController;
 use App\Http\Controllers\Shop\Operations\ShopOrderController;
+use App\Http\Controllers\Shop\Operations\RetailSaleController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use App\Http\Controllers\Shop\PaymentHistoryController;
 use App\Http\Controllers\Shop\PaymentSettingsController;
@@ -430,6 +431,9 @@ Route::prefix('shop')->middleware([
     });
 
     // Operations Routes
+    Route::get('operations/retail', [RetailSaleController::class, 'index'])->name('shop.retail.index');
+    Route::get('operations/retail/create', [RetailSaleController::class, 'create'])->name('shop.retail.create');
+    Route::post('operations/retail', [RetailSaleController::class, 'store'])->middleware('throttle:30,1')->name('shop.retail.store');
     Route::get('operations/orders', [ShopOrderController::class, 'index'])->name('shop.orders.index');
     Route::get('operations/orders/create', [ShopOrderController::class, 'create'])->name('shop.orders.create');
     Route::post('operations/orders', [ShopOrderController::class, 'store'])
@@ -617,7 +621,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         'Finance Management' => ['expense'],
         'Operations' => ['service', 'promotion', 'order'],
         'Logistics' => ['delivery'],
-        'HRM' => ['payroll'],
+        'Staff Management' => ['payroll'],
     ];
     foreach ($staffBulk as $module => $resources) {
         Route::middleware('permission:'.$module.($module === 'Operations' ? ',manage' : ',archive'))->group(function () use ($resources) {
@@ -632,36 +636,36 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
             }
         });
     }
-    Route::middleware('permission:HRM,create')->group(function () {
+    Route::middleware('permission:Staff Management,create')->group(function () {
         Route::get('/employee/create', [EmployeeController::class, 'create'])->name('staff.employee.create');
         Route::post('/employee', [EmployeeController::class, 'store'])->name('staff.employee.store');
     });
-    Route::middleware('permission:HRM,archive')->group(function () {
+    Route::middleware('permission:Staff Management,archive')->group(function () {
         Route::get('/employee/archive', [EmployeeController::class, 'archive'])->name('staff.employee.archive');
         Route::post('/employee/bulk-restore', [EmployeeController::class, 'bulkRestore'])->name('staff.employee.bulk-restore');
         Route::post('/employee/bulk-archive', [EmployeeController::class, 'bulkArchive'])->name('staff.employee.bulk-archive');
     });
-    Route::middleware('permission:HRM,import')->group(function () {
+    Route::middleware('permission:Staff Management,import')->group(function () {
         Route::get('/employee/import-template', [EmployeeController::class, 'importTemplate'])->name('staff.employee.import.template');
         Route::post('/employee/import', [EmployeeController::class, 'import'])->name('staff.employee.import');
     });
     // Dynamic (wildcard) routes after all static ones
-    Route::middleware('permission:HRM,view')->group(function () {
+    Route::middleware('permission:Staff Management,view')->group(function () {
         Route::get('/employee', [EmployeeController::class, 'index'])->name('staff.employee.index');
         Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('staff.employee.show');
         Route::get('/employee/{employee}/license', [EmployeeController::class, 'license'])->name('staff.employee.license');
     });
-    Route::middleware('permission:HRM,update')->group(function () {
+    Route::middleware('permission:Staff Management,update')->group(function () {
         Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('staff.employee.edit');
         Route::put('/employee/{employee}', [EmployeeController::class, 'update'])->name('staff.employee.update');
     });
-    Route::middleware('permission:HRM,archive')->group(function () {
+    Route::middleware('permission:Staff Management,archive')->group(function () {
         Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('staff.employee.destroy');
         Route::post('/employee/{publicId}/restore', [EmployeeController::class, 'restore'])->name('staff.employee.restore');
     });
 
     // ── Schedule ──────────────────────────────────────────────────────────────
-    Route::middleware('permission:HRM,update')->group(function () {
+    Route::middleware('permission:Staff Management,update')->group(function () {
         Route::put('/employee/{employee}/schedule', [ScheduleController::class, 'sync'])->name('staff.schedule.sync');
         Route::post('/employee/{employee}/schedule', [ScheduleController::class, 'store'])->name('staff.schedule.store');
         Route::put('/employee/{employee}/schedule/{schedule}', [ScheduleController::class, 'update'])->name('staff.schedule.update');
@@ -759,7 +763,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
 
     // ── Activity Logs ─────────────────────────────────────────────────────────
-    Route::middleware('permission:HRM,view')->group(function () {
+    Route::middleware('permission:Staff Management,view')->group(function () {
         Route::get('/logs', [ActivityLogsController::class, 'index'])->name('staff.logs.index');
     });
 
@@ -767,7 +771,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     // All staff can VIEW the attendance list (read-only for staff with permissions).
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('staff.attendance.index');
     // Only owner can save / update (enforced in controller via can_edit, not middleware).
-    Route::middleware('permission:HRM,update')->group(function () {
+    Route::middleware('permission:Staff Management,update')->group(function () {
         Route::post('/attendance', [AttendanceController::class, 'store'])->name('staff.attendance.store');
         Route::put('/attendance/{attendance}', [AttendanceController::class, 'update'])->name('staff.attendance.update');
     });
@@ -775,6 +779,8 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     // ── Operations ────────────────────────────────────────────────────────────
     // Static /create routes MUST come before /{order:payment_public_id} wildcard to avoid 404s
     Route::middleware('permission:Operations,create')->group(function () {
+        Route::get('/operations/retail/create', [RetailSaleController::class, 'create'])->name('staff.retail.create');
+        Route::post('/operations/retail', [RetailSaleController::class, 'store'])->middleware('throttle:30,1')->name('staff.retail.store');
         Route::get('/operations/orders/create', [ShopOrderController::class, 'create'])->name('staff.orders.create');
         Route::post('/operations/orders', [ShopOrderController::class, 'store'])
             ->middleware('shop.capability:pickup')
@@ -793,6 +799,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
     // Dynamic (wildcard) routes after static ones
     Route::middleware('permission:Operations,view')->group(function () {
+        Route::get('/operations/retail', [RetailSaleController::class, 'index'])->name('staff.retail.index');
         Route::get('/operations/orders', [ShopOrderController::class, 'index'])->name('staff.orders.index');
         Route::get('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('staff.orders.show');
         Route::get('/operations/orders/{order:payment_public_id}/receipt', [ShopOrderController::class, 'receiptPdf'])->middleware('throttle:30,1')->name('staff.orders.receipt');
@@ -862,20 +869,20 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
 
     // ── Payroll ───────────────────────────────────────────────────────────────
-    Route::middleware('permission:HRM,view')->group(function () {
+    Route::middleware('permission:Staff Management,view')->group(function () {
         Route::get('/payroll', [PayrollController::class, 'index'])->name('staff.payroll.index');
         Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('staff.payroll.show');
     });
-    Route::middleware('permission:HRM,create')->group(function () {
+    Route::middleware('permission:Staff Management,create')->group(function () {
         Route::post('/payroll', [PayrollController::class, 'store'])->name('staff.payroll.store');
     });
-    Route::middleware('permission:HRM,update')->group(function () {
+    Route::middleware('permission:Staff Management,update')->group(function () {
         Route::put('/payroll/settings', [PayrollController::class, 'updateSettings'])->name('staff.payroll.settings');
         Route::put('/payroll/{payrollItem}/item', [PayrollController::class, 'updateItem'])->name('staff.payroll.item.update');
         Route::post('/payroll/{payroll}/recalculate', [PayrollController::class, 'recalculate'])->name('staff.payroll.recalculate');
         Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('staff.payroll.finalize');
     });
-    Route::middleware('permission:HRM,archive')->group(function () {
+    Route::middleware('permission:Staff Management,archive')->group(function () {
         Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('staff.payroll.destroy');
         Route::post('/payroll/{publicId}/restore', [PayrollController::class, 'restore'])->whereUlid('publicId')->name('staff.payroll.restore');
     });

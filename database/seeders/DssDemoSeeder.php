@@ -138,7 +138,7 @@ class DssDemoSeeder extends Seeder
                 'expires_at' => now()->addYear(),
             ]);
 
-            foreach (['HRM', 'Inventory Management', 'Operations', 'Finance Management', 'Reports & Analytics'] as $module) {
+            foreach (['Staff Management', 'Inventory Management', 'Operations', 'Finance Management', 'Reports & Analytics'] as $module) {
                 $plan->modules()->create(['name' => $module, 'price' => 0]);
             }
         }

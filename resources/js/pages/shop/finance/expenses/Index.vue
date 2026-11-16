@@ -3,6 +3,7 @@ import {
     BulkActionButton,
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
@@ -11,6 +12,7 @@ import PageHeader from '@/components/shop/PageHeader.vue';
 import { useCsvImport } from '@/composables/useCsvImport';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
+import { useUndoToast } from '@/composables/useUndoToast';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -18,16 +20,7 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -51,8 +44,8 @@ import {
     Plus,
     Tag,
     Trash2,
-    Upload,
     TrendingDown,
+    Upload,
 } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -282,26 +275,21 @@ function submitEdit() {
 
 // ─── Delete Dialog ────────────────────────────────────────────────────────────
 
-const isDeleteOpen = ref(false);
-const deletingExpense = ref<Expense | null>(null);
+const { undoable } = useUndoToast();
 
-function openDelete(exp: Expense) {
-    deletingExpense.value = exp;
-    isDeleteOpen.value = true;
-}
-
-function confirmDelete() {
-    if (!deletingExpense.value) return;
-    router.delete(
-        `${base.value}/finance/expenses/${deletingExpense.value.public_id}`,
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                isDeleteOpen.value = false;
-                deletingExpense.value = null;
-            },
-        },
-    );
+// Archiving can be undone, so it happens at once and a toast offers Undo for a few seconds.
+function archiveExpense(exp: Expense) {
+    router.delete(`${base.value}/finance/expenses/${exp.public_id}`, {
+        preserveScroll: true,
+        onSuccess: () =>
+            undoable(`${exp.title} archived.`, () =>
+                router.post(
+                    `${base.value}/finance/expenses/${exp.public_id}/restore`,
+                    {},
+                    { preserveScroll: true },
+                ),
+            ),
+    });
 }
 
 // ─── Category Dialog ──────────────────────────────────────────────────────────
@@ -448,60 +436,22 @@ const selected = ref<Array<string | number>>([]);
             </PageHeader>
 
             <!-- ── Stats ───────────────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100"
-                        >
-                            <TrendingDown class="h-5 w-5 text-red-600" />
-                        </div>
-                        <div>
-                            <p class="text-lg font-bold">
-                                {{ currency(stats.total_expenses) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Total Expenses
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100"
-                        >
-                            <TrendingDown class="h-5 w-5 text-orange-600" />
-                        </div>
-                        <div>
-                            <p class="text-lg font-bold">
-                                {{ currency(stats.this_month_expenses) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                This Month
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4 pb-4">
-                        <p class="text-2xl font-bold">
-                            {{ stats.total_count }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">
-                            Total Records
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4 pb-4">
-                        <p class="text-2xl font-bold">
-                            {{ stats.this_month_count }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">This Month</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles
+                :tiles="[
+                    {
+                        label: 'Total Expenses',
+                        value: currency(stats.total_expenses),
+                        icon: TrendingDown,
+                    },
+                    {
+                        label: 'This Month',
+                        value: currency(stats.this_month_expenses),
+                        icon: TrendingDown,
+                    },
+                    { label: 'Total Records', value: stats.total_count },
+                    { label: 'This Month', value: stats.this_month_count },
+                ]"
+            />
 
             <!-- ── Table ───────────────────────────────────────── -->
             <DataTable
@@ -537,6 +487,8 @@ const selected = ref<Array<string | number>>([]);
 
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="hasFilters"
+                        @reset="clearFilters"
                         v-model:search="search"
                         search-placeholder="Search title or reference..."
                         search-label="Search expenses"
@@ -640,7 +592,7 @@ const selected = ref<Array<string | number>>([]);
                                 show:
                                     can('Finance Management', 'archive') ||
                                     isOwner,
-                                onSelect: () => openDelete(exp),
+                                onSelect: () => archiveExpense(exp),
                             },
                         ]"
                     />
@@ -856,29 +808,6 @@ const selected = ref<Array<string | number>>([]);
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-
-        <!-- ── Delete Dialog ────────────────────────────────────── -->
-        <AlertDialog v-model:open="isDeleteOpen">
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Archive Expense</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Are you sure you want to archive
-                        <strong>{{ deletingExpense?.title }}</strong
-                        >? It can be restored from the archive.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button variant="outline" @click="isDeleteOpen = false"
-                        >Cancel</Button
-                    >
-                    <Button variant="destructive" @click="confirmDelete"
-                        >Archive</Button
-                    >
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
         <!-- ── Categories Dialog ────────────────────────────────── -->
         <Dialog v-model:open="isCategoryOpen">
             <DialogContent class="max-w-sm">

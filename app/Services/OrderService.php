@@ -23,19 +23,19 @@ class OrderService
 
     private const PLAN_MODULES = [
         'Basic' => [
-            'HRM',
+            'Staff Management',
             'Operations',
             'Reports & Analytics',
         ],
         'Standard' => [
-            'HRM',
+            'Staff Management',
             'Operations',
             'Inventory Management',
             'Finance Management',
             'Reports & Analytics',
         ],
         'Premium' => [
-            'HRM',
+            'Staff Management',
             'Operations',
             'Inventory Management',
             'Finance Management',

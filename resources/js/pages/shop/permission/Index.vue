@@ -73,7 +73,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 // ─── Action map ───────────────────────────────────────────────────────────────
 
 const moduleActionMap: Record<string, Action[]> = {
-    HRM: [
+    'Staff Management': [
         { key: 'view', label: 'View' },
         { key: 'create', label: 'Create' },
         { key: 'update', label: 'Update' },

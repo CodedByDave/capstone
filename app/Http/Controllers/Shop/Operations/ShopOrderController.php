@@ -22,6 +22,7 @@ use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Services\CounterDeliveryFeeService;
 use App\Services\CustomerAgreementService;
+use App\Services\CustomerShopCatalogService;
 use App\Services\LogisticsService;
 use App\Services\OrderArchiveService;
 use App\Services\OrderCheckoutService;
@@ -48,6 +49,7 @@ class ShopOrderController extends Controller
         private readonly OrderArchiveService $archive,
         private readonly OrderCheckoutService $checkout,
         private readonly OrderReadyNotificationService $readyNotices,
+        private readonly CustomerShopCatalogService $catalog,
     ) {}
 
     private function getShopId(): int
@@ -104,6 +106,7 @@ class ShopOrderController extends Controller
             'riderAvailable' => $this->service->hasAvailableRider($shopId),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
+            'retailProducts' => $this->catalog->retailProductOptions($shopId),
             'services' => ShopService::where('shop_id', $shopId)
                 ->where('is_active', true)
                 ->orderBy('service_name')

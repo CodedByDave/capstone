@@ -2,13 +2,14 @@
 import {
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
-import { useDataTable } from '@/composables/useDataTable';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { useCsvImport } from '@/composables/useCsvImport';
+import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -16,15 +17,14 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     ArrowUpDown,
     DollarSign,
     Download,
-    Upload,
     TrendingDown,
     TrendingUp,
+    Upload,
 } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -215,76 +215,25 @@ function formatDate(val: string): string {
             </PageHeader>
 
             <!-- ── Summary Cards ───────────────────────────────── -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100"
-                        >
-                            <TrendingUp class="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p class="text-lg font-bold text-green-700">
-                                {{ currency(summary.total_income) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Total Income
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100"
-                        >
-                            <TrendingDown class="h-5 w-5 text-red-600" />
-                        </div>
-                        <div>
-                            <p class="text-lg font-bold text-red-600">
-                                {{ currency(summary.total_expenses) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Total Expenses
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg"
-                            :class="
-                                summary.net >= 0
-                                    ? 'bg-blue-100'
-                                    : 'bg-orange-100'
-                            "
-                        >
-                            <DollarSign
-                                class="h-5 w-5"
-                                :class="
-                                    summary.net >= 0
-                                        ? 'text-blue-600'
-                                        : 'text-orange-600'
-                                "
-                            />
-                        </div>
-                        <div>
-                            <p
-                                class="text-lg font-bold"
-                                :class="
-                                    summary.net >= 0
-                                        ? 'text-blue-700'
-                                        : 'text-orange-600'
-                                "
-                            >
-                                {{ currency(summary.net) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">Net</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles
+                :tiles="[
+                    {
+                        label: 'Total Income',
+                        value: currency(summary.total_income),
+                        icon: TrendingUp,
+                    },
+                    {
+                        label: 'Total Expenses',
+                        value: currency(summary.total_expenses),
+                        icon: TrendingDown,
+                    },
+                    {
+                        label: 'Net',
+                        value: currency(summary.net),
+                        icon: DollarSign,
+                    },
+                ]"
+            />
 
             <!-- ── Ledger Table ────────────────────────────────── -->
             <DataTable
@@ -327,6 +276,8 @@ function formatDate(val: string): string {
                             >
                         </div>
                         <DataTableToolbar
+                            :resettable="isFiltered"
+                            @reset="reset"
                             v-model:search="search"
                             v-model:status="typeFilter"
                             :statuses="typeOptions"

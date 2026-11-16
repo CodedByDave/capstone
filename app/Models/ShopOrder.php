@@ -292,6 +292,18 @@ class ShopOrder extends Model
         return $query->where('shop_id', $shopId);
     }
 
+    /** Laundry orders, including any retail add-ons: everything except a products-only sale. */
+    public function scopeLaundry($query)
+    {
+        return $query->where('order_type', '!=', 'products');
+    }
+
+    /** Retail products sold on their own, at the counter or online, with no laundry. */
+    public function scopeProducts($query)
+    {
+        return $query->where('order_type', 'products');
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     /**

@@ -40,6 +40,7 @@ import {
     Scissors,
     Settings,
     ShieldCheck,
+    ShoppingBag,
     ShoppingCart,
     Star,
     Tag,
@@ -80,10 +81,12 @@ const shopCapabilities = computed(
 const sidebarBadges = computed(
     () => ((page.props as any).sidebarBadges ?? {}) as Record<string, number>,
 );
-const subBadge = (title: string, moduleName: string): number =>
-    moduleName === 'Operations' && title === 'All Orders'
-        ? (sidebarBadges.value.operations_orders ?? 0)
-        : 0;
+const subBadge = (title: string, moduleName: string): number => {
+    if (moduleName !== 'Operations') return 0;
+    if (title === 'All Orders') return sidebarBadges.value.operations_orders ?? 0;
+    if (title === 'Retail Products') return sidebarBadges.value.operations_retail ?? 0;
+    return 0;
+};
 const moduleBadge = (moduleName: string): number =>
     getSubActions(moduleName).reduce(
         (sum, sub) => sum + subBadge(sub.title, moduleName),
@@ -102,26 +105,26 @@ const isApproved = computed(
 );
 
 /* ─────────────────────────────────────────
-   HRM SUB-ACTIONS
+   STAFF MANAGEMENT SUB-ACTIONS
 ───────────────────────────────────────── */
 const allHrmSubActions = [
     {
         title: 'Employee List',
         icon: List,
         href: isOwner.value ? '/shop/employee' : '/staff/employee',
-        show: () => isOwner.value || can('HRM', 'view'),
+        show: () => isOwner.value || can('Staff Management', 'view'),
     },
     {
         title: 'Attendance',
         icon: CalendarClock,
         href: isOwner.value ? '/shop/attendance' : '/staff/attendance',
-        show: () => isOwner.value || can('HRM', 'view'),
+        show: () => isOwner.value || can('Staff Management', 'view'),
     },
     {
         title: 'Payroll',
         icon: Banknote,
         href: isOwner.value ? '/shop/payroll' : '/staff/payroll',
-        show: () => isOwner.value || can('HRM', 'view'),
+        show: () => isOwner.value || can('Staff Management', 'view'),
     },
     {
         title: 'Activity Logs',
@@ -196,6 +199,14 @@ const allOperationsSubActions = [
         href: isOwner.value
             ? '/shop/operations/orders'
             : '/staff/operations/orders',
+        show: () => isOwner.value || can('Operations', 'view'),
+    },
+    {
+        title: 'Retail Products',
+        icon: ShoppingBag,
+        href: isOwner.value
+            ? '/shop/operations/retail'
+            : '/staff/operations/retail',
         show: () => isOwner.value || can('Operations', 'view'),
     },
     {
@@ -333,7 +344,7 @@ const reportsSubActions = computed(() =>
 
 function getSubActions(moduleName: string) {
     const map: Record<string, any[]> = {
-        HRM: hrmSubActions.value,
+        'Staff Management': hrmSubActions.value,
         'Inventory Management': inventorySubActions.value,
         Operations: operationsSubActions.value,
         'Finance Management': financeSubActions.value,
@@ -349,7 +360,7 @@ const moduleIconMap: Record<
     string,
     { icon: any; ownerHref: string; staffHref: string }
 > = {
-    HRM: {
+    'Staff Management': {
         icon: UserRoundCog,
         ownerHref: '/shop/employee',
         staffHref: '/staff/employee',
@@ -377,7 +388,7 @@ const moduleIconMap: Record<
 };
 
 const moduleDisplayNameMap: Record<string, string> = {
-    HRM: 'Staff Management',
+    'Staff Management': 'Staff Management',
     Operations: 'Operation Management',
     'Finance Management': 'Financial Management',
 };
@@ -385,7 +396,7 @@ const moduleDisplayNameMap: Record<string, string> = {
 // Sidebar order: operations first, then people, stock, money and insights.
 const moduleOrder = [
     'Operations',
-    'HRM',
+    'Staff Management',
     'Inventory Management',
     'Finance Management',
     'Reports & Analytics',
@@ -406,7 +417,7 @@ function getHref(name: string): string {
    AREA DETECTION
 ───────────────────────────────────────── */
 const areaChecks: Record<string, (url: string) => boolean> = {
-    HRM: (url) =>
+    'Staff Management': (url) =>
         url.startsWith('/shop/employee') ||
         url.startsWith('/staff/employee') ||
         url.startsWith('/shop/attendance') ||
@@ -550,7 +561,7 @@ const moduleNavItems = computed<ModuleNavItem[]>(() => {
     if (!isApproved.value || !props.order?.modules) return [];
 
     const ownerModulePermissions: Record<string, string> = {
-        HRM: 'shop.staff',
+        'Staff Management': 'shop.staff',
         'Inventory Management': 'shop.inventory',
         Operations: 'shop.operations',
         'Finance Management': 'shop.finance',

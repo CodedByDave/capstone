@@ -4,12 +4,12 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     type DataTableHeader,
 } from '@/components/data-table';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -219,18 +219,7 @@ function formatDate(iso: string) {
                 />
             </PageHeader>
 
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="text-2xl font-bold">{{ item.value }}</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <DataTable
                 v-model:options="serverOptions"
@@ -252,6 +241,8 @@ function formatDate(iso: string) {
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="hasFilters"
+                        @reset="resetFilters"
                         v-model:search="search"
                         :status="stars"
                         :statuses="starOptions"

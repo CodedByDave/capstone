@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { DataTable, type DataTableHeader } from '@/components/data-table';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+    DataTable,
+    type DataTableHeader,
+    KpiTiles,
+} from '@/components/data-table';
 import { useDataTable } from '@/composables/useDataTable';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -263,20 +266,7 @@ const registrationsArea = computed(() => {
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="text-2xl font-bold">
-                            {{ item.value }}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <section class="grid gap-4 xl:grid-cols-[minmax(0,2fr)_340px]">
                 <article class="rounded-xl border bg-card p-5 shadow-sm sm:p-6">

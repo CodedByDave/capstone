@@ -109,6 +109,7 @@ class EmployeeService
             ]);
 
             $role = strtolower($data['position']);
+            $isRider = DriverRosterService::isDriverPosition($data['position']);
 
             $employee = $this->employeeRepository->createForShop($shop, [
                 ...$data,
@@ -118,12 +119,15 @@ class EmployeeService
                 'updated_by' => auth()->id(),
             ]);
 
-            $this->roleProvisioner->provisionRole($shop->id, $role);
+            // A rider is set by position and works from the driver app, so they get no shop role.
+            if (! $isRider) {
+                $this->roleProvisioner->provisionRole($shop->id, $role);
 
-            EmployeeRole::firstOrCreate([
-                'employee_id' => $employee->id,
-                'role' => $role,
-            ]);
+                EmployeeRole::firstOrCreate([
+                    'employee_id' => $employee->id,
+                    'role' => $role,
+                ]);
+            }
 
             try {
                 Mail::to($user->email)->send(new EmployeeCredentialsMail(
@@ -159,6 +163,7 @@ class EmployeeService
     {
         [$data, $riderDetails] = $this->splitRiderDetails($data);
         $changes = $this->diffChanges($employee, $data);
+        $previousPosition = $employee->position;
 
         $updated = $this->employeeRepository->updateEmployee($employee, [
             ...$data,
@@ -194,8 +199,13 @@ class EmployeeService
             }
         }
 
-        // The new license path and the removal of the old photo succeed together.
-        DB::transaction(fn () => $this->driverRoster->sync($updated, $riderDetails));
+        // A new position brings its own role; becoming a rider drops the shop roles.
+        DB::transaction(function () use ($updated, $previousPosition, $riderDetails): void {
+            $this->syncPositionRole($updated, $previousPosition);
+
+            // The new license path and the removal of the old photo succeed together.
+            $this->driverRoster->sync($updated, $riderDetails);
+        });
 
         if (! empty($changes)) {
             $action = isset($changes['status'])
@@ -211,6 +221,24 @@ class EmployeeService
         }
 
         return $updated;
+    }
+
+    private function syncPositionRole(Employee $employee, ?string $previousPosition): void
+    {
+        if ($previousPosition === null || mb_strtolower(trim($previousPosition)) === mb_strtolower(trim((string) $employee->position))) {
+            return;
+        }
+
+        // A rider works from the driver app only, so they hold no shop role.
+        if (DriverRosterService::isDriverPosition($employee->position)) {
+            $this->employeeRepository->clearRoles($employee->id);
+
+            return;
+        }
+
+        $role = strtolower($employee->position);
+        $this->roleProvisioner->provisionRole($employee->shop_id, $role);
+        $this->employeeRepository->addRole($employee->id, $role);
     }
 
     public function archiveEmployee(Employee $employee): void

@@ -58,7 +58,7 @@ const form = useForm({
 });
 
 const TRIAL_MODULES = [
-    'HRM',
+    'Staff Management',
     'Operations',
     'Inventory Management',
     'Finance Management',

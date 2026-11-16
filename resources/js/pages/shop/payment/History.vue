@@ -2,24 +2,18 @@
 import {
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import {
-    Download,
-    Eye,
-    FileText,
-    RefreshCcw,
-    Search,
-} from 'lucide-vue-next';
+import { Download, Eye, FileText, RefreshCcw, Search } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface PaymentItem {
@@ -199,18 +193,7 @@ watch(
                 />
             </PageHeader>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="text-2xl font-bold">{{ item.value }}</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <DataTable
                 v-model:options="serverOptions"
@@ -227,6 +210,8 @@ watch(
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="!!(search || paymentMethod)"
+                        @reset="resetFilters"
                         v-model:search="search"
                         search-placeholder="Search reference, shop, plan, or payment ID..."
                         search-label="Search payments"

@@ -23,7 +23,17 @@ class ShopOrderRepository
         $query = $this->model->newQuery()
             ->with(['service', 'supplies'])
             ->when($onlyTrashed, fn ($q) => $q->onlyTrashed())
-            ->forShop($shopId);
+            ->forShop($shopId)
+            // Retail product sales have their own page; the orders list is laundry only.
+            ->when(
+                ($filters['type'] ?? 'laundry') === 'products',
+                fn ($q) => $q->products(),
+                fn ($q) => $q->laundry(),
+            );
+
+        if (! empty($filters['source']) && ! $onlyTrashed) {
+            $query->where('order_source', $filters['source']);
+        }
 
         if (! empty($filters['status']) && ! $onlyTrashed) {
             // "queue" is every order still to be worked on, not a status of its own.
@@ -106,6 +116,7 @@ class ShopOrderRepository
     {
         return $this->model->newQuery()
             ->forShop($shopId)
+            ->laundry()
             ->whereIn('status', ShopOrder::QUEUE_STATUSES)
             ->orderByDesc('is_rush')
             ->orderBy('created_at')
@@ -132,6 +143,7 @@ class ShopOrderRepository
     {
         return $this->model->newQuery()
             ->forShop($shopId)
+            ->laundry()
             ->whereIn('status', ShopOrder::QUEUE_STATUSES)
             ->where('is_rush', true)
             ->count();
@@ -453,7 +465,41 @@ class ShopOrderRepository
     /** Orders placed since the given moment (used for the "new orders" badge). */
     public function countCreatedSince(int $shopId, \DateTimeInterface $since): int
     {
-        return $this->model->forShop($shopId)->where('created_at', '>=', $since)->count();
+        return $this->model->forShop($shopId)->laundry()->where('created_at', '>=', $since)->count();
+    }
+
+    /** Online product orders placed since a moment, for the Retail Products sidebar badge. */
+    public function countOnlineProductsSince(int $shopId, \DateTimeInterface $since): int
+    {
+        return $this->model->forShop($shopId)->products()
+            ->where('order_source', 'online')
+            ->where('created_at', '>=', $since)
+            ->count();
+    }
+
+    /**
+     * Retail sales since a moment (cancelled ones left out): how many and how much was sold.
+     *
+     * @return array{count: int, total: float}
+     */
+    public function productSalesSince(int $shopId, \DateTimeInterface $since): array
+    {
+        $row = $this->model->forShop($shopId)->products()
+            ->where('status', '!=', 'cancelled')
+            ->where('created_at', '>=', $since)
+            ->selectRaw('COUNT(*) as sales, COALESCE(SUM(total_amount), 0) as total')
+            ->first();
+
+        return ['count' => (int) $row->sales, 'total' => (float) $row->total];
+    }
+
+    /** Online product orders still waiting to be prepared or collected. */
+    public function countOpenOnlineProducts(int $shopId): int
+    {
+        return $this->model->forShop($shopId)->products()
+            ->where('order_source', 'online')
+            ->whereIn('status', ['pending', 'in_progress', 'completed'])
+            ->count();
     }
 
     /** The shop a user works in: the owner's own shop, or the shop their staff record belongs to. */
@@ -466,9 +512,10 @@ class ShopOrderRepository
         return Employee::where('user_id', $user->id)->value('shop_id');
     }
 
-    public function countByStatus(int $shopId): array
+    public function countByStatus(int $shopId, string $type = 'laundry'): array
     {
         return $this->model->forShop($shopId)
+            ->when($type === 'products', fn ($q) => $q->products(), fn ($q) => $q->laundry())
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')

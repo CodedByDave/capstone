@@ -18,7 +18,7 @@ class TrialService
     private const TRIAL_PLAN = 'Standard';
 
     private const TRIAL_MODULES = [
-        'HRM',
+        'Staff Management',
         'Operations',
         'Inventory Management',
         'Finance Management',

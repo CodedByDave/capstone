@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Employee;
 use App\Models\Rider;
 use App\Models\Shop;
+use App\Repositories\EmployeeRepository;
 use App\Repositories\RiderRepository;
 
 /**
@@ -20,6 +21,7 @@ class DriverRosterService
 
     public function __construct(
         private readonly RiderRepository $riders,
+        private readonly EmployeeRepository $employees,
         private readonly RiderProfileService $profiles,
     ) {}
 
@@ -41,7 +43,10 @@ class DriverRosterService
 
         $isDriver = ! $employee->trashed()
             && $employee->status === 'Active'
-            && self::isDriverPosition($employee->position);
+            && self::isDriverPosition($employee->position)
+            // A rider works from the driver app and holds no shop role. Giving them a role such as
+            // manager makes them shop staff, which ends their rider access.
+            && ! $this->employees->hasRoles($employee->id);
 
         if (! $isDriver) {
             if ($rider) {

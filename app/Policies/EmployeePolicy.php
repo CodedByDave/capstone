@@ -8,7 +8,7 @@ use App\Models\User;
 
 class EmployeePolicy
 {
-    /** Owners always pass; staff pass when they hold the required HRM permission. */
+    /** Owners always pass; staff pass when they hold the required Staff Management permission. */
     private function staffCan(User $user, string $action): bool
     {
         if ($user->role === 'owner') {
@@ -30,7 +30,7 @@ class EmployeePolicy
 
         return RolePermission::where('shop_id', $employee->shop_id)
             ->whereIn('role', $roles)
-            ->where('module', 'HRM')
+            ->where('module', 'Staff Management')
             ->where('action', $action)
             ->exists();
     }

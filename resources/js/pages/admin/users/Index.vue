@@ -10,6 +10,7 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
@@ -412,22 +413,7 @@ const tableItems = computed(() =>
             </header>
 
             <!-- Stats -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div
-                    v-for="stat in statCards"
-                    :key="stat.label"
-                    class="rounded-2xl border bg-card p-5"
-                >
-                    <p
-                        class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                    >
-                        {{ stat.label }}
-                    </p>
-                    <p class="mt-3 text-4xl font-bold tabular-nums">
-                        {{ stat.value.toLocaleString() }}
-                    </p>
-                </div>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <!-- Table card -->
             <DataTable
@@ -448,6 +434,10 @@ const tableItems = computed(() =>
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="
+                            !!search || role !== 'all' || verified !== 'all'
+                        "
+                        @reset="resetFilters"
                         v-model:search="search"
                         :status="verified"
                         :statuses="accountOptions"

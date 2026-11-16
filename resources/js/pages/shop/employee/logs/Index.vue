@@ -27,10 +27,10 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ArrowLeft,
-    Download,
     CircleDot,
     Clock,
     DollarSign,
+    Download,
     FileUp,
     Pencil,
     RefreshCw,
@@ -462,6 +462,8 @@ function toggleRow(id: number) {
 
             <!-- ACTION CHIPS -->
             <DataTableToolbar
+                :resettable="hasFilters"
+                @reset="clearFilters"
                 :status="action"
                 :statuses="statusOptions"
                 status-label="Filter by action"

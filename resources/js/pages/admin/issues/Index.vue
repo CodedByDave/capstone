@@ -3,6 +3,7 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
@@ -11,7 +12,6 @@ import {
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -307,20 +307,7 @@ const categoryClass = (value: string) =>
                 />
             </PageHeader>
 
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
-                        <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
-                        >
-                            {{ item.label }}
-                        </p>
-                        <p class="text-2xl font-bold">
-                            {{ item.value.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <DataTable
                 v-model:options="serverOptions"
@@ -337,6 +324,10 @@ const categoryClass = (value: string) =>
             >
                 <template #toolbar>
                     <DataTableToolbar
+                        :resettable="
+                            !!(search || status || priority || category)
+                        "
+                        @reset="resetFilters"
                         v-model:search="search"
                         :status="status"
                         :statuses="statusOptions"

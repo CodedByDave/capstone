@@ -3,6 +3,7 @@ import {
     DataTable,
     DataTableToolbar,
     IdentityCell,
+    KpiTiles,
     RowActions,
     StatusPill,
     type DataTableHeader,
@@ -435,22 +436,7 @@ const tableItems = computed(() =>
             </header>
 
             <!-- Stats -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                <div
-                    v-for="stat in statCards"
-                    :key="stat.label"
-                    class="rounded-2xl border bg-card p-5"
-                >
-                    <p
-                        class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                    >
-                        {{ stat.label }}
-                    </p>
-                    <p class="mt-3 text-4xl font-bold tabular-nums">
-                        {{ stat.value.toLocaleString() }}
-                    </p>
-                </div>
-            </div>
+            <KpiTiles :tiles="statCards" />
 
             <DataTable
                 v-model:options="serverOptions"
@@ -472,6 +458,15 @@ const tableItems = computed(() =>
                 <template #toolbar>
                     <div class="space-y-3">
                         <DataTableToolbar
+                            :resettable="
+                                !!search ||
+                                category !== 'all' ||
+                                role !== 'all' ||
+                                module !== 'all' ||
+                                !!event ||
+                                !!date
+                            "
+                            @reset="resetFilters"
                             v-model:search="search"
                             :status="category"
                             :statuses="categoryOptions"

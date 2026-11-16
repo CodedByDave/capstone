@@ -207,7 +207,7 @@ const moduleIconMap: Record<
     string,
     { icon: any; href: string; description: string; color: string }
 > = {
-    HRM: {
+    'Staff Management': {
         icon: UserCircle,
         href: '/staff/employee',
         description: 'View and manage employees',

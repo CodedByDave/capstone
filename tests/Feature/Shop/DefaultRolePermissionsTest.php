@@ -41,10 +41,10 @@ it('keeps least privilege between roles', function () {
     ])->exists();
 
     expect($has('cashier', 'Operations', 'manage'))->toBeTrue()
-        ->and($has('cashier', 'HRM', 'view'))->toBeFalse()
+        ->and($has('cashier', 'Staff Management', 'view'))->toBeFalse()
         ->and($has('washer', 'Operations', 'manage'))->toBeFalse()
         ->and($has('staff', 'Finance Management', 'view'))->toBeFalse()
-        ->and($has('manager', 'HRM', 'archive'))->toBeFalse();
+        ->and($has('manager', 'Staff Management', 'archive'))->toBeFalse();
 });
 
 it('does not overwrite permissions the owner already customised', function () {

@@ -7,16 +7,21 @@ use App\Http\Requests\Shop\Employee\ToggleEmployeeRoleRequest;
 use App\Http\Requests\Shop\Employee\UpdatePermissionRequest;
 use App\Models\Employee;
 use App\Models\EmployeeRole;
+use App\Services\DriverRosterService;
 use App\Models\Order;
 use App\Models\RolePermission;
 use App\Models\Shop;
 use App\Models\ShopRole;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PermissionController extends Controller
 {
     private const RESERVED_ROLES = ['owner', 'super_admin'];
+
+    /** Riders work from the driver app and are set by position, so these are never roles. */
+    private const RIDER_ROLES = ['rider', 'driver'];
 
     private function getShop(): Shop
     {
@@ -48,7 +53,9 @@ class PermissionController extends Controller
             $purchasedModules[] = ['name' => 'Logistics', 'price' => 0];
         }
 
+        // Riders are not assigned roles here: they are set by position on the employee page.
         $staff = Employee::where('shop_id', $shop->id)
+            ->whereNotIn(DB::raw('LOWER(position)'), self::RIDER_ROLES)
             ->with('roles')
             ->get()
             ->map(fn ($e) => [
@@ -71,6 +78,7 @@ class PermissionController extends Controller
             ->toArray();
 
         $roles = ShopRole::where('shop_id', $shop->id)
+            ->whereNotIn(DB::raw('LOWER(name)'), self::RIDER_ROLES)
             ->get()
             ->map(fn ($r) => [
                 'name' => $r->name,
@@ -124,7 +132,7 @@ class PermissionController extends Controller
         $name = strtolower(trim($request->name));
 
         // Block reserved system role names
-        if (in_array($name, self::RESERVED_ROLES)) {
+        if (in_array($name, [...self::RESERVED_ROLES, ...self::RIDER_ROLES], true)) {
             return response()->json(['error' => 'That role name is reserved.'], 422);
         }
 
@@ -172,7 +180,7 @@ class PermissionController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function toggleEmployeeRole(ToggleEmployeeRoleRequest $request, int $employeeId)
+    public function toggleEmployeeRole(ToggleEmployeeRoleRequest $request, int $employeeId, DriverRosterService $driverRoster)
     {
         $shop = $this->getShop();
         $data = $request->validated();
@@ -180,6 +188,10 @@ class PermissionController extends Controller
         $employee = Employee::where('id', $employeeId)
             ->where('shop_id', $shop->id)
             ->firstOrFail();
+
+        if (in_array(strtolower($data['role']), self::RIDER_ROLES, true)) {
+            return response()->json(['error' => 'Riders are set by position on the employee page, not by role.'], 422);
+        }
 
         $existing = EmployeeRole::where([
             'employee_id' => $employee->id,
@@ -217,6 +229,9 @@ class PermissionController extends Controller
 
             $has = true;
         }
+
+        // Gaining or losing the rider role turns rider access on or off right away.
+        $driverRoster->sync($employee->refresh());
 
         return response()->json([
             'has' => $has,

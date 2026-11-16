@@ -149,7 +149,7 @@ test('repeating setup updates preferences without changing completion time', fun
         ->and($shop->offers_delivery)->toBeTrue();
 });
 
-test('turning on pickup or delivery creates the rider role', function () {
+test('turning on pickup or delivery does not create a rider role', function () {
     ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan();
 
     $this->actingAs($owner)
@@ -159,7 +159,8 @@ test('turning on pickup or delivery creates the rider role', function () {
         ])
         ->assertSessionHasNoErrors();
 
-    expect(\App\Models\ShopRole::where('shop_id', $shop->id)->where('name', 'rider')->exists())->toBeTrue();
+    // Riders are set by position and work from the driver app, so there is no rider role.
+    expect(\App\Models\ShopRole::where('shop_id', $shop->id)->where('name', 'rider')->exists())->toBeFalse();
 });
 
 test('rider role is not created when the shop offers no logistics', function () {
@@ -172,17 +173,4 @@ test('rider role is not created when the shop offers no logistics', function () 
         ]);
 
     expect(\App\Models\ShopRole::where('shop_id', $shop->id)->where('name', 'rider')->exists())->toBeFalse();
-});
-
-test('enabling logistics again does not duplicate the rider role', function () {
-    ['owner' => $owner, 'shop' => $shop] = setupOwnerWithPlan();
-
-    foreach ([true, false, true] as $pickup) {
-        $this->actingAs($owner)->put(route('shop.setup.store'), [
-            'offers_pickup' => $pickup,
-            'offers_delivery' => false,
-        ]);
-    }
-
-    expect(\App\Models\ShopRole::where('shop_id', $shop->id)->where('name', 'rider')->count())->toBe(1);
 });

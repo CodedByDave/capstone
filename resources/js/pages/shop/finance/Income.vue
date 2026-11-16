@@ -2,6 +2,7 @@
 import {
     DataTable,
     DataTableToolbar,
+    KpiTiles,
     StatusPill,
     statusLabel,
     statusTone,
@@ -18,7 +19,6 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -215,62 +215,22 @@ function methodLabel(val: string | null): string {
             </PageHeader>
 
             <!-- ── Stats ───────────────────────────────────────── -->
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100"
-                        >
-                            <TrendingUp class="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p class="text-lg font-bold">
-                                {{ currency(stats.total_income) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                Total Collected
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="flex items-center gap-3 pt-4 pb-4">
-                        <div
-                            class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100"
-                        >
-                            <TrendingUp class="h-5 w-5 text-emerald-600" />
-                        </div>
-                        <div>
-                            <p class="text-lg font-bold">
-                                {{ currency(stats.this_month_income) }}
-                            </p>
-                            <p class="text-xs text-muted-foreground">
-                                This Month
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4 pb-4">
-                        <p class="text-2xl font-bold">
-                            {{ stats.total_count }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">
-                            Paid Transactions
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-4 pb-4">
-                        <p class="text-2xl font-bold text-amber-600">
-                            {{ stats.unpaid_count }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">
-                            Unpaid Orders
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <KpiTiles
+                :tiles="[
+                    {
+                        label: 'Total Collected',
+                        value: currency(stats.total_income),
+                        icon: TrendingUp,
+                    },
+                    {
+                        label: 'This Month',
+                        value: currency(stats.this_month_income),
+                        icon: TrendingUp,
+                    },
+                    { label: 'Paid Transactions', value: stats.total_count },
+                    { label: 'Unpaid Orders', value: stats.unpaid_count },
+                ]"
+            />
 
             <!-- ── Table ───────────────────────────────────────── -->
             <DataTable
@@ -288,7 +248,11 @@ function methodLabel(val: string | null): string {
                 @reset="clearFilters"
             >
                 <template #toolbar>
-                    <DataTableToolbar hide-search>
+                    <DataTableToolbar
+                        :resettable="hasFilters"
+                        @reset="clearFilters"
+                        hide-search
+                    >
                         <Input
                             v-model="dateFrom"
                             type="date"

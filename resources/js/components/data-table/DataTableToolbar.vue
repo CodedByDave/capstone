@@ -13,6 +13,8 @@ withDefaults(
         statuses?: StatusOption[];
         statusLabel?: string;
         hideSearch?: boolean;
+        /** True while any filter, status or search is active; the Reset link shows only then. */
+        resettable?: boolean;
     }>(),
     {
         searchPlaceholder: 'Search...',
@@ -20,13 +22,14 @@ withDefaults(
         statuses: () => [],
         statusLabel: 'Filter by status',
         hideSearch: false,
+        resettable: false,
     },
 );
 
 const search = defineModel<string>('search', { default: '' });
 const status = defineModel<string>('status', { default: '' });
 
-const emit = defineEmits<{ submit: [] }>();
+const emit = defineEmits<{ submit: []; reset: [] }>();
 
 function selectStatus(value: string) {
     status.value = value;
@@ -65,6 +68,15 @@ function selectStatus(value: string) {
         </div>
 
         <slot />
+
+        <button
+            v-if="resettable"
+            type="button"
+            class="inline-flex h-10 items-center rounded-md px-1 text-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
+            @click="emit('reset')"
+        >
+            Reset filters
+        </button>
 
         <div
             v-if="!hideSearch || $slots.actions"

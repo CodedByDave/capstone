@@ -2,7 +2,6 @@
 
 use App\Models\Shop;
 use App\Models\ShopRole;
-use App\Support\DefaultRolePermissions;
 use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
@@ -18,7 +17,7 @@ return new class extends Migration
             ->select('id')
             ->each(function (Shop $shop) {
                 ShopRole::firstOrCreate(
-                    ['shop_id' => $shop->id, 'name' => DefaultRolePermissions::RIDER_ROLE],
+                    ['shop_id' => $shop->id, 'name' => 'rider'],
                     ['is_default' => true],
                 );
             });

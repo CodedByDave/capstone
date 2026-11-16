@@ -8,8 +8,8 @@ import {
 } from '@/components/data-table';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
-import { useCsvImport } from '@/composables/useCsvImport';
 import { Button } from '@/components/ui/button';
+import { useCsvImport } from '@/composables/useCsvImport';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -54,7 +54,9 @@ const {
     importing,
     choose: chooseCsv,
     onFileChange: onCsvChange,
-} = useCsvImport(() => `${isOwner.value ? '/shop' : '/staff'}/import/purchase-orders`);
+} = useCsvImport(
+    () => `${isOwner.value ? '/shop' : '/staff'}/import/purchase-orders`,
+);
 const canCreate = computed(
     () => isOwner.value || can('Inventory Management', 'create'),
 );
@@ -184,7 +186,9 @@ const open = (order: OrderRow) =>
                             icon: Upload,
                             onSelect: chooseCsv,
                             disabled: importing,
-                            hidden: !(isOwner || can('Inventory Management', 'create')),
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'create')
+                            ),
                         },
                     ]"
                 />
@@ -230,6 +234,10 @@ const open = (order: OrderRow) =>
                             </Button>
                         </div>
                         <DataTableToolbar
+                            :resettable="
+                                !!searchQuery || statusFilter !== 'all'
+                            "
+                            @reset="resetFilters"
                             v-model:search="searchQuery"
                             :status="statusFilter"
                             :statuses="statusOptions"
