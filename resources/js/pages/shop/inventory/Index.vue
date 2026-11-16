@@ -27,12 +27,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -46,6 +40,8 @@ import { Textarea } from '@/components/ui/textarea';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import { useShopCapabilities } from '@/composables/useShopCapabilities';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { formatQuantity, packageStock } from '@/lib/inventoryStock';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -54,7 +50,6 @@ import axios from 'axios';
 import {
     AlertTriangle,
     Archive,
-    ChevronDown,
     Download,
     Eye,
     Layers,
@@ -471,118 +466,62 @@ const selected = ref<Array<string | number>>([]);
     <ShopLayout :breadcrumbs="breadcrumbs" title="Inventory Management">
         <div class="space-y-6 px-6">
             <!-- Page header -->
-            <div
-                class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3"
+            <PageHeader
+                title="Inventory"
+                description="Track supplies, stock levels and reorder points."
             >
-                <div>
-                    <h2 class="text-2xl font-bold tracking-tight">Inventory</h2>
-                    <p class="mt-1 text-sm text-muted-foreground">
-                        Track supplies, stock levels and reorder points.
-                    </p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                variant="success-outline"
-                                class="h-10 gap-2"
-                            >
-                                <Download class="h-4 w-4" aria-hidden="true" />
-                                Export
-                                <ChevronDown
-                                    class="h-4 w-4 text-muted-foreground"
-                                    aria-hidden="true"
-                                />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="min-w-52">
-                            <DropdownMenuItem as-child class="min-h-9">
-                                <a :href="`${exportBase}/inventory`" download>
-                                    <Download
-                                        class="h-4 w-4"
-                                        aria-hidden="true"
-                                    />
-                                    Inventory (CSV)
-                                </a>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem as-child class="min-h-9">
-                                <a
-                                    :href="`${exportBase}/stock-movements`"
-                                    download
-                                >
-                                    <Download
-                                        class="h-4 w-4"
-                                        aria-hidden="true"
-                                    />
-                                    Stock movements (CSV)
-                                </a>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                variant="primary-outline"
-                                class="h-10 gap-2"
-                            >
-                                Manage
-                                <ChevronDown
-                                    class="h-4 w-4 text-muted-foreground"
-                                    aria-hidden="true"
-                                />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="min-w-44">
-                            <DropdownMenuItem
-                                class="min-h-9 cursor-pointer"
-                                @select="router.visit(categoryBase)"
-                            >
-                                <Layers class="h-4 w-4" aria-hidden="true" />
-                                View categories
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                v-if="hasSuppliers"
-                                class="min-h-9 cursor-pointer"
-                                @select="router.visit(supplierBase)"
-                            >
-                                <Truck class="h-4 w-4" aria-hidden="true" />
-                                Suppliers
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                v-if="
-                                    isOwner ||
-                                    can('Inventory Management', 'view')
-                                "
-                                class="min-h-9 cursor-pointer"
-                                @select="router.visit(`${base}/archive`)"
-                            >
-                                <Archive class="h-4 w-4" aria-hidden="true" />
-                                Archive
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <Button
-                        v-if="isOwner || can('Inventory Management', 'create')"
-                        variant="primary-outline"
-                        class="h-10 gap-2"
-                        @click="openCategoryDialog"
-                    >
-                        <Layers class="h-4 w-4" aria-hidden="true" />
-                        Create category
-                    </Button>
-
-                    <Button
-                        v-if="isOwner || can('Inventory Management', 'create')"
-                        class="h-10 bg-blue-600 text-white hover:bg-blue-700"
-                        @click="router.visit(`${base}/create`)"
-                    >
-                        <Plus class="mr-1.5 h-4 w-4" aria-hidden="true" />
-                        Add item
-                    </Button>
-                </div>
-            </div>
+                <ActionsMenu
+                    label="Import / export"
+                    :items="[
+                        {
+                            label: 'Export inventory (CSV)',
+                            icon: Download,
+                            href: `${exportBase}/inventory`,
+                        },
+                        {
+                            label: 'Export stock movements (CSV)',
+                            icon: Download,
+                            href: `${exportBase}/stock-movements`,
+                        },
+                        {
+                            label: 'View categories',
+                            icon: Layers,
+                            onSelect: () => router.visit(categoryBase),
+                            separator: true,
+                        },
+                        {
+                            label: 'Suppliers',
+                            icon: Truck,
+                            onSelect: () => router.visit(supplierBase),
+                            hidden: !hasSuppliers,
+                        },
+                        {
+                            label: 'Create category',
+                            icon: Layers,
+                            onSelect: openCategoryDialog,
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'create')
+                            ),
+                        },
+                        {
+                            label: 'Archived items',
+                            icon: Archive,
+                            onSelect: () => router.visit(`${base}/archive`),
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'view')
+                            ),
+                        },
+                    ]"
+                />
+                <Button
+                    v-if="isOwner || can('Inventory Management', 'create')"
+                    class="h-11"
+                    @click="router.visit(`${base}/create`)"
+                >
+                    <Plus class="mr-2 h-4 w-4" aria-hidden="true" />
+                    Add item
+                </Button>
+            </PageHeader>
 
             <!-- Stats row -->
             <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">

@@ -51,6 +51,7 @@ function counterDeliveryShop(array $pricing = []): Shop
         'billing_months' => 1, 'is_trial' => false, 'total_price' => 2239, 'status' => 'paid',
         'expires_at' => now()->addMonth(),
     ]);
+    onlineRider($shop);
 
     return $shop;
 }

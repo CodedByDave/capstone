@@ -7,7 +7,8 @@ import {
     statusLabel,
     type DataTableHeader,
 } from '@/components/data-table';
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import PriceListStatusPill, {
     type PriceListStatus,
 } from '@/components/supplier/PriceListStatusPill.vue';
@@ -20,6 +21,7 @@ import { Head, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
     Archive,
+    Download,
     Eye,
     Loader2,
     Mail,
@@ -146,6 +148,39 @@ const selected = ref<Array<string | number>>([]);
     <Head title="Suppliers" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Suppliers">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Suppliers"
+                description="Manage the suppliers you buy inventory from."
+            >
+                <ActionsMenu
+                    label="Export / archives"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/suppliers`,
+                        },
+                        {
+                            label: 'Archived suppliers',
+                            icon: Archive,
+                            onSelect: () => router.visit(`${base}/archive`),
+                            separator: true,
+                            hidden: !(
+                                isOwner ||
+                                can('Inventory Management', 'archive')
+                            ),
+                        },
+                    ]"
+                />
+                <Button
+                    v-if="isOwner || can('Inventory Management', 'create')"
+                    class="h-11"
+                    @click="router.visit(`${base}/create`)"
+                >
+                    <Plus class="mr-2 h-4 w-4" /> Add Supplier
+                </Button>
+            </PageHeader>
+
             <DataTable
                 v-model:options="options"
                 v-model:selected="selected"
@@ -170,41 +205,6 @@ const selected = ref<Array<string | number>>([]);
                         noun="suppliers"
                         @done="selected = []"
                     />
-                </template>
-
-                <template #toolbar>
-                    <div
-                        class="flex flex-wrap items-center justify-between gap-2"
-                    >
-                        <h2 class="flex items-center gap-2 font-semibold">
-                            <Truck class="h-4 w-4 text-muted-foreground" />
-                            Supplier List
-                        </h2>
-                        <div class="flex flex-wrap gap-2">
-                            <ExportCsvButton dataset="suppliers" />
-                            <Button
-                                v-if="
-                                    isOwner ||
-                                    can('Inventory Management', 'archive')
-                                "
-                                size="sm"
-                                variant="warning-outline"
-                                @click="router.visit(`${base}/archive`)"
-                            >
-                                <Archive class="mr-1.5 h-4 w-4" /> Archive
-                            </Button>
-                            <Button
-                                v-if="
-                                    isOwner ||
-                                    can('Inventory Management', 'create')
-                                "
-                                size="sm"
-                                @click="router.visit(`${base}/create`)"
-                            >
-                                <Plus class="mr-1.5 h-4 w-4" /> Add Supplier
-                            </Button>
-                        </div>
-                    </div>
                 </template>
 
                 <template #item-name="s">

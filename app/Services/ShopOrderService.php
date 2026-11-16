@@ -98,6 +98,11 @@ class ShopOrderService
     }
 
     /** @return array{min: float|null, max: float|null} The weight range a rider run can carry for this shop. */
+    public function hasAvailableRider(int $shopId): bool
+    {
+        return $this->logistics->hasAvailableRider($shopId);
+    }
+
     public function riderLoadLimitFor(int $shopId): array
     {
         return $this->riderLoad->limitsFor($this->repository->shopWithRiderLoadLimit($shopId));
@@ -401,6 +406,10 @@ class ShopOrderService
                 }
             } elseif (blank($data['estimated_weight_kg'] ?? null)) {
                 throw ValidationException::withMessages(['estimated_weight_kg' => 'Enter the estimated weight of your laundry.']);
+            }
+
+            if ($data['pickup_type'] === 'pickup' && ! $this->logistics->hasAvailableRider($shop->id)) {
+                throw ValidationException::withMessages(['pickup_type' => 'No rider is available for pickup right now. Please drop off your laundry instead.']);
             }
 
             // A rider only collects laundry within the shop's load limit; heavier or lighter loads are dropped off.
@@ -808,6 +817,12 @@ class ShopOrderService
         $pickup = ($data['pickup_type'] ?? null) === 'pickup';
         if (! $pickup && empty($data['deliver_to_customer'])) {
             return;
+        }
+
+        if (! $this->logistics->hasAvailableRider((int) $data['shop_id'])) {
+            throw ValidationException::withMessages([
+                $pickup ? 'pickup_type' : 'deliver_to_customer' => 'No rider is available right now, so pickup and delivery cannot be offered.',
+            ]);
         }
 
         $weight = $this->riderLoad->weightFromParts(

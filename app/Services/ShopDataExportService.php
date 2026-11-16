@@ -6,8 +6,10 @@ use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\Inventory;
+use App\Models\InventoryCategory;
 use App\Models\InventoryMovement;
 use App\Models\PayrollItem;
+use App\Models\Promotion;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
 use App\Models\Supplier;
@@ -24,9 +26,11 @@ class ShopDataExportService
     public const MODULES = [
         'orders' => 'Operations',
         'services' => 'Operations',
+        'promotions' => 'Operations',
         'income' => 'Finance Management',
         'expenses' => 'Finance Management',
         'inventory' => 'Inventory Management',
+        'inventory-categories' => 'Inventory Management',
         'stock-movements' => 'Inventory Management',
         'suppliers' => 'Inventory Management',
         'employees' => 'HRM',
@@ -37,9 +41,11 @@ class ShopDataExportService
     public const LABELS = [
         'orders' => 'Orders',
         'services' => 'Services & pricing',
+        'promotions' => 'Promotions',
         'income' => 'Income (payments received)',
         'expenses' => 'Expenses',
         'inventory' => 'Inventory items',
+        'inventory-categories' => 'Inventory categories',
         'stock-movements' => 'Stock movements',
         'suppliers' => 'Suppliers',
         'employees' => 'Employees',
@@ -156,6 +162,20 @@ class ShopDataExportService
                 $this->map($this->repository->inventory($shopId), fn (Inventory $i) => [
                     $i->name, $i->category?->name, $i->supplier?->name, $i->unit, $i->quantity,
                     $i->min_stock, $i->max_stock, $i->unit_price, $i->selling_price, $i->status,
+                ]),
+            ],
+            'inventory-categories' => [
+                ['Name', 'Description', 'Items', 'Archived'],
+                $this->map($this->repository->inventoryCategories($shopId), fn (InventoryCategory $c) => [
+                    $c->name, $c->description, $c->inventories_count, $c->trashed() ? 'Yes' : 'No',
+                ]),
+            ],
+            'promotions' => [
+                ['Name', 'Description', 'Type', 'Value', 'Minimum order', 'Status', 'Starts', 'Ends', 'Archived'],
+                $this->map($this->repository->promotions($shopId), fn (Promotion $p) => [
+                    $p->name, $p->description, $p->type, $p->value, $p->min_order_amount,
+                    $p->is_active ? 'Active' : 'Inactive', $p->starts_at?->toDateString(), $p->ends_at?->toDateString(),
+                    $p->trashed() ? 'Yes' : 'No',
                 ]),
             ],
             'stock-movements' => [

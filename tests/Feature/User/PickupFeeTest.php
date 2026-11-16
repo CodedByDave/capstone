@@ -39,6 +39,8 @@ function pickupFeeShop(array $overrides = []): array
     ]);
     $customer = User::factory()->create(['role' => AccountType::Customer->value]);
 
+    onlineRider($shop);
+
     return compact('shop', 'service', 'customer');
 }
 

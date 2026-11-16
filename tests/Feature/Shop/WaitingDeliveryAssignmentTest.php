@@ -137,3 +137,31 @@ test('a delivery can be manually assigned to an online rider on duty', function 
 
     expect($delivery->fresh()->rider_id)->toBe($rider->id);
 });
+
+test('an online rider who has not clocked in receives no orders until they clock in', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop, clockedIn: false);
+    $delivery = App\Models\Delivery::create([
+        'shop_id' => $shop->id, 'customer_name' => 'Maria Cruz', 'delivery_address' => 'Anabu, Imus', 'status' => 'pending',
+    ]);
+
+    app(App\Services\LogisticsService::class)->assignWaitingDeliveries($shop->id);
+    expect($delivery->fresh())->rider_id->toBeNull()->status->toBe('pending')
+        ->and(app(App\Services\LogisticsService::class)->hasAvailableRider($shop->id))->toBeFalse();
+
+    App\Models\Attendance::create([
+        'employee_id' => $rider->employee_id, 'shop_id' => $shop->id, 'marked_by' => $rider->employee->user_id,
+        'date' => today()->toDateString(), 'status' => 'present', 'time_in' => '08:00:00',
+    ]);
+
+    app(App\Services\LogisticsService::class)->assignWaitingDeliveries($shop->id);
+    expect($delivery->fresh())->rider_id->toBe($rider->id)->status->toBe('assigned');
+});
+
+test('a rider who has clocked out receives no more orders', function () {
+    $shop = driverShop();
+    $rider = onlineRider($shop);
+    App\Models\Attendance::where('employee_id', $rider->employee_id)->update(['time_out' => '17:00:00']);
+
+    expect(app(App\Services\LogisticsService::class)->hasAvailableRider($shop->id))->toBeFalse();
+});

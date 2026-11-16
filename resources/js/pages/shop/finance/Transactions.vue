@@ -6,6 +6,8 @@ import {
     type DataTableHeader,
 } from '@/components/data-table';
 import { useDataTable } from '@/composables/useDataTable';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -18,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import {
     ArrowUpDown,
     DollarSign,
+    Download,
     TrendingDown,
     TrendingUp,
 } from 'lucide-vue-next';
@@ -154,33 +157,39 @@ function formatDate(val: string): string {
     <ShopLayout :breadcrumbs="breadcrumbs" title="Finance">
         <div class="space-y-6 px-6">
             <!-- ── Header ──────────────────────────────────────── -->
-            <div
-                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            <PageHeader
+                title="Transactions"
+                description="Combined ledger of income and expenses for the selected period."
             >
-                <div>
-                    <h2 class="text-lg font-semibold">Transactions</h2>
-                    <p class="text-sm text-muted-foreground">
-                        Combined ledger of income and expenses for the selected
-                        period.
-                    </p>
-                </div>
-                <div class="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="router.visit(`${base}/finance/income`)"
-                    >
-                        Income
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="router.visit(`${base}/finance/expenses`)"
-                    >
-                        Expenses
-                    </Button>
-                </div>
-            </div>
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export income (CSV)',
+                            icon: Download,
+                            href: `${base}/export/income`,
+                        },
+                        {
+                            label: 'Export expenses (CSV)',
+                            icon: Download,
+                            href: `${base}/export/expenses`,
+                        },
+                    ]"
+                />
+                <Button
+                    variant="outline"
+                    class="h-11"
+                    @click="router.visit(`${base}/finance/income`)"
+                >
+                    Income
+                </Button>
+                <Button
+                    variant="outline"
+                    class="h-11"
+                    @click="router.visit(`${base}/finance/expenses`)"
+                >
+                    Expenses
+                </Button>
+            </PageHeader>
 
             <!-- ── Summary Cards ───────────────────────────────── -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">

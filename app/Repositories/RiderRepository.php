@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Delivery;
 use App\Models\Rider;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class RiderRepository extends Repository
@@ -28,7 +29,7 @@ class RiderRepository extends Repository
                 // Why the rider cannot take a run right now, so staff are not told "on delivery" for an offline driver.
                 $reason = match (true) {
                     in_array($rider->id, $busy, true) => 'On delivery',
-                    ! in_array($rider->id, $onDuty, true) => 'No shift today',
+                    ! in_array($rider->id, $onDuty, true) => 'Not clocked in',
                     ! $rider->is_online => 'Offline',
                     default => null,
                 };
@@ -38,11 +39,23 @@ class RiderRepository extends Repository
             });
     }
 
-    /** @return list<int> ids of the shop's riders whose employee has a shift scheduled today */
+    /**
+     * Narrows a rider query to those who are clocked in right now: a time-in on today's record (or
+     * yesterday's, for an overnight shift) and no time-out yet. A rider who has not clocked in, or
+     * was marked absent for being outside the allowed area, receives no orders.
+     */
+    private function whereClockedIn(Builder $query): Builder
+    {
+        return $query->whereHas('employee.attendances', fn ($attendance) => $attendance
+            ->whereIn('date', [now()->toDateString(), now()->subDay()->toDateString()])
+            ->whereNotNull('time_in')
+            ->whereNull('time_out'));
+    }
+
+    /** @return list<int> ids of the shop's riders scheduled to work today who have clocked in */
     public function onDutyIdsForShop(int $shopId): array
     {
-        return Rider::query()
-            ->where('shop_id', $shopId)
+        return $this->whereClockedIn(Rider::query()->where('shop_id', $shopId))
             ->whereHas('employee.schedules', fn ($query) => $query->where('day', now()->format('l')))
             ->pluck('id')
             ->all();
@@ -79,7 +92,7 @@ class RiderRepository extends Repository
     /** @param  list<int>  $excluding  riders who must not get this run, such as ones who turned it down */
     public function findAvailableForShop(int $shopId, array $excluding = []): ?Rider
     {
-        return Rider::query()
+        return $this->whereClockedIn(Rider::query())
             ->where('shop_id', $shopId)
             ->whereNotIn('id', $excluding)
             ->active()
@@ -92,6 +105,22 @@ class RiderRepository extends Repository
             ->orderBy('id')
             ->lockForUpdate()
             ->first();
+    }
+
+    /**
+     * Whether the shop has any rider who could take a run: active, online and scheduled to work
+     * today. A rider who is on a run counts, since they free up; only a shop with nobody on duty
+     * has no rider available.
+     */
+    public function hasAvailableForShop(int $shopId): bool
+    {
+        return $this->whereClockedIn(Rider::query())
+            ->where('shop_id', $shopId)
+            ->active()
+            ->whereNotNull('employee_id')
+            ->where('is_online', true)
+            ->whereHas('employee.schedules', fn ($query) => $query->where('day', now()->format('l')))
+            ->exists();
     }
 
     public function findByEmployeeId(int $employeeId): ?Rider

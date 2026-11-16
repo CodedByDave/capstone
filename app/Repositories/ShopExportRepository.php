@@ -6,8 +6,10 @@ use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\Inventory;
+use App\Models\InventoryCategory;
 use App\Models\InventoryMovement;
 use App\Models\PayrollItem;
+use App\Models\Promotion;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
 use App\Models\Supplier;
@@ -51,6 +53,23 @@ class ShopExportRepository
         return Inventory::query()
             ->forShop($shopId)
             ->with('category:id,name', 'supplier:id,name')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function inventoryCategories(int $shopId): LazyCollection
+    {
+        return InventoryCategory::query()
+            ->withTrashed()
+            ->where('shop_id', $shopId)
+            ->withCount('inventories')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function promotions(int $shopId): LazyCollection
+    {
+        return Promotion::query()
+            ->withTrashed()
+            ->where('shop_id', $shopId)
             ->lazyById(self::CHUNK);
     }
 

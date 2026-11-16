@@ -11,6 +11,7 @@ use App\Models\ShopOrder;
 use App\Services\CustomerAddressService;
 use App\Services\CustomerAgreementService;
 use App\Services\CustomerShopCatalogService;
+use App\Services\LogisticsService;
 use App\Services\OrderRatingService;
 use App\Services\PromotionService;
 use App\Services\RiderLoadLimitService;
@@ -27,6 +28,7 @@ class UserDashboardController extends Controller
         private readonly OrderRatingService $ratings,
         private readonly PromotionService $promotions,
         private readonly RiderLoadLimitService $riderLoad,
+        private readonly LogisticsService $logistics,
     ) {}
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
@@ -135,7 +137,8 @@ class UserDashboardController extends Controller
                 'cover_photo' => $this->coverUrl($shop->cover_photo),
                 'payment_options' => $this->catalog->paymentOptions($shop),
                 'distance_km' => $distance,
-                'offers_pickup' => (bool) $shop->offers_pickup,
+                // Pickup is hidden while no rider is online and on duty.
+                'offers_pickup' => (bool) $shop->offers_pickup && $this->logistics->hasAvailableRider($shop->id),
                 'offers_delivery' => $shop->canDeliver(),
                 // The weight range a rider collects, so the form can explain it before the order is sent.
                 'rider_load_limit' => $this->riderLoad->limitsFor($shop),
@@ -144,6 +147,7 @@ class UserDashboardController extends Controller
                 'opens_at' => $shop->opens_at ? substr($shop->opens_at, 0, 5) : null,
                 'closes_at' => $shop->closes_at ? substr($shop->closes_at, 0, 5) : null,
                 'operating_days' => $shop->openDays(),
+                'daily_hours' => $shop->dailyHoursMap(),
                 'rating_avg' => $rating['average'] ?? null,
                 'rating_count' => $rating['count'] ?? 0,
             ],

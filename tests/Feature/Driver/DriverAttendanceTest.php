@@ -23,7 +23,7 @@ function atShop(array $overrides = []): array
 }
 
 test('the home page shows today\'s shift and lets a scheduled driver clock in', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
 
     $this->actingAs($rider->employee->user)->get('/driver')
@@ -36,7 +36,7 @@ test('the home page shows today\'s shift and lets a scheduled driver clock in', 
 });
 
 test('a scheduled driver at the shop clocks in as present, then out', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
     $user = $rider->employee->user;
 
@@ -54,7 +54,7 @@ test('a scheduled driver at the shop clocks in as present, then out', function (
 });
 
 test('a driver cannot clock in on a day that is not in their schedule', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider, now()->addDay()->format('l'));
 
     $this->actingAs($rider->employee->user)->post('/driver/attendance/clock-in', atShop())
@@ -70,7 +70,7 @@ test('a driver cannot clock in on a day that is not in their schedule', function
 });
 
 test('a driver with no schedule at all cannot clock in', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
 
     $this->actingAs($rider->employee->user)->post('/driver/attendance/clock-in', atShop())
         ->assertSessionHas('toast.type', 'error');
@@ -82,7 +82,7 @@ test('a driver with no schedule at all cannot clock in', function () {
 });
 
 test('clocking in without a location is refused and nothing is saved', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
 
     $this->actingAs($rider->employee->user)->post('/driver/attendance/clock-in', [])
@@ -95,7 +95,7 @@ test('clocking in without a location is refused and nothing is saved', function 
 });
 
 test('a location outside the world is refused', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
 
     $this->actingAs($rider->employee->user)
@@ -104,7 +104,7 @@ test('a location outside the world is refused', function () {
 });
 
 test('a driver far from the shop is marked absent like other staff', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
 
     $this->actingAs($rider->employee->user)
@@ -116,7 +116,7 @@ test('a driver far from the shop is marked absent like other staff', function ()
 });
 
 test('a driver cannot clock in twice on the same day', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
     $user = $rider->employee->user;
 
@@ -128,7 +128,7 @@ test('a driver cannot clock in twice on the same day', function () {
 });
 
 test('a driver cannot clock out before clocking in or twice', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
     $user = $rider->employee->user;
 
@@ -142,7 +142,7 @@ test('a driver cannot clock out before clocking in or twice', function () {
 });
 
 test('clocking out does not need a location', function () {
-    $rider = onlineRider(driverShop(), scheduled: false);
+    $rider = onlineRider(driverShop(), scheduled: false, clockedIn: false);
     scheduleFor($rider);
     $user = $rider->employee->user;
 
@@ -153,8 +153,8 @@ test('clocking out does not need a location', function () {
 
 test('a driver only ever clocks in as themselves, never as another driver', function () {
     $shop = driverShop();
-    $mine = onlineRider($shop, 'Mine');
-    $other = onlineRider($shop, 'Other');
+    $mine = onlineRider($shop, 'Mine', clockedIn: false);
+    $other = onlineRider($shop, 'Other', clockedIn: false);
     scheduleFor($mine);
     scheduleFor($other);
 
@@ -177,8 +177,8 @@ test('someone who is not a driver cannot use the driver attendance routes', func
 
 test('the profile lists the driver\'s own attendance for the last 14 days only', function () {
     $shop = driverShop();
-    $rider = onlineRider($shop, 'Mine');
-    $other = onlineRider($shop, 'Other');
+    $rider = onlineRider($shop, 'Mine', clockedIn: false);
+    $other = onlineRider($shop, 'Other', clockedIn: false);
 
     Attendance::create(['employee_id' => $rider->employee_id, 'shop_id' => $shop->id, 'marked_by' => $rider->employee->user_id, 'date' => now()->subDay()->toDateString(), 'status' => 'present', 'time_in' => '08:01:00', 'time_out' => '17:00:00']);
     Attendance::create(['employee_id' => $rider->employee_id, 'shop_id' => $shop->id, 'marked_by' => $rider->employee->user_id, 'date' => now()->subDays(30)->toDateString(), 'status' => 'present', 'time_in' => '08:00:00']);

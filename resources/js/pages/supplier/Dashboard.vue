@@ -777,7 +777,7 @@ function formatDate(value: string | null) {
                         taken straight on, with the whole list in frame.
                     </p>
                     <div v-else class="overflow-x-auto rounded-lg border">
-                        <table class="w-full min-w-[340px] text-sm">
+                        <table class="w-full text-sm">
                             <caption class="sr-only">
                                 Price list check per supply
                             </caption>
@@ -900,7 +900,7 @@ function formatDate(value: string | null) {
 
                 <form @submit.prevent="saveImport">
                     <div class="overflow-x-auto rounded-lg border">
-                        <table class="w-full min-w-[680px] text-sm">
+                        <table class="w-full text-sm">
                             <caption class="sr-only">
                                 Supplies to import
                             </caption>

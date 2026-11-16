@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LocationPin from '@/components/map/LocationPin.vue';
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -34,6 +35,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Clock,
+    Download,
     Loader2,
     MapPin,
     Pencil,
@@ -446,33 +448,32 @@ function saveModal() {
     <ShopLayout :breadcrumbs="breadcrumbs" title="Attendance">
         <div class="space-y-6 px-6">
             <!-- ── Header ──────────────────────────────────────────── -->
-            <div
-                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            <PageHeader
+                title="Daily Attendance"
+                :description="
+                    props.can_edit
+                        ? 'Click the edit icon on any row to mark or update attendance.'
+                        : 'View clock-in and clock-out records for all employees.'
+                "
             >
-                <div>
-                    <h2 class="text-lg font-semibold">Daily Attendance</h2>
-                    <p class="text-sm text-muted-foreground">
-                        <template v-if="props.can_edit">
-                            Click the edit icon on any row to mark or update
-                            attendance.
-                        </template>
-                        <template v-else>
-                            View clock-in and clock-out records for all
-                            employees.
-                        </template>
-                    </p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <ExportCsvButton dataset="attendance" />
-                    <span
-                        v-if="!props.can_edit"
-                        class="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700"
-                    >
-                        <AlertCircle class="h-3.5 w-3.5" />
-                        View only — editing is restricted to the owner
-                    </span>
-                </div>
-            </div>
+                <span
+                    v-if="!props.can_edit"
+                    class="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700"
+                >
+                    <AlertCircle class="h-3.5 w-3.5" />
+                    View only — editing is restricted to the owner
+                </span>
+                <ActionsMenu
+                    label="Import / export"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/attendance`,
+                        },
+                    ]"
+                />
+            </PageHeader>
 
             <!-- ── Stats Cards ─────────────────────────────────────── -->
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">

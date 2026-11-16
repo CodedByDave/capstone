@@ -8,6 +8,8 @@ import {
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
@@ -277,13 +279,33 @@ const categoryClass = (value: string) =>
     <Head title="Issue Reports" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="Issue Reports">
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
-            <div class="px-1">
-                <h2 class="text-2xl font-bold tracking-tight">Issue Reports</h2>
-                <p class="mt-1 text-sm text-muted-foreground">
-                    Review user-reported bugs, account concerns, and platform
-                    feedback.
-                </p>
-            </div>
+            <PageHeader
+                title="Issue Reports"
+                description="Review user-reported bugs, account concerns, and platform feedback."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            onSelect: exportCsv,
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: () => importInput?.click(),
+                            disabled: importing,
+                        },
+                    ]"
+                />
+                <input
+                    ref="importInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="importCsv"
+                />
+            </PageHeader>
 
             <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
                 <Card v-for="item in statCards" :key="item.label">
@@ -361,30 +383,6 @@ const categoryClass = (value: string) =>
                                     class="mr-1.5 h-4 w-4"
                                 />Reset</Button
                             >
-                            <Button
-                                size="sm"
-                                variant="success-outline"
-                                @click="exportCsv"
-                            >
-                                <Download class="mr-1.5 h-4 w-4" />Export CSV
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="primary-outline"
-                                :disabled="importing"
-                                @click="importInput?.click()"
-                            >
-                                <Upload class="mr-1.5 h-4 w-4" />{{
-                                    importing ? 'Importing...' : 'Import CSV'
-                                }}
-                            </Button>
-                            <input
-                                ref="importInput"
-                                type="file"
-                                accept=".csv,text/csv"
-                                class="hidden"
-                                @change="importCsv"
-                            />
                         </template>
                     </DataTableToolbar>
                 </template>

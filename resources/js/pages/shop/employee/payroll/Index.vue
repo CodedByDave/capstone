@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -36,6 +38,7 @@ import {
     Banknote,
     CheckCircle2,
     Clock,
+    Download,
     Eye,
     FileText,
     Loader2,
@@ -302,38 +305,47 @@ const headers: DataTableHeader[] = [
     >
         <div class="space-y-6 px-6">
             <!-- ── Header ──────────────────────────────────────── -->
-            <div
-                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            <PageHeader
+                title="Payroll Management"
+                description="Generate and manage employee payroll based on attendance records."
             >
-                <div>
-                    <h2 class="text-lg font-semibold">Payroll Management</h2>
-                    <p class="text-sm text-muted-foreground">
-                        Generate and manage employee payroll based on attendance
-                        records.
-                    </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <Button
-                        v-if="canArchive"
-                        :variant="showArchived ? 'back' : 'warning-outline'"
-                        @click="toggleArchived"
-                    >
-                        <Archive class="mr-2 h-4 w-4" />
-                        {{ showArchived ? 'Back to Active' : 'View Archives' }}
-                    </Button>
-                    <Button
-                        v-if="!showArchived && hasPermission('HRM', 'update')"
-                        variant="primary-outline"
-                        @click="openSettings"
-                    >
-                        <Settings2 class="mr-2 h-4 w-4" /> Settings
-                    </Button>
-                    <Button v-if="!showArchived" @click="openGenerate">
-                        <Plus class="mr-2 h-4 w-4" />
-                        Generate Payroll
-                    </Button>
-                </div>
-            </div>
+                <Button
+                    v-if="showArchived && canArchive"
+                    variant="back"
+                    class="h-11"
+                    @click="toggleArchived"
+                >
+                    <Archive class="mr-2 h-4 w-4" />
+                    Back to Active
+                </Button>
+                <ActionsMenu
+                    v-if="!showArchived"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${baseRoute}/export/payroll`,
+                        },
+                        {
+                            label: 'Payroll settings',
+                            icon: Settings2,
+                            onSelect: openSettings,
+                            hidden: !hasPermission('HRM', 'update'),
+                        },
+                        {
+                            label: 'Archived payrolls',
+                            icon: Archive,
+                            onSelect: toggleArchived,
+                            separator: true,
+                            hidden: !canArchive,
+                        },
+                    ]"
+                />
+                <Button v-if="!showArchived" class="h-11" @click="openGenerate">
+                    <Plus class="mr-2 h-4 w-4" />
+                    Generate Payroll
+                </Button>
+            </PageHeader>
 
             <!-- ── Stats ───────────────────────────────────────── -->
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">

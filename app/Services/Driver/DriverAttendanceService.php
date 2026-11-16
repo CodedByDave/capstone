@@ -8,6 +8,7 @@ use App\Models\Rider;
 use App\Repositories\AttendanceRepository;
 use App\Repositories\ScheduleRepository;
 use App\Services\AttendanceService;
+use App\Services\LogisticsService;
 
 /**
  * A driver clocks in and out like any other staff member: only on a day in their weekly
@@ -22,6 +23,7 @@ class DriverAttendanceService
         private readonly AttendanceService $attendance,
         private readonly ScheduleRepository $schedules,
         private readonly AttendanceRepository $records,
+        private readonly LogisticsService $logistics,
     ) {}
 
     /** What the attendance card shows today, including why the buttons may be disabled. */
@@ -90,7 +92,14 @@ class DriverAttendanceService
             throw new DriverAttendanceException('You have already clocked in today.');
         }
 
-        return $this->attendance->selfClockIn($employee, $rider->shop, $lat, $lng);
+        $record = $this->attendance->selfClockIn($employee, $rider->shop, $lat, $lng);
+
+        // Now clocked in, the rider may take an order that was waiting for a driver.
+        if ($record->time_in !== null) {
+            $this->logistics->assignWaitingDeliveries($rider->shop_id);
+        }
+
+        return $record;
     }
 
     /**

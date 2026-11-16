@@ -54,6 +54,7 @@ use App\Http\Controllers\Shop\ReportsController;
 use App\Http\Controllers\Shop\ShopDashboardController;
 use App\Http\Controllers\Shop\ShopDataController;
 use App\Http\Controllers\Shop\ShopDataExportController;
+use App\Http\Controllers\Shop\ShopDataImportController;
 use App\Http\Controllers\Shop\ShopNotificationController;
 use App\Http\Controllers\Shop\ShopSettingsController;
 use App\Http\Controllers\Shop\ShopSetupController;
@@ -76,6 +77,7 @@ use App\Http\Controllers\User\UserOrderRatingController;
 use App\Http\Controllers\User\UserOrderWeightController;
 use App\Http\Controllers\User\UserPaymentController;
 use App\Http\Controllers\User\UserProductOrderController;
+use App\Services\ShopCsvImportService;
 use App\Services\ShopDataExportService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -191,6 +193,7 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->gr
 
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
     Route::get('/shop/export', [ShopController::class, 'exportCsv'])->name('shop.export');
+    Route::post('/shop/import', [ShopController::class, 'importCsv'])->name('shop.import');
     Route::post('/shop/bulk-action', [ShopController::class, 'bulkAction'])->name('shop.bulk-action');
     Route::post('/shop/archive/{publicId}/restore', [ShopController::class, 'restore'])->name('shop.restore');
     Route::get('/shop/{shop:public_id}', [ShopController::class, 'show'])->name('shop.show');
@@ -513,6 +516,13 @@ Route::prefix('shop')->middleware([
         ->whereIn('dataset', ShopDataExportService::datasets())
         ->middleware('throttle:20,1')
         ->name('shop.data-export.show');
+    Route::get('/import/{dataset}/template', [ShopDataImportController::class, 'template'])
+        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->name('shop.data-import.template');
+    Route::post('/import/{dataset}', [ShopDataImportController::class, 'store'])
+        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->middleware('throttle:10,1')
+        ->name('shop.data-import.store');
 
     // ── Finance ───────────────────────────────────────────────────────────────
     Route::get('/finance', [FinanceDashboardController::class, 'index'])->name('finance.dashboard');
@@ -870,6 +880,14 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         ->middleware(['export.dataset', 'throttle:20,1'])
         ->whereIn('dataset', ShopDataExportService::datasets())
         ->name('staff.data-export.show');
+    Route::get('/import/{dataset}/template', [ShopDataImportController::class, 'template'])
+        ->middleware('import.dataset')
+        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->name('staff.data-import.template');
+    Route::post('/import/{dataset}', [ShopDataImportController::class, 'store'])
+        ->middleware(['import.dataset', 'throttle:10,1'])
+        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->name('staff.data-import.store');
 
     // ── Finance ───────────────────────────────────────────────────────────────
     Route::middleware('permission:Finance Management,view')->group(function () {

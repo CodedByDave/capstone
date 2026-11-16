@@ -46,7 +46,7 @@ function riderShop(): Shop
     return driverShop(['rider_vehicle_types' => ['Motorcycle', 'Tricycle'], 'rider_vehicle_type' => 'Motorcycle']);
 }
 
-test('creating a rider saves the vehicle, plate number and an encrypted license photo', function () {
+test('creating a rider saves the vehicle and an encrypted license photo, without a plate number', function () {
     $shop = riderShop();
 
     $this->actingAs($shop->owner)
@@ -58,7 +58,7 @@ test('creating a rider saves the vehicle, plate number and an encrypted license 
 
     expect($rider->vehicle_type)->toBe('Tricycle')
         ->and($rider->vehicle_ownership)->toBe(Rider::VEHICLE_OWN)
-        ->and($rider->plate_number)->toBe('ABC 1234')
+        ->and($rider->plate_number)->toBeNull()
         ->and($rider->license_photo_path)->toStartWith("rider-licenses/{$shop->id}/")
         ->and($rider->license_photo_path)->toEndWith('.enc')
         ->and($rider->toArray())->not->toHaveKey('license_photo_path');
@@ -68,7 +68,7 @@ test('creating a rider saves the vehicle, plate number and an encrypted license 
     expect(str_starts_with($stored, "\xFF\xD8"))->toBeFalse();
 });
 
-test('a rider on their own vehicle needs a vehicle from the shop list, a plate number and a license photo', function () {
+test('a rider on their own vehicle needs a vehicle from the shop list and a license photo', function () {
     $shop = riderShop();
 
     $this->actingAs($shop->owner)
@@ -77,7 +77,7 @@ test('a rider on their own vehicle needs a vehicle from the shop list, a plate n
             'plate_number' => '',
             'license_photo' => null,
         ]))
-        ->assertSessionHasErrors(['vehicle_type', 'plate_number', 'license_photo']);
+        ->assertSessionHasErrors(['vehicle_type', 'license_photo']);
 
     expect(Employee::where('shop_id', $shop->id)->exists())->toBeFalse();
 });
@@ -248,6 +248,6 @@ test('the edit form shows the saved vehicle choice', function () {
     $this->get("/shop/employee/{$employee->public_id}/edit")
         ->assertInertia(fn ($page) => $page
             ->where('rider.vehicle_ownership', 'own')
-            ->where('rider.plate_number', 'ABC 1234')
+            ->where('rider.plate_number', null)
             ->where('rider.has_license', true));
 });

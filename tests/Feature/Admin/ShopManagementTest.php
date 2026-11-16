@@ -293,3 +293,75 @@ test('archived shops, users and logs can no longer be permanently deleted', func
     expect(Shop::onlyTrashed()->find($shop->id))->not->toBeNull()
         ->and(User::onlyTrashed()->find($user->id))->not->toBeNull();
 });
+
+function shopCsv(array $rows, array $header = ['shop_name', 'owner_email', 'phone', 'status', 'barangay', 'dti_expiry_date']): Illuminate\Http\UploadedFile
+{
+    $lines = [implode(',', $header)];
+    foreach ($rows as $row) {
+        $lines[] = implode(',', $row);
+    }
+
+    return Illuminate\Http\UploadedFile::fake()->createWithContent('shops.csv', implode("\n", $lines));
+}
+
+test('a shop csv updates the matching shops and leaves blank cells alone', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $shop = createManagedShop(['shop_name' => 'Import Me']);
+    $same = createManagedShop(['shop_name' => 'Unchanged Shop']);
+    $phoneBefore = $shop->fresh()->phone;
+
+    $this->actingAs($admin)
+        ->post(route('shop.import'), ['file' => shopCsv([
+            ['import me', strtoupper($shop->owner->email), '', 'Disabled', 'New Barangay', '2031-05-01'],
+            ['Unchanged Shop', $same->owner->email, '', '', '', ''],
+        ])])
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('toast.message', 'CSV import complete: 1 updated, 1 unchanged.');
+
+    $shop->refresh();
+    expect($shop->status)->toBe('disabled')
+        ->and($shop->barangay)->toBe('New Barangay')
+        ->and($shop->phone)->toBe($phoneBefore)
+        ->and($shop->dti_expiry_date->toDateString())->toBe('2031-05-01');
+    expect(ActivityLog::where('action', 'imported_update')->where('subject_id', $shop->id)->exists())->toBeTrue();
+});
+
+test('a shop csv never creates shops and one bad row changes nothing', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $shop = createManagedShop(['shop_name' => 'Safe Shop']);
+
+    $this->actingAs($admin)
+        ->post(route('shop.import'), ['file' => shopCsv([
+            ['Safe Shop', $shop->owner->email, '', 'disabled', '', ''],
+            ['Ghost Shop', 'nobody@example.com', '', 'active', '', ''],
+        ])])
+        ->assertSessionHasErrors('file');
+
+    expect($shop->fresh()->status)->toBe('active')
+        ->and(Shop::where('shop_name', 'Ghost Shop')->exists())->toBeFalse();
+});
+
+test('a shop csv is validated like the edit form', function () {
+    $admin = User::factory()->create(['role' => AccountType::SuperAdmin->value]);
+    $shop = createManagedShop(['shop_name' => 'Valid Shop']);
+
+    $this->actingAs($admin)
+        ->post(route('shop.import'), ['file' => shopCsv([['Valid Shop', $shop->owner->email, '', 'banned', '', '']])])
+        ->assertSessionHasErrors(['file' => 'Row 2: The selected status is invalid.']);
+
+    $this->actingAs($admin)
+        ->post(route('shop.import'), ['file' => shopCsv([['Valid Shop']], ['shop_name'])])
+        ->assertSessionHasErrors(['file' => 'Missing required columns: owner_email.']);
+});
+
+test('only a super admin can import shops', function () {
+    $owner = User::factory()->create(['role' => AccountType::ShopOwner->value]);
+
+    $shop = createManagedShop(['shop_name' => 'Guarded Shop']);
+
+    $this->actingAs($owner)
+        ->post(route('shop.import'), ['file' => shopCsv([['Guarded Shop', $shop->owner->email, '', 'disabled', '', '']])])
+        ->assertRedirect();
+
+    expect($shop->fresh()->status)->toBe('active');
+});

@@ -32,7 +32,23 @@ class UpdateOperatingHoursRequest extends FormRequest
             'is_open_24_7' => ['required', 'boolean'],
             'opens_at' => ['nullable', 'required_if:is_open_24_7,false', 'date_format:H:i'],
             'closes_at' => ['nullable', 'required_if:is_open_24_7,false', 'date_format:H:i', 'different:opens_at'],
+            'daily_hours' => ['sometimes', 'nullable', 'array'],
+            'daily_hours.*.opens_at' => ['required_with:daily_hours', 'date_format:H:i'],
+            'daily_hours.*.closes_at' => ['required_with:daily_hours', 'date_format:H:i'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            foreach ((array) $this->input('daily_hours', []) as $day => $hours) {
+                if (! in_array((int) $day, range(0, 6), true)) {
+                    $validator->errors()->add("daily_hours.$day", 'Invalid day.');
+                } elseif (($hours['opens_at'] ?? null) !== null && ($hours['opens_at'] ?? null) === ($hours['closes_at'] ?? null)) {
+                    $validator->errors()->add("daily_hours.$day.closes_at", 'Opening and closing time cannot be the same. Choose 24/7 instead.');
+                }
+            }
+        });
     }
 
     public function messages(): array

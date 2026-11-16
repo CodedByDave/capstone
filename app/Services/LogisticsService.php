@@ -206,6 +206,12 @@ class LogisticsService
         return (bool) $this->shops->findShopById($shopId)?->canDeliver();
     }
 
+    /** Whether any rider is online and on duty, so pickup and delivery can be offered. */
+    public function hasAvailableRider(int $shopId): bool
+    {
+        return $this->riders->hasAvailableForShop($shopId);
+    }
+
     /** What the order page needs to offer the "Send for delivery" button. */
     public function deliveryOptionFor(ShopOrder $order): array
     {

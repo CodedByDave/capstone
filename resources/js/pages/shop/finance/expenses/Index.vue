@@ -6,7 +6,9 @@ import {
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -43,11 +45,13 @@ import {
 } from '@/components/ui/select';
 import {
     Archive,
+    Download,
     Loader2,
     Pencil,
     Plus,
     Tag,
     Trash2,
+    Upload,
     TrendingDown,
 } from 'lucide-vue-next';
 
@@ -106,6 +110,13 @@ const props = defineProps<{
 
 const { isOwner, can } = usePermissions();
 const base = computed(() => (isOwner.value ? '/shop' : '/staff'));
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => `${base.value}/import/expenses`);
 
 // ─── Flash toast ──────────────────────────────────────────────────────────────
 
@@ -380,38 +391,61 @@ const selected = ref<Array<string | number>>([]);
     <ShopLayout :breadcrumbs="breadcrumbs" title="Finance">
         <div class="space-y-6 px-6">
             <!-- ── Header ──────────────────────────────────────── -->
-            <div
-                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            <PageHeader
+                title="Expense Management"
+                description="Track and manage all operational expenses for your shop."
             >
-                <div>
-                    <h2 class="text-lg font-semibold">Expense Management</h2>
-                    <p class="text-sm text-muted-foreground">
-                        Track and manage all operational expenses for your shop.
-                    </p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <ExportCsvButton dataset="expenses" />
-                    <Button variant="outline" size="sm" @click="openCategories">
-                        <Tag class="mr-2 h-4 w-4" /> Categories
-                    </Button>
-                    <Button
-                        v-if="can('Finance Management', 'archive') || isOwner"
-                        variant="warning-outline"
-                        size="sm"
-                        @click="
-                            router.visit(`${base}/finance/expenses/archive`)
-                        "
-                    >
-                        <Archive class="mr-2 h-4 w-4" /> Archive
-                    </Button>
-                    <Button
-                        v-if="can('Finance Management', 'create') || isOwner"
-                        @click="openCreate"
-                    >
-                        <Plus class="mr-2 h-4 w-4" /> Add Expense
-                    </Button>
-                </div>
-            </div>
+                <ActionsMenu
+                    label="Import / export"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/expenses`,
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !(
+                                can('Finance Management', 'create') || isOwner
+                            ),
+                        },
+                        {
+                            label: 'Categories',
+                            icon: Tag,
+                            onSelect: openCategories,
+                        },
+                        {
+                            label: 'Archived expenses',
+                            icon: Archive,
+                            onSelect: () =>
+                                router.visit(
+                                    `${base}/finance/expenses/archive`,
+                                ),
+                            separator: true,
+                            hidden: !(
+                                can('Finance Management', 'archive') || isOwner
+                            ),
+                        },
+                    ]"
+                />
+                <Button
+                    v-if="can('Finance Management', 'create') || isOwner"
+                    class="h-11"
+                    @click="openCreate"
+                >
+                    <Plus class="mr-2 h-4 w-4" /> Add Expense
+                </Button>
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
+            </PageHeader>
 
             <!-- ── Stats ───────────────────────────────────────── -->
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">

@@ -259,7 +259,7 @@ async function deleteRole(role: Role) {
 
             <div class="overflow-hidden rounded-xl border bg-card shadow-sm">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[900px] text-sm">
+                    <table class="w-full text-sm">
                         <thead class="border-b bg-muted/40">
                             <tr>
                                 <th

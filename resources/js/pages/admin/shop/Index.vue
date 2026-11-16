@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import {
+    IdentityCell,
+    StatusPill,
+    type StatusTone,
+} from '@/components/data-table';
+import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -10,7 +15,13 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
@@ -22,6 +33,7 @@ import {
     ArrowDown,
     ArrowUp,
     ArrowUpDown,
+    ChevronDown,
     Download,
     Eye,
     Pencil,
@@ -30,7 +42,9 @@ import {
     Search,
     ShieldCheck,
     ShieldOff,
+    Store,
     Trash2,
+    Upload,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import Vue3EasyDataTable, {
@@ -116,30 +130,22 @@ const confirmDialog = ref(false);
 const confirmTarget = ref<ShopItem | null>(null);
 const confirmAction = ref<'archive' | 'restore'>('archive');
 
-type ShopSortColumn =
-    | 'shop_name'
-    | 'owner'
-    | 'health_status'
-    | 'compliance_status'
-    | 'subscription'
-    | 'last_activity_at'
-    | 'status';
+type ShopSortColumn = 'shop_name' | 'owner' | 'subscription' | 'status';
 
+// Only what is needed to scan the list. Health, compliance, permits and last
+// activity live on the shop's View and Edit pages.
 const headers: Header[] = [
     { text: '', value: 'selection', width: 48 },
-    { text: 'Shop', value: 'shop_name', width: 210 },
-    { text: 'Owner', value: 'owner', width: 205 },
-    { text: 'Health', value: 'health_status', width: 145 },
-    { text: 'Compliance', value: 'compliance_status', width: 165 },
-    { text: 'Subscription', value: 'subscription', width: 190 },
-    {
-        text: 'Last activity',
-        value: 'last_activity_at',
-        width: 160,
-    },
-    { text: 'Status', value: 'status', width: 145 },
-    { text: 'Actions', value: 'actions', width: 180 },
+    { text: 'Shop', value: 'shop_name', width: 260 },
+    { text: 'Owner', value: 'owner', width: 240 },
+    { text: 'Subscription', value: 'subscription', width: 200 },
+    { text: 'Status', value: 'status', width: 150 },
+    { text: 'Actions', value: 'actions', width: 190 },
 ];
+
+const sortableColumns = headers.filter((header) =>
+    ['shop_name', 'owner', 'subscription', 'status'].includes(header.value),
+) as { text: string; value: ShopSortColumn }[];
 
 const serverOptions = ref<ServerOptions>({
     page: props.shops.current_page,
@@ -186,6 +192,24 @@ const statCards = computed(() => [
     { label: 'Compliance issues', value: props.stats.compliance_issues },
     { label: 'Needs attention', value: props.stats.needs_attention },
 ]);
+
+const statusOptions = computed(() => [
+    { value: '', label: 'All', count: props.stats.total },
+    { value: 'active', label: 'Active', count: props.stats.active },
+    { value: 'pending', label: 'Pending', count: props.stats.pending },
+    { value: 'disabled', label: 'Disabled', count: props.stats.disabled },
+]);
+
+const statusTone: Record<string, StatusTone> = {
+    active: 'success',
+    pending: 'warning',
+    disabled: 'neutral',
+};
+
+function setStatus(value: string) {
+    status.value = value;
+    filterTable();
+}
 
 const secondaryStats = computed(() => [
     { label: 'Registered today', value: props.stats.today },
@@ -296,6 +320,45 @@ function exportCsv() {
     window.location.assign(`/admin/shop/export?${params.toString()}`);
 }
 
+const importing = ref(false);
+const importInput = ref<HTMLInputElement | null>(null);
+
+function chooseCsvFile() {
+    importInput.value?.click();
+}
+
+function importCsv(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    router.post(
+        '/admin/shop/import',
+        { file },
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onStart: () => (importing.value = true),
+            onSuccess: (responsePage) => {
+                const flash = responsePage.props.toast as
+                    | { type: string; message: string }
+                    | undefined;
+                toast.success(flash?.message ?? 'Shop CSV imported.');
+            },
+            onError: (errors) =>
+                toast.error(
+                    typeof errors.file === 'string'
+                        ? errors.file
+                        : 'Unable to import the CSV file.',
+                ),
+            onFinish: () => {
+                importing.value = false;
+                input.value = '';
+            },
+        },
+    );
+}
+
 function toggleAll() {
     selectedIds.value = allSelected.value
         ? []
@@ -401,43 +464,82 @@ function formatDate(date: string | null) {
         day: 'numeric',
     });
 }
-
-function badgeClass(type: string) {
-    const classes: Record<string, string> = {
-        active: 'bg-emerald-100 text-emerald-700',
-        pending: 'bg-amber-100 text-amber-700',
-        disabled: 'bg-slate-200 text-slate-700',
-        healthy: 'bg-emerald-100 text-emerald-700',
-        attention: 'bg-amber-100 text-amber-700',
-        critical: 'bg-red-100 text-red-700',
-        compliant: 'bg-emerald-100 text-emerald-700',
-        expiring: 'bg-amber-100 text-amber-700',
-        expired: 'bg-red-100 text-red-700',
-        incomplete: 'bg-slate-100 text-slate-600',
-    };
-
-    return classes[type] ?? 'bg-slate-100 text-slate-600';
-}
 </script>
 
 <template>
     <Head title="Shop Management" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="Shop Management">
-        <div class="space-y-6 px-6">
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
-                <Card v-for="item in statCards" :key="item.label">
-                    <CardContent class="p-4">
+        <div class="mx-auto w-full max-w-[1280px] space-y-6 px-6">
+            <!-- Header -->
+            <header class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">
+                        Shop management
+                    </h1>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Every laundry shop on the platform, with its owner, plan
+                        and status. Open a shop for its full details.
+                    </p>
+                </div>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button
+                            variant="success-outline"
+                            class="h-11 gap-2"
+                            :disabled="importing"
+                        >
+                            <ArrowUpDown class="h-4 w-4" aria-hidden="true" />
+                            {{ importing ? 'Importing...' : 'Import / export' }}
+                            <ChevronDown class="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-48">
+                        <DropdownMenuItem @select="exportCsv">
+                            <Download class="mr-2 h-4 w-4" />
+                            Export CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @select="chooseCsvFile">
+                            <Upload class="mr-2 h-4 w-4" />
+                            Import CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem @select="toggleArchiveView">
+                            <ArchiveRestore class="mr-2 h-4 w-4" />
+                            {{ archived ? 'Active shops' : 'Archived shops' }}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <input
+                    ref="importInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="importCsv"
+                />
+            </header>
+
+            <!-- Stats -->
+            <div class="space-y-3">
+                <div
+                    class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5"
+                >
+                    <div
+                        v-for="item in statCards"
+                        :key="item.label"
+                        class="rounded-2xl border bg-card p-5"
+                    >
                         <p
-                            class="mb-3 text-xs font-medium text-muted-foreground"
+                            class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
                         >
                             {{ item.label }}
                         </p>
-                        <p class="text-2xl font-bold">{{ item.value }}</p>
-                    </CardContent>
-                </Card>
-            </div>
+                        <p class="mt-3 text-4xl font-bold tabular-nums">
+                            {{ item.value.toLocaleString() }}
+                        </p>
+                    </div>
+                </div>
 
-            <div class="-mt-3 space-y-3">
                 <div class="flex justify-end">
                     <Button
                         variant="ghost"
@@ -453,535 +555,353 @@ function badgeClass(type: string) {
                 </div>
                 <div
                     v-if="showMoreStats"
-                    class="grid grid-cols-2 gap-2 rounded-lg border bg-muted/20 p-3 sm:grid-cols-4 lg:grid-cols-7"
+                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
                 >
                     <div
                         v-for="item in secondaryStats"
                         :key="item.label"
-                        class="rounded-md bg-background px-3 py-2"
+                        class="rounded-xl border bg-card px-4 py-3"
                     >
                         <p class="text-xs text-muted-foreground">
                             {{ item.label }}
                         </p>
-                        <p class="mt-1 text-lg font-semibold">
-                            {{ item.value }}
+                        <p class="mt-1 text-lg font-semibold tabular-nums">
+                            {{ item.value.toLocaleString() }}
                         </p>
                     </div>
                 </div>
             </div>
 
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap items-center gap-2 pt-6">
-                    <div class="relative min-w-48 flex-1">
-                        <Search
-                            class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground"
-                        />
-                        <Input
-                            v-model="search"
-                            placeholder="Search shop, owner, email..."
-                            class="pl-8"
-                            @keyup.enter="filterTable"
-                        />
-                    </div>
-
-                    <template v-if="selectedIds.length > 0">
-                        <Button
-                            v-if="archived"
-                            size="sm"
-                            variant="outline"
-                            class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                            @click="bulkAction('restore')"
-                        >
-                            <RotateCcw class="mr-1.5 h-4 w-4" />
-                            Restore ({{ selectedIds.length }})
-                        </Button>
-                        <template v-else>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                                @click="bulkAction('enable')"
-                            >
-                                <ShieldCheck class="mr-1.5 h-4 w-4" />
-                                Enable ({{ selectedIds.length }})
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                                @click="openDisable()"
-                            >
-                                <ShieldOff class="mr-1.5 h-4 w-4" />
-                                Disable
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="warning-outline"
-                                @click="bulkAction('archive')"
-                            >
-                                <Archive class="mr-1.5 h-4 w-4" />
-                                Archive
-                            </Button>
-                        </template>
-                    </template>
-
-                    <Button
-                        size="sm"
-                        :variant="archived ? 'back' : 'warning-outline'"
-                        @click="toggleArchiveView"
+            <!-- Toolbar -->
+            <div class="flex flex-wrap items-center gap-3">
+                <div
+                    role="group"
+                    aria-label="Filter by shop status"
+                    class="inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1"
+                >
+                    <button
+                        v-for="option in statusOptions"
+                        :key="option.value"
+                        type="button"
+                        class="inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                        :class="
+                            status === option.value
+                                ? 'bg-background text-foreground shadow-sm'
+                                : 'text-foreground/80 hover:text-foreground'
+                        "
+                        :aria-pressed="status === option.value"
+                        @click="setStatus(option.value)"
                     >
-                        <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                        {{ archived ? 'Active shops' : 'Archive' }}
-                    </Button>
+                        {{ option.label }}
+                        <span
+                            class="text-xs font-normal text-muted-foreground tabular-nums"
+                            >{{ option.count }}</span
+                        >
+                    </button>
+                </div>
 
+                <select
+                    v-model="plan"
+                    class="toolbar-select"
+                    aria-label="Filter by plan"
+                    @change="filterTable"
+                >
+                    <option value="">All plans</option>
+                    <option value="Basic">Basic</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Premium">Premium</option>
+                    <option value="none">No plan</option>
+                </select>
+                <select
+                    v-model="subscription"
+                    class="toolbar-select"
+                    aria-label="Filter by subscription expiry"
+                    @change="filterTable"
+                >
+                    <option value="">Any expiry</option>
+                    <option value="expiring">Expiring</option>
+                    <option value="expired">Expired</option>
+                </select>
+                <select
+                    v-model="compliance"
+                    class="toolbar-select"
+                    aria-label="Filter by compliance"
+                    @change="filterTable"
+                >
+                    <option value="">All compliance</option>
+                    <option value="compliant">Compliant</option>
+                    <option value="expiring">Expiring soon</option>
+                    <option value="expired">Expired</option>
+                    <option value="incomplete">Incomplete</option>
+                </select>
+                <select
+                    v-model="activity"
+                    class="toolbar-select"
+                    aria-label="Filter by shop activity"
+                    @change="filterTable"
+                >
+                    <option value="">All activity</option>
+                    <option value="inactive">Inactive 30+ days</option>
+                </select>
+
+                <div class="relative min-w-56 flex-1">
+                    <Search
+                        class="pointer-events-none absolute top-3.5 left-3 h-4 w-4 text-muted-foreground"
+                        aria-hidden="true"
+                    />
+                    <Input
+                        v-model="search"
+                        placeholder="Search shop, owner, email..."
+                        aria-label="Search shops"
+                        class="h-11 rounded-lg pl-9"
+                        @keyup.enter="filterTable"
+                    />
+                </div>
+            </div>
+
+            <!-- Bulk actions -->
+            <div
+                v-if="selectedIds.length > 0"
+                class="flex flex-wrap items-center gap-2 rounded-xl border bg-card px-4 py-3"
+            >
+                <span class="mr-2 text-sm font-medium"
+                    >{{ selectedIds.length }} selected</span
+                >
+                <Button
+                    v-if="archived"
+                    size="sm"
+                    variant="outline"
+                    class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                    @click="bulkAction('restore')"
+                >
+                    <RotateCcw class="mr-1.5 h-4 w-4" />
+                    Restore ({{ selectedIds.length }})
+                </Button>
+                <template v-else>
                     <Button
                         size="sm"
                         variant="outline"
-                        class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-                        @click="resetFilters"
+                        class="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                        @click="bulkAction('enable')"
                     >
-                        <RefreshCcw class="mr-1.5 h-4 w-4" />
-                        Reset
+                        <ShieldCheck class="mr-1.5 h-4 w-4" />
+                        Enable ({{ selectedIds.length }})
                     </Button>
-
                     <Button
                         size="sm"
-                        variant="success-outline"
-                        @click="exportCsv"
+                        variant="outline"
+                        class="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                        @click="openDisable()"
                     >
-                        <Download class="mr-1.5 h-4 w-4" />
-                        Export CSV
+                        <ShieldOff class="mr-1.5 h-4 w-4" />
+                        Disable
                     </Button>
-                </div>
-
-                <div class="overflow-hidden rounded-lg border">
-                    <EasyDataTable
-                        v-model:server-options="serverOptions"
-                        class="shop-data-table"
-                        :headers="headers"
-                        :items="tableItems"
-                        :server-items-length="shops.total"
-                        :loading="tableLoading"
-                        :rows-items="[5, 10, 15, 20, 50, 100]"
-                        rows-of-page-separator-message="out of"
-                        rows-per-page-message="Rows per page:"
-                        buttons-pagination
-                        alternating
-                        must-sort
+                    <Button
+                        size="sm"
+                        variant="warning-outline"
+                        @click="bulkAction('archive')"
                     >
-                        <template #header-selection>
-                            <input
-                                type="checkbox"
-                                aria-label="Select all shops on this page"
-                                :checked="allSelected"
-                                class="rounded"
-                                @change="toggleAll"
+                        <Archive class="mr-1.5 h-4 w-4" />
+                        Archive
+                    </Button>
+                </template>
+                <Button size="sm" variant="ghost" @click="selectedIds = []">
+                    Clear
+                </Button>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-hidden rounded-2xl border bg-card">
+                <EasyDataTable
+                    v-model:server-options="serverOptions"
+                    class="shop-data-table"
+                    :headers="headers"
+                    :items="tableItems"
+                    :server-items-length="shops.total"
+                    :loading="tableLoading"
+                    :rows-items="[5, 10, 15, 20, 50, 100]"
+                    rows-of-page-separator-message="out of"
+                    rows-per-page-message="Rows per page:"
+                    buttons-pagination
+                    must-sort
+                >
+                    <template #header-selection>
+                        <input
+                            type="checkbox"
+                            aria-label="Select all shops on this page"
+                            :checked="allSelected"
+                            class="h-4 w-4 rounded"
+                            @change="toggleAll"
+                        />
+                    </template>
+
+                    <template
+                        v-for="column in sortableColumns"
+                        :key="column.value"
+                        #[`header-${column.value}`]="{ text }"
+                    >
+                        <button
+                            type="button"
+                            class="sortable-column"
+                            :aria-label="`Sort by ${text.toLowerCase()} ${serverOptions.sortBy === column.value && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
+                            @click="toggleSort(column.value)"
+                        >
+                            <span>{{ text }}</span>
+                            <component
+                                :is="sortIcon(column.value)"
+                                class="h-3.5 w-3.5"
+                                :class="
+                                    serverOptions.sortBy === column.value
+                                        ? 'text-primary'
+                                        : 'opacity-60'
+                                "
                             />
-                        </template>
+                        </button>
+                    </template>
 
-                        <template #header-shop_name="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                :aria-label="`Sort shops ${serverOptions.sortBy === 'shop_name' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                @click="toggleSort('shop_name')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('shop_name')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            serverOptions.sortBy !==
-                                            'shop_name',
-                                    }"
-                                />
-                            </button>
-                        </template>
+                    <template #item-selection="shop">
+                        <input
+                            type="checkbox"
+                            :checked="selectedIds.includes(shop.id)"
+                            :aria-label="`Select ${shop.shop_name}`"
+                            class="h-4 w-4 rounded"
+                            @change="toggleOne(shop.id)"
+                        />
+                    </template>
 
-                        <template #header-owner="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                :aria-label="`Sort owners ${serverOptions.sortBy === 'owner' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                @click="toggleSort('owner')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('owner')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            serverOptions.sortBy !== 'owner',
-                                    }"
-                                />
-                            </button>
-                        </template>
+                    <template #item-shop_name="shop">
+                        <IdentityCell
+                            :name="shop.shop_name"
+                            :secondary="`${shop.barangay}, ${shop.municipality}`"
+                        />
+                    </template>
 
-                        <template #header-health_status="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort health ${serverOptions.sortBy === 'health_status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('health_status')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('health_status')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'health_status',
-                                        }"
-                                    />
-                                </button>
-                                <select
-                                    v-model="activity"
-                                    class="column-filter-input"
-                                    aria-label="Filter by shop activity"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="">All activity</option>
-                                    <option value="inactive">
-                                        Inactive 30+ days
-                                    </option>
-                                </select>
-                            </div>
-                        </template>
+                    <template #item-owner="shop">
+                        <div>
+                            <p class="text-sm whitespace-nowrap">
+                                {{ shop.owner?.name || 'No owner' }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                {{ shop.owner?.email }}
+                            </p>
+                        </div>
+                    </template>
 
-                        <template #header-compliance_status="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort compliance ${serverOptions.sortBy === 'compliance_status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('compliance_status')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('compliance_status')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'compliance_status',
-                                        }"
-                                    />
-                                </button>
-                                <select
-                                    v-model="compliance"
-                                    class="column-filter-input"
-                                    aria-label="Filter by compliance"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="">All compliance</option>
-                                    <option value="compliant">Compliant</option>
-                                    <option value="expiring">
-                                        Expiring soon
-                                    </option>
-                                    <option value="expired">Expired</option>
-                                    <option value="incomplete">
-                                        Incomplete
-                                    </option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #header-subscription="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort subscriptions ${serverOptions.sortBy === 'subscription' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('subscription')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('subscription')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'subscription',
-                                        }"
-                                    />
-                                </button>
-                                <div class="flex gap-1">
-                                    <select
-                                        v-model="plan"
-                                        class="column-filter-input"
-                                        aria-label="Filter by plan"
-                                        @click.stop
-                                        @change="filterTable"
-                                    >
-                                        <option value="">All plans</option>
-                                        <option value="Basic">Basic</option>
-                                        <option value="Standard">
-                                            Standard
-                                        </option>
-                                        <option value="Premium">Premium</option>
-                                        <option value="none">No plan</option>
-                                    </select>
-                                    <select
-                                        v-model="subscription"
-                                        class="column-filter-input"
-                                        aria-label="Filter by subscription expiry"
-                                        @click.stop
-                                        @change="filterTable"
-                                    >
-                                        <option value="">Any expiry</option>
-                                        <option value="expiring">
-                                            Expiring
-                                        </option>
-                                        <option value="expired">Expired</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </template>
-
-                        <template #header-last_activity_at="{ text }">
-                            <button
-                                type="button"
-                                class="sortable-column"
-                                :aria-label="`Sort last activity ${serverOptions.sortBy === 'last_activity_at' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                @click="toggleSort('last_activity_at')"
-                            >
-                                <span>{{ text }}</span>
-                                <component
-                                    :is="sortIcon('last_activity_at')"
-                                    class="h-3.5 w-3.5"
-                                    :class="{
-                                        'opacity-60':
-                                            serverOptions.sortBy !==
-                                            'last_activity_at',
-                                    }"
-                                />
-                            </button>
-                        </template>
-
-                        <template #header-status="{ text }">
-                            <div class="column-filter">
-                                <button
-                                    type="button"
-                                    class="sortable-column"
-                                    :aria-label="`Sort status ${serverOptions.sortBy === 'status' && serverOptions.sortType === 'asc' ? 'descending' : 'ascending'}`"
-                                    @click="toggleSort('status')"
-                                >
-                                    <span>{{ text }}</span>
-                                    <component
-                                        :is="sortIcon('status')"
-                                        class="h-3.5 w-3.5"
-                                        :class="{
-                                            'opacity-60':
-                                                serverOptions.sortBy !==
-                                                'status',
-                                        }"
-                                    />
-                                </button>
-                                <select
-                                    v-model="status"
-                                    class="column-filter-input"
-                                    aria-label="Filter by shop status"
-                                    @click.stop
-                                    @change="filterTable"
-                                >
-                                    <option value="">All statuses</option>
-                                    <option value="active">Active</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="disabled">Disabled</option>
-                                </select>
-                            </div>
-                        </template>
-
-                        <template #item-selection="shop">
-                            <input
-                                type="checkbox"
-                                :checked="selectedIds.includes(shop.id)"
-                                :aria-label="`Select ${shop.shop_name}`"
-                                class="rounded"
-                                @change="toggleOne(shop.id)"
-                            />
-                        </template>
-
-                        <template #item-shop_name="shop">
-                            <div>
-                                <p class="font-medium whitespace-nowrap">
-                                    {{ shop.shop_name }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    {{ shop.barangay }}, {{ shop.municipality }}
-                                </p>
-                            </div>
-                        </template>
-
-                        <template #item-owner="shop">
-                            <div>
-                                <p class="whitespace-nowrap">
-                                    {{ shop.owner?.name || 'No owner' }}
-                                </p>
-                                <p class="text-xs text-muted-foreground">
-                                    {{ shop.owner?.email }}
-                                </p>
-                            </div>
-                        </template>
-
-                        <template #item-health_status="shop">
-                            <div>
-                                <span
-                                    class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                    :class="badgeClass(shop.health_status)"
-                                >
-                                    {{ shop.health_status }}
-                                </span>
-                                <p
-                                    v-if="shop.is_inactive"
-                                    class="mt-1 text-xs text-amber-600"
-                                >
-                                    Inactive
-                                </p>
-                            </div>
-                        </template>
-
-                        <template #item-compliance_status="shop">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                :class="badgeClass(shop.compliance_status)"
-                            >
-                                {{ shop.compliance_status }}
-                            </span>
-                        </template>
-
-                        <template #item-subscription="shop">
-                            <div>
-                                <p class="whitespace-nowrap">
-                                    {{ shop.subscription }}
-                                </p>
-                                <p
-                                    class="text-xs whitespace-nowrap"
-                                    :class="
-                                        shop.is_expired
-                                            ? 'text-red-600'
-                                            : 'text-muted-foreground'
-                                    "
-                                >
-                                    {{ formatDate(shop.expires_at) }}
-                                </p>
-                            </div>
-                        </template>
-
-                        <template #item-last_activity_at="shop">
-                            <span
+                    <template #item-subscription="shop">
+                        <div>
+                            <p class="text-sm whitespace-nowrap">
+                                {{ shop.subscription }}
+                            </p>
+                            <p
                                 class="text-xs whitespace-nowrap"
                                 :class="
-                                    shop.is_inactive
-                                        ? 'text-amber-700'
+                                    shop.is_expired
+                                        ? 'text-red-500'
                                         : 'text-muted-foreground'
                                 "
                             >
-                                {{ formatDate(shop.last_activity_at) }}
-                            </span>
-                        </template>
+                                {{ formatDate(shop.expires_at) }}
+                            </p>
+                        </div>
+                    </template>
 
-                        <template #item-status="shop">
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                                :class="badgeClass(shop.status)"
+                    <template #item-status="shop">
+                        <StatusPill
+                            :tone="statusTone[shop.status] ?? 'neutral'"
+                        >
+                            <span class="capitalize">{{ shop.status }}</span>
+                        </StatusPill>
+                    </template>
+
+                    <template #item-actions="shop">
+                        <div class="flex items-center justify-center gap-1">
+                            <template v-if="!archived">
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="View shop"
+                                    @click="
+                                        router.visit(
+                                            `/admin/shop/${shop.public_id}`,
+                                        )
+                                    "
+                                >
+                                    <Eye class="h-4 w-4 text-blue-500" />
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="Edit shop"
+                                    @click="
+                                        router.visit(
+                                            `/admin/shop/${shop.public_id}/edit`,
+                                        )
+                                    "
+                                >
+                                    <Pencil class="h-4 w-4 text-slate-500" />
+                                </Button>
+                                <Button
+                                    v-if="shop.status === 'disabled'"
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="Enable shop"
+                                    @click="enableShop(shop)"
+                                >
+                                    <ShieldCheck
+                                        class="h-4 w-4 text-emerald-600"
+                                    />
+                                </Button>
+                                <Button
+                                    v-else
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="Disable shop"
+                                    @click="openDisable(shop)"
+                                >
+                                    <ShieldOff class="h-4 w-4 text-amber-600" />
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="Archive shop"
+                                    @click="openConfirm(shop, 'archive')"
+                                >
+                                    <Trash2 class="h-4 w-4 text-amber-500" />
+                                </Button>
+                            </template>
+                            <template v-else>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="Restore shop"
+                                    @click="openConfirm(shop, 'restore')"
+                                >
+                                    <RotateCcw
+                                        class="h-4 w-4 text-emerald-600"
+                                    />
+                                </Button>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template #empty-message>
+                        <div
+                            class="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground"
+                        >
+                            <Store class="h-8 w-8" aria-hidden="true" />
+                            <p>No shops match the selected filters.</p>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                @click="resetFilters"
                             >
-                                {{ shop.status }}
-                            </span>
-                        </template>
-
-                        <template #item-actions="shop">
-                            <div class="flex items-center justify-center gap-1">
-                                <template v-if="!archived">
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="View shop"
-                                        @click="
-                                            router.visit(
-                                                `/admin/shop/${shop.public_id}`,
-                                            )
-                                        "
-                                    >
-                                        <Eye class="h-4 w-4 text-blue-500" />
-                                    </Button>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="Edit shop"
-                                        @click="
-                                            router.visit(
-                                                `/admin/shop/${shop.public_id}/edit`,
-                                            )
-                                        "
-                                    >
-                                        <Pencil
-                                            class="h-4 w-4 text-slate-500"
-                                        />
-                                    </Button>
-                                    <Button
-                                        v-if="shop.status === 'disabled'"
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="Enable shop"
-                                        @click="enableShop(shop)"
-                                    >
-                                        <ShieldCheck
-                                            class="h-4 w-4 text-emerald-600"
-                                        />
-                                    </Button>
-                                    <Button
-                                        v-else
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="Disable shop"
-                                        @click="openDisable(shop)"
-                                    >
-                                        <ShieldOff
-                                            class="h-4 w-4 text-amber-600"
-                                        />
-                                    </Button>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="Archive shop"
-                                        @click="openConfirm(shop, 'archive')"
-                                    >
-                                        <Trash2
-                                            class="h-4 w-4 text-amber-500"
-                                        />
-                                    </Button>
-                                </template>
-                                <template v-else>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        aria-label="Restore shop"
-                                        @click="openConfirm(shop, 'restore')"
-                                    >
-                                        <RotateCcw
-                                            class="h-4 w-4 text-emerald-600"
-                                        />
-                                    </Button>
-                                </template>
-                            </div>
-                        </template>
-
-                        <template #empty-message>
-                            <div
-                                class="py-10 text-center text-sm text-muted-foreground"
-                            >
-                                No shops match the selected filters.
-                            </div>
-                        </template>
-                    </EasyDataTable>
-                </div>
-            </CardContent>
+                                <RefreshCcw class="mr-1.5 h-4 w-4" />
+                                Reset filters
+                            </Button>
+                        </div>
+                    </template>
+                </EasyDataTable>
+            </div>
         </div>
 
         <AlertDialog
@@ -1059,29 +979,25 @@ function badgeClass(type: string) {
 .shop-data-table {
     --easy-table-border: 0;
     --easy-table-row-border: 1px solid var(--border);
-    --easy-table-header-background-color: var(--muted);
+    --easy-table-header-background-color: transparent;
     --easy-table-header-font-color: var(--muted-foreground);
-    --easy-table-header-font-size: 12px;
-    --easy-table-header-height: 92px;
-    --easy-table-header-item-padding: 10px 12px;
-    --easy-table-body-row-background-color: var(--background);
-    --easy-table-body-even-row-background-color: color-mix(
-        in srgb,
-        var(--muted) 35%,
-        transparent
-    );
+    --easy-table-header-font-size: 11px;
+    --easy-table-header-height: 52px;
+    --easy-table-header-item-padding: 10px 16px;
+    --easy-table-body-row-background-color: transparent;
+    --easy-table-body-even-row-background-color: transparent;
     --easy-table-body-row-font-color: var(--foreground);
     --easy-table-body-even-row-font-color: var(--foreground);
     --easy-table-body-row-hover-background-color: color-mix(
         in srgb,
-        var(--muted) 65%,
+        var(--muted) 55%,
         transparent
     );
     --easy-table-body-row-hover-font-color: var(--foreground);
-    --easy-table-body-row-height: 64px;
-    --easy-table-body-item-padding: 10px 12px;
+    --easy-table-body-row-height: 68px;
+    --easy-table-body-item-padding: 10px 16px;
     --easy-table-message-font-color: var(--muted-foreground);
-    --easy-table-footer-background-color: var(--background);
+    --easy-table-footer-background-color: transparent;
     --easy-table-footer-font-color: var(--muted-foreground);
     --easy-table-footer-font-size: 12px;
     --easy-table-footer-height: 56px;
@@ -1096,44 +1012,41 @@ function badgeClass(type: string) {
     gap: 6px;
     color: inherit;
     font: inherit;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
 
 .sortable-column:hover {
     color: var(--foreground);
 }
 
-.column-filter {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 6px;
-    text-align: left;
-}
-
-.column-filter-input {
-    height: 30px;
-    width: 100%;
-    min-width: 82px;
+.toolbar-select {
+    height: 44px;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--background);
-    padding: 0 7px;
+    padding: 0 10px;
     color: var(--foreground);
-    font-size: 11px;
-    font-weight: 400;
+    font-size: 13px;
     outline: none;
 }
 
-.column-filter-input:focus {
+.toolbar-select:focus-visible {
     border-color: var(--ring);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 20%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 25%, transparent);
 }
 
 :deep(.vue3-easy-data-table__main) {
-    background: var(--background);
+    background: transparent;
 }
 
 :deep(.vue3-easy-data-table__main table) {
-    min-width: 1470px;
+    width: 100%;
+    min-width: 0;
+}
+
+:deep(.vue3-easy-data-table__main thead th),
+:deep(.vue3-easy-data-table__main tbody td) {
+    min-width: 0 !important;
 }
 </style>

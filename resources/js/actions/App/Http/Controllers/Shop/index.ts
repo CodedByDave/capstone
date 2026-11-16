@@ -17,6 +17,7 @@ import Operations from './Operations'
 import PlatformRatingController from './PlatformRatingController'
 import ReportsController from './ReportsController'
 import ShopDataExportController from './ShopDataExportController'
+import ShopDataImportController from './ShopDataImportController'
 import Finance from './Finance'
 import PaymentSettingsController from './PaymentSettingsController'
 import UpgradeController from './UpgradeController'
@@ -43,6 +44,7 @@ Operations: Object.assign(Operations, Operations),
 PlatformRatingController: Object.assign(PlatformRatingController, PlatformRatingController),
 ReportsController: Object.assign(ReportsController, ReportsController),
 ShopDataExportController: Object.assign(ShopDataExportController, ShopDataExportController),
+ShopDataImportController: Object.assign(ShopDataImportController, ShopDataImportController),
 Finance: Object.assign(Finance, Finance),
 PaymentSettingsController: Object.assign(PaymentSettingsController, PaymentSettingsController),
 UpgradeController: Object.assign(UpgradeController, UpgradeController),

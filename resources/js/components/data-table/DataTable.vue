@@ -330,9 +330,6 @@ onUpdated(syncAriaSort);
             v-bind="$attrs"
             class="app-data-table"
             :class="{ 'app-data-table--compact': compact }"
-            :style="{
-                '--dt-min-width': minWidth ? `${minWidth}px` : '100%',
-            }"
             :headers="easyHeaders"
             :items="items"
             :server-items-length="hideFooter ? items.length : totalCount"
@@ -544,8 +541,20 @@ onUpdated(syncAriaSort);
     background: var(--card);
 }
 
+/* Tables always fit their card: column widths are only a hint, so they can shrink and wrap
+   instead of forcing a left-to-right scrollbar. `minWidth` is kept as a prop but ignored. */
 .app-data-table :deep(.vue3-easy-data-table__main table) {
-    min-width: var(--dt-min-width);
+    width: 100%;
+    min-width: 0;
+}
+
+.app-data-table :deep(thead th),
+.app-data-table :deep(tbody td) {
+    min-width: 0 !important;
+}
+
+.app-data-table :deep(tbody td) {
+    overflow-wrap: anywhere;
 }
 
 .app-data-table :deep(thead th) {

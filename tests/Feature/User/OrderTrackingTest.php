@@ -271,6 +271,7 @@ test('a pickup run without a pin has no destination yet', function () {
 
 function placeOrderPayload(Shop $shop, array $overrides = []): array
 {
+    onlineRider($shop);
     $service = ShopService::create([
         'shop_id' => $shop->id,
         'service_name' => 'Wash and Fold',

@@ -56,6 +56,11 @@ class Employee extends Model
         return $this->hasMany(EmployeeSchedule::class);
     }
 
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
     /** The delivery rider record kept in sync while this employee's position is Driver. */
     public function rider(): HasOne
     {

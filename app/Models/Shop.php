@@ -78,6 +78,7 @@ class Shop extends Model
         'opens_at',
         'closes_at',
         'operating_days',
+        'daily_hours',
         'driver_daily_rate',
         'platform_rating_prompted_at',
         'setup_completed_at',
@@ -117,6 +118,7 @@ class Shop extends Model
         'has_suppliers' => 'boolean',
         'is_open_24_7' => 'boolean',
         'operating_days' => 'array',
+        'daily_hours' => 'array',
         'delivery_fixed_fee' => 'decimal:2',
         'delivery_base_fee' => 'decimal:2',
         'delivery_per_km_rate' => 'decimal:2',
@@ -189,20 +191,67 @@ class Shop extends Model
         $moment = $moment ? \Illuminate\Support\Carbon::instance($moment) : now();
         $days = $this->openDays();
 
-        if ($this->is_open_24_7 || ! $this->opens_at || ! $this->closes_at) {
+        if ($this->is_open_24_7) {
             return in_array($moment->dayOfWeek, $days, true);
         }
 
-        $time = $moment->format('H:i:s');
+        $time = $moment->format('H:i');
+        $today = in_array($moment->dayOfWeek, $days, true) ? $this->hoursForDay($moment->dayOfWeek) : null;
 
-        if ($this->opens_at < $this->closes_at) {
-            return in_array($moment->dayOfWeek, $days, true)
-                && $time >= $this->opens_at && $time < $this->closes_at;
+        if ($today === null && in_array($moment->dayOfWeek, $days, true)) {
+            return true; // Open that day with no hours set: open all day.
         }
 
-        // Overnight hours: the late part belongs to today, the early part to yesterday's opening.
-        return ($time >= $this->opens_at && in_array($moment->dayOfWeek, $days, true))
-            || ($time < $this->closes_at && in_array($moment->copy()->subDay()->dayOfWeek, $days, true));
+        if ($today !== null) {
+            [$opens, $closes] = $today;
+            if ($opens < $closes ? ($time >= $opens && $time < $closes) : $time >= $opens) {
+                return true;
+            }
+        }
+
+        // Overnight hours from yesterday's opening run into the early hours of today.
+        $yesterday = $moment->copy()->subDay()->dayOfWeek;
+        $previous = in_array($yesterday, $days, true) ? $this->hoursForDay($yesterday) : null;
+
+        return $previous !== null && $previous[0] >= $previous[1] && $time < $previous[1];
+    }
+
+    /**
+     * Opening and closing time ("H:i") for a weekday: that day's own hours, else the shop-wide hours.
+     * Null when no hours are set at all (open all day).
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    public function hoursForDay(int $day): ?array
+    {
+        $own = $this->daily_hours[(string) $day] ?? null;
+
+        if (is_array($own) && ! empty($own['opens_at']) && ! empty($own['closes_at'])) {
+            return [substr($own['opens_at'], 0, 5), substr($own['closes_at'], 0, 5)];
+        }
+
+        if ($this->opens_at && $this->closes_at) {
+            return [substr($this->opens_at, 0, 5), substr($this->closes_at, 0, 5)];
+        }
+
+        return null;
+    }
+
+    /**
+     * Hours for every open weekday, keyed by weekday number, for the UI.
+     *
+     * @return array<int, array{opens_at: string, closes_at: string}>
+     */
+    public function dailyHoursMap(): array
+    {
+        $map = [];
+
+        foreach ($this->openDays() as $day) {
+            $hours = $this->hoursForDay($day) ?? ['08:00', '17:00'];
+            $map[$day] = ['opens_at' => $hours[0], 'closes_at' => $hours[1]];
+        }
+
+        return $map;
     }
 
     /** Delivery is available only once the pricing is set, so no run is ever given away free. */

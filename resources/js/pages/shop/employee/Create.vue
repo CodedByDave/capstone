@@ -181,11 +181,10 @@ watch(isRider, (on) => {
 /** Plate and license are sent only for the rider's own vehicle. */
 function riderPayload() {
     if (!isRider.value) return {};
-    const { vehicle_ownership, vehicle_type, plate_number, license_photo } =
-        rider.value;
+    const { vehicle_ownership, vehicle_type, license_photo } = rider.value;
 
     return vehicle_ownership === 'own'
-        ? { vehicle_ownership, vehicle_type, plate_number, license_photo }
+        ? { vehicle_ownership, vehicle_type, license_photo }
         : { vehicle_ownership, vehicle_type };
 }
 
@@ -636,8 +635,8 @@ function submit() {
                         v-if="isRider"
                         v-model:vehicle-ownership="rider.vehicle_ownership"
                         v-model:vehicle-type="rider.vehicle_type"
-                        v-model:plate-number="rider.plate_number"
                         v-model:license-photo="rider.license_photo"
+                        :show-plate-number="false"
                         :vehicle-types="vehicle_types"
                         :errors="errors"
                     />

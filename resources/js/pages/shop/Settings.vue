@@ -87,6 +87,10 @@ const props = defineProps<{
         opens_at: string;
         closes_at: string;
         operating_days: number[];
+        daily_hours: Record<
+            number,
+            { opens_at: string; closes_at: string }
+        >;
     };
 }>();
 

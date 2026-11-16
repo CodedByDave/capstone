@@ -17,6 +17,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -410,39 +412,50 @@ const selected = ref<Array<string | number>>([]);
         :title="showArchived ? 'Archived Services' : 'Services & Pricing'"
     >
         <div class="space-y-6 px-6">
-            <div class="flex flex-wrap items-center justify-end gap-2">
+            <PageHeader
+                :title="showArchived ? 'Archived Services' : 'Services & Pricing'"
+                description="Manage the services you offer and their prices."
+            >
                 <Button
-                    v-if="canManage"
-                    size="sm"
-                    :variant="showArchived ? 'back' : 'warning-outline'"
+                    v-if="showArchived && canManage"
+                    variant="back"
+                    class="h-11"
                     @click="toggleArchived"
                 >
-                    <Archive class="mr-1.5 h-4 w-4" />
-                    {{ showArchived ? 'Active Services' : 'Archive' }}
+                    <Archive class="mr-2 h-4 w-4" />
+                    Active Services
                 </Button>
-                <template v-if="!showArchived">
-                    <Button size="sm" variant="success-outline" as-child>
-                        <a :href="`${base}/export`">
-                            <Download class="mr-1.5 h-4 w-4" /> Export CSV
-                        </a>
-                    </Button>
-                    <Button
-                        v-if="canCreate"
-                        size="sm"
-                        variant="primary-outline"
-                        @click="openImport"
-                    >
-                        <Upload class="mr-1.5 h-4 w-4" /> Import CSV
-                    </Button>
-                    <Button
-                        v-if="canCreate"
-                        size="sm"
-                        @click="router.visit(`${base}/create`)"
-                    >
-                        <Plus class="mr-1.5 h-4 w-4" /> New Service
-                    </Button>
-                </template>
-            </div>
+                <ActionsMenu
+                    v-if="!showArchived"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${base}/export`,
+                        },
+                        {
+                            label: 'Import CSV',
+                            icon: Upload,
+                            onSelect: openImport,
+                            hidden: !canCreate,
+                        },
+                        {
+                            label: 'Archived services',
+                            icon: Archive,
+                            onSelect: toggleArchived,
+                            separator: true,
+                            hidden: !canManage,
+                        },
+                    ]"
+                />
+                <Button
+                    v-if="!showArchived && canCreate"
+                    class="h-11"
+                    @click="router.visit(`${base}/create`)"
+                >
+                    <Plus class="mr-2 h-4 w-4" /> New Service
+                </Button>
+            </PageHeader>
 
             <div
                 v-if="!showArchived"

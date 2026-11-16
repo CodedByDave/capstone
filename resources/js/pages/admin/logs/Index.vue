@@ -17,17 +17,24 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ArchiveRestore,
+    ArrowUpDown,
+    ChevronDown,
     Download,
     Eye,
     FileClock,
-    RefreshCcw,
     Trash2,
     Upload,
 } from 'lucide-vue-next';
@@ -341,13 +348,21 @@ function eventLabel(value: string) {
 }
 
 const roleBadge: Record<string, string> = {
-    super_admin:
-        'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
-    owner: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
-    manager: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
-    staff: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
-    user: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
+    super_admin: 'bg-purple-500/15 text-purple-600 dark:text-purple-300',
+    owner: 'bg-blue-500/15 text-blue-600 dark:text-blue-300',
+    manager: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300',
+    staff: 'bg-muted text-foreground',
+    supplier: 'bg-muted text-foreground',
+    user: 'bg-muted text-muted-foreground',
 };
+
+const statCards = computed(() => [
+    { label: 'Total events', value: props.stats.total },
+    { label: 'Authentication', value: props.stats.authentication },
+    { label: 'User activities', value: props.stats.activities },
+    { label: 'Failed logins', value: props.stats.failed },
+    { label: 'Archived', value: props.stats.archived },
+]);
 
 const eventTone: Record<string, StatusTone> = {
     success: 'success',
@@ -368,78 +383,73 @@ const tableItems = computed(() =>
 <template>
     <Head title="Audit & Logs" />
     <AdminLayout title="Audit & Logs">
-        <div class="space-y-6 px-6">
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Total Events
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold">
-                            {{ stats.total.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Authentication
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold text-indigo-600">
-                            {{ stats.authentication.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                User Activities
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold text-emerald-600">
-                            {{ stats.activities.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Failed Logins
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold text-red-600">
-                            {{ stats.failed.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Archived
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold text-amber-600">
-                            {{ stats.archived.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
+        <div class="mx-auto w-full max-w-[1280px] space-y-6 px-6">
+            <!-- Header -->
+            <header class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">
+                        Audit &amp; logs
+                    </h1>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Sign-ins and user activity recorded across the platform.
+                    </p>
+                </div>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button
+                            variant="success-outline"
+                            class="h-11 gap-2"
+                            :disabled="importing"
+                        >
+                            <ArrowUpDown class="h-4 w-4" aria-hidden="true" />
+                            {{ importing ? 'Importing...' : 'Import / export' }}
+                            <ChevronDown class="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-48">
+                        <DropdownMenuItem @select="exportCsv">
+                            <Download class="mr-2 h-4 w-4" />
+                            Export CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @select="chooseCsvFile">
+                            <Upload class="mr-2 h-4 w-4" />
+                            Import CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            @select="router.visit('/admin/audit-logs/archive')"
+                        >
+                            <ArchiveRestore class="mr-2 h-4 w-4" />
+                            Archived logs
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <input
+                    ref="importInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="importCsv"
+                />
+            </header>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                <div
+                    v-for="stat in statCards"
+                    :key="stat.label"
+                    class="rounded-2xl border bg-card p-5"
+                >
+                    <p
+                        class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+                    >
+                        {{ stat.label }}
+                    </p>
+                    <p class="mt-3 text-4xl font-bold tabular-nums">
+                        {{ stat.value.toLocaleString() }}
+                    </p>
+                </div>
             </div>
 
             <DataTable
@@ -470,59 +480,7 @@ const tableItems = computed(() =>
                             status-label="Filter by log type"
                             @update:status="setCategory"
                             @submit="filterTable"
-                        >
-                            <template #actions>
-                                <Button
-                                    size="sm"
-                                    variant="warning-outline"
-                                    @click="
-                                        router.visit(
-                                            '/admin/audit-logs/archive',
-                                        )
-                                    "
-                                >
-                                    <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                                    Archive
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-                                    @click="resetFilters"
-                                >
-                                    <RefreshCcw class="mr-1.5 h-4 w-4" />
-                                    Reset
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="success-outline"
-                                    @click="exportCsv"
-                                >
-                                    <Download class="mr-1.5 h-4 w-4" />
-                                    Export CSV
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="primary-outline"
-                                    :disabled="importing"
-                                    @click="chooseCsvFile"
-                                >
-                                    <Upload class="mr-1.5 h-4 w-4" />
-                                    {{
-                                        importing
-                                            ? 'Importing...'
-                                            : 'Import CSV'
-                                    }}
-                                </Button>
-                                <input
-                                    ref="importInput"
-                                    type="file"
-                                    accept=".csv,text/csv"
-                                    class="hidden"
-                                    @change="importCsv"
-                                />
-                            </template>
-                        </DataTableToolbar>
+                        />
 
                         <div class="flex flex-wrap items-center gap-2">
                             <select
@@ -595,7 +553,7 @@ const tableItems = computed(() =>
                 <template #item-role="log">
                     <span
                         v-if="log.role"
-                        class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap capitalize"
+                        class="rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap capitalize"
                         :class="roleBadge[log.role] ?? roleBadge.user"
                     >
                         {{ log.role.replace('_', ' ') }}
@@ -688,10 +646,10 @@ const tableItems = computed(() =>
 
 <style scoped>
 .filter-input {
-    height: 36px;
+    height: 44px;
     min-width: 140px;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--background);
     padding: 0 10px;
     color: var(--foreground);

@@ -7,7 +7,8 @@ import {
     statusTone,
     type DataTableHeader,
 } from '@/components/data-table';
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -25,7 +26,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { TrendingUp } from 'lucide-vue-next';
+import { Download, TrendingUp } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -169,25 +170,27 @@ function methodLabel(val: string | null): string {
     <ShopLayout :breadcrumbs="breadcrumbs" title="Finance">
         <div class="space-y-6 px-6">
             <!-- ── Header ──────────────────────────────────────── -->
-            <div
-                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            <PageHeader
+                title="Income"
+                description="Revenue collected from customer orders."
             >
-                <div>
-                    <h2 class="text-lg font-semibold">Income</h2>
-                    <p class="text-sm text-muted-foreground">
-                        Revenue collected from customer orders.
-                    </p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <ExportCsvButton dataset="income" />
-                    <Button
-                        variant="outline"
-                        @click="router.visit(`${base}/finance/transactions`)"
-                    >
-                        View Transactions
-                    </Button>
-                </div>
-            </div>
+                <ActionsMenu
+                    label="Import / export"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/income`,
+                        },
+                    ]"
+                />
+                <Button
+                    class="h-11"
+                    @click="router.visit(`${base}/finance/transactions`)"
+                >
+                    View Transactions
+                </Button>
+            </PageHeader>
 
             <!-- ── Stats ───────────────────────────────────────── -->
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">

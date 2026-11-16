@@ -3,6 +3,7 @@ import AdminLayout from '@/layouts/admin/AdminLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 
+import { StatusPill, type StatusTone } from '@/components/data-table';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ import { ArrowLeft } from 'lucide-vue-next';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
-const { shop } = defineProps<{
+const { shop, overview } = defineProps<{
     shop: {
         id: number;
         public_id: string;
@@ -34,7 +35,37 @@ const { shop } = defineProps<{
         sanitary_expiry_date: string | null;
         owner: { name: string; email: string };
     };
+    overview: {
+        health_status: string;
+        compliance_status: string;
+        is_inactive: boolean;
+        last_activity_at: string | null;
+        subscription_plan: string | null;
+        expires_at: string | null;
+        is_expired: boolean;
+        created_at: string;
+        owner: { name: string; email: string } | null;
+    };
 }>();
+
+const toneByState: Record<string, StatusTone> = {
+    healthy: 'success',
+    compliant: 'success',
+    attention: 'warning',
+    expiring: 'warning',
+    incomplete: 'neutral',
+    critical: 'danger',
+    expired: 'danger',
+};
+
+function formatDate(value: string | null) {
+    if (!value) return 'Not recorded';
+    return new Date(value).toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Shop Management', href: '/admin/shop' },
@@ -90,6 +121,93 @@ function submit() {
                 Back to Details
             </Button>
         </div>
+
+        <!-- Read-only overview: the details the shop list no longer shows -->
+        <section
+            class="mb-8 grid gap-4 rounded-2xl border bg-card p-5 sm:grid-cols-2 lg:grid-cols-5"
+            aria-label="Shop overview"
+        >
+            <div>
+                <p
+                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+                >
+                    Health
+                </p>
+                <div class="mt-2">
+                    <StatusPill
+                        :tone="toneByState[overview.health_status] ?? 'neutral'"
+                    >
+                        <span class="capitalize">{{
+                            overview.health_status
+                        }}</span>
+                    </StatusPill>
+                </div>
+            </div>
+            <div>
+                <p
+                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+                >
+                    Compliance
+                </p>
+                <div class="mt-2">
+                    <StatusPill
+                        :tone="
+                            toneByState[overview.compliance_status] ?? 'neutral'
+                        "
+                    >
+                        <span class="capitalize">{{
+                            overview.compliance_status
+                        }}</span>
+                    </StatusPill>
+                </div>
+            </div>
+            <div>
+                <p
+                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+                >
+                    Subscription
+                </p>
+                <p class="mt-2 text-sm font-medium">
+                    {{ overview.subscription_plan ?? 'No plan' }}
+                </p>
+                <p
+                    class="text-xs"
+                    :class="
+                        overview.is_expired
+                            ? 'text-red-500'
+                            : 'text-muted-foreground'
+                    "
+                >
+                    {{ formatDate(overview.expires_at) }}
+                </p>
+            </div>
+            <div>
+                <p
+                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+                >
+                    Last activity
+                </p>
+                <p
+                    class="mt-2 text-sm font-medium"
+                    :class="overview.is_inactive ? 'text-amber-600' : ''"
+                >
+                    {{ formatDate(overview.last_activity_at) }}
+                </p>
+                <p v-if="overview.is_inactive" class="text-xs text-amber-600">
+                    Inactive
+                </p>
+            </div>
+            <div>
+                <p
+                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+                >
+                    Registered
+                </p>
+                <p class="mt-2 text-sm font-medium">
+                    {{ formatDate(overview.created_at) }}
+                </p>
+            </div>
+        </section>
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <!-- Shop Name (full width) -->

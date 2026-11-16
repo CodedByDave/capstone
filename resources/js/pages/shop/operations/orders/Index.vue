@@ -9,7 +9,6 @@ import {
     type DataTableHeader,
 } from '@/components/data-table';
 import CompleteOrderDialog from '@/components/shop/CompleteOrderDialog.vue';
-import ExportCsvButton from '@/components/shop/ExportCsvButton.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,6 +21,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -31,10 +37,13 @@ import { debounce } from 'lodash';
 import {
     AlertCircle,
     Archive,
+    ArrowUpDown,
     CheckCheck,
     CheckCircle,
+    ChevronDown,
     Clock,
     CreditCard,
+    Download,
     Eye,
     ListOrdered,
     Loader,
@@ -43,6 +52,7 @@ import {
     Pencil,
     Plus,
     RotateCcw,
+    Search,
     Trash2,
     Undo2,
     X,
@@ -119,6 +129,10 @@ const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const { can } = usePermissions();
 const canCreate = computed(() => can('Operations', 'create'));
 const canManage = computed(() => can('Operations', 'manage'));
+function exportCsv() {
+    window.location.href = `${isOwner.value ? '/shop' : '/staff'}/export/orders`;
+}
+
 const base = computed(() =>
     isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
 );
@@ -257,29 +271,19 @@ const statusOptions = computed(() => [
 const headers = computed<DataTableHeader[]>(() => [
     ...(props.showArchived
         ? []
-        : [{ text: 'Queue', value: 'queue', width: 130, sortable: true }]),
-    { text: 'Order #', value: 'order_number', width: 150, sortable: true },
-    { text: 'Customer', value: 'customer', width: 220, sortable: true },
-    { text: 'Service', value: 'service', width: 180, sortable: true },
+        : [{ text: 'Queue', value: 'queue', sortable: true }]),
+    { text: 'Order #', value: 'order_number', sortable: true },
+    { text: 'Customer', value: 'customer', sortable: true },
+    { text: 'Service', value: 'service', sortable: true },
     ...(props.showArchived
         ? []
         : [
-              { text: 'Status', value: 'status', width: 150, sortable: true },
-              {
-                  text: 'Payment',
-                  value: 'payment_status',
-                  width: 130,
-                  sortable: true,
-              },
+              { text: 'Status', value: 'status', sortable: true },
+              { text: 'Payment', value: 'payment_status', sortable: true },
           ]),
-    { text: 'Total', value: 'total', width: 130, sortable: true },
-    { text: 'Date', value: 'created_at', width: 140, sortable: true },
-    {
-        text: 'Actions',
-        value: 'actions',
-        width: props.showArchived ? 130 : 140,
-        align: 'center',
-    },
+    { text: 'Total', value: 'total', sortable: true },
+    { text: 'Date', value: 'created_at', sortable: true },
+    { text: 'Actions', value: 'actions', width: 100, align: 'center' },
 ]);
 
 const tableItems = computed(() =>
@@ -528,6 +532,69 @@ const handleDelete = () => {
 
     <ShopLayout :title="showArchived ? 'Archived Orders' : 'Orders'">
         <div class="space-y-6 px-6">
+            <!-- ── Page header ───────────────────────────── -->
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">
+                        {{ showArchived ? 'Archived Orders' : 'Orders' }}
+                    </h1>
+                    <p class="text-sm text-muted-foreground">
+                        {{
+                            showArchived
+                                ? 'Restore orders that were archived.'
+                                : 'Track, collect payment for and manage customer orders.'
+                        }}
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <Button
+                        v-if="showArchived && canManage"
+                        variant="back"
+                        class="h-11 gap-1.5"
+                        @click="toggleArchived"
+                    >
+                        <Archive class="h-4 w-4" />
+                        Back to Active
+                    </Button>
+                    <DropdownMenu v-if="!showArchived">
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="success-outline" class="h-11">
+                                <ArrowUpDown
+                                    class="mr-2 h-4 w-4"
+                                    aria-hidden="true"
+                                />
+                                Export / archives
+                                <ChevronDown
+                                    class="ml-2 h-4 w-4"
+                                    aria-hidden="true"
+                                />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @select="exportCsv">
+                                <Download class="mr-2 h-4 w-4" />
+                                Export CSV
+                            </DropdownMenuItem>
+                            <template v-if="canManage">
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem @select="toggleArchived">
+                                    <Archive class="mr-2 h-4 w-4" />
+                                    View archives
+                                </DropdownMenuItem>
+                            </template>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                        v-if="!showArchived && canCreate"
+                        class="h-11"
+                        @click="router.visit(`${base}/create`)"
+                    >
+                        <Plus class="mr-2 h-4 w-4" aria-hidden="true" />
+                        New Order
+                    </Button>
+                </div>
+            </div>
+
             <!-- ── KPI Cards (active view only) ──────────── -->
             <div
                 v-if="!showArchived"
@@ -698,85 +765,49 @@ const handleDelete = () => {
                           : 'No orders found'
                 "
                 :resettable="!showArchived"
-                :min-width="980"
                 @reset="resetTable"
             >
                 <template #toolbar>
-                    <div class="space-y-3">
-                        <div
-                            class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"
+                    <!-- Filters (active view only) -->
+                    <DataTableToolbar
+                        v-if="!showArchived"
+                        v-model:status="status"
+                        :statuses="statusOptions"
+                        status-label="Filter by order status"
+                        hide-search
+                    >
+                        <select
+                            v-model="paymentStatus"
+                            aria-label="Filter by payment"
+                            class="h-11 rounded-lg border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                         >
-                            <h2 class="font-semibold">
-                                {{
-                                    showArchived
-                                        ? 'Archived Orders'
-                                        : 'Orders List'
-                                }}
-                            </h2>
-                            <div class="flex gap-2">
-                                <ExportCsvButton
-                                    v-if="!showArchived"
-                                    dataset="orders"
-                                />
-                                <Button
-                                    v-if="canManage"
-                                    :variant="
-                                        showArchived
-                                            ? 'back'
-                                            : 'warning-outline'
-                                    "
-                                    size="sm"
-                                    class="gap-1.5"
-                                    @click="toggleArchived"
-                                >
-                                    <Archive class="h-4 w-4" />
-                                    {{
-                                        showArchived
-                                            ? 'Back to Active'
-                                            : 'View Archives'
-                                    }}
-                                </Button>
-                                <Button
-                                    v-if="!showArchived && canCreate"
-                                    size="sm"
-                                    @click="router.visit(`${base}/create`)"
-                                >
-                                    <Plus class="mr-1 h-4 w-4" /> New Order
-                                </Button>
-                            </div>
-                        </div>
-
-                        <!-- Filters (active view only) -->
-                        <DataTableToolbar
-                            v-if="!showArchived"
-                            v-model:search="search"
-                            v-model:status="status"
-                            :statuses="statusOptions"
-                            search-placeholder="Search by name, order # or phone…"
-                            search-label="Search orders"
-                            status-label="Filter by order status"
+                            <option value="">All Payments</option>
+                            <option value="unpaid">Unpaid</option>
+                            <option value="partial">Partial</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                        <Button
+                            v-if="hasActiveFilters"
+                            variant="ghost"
+                            class="h-11 gap-1"
+                            @click="clearFilters"
                         >
-                            <select
-                                v-model="paymentStatus"
-                                aria-label="Filter by payment"
-                                class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                            >
-                                <option value="">All Payments</option>
-                                <option value="unpaid">Unpaid</option>
-                                <option value="partial">Partial</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                            <Button
-                                v-if="hasActiveFilters"
-                                variant="ghost"
-                                size="sm"
-                                class="h-9 gap-1"
-                                @click="clearFilters"
-                            >
-                                <X class="h-3.5 w-3.5" /> Clear
-                            </Button>
-                        </DataTableToolbar>
-                    </div>
+                            <X class="h-3.5 w-3.5" /> Clear
+                        </Button>
+                        <label class="relative min-w-60 flex-1">
+                            <span class="sr-only">Search orders</span>
+                            <Search
+                                class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                                aria-hidden="true"
+                            />
+                            <input
+                                v-model="search"
+                                type="search"
+                                placeholder="Search by name, order # or phone…"
+                                class="h-11 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                            />
+                        </label>
+                    </DataTableToolbar>
                 </template>
 
                 <template #item-queue="order">

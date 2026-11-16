@@ -100,6 +100,7 @@ class ShopOrderController extends Controller
             'rushFee' => $this->service->rushFeeFor($shopId),
             'riderLoadLimit' => $this->service->riderLoadLimitFor($shopId),
             'deliveryPricing' => app(CounterDeliveryFeeService::class)->pricingFor($shopId),
+            'riderAvailable' => $this->service->hasAvailableRider($shopId),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
             'paymentMethods' => ShopOrder::PAYMENT_METHODS,
             'services' => ShopService::where('shop_id', $shopId)

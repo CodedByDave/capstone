@@ -15,6 +15,8 @@ import {
     statusTone,
     type DataTableHeader,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
@@ -148,19 +150,14 @@ const importing = ref(false);
 const tableLoading = ref(false);
 
 const headers: DataTableHeader[] = [
-    {
-        text: 'Transaction reference',
-        value: 'reference',
-        width: 170,
-        sortable: true,
-    },
-    { text: 'Shop', value: 'shop', width: 190, sortable: true },
-    { text: 'Plan', value: 'plan', width: 120, sortable: true },
-    { text: 'Payment', value: 'payment', width: 120 },
-    { text: 'Total', value: 'total', width: 120, sortable: true },
-    { text: 'Status', value: 'status', width: 130, sortable: true },
-    { text: 'Ordered', value: 'created_at', width: 140, sortable: true },
-    { text: 'Actions', value: 'actions', width: 170, align: 'center' },
+    { text: 'Transaction reference', value: 'reference', sortable: true },
+    { text: 'Shop', value: 'shop', sortable: true },
+    { text: 'Plan', value: 'plan', sortable: true },
+    { text: 'Payment', value: 'payment' },
+    { text: 'Total', value: 'total', sortable: true },
+    { text: 'Status', value: 'status', sortable: true },
+    { text: 'Ordered', value: 'created_at', sortable: true },
+    { text: 'Actions', value: 'actions', width: 90, align: 'center' },
 ];
 
 const statusOptions = computed(() => [
@@ -385,6 +382,34 @@ function isExpired(expiresAt: string | null) {
     <Head title="Order Management" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="Order Management">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Order Management"
+                description="Review shop subscription orders and their payments."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            onSelect: exportCsv,
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsvFile,
+                            disabled: importing,
+                        },
+                    ]"
+                />
+                <input
+                    ref="importInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="importCsv"
+                />
+            </PageHeader>
+
             <!-- Stats -->
             <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
                 <Card>
@@ -460,7 +485,6 @@ function isExpired(expiresAt: string | null) {
                 noun="orders"
                 :empty-icon="ListOrdered"
                 empty-message="No orders found."
-                :min-width="1150"
                 @reset="resetFilters"
             >
                 <template #toolbar>
@@ -485,34 +509,6 @@ function isExpired(expiresAt: string | null) {
                                     <RefreshCcw class="mr-1.5 h-4 w-4" />
                                     Reset
                                 </Button>
-                                <Button
-                                    size="sm"
-                                    variant="success-outline"
-                                    @click="exportCsv"
-                                >
-                                    <Download class="mr-1.5 h-4 w-4" />
-                                    Export CSV
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="primary-outline"
-                                    :disabled="importing"
-                                    @click="chooseCsvFile"
-                                >
-                                    <Upload class="mr-1.5 h-4 w-4" />
-                                    {{
-                                        importing
-                                            ? 'Importing...'
-                                            : 'Import CSV'
-                                    }}
-                                </Button>
-                                <input
-                                    ref="importInput"
-                                    type="file"
-                                    accept=".csv,text/csv"
-                                    class="hidden"
-                                    @change="importCsv"
-                                />
                             </template>
                         </DataTableToolbar>
                         <div class="flex flex-wrap items-center gap-2">
@@ -539,13 +535,15 @@ function isExpired(expiresAt: string | null) {
                 </template>
 
                 <template #item-reference="order">
-                    <span class="font-mono text-xs text-muted-foreground">
+                    <span
+                        class="font-mono text-xs break-all text-muted-foreground"
+                    >
                         {{ order.transaction_reference }}
                     </span>
                 </template>
 
                 <template #item-shop="order">
-                    <p class="font-medium whitespace-nowrap">
+                    <p class="font-medium">
                         {{ order.shop_name }}
                     </p>
                     <p class="text-xs text-muted-foreground">

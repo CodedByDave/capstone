@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ImportShopsRequest;
 use App\Http\Requests\Admin\UpdateShopRequest;
 use App\Models\Order;
 use App\Models\Shop;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Services\ActivityLogService;
 use App\Services\BusinessAgreementService;
 use App\Services\KycVerificationService;
+use App\Services\ShopImportService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -35,6 +37,7 @@ class ShopController extends Controller
         private readonly ActivityLogService $activityLogService,
         private readonly BusinessAgreementService $businessAgreementService,
         private readonly KycVerificationService $kycVerifications,
+        private readonly ShopImportService $shopImport,
     ) {}
 
     public function index(Request $request)
@@ -71,6 +74,16 @@ class ShopController extends Controller
                 'subscription', 'trashed', 'per_page', 'sort_by',
                 'sort_direction',
             ]),
+        ]);
+    }
+
+    public function importCsv(ImportShopsRequest $request)
+    {
+        $result = $this->shopImport->import($request->file('file'));
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "CSV import complete: {$result['updated']} updated, {$result['unchanged']} unchanged.",
         ]);
     }
 
@@ -202,8 +215,12 @@ class ShopController extends Controller
 
     public function edit(Shop $shop)
     {
+        $shop->load(['owner', 'latestOrder']);
+
         return Inertia::render('admin/shop/Edit', [
-            'shop' => $shop->load('owner'),
+            'shop' => $shop,
+            // Health, compliance, subscription and activity, read-only, as shown on the shop's detail page.
+            'overview' => $this->serializeShop($shop),
         ]);
     }
 

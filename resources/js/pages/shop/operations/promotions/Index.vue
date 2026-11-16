@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -28,6 +30,7 @@ import {
     usePaginatorTable,
     type DataTableOptions,
 } from '@/composables/useDataTable';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { usePermissions } from '@/composables/usePermissions';
 import {
     Archive,
@@ -35,12 +38,14 @@ import {
     CheckCircle2,
     Pencil,
     Percent,
+    Download,
     Plus,
     RotateCcw,
     Tag,
     ToggleLeft,
     ToggleRight,
     Trash2,
+    Upload,
     XCircle,
 } from 'lucide-vue-next';
 
@@ -95,6 +100,15 @@ const canCreate = computed(() => can('Operations', 'create'));
 const canManage = computed(() => can('Operations', 'manage'));
 const base = computed(() =>
     isOwner.value ? '/shop/operations/promos' : '/staff/operations/promos',
+);
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(
+    () => `${isOwner.value ? '/shop' : '/staff'}/import/promotions`,
 );
 
 onMounted(() => {
@@ -252,32 +266,59 @@ const selected = ref<Array<string | number>>([]);
     <ShopLayout :breadcrumbs="breadcrumbs" title="Promotions">
         <div class="space-y-6 px-6">
             <!-- Header -->
-            <div
-                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            <PageHeader
+                title="Promotions"
+                description="Manage discount promotions applied to customer orders."
             >
-                <div>
-                    <h2 class="text-lg font-semibold">Promotions</h2>
-                    <p class="text-sm text-muted-foreground">
-                        Manage discount promotions applied to customer orders.
-                    </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <Button
-                        v-if="canManage"
-                        :variant="archived ? 'back' : 'warning-outline'"
-                        @click="router.visit(`${base}?archived=${!archived}`)"
-                    >
-                        <Archive class="mr-2 h-4 w-4" />
-                        {{ archived ? 'Back to Active' : 'View Archived' }}
-                    </Button>
-                    <Button
-                        v-if="!archived && canCreate"
-                        @click="router.visit(`${base}/create`)"
-                    >
-                        <Plus class="mr-2 h-4 w-4" /> New Promotion
-                    </Button>
-                </div>
-            </div>
+                <Button
+                    v-if="archived && canManage"
+                    variant="back"
+                    class="h-11"
+                    @click="router.visit(`${base}?archived=false`)"
+                >
+                    <Archive class="mr-2 h-4 w-4" />
+                    Back to Active
+                </Button>
+                <ActionsMenu
+                    v-if="!archived"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/promotions`,
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !canCreate,
+                        },
+                        {
+                            separator: true,
+                            label: 'Archived promotions',
+                            icon: Archive,
+                            onSelect: () =>
+                                router.visit(`${base}?archived=true`),
+                            hidden: !canManage,
+                        },
+                    ]"
+                />
+                <Button
+                    v-if="!archived && canCreate"
+                    class="h-11"
+                    @click="router.visit(`${base}/create`)"
+                >
+                    <Plus class="mr-2 h-4 w-4" /> New Promotion
+                </Button>
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
+            </PageHeader>
 
             <!-- Stats -->
             <div v-if="!archived" class="grid grid-cols-2 gap-4 sm:grid-cols-5">

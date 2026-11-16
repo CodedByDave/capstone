@@ -26,7 +26,7 @@ class StoreEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            ...$this->riderDetailRules(),
+            ...$this->riderDetailRules(withPlate: false),
             'employee_id' => 'required|string|max:50|unique:employees,employee_id',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',

@@ -37,7 +37,7 @@ trait ValidatesRiderDetails
      * @param  bool  $licenseOnFile  the rider already has a license photo saved (edit only)
      * @return array<string, mixed>
      */
-    protected function riderDetailRules(bool $licenseOnFile = false): array
+    protected function riderDetailRules(bool $licenseOnFile = false, bool $withPlate = true): array
     {
         if (! $this->isRiderPosition()) {
             // Not a rider: the fields are ignored and never reach the service.
@@ -54,8 +54,11 @@ trait ValidatesRiderDetails
             return $rules;
         }
 
+        if ($withPlate) {
+            $rules['plate_number'] = ['required', 'string', 'max:12', 'regex:/^[A-Z0-9][A-Z0-9 -]{1,11}$/'];
+        }
+
         return $rules + [
-            'plate_number' => ['required', 'string', 'max:12', 'regex:/^[A-Z0-9][A-Z0-9 -]{1,11}$/'],
             'license_photo' => [$licenseOnFile ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }

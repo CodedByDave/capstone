@@ -20,6 +20,23 @@ class ShopRepository extends Repository
         ]);
     }
 
+    /** The shop of the owner with this email whose name matches (case-insensitive), archived shops excluded. */
+    public function findByOwnerEmailAndName(string $ownerEmail, string $shopName): ?Shop
+    {
+        return Shop::query()
+            ->whereHas('owner', fn ($owner) => $owner->where('email', $ownerEmail))
+            ->whereRaw('LOWER(shop_name) = ?', [mb_strtolower($shopName)])
+            ->first();
+    }
+
+    /** Saves the given attributes and returns the shop with the fields that actually changed. */
+    public function applyImportedDetails(Shop $shop, array $attributes): Shop
+    {
+        $shop->fill($attributes)->save();
+
+        return $shop;
+    }
+
     public function countActive(): int
     {
         return Shop::query()->where('status', 'active')->count();

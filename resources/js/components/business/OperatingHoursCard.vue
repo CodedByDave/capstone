@@ -6,7 +6,8 @@ import {
     useSettingsSection,
 } from '@/composables/useSettingsSaveBar';
 import { useForm } from '@inertiajs/vue3';
-import { Clock, Sun, Sunrise } from 'lucide-vue-next';
+import { Clock, Copy, Sun, Sunrise } from 'lucide-vue-next';
+import { computed, watch } from 'vue';
 
 const props = defineProps<{
     hours: {
@@ -14,6 +15,7 @@ const props = defineProps<{
         opens_at: string;
         closes_at: string;
         operating_days: number[];
+        daily_hours: Record<number, { opens_at: string; closes_at: string }>;
     };
 }>();
 
@@ -22,8 +24,15 @@ const form = useForm({
     opens_at: props.hours.opens_at,
     closes_at: props.hours.closes_at,
     operating_days: [...props.hours.operating_days],
+    daily_hours: Object.fromEntries(
+        Object.entries(props.hours.daily_hours ?? {}).map(([d, h]) => [
+            d,
+            { ...h },
+        ]),
+    ) as Record<number, { opens_at: string; closes_at: string }>,
 });
 
+// Declared before the immediate watcher below, which reads it on setup.
 const days = [
     { value: 1, label: 'Mon', full: 'Monday' },
     { value: 2, label: 'Tue', full: 'Tuesday' },
@@ -33,6 +42,41 @@ const days = [
     { value: 6, label: 'Sat', full: 'Saturday' },
     { value: 0, label: 'Sun', full: 'Sunday' },
 ];
+
+function hoursFor(day: number) {
+    if (!form.daily_hours[day]) {
+        form.daily_hours[day] = {
+            opens_at: form.opens_at || '08:00',
+            closes_at: form.closes_at || '17:00',
+        };
+    }
+    return form.daily_hours[day];
+}
+
+// Days in week order that are currently open, each with its own times.
+const openDayRows = computed(() =>
+    days.filter((d) => form.operating_days.includes(d.value)),
+);
+
+// Keep the shop-wide fallback in step with the first open day.
+watch(
+    () => [form.operating_days, form.daily_hours],
+    () => {
+        const first = openDayRows.value[0];
+        if (!first) return;
+        const h = hoursFor(first.value);
+        form.opens_at = h.opens_at;
+        form.closes_at = h.closes_at;
+    },
+    { deep: true, immediate: true },
+);
+
+function copyToAllDays(from: number) {
+    const src = hoursFor(from);
+    for (const d of openDayRows.value) {
+        form.daily_hours[d.value] = { ...src };
+    }
+}
 
 function toggleDay(day: number) {
     form.operating_days = form.operating_days.includes(day)
@@ -142,30 +186,65 @@ useSettingsSection({
                 </button>
             </div>
 
-            <div
-                v-if="!form.is_open_24_7"
-                class="grid max-w-md gap-x-4 gap-y-5 sm:grid-cols-2"
-            >
-                <div class="space-y-1.5">
-                    <label class="text-sm font-medium" for="opens-at">
-                        Opens at
-                        <span class="text-red-500" aria-hidden="true">*</span>
-                    </label>
-                    <Input id="opens-at" v-model="form.opens_at" type="time" />
-                    <InputError :message="form.errors.opens_at" />
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-sm font-medium" for="closes-at">
-                        Closes at
-                        <span class="text-red-500" aria-hidden="true">*</span>
-                    </label>
-                    <Input
-                        id="closes-at"
-                        v-model="form.closes_at"
-                        type="time"
+            <div v-if="!form.is_open_24_7" class="max-w-2xl divide-y rounded-xl border">
+                <p
+                    v-if="openDayRows.length === 0"
+                    class="p-3 text-sm text-muted-foreground"
+                >
+                    Choose the days you are open to set their hours.
+                </p>
+                <div
+                    v-for="(day, index) in openDayRows"
+                    :key="day.value"
+                    class="flex flex-wrap items-center gap-x-4 gap-y-2 p-3"
+                >
+                    <span class="w-24 text-sm font-medium">{{ day.full }}</span>
+                    <div class="flex items-center gap-2">
+                        <label class="sr-only" :for="`opens-${day.value}`">
+                            {{ day.full }} opens at
+                        </label>
+                        <Input
+                            :id="`opens-${day.value}`"
+                            v-model="hoursFor(day.value).opens_at"
+                            type="time"
+                            class="w-36"
+                        />
+                        <span class="text-sm text-muted-foreground">to</span>
+                        <label class="sr-only" :for="`closes-${day.value}`">
+                            {{ day.full }} closes at
+                        </label>
+                        <Input
+                            :id="`closes-${day.value}`"
+                            v-model="hoursFor(day.value).closes_at"
+                            type="time"
+                            class="w-36"
+                        />
+                    </div>
+                    <button
+                        v-if="index === 0 && openDayRows.length > 1"
+                        type="button"
+                        class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        @click="copyToAllDays(day.value)"
+                    >
+                        <Copy class="h-3.5 w-3.5" aria-hidden="true" />
+                        Apply to all days
+                    </button>
+                    <InputError
+                        class="w-full"
+                        :message="
+                            (form.errors as Record<string, string>)[
+                                `daily_hours.${day.value}.opens_at`
+                            ] ||
+                            (form.errors as Record<string, string>)[
+                                `daily_hours.${day.value}.closes_at`
+                            ]
+                        "
                     />
-                    <InputError :message="form.errors.closes_at" />
                 </div>
+                <InputError
+                    class="p-3"
+                    :message="form.errors.opens_at || form.errors.closes_at"
+                />
             </div>
         </div>
     </section>

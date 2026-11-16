@@ -65,6 +65,8 @@ const props = defineProps<{
         shop_lat: number | null;
         shop_lng: number | null;
     };
+    /** False when no rider is online and on duty, so delivery is hidden. */
+    riderAvailable?: boolean;
     pickupTypes: string[];
     paymentMethods: string[];
     services?: Service[];
@@ -136,7 +138,9 @@ const formatServiceLabel = (svc: Service) => {
 // Drop-off is how the laundry gets to the shop (walk-in here). Pickup is how the customer gets it
 // back: "Delivery" means the shop sends the finished laundry to them; "Walk-in" means they collect it.
 const offersDelivery = computed(
-    () => !!page.props.shopCapabilities?.offers_delivery,
+    () =>
+        !!page.props.shopCapabilities?.offers_delivery &&
+        props.riderAvailable !== false,
 );
 const handoffOptions = computed(() => [
     { value: 'walk_in', label: 'Walk-in' },

@@ -111,6 +111,7 @@ interface ShopInfo {
     opens_at: string | null;
     closes_at: string | null;
     operating_days: number[];
+    daily_hours: Record<number, { opens_at: string; closes_at: string }>;
     rating_avg: number | null;
     rating_count: number;
     payment_options: Record<
@@ -814,6 +815,17 @@ function goBack() {
                         "
                     >
                         {{ DAY_NAMES[day] }}
+                        <span
+                            v-if="
+                                !shop.is_open_24_7 &&
+                                shop.operating_days.includes(day) &&
+                                shop.daily_hours?.[day]
+                            "
+                            class="block text-[11px] font-normal"
+                        >
+                            {{ formatTime(shop.daily_hours[day].opens_at) }} –
+                            {{ formatTime(shop.daily_hours[day].closes_at) }}
+                        </span>
                         <span class="sr-only">{{
                             shop.operating_days.includes(day)
                                 ? 'open'

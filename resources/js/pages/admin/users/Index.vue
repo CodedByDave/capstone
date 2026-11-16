@@ -23,14 +23,21 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import {
     Archive,
     ArchiveRestore,
+    ArrowUpDown,
+    ChevronDown,
     Download,
     Eye,
-    RefreshCcw,
     Trash2,
     Upload,
     Users,
@@ -318,11 +325,28 @@ function formatDate(d: string) {
     });
 }
 
-const roleBadge: Record<string, string> = {
-    super_admin: 'bg-purple-100 text-purple-700',
-    owner: 'bg-blue-100 text-blue-700',
-    user: 'bg-gray-100 text-gray-600',
+const roleLabel: Record<string, string> = {
+    super_admin: 'Super admin',
+    owner: 'Owner',
+    staff: 'Staff',
+    supplier: 'Supplier',
+    user: 'Customer',
 };
+
+const roleBadge: Record<string, string> = {
+    super_admin: 'bg-purple-500/15 text-purple-600 dark:text-purple-300',
+    owner: 'bg-blue-500/15 text-blue-600 dark:text-blue-300',
+    staff: 'bg-muted text-foreground',
+    supplier: 'bg-muted text-foreground',
+    user: 'bg-muted text-muted-foreground',
+};
+
+const statCards = computed(() => [
+    { label: 'Total users', value: props.stats.total },
+    { label: 'Total owners', value: props.stats.owners },
+    { label: 'Total normal users', value: props.stats.users },
+    { label: 'Total verified users', value: props.stats.verified },
+]);
 
 const tableItems = computed(() =>
     props.users.data.map((user) => ({
@@ -337,65 +361,72 @@ const tableItems = computed(() =>
 <template>
     <Head title="Users" />
     <AdminLayout :breadcrumbs="breadcrumbs" title="User Management">
-        <div class="space-y-6 px-6">
+        <div class="mx-auto w-full max-w-[1280px] space-y-6 px-6">
+            <!-- Header -->
+            <header class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Users</h1>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Every owner, staff, supplier and customer account on the
+                        platform.
+                    </p>
+                </div>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button
+                            variant="success-outline"
+                            class="h-11 gap-2"
+                            :disabled="importing"
+                        >
+                            <ArrowUpDown class="h-4 w-4" aria-hidden="true" />
+                            {{ importing ? 'Importing...' : 'Import / export' }}
+                            <ChevronDown class="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-48">
+                        <DropdownMenuItem @select="exportCsv">
+                            <Download class="mr-2 h-4 w-4" />
+                            Export CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @select="chooseCsvFile">
+                            <Upload class="mr-2 h-4 w-4" />
+                            Import CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            @select="router.visit('/admin/users/archive')"
+                        >
+                            <ArchiveRestore class="mr-2 h-4 w-4" />
+                            Archived users
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <input
+                    ref="importInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="importCsv"
+                />
+            </header>
+
             <!-- Stats -->
-            <div class="grid grid-cols-1 gap-5 md:grid-cols-4">
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Total Users
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold">
-                            {{ stats.total.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Total Owners
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold text-blue-600">
-                            {{ stats.owners.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Total Normal Users
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold text-orange-600">
-                            {{ stats.users.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent class="pt-5">
-                        <div class="mb-2 flex items-center justify-between">
-                            <p
-                                class="text-xs font-medium tracking-widest text-muted-foreground uppercase"
-                            >
-                                Total Verified Users
-                            </p>
-                        </div>
-                        <p class="text-3xl font-bold text-green-600">
-                            {{ stats.verified.toLocaleString() }}
-                        </p>
-                    </CardContent>
-                </Card>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div
+                    v-for="stat in statCards"
+                    :key="stat.label"
+                    class="rounded-2xl border bg-card p-5"
+                >
+                    <p
+                        class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
+                    >
+                        {{ stat.label }}
+                    </p>
+                    <p class="mt-3 text-4xl font-bold tabular-nums">
+                        {{ stat.value.toLocaleString() }}
+                    </p>
+                </div>
             </div>
 
             <!-- Table card -->
@@ -428,61 +459,16 @@ const tableItems = computed(() =>
                     >
                         <select
                             v-model="role"
-                            class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                            class="h-11 rounded-lg border border-input bg-background px-3 text-sm"
                             aria-label="Filter by role"
                             @change="filterTable"
                         >
                             <option value="all">All roles</option>
                             <option value="owner">Owner</option>
-                            <option value="user">User</option>
+                            <option value="staff">Staff</option>
+                            <option value="supplier">Supplier</option>
+                            <option value="user">Customer</option>
                         </select>
-
-                        <template #actions>
-                            <Button
-                                size="sm"
-                                variant="warning-outline"
-                                @click="router.visit('/admin/users/archive')"
-                            >
-                                <ArchiveRestore class="mr-1.5 h-4 w-4" />
-                                Archive
-                            </Button>
-
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                class="border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800"
-                                @click="resetFilters"
-                            >
-                                <RefreshCcw class="mr-1.5 h-4 w-4" />
-                                Reset
-                            </Button>
-
-                            <Button
-                                size="sm"
-                                variant="success-outline"
-                                @click="exportCsv"
-                            >
-                                <Download class="mr-1.5 h-4 w-4" />
-                                Export CSV
-                            </Button>
-
-                            <Button
-                                size="sm"
-                                variant="primary-outline"
-                                :disabled="importing"
-                                @click="chooseCsvFile"
-                            >
-                                <Upload class="mr-1.5 h-4 w-4" />
-                                {{ importing ? 'Importing...' : 'Import CSV' }}
-                            </Button>
-                            <input
-                                ref="importInput"
-                                type="file"
-                                accept=".csv,text/csv"
-                                class="hidden"
-                                @change="importCsv"
-                            />
-                        </template>
                     </DataTableToolbar>
                 </template>
 
@@ -502,19 +488,20 @@ const tableItems = computed(() =>
                 </template>
 
                 <template #item-email="u">
-                    <span class="text-xs text-muted-foreground">{{
+                    <span class="text-sm text-muted-foreground">{{
                         u.email
                     }}</span>
                 </template>
 
                 <template #item-role="u">
                     <span
-                        class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap capitalize"
+                        class="rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap"
                         :class="
-                            roleBadge[u.role] ?? 'bg-gray-100 text-gray-600'
+                            roleBadge[u.role] ??
+                            'bg-muted text-muted-foreground'
                         "
                     >
-                        {{ u.role.replace('_', ' ') }}
+                        {{ roleLabel[u.role] ?? u.role.replace('_', ' ') }}
                     </span>
                 </template>
 

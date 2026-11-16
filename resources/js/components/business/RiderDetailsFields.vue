@@ -30,6 +30,8 @@ const props = defineProps<{
     hasLicense?: boolean;
     /** Edit only: where the saved license photo can be opened. */
     licenseUrl?: string | null;
+    /** Hide the plate number field (e.g. on the create form). */
+    showPlateNumber?: boolean;
 }>();
 
 const vehicleOwnership = defineModel<'shop' | 'own'>('vehicleOwnership', {
@@ -47,7 +49,9 @@ const ownershipOptions = [
     {
         value: 'own',
         label: 'Own vehicle',
-        hint: 'Needs plate number and license.',
+        hint: props.showPlateNumber === false
+            ? 'Needs a driver’s license.'
+            : 'Needs plate number and license.',
         icon: User,
     },
 ] as const;
@@ -185,7 +189,10 @@ function clearPhoto() {
                 </p>
             </div>
 
-            <div v-if="ownVehicle" class="space-y-1.5">
+            <div
+                v-if="ownVehicle && showPlateNumber !== false"
+                class="space-y-1.5"
+            >
                 <label class="text-sm font-medium" for="rider-plate-number"
                     >Plate Number <span class="text-red-500">*</span></label
                 >

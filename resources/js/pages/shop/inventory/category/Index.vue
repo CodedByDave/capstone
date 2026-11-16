@@ -6,8 +6,11 @@ import {
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { useDataTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -17,13 +20,15 @@ import axios from 'axios';
 import {
     Archive,
     Check,
+    Download,
     Layers,
     Loader2,
     Pencil,
     Trash2,
+    Upload,
     X,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -48,6 +53,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const categories = ref<Category[]>([...initialCategories]);
+watch(
+    () => initialCategories,
+    (list) => (categories.value = [...list]),
+);
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(
+    () => `${isOwner.value ? '/shop' : '/staff'}/import/inventory-categories`,
+);
 const saveError = ref<string | null>(null);
 
 // Edit row
@@ -126,6 +144,47 @@ const selected = ref<Array<string | number>>([]);
     <Head title="Inventory Categories" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Inventory Categories">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Inventory Categories"
+                description="Group your supplies so they are easier to find and reorder."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/inventory-categories`,
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'create')
+                            ),
+                        },
+                        {
+                            label: 'Archived categories',
+                            icon: Archive,
+                            onSelect: () =>
+                                router.visit(`${base}/category/archive`),
+                            separator: true,
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'archive')
+                            ),
+                        },
+                    ]"
+                />
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
+            </PageHeader>
+
             <div
                 v-if="saveError"
                 role="alert"
@@ -176,29 +235,7 @@ const selected = ref<Array<string | number>>([]);
                         v-model:search="search"
                         search-placeholder="Search name or description..."
                         search-label="Search categories"
-                    >
-                        <h2
-                            class="order-first flex w-full items-center gap-2 font-semibold sm:w-auto"
-                        >
-                            <Layers class="h-4 w-4 text-muted-foreground" />
-                            Categories
-                        </h2>
-                        <template #actions>
-                            <Button
-                                v-if="
-                                    isOwner ||
-                                    can('Inventory Management', 'archive')
-                                "
-                                size="sm"
-                                variant="warning-outline"
-                                @click="
-                                    router.visit(`${base}/category/archive`)
-                                "
-                            >
-                                <Archive class="mr-1.5 h-4 w-4" /> Archive
-                            </Button>
-                        </template>
-                    </DataTableToolbar>
+                    />
                 </template>
 
                 <template #item-name="cat">

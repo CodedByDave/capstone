@@ -65,6 +65,14 @@ function loadShop(?float $min = 3, ?float $max = 15, string $name = 'Load Laundr
     return $shop;
 }
 
+/** Pickup and delivery are only offered while a clocked-in rider is online. */
+function loadEnsureRider(Shop $shop): void
+{
+    if (! Rider::where('shop_id', $shop->id)->exists()) {
+        onlineRider($shop);
+    }
+}
+
 function loadService(Shop $shop, string $model = 'per_kg'): ShopService
 {
     return ShopService::firstOrCreate(
@@ -78,6 +86,7 @@ function loadService(Shop $shop, string $model = 'per_kg'): ShopService
 /** A customer booking a rider pickup with an estimated weight. */
 function loadCustomerPickup(Shop $shop, ?float $weight, string $model = 'per_kg'): ShopOrder
 {
+    loadEnsureRider($shop);
     $customer = User::factory()->create(['role' => AccountType::Customer->value, 'referred_shop_id' => $shop->id]);
 
     return app(ShopOrderService::class)->createCustomerOrder($customer, [
@@ -98,6 +107,7 @@ function loadCustomerPickup(Shop $shop, ?float $weight, string $model = 'per_kg'
 /** Staff creating a walk-in order that the shop delivers back, weighed at the counter. */
 function loadStaffDelivery(Shop $shop, float $weight): ShopOrder
 {
+    loadEnsureRider($shop);
     $service = loadService($shop);
 
     return app(ShopOrderService::class)->createOrder([
