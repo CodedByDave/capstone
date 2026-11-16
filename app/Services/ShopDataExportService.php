@@ -4,12 +4,20 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\Delivery;
+use App\Models\EmployeeActivityLog;
 use App\Models\Expense;
 use App\Models\Inventory;
 use App\Models\InventoryCategory;
 use App\Models\InventoryMovement;
+use App\Models\LowStockAlert;
+use App\Models\Order;
+use App\Models\OrderComplaint;
+use App\Models\OrderRating;
 use App\Models\PayrollItem;
 use App\Models\Promotion;
+use App\Models\PurchaseOrder;
+use App\Models\RolePermission;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
 use App\Models\Supplier;
@@ -36,7 +44,18 @@ class ShopDataExportService
         'employees' => 'HRM',
         'attendance' => 'HRM',
         'payroll' => 'HRM',
+        'employee-logs' => 'HRM',
+        'permissions' => 'HRM',
+        'purchase-orders' => 'Inventory Management',
+        'low-stock-alerts' => 'Inventory Management',
+        'complaints' => 'Operations',
+        'ratings' => 'Operations',
+        'logistics' => 'Logistics',
+        'payment-history' => 'Operations',
     ];
+
+    /** Datasets only the shop owner may export: access rules and what the shop pays the platform. */
+    public const OWNER_ONLY = ['permissions', 'payment-history'];
 
     public const LABELS = [
         'orders' => 'Orders',
@@ -51,6 +70,14 @@ class ShopDataExportService
         'employees' => 'Employees',
         'attendance' => 'Attendance',
         'payroll' => 'Payroll',
+        'employee-logs' => 'Employee activity log',
+        'permissions' => 'Roles & permissions',
+        'purchase-orders' => 'Purchase orders',
+        'low-stock-alerts' => 'Low stock alerts',
+        'complaints' => 'Order complaints',
+        'ratings' => 'Order ratings',
+        'logistics' => 'Deliveries',
+        'payment-history' => 'Subscription payment history',
     ];
 
     public function __construct(
@@ -213,6 +240,59 @@ class ShopDataExportService
                     $i->employee?->employee_id, trim(($i->employee?->first_name ?? '').' '.($i->employee?->last_name ?? '')),
                     $i->basic_salary, $i->days_worked, $i->days_absent, $i->days_late, $i->deductions,
                     $i->sss_contribution, $i->philhealth_contribution, $i->pagibig_contribution, $i->withholding_tax, $i->bonuses, $i->net_pay,
+                ]),
+            ],
+            'employee-logs' => [
+                ['Date', 'Employee ID', 'Employee', 'Action', 'Performed by', 'Changes'],
+                $this->map($this->repository->employeeLogs($shopId), fn (EmployeeActivityLog $l) => [
+                    $l->created_at?->toDateTimeString(), $l->employee?->employee_id,
+                    trim(($l->employee?->first_name ?? '').' '.($l->employee?->last_name ?? '')),
+                    $l->action, $l->performer?->name, json_encode($l->changes),
+                ]),
+            ],
+            'permissions' => [
+                ['Role', 'Module', 'Action'],
+                $this->map($this->repository->permissions($shopId), fn (RolePermission $p) => [$p->role, $p->module, $p->action]),
+            ],
+            'purchase-orders' => [
+                ['PO number', 'Supplier', 'Status', 'Total', 'Expected', 'Created', 'Sent', 'Received', 'Notes'],
+                $this->map($this->repository->purchaseOrders($shopId), fn (PurchaseOrder $o) => [
+                    $o->po_number, $o->supplier?->name, $o->status, $o->total, $o->expected_date?->toDateString(),
+                    $o->created_at?->toDateTimeString(), $o->sent_at?->toDateTimeString(), $o->received_at?->toDateTimeString(), $o->notes,
+                ]),
+            ],
+            'low-stock-alerts' => [
+                ['Item', 'Quantity at alert', 'Minimum stock', 'Status', 'Raised', 'Resolved'],
+                $this->map($this->repository->lowStockAlerts($shopId), fn (LowStockAlert $a) => [
+                    $a->inventory?->name, $a->quantity_at_alert, $a->min_stock_at_alert, $a->status,
+                    $a->created_at?->toDateTimeString(), $a->resolved_at?->toDateTimeString(),
+                ]),
+            ],
+            'complaints' => [
+                ['Order number', 'Type', 'Status', 'Description', 'Shop reply', 'Filed', 'Replied', 'Resolved'],
+                $this->map($this->repository->complaints($shopId), fn (OrderComplaint $c) => [
+                    $c->order?->order_number, $c->type, $c->status, $c->description, $c->shop_reply,
+                    $c->created_at?->toDateTimeString(), $c->replied_at?->toDateTimeString(), $c->resolved_at?->toDateTimeString(),
+                ]),
+            ],
+            'ratings' => [
+                ['Order number', 'Rating', 'Comment', 'Date'],
+                $this->map($this->repository->ratings($shopId), fn (OrderRating $r) => [
+                    $r->order?->order_number, $r->rating, $r->comment, $r->created_at?->toDateTimeString(),
+                ]),
+            ],
+            'logistics' => [
+                ['Order number', 'Type', 'Status', 'Customer', 'Phone', 'Address', 'Distance (km)', 'Delivery fee', 'Rider', 'Assigned', 'Picked up', 'Delivered'],
+                $this->map($this->repository->deliveries($shopId), fn (Delivery $d) => [
+                    $d->order?->order_number, $d->type, $d->status, $d->customer_name, $d->customer_phone, $d->delivery_address,
+                    $d->distance_km, $d->delivery_fee, $d->rider?->name,
+                    $d->assigned_at?->toDateTimeString(), $d->picked_up_at?->toDateTimeString(), $d->delivered_at?->toDateTimeString(),
+                ]),
+            ],
+            'payment-history' => [
+                ['Date', 'Plan', 'Billing months', 'Total', 'Status', 'Expires'],
+                $this->map($this->repository->subscriptionOrders($shopId), fn (Order $o) => [
+                    $o->created_at?->toDateTimeString(), $o->plan_name, $o->billing_months, $o->total_price, $o->status, $o->expires_at?->toDateTimeString(),
                 ]),
             ],
             default => throw new RuntimeException("Unknown export dataset [{$dataset}]."),

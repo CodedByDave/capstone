@@ -42,6 +42,7 @@ import { usePermissions } from '@/composables/usePermissions';
 import { useShopCapabilities } from '@/composables/useShopCapabilities';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { formatQuantity, packageStock } from '@/lib/inventoryStock';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
@@ -59,6 +60,7 @@ import {
     Plus,
     RefreshCcw,
     Truck,
+    Upload,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -123,6 +125,24 @@ const props = defineProps<{
 
 const { isOwner, can } = usePermissions();
 const { hasSuppliers } = useShopCapabilities();
+
+const {
+    input: movementInput,
+    importing: importingMovements,
+    choose: chooseMovements,
+    onFileChange: onMovementsChange,
+} = useCsvImport(
+    () => `${isOwner.value ? '/shop' : '/staff'}/import/stock-movements`,
+);
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(
+    () => `${isOwner.value ? '/shop' : '/staff'}/import/inventory`,
+);
 const base = computed(() =>
     isOwner.value ? '/shop/inventory' : '/staff/inventory',
 );
@@ -484,6 +504,26 @@ const selected = ref<Array<string | number>>([]);
                             href: `${exportBase}/stock-movements`,
                         },
                         {
+                            label: importing ? 'Importing...' : 'Import items (CSV)',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'create')
+                            ),
+                        },
+                        {
+                            label: importingMovements
+                                ? 'Importing...'
+                                : 'Import stock movements (CSV)',
+                            icon: Upload,
+                            onSelect: chooseMovements,
+                            disabled: importingMovements,
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'create')
+                            ),
+                        },
+                        {
                             label: 'View categories',
                             icon: Layers,
                             onSelect: () => router.visit(categoryBase),
@@ -521,6 +561,20 @@ const selected = ref<Array<string | number>>([]);
                     <Plus class="mr-2 h-4 w-4" aria-hidden="true" />
                     Add item
                 </Button>
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
+                <input
+                    ref="movementInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onMovementsChange"
+                />
             </PageHeader>
 
             <!-- Stats row -->

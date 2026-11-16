@@ -5,13 +5,21 @@ import {
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { Eye, FileText, RefreshCcw, Search } from 'lucide-vue-next';
+import {
+    Download,
+    Eye,
+    FileText,
+    RefreshCcw,
+    Search,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface PaymentItem {
@@ -176,6 +184,21 @@ watch(
     <Head title="Payment History" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Payment History">
         <div class="space-y-6 px-6 py-4">
+            <PageHeader
+                title="Payment History"
+                description="What your shop has paid for its subscription."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: '/shop/export/payment-history',
+                        },
+                    ]"
+                />
+            </PageHeader>
+
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <Card v-for="item in statCards" :key="item.label">
                     <CardContent class="p-4">

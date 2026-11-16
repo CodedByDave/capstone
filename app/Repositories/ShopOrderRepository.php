@@ -309,6 +309,16 @@ class ShopOrderRepository
             ->first();
     }
 
+    /** @return array<string, int> The shop's order ids, keyed by lower-cased order number. */
+    public function idsByOrderNumber(int $shopId): array
+    {
+        return ShopOrder::query()
+            ->where('shop_id', $shopId)
+            ->pluck('id', 'order_number')
+            ->mapWithKeys(fn ($id, $number) => [mb_strtolower((string) $number) => $id])
+            ->all();
+    }
+
     public function findByOrderNumber(string $orderNumber): ?ShopOrder
     {
         return $this->model->where('order_number', $orderNumber)->first();

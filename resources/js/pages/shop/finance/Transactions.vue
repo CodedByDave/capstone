@@ -8,6 +8,7 @@ import {
 import { useDataTable } from '@/composables/useDataTable';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -21,6 +22,7 @@ import {
     ArrowUpDown,
     DollarSign,
     Download,
+    Upload,
     TrendingDown,
     TrendingUp,
 } from 'lucide-vue-next';
@@ -55,6 +57,13 @@ const props = defineProps<{
 
 const { isOwner } = usePermissions();
 const base = computed(() => (isOwner.value ? '/shop' : '/staff'));
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => `${base.value}/import/transactions`);
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
@@ -173,6 +182,13 @@ function formatDate(val: string): string {
                             icon: Download,
                             href: `${base}/export/expenses`,
                         },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !isOwner,
+                        },
                     ]"
                 />
                 <Button
@@ -189,6 +205,13 @@ function formatDate(val: string): string {
                 >
                     Expenses
                 </Button>
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
             </PageHeader>
 
             <!-- ── Summary Cards ───────────────────────────────── -->

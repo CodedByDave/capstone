@@ -8,6 +8,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 const isHostingerBuild = process.env.HOSTINGER_BUILD === 'true';
 
 export default defineConfig({
+    resolve: {
+        // html2pdf.js bundles html2canvas, which cannot parse Tailwind v4's oklch() colors
+        // and hangs PDF export. html2canvas-pro is a drop-in fork that supports them.
+        alias: { html2canvas: 'html2canvas-pro' },
+    },
     // Pre-bundle every page's dependencies at dev start. Otherwise Vite discovers them
     // when a page is first opened, re-optimizes, and the in-app navigation hangs
     // until the browser is refreshed.

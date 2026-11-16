@@ -16,6 +16,7 @@ class AuthorizeDatasetExport
         $module = ShopDataExportService::MODULES[$request->route('dataset')] ?? null;
 
         abort_if($module === null, 404);
+        abort_if(in_array($request->route('dataset'), ShopDataExportService::OWNER_ONLY, true) && $request->user()?->role !== 'owner', 403);
 
         return $this->permission->handle($request, $next, $module, 'view');
     }

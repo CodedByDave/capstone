@@ -9,6 +9,7 @@ import {
 } from '@/components/data-table';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import PriceListStatusPill, {
     type PriceListStatus,
 } from '@/components/supplier/PriceListStatusPill.vue';
@@ -29,6 +30,7 @@ import {
     Plus,
     Trash2,
     Truck,
+    Upload,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -67,6 +69,13 @@ const base = computed(() =>
 const inventoryBase = computed(() =>
     isOwner.value ? '/shop/inventory' : '/staff/inventory',
 );
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => `${isOwner.value ? '/shop' : '/staff'}/import/suppliers`);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Inventory', href: inventoryBase.value },
@@ -153,12 +162,21 @@ const selected = ref<Array<string | number>>([]);
                 description="Manage the suppliers you buy inventory from."
             >
                 <ActionsMenu
-                    label="Export / archives"
+                    label="Import / export"
                     :items="[
                         {
                             label: 'Export CSV',
                             icon: Download,
                             href: `${isOwner ? '/shop' : '/staff'}/export/suppliers`,
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !(
+                                isOwner || can('Inventory Management', 'create')
+                            ),
                         },
                         {
                             label: 'Archived suppliers',
@@ -179,6 +197,13 @@ const selected = ref<Array<string | number>>([]);
                 >
                     <Plus class="mr-2 h-4 w-4" /> Add Supplier
                 </Button>
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
             </PageHeader>
 
             <DataTable

@@ -5,6 +5,9 @@ import {
     IdentityCell,
     type DataTableHeader,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +24,8 @@ import {
     Trash2,
     UserCog,
     X,
+    Download,
+    Upload,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
@@ -120,6 +125,13 @@ const purchasedModules = computed<Module[]>(() =>
 
 const roles = ref<RoleItem[]>(props.roles ?? []);
 const selectedRole = ref('owner');
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => '/shop/import/permissions');
+
 const isOwnerRole = computed(() => selectedRole.value === 'owner');
 const nonOwnerRoles = computed(() =>
     roles.value.filter((r) => r.name !== 'owner'),
@@ -321,6 +333,34 @@ function roleColor(role: string) {
     <Head title="Roles & Permissions" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Roles & Permissions">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Roles & Permissions"
+                description="Control module access per role. Permissions are saved automatically."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: '/shop/export/permissions',
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                        },
+                    ]"
+                />
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
+            </PageHeader>
+
             <!-- Header -->
             <div class="flex items-center gap-2">
                 <Shield class="h-5 w-5 text-muted-foreground" />

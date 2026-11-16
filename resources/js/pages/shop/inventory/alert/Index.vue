@@ -7,6 +7,8 @@ import {
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -19,6 +21,7 @@ import {
     CheckCircle2,
     Eye,
     Loader2,
+    Download,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -150,6 +153,21 @@ const statusTones: Record<string, StatusTone> = {
     <Head title="Stock Alerts" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Low Stock Alerts">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Low Stock Alerts"
+                description="Items that have fallen to or below their minimum stock."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/low-stock-alerts`,
+                        },
+                    ]"
+                />
+            </PageHeader>
+
             <!-- Summary -->
             <div
                 class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"

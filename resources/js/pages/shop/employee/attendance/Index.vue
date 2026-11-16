@@ -2,6 +2,7 @@
 import LocationPin from '@/components/map/LocationPin.vue';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { type AppPageProps, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
@@ -41,6 +42,7 @@ import {
     Pencil,
     UserCheck,
     Users,
+    Upload,
     UserX,
     X,
 } from 'lucide-vue-next';
@@ -101,6 +103,13 @@ const props = defineProps<{
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const baseRoute = computed(() => (isOwner.value ? '/shop' : '/staff'));
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => `${baseRoute.value}/import/attendance`);
 
 onMounted(() => {
     const flashToast = usePage<AppPageProps>().props.toast as
@@ -471,7 +480,21 @@ function saveModal() {
                             icon: Download,
                             href: `${isOwner ? '/shop' : '/staff'}/export/attendance`,
                         },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !props.can_edit,
+                        },
                     ]"
+                />
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
                 />
             </PageHeader>
 

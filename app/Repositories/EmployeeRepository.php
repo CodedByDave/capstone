@@ -50,6 +50,16 @@ class EmployeeRepository extends Repository
         return $shop->employees()->findOrFail($id);
     }
 
+    /** @return array<string, int> The shop's employee ids, keyed by their lower-cased employee code. */
+    public function idsByEmployeeCode(int $shopId): array
+    {
+        return Employee::query()
+            ->where('shop_id', $shopId)
+            ->pluck('id', 'employee_id')
+            ->mapWithKeys(fn ($id, $code) => [mb_strtolower((string) $code) => $id])
+            ->all();
+    }
+
     // Create employee under shop
 
     public function createForShop(Shop $shop, array $data): Employee

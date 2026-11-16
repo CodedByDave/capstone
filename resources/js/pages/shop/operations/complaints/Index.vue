@@ -7,6 +7,8 @@ import {
     RowActions,
     type DataTableHeader,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -23,7 +25,13 @@ import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { AlertTriangle, Eye, Loader2, RefreshCcw } from 'lucide-vue-next';
+import {
+    AlertTriangle,
+    Download,
+    Eye,
+    Loader2,
+    RefreshCcw,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -283,6 +291,21 @@ function submitResponse() {
     <Head title="Customer Complaints" />
     <ShopLayout title="Customer Complaints" :breadcrumbs="breadcrumbs">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Customer Complaints"
+                description="Review and respond to complaints about your orders."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/complaints`,
+                        },
+                    ]"
+                />
+            </PageHeader>
+
             <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <Card v-for="item in statCards" :key="item.label">
                     <CardContent class="p-4">

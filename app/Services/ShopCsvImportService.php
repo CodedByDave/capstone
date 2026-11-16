@@ -2,9 +2,13 @@
 
 namespace App\Services;
 
+use App\Repositories\EmployeeRepository;
 use App\Repositories\ExpenseRepository;
 use App\Repositories\InventoryCategoryRepository;
 use App\Repositories\ShopRepository;
+use App\Repositories\SupplierRepository;
+use App\Repositories\UserRepository;
+use App\Rules\PhilippineMobileNumber;
 use App\Services\Csv\CsvReader;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +29,15 @@ class ShopCsvImportService
         'inventory-categories' => 'Inventory Management',
         'promotions' => 'Operations',
         'expenses' => 'Finance Management',
+        'suppliers' => 'Inventory Management',
+        'inventory' => 'Inventory Management',
+        'attendance' => 'HRM',
     ];
 
     private const COLUMNS = [
+        'suppliers' => ['name', 'contact_person', 'email', 'phone', 'address', 'lead_time_days', 'status', 'notes'],
+        'inventory' => ['name', 'category', 'supplier', 'unit', 'package_unit', 'package_size', 'quantity', 'min_stock', 'max_stock', 'unit_price', 'status'],
+        'attendance' => ['employee_id', 'date', 'status', 'time_in', 'time_out', 'remarks'],
         'inventory-categories' => ['name', 'description'],
         'promotions' => ['name', 'description', 'type', 'value', 'min_order_amount', 'status', 'starts_at', 'ends_at'],
         'expenses' => ['title', 'amount', 'expense_date', 'category', 'description', 'reference_number'],
@@ -37,6 +47,9 @@ class ShopCsvImportService
         'inventory-categories' => 'categories',
         'promotions' => 'promotions',
         'expenses' => 'expenses',
+        'suppliers' => 'suppliers',
+        'inventory' => 'inventory items',
+        'attendance' => 'attendance records',
     ];
 
     private const MAX_ROWS = 500;
@@ -50,6 +63,12 @@ class ShopCsvImportService
         private readonly ExpenseService $expenses,
         private readonly ExpenseRepository $expenseRepository,
         private readonly ActivityLogService $activity,
+        private readonly SupplierService $supplierService,
+        private readonly SupplierRepository $suppliers,
+        private readonly InventoryService $inventoryService,
+        private readonly AttendanceService $attendanceService,
+        private readonly EmployeeRepository $employees,
+        private readonly UserRepository $users,
     ) {}
 
     /** @return list<string> */
@@ -72,6 +91,9 @@ class ShopCsvImportService
                 'inventory-categories' => ['Detergents', 'Washing powders and liquids'],
                 'promotions' => ['Rainy day deal', 'Discount on wet-weather loads', 'percentage', 10, 300, 'Active', '2026-12-01', '2026-12-31'],
                 'expenses' => ['Electricity bill', 4500, '2026-11-15', 'Utilities', 'November bill', 'OR-1001'],
+                'suppliers' => ['Sunrise Supplies', 'Maria Cruz', 'maria@sunrise.example', '09171234567', 'Imus, Cavite', 7, 'Active', ''],
+                'inventory' => ['Liquid detergent', 'Detergents', 'Sunrise Supplies', 'ml', 'bottle', 1000, 20, 5, 40, 120, 'Active'],
+                'attendance' => ['EMP-001', '2026-11-15', 'present', '08:00', '17:00', ''],
                 default => throw new InvalidArgumentException("Unknown import dataset [{$dataset}]."),
             },
         ];
@@ -93,12 +115,13 @@ class ShopCsvImportService
         $existing = $dataset === 'inventory-categories'
             ? $this->categories->allForShop($shopId)->map(fn ($c) => mb_strtolower($c->name))->all()
             : [];
+        $lookups = $this->lookups($shopId, $dataset);
         $errors = [];
         $valid = [];
         $seen = [];
 
         foreach ($parsed['rows'] as $line => $row) {
-            $result = $this->validateRow($dataset, $row);
+            $result = $this->validateRow($dataset, $row, $lookups);
 
             foreach ($result['errors'] as $message) {
                 $errors[] = "Row {$line}: {$message}";
@@ -113,6 +136,18 @@ class ShopCsvImportService
 
                 if (in_array($key, $existing, true) || isset($seen[$key])) {
                     $errors[] = "Row {$line}: a category named \"{$result['data']['name']}\" already exists.";
+
+                    continue;
+                }
+
+                $seen[$key] = true;
+            }
+
+            $key = $this->uniqueKey($dataset, $result['data']);
+
+            if ($key !== null) {
+                if (isset($seen[$key])) {
+                    $errors[] = "Row {$line}: this row repeats an earlier row in the file.";
 
                     continue;
                 }
@@ -142,14 +177,43 @@ class ShopCsvImportService
         return self::COLUMNS[$dataset] ?? throw new InvalidArgumentException("Unknown import dataset [{$dataset}].");
     }
 
+    /** @return array<string, array<string, int>> Names and codes the file's rows may point at. */
+    private function lookups(int $shopId, string $dataset): array
+    {
+        return match ($dataset) {
+            'inventory' => [
+                'categories' => $this->categories->allForShop($shopId)
+                    ->mapWithKeys(fn ($c) => [mb_strtolower($c->name) => $c->id])->all(),
+                'suppliers' => $this->suppliers->allActiveForShop($shopId)
+                    ->mapWithKeys(fn ($s) => [mb_strtolower($s->name) => $s->id])->all(),
+            ],
+            'attendance' => ['employees' => $this->employees->idsByEmployeeCode($shopId)],
+            default => [],
+        };
+    }
+
+    /** A value that must not repeat within one file, or null when rows may repeat. */
+    private function uniqueKey(string $dataset, array $data): ?string
+    {
+        return match ($dataset) {
+            'suppliers' => 'supplier:'.mb_strtolower($data['email']),
+            'attendance' => 'attendance:'.$data['employee_id'].':'.$data['date'],
+            default => null,
+        };
+    }
+
     /** @return array{data: array<string, mixed>, errors: list<string>} */
-    private function validateRow(string $dataset, array $row): array
+    private function validateRow(string $dataset, array $row, array $lookups = []): array
     {
         $row = array_map(fn ($v) => $v === '' ? null : $v, $row);
 
         if ($dataset === 'promotions') {
             $row['type'] = isset($row['type']) ? strtolower($row['type']) : null;
             $row['status'] = strtolower((string) ($row['status'] ?? 'active'));
+        }
+
+        if (in_array($dataset, ['suppliers', 'inventory', 'attendance'], true)) {
+            $row['status'] = strtolower((string) ($row['status'] ?? ($dataset === 'attendance' ? '' : 'active')));
         }
 
         $validator = Validator::make($row, match ($dataset) {
@@ -175,19 +239,85 @@ class ShopCsvImportService
                 'description' => ['nullable', 'string', 'max:1000'],
                 'reference_number' => ['nullable', 'string', 'max:100'],
             ],
+            'suppliers' => [
+                'name' => ['required', 'string', 'max:255'],
+                'contact_person' => ['nullable', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255', fn ($a, $v, $fail) => $this->users->emailTaken((string) $v)
+                    ? $fail('Another account already uses this email address.') : null],
+                'phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
+                'address' => ['nullable', 'string', 'max:1000'],
+                'lead_time_days' => ['required', 'integer', 'min:0', 'max:365'],
+                'status' => ['required', Rule::in(['active', 'inactive'])],
+                'notes' => ['nullable', 'string', 'max:2000'],
+            ],
+            'inventory' => [
+                'name' => ['required', 'string', 'max:255'],
+                'category' => ['nullable', 'string', fn ($a, $v, $fail) => isset($lookups['categories'][mb_strtolower((string) $v)])
+                    ? null : $fail("The category \"{$v}\" does not exist. Create it first.")],
+                'supplier' => ['nullable', 'string', fn ($a, $v, $fail) => isset($lookups['suppliers'][mb_strtolower((string) $v)])
+                    ? null : $fail("The supplier \"{$v}\" does not exist. Create it first.")],
+                'unit' => ['required', 'string', 'max:50'],
+                'package_unit' => ['required', 'string', 'max:50'],
+                'package_size' => ['required', 'integer', 'min:1'],
+                'quantity' => ['required', 'integer', 'min:0'],
+                'min_stock' => ['required', 'integer', 'min:0'],
+                'max_stock' => ['nullable', 'integer', 'min:0', 'gt:min_stock'],
+                'unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999.99999999'],
+                'status' => ['required', Rule::in(['active', 'inactive'])],
+            ],
+            'attendance' => [
+                'employee_id' => ['required', fn ($a, $v, $fail) => isset($lookups['employees'][mb_strtolower((string) $v)])
+                    ? null : $fail("No employee has the ID \"{$v}\".")],
+                'date' => ['required', 'date_format:Y-m-d'],
+                'status' => ['required', Rule::in(['present', 'absent', 'late', 'half_day'])],
+                'time_in' => ['nullable', 'date_format:H:i'],
+                'time_out' => ['nullable', 'date_format:H:i'],
+                'remarks' => ['nullable', 'string', 'max:255'],
+            ],
         });
 
         if ($validator->fails()) {
             return ['data' => [], 'errors' => $validator->errors()->all()];
         }
 
-        return ['data' => $this->shape($dataset, $row), 'errors' => []];
+        return ['data' => $this->shape($dataset, $row, $lookups), 'errors' => []];
     }
 
     /** @return array<string, mixed> */
-    private function shape(string $dataset, array $row): array
+    private function shape(string $dataset, array $row, array $lookups = []): array
     {
         return match ($dataset) {
+            'suppliers' => [
+                'name' => $row['name'],
+                'contact_person' => $row['contact_person'],
+                'email' => $row['email'],
+                'phone' => $row['phone'],
+                'address' => $row['address'],
+                'lead_time_days' => $row['lead_time_days'],
+                'status' => $row['status'],
+                'notes' => $row['notes'],
+            ],
+            'inventory' => [
+                'name' => $row['name'],
+                'inventory_categories_id' => isset($row['category']) ? $lookups['categories'][mb_strtolower($row['category'])] : null,
+                'supplier_id' => isset($row['supplier']) ? $lookups['suppliers'][mb_strtolower($row['supplier'])] : null,
+                'unit' => $row['unit'],
+                'package_unit' => $row['package_unit'],
+                'package_size' => $row['package_unit'] === $row['unit'] ? 1 : $row['package_size'],
+                'quantity' => $row['quantity'],
+                'min_stock' => $row['min_stock'],
+                'max_stock' => $row['max_stock'],
+                'unit_price' => $row['unit_price'],
+                'status' => $row['status'],
+            ],
+            'attendance' => [
+                'employee_id' => $lookups['employees'][mb_strtolower($row['employee_id'])],
+                'date' => $row['date'],
+                'status' => $row['status'],
+                'time_in' => $row['time_in'],
+                'time_out' => $row['time_out'],
+                'remarks' => $row['remarks'],
+            ],
             'inventory-categories' => ['name' => $row['name'], 'description' => $row['description']],
             'promotions' => [
                 'name' => $row['name'],
@@ -220,8 +350,17 @@ class ShopCsvImportService
                 'inventory-categories' => $this->categoryService->create($shopId, $data),
                 'promotions' => $this->promotions->create($shop, $data),
                 'expenses' => $this->createExpense($shop, $data),
+                'suppliers' => $this->supplierService->create($shopId, $data),
+                'inventory' => $this->inventoryService->create($shopId, $data),
+                'attendance' => $this->attendanceService->markAttendance($shop, $data),
             };
         }
+    }
+
+    /** Records one expense (and its category) the same way the Expenses screen does. */
+    public function createExpenseRecord(int $shopId, array $data): void
+    {
+        $this->createExpense($this->shops->findShopById($shopId), $data);
     }
 
     private function createExpense($shop, array $data): void

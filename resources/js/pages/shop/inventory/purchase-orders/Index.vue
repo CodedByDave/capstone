@@ -6,6 +6,9 @@ import {
     StatusPill,
     type DataTableHeader,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { Button } from '@/components/ui/button';
 import type { DataTableOptions } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
@@ -18,7 +21,7 @@ import {
 } from '@/lib/purchaseOrders';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ClipboardList, Eye, Plus } from 'lucide-vue-next';
+import { ClipboardList, Download, Eye, Plus, Upload } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface OrderRow {
@@ -45,6 +48,13 @@ const props = defineProps<{
 }>();
 
 const { isOwner, can } = usePermissions();
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => `${isOwner.value ? '/shop' : '/staff'}/import/purchase-orders`);
 const canCreate = computed(
     () => isOwner.value || can('Inventory Management', 'create'),
 );
@@ -158,6 +168,35 @@ const open = (order: OrderRow) =>
     <Head title="Purchase Orders" />
     <ShopLayout :breadcrumbs="breadcrumbs" title="Purchase Orders">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Purchase Orders"
+                description="Order supplies from your suppliers and track what arrives."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/purchase-orders`,
+                        },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !(isOwner || can('Inventory Management', 'create')),
+                        },
+                    ]"
+                />
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
+            </PageHeader>
+
             <DataTable
                 v-model:options="options"
                 :headers="headers"

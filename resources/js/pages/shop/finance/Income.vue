@@ -9,6 +9,7 @@ import {
 } from '@/components/data-table';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -26,7 +27,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Download, TrendingUp } from 'lucide-vue-next';
+import { Download, TrendingUp, Upload } from 'lucide-vue-next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,6 +77,13 @@ const props = defineProps<{
 
 const { isOwner } = usePermissions();
 const base = computed(() => (isOwner.value ? '/shop' : '/staff'));
+
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => `${base.value}/import/income`);
 
 // ─── Breadcrumbs ──────────────────────────────────────────────────────────────
 
@@ -182,6 +190,13 @@ function methodLabel(val: string | null): string {
                             icon: Download,
                             href: `${isOwner ? '/shop' : '/staff'}/export/income`,
                         },
+                        {
+                            label: importing ? 'Importing...' : 'Import CSV',
+                            icon: Upload,
+                            onSelect: chooseCsv,
+                            disabled: importing,
+                            hidden: !isOwner,
+                        },
                     ]"
                 />
                 <Button
@@ -190,6 +205,13 @@ function methodLabel(val: string | null): string {
                 >
                     View Transactions
                 </Button>
+                <input
+                    ref="csvInput"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="hidden"
+                    @change="onCsvChange"
+                />
             </PageHeader>
 
             <!-- ── Stats ───────────────────────────────────────── -->

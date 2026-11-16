@@ -78,6 +78,7 @@ use App\Http\Controllers\User\UserOrderWeightController;
 use App\Http\Controllers\User\UserPaymentController;
 use App\Http\Controllers\User\UserProductOrderController;
 use App\Services\ShopCsvImportService;
+use App\Services\ShopLedgerCsvImportService;
 use App\Services\ShopDataExportService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -517,10 +518,10 @@ Route::prefix('shop')->middleware([
         ->middleware('throttle:20,1')
         ->name('shop.data-export.show');
     Route::get('/import/{dataset}/template', [ShopDataImportController::class, 'template'])
-        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->whereIn('dataset', [...ShopCsvImportService::datasets(), ...ShopLedgerCsvImportService::datasets()])
         ->name('shop.data-import.template');
     Route::post('/import/{dataset}', [ShopDataImportController::class, 'store'])
-        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->whereIn('dataset', [...ShopCsvImportService::datasets(), ...ShopLedgerCsvImportService::datasets()])
         ->middleware('throttle:10,1')
         ->name('shop.data-import.store');
 
@@ -882,11 +883,11 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         ->name('staff.data-export.show');
     Route::get('/import/{dataset}/template', [ShopDataImportController::class, 'template'])
         ->middleware('import.dataset')
-        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->whereIn('dataset', [...ShopCsvImportService::datasets(), ...ShopLedgerCsvImportService::datasets()])
         ->name('staff.data-import.template');
     Route::post('/import/{dataset}', [ShopDataImportController::class, 'store'])
         ->middleware(['import.dataset', 'throttle:10,1'])
-        ->whereIn('dataset', ShopCsvImportService::datasets())
+        ->whereIn('dataset', [...ShopCsvImportService::datasets(), ...ShopLedgerCsvImportService::datasets()])
         ->name('staff.data-import.store');
 
     // ── Finance ───────────────────────────────────────────────────────────────

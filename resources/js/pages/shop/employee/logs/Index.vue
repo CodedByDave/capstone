@@ -7,6 +7,7 @@ import {
     type DataTableHeader,
     type StatusTone,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,6 +27,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ArrowLeft,
+    Download,
     CircleDot,
     Clock,
     DollarSign,
@@ -346,11 +348,22 @@ function toggleRow(id: number) {
                         Track every change across all system modules.
                     </p>
                 </div>
-                <Button variant="back" class="shrink-0" as-child>
-                    <Link :href="`${baseRoute}/employee`">
-                        <ArrowLeft class="mr-2 h-4 w-4" /> Back to employees
-                    </Link>
-                </Button>
+                <div class="flex shrink-0 flex-wrap items-center gap-2">
+                    <ActionsMenu
+                        :items="[
+                            {
+                                label: 'Export CSV',
+                                icon: Download,
+                                href: `${baseRoute}/export/employee-logs`,
+                            },
+                        ]"
+                    />
+                    <Button variant="back" class="h-11" as-child>
+                        <Link :href="`${baseRoute}/employee`">
+                            <ArrowLeft class="mr-2 h-4 w-4" /> Back to employees
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             <!-- FILTERS -->

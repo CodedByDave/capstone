@@ -23,11 +23,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import {
     Archive,
+    Download,
     Camera,
     CameraOff,
     CheckCircle2,
@@ -441,30 +444,37 @@ function fmtTime(d: string) {
     <ShopLayout :title="showArchived ? 'Archived Deliveries' : 'Logistics'">
         <div class="space-y-6 px-6">
             <!-- ── Header ── -->
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            <PageHeader
+                :title="showArchived ? 'Archived Deliveries' : 'Deliveries'"
+                description="Track and manage laundry deliveries. Drivers are employees whose position is Driver."
             >
-                <div>
-                    <h2 class="text-lg font-semibold">
-                        {{
-                            showArchived ? 'Archived Deliveries' : 'Deliveries'
-                        }}
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        Track and manage laundry deliveries. Drivers are
-                        employees whose position is Driver.
-                    </p>
-                </div>
                 <Button
-                    v-if="can('Logistics', 'archive')"
-                    :variant="showArchived ? 'back' : 'warning-outline'"
-                    class="gap-1.5"
+                    v-if="showArchived && can('Logistics', 'archive')"
+                    variant="back"
+                    class="h-11 gap-1.5"
                     @click="toggleArchived"
                 >
                     <Archive class="h-4 w-4" />
-                    {{ showArchived ? 'Back to Active' : 'View Archives' }}
+                    Back to Active
                 </Button>
-            </div>
+                <ActionsMenu
+                    v-if="!showArchived"
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/logistics`,
+                        },
+                        {
+                            label: 'Archived deliveries',
+                            icon: Archive,
+                            onSelect: toggleArchived,
+                            separator: true,
+                            hidden: !can('Logistics', 'archive'),
+                        },
+                    ]"
+                />
+            </PageHeader>
 
             <!-- ── Archived Banner ── -->
             <div

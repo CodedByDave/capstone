@@ -92,6 +92,16 @@ class InventoryRepository extends Repository
             ->get();
     }
 
+    /** @return array<string, int> The shop's inventory item ids, keyed by lower-cased name. */
+    public function idsByName(int $shopId): array
+    {
+        return $this->query()
+            ->where('shop_id', $shopId)
+            ->pluck('id', 'name')
+            ->mapWithKeys(fn ($id, $name) => [mb_strtolower((string) $name) => $id])
+            ->all();
+    }
+
     /** Active items the shop charges for as an add-on, for the customer-facing price list. */
     public function addonItemsForShop(int $shopId): Collection
     {

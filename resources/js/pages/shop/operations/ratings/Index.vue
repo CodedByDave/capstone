@@ -6,6 +6,8 @@ import {
     IdentityCell,
     type DataTableHeader,
 } from '@/components/data-table';
+import ActionsMenu from '@/components/shop/ActionsMenu.vue';
+import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DataTableOptions } from '@/composables/useDataTable';
@@ -13,7 +15,7 @@ import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { RefreshCcw, Star } from 'lucide-vue-next';
+import { Download, RefreshCcw, Star } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface RatingRow {
@@ -202,6 +204,21 @@ function formatDate(iso: string) {
     <Head title="Customer Ratings" />
     <ShopLayout title="Customer Ratings" :breadcrumbs="breadcrumbs">
         <div class="space-y-6 px-6">
+            <PageHeader
+                title="Customer Ratings"
+                description="What customers say about your service."
+            >
+                <ActionsMenu
+                    :items="[
+                        {
+                            label: 'Export CSV',
+                            icon: Download,
+                            href: `${isOwner ? '/shop' : '/staff'}/export/ratings`,
+                        },
+                    ]"
+                />
+            </PageHeader>
+
             <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <Card v-for="item in statCards" :key="item.label">
                     <CardContent class="p-4">

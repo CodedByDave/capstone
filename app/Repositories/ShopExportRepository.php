@@ -4,12 +4,21 @@ namespace App\Repositories;
 
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\Delivery;
+use App\Models\EmployeeActivityLog;
 use App\Models\Expense;
 use App\Models\Inventory;
 use App\Models\InventoryCategory;
 use App\Models\InventoryMovement;
+use App\Models\LowStockAlert;
+use App\Models\Order;
+use App\Models\OrderComplaint;
+use App\Models\OrderRating;
 use App\Models\PayrollItem;
 use App\Models\Promotion;
+use App\Models\PurchaseOrder;
+use App\Models\RolePermission;
+use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
 use App\Models\Supplier;
@@ -103,6 +112,67 @@ class ShopExportRepository
             ->where('shop_id', $shopId)
             ->with('employee:id,first_name,last_name,employee_id')
             ->lazyById(self::CHUNK);
+    }
+
+    public function employeeLogs(int $shopId): LazyCollection
+    {
+        return EmployeeActivityLog::query()
+            ->whereHas('employee', fn ($q) => $q->withTrashed()->where('shop_id', $shopId))
+            ->with('employee:id,first_name,last_name,employee_id', 'performer:id,name')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function permissions(int $shopId): LazyCollection
+    {
+        return RolePermission::query()->where('shop_id', $shopId)->lazyById(self::CHUNK);
+    }
+
+    public function purchaseOrders(int $shopId): LazyCollection
+    {
+        return PurchaseOrder::query()
+            ->where('shop_id', $shopId)
+            ->with('supplier:id,name')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function lowStockAlerts(int $shopId): LazyCollection
+    {
+        return LowStockAlert::query()
+            ->where('shop_id', $shopId)
+            ->with('inventory:id,name')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function complaints(int $shopId): LazyCollection
+    {
+        return OrderComplaint::query()
+            ->where('shop_id', $shopId)
+            ->with('order:id,order_number')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function ratings(int $shopId): LazyCollection
+    {
+        return OrderRating::query()
+            ->where('shop_id', $shopId)
+            ->with('order:id,order_number')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function deliveries(int $shopId): LazyCollection
+    {
+        return Delivery::query()
+            ->where('shop_id', $shopId)
+            ->with('order:id,order_number', 'rider:id,name')
+            ->lazyById(self::CHUNK);
+    }
+
+    /** The shop owner's subscription orders: what the shop paid the platform. */
+    public function subscriptionOrders(int $shopId): LazyCollection
+    {
+        $ownerId = Shop::query()->whereKey($shopId)->value('owner_id');
+
+        return Order::query()->where('user_id', $ownerId)->lazyById(self::CHUNK);
     }
 
     public function payroll(int $shopId): LazyCollection
