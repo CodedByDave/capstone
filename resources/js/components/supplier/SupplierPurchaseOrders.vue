@@ -5,7 +5,15 @@ import { Button } from '@/components/ui/button';
 import type { PurchaseOrderStatus } from '@/lib/purchaseOrders';
 import { PO_STATUS, peso, qty, shortDate } from '@/lib/purchaseOrders';
 import { useForm } from '@inertiajs/vue3';
-import { CheckCircle2, ClipboardList, Loader2, XCircle } from 'lucide-vue-next';
+import {
+    Camera,
+    CheckCircle2,
+    ClipboardList,
+    ExternalLink,
+    Loader2,
+    Truck,
+    XCircle,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 export interface PortalPurchaseOrder {
@@ -17,6 +25,8 @@ export interface PortalPurchaseOrder {
     expected_date: string | null;
     supplier_note: string | null;
     sent_at: string | null;
+    delivered_at: string | null;
+    has_proof: boolean;
     items: {
         name: string;
         unit: string | null;
@@ -36,6 +46,7 @@ const props = defineProps<{
 const SUPPLIER_LABEL: Partial<Record<PurchaseOrderStatus, string>> = {
     sent: 'Needs your answer',
     confirmed: 'You confirmed',
+    received: 'Received by the shop',
     declined: 'You declined',
 };
 
@@ -63,6 +74,32 @@ function submit(order: PortalPurchaseOrder) {
         preserveScroll: true,
         onSuccess: () => (answering.value = null),
     });
+}
+
+// The delivery photo: the supplier hands the order over and attaches proof for the shop.
+const delivering = ref<string | null>(null);
+const deliverForm = useForm({ photo: null as File | null });
+
+function startDeliver(order: PortalPurchaseOrder) {
+    delivering.value = order.public_id;
+    deliverForm.reset();
+    deliverForm.clearErrors();
+}
+
+function onPhoto(event: Event) {
+    deliverForm.photo = (event.target as HTMLInputElement).files?.[0] ?? null;
+    deliverForm.clearErrors();
+}
+
+function submitDelivery(order: PortalPurchaseOrder) {
+    deliverForm.post(
+        `/supplier-portal/purchase-orders/${order.public_id}/deliver`,
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => (delivering.value = null),
+        },
+    );
 }
 
 const sorted = computed(() =>
@@ -153,6 +190,106 @@ const sorted = computed(() =>
                 Your note: “{{ order.supplier_note }}”
             </p>
 
+            <!-- Delivery -->
+            <div v-if="order.status === 'confirmed'" class="mt-4 border-t pt-4">
+                <p
+                    v-if="order.delivered_at"
+                    class="flex flex-wrap items-center gap-2 text-sm"
+                >
+                    <Truck
+                        class="h-4 w-4 text-muted-foreground"
+                        aria-hidden="true"
+                    />
+                    You marked this delivered on
+                    {{ shortDate(order.delivered_at) }}. Waiting for the shop to
+                    receive it.
+                    <a
+                        v-if="order.has_proof"
+                        :href="`/supplier-portal/purchase-orders/${order.public_id}/proof/supplier`"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 text-primary hover:underline"
+                    >
+                        <ExternalLink class="h-3.5 w-3.5" aria-hidden="true" />
+                        View your photo
+                    </a>
+                </p>
+
+                <template v-else>
+                    <Button
+                        v-if="delivering !== order.public_id"
+                        class="min-h-11"
+                        @click="startDeliver(order)"
+                    >
+                        <Truck class="h-4 w-4" /> Mark as delivered
+                    </Button>
+
+                    <form
+                        v-else
+                        class="space-y-3"
+                        @submit.prevent="submitDelivery(order)"
+                    >
+                        <div class="max-w-xl space-y-1.5">
+                            <label
+                                :for="`photo-${order.public_id}`"
+                                class="flex items-center gap-2 text-sm font-medium"
+                            >
+                                <Camera class="h-4 w-4" aria-hidden="true" />
+                                Photo of the delivery
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                :id="`photo-${order.public_id}`"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                capture="environment"
+                                required
+                                class="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary"
+                                @change="onPhoto"
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                Show the delivered supplies. JPG, PNG or WEBP,
+                                up to 5 MB.
+                            </p>
+                            <InputError :message="deliverForm.errors.photo" />
+                            <InputError
+                                :message="
+                                    (
+                                        deliverForm.errors as Record<
+                                            string,
+                                            string | undefined
+                                        >
+                                    ).status
+                                "
+                            />
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <Button
+                                type="submit"
+                                class="min-h-11"
+                                :disabled="
+                                    deliverForm.processing || !deliverForm.photo
+                                "
+                            >
+                                <Loader2
+                                    v-if="deliverForm.processing"
+                                    class="h-4 w-4 animate-spin"
+                                />
+                                Mark delivered
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                class="min-h-11"
+                                @click="delivering = null"
+                            >
+                                Back
+                            </Button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+
             <!-- Answer -->
             <div v-if="order.status === 'sent'" class="mt-4 border-t pt-4">
                 <div
@@ -220,7 +357,12 @@ const sorted = computed(() =>
                         />
                         <InputError :message="form.errors.note" />
                     </div>
-                    <InputError :message="form.errors.status" />
+                    <InputError
+                        :message="
+                            (form.errors as Record<string, string | undefined>)
+                                .status
+                        "
+                    />
                     <div class="flex flex-wrap gap-2">
                         <Button
                             type="submit"

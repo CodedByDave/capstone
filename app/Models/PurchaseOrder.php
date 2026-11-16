@@ -33,7 +33,7 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'shop_id', 'supplier_id', 'po_number', 'status', 'total', 'notes', 'expected_date', 'supplier_note',
-        'created_by', 'received_by', 'sent_at', 'confirmed_at', 'declined_at', 'received_at', 'cancelled_at',
+        'created_by', 'received_by', 'supplier_proof_path', 'supplier_delivered_at', 'received_proof_path', 'sent_at', 'confirmed_at', 'declined_at', 'received_at', 'cancelled_at',
     ];
 
     protected $casts = [
@@ -43,10 +43,23 @@ class PurchaseOrder extends Model
         'confirmed_at' => 'datetime',
         'declined_at' => 'datetime',
         'received_at' => 'datetime',
+        'supplier_delivered_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
 
-    protected $hidden = ['id', 'shop_id', 'supplier_id', 'created_by', 'received_by'];
+    protected $hidden = ['id', 'shop_id', 'supplier_id', 'created_by', 'received_by', 'supplier_proof_path', 'received_proof_path'];
+
+    protected $appends = ['has_supplier_proof', 'has_received_proof'];
+
+    public function getHasSupplierProofAttribute(): bool
+    {
+        return filled($this->supplier_proof_path);
+    }
+
+    public function getHasReceivedProofAttribute(): bool
+    {
+        return filled($this->received_proof_path);
+    }
 
     protected static function booted(): void
     {

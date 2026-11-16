@@ -7,15 +7,26 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsureActiveSupplier;
 use App\Http\Requests\SupplierPortal\StoreSupplierPriceListRequest;
 use App\Models\SupplierPriceList;
+use App\Services\SupplierPortalService;
 use App\Services\SupplierPriceListService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SupplierPriceListController extends Controller
 {
-    public function __construct(private readonly SupplierPriceListService $priceLists) {}
+    public function __construct(
+        private readonly SupplierPriceListService $priceLists,
+        private readonly SupplierPortalService $portal,
+    ) {}
+
+    public function index(Request $request): Response
+    {
+        return Inertia::render('supplier/PriceList', $this->portal->priceListData($this->supplier($request)));
+    }
 
     public function store(StoreSupplierPriceListRequest $request): RedirectResponse
     {

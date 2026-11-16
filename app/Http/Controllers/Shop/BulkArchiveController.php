@@ -31,7 +31,7 @@ class BulkArchiveController extends Controller
 
     public function archive(BulkIdsRequest $request, string $resource)
     {
-        $count = $this->bulk->archive($resource, $request->ids(), $this->getShop());
+        $count = $this->bulk->archive($resource, $request->ids(), $this->getShop(), $request->user());
 
         return back()->with('toast', [
             'type' => 'success',
@@ -41,7 +41,7 @@ class BulkArchiveController extends Controller
 
     public function restore(BulkIdsRequest $request, string $resource)
     {
-        $count = $this->bulk->restore($resource, $request->ids(), $this->getShop());
+        $count = $this->bulk->restore($resource, $request->ids(), $this->getShop(), $request->user());
 
         return back()->with('toast', [
             'type' => 'success',

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { Button } from '@/components/ui/button';
-import { logout } from '@/routes';
-import { Head, router, usePage } from '@inertiajs/vue3';
-import { LogOut, Truck } from 'lucide-vue-next';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { Head, usePage } from '@inertiajs/vue3';
 import { watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
+import AdminNavbar from '../admin/AdminNavbar.vue';
+import SupplierSidebar from './SupplierSidebar.vue';
 
-/** The supplier's own area: a slim top bar over a light grey page, with flash messages as toasts. */
+/** The supplier's own area: a sidebar of sections, a slim top bar and flash messages as toasts. */
 defineProps<{
     title: string;
     supplierName?: string;
@@ -30,52 +29,22 @@ watch(
     },
     { immediate: true },
 );
-
-function signOut() {
-    router.post(logout.url());
-}
 </script>
 
 <template>
     <Head :title="title" />
-    <div class="min-h-screen bg-muted/40">
-        <header class="border-b bg-background">
-            <div
-                class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6"
-            >
-                <div class="flex min-w-0 items-center gap-3">
-                    <AppLogoIcon class="h-8 w-8 shrink-0" />
-                    <div class="min-w-0">
-                        <p
-                            class="flex items-center gap-1.5 truncate text-sm font-semibold"
-                        >
-                            <Truck
-                                class="h-4 w-4 shrink-0 text-primary"
-                                aria-hidden="true"
-                            />
-                            {{ supplierName ?? 'Supplier' }}
-                        </p>
-                        <p
-                            v-if="shopName"
-                            class="truncate text-xs text-muted-foreground"
-                        >
-                            Supplier to {{ shopName }}
-                        </p>
-                    </div>
-                </div>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    class="min-h-11 sm:min-h-9"
-                    @click="signOut"
+    <SidebarProvider :default-open="true" storage-key="supplier-sidebar">
+        <SupplierSidebar :supplier-name="supplierName" :shop-name="shopName" />
+
+        <SidebarInset>
+            <div class="flex min-h-screen flex-col bg-muted/40">
+                <AdminNavbar :title="title" />
+                <main
+                    class="mx-auto w-full max-w-6xl flex-1 space-y-6 p-4 sm:p-6"
                 >
-                    <LogOut class="mr-1.5 h-4 w-4" aria-hidden="true" />
-                    Log out
-                </Button>
+                    <slot />
+                </main>
             </div>
-        </header>
-        <main class="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
-            <slot />
-        </main>
-    </div>
+        </SidebarInset>
+    </SidebarProvider>
 </template>

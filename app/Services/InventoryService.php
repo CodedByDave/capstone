@@ -37,6 +37,12 @@ class InventoryService
         return $this->inventoryRepository->findForShop($id, $shopId);
     }
 
+    /** @return array<string, Inventory> The shop's items keyed by lower-cased name, to match supplies to stock. */
+    public function itemsByName(int $shopId): array
+    {
+        return $this->inventoryRepository->itemsByName($shopId);
+    }
+
     public function create(int $shopId, array $data, ?UploadedFile $photo = null): Inventory
     {
         $data = $this->withSalesOptions($data);

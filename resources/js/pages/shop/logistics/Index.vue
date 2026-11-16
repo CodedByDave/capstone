@@ -7,6 +7,7 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     RowActions,
@@ -144,6 +145,8 @@ const { can, isOwner } = usePermissions();
 const base = isOwner.value ? '/shop/logistics' : '/staff/logistics';
 
 // An archived run is read-only: it can be viewed and restored, nothing else.
+const selected = ref<Array<string | number>>([]);
+
 const canChange = (action: string) =>
     !props.showArchived && can('Logistics', action);
 onMounted(() => {
@@ -532,6 +535,8 @@ function fmtTime(d: string) {
             <!-- ── Deliveries Table ── -->
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
+                item-key="public_id"
                 :headers="headers"
                 :items="props.deliveries.data"
                 :total="props.deliveries.total"
@@ -548,6 +553,17 @@ function fmtTime(d: string) {
                 hide-rows-per-page
                 @reset="setFilter('all')"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="can('Logistics', 'archive')"
+                        resource="delivery"
+                        :action="showArchived ? 'restore' : 'archive'"
+                        :ids="selected"
+                        noun="deliveries"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <DataTableToolbar
                         :status="activeFilter"

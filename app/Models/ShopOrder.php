@@ -32,6 +32,8 @@ class ShopOrder extends Model
         'order_number',
         'customer_name',
         'customer_phone',
+        'customer_email',
+        'ready_email_sent_at',
         'alternate_contact_name',
         'alternate_contact_phone',
         'customer_address',
@@ -86,6 +88,7 @@ class ShopOrder extends Model
     protected $appends = ['has_weight_proof'];
 
     protected $casts = [
+        'ready_email_sent_at' => 'datetime',
         'customer_phone' => PhilippinePhoneCast::class,
         'alternate_contact_phone' => PhilippinePhoneCast::class,
         'deliver_to_customer' => 'boolean',

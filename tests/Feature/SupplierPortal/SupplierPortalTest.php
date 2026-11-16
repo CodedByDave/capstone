@@ -96,8 +96,14 @@ test('a supplier logs in to their own dashboard', function () {
         ->component('supplier/Dashboard')
         ->where('supplier.name', $supplier->name)
         ->where('counts.total', 2)
-        ->where('counts.out_of_stock', 1)
+        ->where('counts.out_of_stock', 1));
+    $this->actingAs($login)->get('/supplier-portal/supplies')->assertInertia(fn (Assert $page) => $page
+        ->component('supplier/Supplies')
         ->has('items.data', 2));
+    $this->actingAs($login)->get('/supplier-portal/purchase-orders')
+        ->assertInertia(fn (Assert $page) => $page->component('supplier/PurchaseOrders'));
+    $this->actingAs($login)->get('/supplier-portal/price-list')
+        ->assertInertia(fn (Assert $page) => $page->component('supplier/PriceList'));
 });
 
 test('the dashboard searches and filters the catalog on the server', function () {
@@ -105,11 +111,11 @@ test('the dashboard searches and filters the catalog on the server', function ()
     portalItem($supplier, 'Liquid Detergent', 450, 0);
     portalItem($supplier, 'Fabric Softener', 380);
 
-    $this->actingAs($login)->get('/supplier-portal?search=softener')
+    $this->actingAs($login)->get('/supplier-portal/supplies?search=softener')
         ->assertInertia(fn (Assert $page) => $page->has('items.data', 1)->where('items.data.0.name', 'Fabric Softener'));
-    $this->actingAs($login)->get('/supplier-portal?stock=out_of_stock')
+    $this->actingAs($login)->get('/supplier-portal/supplies?stock=out_of_stock')
         ->assertInertia(fn (Assert $page) => $page->has('items.data', 1)->where('items.data.0.name', 'Liquid Detergent'));
-    $this->actingAs($login)->get('/supplier-portal?sort_by=unit_price&sort_direction=desc')
+    $this->actingAs($login)->get('/supplier-portal/supplies?sort_by=unit_price&sort_direction=desc')
         ->assertInertia(fn (Assert $page) => $page->where('items.data.0.name', 'Liquid Detergent'));
 });
 

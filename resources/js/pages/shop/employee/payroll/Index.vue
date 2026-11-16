@@ -9,6 +9,7 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 import {
+    BulkActionButton,
     DataTable,
     RowActions,
     StatusPill,
@@ -197,6 +198,8 @@ function submitGenerate() {
 }
 
 // ─── Archive ──────────────────────────────────────────────────────────────────
+
+const selected = ref<Array<string | number>>([]);
 
 const canArchive = computed(() => hasPermission('HRM', 'archive'));
 
@@ -433,6 +436,8 @@ const headers: DataTableHeader[] = [
             <!-- ── Table ───────────────────────────────────────── -->
             <DataTable
                 v-model:options="options"
+                v-model:selected="selected"
+                item-key="public_id"
                 :headers="headers"
                 :items="payrolls.data"
                 :total="payrolls.total"
@@ -448,6 +453,17 @@ const headers: DataTableHeader[] = [
                 :min-width="900"
                 hide-rows-per-page
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="canArchive"
+                        resource="payroll"
+                        :action="showArchived ? 'restore' : 'archive'"
+                        :ids="selected"
+                        noun="payroll records"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #item-period_label="p">
                     <span class="font-medium">{{ p.period_label }}</span>
                 </template>

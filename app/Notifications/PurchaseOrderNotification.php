@@ -29,6 +29,7 @@ class PurchaseOrderNotification extends Notification
             'sent' => ['New purchase order', "{$order->shop?->shop_name} sent you purchase order {$number}."],
             'cancelled' => ['Purchase order cancelled', "{$order->shop?->shop_name} cancelled purchase order {$number}."],
             'confirmed' => ['Supplier confirmed your order', "{$order->supplier?->name} confirmed {$number}".($date ? ", for delivery on {$date}." : '.')],
+            'delivered' => ['Supplier marked your order delivered', "{$order->supplier?->name} delivered {$number} with a photo. Check it and mark it received."],
             'declined' => ['Supplier declined your order', "{$order->supplier?->name} declined {$number}".($order->supplier_note ? ": \"{$order->supplier_note}\"" : '.')],
             default => ['Purchase order updated', "Purchase order {$number} was updated."],
         };

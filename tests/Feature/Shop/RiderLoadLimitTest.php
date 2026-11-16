@@ -4,7 +4,6 @@ use App\Enums\AccountType;
 use App\Http\Middleware\EnforceOwnerPlatformPermissions;
 use App\Http\Middleware\EnsureCurrentBusinessAgreementAccepted;
 use App\Models\Delivery;
-use App\Models\Employee;
 use App\Models\Order;
 use App\Models\Rider;
 use App\Models\Shop;
@@ -12,7 +11,6 @@ use App\Models\ShopOrder;
 use App\Models\ShopService;
 use App\Models\User;
 use App\Services\CustomerAgreementService;
-use App\Services\DriverRosterService;
 use App\Services\LogisticsService;
 use App\Services\RiderLoadLimitService;
 use App\Services\ShopOrderService;
@@ -42,8 +40,7 @@ function loadShop(?float $min = 3, ?float $max = 15, string $name = 'Load Laundr
         'offers_pickup' => true,
         'offers_delivery' => true,
         'delivery_pricing_set_at' => now(),
-        'rider_min_weight_kg' => $min,
-        'rider_max_weight_kg' => $max,
+        'rider_vehicle_limits' => ['Motorcycle' => ['min' => $min, 'max' => $max]],
     ]);
     Order::create([
         'user_id' => $owner->id,
@@ -165,173 +162,160 @@ function loadErrors(Closure $action): array
 
 // ─── Settings ──────────────────────────────────────────────────────────────────
 
-test('the owner sets the rider load limit', function () {
+test('the owner sets the load limit of each vehicle type', function () {
     $shop = loadShop(null, null);
 
     $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', ['rider_min_weight_kg' => '2.5', 'rider_max_weight_kg' => '20'])
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_types' => ['Motorcycle', 'Car'],
+            'rider_vehicle_limits' => [
+                ['type' => 'Motorcycle', 'min' => '2.5', 'max' => '20'],
+                ['type' => 'Car', 'min' => '', 'max' => '40'],
+            ],
+        ])
         ->assertSessionHasNoErrors();
 
-    $shop->refresh();
-    expect((float) $shop->rider_min_weight_kg)->toBe(2.5)
-        ->and((float) $shop->rider_max_weight_kg)->toBe(20.0);
+    expect($shop->fresh()->rider_vehicle_limits)->toBe([
+        'Motorcycle' => ['min' => 2.5, 'max' => 20],
+        'Car' => ['min' => null, 'max' => 40],
+    ]);
 });
 
 test('empty fields remove the limit', function () {
     $shop = loadShop();
 
     $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', ['rider_min_weight_kg' => '', 'rider_max_weight_kg' => ''])
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_types' => ['Motorcycle'],
+            'rider_vehicle_limits' => [['type' => 'Motorcycle', 'min' => '', 'max' => '']],
+        ])
         ->assertSessionHasNoErrors();
 
-    $shop->refresh();
-    expect($shop->rider_min_weight_kg)->toBeNull()
-        ->and($shop->rider_max_weight_kg)->toBeNull();
+    expect($shop->fresh()->rider_vehicle_limits)->toBe(['Motorcycle' => ['min' => null, 'max' => null]]);
 });
 
-test('only a maximum can be set', function () {
-    $shop = loadShop(null, null);
+test('the rider load limit must be sensible', function (array $limit, string $field) {
+    $shop = loadShop(3, 15);
 
     $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', ['rider_min_weight_kg' => '', 'rider_max_weight_kg' => '12'])
-        ->assertSessionHasNoErrors();
-
-    expect($shop->fresh()->rider_min_weight_kg)->toBeNull()
-        ->and((float) $shop->fresh()->rider_max_weight_kg)->toBe(12.0);
-});
-
-test('the rider load limit must be sensible', function (array $input, string $field) {
-    $shop = loadShop(null, null);
-
-    $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', $input)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_types' => ['Motorcycle'],
+            'rider_vehicle_limits' => [['type' => 'Motorcycle'] + $limit],
+        ])
         ->assertSessionHasErrors($field);
 
-    expect($shop->fresh()->rider_max_weight_kg)->toBeNull();
+    expect($shop->fresh()->rider_vehicle_limits)->toBe(['Motorcycle' => ['min' => 3, 'max' => 15]]);
 })->with([
-    'max below min' => [['rider_min_weight_kg' => '10', 'rider_max_weight_kg' => '5'], 'rider_max_weight_kg'],
-    'zero minimum' => [['rider_min_weight_kg' => '0', 'rider_max_weight_kg' => '5'], 'rider_min_weight_kg'],
-    'too heavy' => [['rider_min_weight_kg' => '', 'rider_max_weight_kg' => '500'], 'rider_max_weight_kg'],
-    'not a number' => [['rider_min_weight_kg' => 'abc', 'rider_max_weight_kg' => ''], 'rider_min_weight_kg'],
+    'max below min' => [['min' => '10', 'max' => '5'], 'rider_vehicle_limits.0.max'],
+    'zero minimum' => [['min' => '0', 'max' => '5'], 'rider_vehicle_limits.0.min'],
+    'too heavy' => [['min' => '', 'max' => '500'], 'rider_vehicle_limits.0.max'],
+    'not a number' => [['min' => 'abc', 'max' => ''], 'rider_vehicle_limits.0.min'],
 ]);
 
 test('staff cannot change the rider load limit', function () {
-    $shop = loadShop(null, null);
+    $shop = loadShop(3, 15);
     $staff = User::factory()->create(['role' => AccountType::Staff->value]);
 
-    $this->actingAs($staff)->patch('/shop/settings/rider-load', ['rider_max_weight_kg' => '5']);
+    $this->actingAs($staff)->patch('/shop/settings/rider-load', [
+        'rider_vehicle_types' => ['Motorcycle'],
+        'rider_vehicle_limits' => [['type' => 'Motorcycle', 'min' => '', 'max' => '5']],
+    ]);
 
-    expect($shop->fresh()->rider_max_weight_kg)->toBeNull();
+    expect($shop->fresh()->rider_vehicle_limits)->toBe(['Motorcycle' => ['min' => 3, 'max' => 15]]);
 });
 
 test('each owner only changes their own shop', function () {
     $mine = loadShop(null, null, 'Mine');
-    $other = loadShop(null, null, 'Other');
+    $other = loadShop(3, 15, 'Other');
 
     $this->actingAs($mine->owner)
-        ->patch('/shop/settings/rider-load', ['rider_max_weight_kg' => '9'])
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_types' => ['Motorcycle'],
+            'rider_vehicle_limits' => [['type' => 'Motorcycle', 'min' => '', 'max' => '9']],
+        ])
         ->assertSessionHasNoErrors();
 
-    expect((float) $mine->fresh()->rider_max_weight_kg)->toBe(9.0)
-        ->and($other->fresh()->rider_max_weight_kg)->toBeNull();
+    expect($mine->fresh()->rider_vehicle_limits['Motorcycle']['max'])->toBe(9)
+        ->and($other->fresh()->rider_vehicle_limits['Motorcycle']['max'])->toBe(15);
 });
 
-test('the settings page shows the limit', function () {
+test('saving settings never changes a rider vehicle', function () {
     $shop = loadShop(3, 15);
+    $car = onlineRider($shop, 'Carl');
+    $car->update(['vehicle_type' => 'Car']);
+
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_types' => ['Motorcycle', 'Car'],
+            'rider_vehicle_limits' => [
+                ['type' => 'Motorcycle', 'min' => '3', 'max' => '15'],
+                ['type' => 'Car', 'min' => '', 'max' => '40'],
+            ],
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($car->fresh()->vehicle_type)->toBe('Car');
+});
+
+test('the settings page lists the capacity of each vehicle type and no vehicle in use', function () {
+    $shop = loadShop(3, 15);
+    $shop->update([
+        'rider_vehicle_types' => ['Motorcycle', 'Car'],
+        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
+    ]);
 
     $this->actingAs($shop->owner)->get('/shop/settings')
         ->assertInertia(fn ($page) => $page
-            ->where('riderLoadLimit.min', 3)
-            ->where('riderLoadLimit.max', 15));
+            ->where('riderVehicle.choices', ['Motorcycle', 'Car'])
+            ->where('riderVehicle.limits.0', ['type' => 'Motorcycle', 'min' => 3, 'max' => 15])
+            ->where('riderVehicle.limits.1', ['type' => 'Car', 'min' => 5, 'max' => 40])
+            ->missing('riderVehicle.selected'));
 });
-
-// ─── Rider vehicle type ────────────────────────────────────────────────────────
 
 test('a shop starts with motorcycle as its only vehicle type', function () {
     $shop = loadShop();
 
     $this->actingAs($shop->owner)->get('/shop/settings')
-        ->assertInertia(fn ($page) => $page
-            ->where('riderVehicle.selected', 'Motorcycle')
-            ->where('riderVehicle.choices', ['Motorcycle']));
-});
-
-test('the owner adds a vehicle type and it reaches the shop riders only', function () {
-    $mine = loadShop(null, null, 'Mine');
-    $other = loadShop(null, null, 'Other');
-    $myRider = Rider::create(['shop_id' => $mine->id, 'name' => 'Mine', 'vehicle_type' => 'Motorcycle']);
-    $otherRider = Rider::create(['shop_id' => $other->id, 'name' => 'Other', 'vehicle_type' => 'Motorcycle']);
-
-    $this->actingAs($mine->owner)
-        ->patch('/shop/settings/rider-load', [
-            'rider_vehicle_type' => 'Van',
-            'rider_vehicle_types' => ['Motorcycle', 'Van'],
-        ])
-        ->assertSessionHasNoErrors();
-
-    $mine->refresh();
-    expect($mine->rider_vehicle_type)->toBe('Van')
-        ->and($mine->rider_vehicle_types)->toBe(['Motorcycle', 'Van'])
-        ->and($myRider->fresh()->vehicle_type)->toBe('Van')
-        ->and($myRider->fresh()->vehicleKind())->toBe('car')
-        ->and($otherRider->fresh()->vehicle_type)->toBe('Motorcycle')
-        ->and($other->fresh()->rider_vehicle_type)->toBe('Motorcycle');
+        ->assertInertia(fn ($page) => $page->where('riderVehicle.choices', ['Motorcycle']));
 });
 
 test('motorcycle always stays a choice and repeats are dropped', function () {
     $shop = loadShop();
 
     $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', [
-            'rider_vehicle_type' => 'Van',
-            'rider_vehicle_types' => ['  Van ', 'van', ''],
-        ])
+        ->patch('/shop/settings/rider-load', ['rider_vehicle_types' => ['  Van ', 'van', '']])
         ->assertSessionHasNoErrors();
 
     expect($shop->fresh()->rider_vehicle_types)->toBe(['Motorcycle', 'Van']);
 });
 
-test('saving only the weights keeps the vehicle type', function () {
-    $shop = loadShop();
-    $shop->update(['rider_vehicle_type' => 'Van', 'rider_vehicle_types' => ['Motorcycle', 'Van']]);
-
-    $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', ['rider_max_weight_kg' => '20'])
-        ->assertSessionHasNoErrors();
-
-    expect($shop->fresh()->rider_vehicle_type)->toBe('Van');
-});
-
-test('the vehicle type must be valid', function (array $input, string $field) {
+test('the vehicle types must be valid', function (array $input, string $field) {
     $shop = loadShop();
 
     $this->actingAs($shop->owner)
         ->patch('/shop/settings/rider-load', $input)
         ->assertSessionHasErrors($field);
-
-    expect($shop->fresh()->rider_vehicle_type)->toBe('Motorcycle');
 })->with([
-    'not in the list' => [['rider_vehicle_type' => 'Van', 'rider_vehicle_types' => ['Motorcycle']], 'rider_vehicle_type'],
-    'too long' => [['rider_vehicle_type' => 'Motorcycle', 'rider_vehicle_types' => [str_repeat('a', 41)]], 'rider_vehicle_types.1'],
-    'too many' => [['rider_vehicle_type' => 'Motorcycle', 'rider_vehicle_types' => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']], 'rider_vehicle_types'],
-    'list missing' => [['rider_vehicle_type' => 'Motorcycle'], 'rider_vehicle_types'],
+    'too long' => [['rider_vehicle_types' => [str_repeat('a', 41)]], 'rider_vehicle_types.1'],
+    'too many' => [['rider_vehicle_types' => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']], 'rider_vehicle_types'],
+    'list missing' => [[], 'rider_vehicle_types'],
 ]);
 
-test('a new driver gets the shop vehicle type', function () {
-    $shop = loadShop();
-    $shop->update(['rider_vehicle_type' => 'Van', 'rider_vehicle_types' => ['Motorcycle', 'Van']]);
-
-    $employee = Employee::create([
-        'shop_id' => $shop->id,
-        'employee_id' => 'EMP-TEST-1',
-        'hire_date' => now()->toDateString(),
-        'first_name' => 'Ana',
-        'last_name' => 'Cruz',
-        'position' => 'Driver',
-        'status' => 'Active',
+test('a removed vehicle type loses its capacity', function () {
+    $shop = loadShop(3, 15);
+    $shop->update([
+        'rider_vehicle_types' => ['Motorcycle', 'Car'],
+        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
     ]);
 
-    expect(app(DriverRosterService::class)->sync($employee)->vehicle_type)->toBe('Van');
+    $this->actingAs($shop->owner)
+        ->patch('/shop/settings/rider-load', [
+            'rider_vehicle_types' => ['Motorcycle'],
+            'rider_vehicle_limits' => [['type' => 'Motorcycle', 'min' => '3', 'max' => '15']],
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($shop->fresh()->rider_vehicle_limits)->toBe(['Motorcycle' => ['min' => 3, 'max' => 15]]);
 });
 
 // ─── Customer pickup booking ───────────────────────────────────────────────────
@@ -623,95 +607,161 @@ test('auto-assign loads every waiting order in a fixed number of queries', funct
     expect($orderQueries)->toBe(1);
 });
 
-// ─── Load capacity per vehicle type ────────────────────────────────────────────
+// ─── Fleet limit: bookings are held to what the riders can cover between them ──
 
-test('each vehicle type keeps its own load capacity and the one in use is enforced', function () {
-    $shop = loadShop(null, null);
-
-    $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', [
-            'rider_vehicle_type' => 'Motorcycle',
-            'rider_vehicle_types' => ['Motorcycle', 'Car'],
-            'rider_vehicle_limits' => [
-                ['type' => 'Motorcycle', 'min' => '3', 'max' => '15'],
-                ['type' => 'Car', 'min' => '', 'max' => '40'],
-            ],
-        ])
-        ->assertSessionHasNoErrors();
-
-    $shop->refresh();
-    expect((float) $shop->rider_min_weight_kg)->toBe(3.0)
-        ->and((float) $shop->rider_max_weight_kg)->toBe(15.0)
-        ->and($shop->rider_vehicle_limits)->toBe([
-            'Motorcycle' => ['min' => 3, 'max' => 15],
-            'Car' => ['min' => null, 'max' => 40],
-        ]);
-
-    // Switching to the car brings its capacity into force, and the motorcycle keeps its own.
-    $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', [
-            'rider_vehicle_type' => 'Car',
-            'rider_vehicle_types' => ['Motorcycle', 'Car'],
-            'rider_vehicle_limits' => [
-                ['type' => 'Motorcycle', 'min' => '3', 'max' => '15'],
-                ['type' => 'Car', 'min' => '', 'max' => '40'],
-            ],
-        ])
-        ->assertSessionHasNoErrors();
-
-    $shop->refresh();
-    expect($shop->rider_min_weight_kg)->toBeNull()
-        ->and((float) $shop->rider_max_weight_kg)->toBe(40.0)
-        ->and(loadCustomerPickup($shop, 30)->pickup_type)->toBe('pickup');
-});
-
-test('the settings page lists the capacity of each vehicle type', function () {
+/** A shop whose motorcycles carry 3 to 15 kg and whose car carries up to 40 kg. */
+function loadMixedShop(): Shop
+{
     $shop = loadShop(3, 15);
     $shop->update([
         'rider_vehicle_types' => ['Motorcycle', 'Car'],
-        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
+        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => null, 'max' => 40]],
     ]);
 
-    $this->actingAs($shop->owner)->get('/shop/settings')
+    return $shop->fresh();
+}
+
+function loadCarRider(Shop $shop, string $name = 'Carl'): Rider
+{
+    $rider = onlineRider($shop, $name);
+    $rider->update(['vehicle_type' => 'Car']);
+
+    return $rider->fresh();
+}
+
+test('the booking limit is the widest range the active riders cover', function () {
+    $shop = loadMixedShop();
+    $service = app(RiderLoadLimitService::class);
+
+    // Only a motorcycle rider: held to the motorcycle.
+    onlineRider($shop, 'Rico');
+    expect($service->limitsFor($shop))->toBe(['min' => 3.0, 'max' => 15.0]);
+
+    // A car rider joins: heavier orders can be booked, and the car has no minimum.
+    loadCarRider($shop);
+    expect($service->limitsFor($shop))->toBe(['min' => null, 'max' => 40.0]);
+});
+
+test('a shop with no active rider is held to the default vehicle', function () {
+    $shop = loadMixedShop();
+
+    expect(app(RiderLoadLimitService::class)->limitsFor($shop))->toBe(['min' => 3.0, 'max' => 15.0]);
+});
+
+test('a rider who is no longer active stops widening the limit', function () {
+    $shop = loadMixedShop();
+    onlineRider($shop, 'Rico');
+    loadCarRider($shop)->update(['status' => 'inactive']);
+
+    expect(app(RiderLoadLimitService::class)->limitsFor($shop)['max'])->toBe(15.0);
+});
+
+test('a heavy pickup can be booked when a car rider exists', function () {
+    $shop = loadMixedShop();
+    loadCarRider($shop);
+
+    expect(loadCustomerPickup($shop, 30)->pickup_type)->toBe('pickup');
+});
+
+test('a pickup beyond the biggest vehicle is still refused', function () {
+    $shop = loadMixedShop();
+    loadCarRider($shop);
+
+    $errors = loadErrors(fn () => loadCustomerPickup($shop, 45));
+
+    expect($errors['pickup_type'][0] ?? '')->toContain('up to 40 kg');
+});
+
+test('the booking page shows the fleet limit', function () {
+    $shop = loadMixedShop();
+    loadCarRider($shop);
+    $customer = User::factory()->create(['role' => AccountType::Customer->value, 'referred_shop_id' => $shop->id]);
+
+    $this->actingAs($customer)->get(route('user.shops.show', $shop))
         ->assertInertia(fn ($page) => $page
-            ->where('riderVehicle.limits.0', ['type' => 'Motorcycle', 'min' => 3, 'max' => 15])
-            ->where('riderVehicle.limits.1', ['type' => 'Car', 'min' => 5, 'max' => 40]));
+            ->where('shop.rider_load_limit.min', null)
+            ->where('shop.rider_load_limit.max', 40));
 });
 
-test('a removed vehicle type loses its capacity', function () {
-    $shop = loadShop(3, 15);
-    $shop->update([
-        'rider_vehicle_types' => ['Motorcycle', 'Car'],
-        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
-    ]);
+// ─── Assignment: the rider's own vehicle ───────────────────────────────────────
 
-    $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', [
-            'rider_vehicle_type' => 'Motorcycle',
-            'rider_vehicle_types' => ['Motorcycle'],
-            'rider_vehicle_limits' => [['type' => 'Motorcycle', 'min' => '3', 'max' => '15']],
-        ])
-        ->assertSessionHasNoErrors();
+test('a heavy delivery goes to the car rider, not the free motorcycle rider', function () {
+    $shop = loadMixedShop();
+    onlineRider($shop, 'Rico', freeSince: now()->subHour());
+    $car = loadCarRider($shop);
 
-    expect($shop->fresh()->rider_vehicle_limits)->toBe(['Motorcycle' => ['min' => 3, 'max' => 15]]);
+    $delivery = app(LogisticsService::class)->dispatchCompletedOrder(loadCompletedOrder($shop, 30));
+
+    expect($delivery->rider_id)->toBe($car->id)
+        ->and($delivery->status)->toBe('assigned');
 });
 
-test('saving only the weights updates the vehicle in use and keeps the others', function () {
-    $shop = loadShop(3, 15);
-    $shop->update([
-        'rider_vehicle_type' => 'Car',
-        'rider_vehicle_types' => ['Motorcycle', 'Car'],
-        'rider_vehicle_limits' => ['Motorcycle' => ['min' => 3, 'max' => 15], 'Car' => ['min' => 5, 'max' => 40]],
-    ]);
+test('a heavy delivery waits when only a motorcycle rider is free', function () {
+    $shop = loadMixedShop();
+    onlineRider($shop, 'Rico');
+    $car = loadCarRider($shop);
+    $car->update(['is_online' => false]);
 
-    $this->actingAs($shop->owner)
-        ->patch('/shop/settings/rider-load', ['rider_min_weight_kg' => '', 'rider_max_weight_kg' => '50'])
-        ->assertSessionHasNoErrors();
+    $delivery = app(LogisticsService::class)->dispatchCompletedOrder(loadCompletedOrder($shop, 30));
 
-    $shop->refresh();
-    expect((float) $shop->rider_max_weight_kg)->toBe(50.0)
-        ->and($shop->rider_vehicle_limits['Car'])->toBe(['min' => null, 'max' => 50])
-        ->and($shop->rider_vehicle_limits['Motorcycle'])->toBe(['min' => 3, 'max' => 15]);
+    expect($delivery->rider_id)->toBeNull()
+        ->and($delivery->status)->toBe('pending');
+
+    // The car rider comes back online and is given the waiting run.
+    $car->update(['is_online' => true, 'available_since' => now()]);
+    app(LogisticsService::class)->assignWaitingDeliveries($shop->id);
+
+    expect($delivery->fresh()->rider_id)->toBe($car->id);
+});
+
+test('a light delivery still goes to the longest-free rider of any vehicle', function () {
+    $shop = loadMixedShop();
+    $moto = onlineRider($shop, 'Rico', freeSince: now()->subHour());
+    loadCarRider($shop);
+
+    $delivery = app(LogisticsService::class)->dispatchCompletedOrder(loadCompletedOrder($shop, 6));
+
+    expect($delivery->rider_id)->toBe($moto->id);
+});
+
+test('staff cannot hand a run to a rider whose vehicle cannot carry it', function () {
+    $shop = loadMixedShop();
+    $car = loadCarRider($shop);
+    $delivery = app(LogisticsService::class)->dispatchCompletedOrder(loadCompletedOrder($shop, 30));
+    $delivery->update(['rider_id' => null, 'status' => 'pending']);
+    $moto = onlineRider($shop, 'Rico');
+
+    $errors = loadErrors(fn () => app(LogisticsService::class)
+        ->updateStatus($shop->owner, $delivery->fresh(), ['status' => 'assigned', 'rider_id' => $moto->id]));
+
+    expect($errors['rider_id'][0] ?? '')->toContain('Motorcycle')->toContain('15 kg')
+        ->and($delivery->fresh()->rider_id)->toBeNull();
+
+    app(LogisticsService::class)->updateStatus($shop->owner, $delivery->fresh(), ['status' => 'assigned', 'rider_id' => $car->id]);
+
+    expect($delivery->fresh()->rider_id)->toBe($car->id);
+});
+
+test('the board flags a run whose rider vehicle is too small', function () {
+    $shop = loadMixedShop();
+    loadCarRider($shop);
+    $delivery = app(LogisticsService::class)->dispatchCompletedOrder(loadCompletedOrder($shop, 30));
+    $moto = onlineRider($shop, 'Rico');
+    $delivery->update(['rider_id' => $moto->id, 'status' => 'assigned']);
+
+    $board = app(LogisticsService::class)->board($shop->owner, null);
+    $warnings = collect($board['deliveries']->items())->pluck('load_warning')->filter()->values()->all();
+
+    expect($warnings)->toHaveCount(1)->and($warnings[0])->toContain('Rico')->toContain('Motorcycle');
+});
+
+test('a rider with no vehicle type or a removed one is held to the motorcycle capacity', function () {
+    $shop = loadMixedShop();
+    $service = app(RiderLoadLimitService::class);
+
+    expect($service->limitForType($shop, null))->toBe(['min' => 3.0, 'max' => 15.0])
+        ->and($service->limitForType($shop, 'Truck'))->toBe(['min' => 3.0, 'max' => 15.0])
+        ->and($service->limitForType($shop, 'Car'))->toBe(['min' => null, 'max' => 40.0]);
 });
 
 test('each vehicle capacity must be sensible', function () {
@@ -719,7 +769,6 @@ test('each vehicle capacity must be sensible', function () {
 
     $this->actingAs($shop->owner)
         ->patch('/shop/settings/rider-load', [
-            'rider_vehicle_type' => 'Motorcycle',
             'rider_vehicle_types' => ['Motorcycle', 'Car'],
             'rider_vehicle_limits' => [
                 ['type' => 'Motorcycle', 'min' => '3', 'max' => '15'],
@@ -727,6 +776,39 @@ test('each vehicle capacity must be sensible', function () {
             ],
         ])
         ->assertSessionHasErrors('rider_vehicle_limits.1.max');
+});
 
-    expect($shop->fresh()->rider_vehicle_limits)->toBeNull();
+test('the forms list what each rider vehicle can carry', function () {
+    $shop = loadMixedShop();
+    onlineRider($shop, 'Rico');
+    loadCarRider($shop);
+    $customer = User::factory()->create(['role' => AccountType::Customer->value, 'referred_shop_id' => $shop->id]);
+    $expected = [
+        ['type' => 'Motorcycle', 'min' => 3, 'max' => 15],
+        ['type' => 'Car', 'min' => null, 'max' => 40],
+    ];
+
+    $this->actingAs($customer)->get(route('user.shops.show', $shop))
+        ->assertInertia(fn ($page) => $page->where('shop.rider_vehicle_ranges', $expected));
+
+    $this->actingAs($shop->owner)->get('/shop/operations/orders/create')
+        ->assertInertia(fn ($page) => $page->where('riderVehicleRanges', $expected));
+});
+
+test('a rider with no shift now does not set the limit or show in the ranges', function () {
+    $shop = loadMixedShop();
+    // Rico has no shift today and has not clocked in; Henry (car) is on duty.
+    onlineRider($shop, 'Rico', scheduled: false, clockedIn: false);
+    loadCarRider($shop);
+    $service = app(RiderLoadLimitService::class);
+
+    expect($service->limitsFor($shop))->toBe(['min' => null, 'max' => 40.0])
+        ->and($service->vehicleRangesFor($shop))->toBe([['type' => 'Car', 'min' => null, 'max' => 40.0]]);
+});
+
+test('with nobody on duty the limit falls back to every active rider', function () {
+    $shop = loadMixedShop();
+    onlineRider($shop, 'Rico', scheduled: false, clockedIn: false);
+
+    expect(app(RiderLoadLimitService::class)->limitsFor($shop))->toBe(['min' => 3.0, 'max' => 15.0]);
 });

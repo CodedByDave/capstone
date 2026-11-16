@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\DTOs\TableSort;
 use App\Models\Delivery;
+use App\Models\Shop;
 use App\Models\ShopOrder;
 use App\Models\User;
 use App\Notifications\DeliveryHeldNotification;
@@ -83,16 +84,33 @@ class LogisticsService
                     ->all(),
             ],
             'deliveries' => $this->deliveries->paginateForShop($shopId, $status, 15, $sort, $archived)
-                ->through(fn (Delivery $delivery) => $delivery->setAttribute(
-                    'load_warning',
-                    $delivery->order ? $this->riderLoad->boardLabel($shop, $this->riderLoad->orderWeight($delivery->order)) : null,
-                )),
+                ->through(fn (Delivery $delivery) => $delivery->setAttribute('load_warning', $this->loadWarning($shop, $delivery))),
             'riderLoadLimit' => $this->riderLoad->limitsFor($shop),
             'riders' => $this->riders->activeForShop($shopId),
             'stats' => collect(self::STATUSES)
                 ->mapWithKeys(fn ($key) => [$key => $counts[$key] ?? 0])
                 ->all(),
         ];
+    }
+
+    /**
+     * Why a run is flagged on the board: the order is beyond what any rider can carry, or the rider
+     * it is assigned to drives a vehicle that cannot carry it. Null when the run is fine.
+     */
+    private function loadWarning(?Shop $shop, Delivery $delivery): ?string
+    {
+        if (! $delivery->order) {
+            return null;
+        }
+
+        $weight = $this->riderLoad->orderWeight($delivery->order);
+        $label = $this->riderLoad->boardLabel($shop, $weight);
+
+        if ($label !== null || ! $delivery->rider || $delivery->status === 'delivered') {
+            return $label;
+        }
+
+        return $this->riderLoad->riderViolation($shop, $delivery->rider, $weight);
     }
 
     /**
@@ -264,7 +282,10 @@ class LogisticsService
 
             // A closed shop gives no run to a rider; it waits until the shop is open again.
             $rider = $heldReason === null && $order->shop->isOpenAt()
-                ? $this->riders->findAvailableForShop($order->shop_id)
+                ? $this->riders->findAvailableForShop(
+                    $order->shop_id,
+                    vehicleTypes: $this->riderLoad->vehicleTypesThatCarry($order->shop, $this->riderLoad->orderWeight($order)),
+                )
                 : null;
 
             return $this->deliveries->createDelivery([
@@ -362,7 +383,12 @@ class LogisticsService
                     }
 
                     // A rider who turned this run down is not offered it again.
-                    $rider = $this->riders->findAvailableForShop($shopId, $this->deliveries->rejectedRiderIds($waiting->id));
+                    // Only a rider whose vehicle can carry the order is offered it.
+                    $rider = $this->riders->findAvailableForShop(
+                        $shopId,
+                        $this->deliveries->rejectedRiderIds($waiting->id),
+                        $waiting->order ? $this->riderLoad->vehicleTypesThatCarry($shop, $this->riderLoad->orderWeight($waiting->order)) : null,
+                    );
 
                     if ($rider) {
                         return $this->giveToRider($waiting, $rider);
@@ -460,6 +486,19 @@ class LogisticsService
                 throw ValidationException::withMessages([
                     'rider_id' => 'This rider is offline or has no shift today, so they cannot be assigned.',
                 ]);
+            }
+
+            // The rider's own vehicle must be able to carry the order. An order beyond every rider's
+            // vehicle is already held for staff to decide, so handing it over is their call.
+            $delivery->loadMissing('order');
+            $shop = $this->shops->findShopById($delivery->shop_id);
+            $weight = $delivery->order ? $this->riderLoad->orderWeight($delivery->order) : null;
+            $tooHeavy = $this->riderLoad->boardLabel($shop, $weight) === null
+                ? $this->riderLoad->riderViolation($shop, $rider, $weight)
+                : null;
+
+            if ($tooHeavy !== null) {
+                throw ValidationException::withMessages(['rider_id' => $tooHeavy]);
             }
         }
 

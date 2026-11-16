@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Input } from '@/components/ui/input';
-import { computed, useAttrs } from 'vue';
+import { computed, useAttrs, watch } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
@@ -31,6 +31,22 @@ function formatPartial(value: string): string {
 }
 
 const displayValue = computed(() => formatPartial(props.modelValue ?? ''));
+
+// A number filled in from elsewhere (a saved address, for example) can arrive as 0929…; the box
+// already shows it formatted, so the model is brought to the same value the form validates.
+watch(
+    () => props.modelValue,
+    (value) => {
+        if (!value) return;
+
+        const formatted = formatPartial(value);
+
+        if (formatted !== value) {
+            emit('update:modelValue', formatted === '+63-' ? '' : formatted);
+        }
+    },
+    { immediate: true },
+);
 
 function update(value: string | number) {
     const formatted = formatPartial(String(value));

@@ -9,11 +9,11 @@ import {
 } from '@/components/data-table';
 import ActionsMenu from '@/components/shop/ActionsMenu.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
-import { useCsvImport } from '@/composables/useCsvImport';
 import PriceListStatusPill, {
     type PriceListStatus,
 } from '@/components/supplier/PriceListStatusPill.vue';
 import { Button } from '@/components/ui/button';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { usePaginatorTable } from '@/composables/useDataTable';
 import { usePermissions } from '@/composables/usePermissions';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -75,7 +75,9 @@ const {
     importing,
     choose: chooseCsv,
     onFileChange: onCsvChange,
-} = useCsvImport(() => `${isOwner.value ? '/shop' : '/staff'}/import/suppliers`);
+} = useCsvImport(
+    () => `${isOwner.value ? '/shop' : '/staff'}/import/suppliers`,
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Inventory', href: inventoryBase.value },
@@ -104,13 +106,12 @@ const total = computed(
 );
 
 const headers: DataTableHeader[] = [
-    { text: 'Supplier', value: 'name', sortable: true },
+    { text: 'Supplier', value: 'name', sortable: true, width: 200 },
     { text: 'Contact person', value: 'contact_person', sortable: true },
     { text: 'Phone', value: 'phone', sortable: true },
     { text: 'Email address', value: 'email', sortable: true },
     { text: 'Supplies', value: 'items_count', sortable: true },
     { text: 'Price list', value: 'price_list' },
-    { text: 'Login', value: 'account' },
     { text: 'Status', value: 'status', sortable: true },
     { text: 'Actions', value: 'actions', align: 'center', width: 120 },
 ];
@@ -235,7 +236,7 @@ const selected = ref<Array<string | number>>([]);
                 <template #item-name="s">
                     <button
                         type="button"
-                        class="text-left font-medium hover:underline focus-visible:underline focus-visible:outline-none"
+                        class="min-w-40 text-left font-medium hover:underline focus-visible:underline focus-visible:outline-none"
                         @click="router.visit(`${base}/${s.public_id}`)"
                     >
                         {{ s.name }}
@@ -272,12 +273,6 @@ const selected = ref<Array<string | number>>([]);
                     <PriceListStatusPill
                         :status="s.latest_price_list?.status"
                     />
-                </template>
-
-                <template #item-account="s">
-                    <StatusPill :tone="s.user_id ? 'success' : 'neutral'">
-                        {{ s.user_id ? 'Has login' : 'No login' }}
-                    </StatusPill>
                 </template>
 
                 <template #item-status="s">

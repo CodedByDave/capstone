@@ -9,6 +9,7 @@ use App\Http\Requests\Shop\Inventory\StorePurchaseOrderRequest;
 use App\Services\PurchaseOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,9 +53,17 @@ class PurchaseOrderController extends Controller
     public function show(Request $request, string $purchaseOrder): Response
     {
         return Inertia::render('shop/inventory/purchase-orders/Show', [
-            'order' => $this->orders->find($request->user(), $purchaseOrder),
+            'purchaseOrder' => $this->orders->showData($request->user(), $purchaseOrder),
             'base' => $this->base($request),
         ]);
+    }
+
+    /** A delivery photo: the supplier's, or the one the shop took on receipt. */
+    public function proof(Request $request, string $purchaseOrder, string $kind)
+    {
+        $path = $this->orders->proofPathForShop($request->user(), $purchaseOrder, $kind);
+
+        return Storage::disk(PurchaseOrderService::PROOF_DISK)->response($path);
     }
 
     public function send(Request $request, string $purchaseOrder): RedirectResponse
@@ -73,7 +82,7 @@ class PurchaseOrderController extends Controller
 
     public function receive(ReceivePurchaseOrderRequest $request, string $purchaseOrder): RedirectResponse
     {
-        $order = $this->orders->receive($request->user(), $purchaseOrder, $request->receivedQuantities());
+        $order = $this->orders->receive($request->user(), $purchaseOrder, $request->receivedQuantities(), $request->file('proof'));
 
         return back()->with('toast', [
             'type' => 'success',

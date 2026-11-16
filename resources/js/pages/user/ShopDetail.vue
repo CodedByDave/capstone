@@ -106,6 +106,11 @@ interface ShopInfo {
     offers_delivery: boolean;
     /** The weight range (kg) a rider collects; null means no limit on that side. */
     rider_load_limit?: { min: number | null; max: number | null };
+    rider_vehicle_ranges?: {
+        type: string;
+        min: number | null;
+        max: number | null;
+    }[];
     is_open: boolean;
     is_open_24_7: boolean;
     opens_at: string | null;
@@ -343,7 +348,11 @@ function applySavedAddress(address: SavedAddress | null) {
     form.value.customer_lat = address.latitude;
     form.value.customer_lng = address.longitude;
     pinnedAddress = address.latitude === null ? '' : address.address;
-    if (form.value.customer_phone.trim() === '') {
+    // Always follow the selected address; the customer can still edit afterwards.
+    if (address.recipient_name) {
+        form.value.customer_name = address.recipient_name;
+    }
+    if (address.phone) {
         form.value.customer_phone = address.phone;
     }
 }
@@ -472,8 +481,46 @@ const kgText = (value: number) => `${parseFloat(value.toFixed(2))} kg`;
 const riderMin = computed(() => props.shop.rider_load_limit?.min ?? null);
 const riderMax = computed(() => props.shop.rider_load_limit?.max ?? null);
 
+// One line per vehicle when riders drive different vehicles, so the merged range is never mistaken for one vehicle's.
+const rangeText = (r: { min: number | null; max: number | null }) =>
+    r.min !== null && r.max !== null
+        ? `${kgText(r.min)}–${kgText(r.max)}`
+        : r.max !== null
+          ? `up to ${kgText(r.max)}`
+          : r.min !== null
+            ? `at least ${kgText(r.min)}`
+            : 'any weight';
+
+const vehicleRangesText = computed(() => {
+    const ranges = riderRanges.value;
+    if (ranges.length < 2) return null;
+    return ranges.map((r) => `${r.type} ${rangeText(r)}`).join(' · ');
+});
+
+// Which vehicles can carry the entered weight, so the person knows who will come.
+const vehicleNote = computed(() => {
+    const ranges = riderRanges.value;
+    const weight = enteredWeight.value;
+    if (ranges.length < 2 || weight === null) return null;
+    const fits = ranges.filter(
+        (r) =>
+            (r.max === null || weight <= r.max) &&
+            (r.min === null || weight >= r.min),
+    );
+    if (fits.length === 0 || fits.length === ranges.length) return null;
+    return `${kgText(weight)} will go with a ${fits.map((r) => r.type).join(' or ')} rider.`;
+});
+
+const riderRanges = computed(() => props.shop.rider_vehicle_ranges ?? []);
+const enteredWeight = computed(() => {
+    const weight = parseFloat(form.value.estimated_weight_kg);
+    return isPerPiece.value || Number.isNaN(weight) ? null : weight;
+});
+
 // "Rider pickup: 3–15 kg" (both ends allowed), or null when the shop has no limit.
 const riderLimitText = computed(() => {
+    if (vehicleRangesText.value)
+        return `Rider pickup by vehicle: ${vehicleRangesText.value}.`;
     const min = riderMin.value;
     const max = riderMax.value;
     if (min !== null && max !== null) {
@@ -1582,6 +1629,16 @@ function goBack() {
                                     aria-hidden="true"
                                 />
                                 {{ riderLimitText }}
+                            </p>
+                            <p
+                                v-if="
+                                    form.pickup_type === 'pickup' &&
+                                    vehicleNote &&
+                                    !pickupWeightProblem
+                                "
+                                class="mt-1 text-sm text-muted-foreground"
+                            >
+                                {{ vehicleNote }}
                             </p>
                             <p
                                 v-if="

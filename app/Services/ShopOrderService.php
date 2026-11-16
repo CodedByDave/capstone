@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Notifications\OrderNotification;
 use App\Repositories\ShopOrderAutomationSettingRepository;
 use App\Repositories\ShopOrderRepository;
-use App\Services\Sms\ShopSmsService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +37,7 @@ class ShopOrderService
         private readonly ActivityLogService $activityLog,
         private readonly RiderLoadLimitService $riderLoad,
         private readonly CounterDeliveryFeeService $counterDelivery,
-        private readonly ShopSmsService $sms,
+        private readonly OrderReadyNotificationService $readyNotices,
         private readonly PickupFeeService $pickupFees,
         private readonly OrderSupplyStockService $supplyStock,
     ) {}
@@ -101,6 +100,12 @@ class ShopOrderService
     public function hasAvailableRider(int $shopId): bool
     {
         return $this->logistics->hasAvailableRider($shopId);
+    }
+
+    /** @return list<array{type: string, min: float|null, max: float|null}> what each rider vehicle can carry */
+    public function riderVehicleRangesFor(int $shopId): array
+    {
+        return $this->riderLoad->vehicleRangesFor($this->repository->shopWithRiderLoadLimit($shopId));
     }
 
     public function riderLoadLimitFor(int $shopId): array
@@ -452,6 +457,8 @@ class ShopOrderService
                 'order_number' => $this->generateOrderNumber('ONL'),
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
+                // A linked customer is emailed at their account address when their laundry is done.
+                'customer_email' => $customer->email,
                 'customer_address' => $data['customer_address'] ?? null,
                 'alternate_contact_name' => $data['pickup_type'] === 'pickup' ? ($data['alternate_contact_name'] ?? null) : null,
                 'alternate_contact_phone' => $data['pickup_type'] === 'pickup' ? ($data['alternate_contact_phone'] ?? null) : null,
@@ -1093,10 +1100,8 @@ class ShopOrderService
         if ($status === 'completed') {
             $this->logistics->dispatchCompletedOrder($updated);
 
-            // A customer collecting at the shop is texted from the shop's phone, linked account or not.
-            if ($this->sms->shouldAutoNotifyReady($updated)) {
-                $this->sms->queueReadyNotice($updated);
-            }
+            // The owner and staff are told it is done; a customer with an email is emailed automatically.
+            $this->readyNotices->notifyCompleted($updated);
         }
 
         return $updated;

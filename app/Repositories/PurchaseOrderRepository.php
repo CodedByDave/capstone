@@ -117,6 +117,11 @@ class PurchaseOrderRepository
         return $order;
     }
 
+    public function linkInventory(PurchaseOrderItem $item, int $inventoryId, int $stockPerUnit): void
+    {
+        $item->update(['inventory_id' => $inventoryId, 'stock_per_unit' => max(1, $stockPerUnit)]);
+    }
+
     public function setReceivedQuantity(PurchaseOrderItem $item, float $quantity): void
     {
         $item->update(['received_quantity' => $quantity]);

@@ -8,7 +8,7 @@ import {
 import CompleteOrderDialog from '@/components/shop/CompleteOrderDialog.vue';
 import { type OrderPayment } from '@/components/shop/OrderPaymentsCard.vue';
 import OrderReadyNotice, {
-    type SmsNotice,
+    type ReadyNotice,
 } from '@/components/shop/OrderReadyNotice.vue';
 import OrderReceiptDialog, {
     type OrderReceipt,
@@ -117,8 +117,7 @@ const props = defineProps<{
     payments: OrderPayment[];
     receipt: OrderReceipt;
     openReceipt?: boolean;
-    smsNotice: SmsNotice;
-    readyPrompt?: boolean;
+    readyNotice: ReadyNotice;
     deliveryOption: {
         offers_delivery: boolean;
         can_send: boolean;
@@ -681,11 +680,8 @@ const statusIcon = (s: string) =>
             <!-- Laundry done: tell the customer (pickup at the shop or delivery) -->
             <OrderReadyNotice
                 v-if="shopOrder.status === 'completed'"
-                :notice="smsNotice"
+                :notice="readyNotice"
                 :customer-name="shopOrder.customer_name"
-                :url="`${base}/${shopOrder.payment_public_id}/notify-ready`"
-                :can-manage="canManage"
-                :prompt="readyPrompt"
                 :delivery="!!shopOrder.deliver_to_customer"
             />
 

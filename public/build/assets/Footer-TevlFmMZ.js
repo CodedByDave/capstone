@@ -1,0 +1,1 @@
+import{_ as o}from"./Footer.vue_vue_type_script_setup_true_lang-BCErqsL7.js";import"./washing-machine-CIqZSdEU.js";import"./createLucideIcon-C7E02Mg8.js";import"./app-DS0qNuN3.js";export{o as default};

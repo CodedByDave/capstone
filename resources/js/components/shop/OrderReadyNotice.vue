@@ -1,69 +1,46 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { router } from '@inertiajs/vue3';
-import {
-    AlertTriangle,
     CheckCircle2,
     Copy,
-    Loader2,
+    Mail,
     MessageSquareText,
+    Phone,
     Send,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { toast } from 'vue3-toastify';
 
-export interface SmsNotice {
-    /** Texts can go out automatically (platform sender or the shop's own phone). */
-    enabled: boolean;
-    /** The customer number in +63 form, or null when it is not a mobile number. */
+export interface ReadyNotice {
+    /** The customer's email, when they gave one: they are emailed automatically. */
+    email: string | null;
+    email_sent_at: string | null;
     phone: string | null;
+    /** A ready-made message staff can send from their own phone. */
     message: string;
-    last: {
-        status: 'sent' | 'failed';
-        error: string | null;
-        sent_at: string | null;
-        sent_by: string | null;
-    } | null;
 }
 
 const props = defineProps<{
-    notice: SmsNotice;
+    notice: ReadyNotice;
     customerName: string;
-    url: string;
-    canManage: boolean;
-    /** Just marked Completed with no automatic text: ask staff to send one now. */
-    prompt?: boolean;
     /** The laundry goes out with a rider instead of being collected at the shop. */
     delivery?: boolean;
 }>();
 
-const sending = ref(false);
-const promptOpen = ref(props.prompt === true && props.notice.phone !== null);
+const hasEmail = computed(() => !!props.notice.email);
 
-const lastSent = computed(() => props.notice.last?.status === 'sent');
-const lastFailed = computed(() => props.notice.last?.status === 'failed');
-const canSend = computed(
-    () =>
-        props.canManage && props.notice.enabled && props.notice.phone !== null,
-);
-
-// Opens the phone's own messaging app with the text filled in: free, no gateway needed.
+// Opens the phone's own messaging app with the text filled in, sent from the staff's own number.
 const smsLink = computed(() =>
     props.notice.phone
         ? `sms:${props.notice.phone}?body=${encodeURIComponent(props.notice.message)}`
         : null,
 );
+const telLink = computed(() =>
+    props.notice.phone ? `tel:${props.notice.phone}` : null,
+);
 
-const when = computed(() => {
-    const value = props.notice.last?.sent_at;
+const sentAt = computed(() => {
+    const value = props.notice.email_sent_at;
     if (!value) return '';
 
     return new Date(value).toLocaleString('en-PH', {
@@ -74,25 +51,13 @@ const when = computed(() => {
     });
 });
 
-function send() {
-    sending.value = true;
-    router.post(
-        props.url,
-        {},
-        {
-            preserveScroll: true,
-            onError: (errors) => {
-                toast.error(
-                    errors.sms ?? 'The text could not be sent. Try again.',
-                );
-            },
-            onFinish: () => (sending.value = false),
-        },
-    );
-}
-
-function openedSmsApp() {
-    promptOpen.value = false;
+async function copyNumber() {
+    try {
+        await navigator.clipboard.writeText(props.notice.phone ?? '');
+        toast.success('Number copied.');
+    } catch {
+        toast.error('Could not copy. Select the number and copy it.');
+    }
 }
 
 async function copyMessage() {
@@ -120,129 +85,84 @@ async function copyMessage() {
                     id="ready-notice-title"
                     class="text-sm font-semibold text-emerald-900 dark:text-emerald-200"
                 >
-                    {{ delivery ? 'Laundry done' : 'Ready for pickup' }} — let
-                    {{ customerName }} know
-                </p>
-                <p class="text-sm text-emerald-800 dark:text-emerald-300">
-                    “{{ notice.message }}”
+                    {{ delivery ? 'Laundry done' : 'Ready for pickup' }}
                 </p>
 
                 <p
-                    v-if="lastSent"
-                    class="flex items-center gap-1.5 text-xs text-emerald-800 dark:text-emerald-300"
+                    v-if="hasEmail"
+                    class="flex items-start gap-1.5 text-sm text-emerald-800 dark:text-emerald-300"
                 >
-                    <CheckCircle2 class="h-3.5 w-3.5" aria-hidden="true" />
-                    Texted {{ when
-                    }}{{
-                        notice.last?.sent_by
-                            ? ` by ${notice.last.sent_by}`
-                            : ' automatically'
-                    }}.
-                </p>
-                <p
-                    v-else-if="lastFailed"
-                    class="flex items-start gap-1.5 text-xs text-red-700 dark:text-red-400"
-                    role="alert"
-                >
-                    <AlertTriangle
-                        class="mt-0.5 h-3.5 w-3.5 shrink-0"
+                    <component
+                        :is="notice.email_sent_at ? CheckCircle2 : Mail"
+                        class="mt-0.5 h-4 w-4 shrink-0"
                         aria-hidden="true"
                     />
-                    Text not sent {{ when }}: {{ notice.last?.error }}
+                    <span v-if="notice.email_sent_at">
+                        {{ customerName }} was emailed at {{ notice.email }} on
+                        {{ sentAt }}.
+                    </span>
+                    <span v-else>
+                        {{ customerName }} is being emailed at
+                        {{ notice.email }}.
+                    </span>
                 </p>
-                <p
-                    v-else-if="!notice.phone"
-                    class="text-xs text-muted-foreground"
-                >
-                    No mobile number on this order. Add one on the Edit page to
-                    text the customer.
-                </p>
-                <p
-                    v-else-if="!notice.enabled"
-                    class="text-xs text-muted-foreground"
-                >
-                    Automatic texts are not available. Send it from your phone
-                    with "Open SMS app".
-                </p>
+
+                <template v-else>
+                    <p class="text-sm text-emerald-800 dark:text-emerald-300">
+                        {{ customerName }} did not give an email, so they are
+                        not notified automatically. Let them know yourself.
+                    </p>
+                    <template v-if="notice.phone">
+                        <p
+                            class="text-sm font-medium text-emerald-900 dark:text-emerald-200"
+                        >
+                            Mobile number: {{ notice.phone }}
+                        </p>
+                        <p
+                            class="text-sm text-emerald-800 dark:text-emerald-300"
+                        >
+                            “{{ notice.message }}”
+                        </p>
+                        <p class="text-xs text-muted-foreground">
+                            On a computer, copy the number and message, then
+                            send it from your phone (SMS, Viber or Messenger).
+                        </p>
+                    </template>
+                    <p v-else class="text-xs text-muted-foreground">
+                        There is no mobile number on this order either.
+                    </p>
+                </template>
             </div>
         </div>
 
-        <div class="flex shrink-0 flex-wrap gap-2">
-            <Button
-                v-if="canSend"
-                type="button"
-                variant="success"
-                :disabled="sending"
-                @click="send"
-            >
-                <Loader2 v-if="sending" class="h-4 w-4 animate-spin" />
-                <Send v-else class="h-4 w-4" />
-                {{ lastSent ? 'Text again' : 'Text customer' }}
-            </Button>
-            <template v-else-if="notice.phone">
+        <div v-if="!hasEmail" class="flex shrink-0 flex-wrap gap-2">
+            <template v-if="notice.phone">
+                <Button as-child variant="success">
+                    <a :href="telLink ?? undefined">
+                        <Phone class="h-4 w-4" />
+                        Call
+                    </a>
+                </Button>
                 <Button as-child variant="success-outline">
                     <a :href="smsLink ?? undefined">
                         <Send class="h-4 w-4" />
-                        Open SMS app
+                        Text from my phone
                     </a>
                 </Button>
             </template>
+            <Button
+                v-if="notice.phone"
+                type="button"
+                variant="outline"
+                @click="copyNumber"
+            >
+                <Copy class="h-4 w-4" />
+                Copy number
+            </Button>
             <Button type="button" variant="outline" @click="copyMessage">
                 <Copy class="h-4 w-4" />
                 Copy message
             </Button>
         </div>
     </section>
-
-    <!-- One tap after marking the order Completed, when no text went out on its own -->
-    <Dialog v-model:open="promptOpen">
-        <DialogContent class="sm:max-w-md">
-            <DialogHeader>
-                <DialogTitle
-                    >Let {{ customerName }} know it is ready</DialogTitle
-                >
-                <DialogDescription>
-                    Tap the button to open your messaging app with the text
-                    filled in, then press Send.
-                </DialogDescription>
-            </DialogHeader>
-            <p
-                class="rounded-lg border bg-muted/40 p-3 text-sm"
-                aria-label="Message"
-            >
-                {{ notice.message }}
-            </p>
-            <DialogFooter class="flex-col gap-2 sm:flex-col">
-                <Button
-                    as-child
-                    variant="success"
-                    class="min-h-12 w-full text-base"
-                >
-                    <a :href="smsLink ?? undefined" @click="openedSmsApp">
-                        <Send class="h-5 w-5" />
-                        Text {{ customerName }} now
-                    </a>
-                </Button>
-                <div class="grid grid-cols-2 gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        class="min-h-11"
-                        @click="copyMessage"
-                    >
-                        <Copy class="h-4 w-4" />
-                        Copy message
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        class="min-h-11"
-                        @click="promptOpen = false"
-                    >
-                        Later
-                    </Button>
-                </div>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
 </template>

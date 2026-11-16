@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+    BulkActionButton,
     DataTable,
     DataTableToolbar,
     IdentityCell,
@@ -127,6 +128,8 @@ watch(
 
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
 const { can } = usePermissions();
+const selected = ref<Array<string | number>>([]);
+
 const canCreate = computed(() => can('Operations', 'create'));
 const canManage = computed(() => can('Operations', 'manage'));
 function exportCsv() {
@@ -751,6 +754,8 @@ const handleDelete = () => {
             <!-- ── Table Card ─────────────────────────────── -->
             <DataTable
                 v-model:options="serverOptions"
+                v-model:selected="selected"
+                item-key="payment_public_id"
                 :headers="headers"
                 :items="tableItems"
                 :total="orders.total"
@@ -767,6 +772,17 @@ const handleDelete = () => {
                 :resettable="!showArchived"
                 @reset="resetTable"
             >
+                <template #bulk-actions>
+                    <BulkActionButton
+                        v-if="canManage"
+                        resource="order"
+                        :action="showArchived ? 'restore' : 'archive'"
+                        :ids="selected"
+                        noun="orders"
+                        @done="selected = []"
+                    />
+                </template>
+
                 <template #toolbar>
                     <!-- Filters (active view only) -->
                     <DataTableToolbar

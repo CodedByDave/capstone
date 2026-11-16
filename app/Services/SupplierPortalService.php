@@ -25,20 +25,43 @@ class SupplierPortalService
         return $this->suppliers->findActiveForUser($user->id);
     }
 
-    public function dashboardData(Supplier $supplier, array $filters, TableSort $sort): array
+    /** Who the portal belongs to, shown in the sidebar and page headers. */
+    public function identityFor(Supplier $supplier): array
+    {
+        return $this->identity($supplier);
+    }
+
+    private function identity(Supplier $supplier): array
+    {
+        return [
+            'supplier' => [
+                'name' => $supplier->name,
+                'shop_name' => $supplier->shop?->shop_name,
+            ],
+        ];
+    }
+
+    /** Overview page: the numbers at a glance, with no tables. */
+    public function overviewData(Supplier $supplier): array
+    {
+        return [
+            ...$this->identity($supplier),
+            'counts' => $this->items->stockCountsForSupplier($supplier->id),
+            'latestPriceList' => $this->priceLists->recentForSupplier($supplier)[0] ?? null,
+        ];
+    }
+
+    /** Supplies page: the searchable, sortable catalog table. */
+    public function suppliesData(Supplier $supplier, array $filters, TableSort $sort): array
     {
         $filters = [
             'search' => trim((string) ($filters['search'] ?? '')),
             'stock' => (string) ($filters['stock'] ?? ''),
             'per_page' => (int) ($filters['per_page'] ?? 10),
         ];
-        $recent = $this->priceLists->recentForSupplier($supplier);
 
         return [
-            'supplier' => [
-                'name' => $supplier->name,
-                'shop_name' => $supplier->shop?->shop_name,
-            ],
+            ...$this->identity($supplier),
             'items' => $this->items->paginateForSupplier(
                 $supplier->id,
                 $filters['search'],
@@ -47,9 +70,20 @@ class SupplierPortalService
                 $filters['per_page'],
             ),
             'counts' => $this->items->stockCountsForSupplier($supplier->id),
+            'filters' => $filters,
+        ];
+    }
+
+    /** Price list page: uploads and the OCR check results. */
+    public function priceListData(Supplier $supplier): array
+    {
+        $recent = $this->priceLists->recentForSupplier($supplier);
+
+        return [
+            ...$this->identity($supplier),
+            'counts' => $this->items->stockCountsForSupplier($supplier->id),
             'priceLists' => $recent,
             'latestPriceList' => $recent[0] ?? null,
-            'filters' => $filters,
         ];
     }
 

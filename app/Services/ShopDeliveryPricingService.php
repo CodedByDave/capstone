@@ -4,11 +4,9 @@ namespace App\Services;
 
 use App\Models\Shop;
 use App\Models\User;
-use App\Repositories\RiderRepository;
 use App\Repositories\ShopOrderRepository;
 use App\Repositories\ShopRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
 
 /**
  * A shop owner's delivery pricing settings.
@@ -25,7 +23,6 @@ class ShopDeliveryPricingService
 
     public function __construct(
         private readonly ShopRepository $shops,
-        private readonly RiderRepository $riders,
         private readonly RiderLoadLimitService $riderLoad,
         private readonly ShopOrderRepository $orders,
         private readonly DistanceService $distances,
@@ -104,40 +101,21 @@ class ShopDeliveryPricingService
     }
 
     /**
-     * The load capacity of each rider vehicle type and the vehicle the shop's riders use. The
-     * vehicle in use decides the enforced range (rider_min/max_weight_kg); a null side means no
-     * limit on that side. Without a vehicle, the min/max apply to the vehicle already in use.
+     * The load capacity of each rider vehicle type. Every rider is held to the capacity of the
+     * vehicle they drive, and bookings to what the shop's riders can cover between them, so no
+     * single "vehicle in use" is stored and no rider's vehicle is changed here.
      *
-     * @param  list<string>|null  $vehicleTypes
+     * @param  list<string>  $vehicleTypes
      * @param  list<array{type: string, min?: mixed, max?: mixed}>|null  $vehicleLimits
      */
-    public function updateRiderLoadLimit(User $owner, ?float $min, ?float $max, ?string $vehicleType = null, ?array $vehicleTypes = null, ?array $vehicleLimits = null): Shop
+    public function updateRiderLoadLimit(User $owner, array $vehicleTypes, ?array $vehicleLimits = null): Shop
     {
         $shop = $this->shopForOwner($owner);
-        $changesVehicle = $vehicleType !== null;
-        $vehicleType ??= $shop->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE;
-        $vehicleTypes = $changesVehicle ? $vehicleTypes : ($shop->rider_vehicle_types ?: [Shop::DEFAULT_RIDER_VEHICLE_TYPE]);
 
-        $limits = $this->riderLoad->vehicleLimitsAfterSave($shop, $vehicleTypes, $vehicleType, $vehicleLimits, $min, $max);
-
-        $values = [
-            'rider_vehicle_limits' => $limits,
-            'rider_min_weight_kg' => $limits[$vehicleType]['min'],
-            'rider_max_weight_kg' => $limits[$vehicleType]['max'],
-        ];
-
-        if (! $changesVehicle) {
-            return $this->shops->updateDeliveryPricing($shop, $values);
-        }
-
-        return DB::transaction(function () use ($shop, $values, $vehicleType, $vehicleTypes): Shop {
-            $this->riders->setVehicleTypeForShop($shop->id, $vehicleType);
-
-            return $this->shops->updateDeliveryPricing($shop, $values + [
-                'rider_vehicle_type' => $vehicleType,
-                'rider_vehicle_types' => $vehicleTypes,
-            ]);
-        });
+        return $this->shops->updateDeliveryPricing($shop, [
+            'rider_vehicle_types' => $vehicleTypes,
+            'rider_vehicle_limits' => $this->riderLoad->vehicleLimitsAfterSave($shop, $vehicleTypes, $vehicleLimits ?? []),
+        ]);
     }
 
     /** How the driver app shows earnings: nothing, the delivery fee per run, or a flat daily rate. */

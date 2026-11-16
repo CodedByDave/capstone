@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Rider;
 use App\Models\Shop;
 use App\Models\ShopOrder;
+use App\Repositories\RiderRepository;
 
 /**
  * The weight range one rider run can carry, as set by the shop owner. Each run carries one order,
@@ -16,60 +18,157 @@ class RiderLoadLimitService
 
     public const PURPOSE_DELIVERY = 'delivery';
 
-    /** @return array{min: float|null, max: float|null} */
+    public function __construct(private readonly RiderRepository $riders) {}
+
+    /**
+     * The vehicles that set the limit: those of the riders on duty now. When nobody is on duty,
+     * every active rider's vehicle counts, so a run is not held wrongly overnight; with no riders
+     * at all, the default vehicle.
+     *
+     * @return list<string>
+     */
+    private function fleetTypes(Shop $shop): array
+    {
+        return $this->riders->onDutyVehicleTypes($shop->id)
+            ?: $this->riders->activeVehicleTypes($shop->id)
+            ?: [Shop::DEFAULT_RIDER_VEHICLE_TYPE];
+    }
+
+    /**
+     * What each vehicle of the riders on duty can carry, so a form can show the range per
+     * vehicle instead of one merged range.
+     *
+     * @return list<array{type: string, min: float|null, max: float|null}>
+     */
+    public function vehicleRangesFor(?Shop $shop): array
+    {
+        if ($shop === null) {
+            return [];
+        }
+
+        $types = $this->fleetTypes($shop);
+
+        return array_map(fn (string $type) => ['type' => $type] + $this->limitForType($shop, $type), $types);
+    }
+
+    /**
+     * What a booking is held to: the range the riders on duty can cover between them. A booking is
+     * made before any rider is chosen, so it only has to fit at least one active rider's vehicle:
+     * the loosest minimum and the largest maximum across the fleet. A side that any vehicle leaves
+     * open stays open. A shop with no active rider uses the default vehicle's capacity.
+     *
+     * @return array{min: float|null, max: float|null}
+     */
     public function limitsFor(?Shop $shop): array
     {
+        if ($shop === null) {
+            return ['min' => null, 'max' => null];
+        }
+
+        $types = $this->fleetTypes($shop);
+        $limits = array_map(fn (string $type) => $this->limitForType($shop, $type), $types);
+
+        $mins = array_column($limits, 'min');
+        $maxes = array_column($limits, 'max');
+
         return [
-            'min' => $shop?->rider_min_weight_kg !== null ? (float) $shop->rider_min_weight_kg : null,
-            'max' => $shop?->rider_max_weight_kg !== null ? (float) $shop->rider_max_weight_kg : null,
+            'min' => in_array(null, $mins, true) ? null : min($mins),
+            'max' => in_array(null, $maxes, true) ? null : max($maxes),
         ];
     }
 
     /**
-     * The vehicle in use, the choices, and the load capacity of each choice.
+     * The capacity of one vehicle type. A type with no saved capacity, such as one that was removed
+     * from Settings, or a rider with no type, is held to the default vehicle's capacity.
      *
-     * @return array{selected: string, choices: list<string>, limits: list<array{type: string, min: float|null, max: float|null}>}
+     * @return array{min: float|null, max: float|null}
+     */
+    public function limitForType(?Shop $shop, ?string $type): array
+    {
+        $stored = $shop?->rider_vehicle_limits ?? [];
+        $type = filled($type) ? (string) $type : Shop::DEFAULT_RIDER_VEHICLE_TYPE;
+
+        return $this->cleanLimit($stored[$type] ?? $stored[Shop::DEFAULT_RIDER_VEHICLE_TYPE] ?? []);
+    }
+
+    /** @return array{min: float|null, max: float|null} the capacity of the vehicle this rider drives */
+    public function limitForRider(?Shop $shop, ?Rider $rider): array
+    {
+        return $this->limitForType($shop, $rider?->vehicle_type);
+    }
+
+    /**
+     * Why this rider's vehicle cannot carry the weight, or null when it can. Unknown weights and
+     * vehicles without limits always can.
+     */
+    public function riderViolation(?Shop $shop, Rider $rider, ?float $weight): ?string
+    {
+        if ($weight === null) {
+            return null;
+        }
+
+        ['min' => $min, 'max' => $max] = $this->limitForRider($shop, $rider);
+        $vehicle = filled($rider->vehicle_type) ? $rider->vehicle_type : Shop::DEFAULT_RIDER_VEHICLE_TYPE;
+
+        return match (true) {
+            $max !== null && $weight > $max => $rider->name.' drives a '.$vehicle.', which carries up to '.$this->kg($max).'. This laundry is '.$this->kg($weight).'.',
+            $min !== null && $weight < $min => $rider->name.' drives a '.$vehicle.', which needs at least '.$this->kg($min).' of laundry. This order is '.$this->kg($weight).'.',
+            default => null,
+        };
+    }
+
+    /**
+     * The vehicle types that can carry the weight, to pick a rider for a run. Null means every
+     * vehicle can (an unknown weight).
+     *
+     * @return list<string>|null
+     */
+    public function vehicleTypesThatCarry(?Shop $shop, ?float $weight): ?array
+    {
+        if ($weight === null || $shop === null) {
+            return null;
+        }
+
+        $types = array_unique([Shop::DEFAULT_RIDER_VEHICLE_TYPE, ...($shop->rider_vehicle_types ?: [])]);
+
+        return array_values(array_filter($types, function (string $type) use ($shop, $weight): bool {
+            ['min' => $min, 'max' => $max] = $this->limitForType($shop, $type);
+
+            return ($max === null || $weight <= $max) && ($min === null || $weight >= $min);
+        }));
+    }
+
+    /**
+     * The vehicle types and what each can carry, for the Settings page.
+     *
+     * @return array{choices: list<string>, limits: list<array{type: string, min: float|null, max: float|null}>}
      */
     public function vehicleOptionsFor(Shop $shop): array
     {
-        $selected = $shop->rider_vehicle_type ?: Shop::DEFAULT_RIDER_VEHICLE_TYPE;
         $choices = $shop->rider_vehicle_types ?: [Shop::DEFAULT_RIDER_VEHICLE_TYPE];
         $stored = $shop->rider_vehicle_limits ?? [];
 
         return [
-            'selected' => $selected,
             'choices' => $choices,
-            'limits' => array_map(function (string $type) use ($shop, $selected, $stored) {
-                // The vehicle in use always reports the limit that is enforced.
-                $limit = $type === $selected ? $this->limitsFor($shop) : $this->cleanLimit($stored[$type] ?? []);
-
-                return ['type' => $type] + $limit;
-            }, $choices),
+            'limits' => array_map(fn (string $type) => ['type' => $type] + $this->cleanLimit($stored[$type] ?? []), $choices),
         ];
     }
 
     /**
      * The capacity of every vehicle type after a save, keyed by type. Types no longer offered are
-     * dropped. Given capacities replace the stored ones; when none are given, the min/max apply to
-     * the vehicle in use, as a weights-only save always did.
+     * dropped; a type that was not given keeps what it had.
      *
      * @param  list<string>  $types
-     * @param  list<array{type: string, min?: mixed, max?: mixed}>|null  $given
+     * @param  list<array{type: string, min?: mixed, max?: mixed}>  $given
      * @return array<string, array{min: float|null, max: float|null}>
      */
-    public function vehicleLimitsAfterSave(Shop $shop, array $types, string $selected, ?array $given, ?float $min, ?float $max): array
+    public function vehicleLimitsAfterSave(Shop $shop, array $types, array $given): array
     {
         $stored = $shop->rider_vehicle_limits ?? [];
         $limits = [];
 
         foreach ($types as $type) {
             $limits[$type] = $this->cleanLimit($stored[$type] ?? []);
-        }
-
-        if ($given === null) {
-            $limits[$selected] = $this->cleanLimit(['min' => $min, 'max' => $max]);
-
-            return $limits;
         }
 
         foreach ($given as $entry) {

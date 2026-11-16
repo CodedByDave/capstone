@@ -14,9 +14,6 @@ use App\Observers\EmployeeObserver;
 use App\Observers\OrderObserver;
 use App\Repositories\Contracts\PlatformRoleRepositoryInterface;
 use App\Repositories\Eloquent\PlatformRoleRepository;
-use App\Services\Sms\PhilSmsClient;
-use App\Services\Sms\PlatformSmsSender;
-use App\Services\Sms\TextBeeClient;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -34,12 +31,6 @@ class AppServiceProvider extends ServiceProvider
             PlatformRoleRepositoryInterface::class,
             PlatformRoleRepository::class,
         );
-
-        // The service that texts customers for every shop: SMS_DRIVER=textbee or philsms.
-        $this->app->bind(PlatformSmsSender::class, fn ($app) => match (config('services.sms.driver')) {
-            'philsms' => $app->make(PhilSmsClient::class),
-            default => $app->make(TextBeeClient::class),
-        });
     }
 
     public function boot(): void

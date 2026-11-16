@@ -104,3 +104,73 @@ it('rejects an empty or malformed selection', function () {
     $this->actingAs($owner)->post('/shop/bulk/supplier/archive', ['ids' => []])->assertSessionHasErrors('ids');
     $this->actingAs($owner)->post('/shop/bulk/supplier/archive', ['ids' => ['1; drop']])->assertSessionHasErrors('ids.0');
 });
+
+it('archives selected orders by public id and restores them', function () {
+    [$owner, $shop] = bulkShop();
+    $service = App\Models\ShopService::create([
+        'shop_id' => $shop->id, 'service_name' => 'Wash', 'is_active' => true,
+        'pricing_model' => 'per_kg', 'price_per_kg' => 60,
+    ]);
+    $make = fn () => app(App\Services\ShopOrderService::class)->createOrder([
+        'shop_id' => $shop->id, 'customer_name' => 'Henry', 'customer_phone' => '0917 555 1234',
+        'service_id' => $service->id, 'pickup_type' => 'walk_in', 'pricing_model' => 'per_kg',
+        'actual_weight_kg' => 5, 'price_per_kg' => 60, 'additional_charges' => 0,
+        'discount_amount' => 0, 'total_amount' => 300,
+        'customer_agreement_version' => '1.0', 'customer_agreement_accepted' => true,
+    ], $owner);
+    $a = $make();
+    $b = $make();
+
+    $this->actingAs($owner)
+        ->post('/shop/bulk/order/archive', ['ids' => [$a->payment_public_id]])
+        ->assertRedirect();
+
+    expect(App\Models\ShopOrder::onlyTrashed()->pluck('id')->all())->toBe([$a->id])
+        ->and(App\Models\ShopOrder::whereKey($b->id)->exists())->toBeTrue();
+
+    $this->actingAs($owner)
+        ->post('/shop/bulk/order/restore', ['ids' => [$a->payment_public_id]])
+        ->assertRedirect();
+
+    expect(App\Models\ShopOrder::onlyTrashed()->count())->toBe(0);
+});
+
+it('does not archive orders of another shop', function () {
+    [$owner] = bulkShop();
+    [, $otherShop] = bulkShop();
+    $service = App\Models\ShopService::create([
+        'shop_id' => $otherShop->id, 'service_name' => 'Wash', 'is_active' => true,
+        'pricing_model' => 'per_kg', 'price_per_kg' => 60,
+    ]);
+    $order = app(App\Services\ShopOrderService::class)->createOrder([
+        'shop_id' => $otherShop->id, 'customer_name' => 'Henry', 'customer_phone' => '0917 555 1234',
+        'service_id' => $service->id, 'pickup_type' => 'walk_in', 'pricing_model' => 'per_kg',
+        'actual_weight_kg' => 5, 'price_per_kg' => 60, 'additional_charges' => 0,
+        'discount_amount' => 0, 'total_amount' => 300,
+        'customer_agreement_version' => '1.0', 'customer_agreement_accepted' => true,
+    ], User::find($otherShop->owner_id));
+
+    $this->actingAs($owner)
+        ->post('/shop/bulk/order/archive', ['ids' => [$order->payment_public_id]])
+        ->assertRedirect();
+
+    expect(App\Models\ShopOrder::onlyTrashed()->count())->toBe(0);
+});
+
+it('bulk archives draft payrolls and leaves finalized ones alone', function () {
+    [$owner, $shop] = bulkShop();
+    $draft = App\Models\Payroll::create([
+        'shop_id' => $shop->id, 'period_label' => 'Oct 1-15', 'period_start' => '2026-10-01',
+        'period_end' => '2026-10-15', 'status' => 'draft', 'created_by' => $owner->id,
+    ]);
+    $final = App\Models\Payroll::create([
+        'shop_id' => $shop->id, 'period_label' => 'Oct 16-31', 'period_start' => '2026-10-16',
+        'period_end' => '2026-10-31', 'status' => 'finalized', 'created_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post('/shop/bulk/payroll/archive', ['ids' => [$draft->public_id, $final->public_id]])
+        ->assertRedirect();
+
+    expect(App\Models\Payroll::onlyTrashed()->pluck('id')->all())->toBe([$draft->id]);
+});

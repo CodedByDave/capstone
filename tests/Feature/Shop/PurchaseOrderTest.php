@@ -11,6 +11,8 @@ use App\Models\Shop;
 use App\Models\Supplier;
 use App\Models\SupplierItem;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
@@ -135,13 +137,13 @@ test('a draft is not shown to the supplier until it is sent', function () {
     expect($order->status)->toBe('draft')
         ->and($ctx['login']->notifications()->count())->toBe(0);
 
-    $this->actingAs($ctx['login'])->get('/supplier-portal')
+    $this->actingAs($ctx['login'])->get('/supplier-portal/purchase-orders')
         ->assertInertia(fn (Assert $page) => $page->where('purchaseOrders.orders', []));
 
     $this->actingAs($ctx['owner'])->post("/shop/purchase-orders/{$order->public_id}/send")->assertSessionHasNoErrors();
 
     expect($order->fresh()->status)->toBe('sent');
-    $this->actingAs($ctx['login'])->get('/supplier-portal')
+    $this->actingAs($ctx['login'])->get('/supplier-portal/purchase-orders')
         ->assertInertia(fn (Assert $page) => $page
             ->where('purchaseOrders.awaiting', 1)
             ->where('purchaseOrders.orders.0.po_number', $order->po_number));
@@ -263,66 +265,270 @@ test('a supplier cannot answer another supplier order or a draft', function () {
     expect($order->fresh()->status)->toBe('sent');
 });
 
-// ─── Receiving ─────────────────────────────────────────────────────────────────
+// ─── Delivery proof and receiving ──────────────────────────────────────────────
 
-test('receiving adds the stock and records one expense at the supplier prices', function () {
+function poPhoto(string $name = 'delivery.jpg'): UploadedFile
+{
+    return UploadedFile::fake()->image($name, 400, 300);
+}
+
+/** The supplier confirms the order and hands it over with a photo, so the shop can receive it. */
+function poDeliver(array $ctx, PurchaseOrder $order): PurchaseOrder
+{
+    test()->actingAs($ctx['login'])->post("/supplier-portal/purchase-orders/{$order->public_id}/answer", [
+        'answer' => 'confirm',
+        'expected_date' => now()->addDay()->toDateString(),
+    ])->assertSessionHasNoErrors();
+
+    test()->actingAs($ctx['login'])->post("/supplier-portal/purchase-orders/{$order->public_id}/deliver", [
+        'photo' => poPhoto('supplier.jpg'),
+    ])->assertSessionHasNoErrors();
+
+    return $order->fresh();
+}
+
+/** The shop receives with its own photo, plus any received quantities. */
+function poReceive(array $ctx, PurchaseOrder $order, array $extra = [])
+{
+    return test()->actingAs($ctx['owner'])
+        ->post("/shop/purchase-orders/{$order->public_id}/receive", $extra + ['proof' => poPhoto('shop.jpg')]);
+}
+
+test('the supplier marks a confirmed order delivered with a photo and the shop is told', function () {
+    Storage::fake('local');
+    $ctx = poShop();
+    $order = poDeliver($ctx, poPlace($ctx));
+
+    expect($order->supplier_delivered_at)->not->toBeNull()
+        ->and($order->supplier_proof_path)->not->toBeNull()
+        ->and($order->status)->toBe('confirmed')
+        ->and($ctx['owner']->notifications->pluck('data.type')->all())->toContain('purchase_order_delivered');
+    Storage::disk('local')->assertExists($order->supplier_proof_path);
+});
+
+test('delivering needs a photo of the right kind, on a confirmed order, once', function () {
+    Storage::fake('local');
+    $ctx = poShop();
+    $order = poPlace($ctx);
+    $url = "/supplier-portal/purchase-orders/{$order->public_id}/deliver";
+
+    // Not confirmed yet.
+    $this->actingAs($ctx['login'])->post($url, ['photo' => poPhoto()])->assertSessionHasErrors('status');
+
+    $this->actingAs($ctx['login'])->post("/supplier-portal/purchase-orders/{$order->public_id}/answer", [
+        'answer' => 'confirm', 'expected_date' => now()->addDay()->toDateString(),
+    ]);
+
+    $this->actingAs($ctx['login'])->post($url, [])->assertSessionHasErrors('photo');
+    $this->actingAs($ctx['login'])->post($url, ['photo' => UploadedFile::fake()->create('proof.pdf', 100, 'application/pdf')])->assertSessionHasErrors('photo');
+    $this->actingAs($ctx['login'])->post($url, ['photo' => poPhoto()])->assertSessionHasNoErrors();
+    $this->actingAs($ctx['login'])->post($url, ['photo' => poPhoto()])->assertSessionHasErrors('status');
+});
+
+test('another supplier cannot deliver or view an order that is not theirs', function () {
+    Storage::fake('local');
+    $mine = poShop('Mine');
+    $other = poShop('Other');
+    $order = poDeliver($mine, poPlace($mine));
+
+    $this->actingAs($other['login'])->post("/supplier-portal/purchase-orders/{$order->public_id}/deliver", ['photo' => poPhoto()])->assertNotFound();
+    $this->actingAs($other['login'])->get("/supplier-portal/purchase-orders/{$order->public_id}/proof/supplier")->assertNotFound();
+    $this->actingAs($mine['login'])->get("/supplier-portal/purchase-orders/{$order->public_id}/proof/supplier")->assertOk();
+});
+
+test('the shop cannot receive before the supplier has delivered with a photo', function () {
+    Storage::fake('local');
     $ctx = poShop();
     $order = poPlace($ctx);
 
+    // Sent but not confirmed.
+    poReceive($ctx, $order)->assertSessionHasErrors('status');
+
+    // Confirmed but not yet delivered.
+    $this->actingAs($ctx['login'])->post("/supplier-portal/purchase-orders/{$order->public_id}/answer", [
+        'answer' => 'confirm', 'expected_date' => now()->addDay()->toDateString(),
+    ]);
+    poReceive($ctx, $order)->assertSessionHasErrors('status');
+
+    expect($order->fresh()->status)->toBe('confirmed')
+        ->and($ctx['stock']->fresh()->quantity)->toBe(1000);
+});
+
+test('receiving needs the shop photo', function () {
+    Storage::fake('local');
+    $ctx = poShop();
+    $order = poDeliver($ctx, poPlace($ctx));
+
+    $this->actingAs($ctx['owner'])->post("/shop/purchase-orders/{$order->public_id}/receive")->assertSessionHasErrors('proof');
     $this->actingAs($ctx['owner'])
-        ->post("/shop/purchase-orders/{$order->public_id}/receive")
-        ->assertSessionHasNoErrors();
+        ->post("/shop/purchase-orders/{$order->public_id}/receive", ['proof' => UploadedFile::fake()->create('x.pdf', 10, 'application/pdf')])
+        ->assertSessionHasErrors('proof');
+
+    expect($order->fresh()->status)->toBe('confirmed');
+});
+
+test('receiving adds the stock and records one expense at the supplier prices', function () {
+    Storage::fake('local');
+    $ctx = poShop();
+    $order = poDeliver($ctx, poPlace($ctx));
+
+    poReceive($ctx, $order)->assertSessionHasNoErrors();
 
     $order->refresh();
     // 5 bottles x 3,000 ml added to the 1,000 ml already there.
     expect($order->status)->toBe('received')
         ->and($ctx['stock']->fresh()->quantity)->toBe(16000)
-        ->and($order->received_by)->toBe($ctx['owner']->id);
+        ->and($order->received_by)->toBe($ctx['owner']->id)
+        ->and($order->received_proof_path)->not->toBeNull();
+    Storage::disk('local')->assertExists($order->received_proof_path);
 
     $expense = Expense::where('reference_number', $order->po_number)->sole();
     expect((float) $expense->amount)->toBe(890.0);
 });
 
 test('a short delivery adds and charges only what came', function () {
+    Storage::fake('local');
     $ctx = poShop();
-    $order = poPlace($ctx);
+    $order = poDeliver($ctx, poPlace($ctx));
     $detergentLine = $order->items->firstWhere('name', 'Surf Liquid Detergent');
     $bagsLine = $order->items->firstWhere('name', 'Plastic bags');
 
-    $this->actingAs($ctx['owner'])
-        ->post("/shop/purchase-orders/{$order->public_id}/receive", [
-            'received' => [$detergentLine->id => 3, $bagsLine->id => 0],
-        ])->assertSessionHasNoErrors();
+    poReceive($ctx, $order, ['received' => [$detergentLine->id => 3, $bagsLine->id => 0]])->assertSessionHasNoErrors();
 
     expect($ctx['stock']->fresh()->quantity)->toBe(10000)
         ->and((float) Expense::where('reference_number', $order->po_number)->sole()->amount)->toBe(480.0)
         ->and((float) $detergentLine->fresh()->received_quantity)->toBe(3.0);
 });
 
-test('more than was ordered cannot be received', function () {
+test('more than was ordered cannot be received and no photo is kept', function () {
+    Storage::fake('local');
     $ctx = poShop();
-    $order = poPlace($ctx);
+    $order = poDeliver($ctx, poPlace($ctx));
     $line = $order->items->first();
 
-    $this->actingAs($ctx['owner'])
-        ->post("/shop/purchase-orders/{$order->public_id}/receive", ['received' => [$line->id => 99]])
-        ->assertSessionHasErrors("received.{$line->id}");
+    poReceive($ctx, $order, ['received' => [$line->id => 99]])->assertSessionHasErrors("received.{$line->id}");
 
-    expect($order->fresh()->status)->toBe('sent')
-        ->and($ctx['stock']->fresh()->quantity)->toBe(1000);
+    expect($order->fresh()->status)->toBe('confirmed')
+        ->and($order->fresh()->received_proof_path)->toBeNull()
+        ->and($ctx['stock']->fresh()->quantity)->toBe(1000)
+        ->and(Storage::disk('local')->allFiles('purchase-order-proofs/'.$ctx['shop']->id))->toHaveCount(1);
 });
 
 test('an order is received only once, and never after it was declined', function () {
+    Storage::fake('local');
     $ctx = poShop();
-    $order = poPlace($ctx);
+    $order = poDeliver($ctx, poPlace($ctx));
     $declined = poPlace($ctx);
     $declined->update(['status' => 'declined']);
 
-    $this->actingAs($ctx['owner'])->post("/shop/purchase-orders/{$order->public_id}/receive")->assertSessionHasNoErrors();
-    $this->actingAs($ctx['owner'])->post("/shop/purchase-orders/{$order->public_id}/receive")->assertSessionHasErrors('status');
-    $this->actingAs($ctx['owner'])->post("/shop/purchase-orders/{$declined->public_id}/receive")->assertSessionHasErrors('status');
+    poReceive($ctx, $order)->assertSessionHasNoErrors();
+    poReceive($ctx, $order)->assertSessionHasErrors('status');
+    poReceive($ctx, $declined)->assertSessionHasErrors('status');
 
     expect($ctx['stock']->fresh()->quantity)->toBe(16000);
+});
+
+test('the shop opens both photos, and another shop gets a 404', function () {
+    Storage::fake('local');
+    $mine = poShop('Mine');
+    $other = poShop('Other');
+    $order = poDeliver($mine, poPlace($mine));
+    poReceive($mine, $order)->assertSessionHasNoErrors();
+
+    $this->actingAs($mine['owner'])->get("/shop/purchase-orders/{$order->public_id}/proof/supplier")->assertOk();
+    $this->actingAs($mine['owner'])->get("/shop/purchase-orders/{$order->public_id}/proof/received")->assertOk();
+    $this->actingAs($mine['owner'])->get("/shop/purchase-orders/{$order->public_id}/proof/other")->assertNotFound();
+    $this->actingAs($other['owner'])->get("/shop/purchase-orders/{$order->public_id}/proof/supplier")->assertNotFound();
+    $this->actingAs($other['owner'])->get("/shop/purchase-orders/{$order->public_id}/proof/received")->assertNotFound();
+});
+
+test('staff need the inventory update permission to receive', function () {
+    Storage::fake('local');
+    $ctx = poShop();
+    $order = poDeliver($ctx, poPlace($ctx));
+    $staff = User::factory()->create(['role' => AccountType::Staff->value, 'shop_id' => $ctx['shop']->id]);
+
+    $this->actingAs($staff)
+        ->post("/staff/purchase-orders/{$order->public_id}/receive", ['proof' => poPhoto()])
+        ->assertForbidden();
+
+    expect($order->fresh()->status)->toBe('confirmed');
+});
+
+// ─── Restocking by name, and supplies not in the product list ──────────────────
+
+test('a line with no link is matched to the stock item of the same name and restocked', function () {
+    Storage::fake('local');
+    $ctx = poShop();
+    $this->actingAs($ctx['owner'])->post('/shop/purchase-orders', [
+        'supplier' => $ctx['supplier']->public_id,
+        'send' => true,
+        // No inventory item chosen; the name is "Surf Liquid Detergent", which is in the product list.
+        'items' => [['supplier_item' => $ctx['detergent']->public_id, 'quantity' => 2]],
+    ])->assertSessionHasNoErrors();
+    $order = poDeliver($ctx, PurchaseOrder::latest('id')->firstOrFail());
+
+    poReceive($ctx, $order)->assertSessionHasNoErrors();
+
+    $line = $order->items->first()->fresh();
+    // 2 bottles x the item's 3,000 ml package size.
+    expect($ctx['stock']->fresh()->quantity)->toBe(7000)
+        ->and($line->inventory_id)->toBe($ctx['stock']->id)
+        ->and($line->stock_per_unit)->toBe(3000);
+});
+
+test('a supply that is not in the product list is flagged, and adding it links it without doubling stock', function () {
+    Storage::fake('local');
+    $ctx = poShop();
+    $order = poDeliver($ctx, poPlace($ctx));
+    poReceive($ctx, $order)->assertSessionHasNoErrors();
+
+    $bags = $order->items->firstWhere('name', 'Plastic bags');
+    $this->actingAs($ctx['owner'])->get("/shop/purchase-orders/{$order->public_id}")
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('purchaseOrder.items', fn ($items) => collect($items)->firstWhere('name', 'Plastic bags')['can_list'] === true
+                && collect($items)->firstWhere('name', 'Surf Liquid Detergent')['can_list'] === false));
+
+    // The form opens with the received details.
+    $line = $order->items->values()->search(fn ($i) => $i->id === $bags->id) + 1;
+    $this->actingAs($ctx['owner'])->get("/shop/inventory/create?purchase_order={$order->public_id}&line={$line}")
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('fromPurchaseOrder.prefill.name', 'Plastic bags')
+            ->where('fromPurchaseOrder.prefill.quantity', 2)
+            ->where('fromPurchaseOrder.prefill.package_unit', 'pack'));
+
+    $this->actingAs($ctx['owner'])->post('/shop/inventory', [
+        'name' => 'Plastic bags', 'unit' => 'pcs', 'package_unit' => 'pack', 'package_size' => 1,
+        'quantity' => 2, 'min_stock' => 1, 'unit_price' => 45,
+        'purchase_order' => $order->public_id, 'line' => $line,
+    ])->assertSessionHasNoErrors()->assertRedirect("/shop/purchase-orders/{$order->public_id}");
+
+    $item = Inventory::where('shop_id', $ctx['shop']->id)->where('name', 'Plastic bags')->sole();
+    expect($item->quantity)->toBe(2)
+        ->and($bags->fresh()->inventory_id)->toBe($item->id);
+
+    // It cannot be added a second time.
+    $this->actingAs($ctx['owner'])->post('/shop/inventory', [
+        'name' => 'Plastic bags 2', 'unit' => 'pcs', 'package_unit' => 'pack', 'package_size' => 1,
+        'quantity' => 2, 'min_stock' => 1,
+        'purchase_order' => $order->public_id, 'line' => $line,
+    ])->assertSessionHasErrors('status');
+    expect(Inventory::where('shop_id', $ctx['shop']->id)->where('name', 'like', 'Plastic bags%')->count())->toBe(1);
+});
+
+test('another shop cannot add a line of this order to its product list', function () {
+    Storage::fake('local');
+    $mine = poShop('Mine');
+    $other = poShop('Other');
+    $order = poDeliver($mine, poPlace($mine));
+    poReceive($mine, $order)->assertSessionHasNoErrors();
+
+    $this->actingAs($other['owner'])->get("/shop/inventory/create?purchase_order={$order->public_id}&line=2")->assertNotFound();
+    $this->actingAs($other['owner'])->post('/shop/inventory', [
+        'name' => 'Plastic bags', 'unit' => 'pcs', 'package_unit' => 'pack', 'package_size' => 1,
+        'quantity' => 2, 'min_stock' => 1,
+        'purchase_order' => $order->public_id, 'line' => 2,
+    ])->assertNotFound();
 });
 
 // ─── Cancelling and access ─────────────────────────────────────────────────────
@@ -343,7 +549,9 @@ test('another shop cannot open or change an order', function () {
     $order = poPlace($mine);
 
     $this->actingAs($other['owner'])->get("/shop/purchase-orders/{$order->public_id}")->assertNotFound();
-    $this->actingAs($other['owner'])->post("/shop/purchase-orders/{$order->public_id}/receive")->assertNotFound();
+    $this->actingAs($other['owner'])
+        ->post("/shop/purchase-orders/{$order->public_id}/receive", ['proof' => UploadedFile::fake()->image('p.jpg')])
+        ->assertNotFound();
 
     expect($order->fresh()->status)->toBe('sent');
 });
@@ -373,4 +581,15 @@ test('the new order form offers only the shop own active suppliers', function ()
             ->has('suppliers', 1)
             ->where('suppliers.0.name', 'Mine Supplier')
             ->has('suppliers.0.items', 2));
+});
+
+test('the order page keeps the shop subscription prop the sidebar reads', function () {
+    $ctx = poShop();
+    $order = poPlace($ctx);
+
+    // The purchase order must not replace the shared `order` prop, or the sidebar loses its modules.
+    $this->actingAs($ctx['owner'])->get("/shop/purchase-orders/{$order->public_id}")
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('purchaseOrder.public_id', $order->public_id)
+            ->where('order.status', 'paid'));
 });

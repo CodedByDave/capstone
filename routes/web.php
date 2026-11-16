@@ -67,6 +67,7 @@ use App\Http\Controllers\SupplierPortal\SupplierItemController;
 use App\Http\Controllers\SupplierPortal\SupplierItemImportController;
 use App\Http\Controllers\SupplierPortal\SupplierPriceListController;
 use App\Http\Controllers\SupplierPortal\SupplierPurchaseOrderController;
+use App\Http\Controllers\SupplierPortal\SupplierSuppliesController;
 use App\Http\Controllers\User\CustomerAddressController;
 use App\Http\Controllers\User\OrderTrackingController;
 use App\Http\Controllers\User\UserDashboardController;
@@ -78,8 +79,8 @@ use App\Http\Controllers\User\UserOrderWeightController;
 use App\Http\Controllers\User\UserPaymentController;
 use App\Http\Controllers\User\UserProductOrderController;
 use App\Services\ShopCsvImportService;
-use App\Services\ShopLedgerCsvImportService;
 use App\Services\ShopDataExportService;
+use App\Services\ShopLedgerCsvImportService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -93,6 +94,9 @@ Route::prefix('supplier-portal')
     ->name('supplier-portal.')
     ->group(function () {
         Route::get('/', SupplierDashboardController::class)->name('dashboard');
+        Route::get('/purchase-orders', [SupplierPurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+        Route::get('/supplies', [SupplierSuppliesController::class, 'index'])->name('supplies.index');
+        Route::get('/price-list', [SupplierPriceListController::class, 'index'])->name('price-list.index');
         Route::post('/items', [SupplierItemController::class, 'store'])->name('items.store');
         Route::get('/items/import/template', [SupplierItemImportController::class, 'template'])->name('items.import.template');
         Route::post('/items/import/preview', [SupplierItemImportController::class, 'preview'])
@@ -108,6 +112,10 @@ Route::prefix('supplier-portal')
             ->whereUlid('priceList')->name('price-lists.photo');
         Route::post('/purchase-orders/{purchaseOrder}/answer', [SupplierPurchaseOrderController::class, 'answer'])
             ->middleware('throttle:30,1')->whereUlid('purchaseOrder')->name('purchase-orders.answer');
+        Route::post('/purchase-orders/{purchaseOrder}/deliver', [SupplierPurchaseOrderController::class, 'deliver'])
+            ->middleware('throttle:10,1')->whereUlid('purchaseOrder')->name('purchase-orders.deliver');
+        Route::get('/purchase-orders/{purchaseOrder}/proof/{kind}', [SupplierPurchaseOrderController::class, 'proof'])
+            ->whereUlid('purchaseOrder')->whereIn('kind', ['supplier', 'received'])->name('purchase-orders.proof');
     });
 
 Route::prefix('driver')->middleware(['auth', 'verified', 'role:staff', 'driver'])->group(function () {
@@ -319,8 +327,12 @@ Route::prefix('shop')->middleware([
     Route::post('/employee/bulk-archive', [EmployeeController::class, 'bulkArchive'])->name('employee.bulk-archive');
 
     // ── Bulk archive / restore for table selections ──────────────────────────
-    foreach (['inventory', 'inventory-category', 'supplier', 'expense', 'service', 'promotion'] as $resource) {
-        $gate = $resource === 'supplier' ? ['shop.capability:suppliers'] : [];
+    foreach (['inventory', 'inventory-category', 'supplier', 'expense', 'service', 'promotion', 'order', 'delivery', 'payroll'] as $resource) {
+        $gate = match ($resource) {
+            'supplier' => ['shop.capability:suppliers'],
+            'delivery' => ['shop.capability:delivery'],
+            default => [],
+        };
         Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->middleware($gate)->defaults('resource', $resource)->name("shop.bulk.{$resource}.archive");
         Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->middleware($gate)->defaults('resource', $resource)->name("shop.bulk.{$resource}.restore");
     }
@@ -410,6 +422,8 @@ Route::prefix('shop')->middleware([
         Route::get('/purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('shop.purchase-orders.create');
         Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->middleware('throttle:30,1')->name('shop.purchase-orders.store');
         Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.show');
+        Route::get('/purchase-orders/{purchaseOrder}/proof/{kind}', [PurchaseOrderController::class, 'proof'])
+            ->whereUlid('purchaseOrder')->whereIn('kind', ['supplier', 'received'])->name('shop.purchase-orders.proof');
         Route::post('/purchase-orders/{purchaseOrder}/send', [PurchaseOrderController::class, 'send'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.send');
         Route::post('/purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.cancel');
         Route::post('/purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->whereUlid('purchaseOrder')->name('shop.purchase-orders.receive');
@@ -433,7 +447,6 @@ Route::prefix('shop')->middleware([
     Route::put('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'update'])->name('shop.orders.update');
     Route::delete('operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'destroy'])->name('shop.orders.destroy');
     Route::post('operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('shop.orders.payments.store');
-    Route::post('operations/orders/{order:payment_public_id}/notify-ready', [ShopOrderController::class, 'notifyReady'])->middleware('throttle:10,1')->name('shop.orders.notify-ready');
     Route::post('operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('shop.orders.payments.check');
     Route::post('operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('shop.orders.payments.void');
     Route::post('operations/orders/{order:payment_public_id}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])
@@ -562,8 +575,6 @@ Route::prefix('shop')->middleware([
     Route::patch('/settings/rush-fee', [ShopSettingsController::class, 'updateRushFee'])
         ->middleware('throttle:20,1')
         ->name('shop.settings.rush-fee');
-    Route::patch('/settings/sms', [ShopSettingsController::class, 'updateSmsGateway'])->name('shop.settings.sms');
-    Route::post('/settings/sms/test', [ShopSettingsController::class, 'sendTestSms'])->middleware('throttle:5,1')->name('shop.settings.sms.test');
     Route::patch('/settings/rider-load', [ShopSettingsController::class, 'updateRiderLoadLimit'])
         ->middleware(['shop.capability:delivery', 'throttle:20,1'])
         ->name('shop.settings.rider-load');
@@ -604,12 +615,18 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     $staffBulk = [
         'Inventory Management' => ['inventory', 'inventory-category', 'supplier'],
         'Finance Management' => ['expense'],
-        'Operations' => ['service', 'promotion'],
+        'Operations' => ['service', 'promotion', 'order'],
+        'Logistics' => ['delivery'],
+        'HRM' => ['payroll'],
     ];
     foreach ($staffBulk as $module => $resources) {
         Route::middleware('permission:'.$module.($module === 'Operations' ? ',manage' : ',archive'))->group(function () use ($resources) {
             foreach ($resources as $resource) {
-                $gate = $resource === 'supplier' ? ['shop.capability:suppliers'] : [];
+                $gate = match ($resource) {
+                    'supplier' => ['shop.capability:suppliers'],
+                    'delivery' => ['shop.capability:delivery'],
+                    default => [],
+                };
                 Route::post("/bulk/{$resource}/archive", [BulkArchiveController::class, 'archive'])->middleware($gate)->defaults('resource', $resource)->name("staff.bulk.{$resource}.archive");
                 Route::post("/bulk/{$resource}/restore", [BulkArchiveController::class, 'restore'])->middleware($gate)->defaults('resource', $resource)->name("staff.bulk.{$resource}.restore");
             }
@@ -712,6 +729,8 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
         Route::middleware('permission:Inventory Management,view')->group(function () {
             Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('staff.purchase-orders.index');
             Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->whereUlid('purchaseOrder')->name('staff.purchase-orders.show');
+            Route::get('/purchase-orders/{purchaseOrder}/proof/{kind}', [PurchaseOrderController::class, 'proof'])
+                ->whereUlid('purchaseOrder')->whereIn('kind', ['supplier', 'received'])->name('staff.purchase-orders.proof');
         });
         Route::middleware('permission:Inventory Management,update')->group(function () {
             Route::post('/purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->whereUlid('purchaseOrder')->name('staff.purchase-orders.cancel');
@@ -804,7 +823,6 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
             ->middleware('throttle:30,1')
             ->name('staff.complaints.respond');
         Route::post('/operations/orders/{order:payment_public_id}/payments', [ShopOrderController::class, 'recordPayment'])->middleware('throttle:30,1')->name('staff.orders.payments.store');
-        Route::post('/operations/orders/{order:payment_public_id}/notify-ready', [ShopOrderController::class, 'notifyReady'])->middleware('throttle:10,1')->name('staff.orders.notify-ready');
         Route::post('/operations/orders/{order:payment_public_id}/payments/check', [ShopOrderController::class, 'checkPayments'])->middleware('throttle:20,1')->name('staff.orders.payments.check');
         Route::post('/operations/orders/{order:payment_public_id}/payments/{payment}/void', [ShopOrderController::class, 'voidPayment'])->whereUlid('payment')->middleware('throttle:30,1')->name('staff.orders.payments.void');
         Route::post('/operations/orders/{order:payment_public_id}/send-for-delivery', [ShopOrderController::class, 'sendForDelivery'])

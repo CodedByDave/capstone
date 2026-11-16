@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Delivery;
 use App\Models\Rider;
+use App\Models\Shop;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -90,11 +91,20 @@ class RiderRepository extends Repository
      * transaction: the rows are locked while the choice is made.
      */
     /** @param  list<int>  $excluding  riders who must not get this run, such as ones who turned it down */
-    public function findAvailableForShop(int $shopId, array $excluding = []): ?Rider
+    /** @param  list<string>|null  $vehicleTypes  only riders driving one of these vehicles; null means any */
+    public function findAvailableForShop(int $shopId, array $excluding = [], ?array $vehicleTypes = null): ?Rider
     {
         return $this->whereClockedIn(Rider::query())
             ->where('shop_id', $shopId)
             ->whereNotIn('id', $excluding)
+            ->when($vehicleTypes !== null, fn (Builder $query) => $query->where(function (Builder $query) use ($vehicleTypes): void {
+                $query->whereIn('vehicle_type', $vehicleTypes);
+
+                // A rider with no vehicle type is treated as driving the default one.
+                if (in_array(Shop::DEFAULT_RIDER_VEHICLE_TYPE, $vehicleTypes, true)) {
+                    $query->orWhereNull('vehicle_type')->orWhere('vehicle_type', '');
+                }
+            }))
             ->active()
             ->whereNotNull('employee_id')
             ->where('is_online', true)
@@ -172,9 +182,44 @@ class RiderRepository extends Repository
         );
     }
 
-    public function setVehicleTypeForShop(int $shopId, string $vehicleType): void
+    /**
+     * The vehicle types of the riders who could take a run right now: active, online, scheduled
+     * today and clocked in. Used so what customers see matches who can actually come.
+     *
+     * @return list<string>
+     */
+    public function onDutyVehicleTypes(int $shopId): array
     {
-        Rider::query()->where('shop_id', $shopId)->update(['vehicle_type' => $vehicleType]);
+        return $this->whereClockedIn(Rider::query())
+            ->where('shop_id', $shopId)
+            ->active()
+            ->whereNotNull('employee_id')
+            ->where('is_online', true)
+            ->whereHas('employee.schedules', fn ($query) => $query->where('day', now()->format('l')))
+            ->pluck('vehicle_type')
+            ->map(fn ($type) => filled($type) ? (string) $type : Shop::DEFAULT_RIDER_VEHICLE_TYPE)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The vehicle types the shop's active riders drive. A rider with no vehicle type counts as
+     * the default type, so every rider is represented.
+     *
+     * @return list<string>
+     */
+    public function activeVehicleTypes(int $shopId): array
+    {
+        return Rider::query()
+            ->where('shop_id', $shopId)
+            ->active()
+            ->whereNotNull('employee_id')
+            ->pluck('vehicle_type')
+            ->map(fn ($type) => filled($type) ? (string) $type : Shop::DEFAULT_RIDER_VEHICLE_TYPE)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function createForShop(int $shopId, array $data): Rider

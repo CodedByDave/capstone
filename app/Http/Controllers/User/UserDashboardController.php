@@ -142,6 +142,7 @@ class UserDashboardController extends Controller
                 'offers_delivery' => $shop->canDeliver(),
                 // The weight range a rider collects, so the form can explain it before the order is sent.
                 'rider_load_limit' => $this->riderLoad->limitsFor($shop),
+                'rider_vehicle_ranges' => $this->riderLoad->vehicleRangesFor($shop),
                 'is_open' => $shop->isOpenAt(),
                 'is_open_24_7' => (bool) $shop->is_open_24_7,
                 'opens_at' => $shop->opens_at ? substr($shop->opens_at, 0, 5) : null,

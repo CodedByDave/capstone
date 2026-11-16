@@ -26,7 +26,7 @@ class NotificationService
     }
 
     /** Notification types that should pop up on screen while a shop user is working. */
-    public const POPUP_TYPES = ['new_online_order'];
+    public const POPUP_TYPES = ['new_online_order', 'laundry_done'];
 
     /** @return list<array{id: string, type: ?string, title: string, body: string, url: ?string}> */
     public function popupsFor(User $user): array

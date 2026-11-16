@@ -13,8 +13,10 @@ use App\Models\Inventory;
 use App\Models\Shop;
 use App\Services\InventoryCategoryService;
 use App\Services\InventoryService;
+use App\Services\PurchaseOrderService;
 use App\Services\StockReorderService;
 use App\Services\SupplierService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class InventoryController extends Controller
@@ -24,6 +26,7 @@ class InventoryController extends Controller
         private readonly InventoryCategoryService $categoryService,
         private readonly SupplierService $supplierService,
         private readonly StockReorderService $reorderService,
+        private readonly PurchaseOrderService $purchaseOrders,
     ) {}
 
     private function getShop(): Shop
@@ -55,19 +58,42 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $shop = $this->getShop();
+        $order = $request->query('purchase_order');
+        $line = (int) $request->query('line');
 
         return Inertia::render('shop/inventory/Create', [
             'categories' => $this->categoryService->all($shop->id),
             'suppliers' => $this->supplierService->allActive($shop->id),
+            // A received supply that is not in the product list arrives here with its details filled in.
+            'fromPurchaseOrder' => is_string($order) && $line > 0 ? [
+                'purchase_order' => $order,
+                'line' => $line,
+                'prefill' => $this->purchaseOrders->inventoryPrefill($request->user(), $order, $line),
+            ] : null,
         ]);
     }
 
     public function store(StoreInventoryRequest $request)
     {
         $shop = $this->getShop();
+
+        if ($request->filled('purchase_order')) {
+            $order = $this->purchaseOrders->addLineToInventory(
+                $request->user(),
+                (string) $request->input('purchase_order'),
+                (int) $request->input('line'),
+                $request->safe()->except('photo', 'purchase_order', 'line'),
+                $request->file('photo'),
+            );
+
+            $base = $request->user()->role === 'owner' ? '/shop/purchase-orders' : '/staff/purchase-orders';
+
+            return redirect("{$base}/{$order->public_id}")
+                ->with('toast', ['type' => 'success', 'message' => 'Item added to your product list and linked to this order.']);
+        }
 
         $this->inventoryService->create(
             $shop->id,

@@ -47,7 +47,7 @@ class Shop extends Model
      * Secrets never leave the server, even when a page loads a whole shop (an order's details
      * page loads its shop). They are still readable in PHP; only serialization skips them.
      */
-    protected $hidden = ['paymongo_secret_key', 'sms_gateway_username', 'sms_gateway_password'];
+    protected $hidden = ['paymongo_secret_key'];
 
     protected $fillable = [
         'public_id',
@@ -91,12 +91,6 @@ class Shop extends Model
         'longitude',
         'cover_photo',
         'paymongo_secret_key',
-        'sms_gateway_enabled',
-        'sms_gateway_mode',
-        'sms_gateway_url',
-        'sms_gateway_username',
-        'sms_gateway_password',
-        'sms_notify_ready',
         'paymongo_public_key',
         'status',
         'bir_expiry_date',
@@ -146,9 +140,6 @@ class Shop extends Model
         'sanitary_expiry_date' => 'date',
         'last_activity_at' => 'datetime',
         'paymongo_secret_key' => 'encrypted',
-        'sms_gateway_password' => 'encrypted',
-        'sms_gateway_enabled' => 'boolean',
-        'sms_notify_ready' => 'boolean',
     ];
 
     public function hasCoordinates(): bool

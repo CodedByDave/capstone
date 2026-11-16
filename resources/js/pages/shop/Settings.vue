@@ -6,15 +6,13 @@ import OperatingHoursCard from '@/components/business/OperatingHoursCard.vue';
 import RiderLoadLimitCard from '@/components/business/RiderLoadLimitCard.vue';
 import RushFeeCard from '@/components/business/RushFeeCard.vue';
 import SettingsSaveBar from '@/components/business/SettingsSaveBar.vue';
-import SmsGatewayCard, {
-    type SmsGatewaySettings,
-} from '@/components/business/SmsGatewayCard.vue';
 import LocationPin from '@/components/map/LocationPin.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { provideSettingsSaveBar } from '@/composables/useSettingsSaveBar';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
+import { reverseGeocode, searchPlaces, type PlaceResult } from '@/lib/maps';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     AlertTriangle,
@@ -28,7 +26,6 @@ import {
     ImagePlus,
     Loader2,
     MapPin,
-    MessageSquareText,
     Navigation,
     Search,
     ShieldCheck,
@@ -38,15 +35,10 @@ import {
     Upload,
 } from 'lucide-vue-next';
 import {
-    reverseGeocode,
-    searchPlaces,
-    type PlaceResult,
-} from '@/lib/maps';
-import {
     computed,
     nextTick,
-    onMounted,
     onBeforeUnmount,
+    onMounted,
     ref,
     type Component,
 } from 'vue';
@@ -75,10 +67,7 @@ const props = defineProps<{
     };
     deliveryPricing: DeliveryPricing;
     rushFee: number;
-    riderLoadLimit: { min: number | null; max: number | null };
-    smsGateway: SmsGatewaySettings;
     riderVehicle: {
-        selected: string;
         choices: string[];
         limits: { type: string; min: number | null; max: number | null }[];
     };
@@ -87,10 +76,7 @@ const props = defineProps<{
         opens_at: string;
         closes_at: string;
         operating_days: number[];
-        daily_hours: Record<
-            number,
-            { opens_at: string; closes_at: string }
-        >;
+        daily_hours: Record<number, { opens_at: string; closes_at: string }>;
     };
 }>();
 
@@ -201,7 +187,7 @@ const addressLine = computed(
 // One tab per group instead of one long page. Every section stays mounted, so unsaved changes on
 // another tab are kept and the single save bar still saves them all.
 
-type TabId = 'hours' | 'delivery' | 'notifications' | 'profile' | 'data';
+type TabId = 'hours' | 'delivery' | 'profile' | 'data';
 
 const tabs = computed<
     { id: TabId; label: string; icon: Component; sections: string[] }[]
@@ -212,12 +198,6 @@ const tabs = computed<
         label: 'Delivery & Fees',
         icon: Truck,
         sections: ['delivery', 'rider-load', 'rush'],
-    },
-    {
-        id: 'notifications',
-        label: 'Notifications',
-        icon: MessageSquareText,
-        sections: ['sms'],
     },
     {
         id: 'profile',
@@ -584,27 +564,12 @@ function clearGeo() {
                             id="rider-load"
                             class="scroll-mt-4 border-t pt-8"
                         >
-                            <RiderLoadLimitCard
-                                :limit="props.riderLoadLimit"
-                                :vehicle="props.riderVehicle"
-                            />
+                            <RiderLoadLimitCard :vehicle="props.riderVehicle" />
                         </div>
 
                         <!-- Rush Fee -->
                         <div id="rush" class="scroll-mt-4 border-t pt-8">
                             <RushFeeCard :rush-fee="props.rushFee" />
-                        </div>
-                    </div>
-
-                    <!-- Notifications -->
-                    <div
-                        v-show="activeTab === 'notifications'"
-                        id="panel-notifications"
-                        role="tabpanel"
-                        aria-labelledby="tab-notifications"
-                    >
-                        <div id="sms" class="scroll-mt-4">
-                            <SmsGatewayCard :settings="props.smsGateway" />
                         </div>
                     </div>
 

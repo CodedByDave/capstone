@@ -124,7 +124,7 @@ class ShopOrderRepository
     /** The shop with only its rider load limit, for checking a new order's weight. */
     public function shopWithRiderLoadLimit(int $shopId): ?Shop
     {
-        return Shop::query()->find($shopId, ['id', 'rider_min_weight_kg', 'rider_max_weight_kg']);
+        return Shop::query()->find($shopId, ['id', 'rider_vehicle_types', 'rider_vehicle_limits']);
     }
 
     /** How many of the shop's orders in the queue are rush orders. */

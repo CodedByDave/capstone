@@ -47,6 +47,8 @@ class StoreShopOrderRequest extends FormRequest
             'shop_id' => ['required', 'integer', Rule::exists('shops', 'id')],
             'customer_name' => ['required', 'string', 'max:255'],
             // A rider needs a number to call and an address to go to on a delivery pickup order.
+            // Optional: the customer is emailed automatically when their laundry is done.
+            'customer_email' => ['nullable', 'email:rfc', 'max:255'],
             'customer_phone' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:20', new PhilippineMobileNumber],
             // Someone else the rider can reach or hand the laundry to, required on a delivery pickup order.
             'alternate_contact_name' => [Rule::requiredIf(fn () => $this->riderInvolved()), 'nullable', 'string', 'max:150', 'required_with:alternate_contact_phone'],

@@ -35,15 +35,37 @@ interface Supplier {
     name: string;
 }
 
-const { categories, suppliers } = defineProps<{
+const { categories, suppliers, fromPurchaseOrder } = defineProps<{
     categories: Category[];
     suppliers: Supplier[];
+    /** Set when a received purchase order supply is being added to the product list. */
+    fromPurchaseOrder?: {
+        purchase_order: string;
+        line: number;
+        prefill: {
+            name: string;
+            unit: string;
+            package_unit: string;
+            package_size: number;
+            quantity: number;
+            unit_price: number;
+            supplier_id: number | null;
+        };
+    } | null;
 }>();
+
+const prefill = fromPurchaseOrder?.prefill;
 
 const { isOwner } = usePermissions();
 const { hasSuppliers } = useShopCapabilities();
 const base = computed(() =>
     isOwner.value ? '/shop/inventory' : '/staff/inventory',
+);
+
+const backHref = computed(() =>
+    fromPurchaseOrder
+        ? `${isOwner.value ? '/shop' : '/staff'}/purchase-orders/${fromPurchaseOrder.purchase_order}`
+        : base.value,
 );
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -52,16 +74,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const form = useForm({
-    name: '',
+    // Filled in when this item comes from a received purchase order line.
+    purchase_order: fromPurchaseOrder?.purchase_order ?? '',
+    line: fromPurchaseOrder?.line ?? '',
+    name: prefill?.name ?? '',
     description: '',
     photo: null as File | null,
-    unit: 'pcs',
-    package_unit: '',
-    package_size: '',
-    quantity: 0,
+    unit: prefill?.unit ?? 'pcs',
+    package_unit: prefill?.package_unit ?? '',
+    package_size: prefill ? String(prefill.package_size) : '',
+    quantity: prefill?.quantity ?? 0,
     min_stock: 5,
     max_stock: '',
-    unit_price: '',
+    unit_price: prefill ? String(prefill.unit_price) : '',
     addon_enabled: false,
     addon_name: '',
     addon_quantity: '' as number | string,
@@ -73,7 +98,7 @@ const form = useForm({
     notes: '',
     status: 'active',
     inventory_categories_id: '',
-    supplier_id: '',
+    supplier_id: prefill?.supplier_id ? String(prefill.supplier_id) : '',
 });
 
 const unitOptions = [
@@ -198,10 +223,14 @@ function submit() {
                     type="button"
                     variant="back"
                     class="shrink-0"
-                    @click="router.visit(base)"
+                    @click="router.visit(backHref)"
                 >
-                    <ArrowLeft class="mr-2 h-4 w-4" aria-hidden="true" /> Back
-                    to inventory
+                    <ArrowLeft class="mr-2 h-4 w-4" aria-hidden="true" />
+                    {{
+                        fromPurchaseOrder
+                            ? 'Back to purchase order'
+                            : 'Back to inventory'
+                    }}
                 </Button>
             </div>
 
@@ -660,7 +689,7 @@ function submit() {
                             variant="outline"
                             class="mt-2 w-full"
                             :disabled="form.processing"
-                            @click="router.visit(base)"
+                            @click="router.visit(backHref)"
                         >
                             Cancel
                         </Button>

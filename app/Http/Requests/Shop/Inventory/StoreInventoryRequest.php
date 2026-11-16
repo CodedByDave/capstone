@@ -38,6 +38,9 @@ class StoreInventoryRequest extends FormRequest
             'max_stock' => ['nullable', 'integer', 'min:0', 'gt:min_stock'],
             'unit_price' => ['nullable', 'numeric', 'min:0', 'max:9999999.99999999'],
             'status' => ['sometimes', 'in:active,inactive'],
+            // Set when the item is being added from a received purchase order line.
+            'purchase_order' => ['nullable', 'string', 'size:26', 'required_with:line'],
+            'line' => ['nullable', 'integer', 'min:1', 'required_with:purchase_order'],
         ];
     }
 

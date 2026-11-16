@@ -4,9 +4,9 @@ namespace App\Http\Controllers\SupplierPortal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsureActiveSupplier;
-use App\Http\Requests\SupplierPortal\SupplierDashboardRequest;
 use App\Services\PurchaseOrderService;
 use App\Services\SupplierPortalService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,12 +17,12 @@ class SupplierDashboardController extends Controller
         private readonly PurchaseOrderService $purchaseOrders,
     ) {}
 
-    public function __invoke(SupplierDashboardRequest $request): Response
+    public function __invoke(Request $request): Response
     {
         $supplier = $request->attributes->get(EnsureActiveSupplier::ATTRIBUTE);
 
         return Inertia::render('supplier/Dashboard', [
-            ...$this->portal->dashboardData($supplier, $request->filters(), $request->sort()),
+            ...$this->portal->overviewData($supplier),
             'purchaseOrders' => $this->purchaseOrders->portalData($supplier),
         ]);
     }

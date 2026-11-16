@@ -26,10 +26,10 @@ use App\Services\LogisticsService;
 use App\Services\OrderArchiveService;
 use App\Services\OrderCheckoutService;
 use App\Services\OrderPaymentService;
+use App\Services\OrderReadyNotificationService;
 use App\Services\OrderReceiptService;
 use App\Services\ShopOrderPaymentService;
 use App\Services\ShopOrderService;
-use App\Services\Sms\ShopSmsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,7 +47,7 @@ class ShopOrderController extends Controller
         private readonly OrderReceiptService $receipts,
         private readonly OrderArchiveService $archive,
         private readonly OrderCheckoutService $checkout,
-        private readonly ShopSmsService $sms,
+        private readonly OrderReadyNotificationService $readyNotices,
     ) {}
 
     private function getShopId(): int
@@ -99,6 +99,7 @@ class ShopOrderController extends Controller
             'tax' => $this->service->taxFor($shopId),
             'rushFee' => $this->service->rushFeeFor($shopId),
             'riderLoadLimit' => $this->service->riderLoadLimitFor($shopId),
+            'riderVehicleRanges' => $this->service->riderVehicleRangesFor($shopId),
             'deliveryPricing' => app(CounterDeliveryFeeService::class)->pricingFor($shopId),
             'riderAvailable' => $this->service->hasAvailableRider($shopId),
             'pickupTypes' => ShopOrder::PICKUP_TYPES,
@@ -190,18 +191,7 @@ class ShopOrderController extends Controller
             'payments' => ShopOrderPaymentResource::collection($this->payments->history($order))->resolve(),
             'receipt' => $this->receipts->forOrder($order),
             'openReceipt' => (bool) session('show_receipt', false),
-            'smsNotice' => $this->sms->orderPanel($order),
-            'readyPrompt' => (bool) session('ready_prompt', false),
-        ]);
-    }
-
-    public function notifyReady(Request $request, ShopOrder $order): RedirectResponse
-    {
-        $sms = $this->sms->notifyReadyByStaff($request->user(), $order);
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => "Text sent to {$sms->phone}.",
+            'readyNotice' => $this->readyNotices->panel($order),
         ]);
     }
 
@@ -278,17 +268,16 @@ class ShopOrderController extends Controller
         $this->service->changeStatusByStaff($order, $request->validated('status'));
         $order->refresh();
 
-        $texted = $order->status === 'completed' && $this->sms->shouldAutoNotifyReady($order);
+        $completed = $order->status === 'completed';
 
-        return back()
-            // No text is going out on its own, so the order page asks staff to send one themselves.
-            ->with('ready_prompt', $this->sms->needsManualReadyPrompt($order))
-            ->with('toast', [
-                'type' => 'success',
-                'message' => $texted
-                    ? "Order completed. {$order->customer_name} is being texted that the laundry is done."
-                    : 'Order status updated successfully.',
-            ]);
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => match (true) {
+                $completed && filled($order->customer_email) => "Order completed. {$order->customer_name} is being emailed that the laundry is done.",
+                $completed => 'Order completed. No customer email on file, so call or text them to let them know.',
+                default => 'Order status updated successfully.',
+            },
+        ]);
     }
 
     public function setRush(SetOrderRushRequest $request, ShopOrder $order): RedirectResponse

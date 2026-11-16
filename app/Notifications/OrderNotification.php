@@ -9,9 +9,11 @@ class OrderNotification extends Notification
 {
     public function __construct(
         public readonly ShopOrder $order,
-        public readonly string $event, // placed | new_online_order | weight_confirmed | status_changed | payment_updated | cancelled | overdue | rush_marked | rush_removed
+        public readonly string $event, // placed | new_online_order | weight_confirmed | status_changed | payment_updated | cancelled | overdue | rush_marked | rush_removed | laundry_done
         // The payment just received, so the message can say how much and what is left.
         public readonly ?float $amount = null,
+        // laundry_done only: whether the customer is being emailed automatically.
+        public readonly bool $emailing = false,
     ) {}
 
     public function via(object $notifiable): array
@@ -74,6 +76,18 @@ class OrderNotification extends Notification
                 'order_number' => $order->order_number,
                 'type' => 'payment_updated',
                 'payment_status' => $order->payment_status,
+            ],
+            'laundry_done' => [
+                'title' => $order->isProductOrder() ? 'Products are ready' : 'Laundry is done',
+                'body' => "Order #{$order->order_number} for {$order->customer_name} is completed. "
+                    .($this->emailing
+                        ? 'The customer is being emailed automatically.'
+                        : 'No email on file, so call or text '.($order->customer_phone ?: 'the customer').' to let them know.'),
+                'order_id' => $order->id,
+                'payment_public_id' => $order->payment_public_id,
+                'order_number' => $order->order_number,
+                'type' => 'laundry_done',
+                'url' => ($notifiable->role === 'owner' ? '/shop' : '/staff').'/operations/orders/'.$order->payment_public_id,
             ],
             'weight_decided' => [
                 'title' => $order->weight_approval_status === 'approved' ? 'Weight approved' : 'Weight declined',
