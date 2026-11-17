@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\Attendance;
-use App\Models\Employee;
 use App\Models\Delivery;
+use App\Models\Employee;
 use App\Models\EmployeeActivityLog;
 use App\Models\Expense;
 use App\Models\Inventory;
@@ -18,6 +18,7 @@ use App\Models\PayrollItem;
 use App\Models\Promotion;
 use App\Models\PurchaseOrder;
 use App\Models\RolePermission;
+use App\Models\ShopCustomer;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
 use App\Models\Supplier;
@@ -33,6 +34,7 @@ class ShopDataExportService
     /** Module permission each dataset needs for staff; owners may export all of them. */
     public const MODULES = [
         'orders' => 'Operations',
+        'customers' => 'Operations',
         'services' => 'Operations',
         'promotions' => 'Operations',
         'income' => 'Finance Management',
@@ -59,6 +61,7 @@ class ShopDataExportService
 
     public const LABELS = [
         'orders' => 'Orders',
+        'customers' => 'Customers',
         'services' => 'Services & pricing',
         'promotions' => 'Promotions',
         'income' => 'Income (payments received)',
@@ -91,6 +94,22 @@ class ShopDataExportService
     public static function datasets(): array
     {
         return array_keys(self::MODULES);
+    }
+
+    /**
+     * Every dataset with its label and whether it can also be imported, for the Settings "Your Data" tab.
+     *
+     * @return list<array{key: string, label: string, importable: bool}>
+     */
+    public static function catalog(): array
+    {
+        $importable = [...ShopCsvImportService::datasets(), ...ShopLedgerCsvImportService::datasets()];
+
+        return array_map(fn (string $dataset) => [
+            'key' => $dataset,
+            'label' => self::LABELS[$dataset],
+            'importable' => in_array($dataset, $importable, true),
+        ], self::datasets());
     }
 
     public function filename(string $dataset): string
@@ -167,6 +186,13 @@ class ShopDataExportService
                     $o->total_amount, $o->amount_paid, $o->payment_status, $o->payment_method, $o->status,
                     $o->created_at?->toDateTimeString(), $o->completed_at?->toDateTimeString(), $o->paid_at?->toDateTimeString(),
                     $o->trashed() ? 'Yes' : 'No',
+                ]),
+            ],
+            'customers' => [
+                ['Name', 'Phone', 'Email', 'Orders', 'Total spent', 'Last order', 'Customer since'],
+                $this->map($this->repository->customers($shopId), fn (ShopCustomer $c) => [
+                    $c->name, $c->phone, $c->email, (int) $c->orders_count, $c->total_spent ?? 0,
+                    $c->last_order_at, $c->created_at?->toDateString(),
                 ]),
             ],
             'services' => $this->serviceRows($shopId),

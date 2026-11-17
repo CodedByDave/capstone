@@ -24,6 +24,7 @@ class RetailSaleService
         private readonly CustomerShopCatalogService $catalog,
         private readonly CustomerProductOrderService $orderNumbers,
         private readonly OrderTaxService $tax,
+        private readonly ShopCustomerService $shopCustomers,
         private readonly ShopContext $context,
     ) {}
 
@@ -69,6 +70,14 @@ class RetailSaleService
         $shopId = $this->context->shopIdFor($actor);
 
         return DB::transaction(function () use ($actor, $shopId, $data): ShopOrder {
+            $shopCustomer = $this->shopCustomers->resolveForOrder(
+                $shopId,
+                $data['customer_name'] ?? null,
+                $data['customer_phone'] ?? null,
+                $data['customer_email'] ?? null,
+                customerPublicId: $data['shop_customer_id'] ?? null,
+            );
+
             $lines = $this->items->resolveRetail($shopId, $data['retail_items'], lock: true);
 
             if ($lines === []) {
@@ -93,11 +102,13 @@ class RetailSaleService
             $order = $this->orders->create([
                 'shop_id' => $shopId,
                 'user_id' => null,
+                // A sale with a name or number belongs to that customer; a nameless one belongs to nobody.
+                'shop_customer_id' => $shopCustomer?->id,
                 'order_source' => 'shop',
                 'order_type' => 'products',
                 'service_id' => null,
                 'order_number' => $this->orderNumbers->orderNumber(),
-                'customer_name' => $data['customer_name'] ?? 'Walk-in customer',
+                'customer_name' => $shopCustomer?->name ?? $data['customer_name'] ?? 'Walk-in customer',
                 'customer_phone' => $data['customer_phone'] ?? null,
                 'customer_email' => $data['customer_email'] ?? null,
                 'pickup_type' => 'walk_in',

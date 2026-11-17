@@ -2,6 +2,9 @@
 import CustomerServiceAgreement from '@/components/customer/CustomerServiceAgreement.vue';
 import LocationPin from '@/components/map/LocationPin.vue';
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import CustomerSearch, {
+    type CustomerSuggestion,
+} from '@/components/shop/CustomerSearch.vue';
 import ServiceLinesEditor, {
     type ServiceLineInput,
 } from '@/components/shop/ServiceLinesEditor.vue';
@@ -102,6 +105,30 @@ const props = defineProps<{
 
 const page = usePage<AppPageProps>();
 const isOwner = computed(() => page.props.auth.user.role === 'owner');
+// Suggests customers the shop already has, so a returning customer is picked, not typed again.
+const customerSearchUrl = computed(() =>
+    isOwner.value
+        ? '/shop/operations/customers/search'
+        : '/staff/operations/customers/search',
+);
+
+// The existing customer staff picked from the search; the order is linked to that exact record.
+const pickedCustomer = ref<CustomerSuggestion | null>(null);
+
+function onCustomerPicked(customer: CustomerSuggestion) {
+    pickedCustomer.value = customer;
+    form.shop_customer_id = customer.public_id;
+    form.customer_name = customer.name;
+    form.customer_phone = customer.phone ?? '';
+    form.customer_email = customer.email ?? '';
+}
+
+// Staying on the details they typed, but as a new customer instead of the picked one.
+function clearPickedCustomer() {
+    pickedCustomer.value = null;
+    form.shop_customer_id = '';
+}
+
 const base = computed(() =>
     isOwner.value ? '/shop/operations/orders' : '/staff/operations/orders',
 );
@@ -110,6 +137,8 @@ const base = computed(() =>
 
 const form = useForm({
     shop_id: props.shopId,
+    // The existing customer picked from the search, or empty for a new one.
+    shop_customer_id: '',
     customer_name: '',
     customer_phone: '',
     customer_email: '',
@@ -678,16 +707,68 @@ watch(
                             Customer Information
                         </p>
                         <div class="grid grid-cols-12 gap-x-6 gap-y-5">
+                            <div class="col-span-12 space-y-2">
+                                <div
+                                    v-if="pickedCustomer"
+                                    class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-800 dark:bg-transparent"
+                                >
+                                    <p
+                                        class="text-sm text-emerald-900 dark:text-emerald-200"
+                                    >
+                                        <span class="font-semibold">{{
+                                            pickedCustomer.name
+                                        }}</span>
+                                        is an existing customer with
+                                        {{ pickedCustomer.orders }}
+                                        {{
+                                            pickedCustomer.orders === 1
+                                                ? 'order'
+                                                : 'orders'
+                                        }}. This order is added to them.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        class="inline-flex h-11 items-center rounded-lg border border-emerald-300 px-4 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 dark:text-emerald-200"
+                                        @click="clearPickedCustomer"
+                                    >
+                                        Add as a new customer instead
+                                    </button>
+                                </div>
+                                <template v-else>
+                                    <CustomerSearch
+                                        input-id="order-customer-search"
+                                        :search-url="customerSearchUrl"
+                                        @select="onCustomerPicked"
+                                    />
+                                    <p class="text-xs text-muted-foreground">
+                                        Search for a returning customer to pick
+                                        them. If they are not in the list, fill
+                                        in the details below to add them.
+                                    </p>
+                                </template>
+                                <p
+                                    v-if="form.errors.shop_customer_id"
+                                    class="text-xs text-red-500"
+                                    role="alert"
+                                >
+                                    {{ form.errors.shop_customer_id }}
+                                </p>
+                            </div>
                             <div class="col-span-12 space-y-1 sm:col-span-4">
-                                <label class="text-sm font-medium"
+                                <label
+                                    for="order-customer-name"
+                                    class="text-sm font-medium"
                                     >Customer Name
                                     <span class="text-red-500">*</span></label
                                 >
                                 <input
+                                    id="order-customer-name"
                                     v-model="form.customer_name"
                                     type="text"
                                     required
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    autocomplete="off"
+                                    :readonly="!!pickedCustomer"
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 read-only:bg-muted"
                                     :class="{
                                         'border-red-500':
                                             form.errors.customer_name,

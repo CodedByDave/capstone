@@ -46,6 +46,8 @@ class StoreShopOrderRequest extends FormRequest
         return [
             'shop_id' => ['required', 'integer', Rule::exists('shops', 'id')],
             'customer_name' => ['required', 'string', 'max:255'],
+            // An existing customer picked from the search; the order is linked to that exact record.
+            'shop_customer_id' => ['nullable', 'string', 'size:26'],
             // A rider needs a number to call and an address to go to on a delivery pickup order.
             // Optional: the customer is emailed automatically when their laundry is done.
             'customer_email' => ['nullable', 'email:rfc', 'max:255'],

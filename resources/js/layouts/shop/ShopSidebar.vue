@@ -79,12 +79,12 @@ const shopCapabilities = computed(
 );
 // Red-dot counts per sidebar item, e.g. orders placed today on "All Orders".
 const sidebarBadges = computed(
-    () => ((page.props as any).sidebarBadges ?? {}) as Record<string, number>,
+    () => ((page.props as any).sidebarBadges ?? {}) as Record<string, number | boolean>,
 );
 const subBadge = (title: string, moduleName: string): number => {
     if (moduleName !== 'Operations') return 0;
-    if (title === 'All Orders') return sidebarBadges.value.operations_orders ?? 0;
-    if (title === 'Retail Products') return sidebarBadges.value.operations_retail ?? 0;
+    if (title === 'All Orders') return Number(sidebarBadges.value.operations_orders ?? 0);
+    if (title === 'Retail Products') return Number(sidebarBadges.value.operations_retail ?? 0);
     return 0;
 };
 const moduleBadge = (moduleName: string): number =>
@@ -202,12 +202,23 @@ const allOperationsSubActions = [
         show: () => isOwner.value || can('Operations', 'view'),
     },
     {
+        title: 'Customers',
+        icon: Users,
+        href: isOwner.value
+            ? '/shop/operations/customers'
+            : '/staff/operations/customers',
+        show: () => isOwner.value || can('Operations', 'view'),
+    },
+    {
         title: 'Retail Products',
         icon: ShoppingBag,
         href: isOwner.value
             ? '/shop/operations/retail'
             : '/staff/operations/retail',
-        show: () => isOwner.value || can('Operations', 'view'),
+        // Hidden until the shop turns on a retail product (or already has product orders).
+        show: () =>
+            sidebarBadges.value.retail_enabled === true &&
+            (isOwner.value || can('Operations', 'view')),
     },
     {
         title: 'Ratings',

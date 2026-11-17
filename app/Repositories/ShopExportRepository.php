@@ -3,8 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Attendance;
-use App\Models\Employee;
 use App\Models\Delivery;
+use App\Models\Employee;
 use App\Models\EmployeeActivityLog;
 use App\Models\Expense;
 use App\Models\Inventory;
@@ -19,6 +19,7 @@ use App\Models\Promotion;
 use App\Models\PurchaseOrder;
 use App\Models\RolePermission;
 use App\Models\Shop;
+use App\Models\ShopCustomer;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderPayment;
 use App\Models\Supplier;
@@ -35,6 +36,16 @@ class ShopExportRepository
             ->withTrashed()
             ->forShop($shopId)
             ->with('service:id,service_name')
+            ->lazyById(self::CHUNK);
+    }
+
+    public function customers(int $shopId): LazyCollection
+    {
+        return ShopCustomer::query()
+            ->forShop($shopId)
+            ->withCount(['orders as orders_count' => fn ($q) => $q->where('status', '!=', 'cancelled')])
+            ->withSum(['orders as total_spent' => fn ($q) => $q->where('status', '!=', 'cancelled')], 'total_amount')
+            ->withMax('orders as last_order_at', 'created_at')
             ->lazyById(self::CHUNK);
     }
 

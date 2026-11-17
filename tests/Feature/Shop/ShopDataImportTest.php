@@ -317,3 +317,35 @@ it('exports every remaining dataset for the owner', function () {
         expect($response->streamedContent())->not->toBeEmpty();
     }
 });
+
+it('imports customers by name and refuses names the shop already has', function () {
+    $owner = dataImportOwner();
+    $header = "name,phone,email\n";
+
+    $this->actingAs($owner)
+        ->post('/shop/import/customers', ['csv_file' => dataImportCsv($header."Maria Santos,09171234567,maria@example.com\nJuan Cruz,,\n")])
+        ->assertOk()
+        ->assertJson(['imported' => 2]);
+
+    expect(App\Models\ShopCustomer::where('shop_id', $owner->shop->id)->pluck('name')->all())
+        ->toEqualCanonicalizing(['Maria Santos', 'Juan Cruz']);
+
+    $this->actingAs($owner)
+        ->post('/shop/import/customers', ['csv_file' => dataImportCsv($header."maria  SANTOS,,\nNew Person,,\n")])
+        ->assertStatus(422);
+
+    expect(App\Models\ShopCustomer::where('shop_id', $owner->shop->id)->count())->toBe(2);
+});
+
+it('exports customers and lists them in the settings data catalog', function () {
+    $owner = dataImportOwner();
+    App\Models\ShopCustomer::create([
+        'shop_id' => $owner->shop->id, 'name' => 'Maria Santos', 'identity_key' => 'maria santos',
+    ]);
+
+    $csv = $this->actingAs($owner)->get('/shop/export/customers')->assertOk()->streamedContent();
+    expect($csv)->toContain('Maria Santos');
+
+    $this->actingAs($owner)->get('/shop/settings')->assertInertia(fn ($page) => $page
+        ->where('dataCatalog', fn ($catalog) => collect($catalog)->contains(fn ($d) => $d['key'] === 'customers' && $d['importable'])));
+});

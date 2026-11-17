@@ -468,6 +468,13 @@ class ShopOrderRepository
         return $this->model->forShop($shopId)->laundry()->where('created_at', '>=', $since)->count();
     }
 
+    /** Whether the shop sells, or has ever sold, retail products: an active retail item or any product order. */
+    public function usesRetail(int $shopId): bool
+    {
+        return Inventory::query()->where('shop_id', $shopId)->where('status', 'active')->where('retail_enabled', true)->exists()
+            || $this->model->forShop($shopId)->products()->exists();
+    }
+
     /** Online product orders placed since a moment, for the Retail Products sidebar badge. */
     public function countOnlineProductsSince(int $shopId, \DateTimeInterface $since): int
     {

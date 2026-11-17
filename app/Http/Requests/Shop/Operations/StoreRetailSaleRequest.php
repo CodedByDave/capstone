@@ -31,6 +31,8 @@ class StoreRetailSaleRequest extends FormRequest
             'retail_items.*.id' => ['required', 'integer'],
             'retail_items.*.count' => ['required', 'integer', 'min:1', 'max:999'],
             'customer_name' => ['nullable', 'string', 'max:255'],
+            // An existing customer picked from the search; the sale is linked to that exact record.
+            'shop_customer_id' => ['nullable', 'string', 'size:26'],
             'customer_phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
             // Optional: the customer is emailed nothing here; it is kept on the sale for the record.
             'customer_email' => ['nullable', 'email:rfc', 'max:255'],

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Rules\PhilippineMobileNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateShopRequest extends FormRequest
@@ -12,31 +11,20 @@ class UpdateShopRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Admins may only change the platform status. Identity, contact, address
+     * and permit details belong to the shop owner; any other input is ignored.
+     */
     public function rules(): array
     {
         return [
-            'shop_name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', new PhilippineMobileNumber],
-            'block_street' => ['nullable', 'string', 'max:255'],
-            'municipality' => ['required', 'string', 'max:255'],
-            'barangay' => ['required', 'string', 'max:255'],
-            'postal_code' => ['required', 'string', 'max:255'],
             'status' => ['required', 'in:active,pending,disabled'],
-            'bir_expiry_date' => ['nullable', 'date'],
-            'mayors_expiry_date' => ['nullable', 'date'],
-            'dti_expiry_date' => ['nullable', 'date'],
-            'sanitary_expiry_date' => ['nullable', 'date'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'shop_name.required' => 'Shop name is required.',
-            'phone.required' => 'Phone number is required.',
-            'municipality.required' => 'Municipality is required.',
-            'barangay.required' => 'Barangay is required.',
-            'postal_code.required' => 'Postal code is required.',
             'status.required' => 'Status is required.',
             'status.in' => 'Status must be active, pending, or disabled.',
         ];

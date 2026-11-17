@@ -308,7 +308,7 @@ test('the new filter and sidebar badge count only orders placed today for that s
 
     expect(listed($response))->toEqualCanonicalizing(['TODAY-1', 'TODAY-2']);
     expect($response->viewData('page')['props']['newOrdersCount'])->toBe(2);
-    expect($response->viewData('page')['props']['sidebarBadges'])->toBe(['operations_orders' => 2, 'operations_retail' => 0]);
+    expect($response->viewData('page')['props']['sidebarBadges'])->toBe(['operations_orders' => 2, 'operations_retail' => 0, 'retail_enabled' => false]);
 });
 
 test('staff see the same new order badge for their shop', function () {
@@ -317,5 +317,5 @@ test('staff see the same new order badge for their shop', function () {
 
     $response = $this->actingAs(listStaff($shop))->get('/staff/operations/orders')->assertOk();
 
-    expect($response->viewData('page')['props']['sidebarBadges'])->toBe(['operations_orders' => 1, 'operations_retail' => 0]);
+    expect($response->viewData('page')['props']['sidebarBadges'])->toBe(['operations_orders' => 1, 'operations_retail' => 0, 'retail_enabled' => false]);
 });

@@ -44,9 +44,10 @@ use App\Http\Controllers\Shop\Operations\OrderComplaintController;
 use App\Http\Controllers\Shop\Operations\OrderRatingController;
 use App\Http\Controllers\Shop\Operations\OrderWeightProofController;
 use App\Http\Controllers\Shop\Operations\PromotionController;
-use App\Http\Controllers\Shop\Operations\ServiceCategoryController;
-use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\RetailSaleController;
+use App\Http\Controllers\Shop\Operations\ServiceCategoryController;
+use App\Http\Controllers\Shop\Operations\ShopCustomerController;
+use App\Http\Controllers\Shop\Operations\ShopOrderController;
 use App\Http\Controllers\Shop\Operations\ShopServiceController;
 use App\Http\Controllers\Shop\PaymentHistoryController;
 use App\Http\Controllers\Shop\PaymentSettingsController;
@@ -431,6 +432,9 @@ Route::prefix('shop')->middleware([
     });
 
     // Operations Routes
+    Route::get('operations/customers', [ShopCustomerController::class, 'index'])->name('shop.customers.index');
+    Route::get('operations/customers/search', [ShopCustomerController::class, 'search'])->middleware('throttle:120,1')->name('shop.customers.search');
+    Route::get('operations/customers/{publicId}', [ShopCustomerController::class, 'show'])->whereUlid('publicId')->name('shop.customers.show');
     Route::get('operations/retail', [RetailSaleController::class, 'index'])->name('shop.retail.index');
     Route::get('operations/retail/create', [RetailSaleController::class, 'create'])->name('shop.retail.create');
     Route::post('operations/retail', [RetailSaleController::class, 'store'])->middleware('throttle:30,1')->name('shop.retail.store');
@@ -799,6 +803,9 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
     // Dynamic (wildcard) routes after static ones
     Route::middleware('permission:Operations,view')->group(function () {
+        Route::get('/operations/customers', [ShopCustomerController::class, 'index'])->name('staff.customers.index');
+        Route::get('/operations/customers/search', [ShopCustomerController::class, 'search'])->middleware('throttle:120,1')->name('staff.customers.search');
+        Route::get('/operations/customers/{publicId}', [ShopCustomerController::class, 'show'])->whereUlid('publicId')->name('staff.customers.show');
         Route::get('/operations/retail', [RetailSaleController::class, 'index'])->name('staff.retail.index');
         Route::get('/operations/orders', [ShopOrderController::class, 'index'])->name('staff.orders.index');
         Route::get('/operations/orders/{order:payment_public_id}', [ShopOrderController::class, 'show'])->name('staff.orders.show');

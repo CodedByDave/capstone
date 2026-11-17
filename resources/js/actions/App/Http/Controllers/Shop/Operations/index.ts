@@ -1,3 +1,4 @@
+import ShopCustomerController from './ShopCustomerController'
 import RetailSaleController from './RetailSaleController'
 import ShopOrderController from './ShopOrderController'
 import OrderWeightProofController from './OrderWeightProofController'
@@ -8,7 +9,8 @@ import ShopServiceController from './ShopServiceController'
 import ServiceCategoryController from './ServiceCategoryController'
 import PromotionController from './PromotionController'
 const Operations = {
-    RetailSaleController: Object.assign(RetailSaleController, RetailSaleController),
+    ShopCustomerController: Object.assign(ShopCustomerController, ShopCustomerController),
+RetailSaleController: Object.assign(RetailSaleController, RetailSaleController),
 ShopOrderController: Object.assign(ShopOrderController, ShopOrderController),
 OrderWeightProofController: Object.assign(OrderWeightProofController, OrderWeightProofController),
 OrderRatingController: Object.assign(OrderRatingController, OrderRatingController),

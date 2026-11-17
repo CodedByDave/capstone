@@ -26,6 +26,7 @@ class ShopOrder extends Model
     protected $fillable = [
         'shop_id',
         'user_id',
+        'shop_customer_id',
         'order_source',
         'order_type',
         'service_id',
@@ -204,6 +205,12 @@ class ShopOrder extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** The shop's record of who this order is for; one record however many orders they place. */
+    public function shopCustomer(): BelongsTo
+    {
+        return $this->belongsTo(ShopCustomer::class, 'shop_customer_id');
     }
 
     public function service(): BelongsTo

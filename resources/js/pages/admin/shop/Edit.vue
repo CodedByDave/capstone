@@ -4,17 +4,9 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 
 import { StatusPill, type StatusTone } from '@/components/data-table';
-import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, Lock } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -59,12 +51,24 @@ const toneByState: Record<string, StatusTone> = {
 };
 
 function formatDate(value: string | null) {
-    if (!value) return 'Not recorded';
+    if (!value) return 'Not provided';
     return new Date(value).toLocaleDateString('en-PH', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
     });
+}
+
+function relativeDay(value: string | null) {
+    if (!value) return 'No activity yet';
+    const days = Math.floor(
+        (new Date().setHours(0, 0, 0, 0) -
+            new Date(value).setHours(0, 0, 0, 0)) /
+            86_400_000,
+    );
+    if (days <= 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -73,19 +77,67 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit', href: `/admin/shop/${shop.public_id}/edit` },
 ];
 
+// Admins may only change the platform status; everything else is owned by the shop.
 const form = useForm({
-    shop_name: shop.shop_name,
-    phone: shop.phone,
-    block_street: shop.block_street,
-    municipality: shop.municipality,
-    barangay: shop.barangay,
-    postal_code: shop.postal_code,
     status: shop.status,
-    bir_expiry_date: shop.bir_expiry_date ?? '',
-    mayors_expiry_date: shop.mayors_expiry_date ?? '',
-    dti_expiry_date: shop.dti_expiry_date ?? '',
-    sanitary_expiry_date: shop.sanitary_expiry_date ?? '',
 });
+
+const isDirty = computed(() => form.status !== shop.status);
+
+const statusOptions = [
+    {
+        value: 'active',
+        label: 'Active',
+        hint: 'Shop can operate and take orders.',
+    },
+    {
+        value: 'pending',
+        label: 'Pending',
+        hint: 'Awaiting review or approval.',
+    },
+    {
+        value: 'disabled',
+        label: 'Disabled',
+        hint: 'Shop is blocked from operating.',
+    },
+];
+
+const ownerFields = [
+    { label: 'Shop name', value: shop.shop_name },
+    { label: 'Owner', value: shop.owner.name },
+    { label: 'Owner email', value: shop.owner.email },
+    { label: 'Phone number', value: shop.phone },
+];
+
+const addressFields = [
+    { label: 'Block / street', value: shop.block_street },
+    { label: 'Barangay', value: shop.barangay },
+    { label: 'Municipality', value: shop.municipality },
+    { label: 'Postal code', value: shop.postal_code },
+];
+
+const permitFields = [
+    {
+        label: 'BIR registration expiry',
+        value: shop.bir_expiry_date,
+        required: true,
+    },
+    {
+        label: "Mayor's permit expiry",
+        value: shop.mayors_expiry_date,
+        required: true,
+    },
+    {
+        label: 'DTI registration expiry',
+        value: shop.dti_expiry_date,
+        required: true,
+    },
+    {
+        label: 'Sanitary permit expiry (optional)',
+        value: shop.sanitary_expiry_date,
+        required: false,
+    },
+];
 
 function submit() {
     form.put(`/admin/shop/${shop.public_id}`, {
@@ -100,289 +152,310 @@ function submit() {
         },
     });
 }
+
+function back() {
+    router.visit(`/admin/shop/${shop.public_id}`);
+}
+
+const kpiLabel =
+    'text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase';
+const fieldLabel = 'text-xs font-medium text-muted-foreground';
 </script>
 
 <template>
     <Head :title="`Edit — ${shop.shop_name}`" />
 
     <AdminLayout :breadcrumbs="breadcrumbs" title="Edit Shop">
-        <div class="mb-8 flex items-center justify-between">
-            <div>
-                <h2 class="text-xl font-semibold">Edit Laundry / Shop</h2>
-                <p class="mt-1 text-sm text-muted-foreground">
-                    Update the details for {{ shop.shop_name }}
-                </p>
-            </div>
-            <Button
-                variant="back"
-                @click="router.visit(`/admin/shop/${shop.public_id}`)"
+        <div class="px-6 sm:px-10 lg:px-[100px]">
+            <button
+                type="button"
+                class="mb-4 inline-flex min-h-11 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                @click="back"
             >
-                <ArrowLeft class="mr-2 h-4 w-4" />
-                Back to Details
-            </Button>
-        </div>
+                <ArrowLeft class="h-4 w-4" aria-hidden="true" />
+                Back to details
+            </button>
 
-        <!-- Read-only overview: the details the shop list no longer shows -->
-        <section
-            class="mb-8 grid gap-4 rounded-2xl border bg-card p-5 sm:grid-cols-2 lg:grid-cols-5"
-            aria-label="Shop overview"
-        >
-            <div>
-                <p
-                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                >
-                    Health
-                </p>
-                <div class="mt-2">
-                    <StatusPill
-                        :tone="toneByState[overview.health_status] ?? 'neutral'"
-                    >
-                        <span class="capitalize">{{
-                            overview.health_status
-                        }}</span>
-                    </StatusPill>
-                </div>
-            </div>
-            <div>
-                <p
-                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                >
-                    Compliance
-                </p>
-                <div class="mt-2">
-                    <StatusPill
-                        :tone="
-                            toneByState[overview.compliance_status] ?? 'neutral'
-                        "
-                    >
-                        <span class="capitalize">{{
-                            overview.compliance_status
-                        }}</span>
-                    </StatusPill>
-                </div>
-            </div>
-            <div>
-                <p
-                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                >
-                    Subscription
-                </p>
-                <p class="mt-2 text-sm font-medium">
-                    {{ overview.subscription_plan ?? 'No plan' }}
-                </p>
-                <p
-                    class="text-xs"
-                    :class="
-                        overview.is_expired
-                            ? 'text-red-500'
-                            : 'text-muted-foreground'
-                    "
-                >
-                    {{ formatDate(overview.expires_at) }}
-                </p>
-            </div>
-            <div>
-                <p
-                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                >
-                    Last activity
-                </p>
-                <p
-                    class="mt-2 text-sm font-medium"
-                    :class="overview.is_inactive ? 'text-amber-600' : ''"
-                >
-                    {{ formatDate(overview.last_activity_at) }}
-                </p>
-                <p v-if="overview.is_inactive" class="text-xs text-amber-600">
-                    Inactive
-                </p>
-            </div>
-            <div>
-                <p
-                    class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase"
-                >
-                    Registered
-                </p>
-                <p class="mt-2 text-sm font-medium">
-                    {{ formatDate(overview.created_at) }}
-                </p>
-            </div>
-        </section>
+            <h2 class="text-3xl font-bold tracking-tight">
+                Edit {{ shop.shop_name }}
+            </h2>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Manage the platform status of this shop.
+            </p>
 
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <!-- Shop Name (full width) -->
-            <div class="space-y-1 md:col-span-2">
-                <label class="text-sm font-medium">Laundry / Shop Name</label>
-                <Input v-model="form.shop_name" />
-                <p v-if="form.errors.shop_name" class="text-xs text-red-500">
-                    {{ form.errors.shop_name }}
-                </p>
-            </div>
-
-            <!-- Owner Name (read-only, full width) -->
-            <div class="space-y-1 md:col-span-2">
-                <label class="text-sm font-medium">Owner Name</label>
-                <Input :model-value="shop.owner.name" disabled />
-                <p class="mt-0.5 text-xs text-muted-foreground">
-                    Owner info is managed via user accounts.
-                </p>
-            </div>
-
-            <!-- Phone -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium">Phone Number</label>
-                <PhilippinePhoneInput v-model="form.phone" />
-                <p v-if="form.errors.phone" class="text-xs text-red-500">
-                    {{ form.errors.phone }}
-                </p>
-            </div>
-
-            <!-- Status -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium">Status</label>
-                <Select v-model="form.status">
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="disabled">Disabled</SelectItem>
-                    </SelectContent>
-                </Select>
-                <p v-if="form.errors.status" class="text-xs text-red-500">
-                    {{ form.errors.status }}
-                </p>
-            </div>
-
-            <!-- Document Expiry Dates (full width) -->
-            <div class="space-y-1 md:col-span-2">
-                <label class="text-sm font-medium"
-                    >BIR Registration Expiry Date</label
-                >
-                <Input
-                    type="date"
-                    v-model="form.bir_expiry_date"
-                    class="w-full"
-                />
-                <p
-                    v-if="form.errors.bir_expiry_date"
-                    class="text-xs text-red-500"
-                >
-                    {{ form.errors.bir_expiry_date }}
-                </p>
-            </div>
-
-            <div class="space-y-1 md:col-span-2">
-                <label class="text-sm font-medium"
-                    >Mayor's Permit Expiry Date</label
-                >
-                <Input
-                    type="date"
-                    v-model="form.mayors_expiry_date"
-                    class="w-full"
-                />
-                <p
-                    v-if="form.errors.mayors_expiry_date"
-                    class="text-xs text-red-500"
-                >
-                    {{ form.errors.mayors_expiry_date }}
-                </p>
-            </div>
-
-            <div class="space-y-1 md:col-span-2">
-                <label class="text-sm font-medium"
-                    >DTI Registration Expiry Date</label
-                >
-                <Input
-                    type="date"
-                    v-model="form.dti_expiry_date"
-                    class="w-full"
-                />
-                <p
-                    v-if="form.errors.dti_expiry_date"
-                    class="text-xs text-red-500"
-                >
-                    {{ form.errors.dti_expiry_date }}
-                </p>
-            </div>
-
-            <div class="space-y-1 md:col-span-2">
-                <label class="text-sm font-medium">
-                    Sanitary Permit Expiry Date
-                    <span class="text-xs text-muted-foreground"
-                        >(optional)</span
-                    >
-                </label>
-                <Input
-                    type="date"
-                    v-model="form.sanitary_expiry_date"
-                    class="w-full"
-                />
-                <p
-                    v-if="form.errors.sanitary_expiry_date"
-                    class="text-xs text-red-500"
-                >
-                    {{ form.errors.sanitary_expiry_date }}
-                </p>
-            </div>
-
-            <!-- Block / Street -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium">Block / Street</label>
-                <Input v-model="form.block_street" />
-                <p v-if="form.errors.block_street" class="text-xs text-red-500">
-                    {{ form.errors.block_street }}
-                </p>
-            </div>
-
-            <!-- Barangay -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium">Barangay</label>
-                <Input v-model="form.barangay" />
-                <p v-if="form.errors.barangay" class="text-xs text-red-500">
-                    {{ form.errors.barangay }}
-                </p>
-            </div>
-
-            <!-- Municipality -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium">Municipality</label>
-                <Input v-model="form.municipality" />
-                <p v-if="form.errors.municipality" class="text-xs text-red-500">
-                    {{ form.errors.municipality }}
-                </p>
-            </div>
-
-            <!-- Postal Code -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium">Postal Code</label>
-                <Input v-model="form.postal_code" />
-                <p v-if="form.errors.postal_code" class="text-xs text-red-500">
-                    {{ form.errors.postal_code }}
-                </p>
-            </div>
-        </div>
-
-        <!-- Note about subscription -->
-        <div
-            class="mt-6 rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700"
-        >
-            Subscription plan is managed through the Orders system and cannot be
-            edited here.
-        </div>
-
-        <!-- Footer Buttons -->
-        <div class="mt-8 flex justify-end gap-3 border-t pt-6">
-            <Button
-                variant="outline"
-                @click="router.visit(`/admin/shop/${shop.public_id}`)"
+            <!-- Read-only KPI tiles -->
+            <dl
+                class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+                aria-label="Shop overview"
             >
-                Cancel
-            </Button>
-            <Button :disabled="form.processing" @click="submit">
-                {{ form.processing ? 'Saving...' : 'Save Changes' }}
-            </Button>
+                <div class="rounded-2xl border bg-card p-5">
+                    <dt :class="kpiLabel">Health</dt>
+                    <dd class="mt-3">
+                        <StatusPill
+                            :tone="
+                                toneByState[overview.health_status] ?? 'neutral'
+                            "
+                        >
+                            <span class="capitalize">{{
+                                overview.health_status
+                            }}</span>
+                        </StatusPill>
+                    </dd>
+                </div>
+                <div class="rounded-2xl border bg-card p-5">
+                    <dt :class="kpiLabel">Compliance</dt>
+                    <dd class="mt-3">
+                        <StatusPill
+                            :tone="
+                                toneByState[overview.compliance_status] ??
+                                'neutral'
+                            "
+                        >
+                            <span class="capitalize">{{
+                                overview.compliance_status
+                            }}</span>
+                        </StatusPill>
+                    </dd>
+                </div>
+                <div class="rounded-2xl border bg-card p-5">
+                    <dt :class="kpiLabel">Subscription</dt>
+                    <dd class="mt-3 text-lg font-semibold">
+                        {{ overview.subscription_plan ?? 'No plan' }}
+                        <span
+                            class="mt-1 block text-sm font-normal"
+                            :class="
+                                overview.is_expired
+                                    ? 'text-red-500'
+                                    : 'text-muted-foreground'
+                            "
+                        >
+                            {{ overview.is_expired ? 'Expired' : 'Renews' }}
+                            {{ formatDate(overview.expires_at) }}
+                        </span>
+                    </dd>
+                </div>
+                <div class="rounded-2xl border bg-card p-5">
+                    <dt :class="kpiLabel">Last activity</dt>
+                    <dd class="mt-3 text-lg font-semibold">
+                        {{ formatDate(overview.last_activity_at) }}
+                        <span
+                            class="mt-1 block text-sm font-normal"
+                            :class="
+                                overview.is_inactive
+                                    ? 'text-amber-600'
+                                    : 'text-muted-foreground'
+                            "
+                        >
+                            {{ relativeDay(overview.last_activity_at) }}
+                        </span>
+                    </dd>
+                </div>
+                <div class="rounded-2xl border bg-card p-5">
+                    <dt :class="kpiLabel">Registered</dt>
+                    <dd class="mt-3 text-lg font-semibold">
+                        {{ formatDate(overview.created_at) }}
+                        <span
+                            class="mt-1 block text-sm font-normal text-muted-foreground"
+                        >
+                            {{ relativeDay(overview.created_at) }}
+                        </span>
+                    </dd>
+                </div>
+            </dl>
+
+            <div
+                class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_300px]"
+            >
+                <form class="space-y-8" @submit.prevent="submit">
+                    <!-- Editable: status -->
+                    <section aria-labelledby="status-heading">
+                        <h3 id="status-heading" class="text-xl font-semibold">
+                            Shop status
+                            <span class="text-red-500" aria-hidden="true"
+                                >*</span
+                            >
+                        </h3>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            This is the only setting an administrator can
+                            change.
+                        </p>
+                        <div
+                            class="mt-5 grid gap-3 sm:grid-cols-3"
+                            role="radiogroup"
+                            aria-labelledby="status-heading"
+                        >
+                            <button
+                                v-for="option in statusOptions"
+                                :key="option.value"
+                                type="button"
+                                role="radio"
+                                :aria-checked="form.status === option.value"
+                                class="flex min-h-11 items-start gap-3 rounded-xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                :class="
+                                    form.status === option.value
+                                        ? 'border-primary bg-primary/10'
+                                        : 'hover:bg-muted/50'
+                                "
+                                @click="form.status = option.value"
+                            >
+                                <span
+                                    class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+                                    :class="
+                                        form.status === option.value
+                                            ? 'border-primary'
+                                            : 'border-muted-foreground'
+                                    "
+                                    aria-hidden="true"
+                                >
+                                    <span
+                                        v-if="form.status === option.value"
+                                        class="h-2 w-2 rounded-full bg-primary"
+                                    />
+                                </span>
+                                <span>
+                                    <span class="block text-sm font-semibold">{{
+                                        option.label
+                                    }}</span>
+                                    <span
+                                        class="mt-1 block text-sm text-muted-foreground"
+                                        >{{ option.hint }}</span
+                                    >
+                                </span>
+                            </button>
+                        </div>
+                        <p
+                            v-if="form.errors.status"
+                            class="mt-2 text-xs text-red-500"
+                        >
+                            {{ form.errors.status }}
+                        </p>
+                    </section>
+
+                    <!-- Note: why the rest is locked -->
+                    <p
+                        class="flex items-start gap-3 text-sm text-muted-foreground"
+                        role="note"
+                    >
+                        <Lock
+                            class="mt-0.5 h-4 w-4 shrink-0"
+                            aria-hidden="true"
+                        />
+                        Everything below belongs to the shop and is read-only
+                        here. The owner updates it from their own account, and
+                        the subscription is managed through Orders.
+                    </p>
+
+                    <section
+                        class="border-t pt-8"
+                        aria-labelledby="identity-heading"
+                    >
+                        <h3 id="identity-heading" class="text-xl font-semibold">
+                            Shop &amp; owner
+                        </h3>
+                        <dl class="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                            <div
+                                v-for="field in ownerFields"
+                                :key="field.label"
+                            >
+                                <dt :class="fieldLabel">{{ field.label }}</dt>
+                                <dd
+                                    class="mt-1 text-base font-medium break-words"
+                                >
+                                    {{ field.value || 'Not provided' }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section
+                        class="border-t pt-8"
+                        aria-labelledby="address-heading"
+                    >
+                        <h3 id="address-heading" class="text-xl font-semibold">
+                            Address
+                        </h3>
+                        <dl class="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                            <div
+                                v-for="field in addressFields"
+                                :key="field.label"
+                            >
+                                <dt :class="fieldLabel">{{ field.label }}</dt>
+                                <dd
+                                    class="mt-1 text-base font-medium break-words"
+                                >
+                                    {{ field.value || 'Not provided' }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section
+                        class="border-t pt-8"
+                        aria-labelledby="permits-heading"
+                    >
+                        <h3 id="permits-heading" class="text-xl font-semibold">
+                            Permits &amp; registrations
+                        </h3>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            Expiry dates entered by the owner. Compliance stays
+                            incomplete until all three required permits are on
+                            file.
+                        </p>
+                        <dl class="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                            <div
+                                v-for="field in permitFields"
+                                :key="field.label"
+                            >
+                                <dt :class="fieldLabel">{{ field.label }}</dt>
+                                <dd
+                                    class="mt-1 text-base font-medium"
+                                    :class="
+                                        !field.value && field.required
+                                            ? 'text-amber-600 dark:text-amber-400'
+                                            : !field.value
+                                              ? 'font-normal text-muted-foreground'
+                                              : ''
+                                    "
+                                >
+                                    {{ formatDate(field.value) }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </section>
+                </form>
+
+                <!-- Single sticky side panel -->
+                <aside class="lg:sticky lg:top-4 lg:self-start">
+                    <div class="rounded-2xl border bg-card p-5">
+                        <p :class="kpiLabel">Status change</p>
+                        <p
+                            class="mt-3 text-sm font-semibold"
+                            aria-live="polite"
+                        >
+                            {{
+                                isDirty
+                                    ? 'You have unsaved changes'
+                                    : 'No changes yet'
+                            }}
+                        </p>
+                        <div class="mt-5 flex flex-col gap-2">
+                            <Button
+                                :disabled="!isDirty || form.processing"
+                                @click="submit"
+                            >
+                                {{
+                                    form.processing
+                                        ? 'Saving...'
+                                        : 'Save changes'
+                                }}
+                            </Button>
+                            <Button variant="ghost" @click="back"
+                                >Cancel</Button
+                            >
+                        </div>
+                    </div>
+                </aside>
+            </div>
         </div>
     </AdminLayout>
 </template>

@@ -11,6 +11,7 @@ use App\Http\Requests\Shop\UpdateRiderLoadLimitRequest;
 use App\Http\Requests\Shop\UpdateRushFeeRequest;
 use App\Models\Shop;
 use App\Services\RiderLoadLimitService;
+use App\Services\ShopDataExportService;
 use App\Services\ShopDeliveryPricingService;
 use App\Services\ShopLocationService;
 use App\Services\ShopOperatingHoursService;
@@ -48,6 +49,7 @@ class ShopSettingsController extends Controller
             'locationVerification' => $location->verificationFor(auth()->user()),
             'deliveryPricing' => $deliveryPricing->pageData(auth()->user()),
             'operatingHours' => $operatingHours->pageData(auth()->user()),
+            'dataCatalog' => ShopDataExportService::catalog(),
             'rushFee' => (float) $shop->rush_fee,
             'riderVehicle' => $riderLoad->vehicleOptionsFor($shop),
             'shop' => [

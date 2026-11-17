@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import PhilippinePhoneInput from '@/components/PhilippinePhoneInput.vue';
+import CustomerSearch, {
+    type CustomerSuggestion,
+} from '@/components/shop/CustomerSearch.vue';
 import PageHeader from '@/components/shop/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
@@ -14,7 +17,7 @@ import {
     Receipt,
     ShoppingBag,
 } from 'lucide-vue-next';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 
 interface Product {
     id: number;
@@ -41,6 +44,30 @@ const retailBase = computed(() =>
         ? '/shop/operations/retail'
         : '/staff/operations/retail',
 );
+
+// Suggests customers the shop already has, so a returning customer is picked, not typed again.
+const customerSearchUrl = computed(() =>
+    page.props.auth.user.role === 'owner'
+        ? '/shop/operations/customers/search'
+        : '/staff/operations/customers/search',
+);
+
+// The existing customer staff picked from the search; the sale is linked to that exact record.
+const pickedCustomer = ref<CustomerSuggestion | null>(null);
+
+function onCustomerPicked(customer: CustomerSuggestion) {
+    pickedCustomer.value = customer;
+    form.shop_customer_id = customer.public_id;
+    form.customer_name = customer.name;
+    form.customer_phone = customer.phone ?? '';
+    form.customer_email = customer.email ?? '';
+}
+
+// Staying on the details they typed, but as a new customer instead of the picked one.
+function clearPickedCustomer() {
+    pickedCustomer.value = null;
+    form.shop_customer_id = '';
+}
 
 // ─── Cart ──────────────────────────────────────────
 
@@ -82,6 +109,8 @@ const total = computed(() => subtotal.value + taxAmount.value);
 const form = useForm({
     // Filled from the picked products when the sale is sent.
     retail_items: [] as { id: number; count: number }[],
+    // The existing customer picked from the search, or empty for a new one.
+    shop_customer_id: '',
     customer_name: '',
     customer_phone: '',
     customer_email: '',
@@ -272,6 +301,45 @@ const inputClass =
                             >
                         </h2>
 
+                        <div class="space-y-2">
+                            <div
+                                v-if="pickedCustomer"
+                                class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-transparent dark:text-emerald-200"
+                            >
+                                <span
+                                    ><span class="font-semibold">{{
+                                        pickedCustomer.name
+                                    }}</span>
+                                    · {{ pickedCustomer.orders }}
+                                    {{
+                                        pickedCustomer.orders === 1
+                                            ? 'order'
+                                            : 'orders'
+                                    }}</span
+                                >
+                                <button
+                                    type="button"
+                                    class="inline-flex h-11 items-center rounded-lg border border-emerald-300 px-3 text-xs font-medium hover:bg-emerald-100"
+                                    @click="clearPickedCustomer"
+                                >
+                                    Add as new instead
+                                </button>
+                            </div>
+                            <CustomerSearch
+                                v-else
+                                input-id="sale-customer-search"
+                                :search-url="customerSearchUrl"
+                                @select="onCustomerPicked"
+                            />
+                            <p
+                                v-if="form.errors.shop_customer_id"
+                                class="text-xs text-red-500"
+                                role="alert"
+                            >
+                                {{ form.errors.shop_customer_id }}
+                            </p>
+                        </div>
+
                         <div class="space-y-1">
                             <label
                                 for="customer-name"
@@ -284,7 +352,8 @@ const inputClass =
                                 type="text"
                                 autocomplete="off"
                                 placeholder="Walk-in customer"
-                                :class="inputClass"
+                                :readonly="!!pickedCustomer"
+                                :class="[inputClass, 'read-only:bg-muted']"
                             />
                             <p
                                 v-if="form.errors.customer_name"

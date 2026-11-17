@@ -38,6 +38,7 @@ class ShopOrderService
         private readonly RiderLoadLimitService $riderLoad,
         private readonly CounterDeliveryFeeService $counterDelivery,
         private readonly OrderReadyNotificationService $readyNotices,
+        private readonly ShopCustomerService $shopCustomers,
         private readonly PickupFeeService $pickupFees,
         private readonly OrderSupplyStockService $supplyStock,
     ) {}
@@ -195,7 +196,7 @@ class ShopOrderService
         return $this->repository->countCreatedSince($shopId, now()->startOfDay());
     }
 
-    /** @return array{operations_orders: int, operations_retail: int}|null Sidebar badge counts for a shop owner or staff member. */
+    /** @return array{operations_orders: int, operations_retail: int, retail_enabled: bool}|null Sidebar badge counts for a shop owner or staff member. */
     public function sidebarBadgesFor(User $user): ?array
     {
         if (! in_array($user->role, ['owner', 'staff'], true)) {
@@ -207,6 +208,7 @@ class ShopOrderService
         return $shopId ? [
             'operations_orders' => $this->newOrdersToday($shopId),
             'operations_retail' => $this->repository->countOnlineProductsSince($shopId, now()->startOfDay()),
+            'retail_enabled' => $this->repository->usesRetail($shopId),
         ] : null;
     }
 
@@ -332,6 +334,20 @@ class ShopOrderService
                 ]);
             }
             unset($data['amount_paid'], $data['amount_tendered'], $data['payment_status'], $data['paid_at']);
+
+            // The customer is one record per shop however many orders they place.
+            $shopCustomer = $this->shopCustomers->resolveForOrder(
+                (int) $data['shop_id'],
+                $data['customer_name'] ?? null,
+                $data['customer_phone'] ?? null,
+                $data['customer_email'] ?? null,
+                customerPublicId: $data['shop_customer_id'] ?? null,
+            );
+            // A customer picked from the search keeps their own name on the order.
+            if ($shopCustomer && filled($data['shop_customer_id'] ?? null)) {
+                $data['customer_name'] = $shopCustomer->name;
+            }
+            $data['shop_customer_id'] = $shopCustomer?->id;
 
             $order = $this->repository->create($data);
             $this->repository->replaceServiceLines($order, $serviceLines);
@@ -485,6 +501,13 @@ class ShopOrderService
             $order = $this->repository->create([
                 'shop_id' => $shop->id,
                 'user_id' => $customer->id,
+                'shop_customer_id' => $this->shopCustomers->resolveForOrder(
+                    $shop->id,
+                    $data['customer_name'],
+                    $data['customer_phone'],
+                    $customer->email,
+                    $customer->id,
+                )?->id,
                 'order_source' => 'online',
                 'service_id' => $service->id,
                 'order_number' => $this->generateOrderNumber('ONL'),

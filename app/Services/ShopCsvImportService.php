@@ -5,11 +5,13 @@ namespace App\Services;
 use App\Repositories\EmployeeRepository;
 use App\Repositories\ExpenseRepository;
 use App\Repositories\InventoryCategoryRepository;
+use App\Repositories\ShopCustomerRepository;
 use App\Repositories\ShopRepository;
 use App\Repositories\SupplierRepository;
 use App\Repositories\UserRepository;
 use App\Rules\PhilippineMobileNumber;
 use App\Services\Csv\CsvReader;
+use App\Support\CustomerIdentity;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -32,9 +34,11 @@ class ShopCsvImportService
         'suppliers' => 'Inventory Management',
         'inventory' => 'Inventory Management',
         'attendance' => 'Staff Management',
+        'customers' => 'Operations',
     ];
 
     private const COLUMNS = [
+        'customers' => ['name', 'phone', 'email'],
         'suppliers' => ['name', 'contact_person', 'email', 'phone', 'address', 'lead_time_days', 'status', 'notes'],
         'inventory' => ['name', 'category', 'supplier', 'unit', 'package_unit', 'package_size', 'quantity', 'min_stock', 'max_stock', 'unit_price', 'status'],
         'attendance' => ['employee_id', 'date', 'status', 'time_in', 'time_out', 'remarks'],
@@ -50,6 +54,7 @@ class ShopCsvImportService
         'suppliers' => 'suppliers',
         'inventory' => 'inventory items',
         'attendance' => 'attendance records',
+        'customers' => 'customers',
     ];
 
     private const MAX_ROWS = 500;
@@ -69,6 +74,8 @@ class ShopCsvImportService
         private readonly AttendanceService $attendanceService,
         private readonly EmployeeRepository $employees,
         private readonly UserRepository $users,
+        private readonly ShopCustomerService $customerService,
+        private readonly ShopCustomerRepository $customers,
     ) {}
 
     /** @return list<string> */
@@ -94,6 +101,7 @@ class ShopCsvImportService
                 'suppliers' => ['Sunrise Supplies', 'Maria Cruz', 'maria@sunrise.example', '09171234567', 'Imus, Cavite', 7, 'Active', ''],
                 'inventory' => ['Liquid detergent', 'Detergents', 'Sunrise Supplies', 'ml', 'bottle', 1000, 20, 5, 40, 120, 'Active'],
                 'attendance' => ['EMP-001', '2026-11-15', 'present', '08:00', '17:00', ''],
+                'customers' => ['Maria Santos', '09171234567', 'maria@example.com'],
                 default => throw new InvalidArgumentException("Unknown import dataset [{$dataset}]."),
             },
         ];
@@ -141,6 +149,25 @@ class ShopCsvImportService
                 }
 
                 $seen[$key] = true;
+            }
+
+            // Customers are told apart by name only, like orders do.
+            if ($dataset === 'customers') {
+                $identity = CustomerIdentity::key($result['data']['name']);
+
+                if ($this->customers->findByIdentity($shopId, $identity) !== null) {
+                    $errors[] = "Row {$line}: a customer named \"{$result['data']['name']}\" already exists.";
+
+                    continue;
+                }
+
+                if (isset($seen['customer:'.$identity])) {
+                    $errors[] = "Row {$line}: this row repeats an earlier row in the file.";
+
+                    continue;
+                }
+
+                $seen['customer:'.$identity] = true;
             }
 
             $key = $this->uniqueKey($dataset, $result['data']);
@@ -217,6 +244,11 @@ class ShopCsvImportService
         }
 
         $validator = Validator::make($row, match ($dataset) {
+            'customers' => [
+                'name' => ['required', 'string', 'max:255'],
+                'phone' => ['nullable', 'string', 'max:20', new PhilippineMobileNumber],
+                'email' => ['nullable', 'email', 'max:255'],
+            ],
             'inventory-categories' => [
                 'name' => ['required', 'string', 'max:255'],
                 'description' => ['nullable', 'string', 'max:1000'],
@@ -318,6 +350,7 @@ class ShopCsvImportService
                 'time_out' => $row['time_out'],
                 'remarks' => $row['remarks'],
             ],
+            'customers' => ['name' => $row['name'], 'phone' => $row['phone'], 'email' => $row['email']],
             'inventory-categories' => ['name' => $row['name'], 'description' => $row['description']],
             'promotions' => [
                 'name' => $row['name'],
@@ -353,6 +386,7 @@ class ShopCsvImportService
                 'suppliers' => $this->supplierService->create($shopId, $data),
                 'inventory' => $this->inventoryService->create($shopId, $data),
                 'attendance' => $this->attendanceService->markAttendance($shop, $data),
+                'customers' => $this->customerService->resolveForOrder($shopId, $data['name'], $data['phone'], $data['email']),
             };
         }
     }

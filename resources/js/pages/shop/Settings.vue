@@ -10,6 +10,7 @@ import LocationPin from '@/components/map/LocationPin.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useCsvImport } from '@/composables/useCsvImport';
 import { provideSettingsSaveBar } from '@/composables/useSettingsSaveBar';
 import ShopLayout from '@/layouts/shop/ShopLayout.vue';
 import { reverseGeocode, searchPlaces, type PlaceResult } from '@/lib/maps';
@@ -66,6 +67,7 @@ const props = defineProps<{
         matched: boolean;
     };
     deliveryPricing: DeliveryPricing;
+    dataCatalog: { key: string; label: string; importable: boolean }[];
     rushFee: number;
     riderVehicle: {
         choices: string[];
@@ -209,6 +211,21 @@ const tabs = computed<
 ]);
 
 const activeTab = ref<TabId>('hours');
+
+// ─── Your Data: per-dataset CSV import ────────────────────────────────────────
+
+const importDataset = ref('');
+const {
+    input: csvInput,
+    importing,
+    choose: chooseCsv,
+    onFileChange: onCsvChange,
+} = useCsvImport(() => `/shop/import/${importDataset.value}`);
+
+function importCsv(dataset: string) {
+    importDataset.value = dataset;
+    chooseCsv();
+}
 
 // Tabs holding unsaved changes get a dot, so nothing is forgotten on a tab out of view.
 const dirtyTabs = computed(
@@ -932,6 +949,87 @@ function clearGeo() {
                                     Download all my data (.zip)
                                 </a>
                             </Button>
+
+                            <div>
+                                <h4 class="text-sm font-medium">
+                                    Export or import one set of records
+                                </h4>
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    Imports need the file's columns in the
+                                    order of the template. A file is imported
+                                    completely or not at all.
+                                </p>
+                            </div>
+
+                            <input
+                                ref="csvInput"
+                                type="file"
+                                accept=".csv,text/csv"
+                                class="hidden"
+                                @change="onCsvChange"
+                            />
+
+                            <ul class="divide-y rounded-lg border">
+                                <li
+                                    v-for="dataset in dataCatalog"
+                                    :key="dataset.key"
+                                    class="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
+                                >
+                                    <span class="text-sm">{{
+                                        dataset.label
+                                    }}</span>
+                                    <span class="flex flex-wrap gap-2">
+                                        <Button
+                                            as-child
+                                            variant="outline"
+                                            size="sm"
+                                            class="min-h-11 gap-1.5"
+                                        >
+                                            <a
+                                                :href="`/shop/export/${dataset.key}`"
+                                                download
+                                                :aria-label="`Export ${dataset.label} as CSV`"
+                                            >
+                                                <Download
+                                                    class="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                                Export CSV
+                                            </a>
+                                        </Button>
+                                        <template v-if="dataset.importable">
+                                            <Button
+                                                as-child
+                                                variant="ghost"
+                                                size="sm"
+                                                class="min-h-11"
+                                            >
+                                                <a
+                                                    :href="`/shop/import/${dataset.key}/template`"
+                                                    :aria-label="`Download the ${dataset.label} import template`"
+                                                >
+                                                    Template
+                                                </a>
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                class="min-h-11 gap-1.5"
+                                                :disabled="importing"
+                                                :aria-label="`Import ${dataset.label} from CSV`"
+                                                @click="importCsv(dataset.key)"
+                                            >
+                                                <Upload
+                                                    class="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                                Import CSV
+                                            </Button>
+                                        </template>
+                                    </span>
+                                </li>
+                            </ul>
                         </section>
                     </div>
 

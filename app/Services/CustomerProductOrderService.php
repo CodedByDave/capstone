@@ -24,6 +24,7 @@ class CustomerProductOrderService
         private readonly ShopOrderRepository $orders,
         private readonly CustomerAdditionalChargeService $items,
         private readonly OrderBillingBreakdownService $billing,
+        private readonly ShopCustomerService $shopCustomers,
     ) {}
 
     /**
@@ -76,6 +77,13 @@ class CustomerProductOrderService
             $order = $this->orders->create([
                 'shop_id' => $shop->id,
                 'user_id' => $customer->id,
+                'shop_customer_id' => $this->shopCustomers->resolveForOrder(
+                    $shop->id,
+                    $data['customer_name'],
+                    $data['customer_phone'],
+                    $customer->email,
+                    $customer->id,
+                )?->id,
                 'order_source' => 'online',
                 'order_type' => 'products',
                 'service_id' => null,
