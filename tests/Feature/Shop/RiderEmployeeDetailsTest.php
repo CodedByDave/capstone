@@ -251,3 +251,11 @@ test('the edit form shows the saved vehicle choice', function () {
             ->where('rider.plate_number', null)
             ->where('rider.has_license', true));
 });
+
+test('the position list always offers rider, even when the shop has no rider role', function () {
+    $shop = riderShop();
+
+    $response = $this->actingAs($shop->owner)->get('/shop/employee/create')->assertOk();
+
+    expect($response->viewData('page')['props']['roles'])->toContain('rider');
+});

@@ -59,11 +59,16 @@ class EmployeeController extends Controller
 
     private function getRoles(Shop $shop): array
     {
-        return ShopRole::where('shop_id', $shop->id)
+        $positions = ShopRole::where('shop_id', $shop->id)
             ->where('name', '!=', 'owner')
             ->pluck('name')
+            ->reject(fn ($name) => in_array(strtolower($name), ['rider', 'driver'], true))
             ->values()
             ->toArray();
+
+        // Rider is a position, not a permissions role (see the drop_rider_roles migration), so it is always offered.
+        // Choosing it is what puts the employee on the rider roster and asks for vehicle details.
+        return [...$positions, 'rider'];
     }
 
     // Index of employee table
