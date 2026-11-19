@@ -34,6 +34,22 @@ class ShopNotificationController extends Controller
         ]);
     }
 
+    /** The newest notifications for the bell dropdown. Opening the dropdown does not mark anything read. */
+    public function latest(Request $request): JsonResponse
+    {
+        return response()->json([
+            'notifications' => $this->notifications->listFor($request->user(), 8),
+            'unread' => $this->notifications->unreadCount($request->user()),
+        ]);
+    }
+
+    public function markRead(Request $request, string $id): JsonResponse
+    {
+        $this->notifications->markRead($request->user(), $id);
+
+        return response()->json(['unread' => $this->notifications->unreadCount($request->user())]);
+    }
+
     public function markAllRead(Request $request): RedirectResponse
     {
         $this->notifications->markAllRead($request->user());

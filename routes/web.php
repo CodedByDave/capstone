@@ -296,6 +296,8 @@ Route::prefix('shop')->middleware([
     Route::post('/agreement', [BusinessAgreementController::class, 'accept'])->name('shop.agreement.accept');
     Route::get('/notifications', [ShopNotificationController::class, 'index'])->name('shop.notifications.index');
     Route::get('/notifications/poll', [ShopNotificationController::class, 'poll'])->name('shop.notifications.poll');
+    Route::get('/notifications/latest', [ShopNotificationController::class, 'latest'])->name('shop.notifications.latest');
+    Route::post('/notifications/{id}/read', [ShopNotificationController::class, 'markRead'])->whereUuid('id')->name('shop.notifications.read');
     Route::post('/notifications/read-all', [ShopNotificationController::class, 'markAllRead'])->name('shop.notifications.read-all');
     Route::middleware('owner.platform-permissions')->group(function () {
         Route::get('/payment-history', [PaymentHistoryController::class, 'index'])->name('shop.payment-history.index');
@@ -613,6 +615,8 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
 
     Route::get('/notifications', [ShopNotificationController::class, 'index'])->name('staff.notifications.index');
     Route::get('/notifications/poll', [ShopNotificationController::class, 'poll'])->name('staff.notifications.poll');
+    Route::get('/notifications/latest', [ShopNotificationController::class, 'latest'])->name('staff.notifications.latest');
+    Route::post('/notifications/{id}/read', [ShopNotificationController::class, 'markRead'])->whereUuid('id')->name('staff.notifications.read');
     Route::post('/notifications/read-all', [ShopNotificationController::class, 'markAllRead'])->name('staff.notifications.read-all');
 
     // ── Self attendance (clock-in / clock-out) ──

@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::index
  * @see app/Http/Controllers/Shop/ShopNotificationController.php:19
@@ -324,8 +324,324 @@ export const poll = {
 }
 
 /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/shop/notifications/latest'
+ */
+const latest4fde0ec8507763249e14e402c0ad33bc = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: latest4fde0ec8507763249e14e402c0ad33bc.url(options),
+    method: 'get',
+})
+
+latest4fde0ec8507763249e14e402c0ad33bc.definition = {
+    methods: ["get","head"],
+    url: '/shop/notifications/latest',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/shop/notifications/latest'
+ */
+latest4fde0ec8507763249e14e402c0ad33bc.url = (options?: RouteQueryOptions) => {
+    return latest4fde0ec8507763249e14e402c0ad33bc.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/shop/notifications/latest'
+ */
+latest4fde0ec8507763249e14e402c0ad33bc.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: latest4fde0ec8507763249e14e402c0ad33bc.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/shop/notifications/latest'
+ */
+latest4fde0ec8507763249e14e402c0ad33bc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: latest4fde0ec8507763249e14e402c0ad33bc.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/shop/notifications/latest'
+ */
+    const latest4fde0ec8507763249e14e402c0ad33bcForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: latest4fde0ec8507763249e14e402c0ad33bc.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/shop/notifications/latest'
+ */
+        latest4fde0ec8507763249e14e402c0ad33bcForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: latest4fde0ec8507763249e14e402c0ad33bc.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/shop/notifications/latest'
+ */
+        latest4fde0ec8507763249e14e402c0ad33bcForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: latest4fde0ec8507763249e14e402c0ad33bc.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    latest4fde0ec8507763249e14e402c0ad33bc.form = latest4fde0ec8507763249e14e402c0ad33bcForm
+    /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/staff/notifications/latest'
+ */
+const latest1199bd77e950848cbc318859a5aeea03 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: latest1199bd77e950848cbc318859a5aeea03.url(options),
+    method: 'get',
+})
+
+latest1199bd77e950848cbc318859a5aeea03.definition = {
+    methods: ["get","head"],
+    url: '/staff/notifications/latest',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/staff/notifications/latest'
+ */
+latest1199bd77e950848cbc318859a5aeea03.url = (options?: RouteQueryOptions) => {
+    return latest1199bd77e950848cbc318859a5aeea03.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/staff/notifications/latest'
+ */
+latest1199bd77e950848cbc318859a5aeea03.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: latest1199bd77e950848cbc318859a5aeea03.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/staff/notifications/latest'
+ */
+latest1199bd77e950848cbc318859a5aeea03.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: latest1199bd77e950848cbc318859a5aeea03.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/staff/notifications/latest'
+ */
+    const latest1199bd77e950848cbc318859a5aeea03Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: latest1199bd77e950848cbc318859a5aeea03.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/staff/notifications/latest'
+ */
+        latest1199bd77e950848cbc318859a5aeea03Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: latest1199bd77e950848cbc318859a5aeea03.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::latest
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:38
+ * @route '/staff/notifications/latest'
+ */
+        latest1199bd77e950848cbc318859a5aeea03Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: latest1199bd77e950848cbc318859a5aeea03.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    latest1199bd77e950848cbc318859a5aeea03.form = latest1199bd77e950848cbc318859a5aeea03Form
+
+export const latest = {
+    '/shop/notifications/latest': latest4fde0ec8507763249e14e402c0ad33bc,
+    '/staff/notifications/latest': latest1199bd77e950848cbc318859a5aeea03,
+}
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/shop/notifications/{id}/read'
+ */
+const markRead60abae45888ea9cec432474a7da5e466 = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: markRead60abae45888ea9cec432474a7da5e466.url(args, options),
+    method: 'post',
+})
+
+markRead60abae45888ea9cec432474a7da5e466.definition = {
+    methods: ["post"],
+    url: '/shop/notifications/{id}/read',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/shop/notifications/{id}/read'
+ */
+markRead60abae45888ea9cec432474a7da5e466.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { id: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    id: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        id: args.id,
+                }
+
+    return markRead60abae45888ea9cec432474a7da5e466.definition.url
+            .replace('{id}', parsedArgs.id.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/shop/notifications/{id}/read'
+ */
+markRead60abae45888ea9cec432474a7da5e466.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: markRead60abae45888ea9cec432474a7da5e466.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/shop/notifications/{id}/read'
+ */
+    const markRead60abae45888ea9cec432474a7da5e466Form = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: markRead60abae45888ea9cec432474a7da5e466.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/shop/notifications/{id}/read'
+ */
+        markRead60abae45888ea9cec432474a7da5e466Form.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: markRead60abae45888ea9cec432474a7da5e466.url(args, options),
+            method: 'post',
+        })
+    
+    markRead60abae45888ea9cec432474a7da5e466.form = markRead60abae45888ea9cec432474a7da5e466Form
+    /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/staff/notifications/{id}/read'
+ */
+const markRead4a2aa5b25fc176f3d6f9093f38f3cc82 = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: markRead4a2aa5b25fc176f3d6f9093f38f3cc82.url(args, options),
+    method: 'post',
+})
+
+markRead4a2aa5b25fc176f3d6f9093f38f3cc82.definition = {
+    methods: ["post"],
+    url: '/staff/notifications/{id}/read',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/staff/notifications/{id}/read'
+ */
+markRead4a2aa5b25fc176f3d6f9093f38f3cc82.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { id: args }
+    }
+
+    
+    if (Array.isArray(args)) {
+        args = {
+                    id: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        id: args.id,
+                }
+
+    return markRead4a2aa5b25fc176f3d6f9093f38f3cc82.definition.url
+            .replace('{id}', parsedArgs.id.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/staff/notifications/{id}/read'
+ */
+markRead4a2aa5b25fc176f3d6f9093f38f3cc82.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: markRead4a2aa5b25fc176f3d6f9093f38f3cc82.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/staff/notifications/{id}/read'
+ */
+    const markRead4a2aa5b25fc176f3d6f9093f38f3cc82Form = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: markRead4a2aa5b25fc176f3d6f9093f38f3cc82.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Shop\ShopNotificationController::markRead
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:46
+ * @route '/staff/notifications/{id}/read'
+ */
+        markRead4a2aa5b25fc176f3d6f9093f38f3cc82Form.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: markRead4a2aa5b25fc176f3d6f9093f38f3cc82.url(args, options),
+            method: 'post',
+        })
+    
+    markRead4a2aa5b25fc176f3d6f9093f38f3cc82.form = markRead4a2aa5b25fc176f3d6f9093f38f3cc82Form
+
+export const markRead = {
+    '/shop/notifications/{id}/read': markRead60abae45888ea9cec432474a7da5e466,
+    '/staff/notifications/{id}/read': markRead4a2aa5b25fc176f3d6f9093f38f3cc82,
+}
+
+/**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/shop/notifications/read-all'
  */
 const markAllRead1cfccfcdb7ca7f35de483688f60b32a6 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -340,7 +656,7 @@ markAllRead1cfccfcdb7ca7f35de483688f60b32a6.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/shop/notifications/read-all'
  */
 markAllRead1cfccfcdb7ca7f35de483688f60b32a6.url = (options?: RouteQueryOptions) => {
@@ -349,7 +665,7 @@ markAllRead1cfccfcdb7ca7f35de483688f60b32a6.url = (options?: RouteQueryOptions) 
 
 /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/shop/notifications/read-all'
  */
 markAllRead1cfccfcdb7ca7f35de483688f60b32a6.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -359,7 +675,7 @@ markAllRead1cfccfcdb7ca7f35de483688f60b32a6.post = (options?: RouteQueryOptions)
 
     /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/shop/notifications/read-all'
  */
     const markAllRead1cfccfcdb7ca7f35de483688f60b32a6Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -369,7 +685,7 @@ markAllRead1cfccfcdb7ca7f35de483688f60b32a6.post = (options?: RouteQueryOptions)
 
             /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/shop/notifications/read-all'
  */
         markAllRead1cfccfcdb7ca7f35de483688f60b32a6Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -380,7 +696,7 @@ markAllRead1cfccfcdb7ca7f35de483688f60b32a6.post = (options?: RouteQueryOptions)
     markAllRead1cfccfcdb7ca7f35de483688f60b32a6.form = markAllRead1cfccfcdb7ca7f35de483688f60b32a6Form
     /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/staff/notifications/read-all'
  */
 const markAllRead634875c271c96def64f51ed56a6af9a1 = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -395,7 +711,7 @@ markAllRead634875c271c96def64f51ed56a6af9a1.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/staff/notifications/read-all'
  */
 markAllRead634875c271c96def64f51ed56a6af9a1.url = (options?: RouteQueryOptions) => {
@@ -404,7 +720,7 @@ markAllRead634875c271c96def64f51ed56a6af9a1.url = (options?: RouteQueryOptions) 
 
 /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/staff/notifications/read-all'
  */
 markAllRead634875c271c96def64f51ed56a6af9a1.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -414,7 +730,7 @@ markAllRead634875c271c96def64f51ed56a6af9a1.post = (options?: RouteQueryOptions)
 
     /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/staff/notifications/read-all'
  */
     const markAllRead634875c271c96def64f51ed56a6af9a1Form = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -424,7 +740,7 @@ markAllRead634875c271c96def64f51ed56a6af9a1.post = (options?: RouteQueryOptions)
 
             /**
 * @see \App\Http\Controllers\Shop\ShopNotificationController::markAllRead
- * @see app/Http/Controllers/Shop/ShopNotificationController.php:37
+ * @see app/Http/Controllers/Shop/ShopNotificationController.php:53
  * @route '/staff/notifications/read-all'
  */
         markAllRead634875c271c96def64f51ed56a6af9a1Form.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -439,6 +755,6 @@ export const markAllRead = {
     '/staff/notifications/read-all': markAllRead634875c271c96def64f51ed56a6af9a1,
 }
 
-const ShopNotificationController = { index, poll, markAllRead }
+const ShopNotificationController = { index, poll, latest, markRead, markAllRead }
 
 export default ShopNotificationController

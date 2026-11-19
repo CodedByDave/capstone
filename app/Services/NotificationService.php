@@ -11,9 +11,9 @@ class NotificationService
         private readonly NotificationRepository $notifications,
     ) {}
 
-    public function listFor(User $user): array
+    public function listFor(User $user, int $limit = 50): array
     {
-        return $this->notifications->latestFor($user)
+        return $this->notifications->latestFor($user, $limit)
             ->map(fn ($notification) => [
                 'id' => $notification->id,
                 'data' => $notification->data,
