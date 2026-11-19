@@ -104,20 +104,7 @@ class OrderStatusAutomationService
 
     public function dueAt(ShopOrder $order): ?CarbonInterface
     {
-        $estimate = $order->estimated_completion_at;
-        $startedAt = $order->in_progress_at;
-
-        if ($estimate !== null && ($startedAt === null || $estimate->greaterThanOrEqualTo($startedAt))) {
-            return $estimate;
-        }
-
-        $hours = $order->service?->estimated_hours;
-
-        if ($hours === null) {
-            return null;
-        }
-
-        return ($startedAt ?? $order->created_at)->copy()->addHours((int) $hours);
+        return $order->dueAt();
     }
 
     // ── Transitions ───────────────────────────────────────────────────────────

@@ -373,6 +373,40 @@ class ShopOrder extends Model
         return in_array($this->status, self::FINISHED_STATUSES, true);
     }
 
+    /**
+     * When the laundry is due: the estimated completion time, or the service's estimated hours
+     * counted from when work started when the estimate is missing or older than the start.
+     */
+    public function dueAt(): ?\Carbon\CarbonInterface
+    {
+        $estimate = $this->estimated_completion_at;
+        $startedAt = $this->in_progress_at;
+
+        if ($estimate !== null && ($startedAt === null || $estimate->greaterThanOrEqualTo($startedAt))) {
+            return $estimate;
+        }
+
+        $hours = $this->service?->estimated_hours;
+
+        if ($hours === null) {
+            return null;
+        }
+
+        return ($startedAt ?? $this->created_at)->copy()->addHours((int) $hours);
+    }
+
+    /** Still to be worked on (pending or in progress) and past its due time. */
+    public function isOverdue(): bool
+    {
+        if (! in_array($this->status, self::QUEUE_STATUSES, true)) {
+            return false;
+        }
+
+        $due = $this->dueAt();
+
+        return $due !== null && $due->isPast();
+    }
+
     public function markAsCompleted(): void
     {
         $this->update([

@@ -51,6 +51,11 @@ class ShopOrderService
 
         if (! $onlyTrashed) {
             $this->attachQueuePositions($shopId, $orders->getCollection());
+
+            // The orders table shows which orders in the queue are past their due time.
+            $orders->getCollection()->each(
+                fn (ShopOrder $order) => $order->setAttribute('is_overdue', $order->isOverdue()),
+            );
         }
 
         return $orders;

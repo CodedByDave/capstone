@@ -37,6 +37,7 @@ import { type AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import {
+    AlarmClock,
     AlertCircle,
     Archive,
     ArrowUpDown,
@@ -87,6 +88,8 @@ interface Order {
     rush_fee: string;
     // 1 = the next order to work on; null once the order is no longer waiting.
     queue_position: number | null;
+    // Still in the queue past its due time.
+    is_overdue?: boolean;
     service?: { service_name: string };
 }
 
@@ -805,12 +808,21 @@ const archiveOrder = (order: Order) => {
                 </template>
 
                 <template #item-status="order">
-                    <StatusPill
-                        :tone="orderStatusTone(order.status)"
-                        :icon="statusIcon(order.status)"
-                    >
-                        {{ formatLabel(order.status) }}
-                    </StatusPill>
+                    <div class="flex flex-col items-start gap-1">
+                        <StatusPill
+                            :tone="orderStatusTone(order.status)"
+                            :icon="statusIcon(order.status)"
+                        >
+                            {{ formatLabel(order.status) }}
+                        </StatusPill>
+                        <StatusPill
+                            v-if="order.is_overdue"
+                            tone="danger"
+                            :icon="AlarmClock"
+                        >
+                            Overdue
+                        </StatusPill>
+                    </div>
                 </template>
 
                 <template #item-payment_status="order">

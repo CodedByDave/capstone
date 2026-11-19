@@ -1,1 +1,0 @@
-import{_ as o}from"./LegalDocument.vue_vue_type_script_setup_true_lang-2_SujW5S.js";import"./authStyles-CqhSmV7X.js";import"./app-CeLx9abE.js";import"./washing-machine-DKb57S_-.js";import"./createLucideIcon-6PAvfoIx.js";import"./arrow-left-BlVRIS0Y.js";export{o as default};
