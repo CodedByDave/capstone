@@ -39,11 +39,6 @@ class InventoryCategoryController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        return Inertia::render('shop/inventory/category/Create');
-    }
-
     /**
      * Always returns JSON — called via axios from the inline category table.
      */
@@ -57,13 +52,6 @@ class InventoryCategoryController extends Controller
             'name' => $category->name,
             'description' => $category->description,
         ], 201);
-    }
-
-    public function edit(InventoryCategory $inventoryCategory)
-    {
-        return Inertia::render('shop/inventory/category/Edit', [
-            'category' => $inventoryCategory,
-        ]);
     }
 
     /**

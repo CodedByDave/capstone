@@ -192,9 +192,23 @@ const offersDelivery = computed(
         !!page.props.shopCapabilities?.offers_delivery &&
         props.riderAvailable !== false,
 );
+// With logistics on but no rider on duty, Delivery stays visible but disabled.
+const noRiderAvailable = computed(
+    () =>
+        !!page.props.shopCapabilities?.offers_delivery &&
+        props.riderAvailable === false,
+);
 const handoffOptions = computed(() => [
-    { value: 'walk_in', label: 'Walk-in' },
-    ...(offersDelivery.value ? [{ value: 'delivery', label: 'Delivery' }] : []),
+    { value: 'walk_in', label: 'Walk-in', disabled: false },
+    ...(offersDelivery.value || noRiderAvailable.value
+        ? [
+              {
+                  value: 'delivery',
+                  label: 'Delivery',
+                  disabled: noRiderAvailable.value,
+              },
+          ]
+        : []),
 ]);
 const handoff = computed({
     get: () => (form.deliver_to_customer ? 'delivery' : 'walk_in'),
@@ -872,23 +886,37 @@ watch(
                                     <label
                                         v-for="option in handoffOptions"
                                         :key="option.value"
-                                        class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                                        :class="
+                                        class="flex flex-1 items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                                        :class="[
+                                            option.disabled
+                                                ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400'
+                                                : 'cursor-pointer',
+                                            !option.disabled &&
                                             handoff === option.value
                                                 ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                : 'border-gray-300 hover:border-gray-400'
-                                        "
+                                                : !option.disabled
+                                                  ? 'border-gray-300 hover:border-gray-400'
+                                                  : '',
+                                        ]"
                                     >
                                         <input
                                             v-model="handoff"
                                             type="radio"
                                             name="handoff"
                                             :value="option.value"
+                                            :disabled="option.disabled"
                                             class="h-4 w-4 accent-blue-600"
                                         />
                                         {{ option.label }}
                                     </label>
                                 </div>
+                                <p
+                                    v-if="noRiderAvailable"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    There is no available rider for your shop
+                                    right now
+                                </p>
                                 <p
                                     v-if="offersDelivery && riderLimitText"
                                     class="text-xs text-muted-foreground"

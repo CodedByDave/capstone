@@ -21,6 +21,9 @@ class StoreEmployeeRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->prepareRiderDetails();
+
+        // A new employee always starts active; the form has no status choice.
+        $this->merge(['status' => 'Active']);
     }
 
     public function rules(): array
@@ -38,7 +41,7 @@ class StoreEmployeeRequest extends FormRequest
             'pay_rate' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
             'pay_basis' => ['required', Rule::enum(PayBasis::class)],
             'hire_date' => 'required|date|before_or_equal:today',
-            'status' => 'required|in:Active,Inactive',
+            'status' => 'required|in:Active',
             'create_account' => 'nullable|boolean',
             'schedules' => ['nullable', 'array'],
             'schedules.*.day' => ['required', 'string', 'distinct', 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'],
@@ -57,6 +60,8 @@ class StoreEmployeeRequest extends FormRequest
             'first_name.required' => 'First name is required.',
             'last_name.required' => 'Last name is required.',
             'email.required' => 'Email is required.',
+            // One message whether the address belongs to this shop or any other, so it never reveals where an account exists.
+            'email.unique' => 'This email address cannot be used. Please enter a different one.',
             'phone.required' => 'Phone number is required.',
             'address.required' => 'Address is required.',
             'address.min' => 'Please enter a complete address.',
@@ -70,7 +75,6 @@ class StoreEmployeeRequest extends FormRequest
             'pay_basis.enum' => 'Select a valid pay basis.',
             'hire_date.required' => 'Hire date is required.',
             'hire_date.before_or_equal' => 'Hire date cannot be a future date.',
-            'status.in' => 'Status must be Active or Inactive.',
             'schedules.*.end_time.different' => 'A shift cannot start and end at the same time.',
             'schedules.*.day.distinct' => 'Each day can have only one shift.',
         ];

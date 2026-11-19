@@ -3,6 +3,7 @@ import Driver from './Driver'
 import SupplierPortal from './SupplierPortal'
 import ProfilePhotoController from './ProfilePhotoController'
 import LandingController from './LandingController'
+import LegalController from './LegalController'
 import Shop from './Shop'
 import Api from './Api'
 import Admin from './Admin'
@@ -15,6 +16,7 @@ Driver: Object.assign(Driver, Driver),
 SupplierPortal: Object.assign(SupplierPortal, SupplierPortal),
 ProfilePhotoController: Object.assign(ProfilePhotoController, ProfilePhotoController),
 LandingController: Object.assign(LandingController, LandingController),
+LegalController: Object.assign(LegalController, LegalController),
 Shop: Object.assign(Shop, Shop),
 Api: Object.assign(Api, Api),
 Admin: Object.assign(Admin, Admin),

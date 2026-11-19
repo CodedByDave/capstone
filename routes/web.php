@@ -16,6 +16,7 @@ use App\Http\Controllers\Driver\DriverAttendanceController;
 use App\Http\Controllers\Driver\DriverJobController;
 use App\Http\Controllers\Driver\DriverPushController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\Shop\BulkArchiveController;
 use App\Http\Controllers\Shop\BusinessAgreementController;
@@ -151,6 +152,8 @@ Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])
     ->name('profile.photo');
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 
 Route::get('/shop/checkout/{plan}', [CheckoutController::class, 'show']);
 Route::post('/checkout/select', [CheckoutController::class, 'select']);
@@ -193,7 +196,6 @@ Route::middleware(['auth'])->group(function () {
 Route::prefix('admin')->middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/settings/profile', fn () => Inertia::render('Admin/Settings'))->name('admin.settings');
     Route::prefix('settings/roles-permissions')->name('admin.settings.roles-permissions.')->group(function () {
         Route::get('/', [PlatformRoleController::class, 'index'])->name('index');
         Route::post('/roles', [PlatformRoleController::class, 'store'])->name('store');
@@ -340,7 +342,7 @@ Route::prefix('shop')->middleware([
     }
 
     Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
-    Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
+    Route::post('/employee', [EmployeeController::class, 'store'])->middleware('throttle:20,1')->name('employee.store');
     Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('employee.show');
     Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
     Route::get('/employee/{employee}/license', [EmployeeController::class, 'license'])->name('employee.license');
@@ -380,7 +382,6 @@ Route::prefix('shop')->middleware([
     // ── Inventory Categories ──────────────────────────────────────────────────
     Route::get('/inventory/category', [InventoryCategoryController::class, 'index'])->name('inventory.category.index');
     Route::post('/inventory/category', [InventoryCategoryController::class, 'store'])->name('inventory.category.store');
-    Route::get('/inventory/category/{inventoryCategory}/edit', [InventoryCategoryController::class, 'edit'])->name('inventory.category.edit');
     Route::put('/inventory/category/{inventoryCategory}', [InventoryCategoryController::class, 'update'])->name('inventory.category.update');
     Route::delete('/inventory/category/{inventoryCategory}', [InventoryCategoryController::class, 'destroy'])->name('inventory.category.destroy');
     Route::get('/inventory/category/archive', [InventoryCategoryController::class, 'archive'])->name('inventory.category.archive');
@@ -642,7 +643,7 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     }
     Route::middleware('permission:Staff Management,create')->group(function () {
         Route::get('/employee/create', [EmployeeController::class, 'create'])->name('staff.employee.create');
-        Route::post('/employee', [EmployeeController::class, 'store'])->name('staff.employee.store');
+        Route::post('/employee', [EmployeeController::class, 'store'])->middleware('throttle:20,1')->name('staff.employee.store');
     });
     Route::middleware('permission:Staff Management,archive')->group(function () {
         Route::get('/employee/archive', [EmployeeController::class, 'archive'])->name('staff.employee.archive');
@@ -690,7 +691,6 @@ Route::prefix('staff')->middleware(['auth', 'verified', 'role:staff', 'shop.acti
     });
 
     Route::middleware('permission:Inventory Management,update')->group(function () {
-        Route::get('/inventory/category/{inventoryCategory}/edit', [InventoryCategoryController::class, 'edit'])->name('staff.inventory.category.edit');
         Route::put('/inventory/category/{inventoryCategory}', [InventoryCategoryController::class, 'update'])->name('staff.inventory.category.update');
     });
 

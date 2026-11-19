@@ -109,6 +109,7 @@ function switchTo(target: AuthMode) {
 
 /* ---------------- Sign in ---------------- */
 const showLoginPassword = ref(false);
+const agreedToTerms = ref(false);
 
 function loginWithGoogle() {
     window.location.href = '/auth/google';
@@ -263,6 +264,38 @@ const hiddenPaneClass = 'max-lg:hidden lg:pointer-events-none lg:opacity-0';
                         <InputError :message="errors.password" />
                     </div>
 
+                    <label
+                        for="login-terms"
+                        class="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-500"
+                    >
+                        <input
+                            id="login-terms"
+                            v-model="agreedToTerms"
+                            type="checkbox"
+                            name="terms"
+                            required
+                            class="mt-0.5 size-4 shrink-0 accent-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:outline-none"
+                        />
+                        <span>
+                            By logging in, you agree to our
+                            <a
+                                href="/terms"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                :class="[textLinkClass, 'underline']"
+                                >Terms of Service</a
+                            >
+                            and
+                            <a
+                                href="/privacy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                :class="[textLinkClass, 'underline']"
+                                >Privacy Policy</a
+                            >.
+                        </span>
+                    </label>
+
                     <button
                         type="submit"
                         :class="primaryButtonClass"
@@ -281,7 +314,11 @@ const hiddenPaneClass = 'max-lg:hidden lg:pointer-events-none lg:opacity-0';
 
                     <button
                         type="button"
-                        :class="googleButtonClass"
+                        :class="[
+                            googleButtonClass,
+                            !agreedToTerms && 'cursor-not-allowed opacity-60',
+                        ]"
+                        :disabled="!agreedToTerms"
                         @click="loginWithGoogle"
                     >
                         <GoogleIcon />

@@ -163,7 +163,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/shop/inventory/category'
  */
 const store0d4990ab933a7660111612f30ab7d02b = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -178,7 +178,7 @@ store0d4990ab933a7660111612f30ab7d02b.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/shop/inventory/category'
  */
 store0d4990ab933a7660111612f30ab7d02b.url = (options?: RouteQueryOptions) => {
@@ -187,7 +187,7 @@ store0d4990ab933a7660111612f30ab7d02b.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/shop/inventory/category'
  */
 store0d4990ab933a7660111612f30ab7d02b.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -197,7 +197,7 @@ store0d4990ab933a7660111612f30ab7d02b.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/shop/inventory/category'
  */
     const store0d4990ab933a7660111612f30ab7d02bForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -207,7 +207,7 @@ store0d4990ab933a7660111612f30ab7d02b.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/shop/inventory/category'
  */
         store0d4990ab933a7660111612f30ab7d02bForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -218,7 +218,7 @@ store0d4990ab933a7660111612f30ab7d02b.post = (options?: RouteQueryOptions): Rout
     store0d4990ab933a7660111612f30ab7d02b.form = store0d4990ab933a7660111612f30ab7d02bForm
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/staff/inventory/category'
  */
 const store8ed479659968e6106cd3ed91513dd65d = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -233,7 +233,7 @@ store8ed479659968e6106cd3ed91513dd65d.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/staff/inventory/category'
  */
 store8ed479659968e6106cd3ed91513dd65d.url = (options?: RouteQueryOptions) => {
@@ -242,7 +242,7 @@ store8ed479659968e6106cd3ed91513dd65d.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/staff/inventory/category'
  */
 store8ed479659968e6106cd3ed91513dd65d.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -252,7 +252,7 @@ store8ed479659968e6106cd3ed91513dd65d.post = (options?: RouteQueryOptions): Rout
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/staff/inventory/category'
  */
     const store8ed479659968e6106cd3ed91513dd65dForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -262,7 +262,7 @@ store8ed479659968e6106cd3ed91513dd65d.post = (options?: RouteQueryOptions): Rout
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::store
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:50
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:45
  * @route '/staff/inventory/category'
  */
         store8ed479659968e6106cd3ed91513dd65dForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -278,218 +278,8 @@ export const store = {
 }
 
 /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/shop/inventory/category/{inventoryCategory}/edit'
- */
-const edit324d80c462e18f63cf9cdb079563791e = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
-    method: 'get',
-})
-
-edit324d80c462e18f63cf9cdb079563791e.definition = {
-    methods: ["get","head"],
-    url: '/shop/inventory/category/{inventoryCategory}/edit',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/shop/inventory/category/{inventoryCategory}/edit'
- */
-edit324d80c462e18f63cf9cdb079563791e.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { inventoryCategory: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { inventoryCategory: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    inventoryCategory: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        inventoryCategory: typeof args.inventoryCategory === 'object'
-                ? args.inventoryCategory.id
-                : args.inventoryCategory,
-                }
-
-    return edit324d80c462e18f63cf9cdb079563791e.definition.url
-            .replace('{inventoryCategory}', parsedArgs.inventoryCategory.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/shop/inventory/category/{inventoryCategory}/edit'
- */
-edit324d80c462e18f63cf9cdb079563791e.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
-    method: 'get',
-})
-/**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/shop/inventory/category/{inventoryCategory}/edit'
- */
-edit324d80c462e18f63cf9cdb079563791e.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
-    method: 'head',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/shop/inventory/category/{inventoryCategory}/edit'
- */
-    const edit324d80c462e18f63cf9cdb079563791eForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/shop/inventory/category/{inventoryCategory}/edit'
- */
-        edit324d80c462e18f63cf9cdb079563791eForm.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edit324d80c462e18f63cf9cdb079563791e.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/shop/inventory/category/{inventoryCategory}/edit'
- */
-        edit324d80c462e18f63cf9cdb079563791eForm.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edit324d80c462e18f63cf9cdb079563791e.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    edit324d80c462e18f63cf9cdb079563791e.form = edit324d80c462e18f63cf9cdb079563791eForm
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/staff/inventory/category/{inventoryCategory}/edit'
- */
-const edit7a4b600ef9faa62f3579c2eb4dbbae6c = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
-    method: 'get',
-})
-
-edit7a4b600ef9faa62f3579c2eb4dbbae6c.definition = {
-    methods: ["get","head"],
-    url: '/staff/inventory/category/{inventoryCategory}/edit',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/staff/inventory/category/{inventoryCategory}/edit'
- */
-edit7a4b600ef9faa62f3579c2eb4dbbae6c.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { inventoryCategory: args }
-    }
-
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { inventoryCategory: args.id }
-        }
-    
-    if (Array.isArray(args)) {
-        args = {
-                    inventoryCategory: args[0],
-                }
-    }
-
-    args = applyUrlDefaults(args)
-
-    const parsedArgs = {
-                        inventoryCategory: typeof args.inventoryCategory === 'object'
-                ? args.inventoryCategory.id
-                : args.inventoryCategory,
-                }
-
-    return edit7a4b600ef9faa62f3579c2eb4dbbae6c.definition.url
-            .replace('{inventoryCategory}', parsedArgs.inventoryCategory.toString())
-            .replace(/\/+$/, '') + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/staff/inventory/category/{inventoryCategory}/edit'
- */
-edit7a4b600ef9faa62f3579c2eb4dbbae6c.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
-    method: 'get',
-})
-/**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/staff/inventory/category/{inventoryCategory}/edit'
- */
-edit7a4b600ef9faa62f3579c2eb4dbbae6c.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
-    method: 'head',
-})
-
-    /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/staff/inventory/category/{inventoryCategory}/edit'
- */
-    const edit7a4b600ef9faa62f3579c2eb4dbbae6cForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/staff/inventory/category/{inventoryCategory}/edit'
- */
-        edit7a4b600ef9faa62f3579c2eb4dbbae6cForm.get = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::edit
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:62
- * @route '/staff/inventory/category/{inventoryCategory}/edit'
- */
-        edit7a4b600ef9faa62f3579c2eb4dbbae6cForm.head = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: edit7a4b600ef9faa62f3579c2eb4dbbae6c.url(args, {
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    edit7a4b600ef9faa62f3579c2eb4dbbae6c.form = edit7a4b600ef9faa62f3579c2eb4dbbae6cForm
-
-export const edit = {
-    '/shop/inventory/category/{inventoryCategory}/edit': edit324d80c462e18f63cf9cdb079563791e,
-    '/staff/inventory/category/{inventoryCategory}/edit': edit7a4b600ef9faa62f3579c2eb4dbbae6c,
-}
-
-/**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
 const update6b3cc540c8f21bba5e29d8ccf7b47446 = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -504,7 +294,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
 update6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -537,7 +327,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number 
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
 update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -547,7 +337,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
     const update6b3cc540c8f21bba5e29d8ccf7b47446Form = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -562,7 +352,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
         update6b3cc540c8f21bba5e29d8ccf7b47446Form.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -578,7 +368,7 @@ update6b3cc540c8f21bba5e29d8ccf7b47446.put = (args: { inventoryCategory: number 
     update6b3cc540c8f21bba5e29d8ccf7b47446.form = update6b3cc540c8f21bba5e29d8ccf7b47446Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
 const update14331b5d6fffa767cb2d8427688bd8aa = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -593,7 +383,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
 update14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -626,7 +416,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number 
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
 update14331b5d6fffa767cb2d8427688bd8aa.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -636,7 +426,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.put = (args: { inventoryCategory: number 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
     const update14331b5d6fffa767cb2d8427688bd8aaForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -651,7 +441,7 @@ update14331b5d6fffa767cb2d8427688bd8aa.put = (args: { inventoryCategory: number 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::update
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:72
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:60
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
         update14331b5d6fffa767cb2d8427688bd8aaForm.put = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -673,7 +463,7 @@ export const update = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
 const destroy6b3cc540c8f21bba5e29d8ccf7b47446 = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -688,7 +478,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
 destroy6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -721,7 +511,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.url = (args: { inventoryCategory: number
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
 destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -731,7 +521,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: num
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
     const destroy6b3cc540c8f21bba5e29d8ccf7b47446Form = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -746,7 +536,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: num
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/shop/inventory/category/{inventoryCategory}'
  */
         destroy6b3cc540c8f21bba5e29d8ccf7b47446Form.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -762,7 +552,7 @@ destroy6b3cc540c8f21bba5e29d8ccf7b47446.delete = (args: { inventoryCategory: num
     destroy6b3cc540c8f21bba5e29d8ccf7b47446.form = destroy6b3cc540c8f21bba5e29d8ccf7b47446Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
 const destroy14331b5d6fffa767cb2d8427688bd8aa = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -777,7 +567,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
 destroy14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -810,7 +600,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.url = (args: { inventoryCategory: number
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
 destroy14331b5d6fffa767cb2d8427688bd8aa.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -820,7 +610,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.delete = (args: { inventoryCategory: num
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
     const destroy14331b5d6fffa767cb2d8427688bd8aaForm = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -835,7 +625,7 @@ destroy14331b5d6fffa767cb2d8427688bd8aa.delete = (args: { inventoryCategory: num
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::destroy
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:86
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:74
  * @route '/staff/inventory/category/{inventoryCategory}'
  */
         destroy14331b5d6fffa767cb2d8427688bd8aaForm.delete = (args: { inventoryCategory: number | { id: number } } | [inventoryCategory: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -857,7 +647,7 @@ export const destroy = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/shop/inventory/category/archive'
  */
 const archive404c773398fe82fdd774ec7026f3c784 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -872,7 +662,7 @@ archive404c773398fe82fdd774ec7026f3c784.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/shop/inventory/category/archive'
  */
 archive404c773398fe82fdd774ec7026f3c784.url = (options?: RouteQueryOptions) => {
@@ -881,7 +671,7 @@ archive404c773398fe82fdd774ec7026f3c784.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/shop/inventory/category/archive'
  */
 archive404c773398fe82fdd774ec7026f3c784.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -890,7 +680,7 @@ archive404c773398fe82fdd774ec7026f3c784.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/shop/inventory/category/archive'
  */
 archive404c773398fe82fdd774ec7026f3c784.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -900,7 +690,7 @@ archive404c773398fe82fdd774ec7026f3c784.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/shop/inventory/category/archive'
  */
     const archive404c773398fe82fdd774ec7026f3c784Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -910,7 +700,7 @@ archive404c773398fe82fdd774ec7026f3c784.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/shop/inventory/category/archive'
  */
         archive404c773398fe82fdd774ec7026f3c784Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -919,7 +709,7 @@ archive404c773398fe82fdd774ec7026f3c784.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/shop/inventory/category/archive'
  */
         archive404c773398fe82fdd774ec7026f3c784Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -935,7 +725,7 @@ archive404c773398fe82fdd774ec7026f3c784.head = (options?: RouteQueryOptions): Ro
     archive404c773398fe82fdd774ec7026f3c784.form = archive404c773398fe82fdd774ec7026f3c784Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/staff/inventory/category/archive'
  */
 const archive7398841bee1be9d2b8b2ee1c12a9d9dd = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -950,7 +740,7 @@ archive7398841bee1be9d2b8b2ee1c12a9d9dd.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/staff/inventory/category/archive'
  */
 archive7398841bee1be9d2b8b2ee1c12a9d9dd.url = (options?: RouteQueryOptions) => {
@@ -959,7 +749,7 @@ archive7398841bee1be9d2b8b2ee1c12a9d9dd.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/staff/inventory/category/archive'
  */
 archive7398841bee1be9d2b8b2ee1c12a9d9dd.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -968,7 +758,7 @@ archive7398841bee1be9d2b8b2ee1c12a9d9dd.get = (options?: RouteQueryOptions): Rou
 })
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/staff/inventory/category/archive'
  */
 archive7398841bee1be9d2b8b2ee1c12a9d9dd.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -978,7 +768,7 @@ archive7398841bee1be9d2b8b2ee1c12a9d9dd.head = (options?: RouteQueryOptions): Ro
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/staff/inventory/category/archive'
  */
     const archive7398841bee1be9d2b8b2ee1c12a9d9ddForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -988,7 +778,7 @@ archive7398841bee1be9d2b8b2ee1c12a9d9dd.head = (options?: RouteQueryOptions): Ro
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/staff/inventory/category/archive'
  */
         archive7398841bee1be9d2b8b2ee1c12a9d9ddForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -997,7 +787,7 @@ archive7398841bee1be9d2b8b2ee1c12a9d9dd.head = (options?: RouteQueryOptions): Ro
         })
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::archive
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:93
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:81
  * @route '/staff/inventory/category/archive'
  */
         archive7398841bee1be9d2b8b2ee1c12a9d9ddForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -1019,7 +809,7 @@ export const archive = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/shop/inventory/category/{id}/restore'
  */
 const restore0a1dd82d80f4561d47f5a940c4337ea8 = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1034,7 +824,7 @@ restore0a1dd82d80f4561d47f5a940c4337ea8.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/shop/inventory/category/{id}/restore'
  */
 restore0a1dd82d80f4561d47f5a940c4337ea8.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1062,7 +852,7 @@ restore0a1dd82d80f4561d47f5a940c4337ea8.url = (args: { id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/shop/inventory/category/{id}/restore'
  */
 restore0a1dd82d80f4561d47f5a940c4337ea8.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1072,7 +862,7 @@ restore0a1dd82d80f4561d47f5a940c4337ea8.post = (args: { id: string | number } | 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/shop/inventory/category/{id}/restore'
  */
     const restore0a1dd82d80f4561d47f5a940c4337ea8Form = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1082,7 +872,7 @@ restore0a1dd82d80f4561d47f5a940c4337ea8.post = (args: { id: string | number } | 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/shop/inventory/category/{id}/restore'
  */
         restore0a1dd82d80f4561d47f5a940c4337ea8Form.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1093,7 +883,7 @@ restore0a1dd82d80f4561d47f5a940c4337ea8.post = (args: { id: string | number } | 
     restore0a1dd82d80f4561d47f5a940c4337ea8.form = restore0a1dd82d80f4561d47f5a940c4337ea8Form
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/staff/inventory/category/{id}/restore'
  */
 const restore25301f02e32be36e1eee3446d9bd5a17 = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1108,7 +898,7 @@ restore25301f02e32be36e1eee3446d9bd5a17.definition = {
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/staff/inventory/category/{id}/restore'
  */
 restore25301f02e32be36e1eee3446d9bd5a17.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -1136,7 +926,7 @@ restore25301f02e32be36e1eee3446d9bd5a17.url = (args: { id: string | number } | [
 
 /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/staff/inventory/category/{id}/restore'
  */
 restore25301f02e32be36e1eee3446d9bd5a17.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -1146,7 +936,7 @@ restore25301f02e32be36e1eee3446d9bd5a17.post = (args: { id: string | number } | 
 
     /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/staff/inventory/category/{id}/restore'
  */
     const restore25301f02e32be36e1eee3446d9bd5a17Form = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1156,7 +946,7 @@ restore25301f02e32be36e1eee3446d9bd5a17.post = (args: { id: string | number } | 
 
             /**
 * @see \App\Http\Controllers\Shop\Inventory\InventoryCategoryController::restore
- * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:102
+ * @see app/Http/Controllers/Shop/Inventory/InventoryCategoryController.php:90
  * @route '/staff/inventory/category/{id}/restore'
  */
         restore25301f02e32be36e1eee3446d9bd5a17Form.post = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -1171,6 +961,6 @@ export const restore = {
     '/staff/inventory/category/{id}/restore': restore25301f02e32be36e1eee3446d9bd5a17,
 }
 
-const InventoryCategoryController = { index, store, edit, update, destroy, archive, restore }
+const InventoryCategoryController = { index, store, update, destroy, archive, restore }
 
 export default InventoryCategoryController

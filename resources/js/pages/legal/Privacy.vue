@@ -1,0 +1,47 @@
+<script setup lang="ts">
+import LegalDocument, { type LegalSection } from './LegalDocument.vue';
+
+// Placeholder wording: have the final text reviewed before launch.
+const sections: LegalSection[] = [
+    {
+        heading: 'Information we collect',
+        body: [
+            'We collect the details you give us when you register and use LaundryHub, such as your name, email address, phone number, delivery addresses, order and payment records, and, for shop owners, business verification documents.',
+            'We also record basic usage information such as sign-in times, so we can keep accounts secure.',
+        ],
+    },
+    {
+        heading: 'How we use it',
+        body: [
+            'We use your information to run your account, process orders and payments, send order updates by email, verify shops, prevent fraud and improve the platform.',
+        ],
+    },
+    {
+        heading: 'Who can see it',
+        body: [
+            'Your order details are shared with the shop handling your order and, where applicable, its delivery rider. Shop data is kept separate between shops. We do not sell your personal information.',
+        ],
+    },
+    {
+        heading: 'Security and retention',
+        body: [
+            'We protect your data with access controls and keep it only as long as needed to provide the service or meet legal and record-keeping requirements.',
+        ],
+    },
+    {
+        heading: 'Your choices and contact',
+        body: [
+            'You can review and update your profile information from your account settings, and you can ask us to correct or delete your data through the support options in the app.',
+        ],
+    },
+];
+</script>
+
+<template>
+    <LegalDocument
+        title="Privacy Policy"
+        updated="November 19, 2026"
+        intro="This policy explains what personal information LaundryHub collects, how it is used and the choices you have."
+        :sections="sections"
+    />
+</template>

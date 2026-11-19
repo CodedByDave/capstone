@@ -1157,13 +1157,17 @@ const goToGoogle = () => {
                             <span>
                                 I have read and agree to the
                                 <a
-                                    href="#"
+                                    href="/terms"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     :class="[textLinkClass, 'underline']"
                                     >Terms &amp; Conditions</a
                                 >
                                 and
                                 <a
-                                    href="#"
+                                    href="/privacy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     :class="[textLinkClass, 'underline']"
                                     >Privacy Policy</a
                                 >.

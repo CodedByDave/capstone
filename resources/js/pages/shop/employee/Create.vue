@@ -548,34 +548,6 @@ function submit() {
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-sm font-medium"
-                                    >Status
-                                    <span class="text-red-500">*</span></label
-                                >
-                                <Select v-model="form.status"
-                                    ><SelectTrigger
-                                        class="w-full"
-                                        :class="{
-                                            'border-red-500': errors.status,
-                                        }"
-                                        ><SelectValue
-                                            placeholder="Select status" /></SelectTrigger
-                                    ><SelectContent
-                                        ><SelectItem value="Active"
-                                            >Active</SelectItem
-                                        ><SelectItem value="Inactive"
-                                            >Inactive</SelectItem
-                                        ></SelectContent
-                                    ></Select
-                                >
-                                <p
-                                    v-if="errors.status"
-                                    class="text-xs text-red-500"
-                                >
-                                    {{ errors.status }}
-                                </p>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-sm font-medium"
                                     >Pay Rate
                                     <span class="text-red-500">*</span></label
                                 >
